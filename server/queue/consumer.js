@@ -404,21 +404,28 @@ var Consumer = function () {
                         });
                     }
                 } else {
-                    serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
-                        if (err) {
-                            global.logger.write('debug', err, {}, messageJson['payload']);
+                    console.log('In Consumer - In ELSE');
+                    if(asyncFlag === 1) {
+                        //Function with Async/Await
+                        let [err, resp] = await serviceObjectCollection[serviceName][method](messageJson['payload']);
                             resolve();
-                        } else {
-                            global.logger.write('debug', data, {}, messageJson['payload']);
-
-                            //Commit the offset
-                            //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-
-                            //Store the read kafak message ID in the redis
-                            //setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                            resolve();
-                        }
-                    });
+                    } else {
+                        serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
+                            if (err) {
+                                global.logger.write('debug', err, {}, messageJson['payload']);
+                                resolve();
+                            } else {
+                                global.logger.write('debug', data, {}, messageJson['payload']);
+    
+                                //Commit the offset
+                                //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
+    
+                                //Store the read kafak message ID in the redis
+                                //setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                resolve();
+                            }
+                        });
+                    }
                 }
 
             } catch (exception) {

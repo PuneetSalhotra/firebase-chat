@@ -1785,7 +1785,7 @@ function BotService(objectCollection) {
             return await (db.executeQueryPromise(0, queryString, request));
         }
     }
-
+    
     // Bot Step to change the status
     async function changeStatus(request, inlineData) {
         let newReq = Object.assign({}, request);
@@ -2933,6 +2933,26 @@ function BotService(objectCollection) {
                 (err === false) ? resolve() : reject(err);
             });
         });
+    }
+
+    this.alterWFCompletionPercentageMethod = async(request) => {
+        global.logger.write('conLog', '****************************************************************', {}, {});
+        global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
+        global.logger.write('conLog', 'Request Params received from Request', {}, {});
+        global.logger.write('conLog', request, {}, {});
+
+        let inline = {
+            workflow_percentage_contribution: request.activity_status_workflow_percentage
+        };
+        try {
+            let result = await alterWFCompletionPercentage(request, inline);
+        } catch (err) {
+            global.logger.write('conLog', 'Error in executing alterWFCompletionPercentageMethod Step', {}, {});
+            global.logger.write('serverError', err, {}, {});
+        }
+        global.logger.write('conLog', '****************************************************************', {}, {});
+
+        return [false, {}]
     }
 
     //Bot Step Altering workflow completion percentage
