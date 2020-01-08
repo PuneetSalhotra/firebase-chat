@@ -537,7 +537,16 @@ function ActivityPushService(objectCollection) {
                                         break;
                                 }
                                 break;
+                            case '/' + global.config.version + '/activity/cover/alter':
+                                if (Number(request.activity_stream_type_id) === 711) {
+                                    pushString.title = activityTitle;
+                                    pushString.subtitle = 'due date changed';
+                                    pushString.body = senderName;
 
+                                    msg.activity_type_category_id = 48;
+                                    msg.type = 'activity_duedate';
+                                }
+                                break;
                             default:
                                 pushString = {};
                                 break;
@@ -1143,7 +1152,7 @@ function ActivityPushService(objectCollection) {
                         global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
                         
                         if (Object.keys(assetMap).length > 0) {
-                            global.logger.write('debug', rowData, {}, {});
+                            global.logger.write('debug', JSON.stringify(rowData), {}, {});
                             switch (rowData.pushType) {
                                 case 'pub':
                                     //console.log('pubnubMsg :', pubnubMsg);
@@ -1183,7 +1192,7 @@ function ActivityPushService(objectCollection) {
         }
     }
     
-    this.sendPushAsync = async (request, objectCollection, pushAssetId) => {
+    this.sendPushAsync = async (request, objectCollection, pushAssetId, sendOnlyToThisAsset = 0) => {
         let responseData = [],
             error = true;
 
@@ -1195,11 +1204,22 @@ function ActivityPushService(objectCollection) {
             console.log("sendPush | orgRateLimitCheckAndSet | Error: ", err);
         }
 
-        let pushReceivers = new Array();
+        let pushReceivers = new Array();                
         let [err , participantsList] = await objectCollection.activityCommonService.getAllParticipantsAsync(request);
         if (!err) {
             let senderName = '';
             let reqobj = {};
+
+            if(sendOnlyToThisAsset > 0) {                
+                for(let i=0; i<participantsList.length; i++) {
+                    if(participantsList[i].asset_id === sendOnlyToThisAsset) {
+                        let tempArr = [];
+                            tempArr.push(participantsList[i]);                 
+                        participantsList = [...tempArr];
+                        break; 
+                    }
+                }
+            }
 
             //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
             //global.logger.write('debug', request, {}, request);

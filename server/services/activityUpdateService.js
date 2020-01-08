@@ -925,7 +925,9 @@ function ActivityUpdateService(objectCollection) {
 
                     //});
                     //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha                    
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    if(activityTypeCategoryId !== 48) {
+                        activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    }
                     activityPushService.sendSMSNotification(request, objectCollection, request.asset_id, function () {});
 
                     if (request.hasOwnProperty('activity_parent_id')) {
@@ -1246,7 +1248,9 @@ function ActivityUpdateService(objectCollection) {
                                     if(Number(request.asset_id) !== ownerAssetID) {
                                         //activityCommonService.updateActivityLogDiffDatetime(request, ownerAssetID, function (err, data) {});
                                         await activityCommonService.increaseUnreadForGivenAsset(request, ownerAssetID, (err, data)=>{});
-                                        activityPushService.sendPush(request, objectCollection, ownerAssetID, ()=>{});
+                                        let newReq = Object.assign({}, request);
+                                        newReq.activity_stream_type_id = 711;
+                                        await activityPushService.sendPushAsync(newReq, objectCollection, ownerAssetID, ownerAssetID);
                                     }
                             }                            
                         } catch (error) {
