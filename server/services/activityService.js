@@ -1971,7 +1971,7 @@ function ActivityService(objectCollection) {
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);
                 console.log("*****WORKLOAD UPDATE | data: ", JSON.stringify(data));
-                activityCommonService.activityLeadUpdate(request, true);
+                activityCommonService.activityLeadUpdate(request, {}, true);
                 
                 if(activityTypeCategoryId === 48){
 
