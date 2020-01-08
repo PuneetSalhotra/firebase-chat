@@ -716,7 +716,9 @@ function ActivityTimelineService(objectCollection) {
                             ) {
                                 throw new Error("ChildOrder::NoPush")
                             }
-                            activityPushService.sendPush(request, objectCollection, 0, function () {});
+                            if(activityStreamTypeId !== 711) {
+                                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                            }
                         } catch (error) {
                             console.log("[WARNING] No Push Sent: ", error);
                         }
@@ -725,9 +727,20 @@ function ActivityTimelineService(objectCollection) {
                         //updating log differential datetime for only this asset
                         activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
 
-                        (request.hasOwnProperty('signedup_asset_id')) ?
-                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) {}): //To increase unread cnt for marketing manager
-                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                        //(request.hasOwnProperty('signedup_asset_id')) ?
+                        //activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) {}): //To increase unread cnt for marketing manager
+                        //    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+
+                        if(request.hasOwnProperty('signedup_asset_id')) {
+                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) {}); //To increase unread cnt for marketing manager
+                        } else {
+                            if(activityStreamTypeId === 711) {
+                                //Do Nothing
+                                //Send Push only to the Owner Asset ID
+                            } else {
+                                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                            }
+                        }
 
                         // Telephone module
                         // 23003 => Added an update to the chat
@@ -803,7 +816,9 @@ function ActivityTimelineService(objectCollection) {
                         ) {
                             throw new Error("ChildOrder::NoPush");
                         }
-                        await activityPushService.sendPushAsync(request, objectCollection, 0);
+                        if(activityStreamTypeId !== 711) {
+                            await activityPushService.sendPushAsync(request, objectCollection, 0);
+                        }                        
                     } catch (err) {
                         console.log("[WARNING] No Push Sent: ", err);
                     }
@@ -813,10 +828,20 @@ function ActivityTimelineService(objectCollection) {
                     //updating log differential datetime for only this asset
                     await activityCommonService.updateActivityLogDiffDatetimeAsync(request, request.asset_id);
     
-                    (request.hasOwnProperty('signedup_asset_id')) ?
-                        await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, 0): //To increase unread cnt for marketing manager
-                        await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, Number(request.asset_id));
+                    //(request.hasOwnProperty('signedup_asset_id')) ?
+                    //    await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, 0): //To increase unread cnt for marketing manager
+                    //    await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, Number(request.asset_id));
     
+                    if(request.hasOwnProperty('signedup_asset_id')) {
+                        await activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0); //To increase unread cnt for marketing manager
+                    } else {
+                        if(activityStreamTypeId === 711) {
+                            //Do Nothing                            
+                        } else {
+                            await activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id));
+                        }
+                    }
+
                     // Telephone module
                     // 23003 => Added an update to the chat
                     if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {

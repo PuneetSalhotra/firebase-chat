@@ -147,6 +147,20 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
+    this.increaseUnreadForGivenAsset = (request, assetID) => {
+        return new Promise((resolve, reject)=>{
+            let assetCollection = {
+                asset_id: assetID,
+                workforce_id: request.workforce_id,
+                account_id: request.account_id,
+                organization_id: request.organization_id
+            };
+            updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, ()=>{
+                resolve();
+            });
+        });
+    };
+
     var updateActivityLogLastUpdatedDatetimeAsset = function (request, assetCollection, callback) {
 
         var paramsArr = new Array(

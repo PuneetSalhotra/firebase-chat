@@ -1244,7 +1244,9 @@ function ActivityUpdateService(objectCollection) {
                                     let ownerAssetID = Number(respData[0].activity_creator_asset_id);
                                     console.log('ownerAssetID : ', ownerAssetID);
                                     if(Number(request.asset_id) !== ownerAssetID) {
-                                        activityCommonService.updateActivityLogDiffDatetime(request, ownerAssetID, function (err, data) {});
+                                        //activityCommonService.updateActivityLogDiffDatetime(request, ownerAssetID, function (err, data) {});
+                                        await activityCommonService.increaseUnreadForGivenAsset(request, ownerAssetID, (err, data)=>{});
+                                        activityPushService.sendPush(request, objectCollection, ownerAssetID, ()=>{});
                                     }
                             }                            
                         } catch (error) {
