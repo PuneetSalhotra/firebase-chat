@@ -136,7 +136,13 @@ function WorkflowQueueService(objectCollection) {
                             request.log_datetime,
                         );
 
-                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    //results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    let queryString = util.getQueryString('ds_p1_queue_list_history_insert', paramsArray);
+                    await db.executeQueryPromise(0, queryString, request);
+                        //.then((data) => {                            
+                        //})
+                        //.catch((err) => {                            
+                        //});
 
                     paramsArray =
                         new Array(
@@ -198,7 +204,13 @@ function WorkflowQueueService(objectCollection) {
                             request.log_datetime,
                         );
 
-                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    //results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    let queryString = util.getQueryString('ds_p1_queue_list_history_insert', paramsArray);
+                    await db.executeQueryPromise(0, queryString, request);
+                        //.then((data) => {                            
+                        //})
+                        //.catch((err) => {                            
+                        //});
 
                     paramsArray =
                         new Array(
@@ -234,7 +246,9 @@ function WorkflowQueueService(objectCollection) {
                             request.log_datetime,
                         );
 
-                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    //results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    let queryString = util.getQueryString('ds_p1_queue_list_history_insert', paramsArray);
+                    await db.executeQueryPromise(0, queryString, request);
 
                     paramsArray =
                         new Array(
