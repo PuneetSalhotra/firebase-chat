@@ -223,6 +223,17 @@ function BotController(objCollection) {
     //        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
     //    } 
     //});
+
+    //Initiate the Bot Engine
+    app.post('/' + global.config.version + '/bot_step/wf_percentage/alter', async (req, res) => {
+        try {
+            let result = await botService.alterWFCompletionPercentageMethod(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
     
 }
 
