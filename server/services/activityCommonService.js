@@ -4870,36 +4870,60 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.activityLeadUpdate = async function (request, participantData, isAlterStatus) {
 
-        if(false){
-            //from add participant
-            //check whether the lead asset type is equal to new participant asset type
-            // both are same then update the lead with new asset 
-            // calculate the workload for existing and new assets
-            // insert into summary table
+        self.getActivityDetailsPromise(request, request.activity_id).then(async (data)=>{
+            console.log("getActivityDetailsPromise :: "+data);
+            let participantCheck = false;
 
+            request.flag = -1;
+            request.start_datetime = '1970-01-01 00:00:00';
+            request.end_datetime = '2049-12-31 18:30:00';
+            request.monthly_summary_id = 5;
+            let assetID = 0;
 
-        }else{
-            //from alter status
-            
-            self.getActivityDetailsPromise(request, request.activity_id).then(async (data)=>{
-                console.log("getActivityDetailsPromise :: "+data);
-                let participantCheck = false;
+            let leadRequest = Object.assign({}, request);
+            leadRequest.asset_id = data[0].activity_lead_asset_id?data[0].activity_lead_asset_id: 0;
+            console.log("participantData :: "+JSON.stringify(participantData, null, 2));
+             if(isAlterStatus){ 
 
-                request.flag = -1;
-                request.start_datetime = '1970-01-01 00:00:00';
-                request.end_datetime = '2049-12-31 18:30:00';
-                request.monthly_summary_id = 5;
-                let assetID = 0;
+                let newReq = Object.assign({}, request);
+                //Need to get the asset(Role) -- Mapped to that status
+                let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
+                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
+                console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
 
-                let leadRequest = Object.assign({}, request);
-                leadRequest.asset_id = data[0].activity_lead_asset_id;
-                console.log("participantData :: "+JSON.stringify(participantData, null, 2));
-                 if(isAlterStatus){
+                let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
+                console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+                assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
+                console.log('getAssetForAssetTypeID : ASSET ID', assetID);
 
-                    let newReq = Object.assign({}, request);
-                    //Need to get the asset(Role) -- Mapped to that status
-                    let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
-                    console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+            } else if(leadRequest.asset_id === 0 || leadRequest.asset_id === null){
+                //lead doesn't exists
+                let newReq = Object.assign({}, request);
+                //Need to get the asset(Role) -- Mapped to that status
+                let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
+                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
+                console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
+
+                let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
+                console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+                assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
+                console.log('getAssetForAssetTypeID : ASSET ID', assetID);
+                participantCheck = true;
+            } else if(participantData.asset_type_id === data[0].activity_lead_asset_type_id){  
+                //lead exists                       
+                participantCheck = true;
+                assetID = participantData.asset_id;
+                console.log('new Participant from Request : ASSET ID', assetID);
+            } else if(participantData.asset_type_id !== data[0].activity_lead_asset_type_id){
+                //lead doesn't exists
+                let newReq = Object.assign({}, request);
+                //Need to get the asset(Role) -- Mapped to that status
+                let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
+                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                if(roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id){
+
                     newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
                     console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
 
@@ -4907,52 +4931,49 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
                     assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                     console.log('getAssetForAssetTypeID : ASSET ID', assetID);
-
-                } else if(participantData.asset_type_id === data[0].activity_lead_asset_type_id){                         
                     participantCheck = true;
-                    assetID = participantData.asset_id;
-                    console.log('new Participant from Request : ASSET ID', assetID);
+                }else{
+                    participantCheck = false;
                 }
+            }
 
-                if(participantCheck || isAlterStatus){
+            if(participantCheck || isAlterStatus){
 
-                    await self.activityListLeadUpdate(request, assetID);
+                await self.activityListLeadUpdate(request, assetID);
 
-                    let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                    console.log("exisitngAssetData :: "+exisitngAssetData);
-                    let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration)-Number(exisitngAssetData[0].actual_duration);
-                    leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
-                    leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
-                    leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
+                let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
+                console.log("exisitngAssetData :: "+exisitngAssetData);
+                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration)-Number(exisitngAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+                leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
+                leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
 
-                    console.log('After activityListLeadUpdate : '+leadRequest);
-                    leadRequest.asset_id = data[0].activity_lead_asset_id;
-                    await self.assetSummaryTransactionInsert(leadRequest);
-                    console.log('After assetSummaryTransactionInsert : ');
+                console.log('After activityListLeadUpdate : '+leadRequest);
+                leadRequest.asset_id = data[0].activity_lead_asset_id;
+                await self.assetSummaryTransactionInsert(leadRequest);
+                console.log('After assetSummaryTransactionInsert : ');
 
-                    leadRequest.asset_id = assetID;
+                leadRequest.asset_id = assetID;
 
-                    let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                    console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
-                    let newAssetEfficiency = Number(newAssetData[0].expected_duration)-Number(newAssetData[0].actual_duration);
-                    leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
-                    leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
-                    leadRequest.entity_decimal_3 = newAssetEfficiency;
+                let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
+                console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
+                let newAssetEfficiency = Number(newAssetData[0].expected_duration)-Number(newAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+                leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
+                leadRequest.entity_decimal_3 = newAssetEfficiency;
 
-                    console.log("Expected Duration :: "+newAssetData[0].expected_duration);
-                    console.log("Actual Duration :: "+newAssetData[0].actual_duration);
-                    console.log("newAssetEfficiency :: "+newAssetEfficiency);
+                console.log("Expected Duration :: "+newAssetData[0].expected_duration);
+                console.log("Actual Duration :: "+newAssetData[0].actual_duration);
+                console.log("newAssetEfficiency :: "+newAssetEfficiency);
 
-                    leadRequest.asset_id = assetID;
-                    await self.assetSummaryTransactionInsert(leadRequest);
+                leadRequest.asset_id = assetID;
+                await self.assetSummaryTransactionInsert(leadRequest);
 
-                    console.log("existingAssetEfficiency "+existingAssetEfficiency);
-                    console.log("newAssetEfficiency "+newAssetEfficiency);  
-                }
-            });
-        }
+                console.log("existingAssetEfficiency "+existingAssetEfficiency);
+                console.log("newAssetEfficiency "+newAssetEfficiency);  
+            }
+        });
     }
-
 }
 
 
