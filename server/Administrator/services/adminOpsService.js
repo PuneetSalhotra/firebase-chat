@@ -3465,10 +3465,12 @@ function AdminOpsService(objectCollection) {
                             try {
                                 await self.updateAssetFlags({
                                     ...request,
+                                    account_id: accountID,
+                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
                                     asset_id: deskAssetID,
                                     flag: 0,
                                     set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
                                 });
                             } catch (error) {
                                 logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
@@ -3495,10 +3497,12 @@ function AdminOpsService(objectCollection) {
                             try {
                                 await self.updateAssetFlags({
                                     ...request,
+                                    account_id: accountID,
+                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
                                     asset_id: employeeAssetID,
                                     flag: 0,
                                     set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
                                 });
                             } catch (error) {
                                 logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
