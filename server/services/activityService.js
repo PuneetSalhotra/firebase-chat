@@ -255,8 +255,8 @@ function ActivityService(objectCollection) {
                                 let displayFileEvent = {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
-                                    method: "addTimelineTransaction",
-                                    //method: "addTimelineTransactionAsync",
+                                    //method: "addTimelineTransaction",
+                                    method: "addTimelineTransactionAsync",
                                     payload: newRequest
                                 };
 
@@ -1971,7 +1971,7 @@ function ActivityService(objectCollection) {
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);
                 console.log("*****WORKLOAD UPDATE | data: ", JSON.stringify(data));
-                activityCommonService.activityLeadUpdate(request, true);
+                activityCommonService.activityLeadUpdate(request, {}, true);
                 
                 if(activityTypeCategoryId === 48){
 
@@ -4333,7 +4333,19 @@ function ActivityService(objectCollection) {
         let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
         console.log('ROLEDATA : ', roleData[0]);
         newReq.asset_type_id = (!err && roleData[0].length > 0) ? roleData[0].asset_type_id : 0;
+        newReq.activity_status_workflow_percentage = (!err && roleData[0].length > 0) ? roleData[0].activity_status_workflow_percentage : 0;
+
+        //newReq.activity_status_workflow_percentage = 10;
         
+        //Update the percentage as well
+        if(newReq.activity_status_workflow_percentage > 0) {
+            await activityCommonService.makeRequest(newReq, "bot_step/wf_percentage/alter", 1)
+            .then((resp) => {
+                global.logger.write('debug', "bot_step/wf_percentage/alter Response: " + JSON.stringify(resp), {}, request);
+            });
+        }
+        
+                    
         let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(newReq);
         let assetID = (!err1 && assetData[0].length > 0) ? assetData[0].asset_id : 0;
 
@@ -4392,7 +4404,7 @@ function ActivityService(objectCollection) {
         if(assetID > 0) {
             await activityCommonService.monthlySummaryInsert(newReq, monthlyObj);
         }
-        
+
         return "success";
     }
 
