@@ -4758,7 +4758,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
         if (queryString != '') {
             //return await db.executeQueryPromise(1, queryString, request);
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -4784,7 +4784,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role_participant', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -4816,7 +4816,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -4888,26 +4888,26 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
                 let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
-                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                console.log('getAssetTypeIDForAStatusID : 1 ', roleData);
                 newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
                 console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
 
                 let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
-                console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+                console.log('getAssetForAssetTypeID : 3', assetData);
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
-
+ 
             } else if(leadRequest.asset_id === 0 || leadRequest.asset_id === null){
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
                 let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
-                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                console.log('getAssetTypeIDForAStatusID : 4 ', roleData);
                 newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
-                console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
+                console.log('getAssetTypeIDForAStatusID : 5 ', roleData[0].asset_type_id);
 
                 let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
-                console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+                console.log('getAssetForAssetTypeID : 6', assetData);
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                 participantCheck = true;
@@ -4921,14 +4921,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
                 let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
-                console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+                console.log('getAssetTypeIDForAStatusID : 7 ', roleData);
                 if(roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id){
 
                     newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
-                    console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
+                    console.log('getAssetTypeIDForAStatusID : 8 ', roleData[0].asset_type_id);
 
                     let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
-                    console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+                    console.log('getAssetForAssetTypeID : 9', assetData);
                     assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                     console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                     participantCheck = true;
@@ -4943,8 +4943,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                 let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
                 console.log("exisitngAssetData :: "+exisitngAssetData);
-                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration)-Number(exisitngAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration*60)-Number(exisitngAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration*60;
                 leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
 
@@ -4957,9 +4957,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                 let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
                 console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
-                let newAssetEfficiency = Number(newAssetData[0].expected_duration)-Number(newAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
-                leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
+                let newAssetEfficiency = Number(newAssetData[0].expected_duration*60)-Number(newAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration*60;
+                leadRequest.entity_decimal_2 = newAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = newAssetEfficiency;
 
                 console.log("Expected Duration :: "+newAssetData[0].expected_duration);
