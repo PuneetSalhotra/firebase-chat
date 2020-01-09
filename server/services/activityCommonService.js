@@ -147,6 +147,20 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
+    this.increaseUnreadForGivenAsset = (request, assetID) => {
+        return new Promise((resolve, reject)=>{
+            let assetCollection = {
+                asset_id: assetID,
+                workforce_id: request.workforce_id,
+                account_id: request.account_id,
+                organization_id: request.organization_id
+            };
+            updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, ()=>{
+                resolve();
+            });
+        });
+    };
+
     var updateActivityLogLastUpdatedDatetimeAsset = function (request, assetCollection, callback) {
 
         var paramsArr = new Array(
@@ -2017,7 +2031,7 @@ this.getAllParticipantsAsync = async (request) => {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
                                 global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, {});
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
+                                global.logger.write('debug', "Asset - " + rowData.asset_id + " - " + rowData.operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);

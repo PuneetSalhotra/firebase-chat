@@ -2454,6 +2454,7 @@ function ActivityService(objectCollection) {
         for (const workExperienceFlag of [1, 2, 3, 4, 5, 6, 7, 8]) {
             const [err, workExpData] = await activityStatusChangeTransactionSelectAssetWorkExp({
                 ...request,
+                asset_id: activityLeadAssetID || activityOwnerAssetID,
                 flag: workExperienceFlag
             });
             switch (workExperienceFlag) {
@@ -4228,6 +4229,7 @@ function ActivityService(objectCollection) {
             workflowActivityId = Number(workflowData[0].activity_id);
         }
         
+
         let botIsDefined = 0;
         let botEngineRequest = Object.assign({}, request);
             botEngineRequest.form_id = Number(fieldData.form_id);
@@ -4331,13 +4333,12 @@ function ActivityService(objectCollection) {
         //Need to get the asset(Role) -- Mapped to that status
         let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
         console.log('ROLEDATA : ', roleData[0]);
-        newReq.asset_type_id = (!err && roleData[0].length > 0) ? roleData[0].asset_type_id : 0;
-        newReq.activity_status_workflow_percentage = (!err && roleData[0].length > 0) ? roleData[0].activity_status_workflow_percentage : 0;
-
-        //newReq.activity_status_workflow_percentage = 10;
+        newReq.asset_type_id = (!err && roleData.length > 0) ? Number(roleData[0].asset_type_id) : 0;
+        newReq.activity_status_workflow_percentage = (!err && roleData.length > 0) ? Number(roleData[0].activity_status_workflow_percentage) : 0;
         
+        console.log('newReq.activity_status_workflow_percentage) : ', newReq.activity_status_workflow_percentage);
         //Update the percentage as well
-        if(newReq.activity_status_workflow_percentage > 0) {
+        if(newReq.activity_status_workflow_percentage > 0) {            
             await activityCommonService.makeRequest(newReq, "bot_step/wf_percentage/alter", 1)
             .then((resp) => {
                 global.logger.write('debug', "bot_step/wf_percentage/alter Response: " + JSON.stringify(resp), {}, request);
@@ -4346,7 +4347,7 @@ function ActivityService(objectCollection) {
         
                     
         let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(newReq);
-        let assetID = (!err1 && assetData[0].length > 0) ? assetData[0].asset_id : 0;
+        let assetID = (!err1 && assetData.length > 0) ? Number(assetData[0].asset_id) : 0;
 
         console.log('ASSET TYPE ID(ROLE) for the Status:', newReq.activity_status_name, ' is : ', newReq.asset_type_id);
         console.log('ASSET ID for the ROLE:', newReq.asset_type_id, ' is : ', assetID);

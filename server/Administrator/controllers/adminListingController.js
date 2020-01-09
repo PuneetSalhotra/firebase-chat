@@ -282,6 +282,30 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+
+    //List all the assets mapped to a Role
+    app.post('/' + global.config.version + '/admin/asset/role/list', async function (req, res) {
+        const [err, data] = await adminListingService.assetListSelectRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/asset/role/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+
+    // List statuses associated with this role
+    app.post('/' + global.config.version + '/admin/asset/role/statuses/list', async function (req, res) {
+        const [err, data] = await adminListingService.workforceActivityStatusMappingSelectRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/asset/role/statuses/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

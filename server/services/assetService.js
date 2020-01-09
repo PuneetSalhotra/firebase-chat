@@ -3136,13 +3136,18 @@ function AssetService(objectCollection) {
                 }
                 try {
                     request.datetime_log = util.getCurrentUTCTime();
+                    if (Array.isArray(request.track_gps_status)) {
+                        request.track_gps_status = JSON.stringify(request.track_gps_status);
+                    }
                     // Update the desk's location
                     await activityCommonService.updateAssetLocationPromise(request);
                     // Update the operating asset's location
-                    await activityCommonService.updateAssetLocationPromise({
-                        ...request,
-                        asset_id: request.operating_asset_id
-                    });
+                    if (request.hasOwnProperty("operating_asset_id")) {
+                        await activityCommonService.updateAssetLocationPromise({
+                            ...request,
+                            asset_id: request.operating_asset_id
+                        });
+                    }
                 } catch (error) {
                     console.log("assetAppLaunchTransactionInsert | activityCommonService.updateAssetLocationPromise | Error: ", error);
                 }
