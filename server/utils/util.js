@@ -64,6 +64,8 @@ const mailgun = require('mailgun-js')({
 const AwsSns = require('./snsWrapper');
 const sns = new AwsSns();
 
+const PubnubWrapper = require('./pubnubWrapper');
+const pubnubWrapper = new PubnubWrapper();
 
 function Util(objectCollection) {
     let cacheWrapper = {};
@@ -1752,7 +1754,7 @@ function Util(objectCollection) {
                 message: "Incorrect target asset_id specified."
             }]
         }
-        
+
         let activityID = Number(request.activity_id),
             activityTypeID = Number(activityData[0].activity_type_id),
             activityTypeCategoryID = Number(activityData[0].activity_type_category_id),
@@ -1769,6 +1771,15 @@ function Util(objectCollection) {
             activity_id: activityID,
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
+
+        pubnubWrapper.publish(request.target_asset_id, {
+            type: "activity_unread",
+            organization_id: Number(request.organization_id),
+            activity_type_category_id: activityTypeCategoryID,
+            activity_id: activityID,
+            activity_title: activityTitle,
+            description: request.message
+        });
 
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
