@@ -2195,6 +2195,8 @@ function FormConfigService(objCollection) {
         } catch(err) {
             console.log('ERROR : ', err);
         }
+
+        await formEntityMappingDelete(request);
         return [false, {
             formUpdateStatus,
             formFieldUpdateStatus
@@ -4495,6 +4497,37 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
       };
+
+
+    //Delete a form from form_entity_mapping
+    async function formEntityMappingDelete(request){
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            0, //request.workforce_id,
+            0, //request.account_id,
+            request.organization_id,
+            Number(request.form_id),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString("ds_p1_form_entity_mapping_delete",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {              
+                error = err;
+            });
+        }
+        return [error, responseData];
+      }
 
 }
 
