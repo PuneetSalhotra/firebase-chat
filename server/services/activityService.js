@@ -2454,6 +2454,7 @@ function ActivityService(objectCollection) {
         for (const workExperienceFlag of [1, 2, 3, 4, 5, 6, 7, 8]) {
             const [err, workExpData] = await activityStatusChangeTransactionSelectAssetWorkExp({
                 ...request,
+                asset_id: activityLeadAssetID || activityOwnerAssetID,
                 flag: workExperienceFlag
             });
             switch (workExperienceFlag) {
