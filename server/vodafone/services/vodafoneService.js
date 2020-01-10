@@ -5445,7 +5445,7 @@ function VodafoneService(objectCollection) {
     function getFielDataValueDefaultValue(fieldDataTypeID, fieldData) {
         switch (fieldDataTypeID) {
             case 1: // Date
-                return '1970-01-01 00:00:00';
+                return '';
             case 5: // Number
                 return 0;
             case 6: // Decimal
