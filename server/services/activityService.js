@@ -1969,9 +1969,7 @@ function ActivityService(objectCollection) {
             if (err === false) {
 
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
-                updateWidgetAggrStatus(request);
-                console.log("*****WORKLOAD UPDATE | data: ", JSON.stringify(data));
-                activityCommonService.activityLeadUpdate(request, {}, true);
+                updateWidgetAggrStatus(request);               
                 
                 if(activityTypeCategoryId === 48){
 
@@ -2091,6 +2089,8 @@ function ActivityService(objectCollection) {
                             from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
                             to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
                         }).then(() => {
+                            console.log("*****activityService WORKLOAD UPDATE | data: ", JSON.stringify(data));
+                            activityCommonService.activityLeadUpdate(request, {}, true);
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
