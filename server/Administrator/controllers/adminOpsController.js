@@ -1,4 +1,5 @@
 const AdminOpsService = require('../services/adminOpsService');
+const FormConfigService = require("../../services/formConfigService");
 
 function AdminOpsController(objCollection) {
 
@@ -7,6 +8,8 @@ function AdminOpsController(objCollection) {
     const util = objCollection.util;
     const adminOpsService = new AdminOpsService(objCollection);
     // const activityCommonService = objCollection.activityCommonService;
+
+    const formConfigService = new FormConfigService(objCollection);
 
     // Add a desk to floor
     app.post('/' + global.config.version + '/admin/workforce/desk/add', async function (req, res) {
@@ -421,6 +424,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/admin/desk_level/business_hours/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    // Manually generate the workflow activity for a given origin form
+    app.post('/' + global.config.version + '/admin/organization/manual_trigger/workflow', async function (req, res) {
+        const [err, responseData] = await formConfigService.workflowEngine(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/manual_trigger/workflow | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
