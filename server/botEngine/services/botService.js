@@ -589,7 +589,14 @@ function BotService(objectCollection) {
         // for easy checks and comparisons
         let formInlineData = [], formInlineDataMap = new Map();
         try {
-            formInlineData = JSON.parse(request.activity_inline_data);
+            if (!request.hasOwnProperty('activity_inline_data')) {
+                // Usually mobile apps send only activity_timeline_collection parameter in
+                // the "/activity/timeline/entry/add" call
+                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                formInlineData = activityTimelineCollection.form_submitted;
+            } else {
+                formInlineData = JSON.parse(request.activity_inline_data);
+            }
             for (const field of formInlineData) {
                 formInlineDataMap.set(Number(field.field_id), field);
             }
@@ -642,7 +649,7 @@ function BotService(objectCollection) {
             // Check for condition, if any
             let canPassthrough = true;
             try {
-                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations);
+                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
             } catch (error) {
                 console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);
             }
@@ -950,7 +957,7 @@ function BotService(objectCollection) {
         return {};
     };
 
-    async function isBotOperationConditionTrue(request, botOperationsJson) {
+    async function isBotOperationConditionTrue(request, botOperationsJson, formInlineDataMap) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0;
 
         if (
@@ -976,14 +983,29 @@ function BotService(objectCollection) {
             }
 
             // Get the field value
-            const fieldData = await getFieldValue({
+            let fieldData = await getFieldValue({
                 form_transaction_id: formTransactionID,
                 form_id: formID,
                 field_id: fieldID,
                 organization_id: request.organization_id
             });
-            const fieldDataTypeID = Number(fieldData[0].data_type_id);
-            const fieldValue = Number(fieldData[0][getFielDataValueColumnName(fieldDataTypeID)]);
+            let fieldDataTypeID = 0;
+            let fieldValue = '';
+            if (fieldData.length > 0) {
+                fieldDataTypeID = Number(fieldData[0].data_type_id);
+                fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)];
+            
+            } else {
+                if (formInlineDataMap.has(Number(fieldID))) {
+                    fieldData = formInlineDataMap.get(Number(fieldID));
+                    fieldDataTypeID = Number(fieldData.field_data_type_id);
+                    fieldValue = fieldData.field_value;
+                }
+            }
+
+            if (fieldDataTypeID === 5 || fieldDataTypeID === 6) {
+                fieldValue = Number(fieldValue);
+            }
             console.log("isBotOperationConditionTrue | fieldValue: ", fieldValue);
 
             let isConditionTrue = await checkForThresholdCondition(fieldValue, threshold, operation);
