@@ -429,12 +429,12 @@ function AdminOpsController(objCollection) {
     });
 
     // Manually generate the workflow activity for a given origin form
-    app.post('/' + global.config.version + '/admin/organization/manual_trigger/workflow', async function (req, res) {
+    app.post('/' + global.config.version + '/admin/organization/manual_trigger/workflow/generate', async function (req, res) {
         const [err, responseData] = await formConfigService.workflowEngine(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
-            console.log("/admin/organization/manual_trigger/workflow | Error: ", err);
+            console.log("/admin/organization/manual_trigger/workflow/generate | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
