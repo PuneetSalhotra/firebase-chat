@@ -2,6 +2,7 @@
 * author: Sri Sai Venkatesh
 */
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
+const pusherWrapper = new (require('../utils/pusherWrapper'))();
 //const smsEngine = require('../utils/smsEngine');
 const moment = require('moment');
 const path = require('path');
@@ -694,6 +695,11 @@ function ActivityPushService(objectCollection) {
         //
         pubnubWrapper.push(request.asset_id, message);
         pubnubWrapper.push(request.organization_id, message, isOrgRateLimitExceeded);
+
+        //Send pushes using Pusher
+        let eventName = 'pubNubPush';
+        pusherWrapper.push(request.asset_id, message, eventName);
+        pusherWrapper.push(request.organization_id, message, eventName, isOrgRateLimitExceeded);
         callback(false, true);
     };
 
@@ -779,8 +785,10 @@ function ActivityPushService(objectCollection) {
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
                                                     if (cnt === 0) { //Pushing org pubnub only once for each activity
                                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                        pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                     }
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                    pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                 }
                                                 //PUB
                                                 //console.log('pubnubMsg :', pubnubMsg);
@@ -804,8 +812,10 @@ function ActivityPushService(objectCollection) {
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
                                         if (cnt === 0) { //Pushing org pubnub only once for each activity
                                             pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                            pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                         }
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        pusherWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                 }
                                 cnt++;
@@ -838,8 +848,10 @@ function ActivityPushService(objectCollection) {
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
                                                 if (cnt === 0) {
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                    pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                 }
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                pusherWrapper.push(rowData.organizationId, pubnubMsg);
                                             }
                                             break;
                                         default:
@@ -852,8 +864,10 @@ function ActivityPushService(objectCollection) {
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
                                                 if (cnt === 0) {
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                    pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                 }
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                pusherWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
                                     }
@@ -1117,8 +1131,10 @@ function ActivityPushService(objectCollection) {
                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
                                     if (cnt === 0) { //Pushing org pubnub only once for each activity
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                        pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                     }
                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                    pusherWrapper.push(rowData.assetId, pubnubMsg);
                                 }
                                 //PUB
                                 //console.log('pubnubMsg :', pubnubMsg);
@@ -1133,8 +1149,10 @@ function ActivityPushService(objectCollection) {
                                     global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
                                     if (cnt === 0) { //Pushing org pubnub only once for each activity
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                        pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                     }
                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                    pusherWrapper.push(rowData.assetId, pubnubMsg);
                                 }
                             }
                             cnt++;
@@ -1164,8 +1182,10 @@ function ActivityPushService(objectCollection) {
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
                                         if (cnt === 0) {
                                             pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                            pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                         }
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        pusherWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                     break;
                                 default:
@@ -1178,8 +1198,10 @@ function ActivityPushService(objectCollection) {
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
                                             if (cnt === 0) {
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                pusherWrapper.push(rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                             }
                                             pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                            pusherWrapper.push(rowData.assetId, pubnubMsg);
                                         }
                                         break;
                                 } //END of Switch
