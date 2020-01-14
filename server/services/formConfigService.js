@@ -1624,7 +1624,7 @@ function FormConfigService(objCollection) {
                             case 62: await createBot(request, {}, {
                                 dataTypeId,
                                 fieldName: '',
-                                fieldIdforBotCreation: 0
+                                fieldIdforBotCreation
                             });
                                 break;
                             default: break;
@@ -4316,15 +4316,15 @@ function FormConfigService(objCollection) {
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
                 break;
-            case 62:
-
+            case 62:            
                 tempObj.bot_operations = {};
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
                 newRequest.bot_name = request.form_name + " - LTS - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
-                newRequest.bot_operation_type_id = 14;
+                newRequest.bot_operation_type_id = 14; 
+                newRequest.field_id = fieldData.fieldIdforBotCreation;           
                 break;
         }
 
