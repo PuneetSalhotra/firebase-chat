@@ -2,6 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
+const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
 
@@ -1673,6 +1674,11 @@ function ActivityTimelineService(objectCollection) {
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+
+            //Send pushes using Pusher
+            let eventName = 'retrieveTimelineList';
+            pusherWrapper.push(request.asset_id, pubnubMsg, eventName);
+            pusherWrapper.push(request.organization_id, pubnubMsg, eventName, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
