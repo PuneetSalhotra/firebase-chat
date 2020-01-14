@@ -840,6 +840,7 @@ function ActivityUpdateService(objectCollection) {
         activityListUpdateCover(request, async function (err, data) {
             if (err === false) {
                 activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {});
+                await queueActivityMappingUpdateCover(request);                
                 assetActivityListUpdateCover(request, async function (err, data) {
                     //Switch-CASE Added by Nani Kalyan
                     switch (activityTypeCategoryId) {
@@ -2805,7 +2806,40 @@ function ActivityUpdateService(objectCollection) {
                 }
             });
         }
-    };
-};
+    }
+
+    async function queueActivityMappingUpdateCover(request){
+        let responseData = [],
+            error = true;
+
+        try{
+            var coverJson = JSON.parse(request.activity_cover_data);
+        } catch(err) {
+            return [error, err];
+        }            
+
+        const paramsArr = new Array(
+            request.activity_id,
+            coverJson.title.new,
+            request.asset_id,
+            request.organization_id,
+			util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_activity_title', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+    
+}
 
 module.exports = ActivityUpdateService;
