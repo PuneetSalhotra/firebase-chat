@@ -1151,6 +1151,21 @@ function BotService(objectCollection) {
             htmlTemplate = String(htmlTemplate).replace(/{\$currentDatetime}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD hh:mm A"));
         }
 
+        // 1.1 {$currentDate}
+        if (String(htmlTemplate).includes("{$currentDate}")) {
+            htmlTemplate = String(htmlTemplate).replace(/{\$currentDate}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD"));
+        }
+
+        // 1.2 {$currentDate}
+        if (String(htmlTemplate).includes("{$currentTime}")) {
+            htmlTemplate = String(htmlTemplate).replace(/{\$currentTime}/g, moment().utcOffset("+05:30").format("hh:mm:ss A"));
+        }
+
+        // 1.3 {$workflowActivityID}
+        if (String(htmlTemplate).includes("{$workflowActivityID}")) {
+            htmlTemplate = String(htmlTemplate).replace(/{\$workflowActivityID}/g, workflowActivityID);
+        }
+
         console.log("htmlTemplate: ", htmlTemplate);
 
         // Generate PDF readable stream
