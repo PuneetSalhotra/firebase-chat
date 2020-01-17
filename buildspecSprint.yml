@@ -9,7 +9,7 @@ phases:
     runtime-versions:                
         nodejs: 10
     commands: 
-      - npm install pm2 -g
+      - npm install pm2@latest -g
       - npm install
   pre_build:
     commands:      
