@@ -4122,6 +4122,20 @@ function AdminOpsService(objectCollection) {
             } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
             }
+
+            try{
+                let newReq = {
+                    activity_id: idCardActivityID,
+                    activity_inline_data: JSON.stringify(idCardJSON),
+                    asset_id: employeeAssetID,
+                    operating_asset_id: 0
+                };                
+                await activityAssetMappingUpdateOperationAssetData(newReq, organizationID);
+                await activityListUpdateOperatingAssetData(newReq, organizationID);
+            } catch(error){
+                logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateOperationAssetData`, { type: 'admin_ops', request_body: request, error });
+                logger.error(`upateDeskAndEmployeeAsset.activityListUpdateOperatingAssetData`, { type: 'admin_ops', request_body: request, error });
+            }          
         }
 
         if (deskAssetID !== 0) {
@@ -4207,6 +4221,20 @@ function AdminOpsService(objectCollection) {
                 });
             } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Employee]`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            try{
+                let newReq = {
+                    activity_id: contactCardActivityID,
+                    activity_inline_data: JSON.stringify(contactCardJSON),
+                    asset_id: deskAssetID,
+                    operating_asset_id: employeeAssetID
+                };                
+                await activityAssetMappingUpdateOperationAssetData(newReq, organizationID);
+                await activityListUpdateOperatingAssetData(newReq, organizationID);
+            } catch(error){
+                logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateOperationAssetData`, { type: 'admin_ops', request_body: request, error });
+                logger.error(`upateDeskAndEmployeeAsset.activityListUpdateOperatingAssetData`, { type: 'admin_ops', request_body: request, error });
             }
         }
 

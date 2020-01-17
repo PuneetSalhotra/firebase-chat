@@ -2,6 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
+const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
 
@@ -224,6 +225,7 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
@@ -231,7 +233,7 @@ function ActivityTimelineService(objectCollection) {
         await activityCommonService.updateAssetLocationPromise(request);
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // IF | 9 & 705
-            await sleep(2000);
+            //await sleep(2000);
             let [err, data] = await getActivityIdBasedOnTransIdAsync(request);
             if (data.length > 0) {
                 //act id in request is different from retrieved one
@@ -347,7 +349,7 @@ function ActivityTimelineService(objectCollection) {
                     activityStreamTypeId === 716)) { 
 
             request.non_dedicated_file = 1;
-            await sleep(2000);
+            //await sleep(2000);
             
             let [err, data] = await getActivityIdBasedOnTransIdAsync(request);            
             if (data.length > 0) {
@@ -397,6 +399,7 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log('🕒 🕒 🕒 🕒 🕒' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ');
         console.log(' ');
@@ -1118,11 +1121,11 @@ function ActivityTimelineService(objectCollection) {
                     }
 
                     //Bot log - Bot is defined
-                    activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
+                    await activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
                     console.log("fireBotEngineInitWorkflow | botEngineRequest: ", botEngineRequest);
                     await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                        .then((resp) => {
+                        .then(async (resp) => {
                             global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                             //Bot log - Update Bot status
                             //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
@@ -1134,14 +1137,15 @@ function ActivityTimelineService(objectCollection) {
                                 botEngineRequest.bot_operation_status_id = 2;
 
                             botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
-                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
-                        }).catch((err) => {
+                            await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                        }).catch(async (err) => {
                             //Bot log - Update Bot status with Error
                             botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
-                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                            await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                         });
                 } else {
                     //Bot is not defined
+                    console.log('Bot is not defined');
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
@@ -1673,6 +1677,11 @@ function ActivityTimelineService(objectCollection) {
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+
+            //Send pushes using Pusher
+            let eventName = 'retrieveTimelineList';
+            pusherWrapper.push(request.asset_id, pubnubMsg, eventName);
+            pusherWrapper.push(request.organization_id, pubnubMsg, eventName, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
@@ -2852,7 +2861,7 @@ function ActivityTimelineService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     console.log("Data from function 'getActivityIdBasedOnTransIdAsync' : ", data);
@@ -2969,14 +2978,15 @@ function ActivityTimelineService(objectCollection) {
     }
 
     // [VODAFONE]
-    function initiateTargetFormGenerationPromise(request) {
-        // Process/Workflow ROMS Target Form Generation Trigger
-        return new Promise((resolve, reject)=>{
-            if (
-                Number(request.activity_stream_type_id) === 705 &&
-                request.hasOwnProperty("workflow_activity_id") &&
-                Number(request.workflow_activity_id) !== 0
+    async function initiateTargetFormGenerationPromise(request) {
+        // Process/Workflow ROMS Target Form Generation Trigger        
+        if (
+            Number(request.activity_stream_type_id) === 705 &&
+            request.hasOwnProperty("workflow_activity_id") &&
+            Number(request.workflow_activity_id) !== 0 &&
+            Number(request.organization_id === 868)
             ) {            
+                console.log(' ');
                 console.log("CALLING buildAndSubmitCafFormV1 from the function 'initiateTargetFormGenerationPromise'");
                 const romsTargetFormGenerationEvent = {
                     name: "vodafoneService",
@@ -2984,21 +2994,10 @@ function ActivityTimelineService(objectCollection) {
                     method: "buildAndSubmitCafFormV1",
                     payload: request
                 };
-                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
-                    if (err) {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        reject();
-                    } else {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        resolve();
-                    }
-                });
-            } else {
-                resolve();
+                await queueWrapper.raiseActivityEventPromise(romsTargetFormGenerationEvent, request.activity_id);                
             }
-        });
+            
+        return "success";
     }
 
 
