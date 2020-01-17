@@ -51,7 +51,7 @@ function ActivityService(objectCollection) {
             //kafkaProducer.on('ready', resolve);
         }).then(() => {
             activityListInsert(request, function (err, boolResult) {
-                activityCommonService.updateAssetLocation(request, function (err, data) {});
+                activityCommonService.updateAssetLocation(request, (err, data) =>{});
                 if (err === false) {
 
                     var activityStreamTypeId = 1;
@@ -171,14 +171,13 @@ function ActivityService(objectCollection) {
                     assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
 
-                            alterActivityFlagFileEnabled(request).then(() => {});
+                            /*alterActivityFlagFileEnabled(request).then(() => {});
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
+                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});*/
 
-                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                            });
-                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                            });
+                            await alterActivityFlagFileEnabled(request);
+                            await activityCommonService.assetTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
+                            await activityCommonService.activityTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
 
                             let activityTitle = "Form Submitted";
 
@@ -261,8 +260,7 @@ function ActivityService(objectCollection) {
                                 };
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
-
-                                addValueToWidgetForAnalytics(request);
+                                await addValueToWidgetForAnalytics(request);
                             }
 
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
@@ -301,60 +299,62 @@ function ActivityService(objectCollection) {
                                 request['source_id'] = 1;
                                 //sendRequesttoWidgetEngine(request);
 
-                                updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
+                                //updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
+//
+                                //});
+                                await updateChannelActivity(request, 9, request.activity_id, 48);
 
-                                });
+                                let totalvalue = 0;
+                                let finalValue = 0;
+                                request['dedicated_activity_id'] = 0; //result[0].activity_id;
+                                let requestFormData = JSON.parse(request.activity_inline_data);
+                                let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
                                 
-                                    let totalvalue = 0;
-                                    let finalValue = 0;
-                                    request['dedicated_activity_id'] = 0; //result[0].activity_id;
-                                    let requestFormData = JSON.parse(request.activity_inline_data);
-                                    let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
-                                    activityCommonService.getWidgetByActivityType(request).then((widgetRow)=>{
-                                        console.log('WIDGET ROW ::'+widgetRow.length);
-                                    if(widgetRow.length > 0){
-                                        console.log('WIDGET ROW EXISTIS ::'+widgetRow[0].widget_id);
-                                        request['widget_id'] = widgetRow[0].widget_id;
+                                let widgetRow = await activityCommonService.getWidgetByActivityType(request);                                
+                                console.log('WIDGET ROW :: ', widgetRow.length);
+                                if(widgetRow.length > 0){
+                                    console.log('WIDGET ROW EXISTIS ::'+widgetRow[0].widget_id);
+                                    request['widget_id'] = widgetRow[0].widget_id;
                                             
-                                        if(widgetRow[0].widget_entity2_id > 0){                                               
-                                                forEachAsync(requestFormData, function (next, fieldObj) {
-                                                    console.log('LOOP ::' + request.activity_type_id + ' ' + fieldObj.field_id);
-                                                    if (widgetRow[0].widget_entity2_id == fieldObj.field_id) {
-                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
-                                                        otc_1 = temp_value;
-                                                        request['otc_1'] = temp_value;
-                                                    } else if (widgetRow[0].widget_entity3_id == fieldObj.field_id) {
-                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
-                                                        arc_1 = temp_value;
-                                                        request['arc_1'] = temp_value;
-                                                    } else if (widgetRow[0].widget_entity4_id == fieldObj.field_id) {
-                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
-                                                        otc_2 = temp_value;
-                                                        request['otc_2'] = temp_value;
-                                                    } else if (widgetRow[0].widget_entity5_id == fieldObj.field_id) {
-                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
-                                                        arc_2 = temp_value;
-                                                        request['arc_2'] = temp_value;
-                                                    }
+                                    if(widgetRow[0].widget_entity2_id > 0){                                               
+                                        forEachAsync(requestFormData, function (next, fieldObj) {
+                                            console.log('LOOP ::' + request.activity_type_id + ' ' + fieldObj.field_id);
+                                            if (widgetRow[0].widget_entity2_id == fieldObj.field_id) {
+                                                let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                otc_1 = temp_value;
+                                                request['otc_1'] = temp_value;
+                                            } else if (widgetRow[0].widget_entity3_id == fieldObj.field_id) {
+                                                let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                arc_1 = temp_value;
+                                                request['arc_1'] = temp_value;
+                                            } else if (widgetRow[0].widget_entity4_id == fieldObj.field_id) {
+                                                let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                otc_2 = temp_value;
+                                                request['otc_2'] = temp_value;
+                                            } else if (widgetRow[0].widget_entity5_id == fieldObj.field_id) {
+                                                let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                arc_2 = temp_value;
+                                                request['arc_2'] = temp_value;
+                                            }
 
-                                                    totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
+                                            totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
 
-                                                    if(Number(request.activity_type_id) === 134564 || //MPLS CRF
-                                                        Number(request.activity_type_id) === 134566 || //ILL CRF
-                                                        Number(request.activity_type_id) === 134573 || //NPLC CRF
-                                                        Number(request.activity_type_id) === 134575) { 
-                                                        
-                                                        (Number(arc_1) > Number(arc_2)) ?
-                                                            finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
-                                                            finalValue = Number(otc_1);
+                                            if(Number(request.activity_type_id) === 134564 || //MPLS CRF
+                                                Number(request.activity_type_id) === 134566 || //ILL CRF
+                                                Number(request.activity_type_id) === 134573 || //NPLC CRF
+                                                Number(request.activity_type_id) === 134575) { 
+                                                
+                                                (Number(arc_1) > Number(arc_2)) ?
+                                                    finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
+                                                    finalValue = Number(otc_1);
 
-                                                    } else {
-                                                        finalValue = totalvalue;
-                                                    }                                                    
+                                            } else {
+                                                finalValue = totalvalue;
+                                            }                                                    
 
-                                                    console.log('Intermediate values ::' + otc_1 + ' : ' + arc_1 + ' : ' + otc_2 + ' : ' + arc_2);
-                                                    next();
-                                                }).then(async () => {
+                                                console.log('Intermediate values ::' + otc_1 + ' : ' + arc_1 + ' : ' + otc_2 + ' : ' + arc_2);
+                                                next();
+                                            }).then(async () => {
                                                     console.log('totalvalue :: ' + totalvalue);
                                                     console.log('finalValue :: ' + finalValue);
                                                     request['field_id'] = 0;
@@ -373,9 +373,8 @@ function ActivityService(objectCollection) {
                                                  widgetActivityFieldTransactionInsert(request);                                                 
                                             }
                                         } else {
-                                            addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
-                                        }
-                                    });
+                                            await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
+                                        }                                    
                             }
 
                             // Workflow Trigger
@@ -398,17 +397,20 @@ function ActivityService(objectCollection) {
                                     let workflowEngineEvent = {
                                         name: "workflowEngine",
                                         service: "formConfigService",
-                                        method: "workflowEngine",
+                                        //method: "workflowEngine",
+                                        method: "workflowEngineAsync",
                                         payload: workflowEngineRequest
                                     };
 
-                                    queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
-                                        if(err) {
-                                            global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {});
-                                        } else {
-                                            global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
-                                        }
-                                    });
+                                    await queueWrapper.raiseActivityEventPromise(workflowEngineEvent, request.activity_id);
+                                    
+                                    //queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
+                                    //    if(err) {
+                                    //        global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {});
+                                    //    } else {
+                                    //        global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
+                                    //    }
+                                    //});
                                 }
                             }
 
@@ -432,6 +434,7 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 48 || activityTypeCategroyId === 9) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
+                                console.log('Listener: Form Submission - When the form has data type reference type');
                                 let formInlineData = JSON.parse(request.activity_inline_data);
                                 console.log('formInlineData : ', formInlineData);
                                 let fieldData;
@@ -439,10 +442,10 @@ function ActivityService(objectCollection) {
                                     fieldData = formInlineData[i];
                                     switch(Number(fieldData.field_data_type_id)) {
                                         case 57: //Fire the Bot                                                 
-                                                fireBotInsertIntTables(request, fieldData);
+                                                await fireBotInsertIntTables(request, fieldData);
                                                 break;
                                         case 33: //Fire the Bot                                                 
-                                                fireBotInsertIntTables(request, fieldData);
+                                                await fireBotInsertIntTables(request, fieldData);
                                                 break;
                                         default: break;
                                     }
@@ -452,21 +455,14 @@ function ActivityService(objectCollection) {
                             }
 
                             if(activityTypeCategroyId === 48) { 
-                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
+                                await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
+                            
+                            //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
+                            //activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, (err, restult)=>{});
 
-                            /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                            });
-                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                            });*/
-                            activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
-
-                            });
-                            activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
-
-                            });
+                            await activityCommonService.activityListHistoryInsertAsync(request, updateTypeId);
+                            await activityCommonService.assetActivityListHistoryInsertAsync(request, activityAssetMappingAsset, 0);
 
                             // alterActivityFlagFileEnabled(request).then(() => {});
 
@@ -603,10 +599,11 @@ function ActivityService(objectCollection) {
                                 submitLeaveForms(request).then(() => {});
                             }*/
 
-                            setTimeout(() => {
-                                callback(false, responseactivityData, 200);
-                            }, 10000);
-
+                            //setTimeout(() => {
+                            //    callback(false, responseactivityData, 200);
+                            //}, 10000);
+                            
+                            callback(false, responseactivityData, 200);
 
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -621,9 +618,11 @@ function ActivityService(objectCollection) {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('conLog', "not inserted to asset activity list", {}, request);
 
-                            setTimeout(() => {
-                                callback(false, responseactivityData, 200);
-                            }, 10000);
+                            //setTimeout(() => {
+                            //    callback(false, responseactivityData, 200);
+                            //}, 10000);
+
+                            callback(false, responseactivityData, 200);
                         }
 
                     }); //End of Asset List Insert Add
@@ -726,9 +725,10 @@ function ActivityService(objectCollection) {
 
                     //callback(false, responseactivityData, 200);                    
                 } else { //This is activityList Insert if(err === false) else part
-                    setTimeout(() => {
-                        callback(err, responseactivityData, -9999);
-                    }, 5000);
+                    //setTimeout(() => {
+                    //    callback(err, responseactivityData, -9999);
+                    //}, 5000);
+                    callback(err, responseactivityData, -9999);
                     //return;
                 }
             });
@@ -4072,7 +4072,11 @@ function ActivityService(objectCollection) {
         }
 
         //console.log('inlineData : ', inlineData[0]);        
-        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        console.log('inlineData[0].activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+
+        if(inlineData[0].activity_type_inline_data === null) {
+            return "";
+        }
 
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
@@ -4219,7 +4223,7 @@ function ActivityService(objectCollection) {
     async function fireBotInsertIntTables(request, fieldData) {
         let workflowActivityId = request.activity_id; //workflow activity id
         if(Number(request.activity_type_category_id) === 9) {
-            await sleep(2000); 
+            //await sleep(2000); 
             const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
             if (workflowError !== false || workflowData.length === 0) {
                 console.log('workflowError : ', workflowError);
@@ -4243,6 +4247,8 @@ function ActivityService(objectCollection) {
                 let botOperationsData = await activityCommonService.getBotworkflowSteps(botEngineRequest);
                 botEngineRequest.bot_operation_id = botOperationsData[0].bot_operation_id;
                 botIsDefined = 1;
+            } else {
+                console.log('Bot is not defined');
             }
         } catch (botInitError) {
             global.logger.write('error', botInitError, botInitError, request);
@@ -4305,7 +4311,7 @@ function ActivityService(objectCollection) {
             let newReq = Object.assign({}, request);
             newReq.activity_id = workflowActivityId;
             let formInlineData = JSON.parse(request.activity_inline_data);
-            console.log('formInlineData VNK: ', formInlineData);
+            console.log('formInlineData: ', formInlineData);
             let fieldData;
             let fieldValue;
             for(let i=0; i<formInlineData.length;i++){                                    
