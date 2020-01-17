@@ -404,7 +404,9 @@ var Consumer = function () {
                         });
                     }
                 } else {
-                    console.log('In Consumer - In ELSE');
+                    console.log('In Consumer - In ELSE');                    
+                    console.log('serviceName', serviceName);
+                    console.log('Method : ', method);
                     if(asyncFlag === 1) {
                         //Function with Async/Await
                         let [err, resp] = await serviceObjectCollection[serviceName][method](messageJson['payload']);

@@ -2991,9 +2991,10 @@ function ActivityTimelineService(objectCollection) {
                 const romsTargetFormGenerationEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
-                    method: "buildAndSubmitCafFormV1",
+                    method: "buildAndSubmitCafFormV1Async",
                     payload: request
-                };
+                };               
+                                  
                 await queueWrapper.raiseActivityEventPromise(romsTargetFormGenerationEvent, request.activity_id);                
             }
             
