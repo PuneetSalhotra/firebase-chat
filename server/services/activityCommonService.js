@@ -3619,8 +3619,12 @@ this.getAllParticipantsAsync = async (request) => {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = data;
-                    error = false;
+                    if(data === null) {
+                        error = true;
+                    } else {
+                        responseData = data;
+                        error = false;
+                    }                    
                 })
                 .catch((err) => {
                     error = err;

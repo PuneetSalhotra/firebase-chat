@@ -4940,6 +4940,8 @@ function VodafoneService(objectCollection) {
 
         let targetFieldsUpdated = [],
             REQUEST_FIELD_ID = 0;
+
+    if(SOURCE_FORM_FIELD_MAPPING_DATA !== null) {
         for (const sourceField of sourceFieldsUpdated) {
             let sourceFieldID = String(sourceField.field_id);
             if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
@@ -4988,6 +4990,7 @@ function VodafoneService(objectCollection) {
                 }
             }
         }
+    }
 
         // ROMS Recalculation
         const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
