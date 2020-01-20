@@ -3466,7 +3466,7 @@ this.getAllParticipantsAsync = async (request) => {
     //Bot transaction - 
     this.botOperationInsert = async function(request) {
         let paramsArr = new Array(                
-            request.request_data,
+            request.request_data || '{}',
             request.flag_check,
             request.flag_defined,
             request.trigger || 0,
@@ -3476,7 +3476,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.form_transaction_id || 0,
             request.bot_id,
             request.bot_inline_data,
-            request.bot_operation_status_id,
+            request.bot_operation_status_id || 0,
             request.workforce_id,
             request.account_id,
             request.organization_id,
@@ -3688,7 +3688,7 @@ this.getAllParticipantsAsync = async (request) => {
         }
 
         return [error, formData];
-    }
+    };
 
     this.activityListUpdateInlineData = async function (request, organizationID) {
         let responseData = [],
@@ -4987,7 +4987,64 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 console.log("newAssetEfficiency "+newAssetEfficiency);  
             }
         });
-    }
+    };
+
+    this.activityListHistoryInsertAsync = async (request, updateTypeId) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            updateTypeId,
+            request.datetime_log // server log date time
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_list_history_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
+
+    this.assetActivityListHistoryInsertAsync = async (request, assetId, updateTypeId) => {
+        let responseData = [],
+            error = true;
+
+        if (assetId === 0) {
+            assetId = request.asset_id;
+        }
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            assetId,
+            updateTypeId,
+            request.datetime_log // server log date time
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    };
 }
 
 

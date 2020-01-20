@@ -2526,6 +2526,169 @@ function FormConfigService(objCollection) {
         }];
     };
 
+
+    this.workflowEngineAsync = async function (request) {
+        //If origin Form and workflow Enabled?
+        //Create a Workflow Activity
+        //Make a 705 timeline entry with activity category 48
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
+        console.log('# # # # # # # # # # # # ENTRY # # # # # # # # # #  # # # # # # # # # # # # ');
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+
+        let workflowActivityId = request.workflow_activity_id || 0;
+
+        request.form_id = Number(request.activity_form_id);
+
+        // Fetch form's config data
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+        console.log('formConfigError : ', formConfigError);
+
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        console.log('formConfigData.length : ', formConfigData.length);
+
+        if (Number(formConfigData.length) > 0) {
+            // Check if the form has an origin flag set
+            let activityId;
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
+                workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                formName = String(formConfigData[0].form_name),
+                workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+
+            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
+            console.log('originFlagSet : ', originFlagSet);
+            if (isWorkflowEnabled && originFlagSet) {
+                // Fetch the next activity_id to be inserted
+                await cacheWrapper
+                    .getActivityIdPromise()
+                    .then((id) => {
+                        if (Number(id) === 0) {
+                            throw new Error("ErrorGettingActivityId");
+                        }
+                        activityId = id;
+                    })
+                    .catch((err) => {
+                        console.log("Error 2: ", err);
+                        return [err, formConfigData];
+                    });
+
+                global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
+
+                // Prepare a new request object and fire the addActivity service
+                let createWorkflowRequest = Object.assign({}, request);
+                    createWorkflowRequest.activity_id = Number(activityId);
+                    createWorkflowRequest.activity_type_category_id = 48;
+                    createWorkflowRequest.activity_type_id = workflowActivityTypeId;                
+                    createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
+                    createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
+                    
+                    // Child Orders
+                    createWorkflowRequest.activity_parent_id = Number(request.child_order_activity_parent_id) || 0;
+
+                    createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    createWorkflowRequest.activity_datetime_end = moment().utc().add(workflowActivityTypeDefaultDurationDays, "days").format('YYYY-MM-DD HH:mm:ss');
+
+                const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+                await addActivityAsync(createWorkflowRequest);
+
+                workflowActivityId = Number(activityId);
+            }
+
+            if (isWorkflowEnabled && originFlagSet) {                
+                let activityTitle = "Form Submitted";
+                if (Number(request.organization_id) === 868) {
+                    switch (Number(request.activity_form_id)) {
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                            activityTitle = "New Order";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                            activityTitle = "Order Supplementary";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                            activityTitle = "Feasibility Report";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                            activityTitle = "Customer Details";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                            activityTitle = "HLD Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                            activityTitle = "BC_HLD Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                            activityTitle = "New Customer Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                            activityTitle = "Existing Customer Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                            activityTitle = "OMT Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                            activityTitle = "Account Manager Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                            activityTitle = "Customer Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                            activityTitle = "CAF Form";
+                            break;
+                        default:
+                            activityTitle = "Form Submitted";
+                    }
+                }                
+
+                //705 timeline entry of workFlow
+                let workflowFile713Request = Object.assign({}, request);
+                    workflowFile713Request.activity_id = workflowActivityId;
+                    workflowFile713Request.data_activity_id = Number(request.activity_id);
+                    workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+                    workflowFile713Request.activity_timeline_collection = JSON.stringify({
+                        "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        "subject": `${formName}`,
+                        "content": `${formName}`,
+                        "asset_reference": [],
+                        "activity_reference": [],
+                        "form_approval_field_reference": [],
+                        "form_submitted": JSON.parse(request.activity_inline_data),
+                        "attachments": []
+                    });
+                    // Append the incremental form data as well
+                    workflowFile713Request.form_id = workflowFile713Request.activity_form_id;
+                    workflowFile713Request.activity_type_category_id = 48;
+                    workflowFile713Request.activity_stream_type_id = 705;
+                    workflowFile713Request.flag_timeline_entry = 1;
+                    workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    workflowFile713Request.device_os_id = 8;                
+
+                await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
+                await addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
+            }
+        }
+
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
+        console.log('# # # # # # # # # # # # EXIT # # # # # # # # # #  # # # # # # # # # ');
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+
+        return [formConfigError, {formConfigData}];
+    };
+
     async function workforceFormMappingSelect(request, activityId, formId) {
         // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
         // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
@@ -4102,7 +4265,11 @@ function FormConfigService(objCollection) {
         }
 
         //console.log('inlineData : ', inlineData[0]);        
-        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        console.log('inlineData[0].activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        
+        if(inlineData[0].activity_type_inline_data === null) {
+            return "";
+        }
 
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 

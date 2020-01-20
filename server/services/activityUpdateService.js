@@ -2828,7 +2828,7 @@ function ActivityUpdateService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_activity_title', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
