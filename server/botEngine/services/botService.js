@@ -617,6 +617,13 @@ function BotService(objectCollection) {
                 data_type_combo_id: i.data_type_combo_id,
                 data_type_combo_name: i.data_type_combo_name
             }]);
+            
+            // Update bot trigger details
+            request.trigger_form_id = Number(i.form_id);
+            request.trigger_form_name = i.form_name || "";
+            request.trigger_field_id = Number(i.field_id);
+            request.trigger_field_name = i.field_name || "";
+
             try {
                 // Check if the bot operation is field specific
                 let botOperationFieldID = Number(i.field_id);
@@ -2869,8 +2876,8 @@ function BotService(objectCollection) {
                 message: newReq.smsText,
                 form_trigger: 
                     {
-                        [Number(newReq.form_id)]: {
-                            name: newReq.form_name || ""
+                        [Number(newReq.trigger_form_id)]: {
+                            name: newReq.trigger_form_name || ""
                         }
                     }
                 }
