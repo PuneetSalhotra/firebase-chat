@@ -1,0 +1,14 @@
+apps:
+  - name : "testingprodissueenv_Main"
+    env: {mode: testingprodissueenv}
+    script   : ./main.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+    
+  - name : "testingprodissueenv_ConsumerZero"
+    env: {mode: testingprodissueenv, partition: 0}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
