@@ -797,6 +797,7 @@ function FormConfigService(objCollection) {
             let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
             let OTC_2_ValueFields = widgetFieldsStatusesData.OTC_2;
             let ARC_2_ValueFields = widgetFieldsStatusesData.ARC_2;
+            let creditDebitFields = widgetFieldsStatusesData.CREDIT_DEBIT_FIELDS;
             let valueflag = 0;
 
             let otc_1 = 0, arc_1 = 0, otc_2 = 0, arc_2 = 0;
@@ -1258,6 +1259,10 @@ function FormConfigService(objCollection) {
                                     request['datetime_log'] = util.getCurrentUTCTime();
                                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
                                 });          
+                            }else if(Object.keys(creditDebitFields).includes(String(row.field_id))){
+                                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                                    activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, row.field_value.transaction_data.transaction_amount);
+                                });
                             }
                         next();
                         
