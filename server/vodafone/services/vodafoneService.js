@@ -3814,9 +3814,14 @@ function VodafoneService(objectCollection) {
         })
     }
 
+    this.buildAndSubmitCafFormV1Async = async function (request) {        
+        let [error, responseData] = await this.buildAndSubmitCafFormV1(request);        
+        return [error, responseData];
+    }
+
     this.buildAndSubmitCafFormV1 = async function (request) {
 
-        await sleep(5000);
+        //await sleep(5000);
 
         let workflowActivityData = [],
             formWorkflowActivityTypeId = 0;
@@ -4152,17 +4157,20 @@ function VodafoneService(objectCollection) {
                 let workflowFile713RequestEvent = {
                     name: "addTimelineTransaction",
                     service: "activityTimelineService",
-                    method: "addTimelineTransaction",
+                    //method: "addTimelineTransaction",
+                    method: "addTimelineTransactionAsync",
                     payload: workflowFile713Request
                 };
 
-                queueWrapper.raiseActivityEvent(workflowFile713RequestEvent, workflowFile713Request.activity_id, (err, resp) => {
+                await queueWrapper.raiseActivityEventPromise(workflowFile713RequestEvent, request.activity_id);
+
+                /*queueWrapper.raiseActivityEvent(workflowFile713RequestEvent, workflowFile713Request.activity_id, (err, resp) => {
                     if (err) {
                         console.log("\x1b[35m [ERROR] Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m", err);
                     } else {
                         console.log("\x1b[35m Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m");
                     }
-                });
+                });*/
             } catch (error) {
                 console.log("addTimelineTransaction | Error: ", error);
             }
@@ -4932,6 +4940,8 @@ function VodafoneService(objectCollection) {
 
         let targetFieldsUpdated = [],
             REQUEST_FIELD_ID = 0;
+
+    if(SOURCE_FORM_FIELD_MAPPING_DATA !== null) {
         for (const sourceField of sourceFieldsUpdated) {
             let sourceFieldID = String(sourceField.field_id);
             if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
@@ -4980,6 +4990,7 @@ function VodafoneService(objectCollection) {
                 }
             }
         }
+    }
 
         // ROMS Recalculation
         const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;

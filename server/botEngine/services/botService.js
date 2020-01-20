@@ -1155,12 +1155,12 @@ function BotService(objectCollection) {
         // Other miscellaneous placeholders
         // 1. {$currentDatetime}
         if (String(htmlTemplate).includes("{$currentDatetime}")) {
-            htmlTemplate = String(htmlTemplate).replace(/{\$currentDatetime}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD hh:mm A"));
+            htmlTemplate = String(htmlTemplate).replace(/{\$currentDatetime}/g, moment().utcOffset("+05:30").format("DD/MM/YYYY hh:mm A"));
         }
 
         // 1.1 {$currentDate}
         if (String(htmlTemplate).includes("{$currentDate}")) {
-            htmlTemplate = String(htmlTemplate).replace(/{\$currentDate}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD"));
+            htmlTemplate = String(htmlTemplate).replace(/{\$currentDate}/g, moment().utcOffset("+05:30").format("DD/MM/YYYY"));
         }
 
         // 1.2 {$currentDate}
