@@ -294,7 +294,73 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                // results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                let rpaFormFieldList = [];
+                // Check if this is a (field ID combo ID) specific bot operation
+                if (Number(request.field_id) !== 0) {
+                    rpaFormFieldList.push({
+                        form_id: request.form_id,
+                        field_id: request.field_id,
+                        data_type_combo_id: request.data_type_combo_id || 0
+                    });
+                }
+                // Check for field IDs inside the bot operations's inline data
+                rpaFormFieldList = getRPAFieldsFromBotOperation(request, rpaFormFieldList);
+
+                for (const rpaFormField of rpaFormFieldList) {
+                    try {
+                        if (Number(request.field_id) !== 0) {
+                            // 1. Get the field data
+                            const [errOne, fieldData] = await adminListingService.workforceFormFieldMappingSelectWorkflowFields({
+                                ...request,
+                                form_id: rpaFormField.form_id,
+                                field_id: rpaFormField.field_id,
+                                data_type_combo_id: rpaFormField.data_type_combo_id || 0
+                            });
+                            // 2. Extract the field's inline data
+                            if (!errOne && fieldData.length > 0) {
+                                let fieldInlineData = JSON.parse(fieldData[0].field_inline_data || '{}');
+                                if (!fieldInlineData.hasOwnProperty("bots")) {
+                                    fieldInlineData.bots = {};
+                                    fieldInlineData.bots[request.bot_id] = {};
+                                    fieldInlineData.bots[request.bot_id].bot_operations = {};
+
+                                } else if (!fieldInlineData.bots.hasOwnProperty(request.bot_id)) {
+                                    fieldInlineData.bots[request.bot_id] = {};
+                                    fieldInlineData.bots[request.bot_id].bot_operations = {};
+
+                                }
+
+                                fieldInlineData.bots[request.bot_id].bot_operations[results[0][0].bot_operation_id] = {
+                                    bot_id: request.bot_id,
+                                    bot_name: results[0][0].bot_name,
+                                    bot_operation_id: results[0][0].bot_operation_id,
+                                    bot_operation_type_id: request.bot_operation_type_id,
+                                    bot_operation_type_name: results[0][0].bot_operation_type_name,
+                                    bot_form_id: request.form_id,
+                                    bot_form_name: results[0][0].form_name
+                                };
+
+                                // 3. Update the field's inline data
+                                const [errTwo, _] = await adminOpsService.workforceFormFieldMappingUpdateInline({
+                                    ...request,
+                                    field_id: rpaFormField.field_id,
+                                    data_type_combo_id: rpaFormField.data_type_combo_id || 0,
+                                    form_id: rpaFormField.form_id,
+                                    field_name: fieldData[0].field_name,
+                                    inline_data: JSON.stringify(fieldInlineData),
+                                    flag_value_contributor: fieldData[0].field_flag_workflow_value_contributor,
+                                    flag_bot_dependency: 1
+                                });
+
+                            } else {
+                                console.log("[123123123] errOne: ", errOne);
+                            }
+                        }
+                    } catch (error) {
+                        console.log("[123123123] Entire pol: ", error);
+                    }
+                }
 
                 return results[0];
             } catch (error) {
