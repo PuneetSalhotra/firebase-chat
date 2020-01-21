@@ -368,6 +368,33 @@ function BotService(objectCollection) {
             }
         };
 
+    function getRPAFieldsFromBotOperation(request, rpaFormFieldList) {
+        const botOperationTypeID = Number(request.bot_operation_type_id),
+            botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
+            botOperations = botOperationInlineData.bot_operations;
+
+        switch (botOperationTypeID) {
+            case 1:
+                if (
+                    botOperations.participant_add.hasOwnProperty("dynamic") &&
+                    Number(botOperations.participant_add.dynamic.field_id) > 0 &&
+                    Number(botOperations.participant_add.dynamic.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.participant_add.dynamic.form_id),
+                        field_id: Number(botOperations.participant_add.dynamic.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        return rpaFormFieldList;
+    }
+
     //Alter bot operation mapping
     //Bharat Masimukku
     //2019-01-18
