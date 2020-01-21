@@ -374,7 +374,7 @@ function BotService(objectCollection) {
             botOperations = botOperationInlineData.bot_operations;
 
         switch (botOperationTypeID) {
-            case 1:
+            case 1: // Add participant
                 if (
                     botOperations.participant_add.hasOwnProperty("dynamic") &&
                     Number(botOperations.participant_add.dynamic.field_id) > 0 &&
@@ -385,6 +385,36 @@ function BotService(objectCollection) {
                         field_id: Number(botOperations.participant_add.dynamic.field_id),
                         data_type_combo_id: 0
                     });
+                }
+                break;
+            
+            case 10: // Add attachment with/without attestation
+                for (const attachment of botOperations.add_attachment_with_attestation) {
+                    // Document
+                    if (
+                        attachment.hasOwnProperty("document") &&
+                        Number(attachment.document.field_id) > 0 &&
+                        Number(attachment.document.form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(attachment.document.form_id),
+                            field_id: Number(attachment.document.field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                    // Attestation
+                    if (
+                        attachment.hasOwnProperty("document") &&
+                        attachment.document.hasOwnProperty("attestation") &&
+                        Number(attachment.document.attestation.field_id) > 0 &&
+                        Number(attachment.document.attestation.form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(attachment.document.attestation.form_id),
+                            field_id: Number(attachment.document.attestation.field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
                 }
                 break;
 
