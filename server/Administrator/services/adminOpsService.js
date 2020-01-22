@@ -5059,6 +5059,12 @@ function AdminOpsService(objectCollection) {
                         ...existingWorkflowFieldsInlineData,
                         ...newWorkflowFieldsInlineData
                     };
+                    try {
+                        await updateFormFieldValueContributorFlag(request, newWorkflowFieldsInlineData, 1);
+                    } catch (error) {
+                        // 
+                        console.log(error);
+                    }
                     break;
                 
                 case 3: // Remove fields
@@ -5066,6 +5072,12 @@ function AdminOpsService(objectCollection) {
                         delete existingWorkflowFieldsInlineData[fieldID];
                     }
                     workflowInlineData.workflow_fields = existingWorkflowFieldsInlineData;
+                    try {
+                        await updateFormFieldValueContributorFlag(request, newWorkflowFieldsInlineData, 0);
+                    } catch (error) {
+                        // 
+                        // console.log(error);
+                    }
                     break;
 
                 default:
@@ -5086,6 +5098,18 @@ function AdminOpsService(objectCollection) {
         return [false, []]
     }
 
+    async function updateFormFieldValueContributorFlag(request, workflowFieldsInlineData, value) {
+        for (const fieldID of Object.keys(workflowFieldsInlineData)) {
+            await workforceFormFieldMappingUpdateValueContibutorFlag({
+                ...request,
+                form_id: workflowFieldsInlineData[fieldID].form_id,
+                field_id: fieldID,
+                data_type_combo_id: 0,
+                flag_value_contributor: value
+            }, request.organization_id);
+        }
+    }
+
     async function workforceActivityTypeMappingUpdateInline(request, organizationID, accountID, workforceID) {
         let responseData = [],
             error = true;
@@ -5100,6 +5124,34 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_inline', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function workforceFormFieldMappingUpdateValueContibutorFlag(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.field_id,
+            request.data_type_combo_id || 0,
+            request.form_id,
+            organizationID,
+            request.flag_value_contributor,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_value_contibutor_flag', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
