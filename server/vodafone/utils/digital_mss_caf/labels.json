@@ -45,17 +45,6 @@
     },
     {
         "form_id": 2184,
-        "field_id": 25947,
-        "field_name": "SHIPPING ADDRESS (If same as billing address then tick the box, If Different then fill the form below",
-        "field_data_type_id": 21,
-        "field_data_type_category_id": 8,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "SHIPPING ADDRESS (If same as billing address then tick the box, If Different then fill the form below",
-        "message_unique_id": 1111222233334444
-    },
-    {
-        "form_id": 2184,
         "field_id": 25960,
         "field_name": "INSTALLATION ADDRESS - A",
         "field_data_type_id": 21,
