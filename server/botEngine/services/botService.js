@@ -402,7 +402,7 @@ function BotService(objectCollection) {
                 }
                 break;
             
-            case 7: // Fire Email
+            case 7: // Fire email
                 if (
                     botOperations.fire_email.hasOwnProperty("dynamic") &&
                     Number(botOperations.fire_email.dynamic.field_id) > 0 &&
@@ -446,10 +446,9 @@ function BotService(objectCollection) {
                 }
                 break;
 
-            case 15: // Create Customer
+            case 15: // Create customer
                 const createCustomerFields = botOperations.create_customer;
                 for (const key of Object.keys(createCustomerFields)) {
-                    // Document
                     if (
                         createCustomerFields[key].hasOwnProperty("field_id") &&
                         Number(createCustomerFields[key].field_id) > 0 &&
@@ -461,6 +460,21 @@ function BotService(objectCollection) {
                             data_type_combo_id: 0
                         });
                     }
+                }
+                break;
+
+            case 16: // Workflow reference cumulation
+                const workflowReferenceCumulation = botOperations.workflow_reference_cumulation;
+                if (
+                    workflowReferenceCumulation.hasOwnProperty("reference_activity_datatype") &&
+                    Number(workflowReferenceCumulation.reference_activity_datatype.field_id) > 0 &&
+                    Number(workflowReferenceCumulation.reference_activity_datatype.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(workflowReferenceCumulation.reference_activity_datatype.form_id),
+                        field_id: Number(workflowReferenceCumulation.reference_activity_datatype.field_id),
+                        data_type_combo_id: 0
+                    });
                 }
                 break;
 
