@@ -304,6 +304,24 @@ function BotService(objectCollection) {
                         data_type_combo_id: request.data_type_combo_id || 0
                     });
                 }
+                // Check for any bot operation conditionals 
+                try {
+                    const botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+                if (
+                    Boolean(botOperations.condition.is_check) === true &&
+                    Number(botOperations.condition.form_id) > 0 &&
+                    Number(botOperations.condition.field_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.condition.form_id),
+                        field_id: Number(botOperations.condition.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                } catch (error) {
+                    // 
+                }
                 // Check for field IDs inside the bot operations's inline data
                 rpaFormFieldList = getRPAFieldsFromBotOperation(request, rpaFormFieldList);
 
