@@ -388,6 +388,20 @@ function BotService(objectCollection) {
                 }
                 break;
             
+            case 6: // Fire text
+                if (
+                    botOperations.fire_text.hasOwnProperty("dynamic") &&
+                    Number(botOperations.fire_text.dynamic.field_id) > 0 &&
+                    Number(botOperations.fire_text.dynamic.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.fire_text.dynamic.form_id),
+                        field_id: Number(botOperations.fire_text.dynamic.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+
             case 10: // Add attachment with/without attestation
                 for (const attachment of botOperations.add_attachment_with_attestation) {
                     // Document
