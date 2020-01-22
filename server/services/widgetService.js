@@ -803,14 +803,23 @@ function WidgetService(objCollection) {
             //let finalResult = 0;
             let response = [];
             //let resp = {};
-            for(i=1;i<5;i++) {
-                result = await retrievefieldTrxAvgTime(request, i);
+            for(i=-1;i<5;i++) {
+                if(i !== 0)
+                    result = await retrievefieldTrxAvgTime(request, i);
+                else
+                    result = [];
+
                 if(result.length > 0) {
                     //console.log(result[0].widget_axis_y_value_decimal);
                     //finalResult += result[0].widget_axis_y_value_decimal || 0;
                     //response.widget_axis_y_value_decimal_1 = result[0].widget_axis_y_value_decimal;
                     let resp = {};
                     switch(i) {
+                        case -1: resp.key = 'po_order_documents_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'P.O to order documents';                                
+                                response.push(resp);
+                                break;                        
                         case 1: resp.key = 'po_order_submission_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
                                 resp.label = 'P.O to order submission';                                

@@ -4934,6 +4934,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 participantCheck = true;
                 assetID = participantData.asset_id;
                 console.log('new Participant from Request : ASSET ID', assetID);
+                if(participantData.asset_id !== data[0].activity_lead_asset_id){
+                    console.log("Existing lead data into status change transaction");
+                }
             } else if(participantData.asset_type_id !== data[0].activity_lead_asset_type_id){
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
