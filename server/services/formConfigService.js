@@ -797,6 +797,7 @@ function FormConfigService(objCollection) {
             let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
             let OTC_2_ValueFields = widgetFieldsStatusesData.OTC_2;
             let ARC_2_ValueFields = widgetFieldsStatusesData.ARC_2;
+            let creditDebitFields = widgetFieldsStatusesData.CREDIT_DEBIT_FIELDS;
             let valueflag = 0;
 
             let otc_1 = 0, arc_1 = 0, otc_2 = 0, arc_2 = 0;
@@ -1258,6 +1259,13 @@ function FormConfigService(objCollection) {
                                     request['datetime_log'] = util.getCurrentUTCTime();
                                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
                                 });          
+                            }else if(Object.keys(creditDebitFields).includes(String(row.field_id))){
+                                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                                    let creditDebitValue = 0;
+                                    console.log("row.field_value.transaction_data.transaction_type_id :: "+row.field_value.transaction_data.transaction_type_id);
+                                    row.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = row.field_value.transaction_data.transaction_amount: creditDebitValue = '-'+row.field_value.transaction_data.transaction_amount;
+                                    activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, creditDebitValue);
+                                });
                             }
                         next();
                         
@@ -4696,6 +4704,31 @@ function FormConfigService(objCollection) {
         return [error, responseData];
       }
 
+    //
+    this.getFormFieldsCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_form_field_count', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = FormConfigService;

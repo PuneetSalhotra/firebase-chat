@@ -3312,11 +3312,13 @@ async function addFormEntriesAsync(request) {
                 break;
             case 62: //Credit/Debit DataType
                 try {
-                        let jsonData = JSON.parse(row.field_value);
+                       console.log("row.field_value 62 :: "+JSON.stringify(row.field_value));
+                        let jsonData = row.field_value.transaction_data;
+                        console.log("jsonData.transaction_type_id :: "+jsonData.transaction_type_id);
                         (Number(jsonData.transaction_type_id) === 1) ?
-                            params[15] = jsonData.transaction_data.transaction_amount: //credit
-                            params[16] = jsonData.transaction_data.transaction_amount; // Debit
-                        params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
+                            params[15] = jsonData.transaction_amount: //credit
+                            params[16] = jsonData.transaction_amount; // Debit
+                            params[13] = jsonData.activity_id; //Activity_id i.e account(ledger)_activity_id
                     } catch (err) {
                         console.log(err);
                     }
