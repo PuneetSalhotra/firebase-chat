@@ -1517,6 +1517,8 @@ function FormConfigService(objCollection) {
                         let dataTypeId = Number(formField.datatypeid);                                           
 
                         let dataTypeCategoryId = Number(formField.datatypecategoryid);
+
+                        let maxDataTypeComboID = 0;
                         
                         console.log('\x1b[36m\n\n%s\x1b[0m', 'fieldSequenceId: ', fieldSequenceId);
 
@@ -1560,6 +1562,8 @@ function FormConfigService(objCollection) {
                                     field_id: fieldId,
                                     data_type_combo_id: index + 1
                                 });
+
+                                maxDataTypeComboID = index + 1;
                             }
 
                             // Reset fieldId to 0, so it can be re-used by other fields
@@ -1618,7 +1622,8 @@ function FormConfigService(objCollection) {
                             case 33: await createBot(request, {}, {
                                 dataTypeId,
                                 fieldName,
-                                fieldIdforBotCreation
+                                fieldIdforBotCreation,
+                                maxDataTypeComboID
                             });
                                 break;
                             case 62: await createBot(request, {}, {
@@ -4482,6 +4487,9 @@ function FormConfigService(objCollection) {
                 newRequest.bot_name = request.form_name + " - SS Bot - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
+
+                // For updating RPA details for all combo values
+                newRequest.max_data_type_combo_id = Number(fieldData.maxDataTypeComboID);
                 break;
             case 62:            
                 tempObj.bot_operations = {};

@@ -478,6 +478,24 @@ function BotService(objectCollection) {
                 }
                 break;
 
+            case 17: // Single selection cumulation
+                const singleSelectionCumulation = botOperations.single_selection_cumulation;
+                const maxDataTypeComboID = Number(request.max_data_type_combo_id);
+                if (
+                    singleSelectionCumulation.hasOwnProperty("single_selection_datatype") &&
+                    Number(singleSelectionCumulation.single_selection_datatype.field_id) > 0 &&
+                    Number(singleSelectionCumulation.single_selection_datatype.form_id) > 0
+                ) {
+                    for (let i = 1; i <= maxDataTypeComboID; i++) {
+                        rpaFormFieldList.push({
+                            form_id: Number(singleSelectionCumulation.single_selection_datatype.form_id),
+                            field_id: Number(singleSelectionCumulation.single_selection_datatype.field_id),
+                            data_type_combo_id: i
+                        });
+                    }
+                }
+                break;
+
             default:
                 break;
         }
