@@ -1261,7 +1261,10 @@ function FormConfigService(objCollection) {
                                 });          
                             }else if(Object.keys(creditDebitFields).includes(String(row.field_id))){
                                 activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                                    activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, row.field_value.transaction_data.transaction_amount);
+                                    let creditDebitValue = 0;
+                                    console.log("row.field_value.transaction_data.transaction_type_id :: "+row.field_value.transaction_data.transaction_type_id);
+                                    row.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = row.field_value.transaction_data.transaction_amount: creditDebitValue = '-'+row.field_value.transaction_data.transaction_amount;
+                                    activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, creditDebitValue);
                                 });
                             }
                         next();
