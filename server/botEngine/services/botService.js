@@ -446,6 +446,24 @@ function BotService(objectCollection) {
                 }
                 break;
 
+            case 15: // Create Customer
+                const createCustomerFields = botOperations.create_customer;
+                for (const key of Object.keys(createCustomerFields)) {
+                    // Document
+                    if (
+                        createCustomerFields[key].hasOwnProperty("field_id") &&
+                        Number(createCustomerFields[key].field_id) > 0 &&
+                        Number(createCustomerFields[key].form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(createCustomerFields[key].form_id),
+                            field_id: Number(createCustomerFields[key].field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                }
+                break;
+
             default:
                 break;
         }
