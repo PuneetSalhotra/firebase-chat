@@ -312,6 +312,9 @@ function ActivityService(objectCollection) {
                                 
                                 let widgetRow = await activityCommonService.getWidgetByActivityType(request);                                
                                 console.log('WIDGET ROW :: ', widgetRow.length);
+                                const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
+                                let creditDebitFields = widgetFieldsStatusesData.CREDIT_DEBIT_FIELDS;
+
                                 if(widgetRow.length > 0){
                                     console.log('WIDGET ROW EXISTIS ::'+widgetRow[0].widget_id);
                                     request['widget_id'] = widgetRow[0].widget_id;
@@ -373,7 +376,23 @@ function ActivityService(objectCollection) {
                                                  widgetActivityFieldTransactionInsert(request);                                                 
                                             }
                                         } else {
-                                            await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
+                                                await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
+                                                
+                                                forEachAsync(requestFormData, function (next, fieldObj) {
+                                                    console.log('LOOP ELSE ::' + request.activity_type_id + ' ' + fieldObj.field_id);
+                                                    if(Object.keys(creditDebitFields).includes(String(fieldObj.field_id))){
+                                                        let creditDebitValue = 0;
+                                                        console.log("fieldObj.field_value.transaction_data.transaction_type_id :: "+fieldObj.field_value.transaction_data.transaction_type_id);
+                                                        fieldObj.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = fieldObj.field_value.transaction_data.transaction_amount: creditDebitValue = '-'+fieldObj.field_value.transaction_data.transaction_amount;
+
+                                                        activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, creditDebitValue);
+                                                        next();
+                                                    }else{
+                                                        next();
+                                                    }
+
+                                                });
+                                            
                                         }                                    
                             }
 

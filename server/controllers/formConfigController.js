@@ -602,6 +602,17 @@ function FormConfigController(objCollection) {
         }
 
     });
+
+    // Get the count of fields in a form
+    app.post('/' + global.config.version + '/form/fields/count', async function (req, res) {
+        const [err, formFieldCount] = await formConfigService.getFormFieldsCount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldCount, 200, req.body));
+        } else {
+            console.log("/form/fields/count | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldCount, -9999, req.body));
+        }
+    });
 }
 
 module.exports = FormConfigController;
