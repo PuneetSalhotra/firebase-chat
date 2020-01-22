@@ -5333,6 +5333,37 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    //Set Admin Flags on targetAssetId
+    this.assetListUpdateAdminFlag = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.is_admin,
+            request.is_manager,
+            request.is_org_admin,
+            request.datetime_log
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_admin_flags', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
