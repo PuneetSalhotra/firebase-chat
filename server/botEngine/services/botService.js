@@ -294,13 +294,232 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                // results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                let rpaFormFieldList = [];
+                // Check if this is a (field ID combo ID) specific bot operation
+                if (Number(request.field_id) !== 0) {
+                    rpaFormFieldList.push({
+                        form_id: request.form_id,
+                        field_id: request.field_id,
+                        data_type_combo_id: request.data_type_combo_id || 0
+                    });
+                }
+                // Check for any bot operation conditionals 
+                try {
+                    const botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+                if (
+                    Boolean(botOperations.condition.is_check) === true &&
+                    Number(botOperations.condition.form_id) > 0 &&
+                    Number(botOperations.condition.field_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.condition.form_id),
+                        field_id: Number(botOperations.condition.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                } catch (error) {
+                    // 
+                }
+                // Check for field IDs inside the bot operations's inline data
+                rpaFormFieldList = getRPAFieldsFromBotOperation(request, rpaFormFieldList);
+
+                for (const rpaFormField of rpaFormFieldList) {
+                    try {
+                        if (Number(request.field_id) !== 0) {
+                            // 1. Get the field data
+                            const [errOne, fieldData] = await adminListingService.workforceFormFieldMappingSelectWorkflowFields({
+                                ...request,
+                                form_id: rpaFormField.form_id,
+                                field_id: rpaFormField.field_id,
+                                data_type_combo_id: rpaFormField.data_type_combo_id || 0
+                            });
+                            // 2. Extract the field's inline data
+                            if (!errOne && fieldData.length > 0) {
+                                let fieldInlineData = JSON.parse(fieldData[0].field_inline_data || '{}');
+                                if (!fieldInlineData.hasOwnProperty("bots")) {
+                                    fieldInlineData.bots = {};
+                                    fieldInlineData.bots[request.bot_id] = {};
+                                    fieldInlineData.bots[request.bot_id].bot_operations = {};
+
+                                } else if (!fieldInlineData.bots.hasOwnProperty(request.bot_id)) {
+                                    fieldInlineData.bots[request.bot_id] = {};
+                                    fieldInlineData.bots[request.bot_id].bot_operations = {};
+
+                                }
+
+                                fieldInlineData.bots[request.bot_id].bot_operations[results[0][0].bot_operation_id] = {
+                                    bot_id: request.bot_id,
+                                    bot_name: results[0][0].bot_name,
+                                    bot_operation_id: results[0][0].bot_operation_id,
+                                    bot_operation_type_id: request.bot_operation_type_id,
+                                    bot_operation_type_name: results[0][0].bot_operation_type_name,
+                                    bot_form_id: request.form_id,
+                                    bot_form_name: results[0][0].form_name
+                                };
+
+                                // 3. Update the field's inline data
+                                const [errTwo, _] = await adminOpsService.workforceFormFieldMappingUpdateInline({
+                                    ...request,
+                                    field_id: rpaFormField.field_id,
+                                    data_type_combo_id: rpaFormField.data_type_combo_id || 0,
+                                    form_id: rpaFormField.form_id,
+                                    field_name: fieldData[0].field_name,
+                                    inline_data: JSON.stringify(fieldInlineData),
+                                    flag_value_contributor: fieldData[0].field_flag_workflow_value_contributor,
+                                    flag_bot_dependency: 1
+                                });
+
+                            } else {
+                                // console.log("workforceFormFieldMappingSelectWorkflowFields: ", errOne);
+                            }
+                        }
+                    } catch (error) {
+                        // console.log("Error: ", error);
+                    }
+                }
 
                 return results[0];
             } catch (error) {
                 return Promise.reject(error);
             }
         };
+
+    function getRPAFieldsFromBotOperation(request, rpaFormFieldList) {
+        const botOperationTypeID = Number(request.bot_operation_type_id),
+            botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
+            botOperations = botOperationInlineData.bot_operations;
+
+        switch (botOperationTypeID) {
+            case 1: // Add participant
+                if (
+                    botOperations.participant_add.hasOwnProperty("dynamic") &&
+                    Number(botOperations.participant_add.dynamic.field_id) > 0 &&
+                    Number(botOperations.participant_add.dynamic.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.participant_add.dynamic.form_id),
+                        field_id: Number(botOperations.participant_add.dynamic.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+            
+            case 6: // Fire text
+                if (
+                    botOperations.fire_text.hasOwnProperty("dynamic") &&
+                    Number(botOperations.fire_text.dynamic.field_id) > 0 &&
+                    Number(botOperations.fire_text.dynamic.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.fire_text.dynamic.form_id),
+                        field_id: Number(botOperations.fire_text.dynamic.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+            
+            case 7: // Fire email
+                if (
+                    botOperations.fire_email.hasOwnProperty("dynamic") &&
+                    Number(botOperations.fire_email.dynamic.field_id) > 0 &&
+                    Number(botOperations.fire_email.dynamic.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(botOperations.fire_email.dynamic.form_id),
+                        field_id: Number(botOperations.fire_email.dynamic.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+
+            case 10: // Add attachment with/without attestation
+                for (const attachment of botOperations.add_attachment_with_attestation) {
+                    // Document
+                    if (
+                        attachment.hasOwnProperty("document") &&
+                        Number(attachment.document.field_id) > 0 &&
+                        Number(attachment.document.form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(attachment.document.form_id),
+                            field_id: Number(attachment.document.field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                    // Attestation
+                    if (
+                        attachment.hasOwnProperty("document") &&
+                        attachment.document.hasOwnProperty("attestation") &&
+                        Number(attachment.document.attestation.field_id) > 0 &&
+                        Number(attachment.document.attestation.form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(attachment.document.attestation.form_id),
+                            field_id: Number(attachment.document.attestation.field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                }
+                break;
+
+            case 15: // Create customer
+                const createCustomerFields = botOperations.create_customer;
+                for (const key of Object.keys(createCustomerFields)) {
+                    if (
+                        createCustomerFields[key].hasOwnProperty("field_id") &&
+                        Number(createCustomerFields[key].field_id) > 0 &&
+                        Number(createCustomerFields[key].form_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(createCustomerFields[key].form_id),
+                            field_id: Number(createCustomerFields[key].field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                }
+                break;
+
+            case 16: // Workflow reference cumulation
+                const workflowReferenceCumulation = botOperations.workflow_reference_cumulation;
+                if (
+                    workflowReferenceCumulation.hasOwnProperty("reference_activity_datatype") &&
+                    Number(workflowReferenceCumulation.reference_activity_datatype.field_id) > 0 &&
+                    Number(workflowReferenceCumulation.reference_activity_datatype.form_id) > 0
+                ) {
+                    rpaFormFieldList.push({
+                        form_id: Number(workflowReferenceCumulation.reference_activity_datatype.form_id),
+                        field_id: Number(workflowReferenceCumulation.reference_activity_datatype.field_id),
+                        data_type_combo_id: 0
+                    });
+                }
+                break;
+
+            case 17: // Single selection cumulation
+                const singleSelectionCumulation = botOperations.single_selection_cumulation;
+                const maxDataTypeComboID = Number(request.max_data_type_combo_id);
+                if (
+                    singleSelectionCumulation.hasOwnProperty("single_selection_datatype") &&
+                    Number(singleSelectionCumulation.single_selection_datatype.field_id) > 0 &&
+                    Number(singleSelectionCumulation.single_selection_datatype.form_id) > 0
+                ) {
+                    for (let i = 1; i <= maxDataTypeComboID; i++) {
+                        rpaFormFieldList.push({
+                            form_id: Number(singleSelectionCumulation.single_selection_datatype.form_id),
+                            field_id: Number(singleSelectionCumulation.single_selection_datatype.field_id),
+                            data_type_combo_id: i
+                        });
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        return rpaFormFieldList;
+    }
 
     //Alter bot operation mapping
     //Bharat Masimukku
