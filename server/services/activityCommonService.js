@@ -4885,8 +4885,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.activityLeadUpdate = async function (request, participantData, isAlterStatus) {
 
-        self.getActivityDetailsPromise(request, request.activity_id).then(async (data)=>{
-            console.log("getActivityDetailsPromise :: "+data);
+        self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
+            console.log("getActivityDetailsPromise :: ", data);
             let participantCheck = false;
 
             request.flag = -1;
@@ -4896,9 +4896,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             let assetID = 0;
 
             let leadRequest = Object.assign({}, request);
-            leadRequest.asset_id = data[0].activity_lead_asset_id?data[0].activity_lead_asset_id: 0;
-            console.log("participantData :: "+JSON.stringify(participantData, null, 2));
-             if(isAlterStatus){ 
+            leadRequest.asset_id = data[0].activity_lead_asset_id ? data[0].activity_lead_asset_id : 0;
+            console.log("participantData :: ", JSON.stringify(participantData, null, 2));
+            if (isAlterStatus) {
 
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
@@ -4911,8 +4911,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 console.log('getAssetForAssetTypeID : 3', assetData);
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
- 
-            } else if(leadRequest.asset_id === 0 || leadRequest.asset_id === null){
+
+            } else if (leadRequest.asset_id === 0 || leadRequest.asset_id === null) {
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
@@ -4926,21 +4926,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                 participantCheck = true;
-            } else if(participantData.asset_type_id === data[0].activity_lead_asset_type_id){  
+            } else if (participantData.asset_type_id === data[0].activity_lead_asset_type_id) {
                 //lead exists                       
                 participantCheck = true;
                 assetID = participantData.asset_id;
                 console.log('new Participant from Request : ASSET ID', assetID);
-                if(participantData.asset_id !== data[0].activity_lead_asset_id){
+                if (participantData.asset_id !== data[0].activity_lead_asset_id) {
                     console.log("Existing lead data into status change transaction");
                 }
-            } else if(participantData.asset_type_id !== data[0].activity_lead_asset_type_id){
+            } else if (participantData.asset_type_id !== data[0].activity_lead_asset_type_id) {
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
                 let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
                 console.log('getAssetTypeIDForAStatusID : 7 ', roleData);
-                if(roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id){
+                if (roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id) {
 
                     newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
                     console.log('getAssetTypeIDForAStatusID : 8 ', roleData[0].asset_type_id);
@@ -4950,23 +4950,23 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                     console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                     participantCheck = true;
-                }else{
+                } else {
                     participantCheck = false;
                 }
             }
 
-            if(participantCheck || isAlterStatus){
+            if (participantCheck || isAlterStatus) {
 
                 await self.activityListLeadUpdate(request, assetID);
 
                 let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                console.log("exisitngAssetData :: "+exisitngAssetData);
-                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration*60)-Number(exisitngAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration*60;
+                console.log("exisitngAssetData :: ", exisitngAssetData);
+                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration * 60) - Number(exisitngAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration * 60;
                 leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
 
-                console.log('After activityListLeadUpdate : '+leadRequest);
+                console.log('After activityListLeadUpdate : ', leadRequest);
                 leadRequest.asset_id = data[0].activity_lead_asset_id;
                 await self.assetSummaryTransactionInsert(leadRequest);
                 console.log('After assetSummaryTransactionInsert : ');
@@ -4974,21 +4974,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 leadRequest.asset_id = assetID;
 
                 let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
-                let newAssetEfficiency = Number(newAssetData[0].expected_duration*60)-Number(newAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration*60;
+                console.log("newAssetData[0].query_status ", newAssetData[0].query_status)
+                let newAssetEfficiency = Number(newAssetData[0].expected_duration * 60) - Number(newAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration * 60;
                 leadRequest.entity_decimal_2 = newAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = newAssetEfficiency;
 
-                console.log("Expected Duration :: "+newAssetData[0].expected_duration);
-                console.log("Actual Duration :: "+newAssetData[0].actual_duration);
-                console.log("newAssetEfficiency :: "+newAssetEfficiency);
+                console.log("Expected Duration :: ", newAssetData[0].expected_duration);
+                console.log("Actual Duration :: ", newAssetData[0].actual_duration);
+                console.log("newAssetEfficiency :: ", newAssetEfficiency);
 
                 leadRequest.asset_id = assetID;
                 await self.assetSummaryTransactionInsert(leadRequest);
 
-                console.log("existingAssetEfficiency "+existingAssetEfficiency);
-                console.log("newAssetEfficiency "+newAssetEfficiency);  
+                console.log("existingAssetEfficiency ", existingAssetEfficiency);
+                console.log("newAssetEfficiency ", newAssetEfficiency);
             }
         });
     };
