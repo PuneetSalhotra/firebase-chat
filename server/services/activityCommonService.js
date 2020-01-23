@@ -3332,7 +3332,7 @@ this.getAllParticipantsAsync = async (request) => {
             let temp = {};
             let newReq = Object.assign({}, request);
 
-            try{
+            try {
                 const flag = request.flag;
 
                 let activityDatetimeCreatedIST = '';
@@ -3344,52 +3344,52 @@ this.getAllParticipantsAsync = async (request) => {
                 //global.logger.write('conLog', '*****Update: update po_date in widget5 *******'+request.flag +' '+flag, {}, request);    
                 //global.logger.write('conLog', 'request.flag :: '+request.flag, {}, request);
                 //global.logger.write('conLog', 'request.order_logged_datetime :: '+request.order_logged_datetime, {}, request);
-                getWorkflowData(request).then((data)=>{ 
-                global.logger.write('conLog', 'In the workflow data length:: '+request.flag+' '+JSON.stringify(data), {}, request);
+                getWorkflowData(request).then((data) => {
+                    global.logger.write('conLog', 'In the workflow data length:: ' + request.flag + ' ' + JSON.stringify(data), {}, request);
 
-                if(data.length > 0){
+                    if (data.length > 0) {
 
-                //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
-                //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
-                   activityDatetimeCreatedIST  = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
-                   
-                   // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
-                    global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget '+request.order_po_date+', '+request.flag+',*******'+activityDatetimeCreatedIST, {}, request);   
-                    if(flag == 1){
-                        if(request.order_po_date == null || request.order_po_date == ''){
-                            order_po_trigger_diff = 0;
-                            order_po_log_diff = 0;
-                        }else{                            
-                            global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE '+data[0].activity_logged_datetime+', '+request.flag+', *******'+activityDatetimeCreatedIST, {}, request);   
-                            if(data[0].activity_logged_datetime != null ){
-                                order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date)/1000;
-                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
-                            }
-                            else{
+                        //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
+                        //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
+                        activityDatetimeCreatedIST = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
+
+                        // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
+                        global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget ' + request.order_po_date + ', ' + request.flag + ',*******' + activityDatetimeCreatedIST, {}, request);
+                        if (flag == 1) {
+                            if (request.order_po_date == null || request.order_po_date == '') {
+                                order_po_trigger_diff = 0;
                                 order_po_log_diff = 0;
-                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                            } else {
+                                global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' + data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                                if (data[0].activity_logged_datetime != null) {
+                                    order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date) / 1000;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                }
+                                else {
+                                    order_po_log_diff = 0;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                }
                             }
+
+                        } else if (flag == 2) {
+                            //
+                        } else if (flag == 3) {
+
+                            order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST) / 1000;
+                            //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+
+                            if (data[0].activity_caf_approval_datetime != null)
+                                order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime) / 1000;
+
+                            if (data[0].activity_po_datetime != null)
+                                order_po_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_po_datetime) / 1000;
                         }
-                        
-                    }else if(flag == 2){
-                        //
-                    }else if(flag == 3){
+                    }
 
-                        order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST)/1000;
-                        //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
-
-                        if(data[0].activity_caf_approval_datetime != null)
-                        order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime)/1000;
-
-                        if(data[0].activity_po_datetime != null)
-                        order_po_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_po_datetime)/1000;
-                    } 
-                }
-
-                      global.logger.write('conLog', 'request.order_po_trigger_diff :: '+order_po_trigger_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_caf_approval_log_diff :: '+order_caf_approval_log_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_po_log_diff :: '+order_po_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_po_trigger_diff :: ' + order_po_trigger_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_trigger_log_diff :: ' + order_trigger_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_caf_approval_log_diff :: ' + order_caf_approval_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_po_log_diff :: ' + order_po_log_diff, {}, request);
                     var paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
@@ -3402,38 +3402,44 @@ this.getAllParticipantsAsync = async (request) => {
                         order_trigger_log_diff,
                         order_caf_approval_log_diff,
                         order_po_log_diff,
-                        flag,  
+                        flag,
                         request.datetime_log
-                    );                   
+                    );
                     var queryString = util.getQueryString("ds_p1_3_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
                                 console.log('ACS ERRRRRRRRRRRRRRROR : ', err);
                                 console.log('ACS DAAAAAAAAAAAAAAATA : ', data);
-                                if(data.length > 0) {
+                                if (data.length > 0) {
                                     newReq.widget_id = data[0].widget_id;
                                 }
                                 temp.data = data;
                                 newReq.inline_data = temp;
-                                self.widgetLogTrx(newReq, 1);
-                                resolve();                                
+                                if (Number(newReq.widget_id) > 0) {
+                                    self.widgetLogTrx(newReq, 1);
+                                }
+                                resolve();
                             } else {
                                 temp.err = err;
                                 newReq.inline_data = temp;
-                                self.widgetLogTrx(newReq, 2);
+                                if (Number(newReq.widget_id) > 0) {
+                                    self.widgetLogTrx(newReq, 2);
+                                }
                                 reject(err);
                             }
                         });
                     }
-                
-            });
-        } catch (error) {
-            temp.err = error;
-            newReq.inline_data = temp;
-            self.widgetLogTrx(newReq, 2);
-            global.logger.write('error', error, error, request);
-          }
+
+                });
+            } catch (error) {
+                temp.err = error;
+                newReq.inline_data = temp;
+                if (Number(newReq.widget_id) > 0) {
+                    self.widgetLogTrx(newReq, 2);
+                }
+                global.logger.write('error', error, error, request);
+            }
         });
     }; 
 
