@@ -3094,8 +3094,8 @@ function ActivityService(objectCollection) {
                 request.device_api_version,
                 request.asset_id,
                 request.message_unique_id,
-                request.flag_retry,
-                request.falg_retry_offline,
+                request.flag_retry || 0,
+                request.falg_retry_offline || 0,
                 request.transaction_datetime,
                 request.datetime_log
             );

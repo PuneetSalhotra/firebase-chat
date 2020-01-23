@@ -1200,6 +1200,35 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    this.workforceFormFieldMappingSelectWorkflowFields = async function (request, activityTypeID = 0) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            activityTypeID,
+            request.form_id,
+            request.field_id,
+            request.data_type_id || 0,
+            request.data_type_combo_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminListingService;
