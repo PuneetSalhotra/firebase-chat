@@ -306,6 +306,17 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    // List processes associated with the Tag
+    app.post('/' + global.config.version + '/admin/tag/mappings/list', async function (req, res) {
+        const [err, data] = await adminListingService.tagListSelectTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/tag/mappings/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
