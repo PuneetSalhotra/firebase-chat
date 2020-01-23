@@ -1725,8 +1725,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.api_version,
                 request.asset_id,
                 request.message_unique_id,
-                request.flag_retry,
-                request.flag_offline,
+                request.flag_retry || 0,
+                request.flag_offline || 0,
                 request.track_gps_datetime || request.datetime_log,
                 request.datetime_log
             );
