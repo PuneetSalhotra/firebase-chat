@@ -65,11 +65,8 @@ function AccountService(objectCollection) {
     };
 
     this.retrieveAccountList = function (request, callback) {
-        var paramsArr = new Array(
-            request.account_id
-            //request.page_start,
-            //request.page_limit
-        );
+        let paramsArr = [];
+        paramsArr.push(request.account_id);
         var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
