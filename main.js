@@ -195,3 +195,15 @@ function connectToKafkaBroker(){
     });
     
 };
+
+process.on('uncaughtException', (error, origin) => {
+    logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: error });
+});
+
+process.on('error', (error) => {
+    logger.error("Process Error", { type: 'process_error', error: error });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: reason });
+});

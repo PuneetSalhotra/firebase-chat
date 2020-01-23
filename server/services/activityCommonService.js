@@ -1678,8 +1678,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.device_api_version,
                 request.asset_id,
                 request.message_unique_id,
-                request.flag_retry,
-                request.flag_offline,
+                request.flag_retry || 0,
+                request.flag_offline || 0,
                 request.track_gps_datetime || request.datetime_log,
                 request.datetime_log
             );
@@ -2227,11 +2227,8 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.retrieveAccountList = function (request, callback) {
-        var paramsArr = new Array(
-            request.account_id
-            //request.page_start,
-            //request.page_limit
-        );
+        let paramsArr = [];
+        paramsArr.push(request.account_id);
         var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -4066,7 +4063,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         if (queryString !== "") {
             await db
-                .executeQueryPromise(1, queryString, request)
+                .executeQueryPromise(0, queryString, request)
                 .then(data => {
                     responseData = data;
                     error = false;
