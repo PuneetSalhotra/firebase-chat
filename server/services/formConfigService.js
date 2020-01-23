@@ -4045,14 +4045,18 @@ function FormConfigService(objCollection) {
                     }
                     temp.data = data;
                     newReq.inline_data = temp;
-                    activityCommonService.widgetLogTrx(newReq, 1);
+                    if (Number(newReq.widget_id) > 0) {
+                        activityCommonService.widgetLogTrx(newReq, 1);
+                    }
                 })
                 .catch((err) => {
                     console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
                     temp.err = err;
                     newReq.inline_data = temp;
                     error = err;
-                    activityCommonService.widgetLogTrx(newReq, 2);
+                    if (Number(newReq.widget_id) > 0) {
+                        activityCommonService.widgetLogTrx(newReq, 2);
+                    }
                 });
         }
 
@@ -4232,14 +4236,18 @@ function FormConfigService(objCollection) {
                     }
                     temp.data = data;
                     newReq.inline_data = temp;
-                    activityCommonService.widgetLogTrx(newReq, 1);
+                    if (Number(newReq.widget_id) > 0) {
+                        activityCommonService.widgetLogTrx(newReq, 1);
+                    }
                 })
                 .catch((err) => {
                     console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
                     temp.err = err;
                     newReq.inline_data = temp;
                     error = err;
-                    activityCommonService.widgetLogTrx(newReq, 2);
+                    if (Number(newReq.widget_id) > 0) {
+                        activityCommonService.widgetLogTrx(newReq, 2);
+                    }
                 });
         }
 

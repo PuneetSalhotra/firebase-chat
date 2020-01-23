@@ -3942,12 +3942,16 @@ function ActivityService(objectCollection) {
                         }            
                         temp.data = data;
                         newReq.inline_data = temp;
-                        activityCommonService.widgetLogTrx(newReq, 1);
+                        if (Number(newReq.widget_id) > 0) {
+                            activityCommonService.widgetLogTrx(newReq, 1);
+                        }
                         resolve();
                     } else {                        
                         temp.err = err;
                         newReq.inline_data = temp;
-                        activityCommonService.widgetLogTrx(newReq, 2);
+                        if (Number(newReq.widget_id) > 0) {
+                            activityCommonService.widgetLogTrx(newReq, 2);
+                        }
                         reject(err);
                     }
                 });
