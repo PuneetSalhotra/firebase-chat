@@ -3821,6 +3821,10 @@ function VodafoneService(objectCollection) {
 
     this.buildAndSubmitCafFormV1 = async function (request) {
 
+        // [ABORT] For non vodafone organizations, don't proceed
+        if (Number(request.organization_id) !== 868) {
+            return [false, {}];
+        }
         //await sleep(5000);
 
         let workflowActivityData = [],
@@ -4795,6 +4799,12 @@ function VodafoneService(objectCollection) {
     }
 
     this.regenerateAndSubmitTargetForm = async function (request) {
+
+        // [ABORT] For non vodafone organizations, don't proceed
+        if (Number(request.organization_id) !== 868) {
+            return [false, {}];
+        }
+
         // Fetch form's config data
         request.page_start = 0;
         const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
