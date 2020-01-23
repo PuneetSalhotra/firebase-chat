@@ -4063,7 +4063,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         if (queryString !== "") {
             await db
-                .executeQueryPromise(1, queryString, request)
+                .executeQueryPromise(0, queryString, request)
                 .then(data => {
                     responseData = data;
                     error = false;
