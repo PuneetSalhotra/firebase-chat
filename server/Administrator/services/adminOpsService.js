@@ -5244,6 +5244,9 @@ function AdminOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    
+                    request.tag_id = data[0].tag_id;
+                    self.tagListHistoryInsert(request, 2001);
                 })
                 .catch((err) => {
                     error = err;
@@ -5448,6 +5451,63 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    //Set Admin Flags on targetAssetId
+    this.activityTypeTagDelete = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_id,
+            request.asset_id,
+            request.datetime_log
+        );
+
+        const queryString = util.getQueryString('ds_v1_tag_list_delete', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    self.tagListHistoryInsert(request, 2003);
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
+    //tag history insert
+    this.tagListHistoryInsert = async (request, updateTypeId) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_id,
+            updateTypeId,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_tag_list_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }  
+
+
 }
 
 module.exports = AdminOpsService;
