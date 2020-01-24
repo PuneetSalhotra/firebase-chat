@@ -2910,8 +2910,8 @@ function ActivityService(objectCollection) {
                         request.api_version,
                         request.asset_id,
                         request.message_unique_id,
-                        request.flag_retry,
-                        request.flag_offline,
+                        request.flag_retry || 0,
+                        request.flag_offline || 0,
                         request.track_gps_datetime,
                         request.datetime_log
                     );
@@ -3942,12 +3942,16 @@ function ActivityService(objectCollection) {
                         }            
                         temp.data = data;
                         newReq.inline_data = temp;
-                        activityCommonService.widgetLogTrx(newReq, 1);
+                        if (Number(newReq.widget_id) > 0) {
+                            activityCommonService.widgetLogTrx(newReq, 1);
+                        }
                         resolve();
                     } else {                        
                         temp.err = err;
                         newReq.inline_data = temp;
-                        activityCommonService.widgetLogTrx(newReq, 2);
+                        if (Number(newReq.widget_id) > 0) {
+                            activityCommonService.widgetLogTrx(newReq, 2);
+                        }
                         reject(err);
                     }
                 });
@@ -4086,7 +4090,7 @@ function ActivityService(objectCollection) {
         let request = Object.assign({}, requestObj);
 
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if (err) {
+        if (err || inlineData.length === 0) {
             return err;
         }
 
@@ -4197,7 +4201,7 @@ function ActivityService(objectCollection) {
         console.log("workflowActivityTypeID: ", workflowActivityTypeID);
         
         let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err1) {
+        if(err1 || inlineData.length === 0) {
             return err;
         }        
         //console.log('inlineData : ', inlineData[0]);        

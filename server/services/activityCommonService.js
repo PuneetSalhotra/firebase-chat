@@ -1725,8 +1725,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.api_version,
                 request.asset_id,
                 request.message_unique_id,
-                request.flag_retry,
-                request.flag_offline,
+                request.flag_retry || 0,
+                request.flag_offline || 0,
                 request.track_gps_datetime || request.datetime_log,
                 request.datetime_log
             );
@@ -3332,7 +3332,7 @@ this.getAllParticipantsAsync = async (request) => {
             let temp = {};
             let newReq = Object.assign({}, request);
 
-            try{
+            try {
                 const flag = request.flag;
 
                 let activityDatetimeCreatedIST = '';
@@ -3344,52 +3344,52 @@ this.getAllParticipantsAsync = async (request) => {
                 //global.logger.write('conLog', '*****Update: update po_date in widget5 *******'+request.flag +' '+flag, {}, request);    
                 //global.logger.write('conLog', 'request.flag :: '+request.flag, {}, request);
                 //global.logger.write('conLog', 'request.order_logged_datetime :: '+request.order_logged_datetime, {}, request);
-                getWorkflowData(request).then((data)=>{ 
-                global.logger.write('conLog', 'In the workflow data length:: '+request.flag+' '+JSON.stringify(data), {}, request);
+                getWorkflowData(request).then((data) => {
+                    global.logger.write('conLog', 'In the workflow data length:: ' + request.flag + ' ' + JSON.stringify(data), {}, request);
 
-                if(data.length > 0){
+                    if (data.length > 0) {
 
-                //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
-                //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
-                   activityDatetimeCreatedIST  = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
-                   
-                   // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
-                    global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget '+request.order_po_date+', '+request.flag+',*******'+activityDatetimeCreatedIST, {}, request);   
-                    if(flag == 1){
-                        if(request.order_po_date == null || request.order_po_date == ''){
-                            order_po_trigger_diff = 0;
-                            order_po_log_diff = 0;
-                        }else{                            
-                            global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE '+data[0].activity_logged_datetime+', '+request.flag+', *******'+activityDatetimeCreatedIST, {}, request);   
-                            if(data[0].activity_logged_datetime != null ){
-                                order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date)/1000;
-                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
-                            }
-                            else{
+                        //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
+                        //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
+                        activityDatetimeCreatedIST = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
+
+                        // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
+                        global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget ' + request.order_po_date + ', ' + request.flag + ',*******' + activityDatetimeCreatedIST, {}, request);
+                        if (flag == 1) {
+                            if (request.order_po_date == null || request.order_po_date == '') {
+                                order_po_trigger_diff = 0;
                                 order_po_log_diff = 0;
-                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                            } else {
+                                global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' + data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                                if (data[0].activity_logged_datetime != null) {
+                                    order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date) / 1000;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                }
+                                else {
+                                    order_po_log_diff = 0;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                }
                             }
+
+                        } else if (flag == 2) {
+                            //
+                        } else if (flag == 3) {
+
+                            order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST) / 1000;
+                            //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+
+                            if (data[0].activity_caf_approval_datetime != null)
+                                order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime) / 1000;
+
+                            if (data[0].activity_po_datetime != null)
+                                order_po_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_po_datetime) / 1000;
                         }
-                        
-                    }else if(flag == 2){
-                        //
-                    }else if(flag == 3){
+                    }
 
-                        order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST)/1000;
-                        //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
-
-                        if(data[0].activity_caf_approval_datetime != null)
-                        order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime)/1000;
-
-                        if(data[0].activity_po_datetime != null)
-                        order_po_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_po_datetime)/1000;
-                    } 
-                }
-
-                      global.logger.write('conLog', 'request.order_po_trigger_diff :: '+order_po_trigger_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_caf_approval_log_diff :: '+order_caf_approval_log_diff, {}, request);
-                      global.logger.write('conLog', 'request.order_po_log_diff :: '+order_po_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_po_trigger_diff :: ' + order_po_trigger_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_trigger_log_diff :: ' + order_trigger_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_caf_approval_log_diff :: ' + order_caf_approval_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_po_log_diff :: ' + order_po_log_diff, {}, request);
                     var paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
@@ -3402,38 +3402,44 @@ this.getAllParticipantsAsync = async (request) => {
                         order_trigger_log_diff,
                         order_caf_approval_log_diff,
                         order_po_log_diff,
-                        flag,  
+                        flag,
                         request.datetime_log
-                    );                   
+                    );
                     var queryString = util.getQueryString("ds_p1_3_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
                                 console.log('ACS ERRRRRRRRRRRRRRROR : ', err);
                                 console.log('ACS DAAAAAAAAAAAAAAATA : ', data);
-                                if(data.length > 0) {
+                                if (data.length > 0) {
                                     newReq.widget_id = data[0].widget_id;
                                 }
                                 temp.data = data;
                                 newReq.inline_data = temp;
-                                self.widgetLogTrx(newReq, 1);
-                                resolve();                                
+                                if (Number(newReq.widget_id) > 0) {
+                                    self.widgetLogTrx(newReq, 1);
+                                }
+                                resolve();
                             } else {
                                 temp.err = err;
                                 newReq.inline_data = temp;
-                                self.widgetLogTrx(newReq, 2);
+                                if (Number(newReq.widget_id) > 0) {
+                                    self.widgetLogTrx(newReq, 2);
+                                }
                                 reject(err);
                             }
                         });
                     }
-                
-            });
-        } catch (error) {
-            temp.err = error;
-            newReq.inline_data = temp;
-            self.widgetLogTrx(newReq, 2);
-            global.logger.write('error', error, error, request);
-          }
+
+                });
+            } catch (error) {
+                temp.err = error;
+                newReq.inline_data = temp;
+                if (Number(newReq.widget_id) > 0) {
+                    self.widgetLogTrx(newReq, 2);
+                }
+                global.logger.write('error', error, error, request);
+            }
         });
     }; 
 
@@ -4885,8 +4891,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.activityLeadUpdate = async function (request, participantData, isAlterStatus) {
 
-        self.getActivityDetailsPromise(request, request.activity_id).then(async (data)=>{
-            console.log("getActivityDetailsPromise :: "+data);
+        self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
+            console.log("getActivityDetailsPromise :: ", data);
             let participantCheck = false;
 
             request.flag = -1;
@@ -4896,9 +4902,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             let assetID = 0;
 
             let leadRequest = Object.assign({}, request);
-            leadRequest.asset_id = data[0].activity_lead_asset_id?data[0].activity_lead_asset_id: 0;
-            console.log("participantData :: "+JSON.stringify(participantData, null, 2));
-             if(isAlterStatus){ 
+            leadRequest.asset_id = data[0].activity_lead_asset_id ? data[0].activity_lead_asset_id : 0;
+            console.log("participantData :: ", JSON.stringify(participantData, null, 2));
+            if (isAlterStatus) {
 
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
@@ -4911,8 +4917,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 console.log('getAssetForAssetTypeID : 3', assetData);
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
- 
-            } else if(leadRequest.asset_id === 0 || leadRequest.asset_id === null){
+
+            } else if (leadRequest.asset_id === 0 || leadRequest.asset_id === null) {
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
@@ -4926,21 +4932,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                 console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                 participantCheck = true;
-            } else if(participantData.asset_type_id === data[0].activity_lead_asset_type_id){  
+            } else if (participantData.asset_type_id === data[0].activity_lead_asset_type_id) {
                 //lead exists                       
                 participantCheck = true;
                 assetID = participantData.asset_id;
                 console.log('new Participant from Request : ASSET ID', assetID);
-                if(participantData.asset_id !== data[0].activity_lead_asset_id){
+                if (participantData.asset_id !== data[0].activity_lead_asset_id) {
                     console.log("Existing lead data into status change transaction");
                 }
-            } else if(participantData.asset_type_id !== data[0].activity_lead_asset_type_id){
+            } else if (participantData.asset_type_id !== data[0].activity_lead_asset_type_id) {
                 //lead doesn't exists
                 let newReq = Object.assign({}, request);
                 //Need to get the asset(Role) -- Mapped to that status
                 let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, data[0].activity_status_id);
                 console.log('getAssetTypeIDForAStatusID : 7 ', roleData);
-                if(roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id){
+                if (roleData[0].asset_type_id !== data[0].activity_lead_asset_type_id) {
 
                     newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
                     console.log('getAssetTypeIDForAStatusID : 8 ', roleData[0].asset_type_id);
@@ -4950,23 +4956,23 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
                     console.log('getAssetForAssetTypeID : ASSET ID', assetID);
                     participantCheck = true;
-                }else{
+                } else {
                     participantCheck = false;
                 }
             }
 
-            if(participantCheck || isAlterStatus){
+            if (participantCheck || isAlterStatus) {
 
                 await self.activityListLeadUpdate(request, assetID);
 
                 let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                console.log("exisitngAssetData :: "+exisitngAssetData);
-                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration*60)-Number(exisitngAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration*60;
+                console.log("exisitngAssetData :: ", exisitngAssetData);
+                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration * 60) - Number(exisitngAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration * 60;
                 leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
 
-                console.log('After activityListLeadUpdate : '+leadRequest);
+                console.log('After activityListLeadUpdate : ', leadRequest);
                 leadRequest.asset_id = data[0].activity_lead_asset_id;
                 await self.assetSummaryTransactionInsert(leadRequest);
                 console.log('After assetSummaryTransactionInsert : ');
@@ -4974,21 +4980,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 leadRequest.asset_id = assetID;
 
                 let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
-                console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
-                let newAssetEfficiency = Number(newAssetData[0].expected_duration*60)-Number(newAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration*60;
+                console.log("newAssetData[0].query_status ", newAssetData[0].query_status)
+                let newAssetEfficiency = Number(newAssetData[0].expected_duration * 60) - Number(newAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration * 60;
                 leadRequest.entity_decimal_2 = newAssetData[0].actual_duration;
                 leadRequest.entity_decimal_3 = newAssetEfficiency;
 
-                console.log("Expected Duration :: "+newAssetData[0].expected_duration);
-                console.log("Actual Duration :: "+newAssetData[0].actual_duration);
-                console.log("newAssetEfficiency :: "+newAssetEfficiency);
+                console.log("Expected Duration :: ", newAssetData[0].expected_duration);
+                console.log("Actual Duration :: ", newAssetData[0].actual_duration);
+                console.log("newAssetEfficiency :: ", newAssetEfficiency);
 
                 leadRequest.asset_id = assetID;
                 await self.assetSummaryTransactionInsert(leadRequest);
 
-                console.log("existingAssetEfficiency "+existingAssetEfficiency);
-                console.log("newAssetEfficiency "+newAssetEfficiency);  
+                console.log("existingAssetEfficiency ", existingAssetEfficiency);
+                console.log("newAssetEfficiency ", newAssetEfficiency);
             }
         });
     };
