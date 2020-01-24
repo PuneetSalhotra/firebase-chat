@@ -317,6 +317,17 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    // List Tags associated with the TagType
+    app.post('/' + global.config.version + '/admin/tag_type/mappings/list', async function (req, res) {
+        const [err, data] = await adminListingService.tagTypeTagMappingSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/mappings/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });    
 }
 
 module.exports = AdminListingController;
