@@ -4281,7 +4281,7 @@ function FormConfigService(objCollection) {
         let request = Object.assign({}, requestObj);
 
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if (err) {
+        if (err || inlineData.length === 0) {
             return err;
         }
 
@@ -4370,7 +4370,7 @@ function FormConfigService(objCollection) {
         console.log("workflowActivityTypeID: ", workflowActivityTypeID);        
 
         let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err1) {
+        if(err1 || inlineData.length === 0) {
             return err1;
         }
         
