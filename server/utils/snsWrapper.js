@@ -10,7 +10,7 @@ var AwsSns = function () {
     aws.config.loadFromPath(`${__dirname}/config.json`);
     var sns = new aws.SNS();
 
-    this.publish = function (message, badgeCount, targetArn) {
+    this.publish = function (message, badgeCount, targetArn, isSilentPush = 0) {
         var GCMjson = {
             data: {
                 title: "",
@@ -40,6 +40,19 @@ var AwsSns = function () {
             'content-available': 1,
         };
 
+        if (isSilentPush) {
+            aps = {
+                'badge': badgeCount,
+                'sound': '',
+                'alert': '',
+                'activity_id': Number(message.activity_id) || 0,
+                'form_id': Number(message.form_id),
+                'field_id': Number(message.field_id),
+                'content-available': 1,
+                'event_category': message.type
+            };
+        }
+
         if (message.hasOwnProperty('extra_data')) {
             GCMjson.data.type = message.extra_data.type;
             GCMjson.data.call_data = message.extra_data.call_data;
@@ -53,6 +66,18 @@ var AwsSns = function () {
             GCMjson.data.activity_id = message.activity_id;
             GCMjson.data.activity_type_category_id = message.activity_type_category_id;
 
+        }
+
+        if (isSilentPush) {
+            delete GCMjson.data.title;
+            delete GCMjson.data.message;
+            delete GCMjson.data.subtitle;
+            delete GCMjson.data.body;
+            
+            GCMjson.data.form_id = Number(message.form_id);
+            GCMjson.data.field_id = Number(message.field_id);
+            GCMjson.data.event_category = message.type;
+            GCMjson.data.is_silent = 1;
         }
 
         /*var params = {
