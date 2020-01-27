@@ -5421,38 +5421,7 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    //Set Admin Flags on targetAssetId
-    this.assetListUpdateAdminFlag = async (request) =>{
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.target_asset_id,
-            request.flag,
-            request.is_admin,
-            request.is_manager,
-            request.is_org_admin,
-            request.datetime_log
-        );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_update_admin_flags', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
-
-    //Set Admin Flags on targetAssetId
+    //Deletiing ActivityType Tag Id
     this.activityTypeTagDelete = async (request) =>{
         let responseData = [],
             error = true;
@@ -5534,6 +5503,88 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }   
+
+    this.assetListUpdateAdminFlag = async function (request) {
+
+        if(request.flag == 3){
+          const [error, responseData] = await checkManager(request, 0);
+            if(responseData[0].count > 0){
+                const [error1, responseData1] = await checkManager(request, 2);
+                if(responseData1[0].count > 0){
+                    request.is_manager = 2;
+                    await updateAdminFlag(request);
+                }else{
+                    request.is_manager = 1;
+                    await updateAdminFlag(request);
+                }
+            }else{
+                request.is_manager = 0;
+                await updateAdminFlag(request);
+            }
+        }else{
+            await updateAdminFlag(request);
+        }
+
+        return [false,{}]
+    }
+
+    //check manager flag
+    async function checkManager(request, checkFlag){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            checkFlag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_manager_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Set Admin Flags on targetAssetId
+    async function updateAdminFlag(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.is_admin,
+            request.is_manager,
+            request.is_org_admin,
+            request.datetime_log
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_admin_flags', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
