@@ -1255,6 +1255,30 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
+ this.tagTypeTagMappingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_id,
+            request.start_from || 0,
+            request.limit_value || 1
+        );
+
+        var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminListingService;
