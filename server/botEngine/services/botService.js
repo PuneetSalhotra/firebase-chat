@@ -799,7 +799,6 @@ function BotService(objectCollection) {
             "page_limit": 50
         });
 
-        //console.log('WFSTEPS : ', wfSteps);
 
         let botOperationsJson,
             botSteps;
@@ -1178,6 +1177,25 @@ function BotService(objectCollection) {
                     resolve();
                 }, 1000);
             });
+        }
+
+        // Send push notification
+        try {
+            if (
+                request.hasOwnProperty("activity_stream_type_id") &&
+                Number(request.activity_stream_type_id) === 713
+            ) {
+                util.sendRPACompletionAcknowledgement({
+                    organization_id: request.organization_id,
+                    target_asset_id: request.asset_id,
+                    activity_type_category_id: request.activity_type_category_id,
+                    workflow_activity_id: request.workflow_activity_id,
+                    form_id: request.form_id,
+                    field_id: formInlineData[0].field_id
+                });
+            }
+        } catch (error) {
+            // console.log("sendRPACompletionAcknowledgement | Error: ", error)
         }
 
         return {};
