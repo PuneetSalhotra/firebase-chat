@@ -445,7 +445,7 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/asset/access/set | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
 
@@ -455,10 +455,19 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/admin/activity_type_tag/delete | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });    
+    });   
 
+    app.post('/' + global.config.version + '/admin/tag_type/delete', async function (req, res) {
+        const [err, responseData] = await adminOpsService.tagTypeDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    }); 
 }
 
 module.exports = AdminOpsController;
