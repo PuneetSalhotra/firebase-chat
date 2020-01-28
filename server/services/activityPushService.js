@@ -93,8 +93,21 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/add/v1':
 
                                 pushString.title = senderName;
-                                pushString.description = 'Has submitted a form: ' + activityTitle;
-
+                                if(Number(request.form_id) === 803) {                                    
+                                    let activityInlineData;
+                                    try {
+                                        activityInlineData = JSON.parse(request.activity_inline_data);
+                                        console.log('803 activityInlineData : ', activityInlineData[0]);
+                                        pushString.description = 'Has submitted a '+activityInlineData[0].field_value.activity_status_name+' rollback form';
+                                    } catch(err) {
+                                        console.log(err);
+                                        pushString.description = 'Has submitted a Status Rollback Form';
+                                    }                                    
+                                    
+                                } else {
+                                    pushString.description = 'Has submitted a form: ' + activityTitle;
+                                }
+                                    
                                 break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
 
