@@ -1722,7 +1722,7 @@ function Util(objectCollection) {
         if (environment === 'prod') {
             bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
 
-        } else if (environment === 'staging' || environment === 'local') {
+        } else if (environment === 'staging' || environment === 'local' || environment === 'demo') {
             bucketName = "worlddesk-staging-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
 
         } else {
@@ -1755,9 +1755,9 @@ function Util(objectCollection) {
             }]
         }
 
-        let activityID = Number(request.activity_id),
-            activityTypeID = Number(activityData[0].activity_type_id),
-            activityTypeCategoryID = Number(activityData[0].activity_type_category_id),
+        let activityID = Number(request.activity_id) || 0,
+            activityTypeID = Number(activityData[0].activity_type_id) || 0,
+            activityTypeCategoryID = Number(activityData[0].activity_type_category_id) || 0,
             activityTitle = activityData[0].activity_title || '';
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
@@ -1779,6 +1779,47 @@ function Util(objectCollection) {
             activity_id: activityID,
             activity_title: activityTitle,
             description: request.message
+        });
+
+        return [error, {
+            message: `Push sent to ${request.target_asset_id}`
+        }];
+    }
+
+    this.sendRPACompletionAcknowledgement = async function (request) {
+        let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_asset_id") ||
+            Number(request.target_asset_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target asset_id specified."
+            }]
+        }
+
+        const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
+        const assetPushARN = assetMapData.asset_push_arn;
+
+        sns.publish({
+            // description: request.message,
+            // title: activityTitle,
+            // subtitle: request.message,
+            // body: `TONY`,
+            type: "rpa_completion_ack",
+            activity_id: request.workflow_activity_id,
+            activity_type_category_id: request.activity_type_category_id,
+            form_id: request.form_id,
+            field_id: request.field_id
+        }, 1, assetPushARN, 1);
+
+        pubnubWrapper.publish(request.target_asset_id, {
+            type: "rpa_completion_ack",
+            organization_id: Number(request.organization_id),
+            activity_type_category_id: request.activity_type_category_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: request.form_id,
+            field_id: request.field_id
         });
 
         return [error, {
