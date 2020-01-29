@@ -44,17 +44,27 @@ function PusherPush() {
         }
         //1st Param: Channel Name
         //2nd Param: Event Name    
-        pusher.trigger(channelId, eventName, {
-            "message": message
-        });
+        try{
+            pusher.trigger(channelId, eventName, {
+                "message": message
+            });
+        } catch(err) {
+            console.log('Pusher Trigger');
+        }
+        
     };
 
     this.publish = function (channelId, message, eventName) {
         //1st Param: Channel Name
         //2nd Param: Event Name    
-        pusher.trigger(channelId, eventName, {
-            "message": message
-        });
+        try{
+            pusher.trigger(channelId, eventName, {
+                "message": message
+            });
+        }catch(err) {
+            console.log('Pusher Trigger');
+        }
+        
     };
 
 }
