@@ -64,7 +64,7 @@ function Logger(queueWrapper) {
                 }
                 break;
             default:
-                queueWrapper.raiseLogEvent(loggerCollection).then(() => {});
+                // queueWrapper.raiseLogEvent(loggerCollection).then(() => {});
         }
 
 
