@@ -1066,13 +1066,13 @@ function AdminListingService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-                request.organization_id,                                                                       
-                request.account_id,
-                request.workforce_id,
-                request.activity_status_tag_id,
-                request.page_start,
-                request.page_limit
-            );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_tag_id,
+            request.page_start,
+            request.page_limit
+        );
         const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_status_tag', paramsArr);
 
         if (queryString !== '') {
@@ -1086,7 +1086,7 @@ function AdminListingService(objectCollection) {
                 });
         }
         return [error, responseData];
-    };    
+    };
 
     // Get the list of assets/desks of a role/asset type
     this.assetListSelectRole = async function (request) {
@@ -1255,7 +1255,7 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
- this.tagTypeTagMappingSelect = async function (request) {
+    this.tagTypeTagMappingSelect = async function (request) {
         let responseData = [],
             error = true;
 
@@ -1267,6 +1267,31 @@ function AdminListingService(objectCollection) {
         );
 
         var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.botOperationMappingSelectID = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.bot_id,
+            request.bot_operation_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
