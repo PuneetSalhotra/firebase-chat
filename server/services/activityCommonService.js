@@ -4967,10 +4967,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                 let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
                 console.log("exisitngAssetData :: ", exisitngAssetData);
-                let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration * 60) - Number(exisitngAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration * 60;
-                leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
-                leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
+                let existingAssetWorkLoad = (Number(exisitngAssetData[0].expected_duration)*60) - Number(exisitngAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+                leadRequest.entity_decimal_2 = Number(exisitngAssetData[0].actual_duration)/60;
+                leadRequest.entity_decimal_3 = Number(existingAssetWorkLoad);
 
                 console.log('After activityListLeadUpdate : ', leadRequest);
                 leadRequest.asset_id = data[0].activity_lead_asset_id;
@@ -4981,20 +4981,20 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                 let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
                 console.log("newAssetData[0].query_status ", newAssetData[0].query_status)
-                let newAssetEfficiency = Number(newAssetData[0].expected_duration * 60) - Number(newAssetData[0].actual_duration);
-                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration * 60;
-                leadRequest.entity_decimal_2 = newAssetData[0].actual_duration;
-                leadRequest.entity_decimal_3 = newAssetEfficiency;
+                let newAssetWorkload = (Number(newAssetData[0].expected_duration)*60) - Number(newAssetData[0].actual_duration);
+                leadRequest.entity_decimal_1 = newAssetData[0].expected_duration;
+                leadRequest.entity_decimal_2 = Number(newAssetData[0].actual_duration)/60;
+                leadRequest.entity_decimal_3 = Number(newAssetWorkload);
 
                 console.log("Expected Duration :: ", newAssetData[0].expected_duration);
                 console.log("Actual Duration :: ", newAssetData[0].actual_duration);
-                console.log("newAssetEfficiency :: ", newAssetEfficiency);
+                console.log("newAssetEfficiency :: ", newAssetWorkload);
 
                 leadRequest.asset_id = assetID;
                 await self.assetSummaryTransactionInsert(leadRequest);
 
-                console.log("existingAssetEfficiency ", existingAssetEfficiency);
-                console.log("newAssetEfficiency ", newAssetEfficiency);
+                console.log("existingAssetEfficiency ", existingAssetWorkLoad);
+                console.log("newAssetEfficiency ", newAssetWorkload);
             }
         });
     };
