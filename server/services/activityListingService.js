@@ -1840,7 +1840,7 @@ function ActivityListingService(objCollection) {
 		return new Promise((resolve, reject)=>{
 			activityCommonService.getActivityByFormTransaction(request).then((data)=>{
 			if(data.length > 0) {
-				processFormInlineData(request, data).then(async (finalData)=>{
+				processFormInlineDataV1(request, data).then(async (finalData)=>{
 					//console.log("finalData : "+finalData);									
 					resolve(finalData);
 				});
@@ -2802,6 +2802,43 @@ function ActivityListingService(objCollection) {
         }
         return [error, responseData];
 	};
+
+
+async function processFormInlineDataV1(request, data){
+	var array = [];
+	let inlineData = JSON.parse(data[0].activity_inline_data);
+	//console.log('inline DATA : ', inlineData);
+
+	for(let i=0; i<inlineData.length;i++) {
+		let fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+		if(fieldData !== true) {
+			if(fieldData.length > 0) {
+				//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
+				inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
+				inlineData[i].field_inline_data = fieldData[0].field_inline_data;
+			} else {
+				inlineData[i].field_value_edit_enabled = 1;
+				inlineData[i].field_inline_data = '{}';
+			}
+		} else {
+			inlineData[i].field_value_edit_enabled = 1;
+			inlineData[i].field_inline_data = '{}';
+		}		
+
+		if(JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")){					
+			array.push(inlineData[i]);
+		}
+		else {									
+			inlineData[i].field_validated = 0;
+			array.push(inlineData[i]);
+		}
+	}
+
+	data[0].activity_inline_data = array;
+	return data;
+		
+	}
+
 }
 
 module.exports = ActivityListingService;
