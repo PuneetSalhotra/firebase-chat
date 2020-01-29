@@ -294,7 +294,7 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                // results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
                 let rpaFormFieldList = [];
                 // Check if this is a (field ID combo ID) specific bot operation
                 if (Number(request.field_id) !== 0) {
@@ -677,6 +677,100 @@ function BotService(objectCollection) {
     //2019-01-18
     this.archiveBotWorkflowStep =
         async (request) => {
+            // Get the bot operation's inline data
+            try {
+                let rpaFormFieldList = [];
+                const [errOne, botOperationData] = await adminListingService.botOperationMappingSelectID(request);
+                if (botOperationData.length > 0) {
+                    let flagBotDependency = 1;
+                    const botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data),
+                        botOperations = botOperationInlineData.bot_operations;
+
+                    // Check if this is a (field ID combo ID) specific bot operation
+                    if (Number(botOperationData[0].field_id) !== 0) {
+                        rpaFormFieldList.push({
+                            form_id: botOperationData[0].form_id,
+                            field_id: botOperationData[0].field_id,
+                            data_type_combo_id: botOperationData[0].data_type_combo_id || 0
+                        });
+                    }
+                    // 
+                    // Check for any bot operation conditionals 
+                    if (
+                        Boolean(botOperations.condition.is_check) === true &&
+                        Number(botOperations.condition.form_id) > 0 &&
+                        Number(botOperations.condition.field_id) > 0
+                    ) {
+                        rpaFormFieldList.push({
+                            form_id: Number(botOperations.condition.form_id),
+                            field_id: Number(botOperations.condition.field_id),
+                            data_type_combo_id: 0
+                        });
+                    }
+                    // 
+                    // Check for field IDs inside the bot operations's inline data
+                    rpaFormFieldList = getRPAFieldsFromBotOperation({
+                        ...request,
+                        bot_operation_type_id: botOperationData[0].bot_operation_type_id,
+                        bot_operation_inline_data: botOperationData[0].bot_operation_inline_data
+                    }, rpaFormFieldList);
+                }
+                for (const rpaFormField of rpaFormFieldList) {
+                    try {
+                        if (Number(request.field_id) !== 0) {
+                            // 1. Get the field data
+                            const [errOne, fieldData] = await adminListingService.workforceFormFieldMappingSelectWorkflowFields({
+                                ...request,
+                                form_id: rpaFormField.form_id,
+                                field_id: rpaFormField.field_id,
+                                data_type_combo_id: rpaFormField.data_type_combo_id || 0
+                            });
+                            // 2. Modify the field's inline data
+                            if (!errOne && fieldData.length > 0) {
+                                let fieldInlineData = JSON.parse(fieldData[0].field_inline_data || '{}');
+                                // Remove the specific bot operation information from the field's inline data
+                                if (
+                                    fieldInlineData.hasOwnProperty("bots") &&
+                                    fieldInlineData.bots.hasOwnProperty(request.bot_id) &&
+                                    fieldInlineData.bots[request.bot_id].hasOwnProperty("bot_operations") &&
+                                    fieldInlineData.bots[request.bot_id].bot_operations.hasOwnProperty(request.bot_operation_id)
+                                ) {
+                                    // Remove the specific the bot operation from the inline data
+                                    delete fieldInlineData.bots[request.bot_id].bot_operations[request.bot_operation_id];
+                                    // Remove any dangling bots (bots with no bot operations associated with the field)
+                                    if (Object.keys(fieldInlineData.bots[request.bot_id].bot_operations).length === 0) {
+                                        delete fieldInlineData.bots[request.bot_id];
+                                    }
+                                    
+                                    // Set flagBotDependency to 0, if there are no bots defined at all
+                                    if (Object.keys(fieldInlineData.bots).length === 0) {
+                                        flagBotDependency = 0;
+                                    }
+                                }
+
+                                // 3. Update the field's inline data
+                                const [errTwo, _] = await adminOpsService.workforceFormFieldMappingUpdateInline({
+                                    ...request,
+                                    field_id: rpaFormField.field_id,
+                                    data_type_combo_id: rpaFormField.data_type_combo_id || 0,
+                                    form_id: rpaFormField.form_id,
+                                    field_name: fieldData[0].field_name,
+                                    inline_data: JSON.stringify(fieldInlineData),
+                                    flag_value_contributor: fieldData[0].field_flag_workflow_value_contributor,
+                                    flag_bot_dependency: flagBotDependency
+                                });
+
+                            } else {
+                                // console.log("workforceFormFieldMappingSelectWorkflowFields: ", errOne);
+                            }
+                        }
+                    } catch (error) {
+                        // console.log("Error: ", error);
+                    }
+                }
+            } catch (error) {
+                console.log("Error: ", error);
+            }
             try {
                 let results = new Array();
                 let paramsArray;
@@ -686,9 +780,9 @@ function BotService(objectCollection) {
                         request.bot_id,
                         request.bot_operation_id,
                         request.organization_id,
-                        request.log_state,
-                        request.log_asset_id,
-                        request.log_datetime,
+                        request.log_state || 3,
+                        request.log_asset_id || request.asset_id,
+                        request.log_datetime || util.getCurrentUTCTime(),
                     );
 
                 results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
@@ -699,8 +793,8 @@ function BotService(objectCollection) {
                         request.bot_operation_id,
                         request.organization_id,
                         global.botConfig.botOperationArchived,
-                        request.log_asset_id,
-                        request.log_datetime,
+                        request.log_asset_id || request.asset_id,
+                        request.log_datetime || util.getCurrentUTCTime(),
                     );
 
                 results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
