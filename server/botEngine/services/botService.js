@@ -682,6 +682,7 @@ function BotService(objectCollection) {
                 let rpaFormFieldList = [];
                 const [errOne, botOperationData] = await adminListingService.botOperationMappingSelectID(request);
                 if (botOperationData.length > 0) {
+                    let flagBotDependency = 1;
                     const botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data),
                         botOperations = botOperationInlineData.bot_operations;
 
@@ -713,7 +714,6 @@ function BotService(objectCollection) {
                         bot_operation_type_id: botOperationData[0].bot_operation_type_id,
                         bot_operation_inline_data: botOperationData[0].bot_operation_inline_data
                     }, rpaFormFieldList);
-                    console.log("rpaFormFieldList: ", rpaFormFieldList);
                 }
                 for (const rpaFormField of rpaFormFieldList) {
                     try {
@@ -725,19 +725,9 @@ function BotService(objectCollection) {
                                 field_id: rpaFormField.field_id,
                                 data_type_combo_id: rpaFormField.data_type_combo_id || 0
                             });
-                            // 2. Extract the field's inline data
+                            // 2. Modify the field's inline data
                             if (!errOne && fieldData.length > 0) {
                                 let fieldInlineData = JSON.parse(fieldData[0].field_inline_data || '{}');
-                                // if (!fieldInlineData.hasOwnProperty("bots")) {
-                                //     fieldInlineData.bots = {};
-                                //     fieldInlineData.bots[request.bot_id] = {};
-                                //     fieldInlineData.bots[request.bot_id].bot_operations = {};
-
-                                // } else if (!fieldInlineData.bots.hasOwnProperty(request.bot_id)) {
-                                //     fieldInlineData.bots[request.bot_id] = {};
-                                //     fieldInlineData.bots[request.bot_id].bot_operations = {};
-
-                                // }
                                 // Remove the specific bot operation information from the field's inline data
                                 if (
                                     fieldInlineData.hasOwnProperty("bots") &&
@@ -745,34 +735,30 @@ function BotService(objectCollection) {
                                     fieldInlineData.bots[request.bot_id].hasOwnProperty("bot_operations") &&
                                     fieldInlineData.bots[request.bot_id].bot_operations.hasOwnProperty(request.bot_operation_id)
                                 ) {
-                                    console.log("I am here!");
+                                    // Remove the specific the bot operation from the inline data
                                     delete fieldInlineData.bots[request.bot_id].bot_operations[request.bot_operation_id];
+                                    // Remove any dangling bots (bots with no bot operations associated with the field)
+                                    if (Object.keys(fieldInlineData.bots[request.bot_id].bot_operations).length === 0) {
+                                        delete fieldInlineData.bots[request.bot_id];
+                                    }
                                     
+                                    // Set flagBotDependency to 0, if there are no bots defined at all
+                                    if (Object.keys(fieldInlineData.bots).length === 0) {
+                                        flagBotDependency = 0;
+                                    }
                                 }
 
-                                // fieldInlineData.bots[request.bot_id].bot_operations[results[0][0].bot_operation_id] = {
-                                //     bot_id: request.bot_id,
-                                //     bot_name: results[0][0].bot_name,
-                                //     bot_operation_id: results[0][0].bot_operation_id,
-                                //     bot_operation_type_id: request.bot_operation_type_id,
-                                //     bot_operation_type_name: results[0][0].bot_operation_type_name,
-                                //     bot_form_id: request.form_id,
-                                //     bot_form_name: results[0][0].form_name
-                                // };
-                                console.log("rpaFormField.field_id: ", rpaFormField.field_id);
-                                console.log("fieldInlineData: ", fieldInlineData);
-
                                 // 3. Update the field's inline data
-                                // const [errTwo, _] = await adminOpsService.workforceFormFieldMappingUpdateInline({
-                                //     ...request,
-                                //     field_id: rpaFormField.field_id,
-                                //     data_type_combo_id: rpaFormField.data_type_combo_id || 0,
-                                //     form_id: rpaFormField.form_id,
-                                //     field_name: fieldData[0].field_name,
-                                //     inline_data: JSON.stringify(fieldInlineData),
-                                //     flag_value_contributor: fieldData[0].field_flag_workflow_value_contributor,
-                                //     flag_bot_dependency: 1
-                                // });
+                                const [errTwo, _] = await adminOpsService.workforceFormFieldMappingUpdateInline({
+                                    ...request,
+                                    field_id: rpaFormField.field_id,
+                                    data_type_combo_id: rpaFormField.data_type_combo_id || 0,
+                                    form_id: rpaFormField.form_id,
+                                    field_name: fieldData[0].field_name,
+                                    inline_data: JSON.stringify(fieldInlineData),
+                                    flag_value_contributor: fieldData[0].field_flag_workflow_value_contributor,
+                                    flag_bot_dependency: flagBotDependency
+                                });
 
                             } else {
                                 // console.log("workforceFormFieldMappingSelectWorkflowFields: ", errOne);
@@ -794,12 +780,12 @@ function BotService(objectCollection) {
                         request.bot_id,
                         request.bot_operation_id,
                         request.organization_id,
-                        request.log_state,
-                        request.log_asset_id,
-                        request.log_datetime,
+                        request.log_state || 3,
+                        request.log_asset_id || request.asset_id,
+                        request.log_datetime || util.getCurrentUTCTime(),
                     );
 
-                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
+                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
 
                 paramsArray =
                     new Array(
@@ -807,11 +793,11 @@ function BotService(objectCollection) {
                         request.bot_operation_id,
                         request.organization_id,
                         global.botConfig.botOperationArchived,
-                        request.log_asset_id,
-                        request.log_datetime,
+                        request.log_asset_id || request.asset_id,
+                        request.log_datetime || util.getCurrentUTCTime(),
                     );
 
-                // results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
 
                 return results[0];
             } catch (error) {
