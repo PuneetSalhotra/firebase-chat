@@ -2,7 +2,7 @@
 #Date: 02-Aug-2018
 #Description: yml file to build the Mobile API Services
 
-version: 0.1
+version: 0.2
           
 phases:
   install:
