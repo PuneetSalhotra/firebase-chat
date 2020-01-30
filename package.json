@@ -10,6 +10,9 @@
   ],
   "author": "venkatesh",
   "contributors": [],
+  "devDependencies": {
+    "hummus": "^1.0.108"
+  },
   "dependencies": {
     "@sendgrid/mail": "^6.5.1",
     "archiver": "^3.1.1",
@@ -24,7 +27,6 @@
     "express": "^4.17.1",
     "forEachAsync": "^3.0.0",
     "html-pdf": "^2.2.0",
-    "hummus": "^1.0.108",
     "hummus-recipe": "^1.9.2",
     "ip": "^1.1.5",
     "kafka-node": "~3.0.1",
