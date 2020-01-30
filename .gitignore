@@ -7,7 +7,7 @@ consumerClusterOne.js
 consumerClusterTwo.js
 consumerClusterThree.js
 logs
-package-lock.json
+# package-lock.json
 consumerNani.js
 nani.js
 vnksnsWrapper.js
