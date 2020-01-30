@@ -769,7 +769,28 @@ function BotService(objectCollection) {
                     }
                 }
             } catch (error) {
-                console.log("Error: ", error);
+                logger.error(`Error updating field inline data | %j`, error.message, { type: 'archive_bot_operation', error, request_body: request, stack: error.stack, error_message: error.message });
+            }
+            // Check if the bot has only this bot operation associated with it
+            // Get all bot operations for the given bot_id
+            let archiveBotFlag = 0;
+            try {
+                const botOperations = await this.getBotworkflowStepsByForm({
+                    organization_id: request.organization_id,
+                    form_id: 0,
+                    field_id: 0,
+                    bot_id: request.bot_id,
+                    page_start: 0,
+                    page_limit: 50
+                });
+                if (
+                    botOperations.length === 1 &&
+                    Number(botOperations[0].bot_operation_id) === Number(request.bot_operation_id)
+                ) {
+                    archiveBotFlag = 1;
+                }
+            } catch (error) {
+                logger.error(`Error fetching bot operations for bot | %j`, error.message, { type: 'archive_bot_operation', error, request_body: request, stack: error.stack, error_message: error.message });
             }
             try {
                 let results = new Array();
@@ -799,8 +820,22 @@ function BotService(objectCollection) {
 
                 results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
 
+                if (archiveBotFlag) {
+                    try {
+                        await this.archiveBot({
+                            ...request,
+                            log_state: 3,
+                            log_asset_id: request.asset_id,
+                            log_datetime: util.getCurrentUTCTime()
+                        });
+                    } catch (error) {
+                        logger.error(`Error archiving bot ${request.bot_id} | %j`, error.message, { type: 'archive_bot_operation', error, request_body: request, stack: error.stack, error_message: error.message });
+                    }
+                }
+
                 return results[0];
             } catch (error) {
+                logger.error(`Error archiving bot operation ${request.bot_operation_id} | %j`, error.message, { type: 'archive_bot_operation', error, request_body: request, stack: error.stack, error_message: error.message });
                 return Promise.reject(error);
             }
         };

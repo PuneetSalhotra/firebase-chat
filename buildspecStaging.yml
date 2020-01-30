@@ -8,8 +8,8 @@ phases:
   install:
     commands: 
       - npm install pm2 -g
-      - npm install node-pre-gyp -g
-      - npm install
+      - npm install --production
+      - npm link hummus
   pre_build:
     commands:      
   build:
