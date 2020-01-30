@@ -323,7 +323,7 @@ function BotService(objectCollection) {
                     // 
                 }
                 // Check for field IDs inside the bot operations's inline data
-                rpaFormFieldList = getRPAFieldsFromBotOperation(request, rpaFormFieldList);
+                rpaFormFieldList = await getRPAFieldsFromBotOperation(request, rpaFormFieldList);
 
                 for (const rpaFormField of rpaFormFieldList) {
                     try {
@@ -386,7 +386,7 @@ function BotService(objectCollection) {
             }
         };
 
-    function getRPAFieldsFromBotOperation(request, rpaFormFieldList) {
+    async function getRPAFieldsFromBotOperation(request, rpaFormFieldList) {
         const botOperationTypeID = Number(request.bot_operation_type_id),
             botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
             botOperations = botOperationInlineData.bot_operations;
@@ -504,11 +504,15 @@ function BotService(objectCollection) {
                     Number(singleSelectionCumulation.single_selection_datatype.field_id) > 0 &&
                     Number(singleSelectionCumulation.single_selection_datatype.form_id) > 0
                 ) {
-                    for (let i = 1; i <= maxDataTypeComboID; i++) {
+                    let singleSelectionFieldData = await activityCommonService.getFormFieldDefinition(request, {
+                        form_id: Number(singleSelectionCumulation.single_selection_datatype.form_id),
+                        field_id: Number(singleSelectionCumulation.single_selection_datatype.field_id)
+                    });
+                    for (const singleSelectionField of singleSelectionFieldData) {
                         rpaFormFieldList.push({
                             form_id: Number(singleSelectionCumulation.single_selection_datatype.form_id),
                             field_id: Number(singleSelectionCumulation.single_selection_datatype.field_id),
-                            data_type_combo_id: i
+                            data_type_combo_id: singleSelectionField.data_type_combo_id
                         });
                     }
                 }
@@ -697,6 +701,7 @@ function BotService(objectCollection) {
                     // 
                     // Check for any bot operation conditionals 
                     if (
+                        botOperations.hasOwnProperty("condition") &&
                         Boolean(botOperations.condition.is_check) === true &&
                         Number(botOperations.condition.form_id) > 0 &&
                         Number(botOperations.condition.field_id) > 0
@@ -709,7 +714,7 @@ function BotService(objectCollection) {
                     }
                     // 
                     // Check for field IDs inside the bot operations's inline data
-                    rpaFormFieldList = getRPAFieldsFromBotOperation({
+                    rpaFormFieldList = await getRPAFieldsFromBotOperation({
                         ...request,
                         bot_operation_type_id: botOperationData[0].bot_operation_type_id,
                         bot_operation_inline_data: botOperationData[0].bot_operation_inline_data
