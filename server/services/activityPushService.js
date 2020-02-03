@@ -93,12 +93,21 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/add/v1':
 
                                 pushString.title = senderName;
-                                if(Number(request.form_id) === 803) {                                    
+                                //console.log('Number(request.form_id) : ', Number(request.form_id));
+                                //console.log('Number(request.activity_form_id) : ', Number(request.activity_form_id));
+
+                                if(Number(request.form_id) === 803 || Number(request.activity_form_id) === 803) {
                                     let activityInlineData;
                                     try {
                                         activityInlineData = JSON.parse(request.activity_inline_data);
                                         console.log('803 activityInlineData : ', activityInlineData[0]);
-                                        pushString.description = 'Has submitted a '+activityInlineData[0].field_value.activity_status_name+' rollback form';
+                                        let StatusName; 
+                                        if(typeof activityInlineData[0].field_value === 'string') {                                            
+                                            StatusName = JSON.parse(activityInlineData[0].field_value).activity_status_name;
+                                        } else {
+                                            StatusName = activityInlineData[0].field_value.activity_status_name;
+                                        }
+                                        pushString.description = 'Has submitted a '+ StatusName +' rollback form';
                                     } catch(err) {
                                         console.log(err);
                                         pushString.description = 'Has submitted a Status Rollback Form';
@@ -718,6 +727,8 @@ function ActivityPushService(objectCollection) {
 
     this.sendPush = async function (request, objectCollection, pushAssetId, callback) {
 
+        console.log('pushAssetId in sendPush function : ', pushAssetId);
+
         // 
         let isOrgRateLimitExceeded = false;
         let organizationID = Number(request.organization_id);
@@ -910,7 +921,7 @@ function ActivityPushService(objectCollection) {
                 //global.logger.write('debug', request, {}, request);
 
                 objectCollection.activityCommonService.getAssetActiveAccount(participantsList)
-                    .then((newParticipantsList) => {
+                    .then(async (newParticipantsList) => {
                         if (pushAssetId > 0) {
 
                             global.logger.write('debug', 'pushAssetId: ' + pushAssetId, {}, {});
@@ -966,6 +977,12 @@ function ActivityPushService(objectCollection) {
                                 proceedSendPush(pushReceivers, senderName);
                             });
                         } else {
+                            let [err, assetData] = await objectCollection.activityCommonService.getAssetDetailsAsync(request);
+                            //console.log('ASSET DATA in sendPush: ', assetData[0]);
+                            if(assetData.length > 0) {
+                                senderName = assetData[0].operating_asset_first_name + ' ' + assetData[0].operating_asset_last_name;
+                            }
+                            
                             objectCollection.forEachAsync(newParticipantsList, function (next, rowData) {
 
                                 global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
