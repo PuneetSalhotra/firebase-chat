@@ -3071,14 +3071,17 @@ function AssetService(objectCollection) {
 
     // Retrieve asset's monthly summary params
     this.retrieveAssetMonthlySummaryParams = function (request, callback) {
-
+        let flag = 2;
+        if (request.hasOwnProperty("flag")) {
+            flag = request.flag;
+        }
         // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), 
         // IN p_organization_id BIGINT(20), IN p_flag SMALLINT(6), IN p_data_entity_date_1 DATETIME
         let paramsArr = new Array(
             request.asset_id,
             request.operating_asset_id,
             request.organization_id,
-            request.flag || 2, // p_flag
+            flag, // p_flag
             request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
         let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
@@ -3091,11 +3094,15 @@ function AssetService(objectCollection) {
 
     // Retrieve asset's weekly summary params
     this.retrieveAssetWeeklySummaryParams = function (request, callback) {
+        let flag = 2;
+        if (request.hasOwnProperty("flag")) {
+            flag = request.flag;
+        }
         let paramsArr = new Array(
             request.asset_id,
             request.operating_asset_id,
             request.organization_id,
-            request.flag || 2, // p_flag
+            flag, // p_flag
             request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
         let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
