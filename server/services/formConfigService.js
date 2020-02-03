@@ -3102,6 +3102,18 @@ function FormConfigService(objCollection) {
                     if (updateError !== false) {
 
                     }
+                    // Update next field ID, if needed
+                    if (field.hasOwnProperty("next_field_id") && Number(field.next_field_id) > 0) {
+                        try {
+                            await workforceFormFieldMappingUpdateNextField(request, {
+                                field_id: field.field_id,
+                                data_type_combo_id: option.dataTypeComboId,
+                                next_field_id: field.next_field_id
+                            });
+                        } catch (error) {
+                            console.log("qwe Error: ", error);
+                        }
+                    }
                     await workforceFormFieldMappingHistoryInsert(request, {
                         field_id: field.field_id,
                         data_type_combo_id: option.dataTypeComboId
@@ -3126,18 +3138,56 @@ function FormConfigService(objCollection) {
                 if (updateError !== false) {
 
                 }
+                // Update next field ID, if needed
+                if (field.hasOwnProperty("next_field_id") && Number(field.next_field_id) > 0) {
+                    try {
+                        await workforceFormFieldMappingUpdateNextField(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: field.dataTypeComboId,
+                            next_field_id: field.next_field_id
+                        });
+                    } catch (error) {
+                        console.log("qwe Error: ", error);
+                    }
+                }
 
                 await workforceFormFieldMappingHistoryInsert(request, {
                     field_id: field.field_id,
                     data_type_combo_id: field.dataTypeComboId
                 });
-
             }
-
         }
-
         return [false, []];
     };
+
+    async function workforceFormFieldMappingUpdateNextField(request, fieldOptions) {
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            fieldOptions.next_field_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_update_next_field', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
+    }
 
     async function workforceFormFieldMappingUpdate(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
