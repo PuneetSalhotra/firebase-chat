@@ -3533,7 +3533,7 @@ function FormConfigService(objCollection) {
                             field_value_edit_enabled: fieldValueEditEnabled,
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
-                            data_type_id: Number(formField.dataTypeId),
+                            data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                             next_field_id: nextFieldId
                         })
                         .then((fieldData) => {
@@ -3563,7 +3563,7 @@ function FormConfigService(objCollection) {
                             field_preview_enabled: 0, // THIS NEEDS WORK
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
-                            data_type_id: Number(formField.dataTypeId),
+                            data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                             next_field_id: nextFieldId,
                             log_state: 2
                         });
@@ -3596,7 +3596,7 @@ function FormConfigService(objCollection) {
                         field_value_edit_enabled: fieldValueEditEnabled,
                         data_type_combo_id: 0,
                         data_type_combo_value: '',
-                        data_type_id: Number(formField.dataTypeId),
+                        data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                         next_field_id: nextFieldId
                     })
                     .then(async (fieldData) => {
