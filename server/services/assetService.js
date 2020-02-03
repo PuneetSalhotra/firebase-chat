@@ -3078,7 +3078,7 @@ function AssetService(objectCollection) {
             request.asset_id,
             request.operating_asset_id,
             request.organization_id,
-            2, // p_flag
+            request.flag || 2, // p_flag
             request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
         let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
@@ -3095,7 +3095,7 @@ function AssetService(objectCollection) {
             request.asset_id,
             request.operating_asset_id,
             request.organization_id,
-            2, // p_flag
+            request.flag || 2, // p_flag
             request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
         let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);

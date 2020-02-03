@@ -408,6 +408,8 @@ function AssetController(objCollection) {
 
     // Retrieve asset's monthly summary params
     app.post('/' + global.config.version + '/asset/monthly/summary/params', function (req, res) {
+        // Flag: 
+        // 0 => 22, 32, 40
         assetService.retrieveAssetMonthlySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // Positive response    
@@ -421,6 +423,8 @@ function AssetController(objCollection) {
 
     // Retrieve asset's weekly summary params
     app.post('/' + global.config.version + '/asset/weekly/summary/params', function (req, res) {
+        // Flag:
+        // 0 => 15, 19, 27
         assetService.retrieveAssetWeeklySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
