@@ -383,7 +383,7 @@ function ActivityService(objectCollection) {
                                                     if(Object.keys(creditDebitFields).includes(String(fieldObj.field_id))){
                                                         let creditDebitValue = 0;
                                                         console.log("fieldObj.field_value.transaction_data.transaction_type_id :: "+fieldObj.field_value.transaction_data.transaction_type_id);
-                                                        fieldObj.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = fieldObj.field_value.transaction_data.transaction_amount: creditDebitValue = '-'+fieldObj.field_value.transaction_data.transaction_amount;
+                                                        fieldObj.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = fieldObj.field_value.transaction_data.transaction_amount: creditDebitValue = fieldObj.field_value.transaction_data.transaction_amount;
 
                                                         activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, creditDebitValue);
                                                         next();
