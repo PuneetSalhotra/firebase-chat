@@ -148,9 +148,20 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
             });
 
-        } else if ((activityTypeCategoryId === 48 || activityTypeCategoryId === 50 || activityTypeCategoryId === 51) &&
-            (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
-                activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
+        } else if (
+            (
+                activityTypeCategoryId === 48 || 
+                activityTypeCategoryId === 50 || 
+                activityTypeCategoryId === 51 ||
+                activityTypeCategoryId === 53
+            ) &&
+            (
+                activityStreamTypeId === 713 || 
+                activityStreamTypeId === 705 || 
+                activityStreamTypeId === 715 || 
+                activityStreamTypeId === 716
+            )
+        ) {
 
             request.non_dedicated_file = 1;
 
@@ -182,7 +193,8 @@ function ActivityTimelineService(objectCollection) {
                             if ((
                                 activityTypeCategoryId === 48 ||
                                 activityTypeCategoryId === 50 ||
-                                activityTypeCategoryId === 51
+                                activityTypeCategoryId === 51 ||
+                                activityTypeCategoryId === 53
                             ) && request.device_os_id !== 9) {
                                 await fireBotEngineInitWorkflow(request);
                             }
@@ -194,6 +206,7 @@ function ActivityTimelineService(objectCollection) {
 
         } else {
 
+            console.log("I AM HERE 1!")
             request.form_id = 0;
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
@@ -339,14 +352,20 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false;
 
-        } else if (//ELSE IF | 48,50,51 & 705,713,715,716
-                   (activityTypeCategoryId === 48 || 
-                    activityTypeCategoryId === 50 || 
-                    activityTypeCategoryId === 51) &&
-                   (activityStreamTypeId === 713 || 
-                    activityStreamTypeId === 705 ||
-                    activityStreamTypeId === 715 || 
-                    activityStreamTypeId === 716)) { 
+        } else if ( //ELSE IF | 48,50,51 & 705,713,715,716
+            (
+                activityTypeCategoryId === 48 ||
+                activityTypeCategoryId === 50 ||
+                activityTypeCategoryId === 51 ||
+                activityTypeCategoryId === 53
+            ) &&
+            (
+                activityStreamTypeId === 713 ||
+                activityStreamTypeId === 705 ||
+                activityStreamTypeId === 715 ||
+                activityStreamTypeId === 716
+            )
+        ) { 
 
             request.non_dedicated_file = 1;
             //await sleep(2000);
@@ -378,7 +397,8 @@ function ActivityTimelineService(objectCollection) {
                 if ((
                     activityTypeCategoryId === 48 ||
                     activityTypeCategoryId === 50 ||
-                    activityTypeCategoryId === 51
+                    activityTypeCategoryId === 51 ||
+                    activityTypeCategoryId === 53
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }

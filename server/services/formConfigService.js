@@ -3102,6 +3102,18 @@ function FormConfigService(objCollection) {
                     if (updateError !== false) {
 
                     }
+                    // Update next field ID, if needed
+                    if (field.hasOwnProperty("next_field_id") && Number(field.next_field_id) > 0) {
+                        try {
+                            await workforceFormFieldMappingUpdateNextField(request, {
+                                field_id: field.field_id,
+                                data_type_combo_id: option.dataTypeComboId,
+                                next_field_id: field.next_field_id
+                            });
+                        } catch (error) {
+                            console.log("qwe Error: ", error);
+                        }
+                    }
                     await workforceFormFieldMappingHistoryInsert(request, {
                         field_id: field.field_id,
                         data_type_combo_id: option.dataTypeComboId
@@ -3126,18 +3138,56 @@ function FormConfigService(objCollection) {
                 if (updateError !== false) {
 
                 }
+                // Update next field ID, if needed
+                if (field.hasOwnProperty("next_field_id") && Number(field.next_field_id) > 0) {
+                    try {
+                        await workforceFormFieldMappingUpdateNextField(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: field.dataTypeComboId,
+                            next_field_id: field.next_field_id
+                        });
+                    } catch (error) {
+                        console.log("qwe Error: ", error);
+                    }
+                }
 
                 await workforceFormFieldMappingHistoryInsert(request, {
                     field_id: field.field_id,
                     data_type_combo_id: field.dataTypeComboId
                 });
-
             }
-
         }
-
         return [false, []];
     };
+
+    async function workforceFormFieldMappingUpdateNextField(request, fieldOptions) {
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            fieldOptions.next_field_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_update_next_field', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
+    }
 
     async function workforceFormFieldMappingUpdate(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
@@ -3427,8 +3477,9 @@ function FormConfigService(objCollection) {
     this.formFieldDefinitionInsert = async function (request) {
         let formId = 0,
             fieldDefinitions = [],
-            formData = [],
-            error;
+            formName = '', formData = [],
+            error,
+            fieldIDForBotCreation = 0;
 
         request.update_type_id = 28;
 
@@ -3451,6 +3502,7 @@ function FormConfigService(objCollection) {
             //console.log('typeof inlineData : ', typeof inlineData);
 
             let dataTypeCategoryId = Number(formField.dataTypeCategoryId);
+            let dataTypeId = Number(formField.dataTypeId);
 
             console.log('\x1b[36m\n\n%s\x1b[0m', 'fieldSequenceId: ', fieldSequenceId);
             console.log('\x1b[36m\n\n%s\x1b[0m', 'dataTypeCategoryId: ', dataTypeCategoryId);
@@ -3481,10 +3533,12 @@ function FormConfigService(objCollection) {
                             field_value_edit_enabled: fieldValueEditEnabled,
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
-                            data_type_id: Number(formField.dataTypeId),
+                            data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                             next_field_id: nextFieldId
                         })
                         .then((fieldData) => {
+                            formName = fieldData[0].form_name;
+                            fieldIDForBotCreation = Number(fieldData[0].p_field_id);
                             // console.log("someData: ", someData)
                             if (fieldId === 0) {
                                 fieldId = Number(fieldData[0].p_field_id);
@@ -3509,7 +3563,7 @@ function FormConfigService(objCollection) {
                             field_preview_enabled: 0, // THIS NEEDS WORK
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
-                            data_type_id: Number(formField.dataTypeId),
+                            data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                             next_field_id: nextFieldId,
                             log_state: 2
                         });
@@ -3542,10 +3596,12 @@ function FormConfigService(objCollection) {
                         field_value_edit_enabled: fieldValueEditEnabled,
                         data_type_combo_id: 0,
                         data_type_combo_value: '',
-                        data_type_id: Number(formField.dataTypeId),
+                        data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
                         next_field_id: nextFieldId
                     })
                     .then(async (fieldData) => {
+                        formName = fieldData[0].form_name;
+                        fieldIDForBotCreation = Number(fieldData[0].p_field_id);
                         // console.log("someData: ", someData)
                         // History insert in the workforce_form_field_mapping_history_insert table
                         await workforceFormFieldMappingHistoryInsert(request, {
@@ -3559,6 +3615,44 @@ function FormConfigService(objCollection) {
                     .catch((error) => {
                         // Do nothing
                     });
+            }
+
+            // Listener  
+            // To create a bot for every workflow reference with type constraint datatype added in forms
+            // To create a bot for every single selection datatype added in forms
+            request.form_name = formName;
+            switch (dataTypeId) {
+                case 57: if (inlineData !== '{}') {
+                    let newInlineData = JSON.parse(inlineData);
+                    console.log('newInlineDAta : ', newInlineData);
+                    let key = Object.keys(newInlineData);
+                    if (key[0] === 'workflow_reference_restriction') {
+                        if (Number(newInlineData.workflow_reference_restriction.activity_type_id) > 0) {
+                            // Create a Bot
+                            await createBot(request, newInlineData, {
+                                dataTypeId,
+                                fieldName,
+                                fieldIdforBotCreation: fieldIDForBotCreation
+                            });
+                        }
+                    } else if (key[0] === 'asset_reference_restriction') {
+                        //
+                    }
+                }
+                    break;
+                case 33: await createBot(request, {}, {
+                    dataTypeId,
+                    fieldName,
+                    fieldIdforBotCreation: fieldIDForBotCreation
+                });
+                    break;
+                case 62: await createBot(request, {}, {
+                    dataTypeId,
+                    fieldName: '',
+                    fieldIdforBotCreation: fieldIDForBotCreation
+                });
+                    break;
+                default: break;
             }
 
             fieldSequenceId++;
@@ -4470,7 +4564,6 @@ function FormConfigService(objCollection) {
                 refActDataType.activity_flag_due_date_impact = Number(newInlineData.workflow_reference_restriction.activity_flag_due_date_impact);
 
                 let wfRefCumulation = {};
-                wfRefCumulation.combo_field_sequence_id = -1;
                 wfRefCumulation.reference_activity_datatype = refActDataType;
 
                 botOperations.workflow_reference_cumulation = wfRefCumulation;
@@ -4491,7 +4584,6 @@ function FormConfigService(objCollection) {
                 singleSelectionDataType.field_id_label = fieldData.fieldName;
 
                 let singleSelectionCumulation = {};
-                singleSelectionCumulation.combo_field_sequence_id = -1;
                 singleSelectionCumulation.single_selection_datatype = singleSelectionDataType;
 
                 botOperations.single_selection_cumulation = singleSelectionCumulation;
@@ -4503,9 +4595,8 @@ function FormConfigService(objCollection) {
                 newRequest.bot_name = request.form_name + " - SS Bot - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
+                newRequest.field_id = fieldData.fieldIdforBotCreation;
 
-                // For updating RPA details for all combo values
-                newRequest.max_data_type_combo_id = Number(fieldData.maxDataTypeComboID);
                 break;
             case 62:            
                 tempObj.bot_operations = {};
