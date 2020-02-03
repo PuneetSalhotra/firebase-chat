@@ -2353,6 +2353,7 @@ function FormConfigService(objCollection) {
             let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
                 workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
                 formName = String(formConfigData[0].form_name),
                 workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
@@ -2515,7 +2516,7 @@ function FormConfigService(objCollection) {
                 });
                 // Append the incremental form data as well
                 workflowFile713Request.form_id = workflowFile713Request.activity_form_id;
-                workflowFile713Request.activity_type_category_id = 48;
+                workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
                 workflowFile713Request.activity_stream_type_id = 705;
                 workflowFile713Request.flag_timeline_entry = 1;
                 workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -2573,6 +2574,7 @@ function FormConfigService(objCollection) {
             let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
                 workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
                 formName = String(formConfigData[0].form_name),
                 workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
@@ -2678,7 +2680,7 @@ function FormConfigService(objCollection) {
                     });
                     // Append the incremental form data as well
                     workflowFile713Request.form_id = workflowFile713Request.activity_form_id;
-                    workflowFile713Request.activity_type_category_id = 48;
+                    workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
                     workflowFile713Request.activity_stream_type_id = 705;
                     workflowFile713Request.flag_timeline_entry = 1;
                     workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -2745,6 +2747,7 @@ function FormConfigService(objCollection) {
 
         let workflowActivityId = 0,
             formWorkflowActivityTypeId = 0,
+            formWorkflowActivityTypeCategoryID = 0,
             botId = 0,
             botTriggerId = 0,
             botOperationId = 0,
@@ -2776,6 +2779,9 @@ function FormConfigService(objCollection) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
             console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+
+            formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48;
+            workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
 
             if (Number(formWorkflowActivityTypeId) !== 0) {
                 // 713 timeline entry on the workflow file
