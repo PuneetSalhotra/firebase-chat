@@ -4238,7 +4238,7 @@ function AssetService(objectCollection) {
         // endDate = util.getEndDateTimeOfWeek();
         const [error, responseData] = await assetMonthlySummaryTransactionSelect({
             ...request,
-            monthly_summary_id: summaryID,
+            monthly_summary_id: request.monthly_summary_id || summaryID,
             data_entity_date_1: monthStartDate
         }, organizationID, accountID, workforceID);
         if (error) {
