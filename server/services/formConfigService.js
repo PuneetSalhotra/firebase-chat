@@ -3496,6 +3496,17 @@ function FormConfigService(objCollection) {
                 message: "fields_data has invalid JSON."
             }];
         }
+
+        // Fetch form's config data
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+
+        if (formConfigError !== false || formConfigData.length === 0) {
+            return [true, {
+                message: `Couldn't fetch form data for form ${request.form_id}.`
+            }];
+        }
+        request.form_activity_type_id = formConfigData[0].form_workflow_activity_type_id;
+
         for (const formField of fieldDefinitions) {
             let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
             let fieldDescription = (typeof formField.description == 'undefined') ? '' : formField.description;

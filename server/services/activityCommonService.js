@@ -3340,6 +3340,8 @@ this.getAllParticipantsAsync = async (request) => {
                 let order_trigger_log_diff = 0;
                 let order_caf_approval_log_diff = 0;
                 let order_po_log_diff = 0;
+                let order_docs__log_diff = 0;
+                let order_po__order_docs_diff = 0;
 
                 //global.logger.write('conLog', '*****Update: update po_date in widget5 *******'+request.flag +' '+flag, {}, request);    
                 //global.logger.write('conLog', 'request.flag :: '+request.flag, {}, request);
@@ -3359,24 +3361,40 @@ this.getAllParticipantsAsync = async (request) => {
                             if (request.order_po_date == null || request.order_po_date == '') {
                                 order_po_trigger_diff = 0;
                                 order_po_log_diff = 0;
+                                order_po__order_docs_diff = 0;
                             } else {
-                                global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' + data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
-                                if (data[0].activity_logged_datetime != null) {
+                                global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                                if (data[0].activity_logged_datetime != null && data[0].activity_order_documents_datetime != null) {
+                                    console.log("$$$1");
                                     order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date) / 1000;
                                     order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
-                                }
-                                else {
+                                    order_po__order_docs_diff = util.differenceDatetimes(data[0].activity_order_documents_datetime, request.order_po_date) / 1000;
+                                }else if (data[0].activity_logged_datetime != null && data[0].activity_order_documents_datetime == null) {
+                                    console.log("$$$2");
+                                    order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date) / 1000;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                    order_po__order_docs_diff = 0;
+                                }else if (data[0].activity_logged_datetime == null && data[0].activity_order_documents_datetime != null) {
+                                    console.log("$$$3");
                                     order_po_log_diff = 0;
                                     order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                    order_po__order_docs_diff = util.differenceDatetimes(data[0].activity_order_documents_datetime, request.order_po_date) / 1000;
+                                }else {
+                                    console.log("$$$4");
+                                    order_po_log_diff = 0;
+                                    order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date) / 1000;
+                                    order_po__order_docs_diff = 0;
                                 }
                             }
 
                         } else if (flag == 2) {
                             //
                         } else if (flag == 3) {
-
+                            global.logger.write('conLog', '*****Update: Order Logged ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_caf_approval_datetime+' '+ data[0].activity_po_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
                             order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST) / 1000;
                             //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+                            if(data[0].activity_order_documents_datetime !== null)
+                                order_docs__log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_order_documents_datetime) / 1000;
 
                             if (data[0].activity_caf_approval_datetime != null)
                                 order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime) / 1000;
@@ -3390,6 +3408,9 @@ this.getAllParticipantsAsync = async (request) => {
                     global.logger.write('conLog', 'request.order_trigger_log_diff :: ' + order_trigger_log_diff, {}, request);
                     global.logger.write('conLog', 'request.order_caf_approval_log_diff :: ' + order_caf_approval_log_diff, {}, request);
                     global.logger.write('conLog', 'request.order_po_log_diff :: ' + order_po_log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_docs__log_diff :: ' + order_docs__log_diff, {}, request);
+                    global.logger.write('conLog', 'request.order_po__order_docs_diff :: ' + order_po__order_docs_diff, {}, request);
+
                     var paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
@@ -3402,13 +3423,16 @@ this.getAllParticipantsAsync = async (request) => {
                         order_trigger_log_diff,
                         order_caf_approval_log_diff,
                         order_po_log_diff,
+                        order_docs__log_diff,
+                        order_po__order_docs_diff,
                         flag,
                         request.datetime_log
                     );
-                    var queryString = util.getQueryString("ds_p1_3_widget_activity_field_transaction_update_datetime", paramsArr);
+                    var queryString = util.getQueryString("ds_p1_4_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
+
                                 console.log('ACS ERRRRRRRRRRRRRRROR : ', err);
                                 console.log('ACS DAAAAAAAAAAAAAAATA : ', data);
                                 if (data.length > 0) {
@@ -3455,7 +3479,7 @@ this.getAllParticipantsAsync = async (request) => {
             let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_wokflow', paramsArr);
                
             if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
+                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
                         resolve(data);
                     } else {
@@ -4016,11 +4040,13 @@ this.getAllParticipantsAsync = async (request) => {
         );
         let queryString = util.getQueryString('ds_v1_activity_list_update_documents_submitted', paramsArr);
         let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_documents_submitted', paramsArr);
+        
         if (queryString != '') {
-                          db.executeQueryPromise(0, queryString, request)
+                          db.executeQueryPromise(0, queryString, request);
             return await (db.executeQueryPromise(0, queryStringMapping, request)); 
                          
         }
+       
     };
 
     this.assetSummaryTransactionInsert = async function (request) {
@@ -5055,6 +5081,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     };
+
 }
 
 

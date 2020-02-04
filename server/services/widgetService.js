@@ -803,7 +803,7 @@ function WidgetService(objCollection) {
             //let finalResult = 0;
             let response = [];
             //let resp = {};
-            for(i=-1;i<5;i++) {
+            for(i=-2;i<5;i++) {
                 if(i !== 0)
                     result = await retrievefieldTrxAvgTime(request, i);
                 else
@@ -815,11 +815,17 @@ function WidgetService(objCollection) {
                     //response.widget_axis_y_value_decimal_1 = result[0].widget_axis_y_value_decimal;
                     let resp = {};
                     switch(i) {
-                        case -1: resp.key = 'po_order_documents_tat';
+                        case -2: resp.key = 'po_order_documents_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
                                 resp.label = 'P.O to order documents';                                
                                 response.push(resp);
-                                break;                        
+                                break;                                    
+                        case -1: resp.key = 'order_docs_order_logged_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'Order documents to Order Logged';                                
+                                response.push(resp);
+                                break;                             
+                                    
                         case 1: resp.key = 'po_order_submission_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
                                 resp.label = 'P.O to order submission';                                
