@@ -4352,7 +4352,12 @@ function ActivityService(objectCollection) {
                     //console.log('fieldValue.activity_status_id: ', fieldValue.activity_status_id);
                     //console.log('fieldValue.activity_status_type_id ', fieldValue.activity_status_type_id);  
                     
-                    self.alterActivityStatus(newReq, (err, data)=>{});
+                    //self.alterActivityStatus(newReq, (err, data)=>{});
+
+                    await activityCommonService.makeRequest(newReq, "bot_step/status/alter", 1)
+                    .then((resp) => {
+                        global.logger.write('debug', "bot_step/status/alter Response: " + JSON.stringify(resp), {}, request);
+                    });              
                     break;
                 }
             }
@@ -4366,6 +4371,9 @@ function ActivityService(objectCollection) {
         newReq.activity_status_workflow_percentage = (!err && roleData.length > 0) ? Number(roleData[0].activity_status_workflow_percentage) : 0;
         
         console.log('newReq.activity_status_workflow_percentage) : ', newReq.activity_status_workflow_percentage);
+
+        //await self.updateWorkflowQueueMapping(newReq);
+
         //Update the percentage as well
         if(newReq.activity_status_workflow_percentage > 0) {            
             await activityCommonService.makeRequest(newReq, "bot_step/wf_percentage/alter", 1)
@@ -4373,8 +4381,7 @@ function ActivityService(objectCollection) {
                 global.logger.write('debug', "bot_step/wf_percentage/alter Response: " + JSON.stringify(resp), {}, request);
             });
         }
-        
-                    
+            
         let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(newReq);
         let assetID = (!err1 && assetData.length > 0) ? Number(assetData[0].asset_id) : 0;
 

@@ -2201,6 +2201,17 @@ function BotService(objectCollection) {
         }
     }
     
+    this.alterStatus = async (request) => {
+        let inlineData = {};
+        inlineData.activity_status_id = request.activity_status_id;
+        inlineData.activity_status_type_id = request.activity_status_type_id;
+        inlineData.activity_status_name = request.activity_status_name;
+        inlineData.activity_status_type_name = request.activity_status_type_name;
+
+        await changeStatus(request, inlineData);
+        return [false, {}]
+    }
+    
     // Bot Step to change the status
     async function changeStatus(request, inlineData) {
         let newReq = Object.assign({}, request);
@@ -3078,12 +3089,13 @@ function BotService(objectCollection) {
         };
 
         const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
-        let urlStrFill = "https://staging.officedesk.app/#/forms/entry/" + base64Json;
+        let urlStrFill = "https://stagingweb.officedesk.app/#/forms/entry/" + base64Json;
         if (global.mode === 'prod') {
-            urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
+            //urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
+            urlStrFill = "https://web.officedesk.app/#/forms/entry/" + base64Json;
         }
         if (global.mode === 'preprod') {
-            urlStrFill = "https://preprod.officedesk.app/#/forms/entry/" + base64Json;
+            urlStrFill = "https://preprodweb.officedesk.app/#/forms/entry/" + base64Json;
         }
 
         const buttonName = formAction.call_to_action_label;
@@ -3135,12 +3147,12 @@ function BotService(objectCollection) {
             "organization_id": request.organization_id
         };
         const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
-        let urlStrFill = "https://staging.officedesk.app/#/orderstatus/" + base64Json;
+        let urlStrFill = "https://stagingweb.officedesk.app/#/orderstatus/" + base64Json;
         if (global.mode === 'prod') {
-            urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+            urlStrFill = "https://web.officedesk.app/#/orderstatus/" + base64Json;
         }
         if (global.mode === 'preprod') {
-            urlStrFill = "https://preprod.officedesk.app/#/orderstatus/" + base64Json;
+            urlStrFill = "https://preprodweb.officedesk.app/#/orderstatus/" + base64Json;
         }
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
