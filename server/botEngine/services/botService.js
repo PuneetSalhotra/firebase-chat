@@ -227,6 +227,12 @@ function BotService(objectCollection) {
     this.archiveBot =
         async (request) => {
             try {
+                // Fetch all associated bot operations
+                const [_, botOperationData] = await adminListingService.botOperationMappingSelectID({
+                    bot_id: request.bot_id,
+                    bot_operation_id: 0
+                });
+
                 let results = new Array();
                 let paramsArray;
 
@@ -251,6 +257,20 @@ function BotService(objectCollection) {
                     );
 
                 results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+                // Delete all associated bots
+                if (botOperationData.length > 0) {
+                    for (const botOperation of botOperationData) {
+                        try {
+                            await this.archiveBotWorkflowStep({
+                                ...request,
+                                bot_operation_id: botOperation.bot_operation_id
+                            });
+                        } catch (error) {
+                            logger.error(`Error deleting bot operation | %j`, error.message, { type: 'archive_bot', error, request_body: request, stack: error.stack, error_message: error.message });
+                        }
+                    }
+                }
 
                 return results[0];
             } catch (error) {
@@ -825,7 +845,7 @@ function BotService(objectCollection) {
 
                 results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
 
-                if (archiveBotFlag) {
+                if (archiveBotFlag && request.url.includes('bot/mapping/workflow_step/archive')) {
                     try {
                         await this.archiveBot({
                             ...request,
