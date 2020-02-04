@@ -2578,6 +2578,11 @@ function FormConfigService(objCollection) {
                 workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
                 formName = String(formConfigData[0].form_name),
                 workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+                
+                //Handling Null Case
+                if(workflowActivityTypeDefaultDurationDays === 0) {
+                    workflowActivityTypeDefaultDurationDays = 5;
+                }
 
             console.log('isWorkflowEnabled : ', isWorkflowEnabled);
             console.log('originFlagSet : ', originFlagSet);
