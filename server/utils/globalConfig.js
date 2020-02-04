@@ -581,8 +581,8 @@ if (mode === 'staging') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    config.emailbaseUrlApprove = "https://staging.officedesk.app"; 
-    config.emailbaseUrlUpload = "https://staging.officedesk.app";
+    config.emailbaseUrlApprove = "https://stagingweb.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://stagingweb.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
 }
 
@@ -773,8 +773,8 @@ if (mode === 'prod') {
     //making twilio, Nexmo Calls
     config.efsPath = "/api-data/";
     
-    config.emailbaseUrlApprove = "https://officedesk.app"; 
-    config.emailbaseUrlUpload = "https://officedesk.app";
+    config.emailbaseUrlApprove =  "https://web.officedesk.app"; //"https://officedesk.app"; 
+    config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
     
 }
 
