@@ -374,6 +374,7 @@ function ActivityPushService(objectCollection) {
                     case 34: //Time Card
                         break;
                     case 48: // Process/Workflow
+                    case 53: // Accounts
                         if (
                             Number(request.asset_id) === 31993 ||
                             Number(request.asset_id) === 100
@@ -393,7 +394,7 @@ function ActivityPushService(objectCollection) {
                                 // if (Number(attachments.length) > 0) {
                                 // Text comment
                                 if (Number(request.activity_stream_type_id) === 325) {
-                                    msg.activity_type_category_id = 48;
+                                    msg.activity_type_category_id = activityTypeCategoryId;
                                     msg.type = 'activity_unread';
                                     msg.description = `Added text in ${activityTitle}.`;
 
@@ -513,14 +514,14 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
                                 // case '/' + global.config.version + '/activity/participant/access/set':
-                                msg.activity_type_category_id = 48;
+                                msg.activity_type_category_id = activityTypeCategoryId;
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = 'has added an update - ' + activityTitle + '.';
                                 break;
                             case '/' + global.config.version + '/activity/unread/count/reset':
                             case '/' + global.config.version + '/activity/unread/count/reset/v1':
-                                msg.activity_type_category_id = 48;
+                                msg.activity_type_category_id = activityTypeCategoryId;
                                 msg.type = 'activity_read';
 
                                 // 2nd July 2019 04:03 PM IST: DO NOT SEND push to Android or iOS
@@ -566,7 +567,7 @@ function ActivityPushService(objectCollection) {
                                     pushString.subtitle = 'due date changed';
                                     pushString.body = senderName;
 
-                                    msg.activity_type_category_id = 48;
+                                    msg.activity_type_category_id = activityTypeCategoryId;
                                     msg.type = 'activity_duedate';
                                 }
                                 break;
