@@ -4396,6 +4396,8 @@ function ActivityService(objectCollection) {
         //Get Weekly roll back count
         newReq.start_datetime = util.getStartDateTimeOfWeek();
         newReq.end_datetime = util.getEndDateTimeOfWeek();
+        newReq.flag = 0;
+        newReq.activity_type_category_id = 48;
         let [err2, weeklyCount] = await activityListingService.getAssetRollBackCnt(newReq);
         let weeklyRollBackCnt = 0;
         let weeklyTotalCnt = 0;
@@ -4420,6 +4422,8 @@ function ActivityService(objectCollection) {
         //Get Monthly roll back count
         newReq.start_datetime =  util.getStartDateTimeOfMonth();
         newReq.end_datetime = util.getEndDateTimeOfMonth();
+        newReq.flag = 0;
+        newReq.activity_type_category_id = 48;
         let [err3, monthlyCount] = await activityListingService.getAssetRollBackCnt(newReq);
         let monthlyRollBackCnt = 0;
         let monthlyTotalCnt = 0;
@@ -4473,6 +4477,8 @@ function ActivityService(objectCollection) {
         //Get Weekly roll back count
         request.start_datetime = util.getStartDateTimeOfWeek();
         request.end_datetime = util.getEndDateTimeOfWeek();
+        request.flag = 0;
+        request.activity_type_category_id = 48;
         let [err2, weeklyCount] = await activityListingService.getAssetRollBackCnt(request);
         let weeklyRollBackCnt = 0;
         let weeklyTotalCnt = 0;
@@ -4495,6 +4501,8 @@ function ActivityService(objectCollection) {
         //Get Monthly roll back count
         request.start_datetime =  util.getStartDateTimeOfMonth();
         request.end_datetime = util.getEndDateTimeOfMonth();
+        request.flag = 0;
+        request.activity_type_category_id = 48;
         let [err3, monthlyCount] = await activityListingService.getAssetRollBackCnt(request);
         let monthlyRollBackCnt = 0;
         let monthlyTotalCnt = 0;

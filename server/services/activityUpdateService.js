@@ -2040,11 +2040,14 @@ function ActivityUpdateService(objectCollection) {
                 global.logger.write('debug', 'Monthly Data: ' + JSON.stringify(monthlyData, null, 2), {}, request);
 
                 var percentage = 0;
+                var avgReadTime = 0;
                 var noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
                 var noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
+                var countTotalDuration = monthlyData[0].countTotalDuration;
 
                 if (noOfReceivedFileUpdates != 0) {
                     percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
+                    avgReadTime = (countTotalDuration/ noOfReceivedFileUpdates)/ 3600;
                 }
 
                 // console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
@@ -2054,6 +2057,7 @@ function ActivityUpdateService(objectCollection) {
                 global.logger.write('debug', 'Number Of ReceivedFileUpdates: ' + noOfReceivedFileUpdates, {}, request);
                 global.logger.write('debug', 'Number Of RespondedFileUpdates: ' + noOfRespondedFileUpdates, {}, request);
                 global.logger.write('debug', 'Percentage: ' + percentage, {}, request);
+                global.logger.write('debug', 'avgReadTime: ' + avgReadTime, {}, request);
 
                 //Insert into monthly summary table
                 var monthlyCollection = {};
@@ -2062,9 +2066,13 @@ function ActivityUpdateService(objectCollection) {
                 monthlyCollection.entity_bigint_1 = noOfReceivedFileUpdates; //denominator
                 monthlyCollection.entity_double_1 = percentage; //percentage value
                 monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                monthlyCollection.entity_decimal_2 = avgReadTime; //avg readtime
                 monthlyCollection.entity_decimal_3 = noOfRespondedFileUpdates; //numerator
                 activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => { });
-            });
+            }).catch((err) => {
+                    error = err;
+                    console.log("error :: "+error);
+                });
 
             //Updating weekly summary Data
             getResponseRateForFiles(request, 2).then((weeklyData) => {
@@ -2072,11 +2080,14 @@ function ActivityUpdateService(objectCollection) {
                 global.logger.write('debug', 'Weekly Data: ' + JSON.stringify(weeklyData, null, 2), {}, request);
 
                 var percentage = 0;
+                var avgReadTime = 0;
                 var noOfReceivedFileUpdates = weeklyData[0].countReceivedUpdates;
                 var noOfRespondedFileUpdates = weeklyData[0].countRespondedOntimeUpdates;
+                var countTotalDuration = weeklyData[0].countTotalDuration;
 
                 if (noOfReceivedFileUpdates != 0) {
                     percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
+                    avgReadTime = (countTotalDuration/ noOfReceivedFileUpdates)/ 3600;
                 }
 
                 // console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
@@ -2086,6 +2097,7 @@ function ActivityUpdateService(objectCollection) {
                 global.logger.write('debug', 'Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates, {}, request);
                 global.logger.write('debug', 'Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates, {}, request);
                 global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
+                global.logger.write('debug', 'avgReadTime: ' + avgReadTime, {}, request);
 
                 //Insert into weekly summary table
                 var weeklyCollection = {};
@@ -2094,9 +2106,13 @@ function ActivityUpdateService(objectCollection) {
                 weeklyCollection.entity_bigint_1 = noOfReceivedFileUpdates;
                 weeklyCollection.entity_double_1 = percentage;
                 weeklyCollection.entity_decimal_1 = percentage;
+                weeklyCollection.entity_decimal_2 = avgReadTime;
                 weeklyCollection.entity_decimal_3 = noOfRespondedFileUpdates;
                 activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => { });
-            });
+            }).catch((err) => {
+                    error = err;
+                    console.log("error :: "+error);
+                });
 
         }); //closing the promise        
     }
