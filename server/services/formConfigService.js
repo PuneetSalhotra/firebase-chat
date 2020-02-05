@@ -3119,10 +3119,10 @@ function FormConfigService(objCollection) {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
                                 data_type_combo_id: option.dataTypeComboId,
-                                next_field_id: field.next_field_id
+                                next_field_id: option.next_field_id || field.next_field_id || 0
                             });
                         } catch (error) {
-                            console.log("qwe Error: ", error);
+                            // console.log("qwe Error: ", error);
                         }
                     }
                     await workforceFormFieldMappingHistoryInsert(request, {
