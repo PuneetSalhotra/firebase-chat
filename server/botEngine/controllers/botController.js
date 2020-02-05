@@ -234,6 +234,16 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/bot_step/status/alter', async (req, res) => {
+        try {
+            let result = await botService.alterStatus(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
     
 }
 
