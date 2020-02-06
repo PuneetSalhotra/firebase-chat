@@ -916,11 +916,11 @@ function ActivityUpdateService(objectCollection) {
                     }*/
 
                     //updating log differential datetime for only this asset
-                    if(activityTypeCategoryId !== 48) {
+                    //if(activityTypeCategoryId !== 48) {
                         activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
 
                         });
-                    }
+                    //}
 
                     //activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
