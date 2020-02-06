@@ -3119,10 +3119,10 @@ function FormConfigService(objCollection) {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
                                 data_type_combo_id: option.dataTypeComboId,
-                                next_field_id: field.next_field_id
+                                next_field_id: option.next_field_id || field.next_field_id || 0
                             });
                         } catch (error) {
-                            console.log("qwe Error: ", error);
+                            // console.log("qwe Error: ", error);
                         }
                     }
                     await workforceFormFieldMappingHistoryInsert(request, {
@@ -3411,7 +3411,7 @@ function FormConfigService(objCollection) {
             }];
         }
         for (const field of fieldDefinitions) {
-            let dataTypeCategoryId = Number(field.dataTypeCategoryId)
+            let dataTypeCategoryId = Number(field.dataTypeCategoryId) || Number(field.datatypecategoryid);
             console.log('\x1b[36m\n%s\x1b[0m', 'field_id: ', field.field_id);
             // console.log("field: ", field);
             if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
