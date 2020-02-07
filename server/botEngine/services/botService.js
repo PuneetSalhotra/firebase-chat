@@ -4545,7 +4545,12 @@ function BotService(objectCollection) {
         logger.silly("countryCode: %j", countryCode);
         logger.silly("phoneNumber: %j", phoneNumber);
 
-        customerData.customer_work_location_coordinates = customerData.customer_work_location_coordinates.split(",");
+        try {
+            customerData.customer_work_location_coordinates = customerData.customer_work_location_coordinates.split(",");
+        } catch (error) {
+            // 
+            customerData.customer_work_location_coordinates = [0, 0];
+        }
 
         // Check if an asset already exists with the given number
         const assetCheckData = await getAssetDetailsOfANumber({
@@ -4603,10 +4608,10 @@ function BotService(objectCollection) {
                 "contact_operating_asset_name": "",
                 "contact_operating_asset_id": ""
             }),
-            industry_id: customerData.customer_industry_id,
+            industry_id: customerData.customer_industry_id || 0,
             work_location_latitude: customerData.customer_work_location_coordinates[0],
             work_location_longitude: customerData.customer_work_location_coordinates[1],
-            work_location_address: customerData.customer_work_location_address
+            work_location_address: customerData.customer_work_location_address || ""
         };
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);

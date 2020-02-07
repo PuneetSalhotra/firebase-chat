@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+const AdminListingService = require("../Administrator/services/adminListingService");
 
 function FormConfigService(objCollection) {
 
@@ -19,6 +20,8 @@ function FormConfigService(objCollection) {
 
     const ParticipantService = require('../services/activityParticipantService');
     const participantService = new ParticipantService(objCollection);
+
+    const adminListingService = new AdminListingService(objCollection);
 
     const cacheWrapper = objCollection.cacheWrapper;
     const moment = require('moment');
@@ -3114,7 +3117,7 @@ function FormConfigService(objCollection) {
 
                     }
                     // Update next field ID, if needed
-                    if (field.hasOwnProperty("next_field_id") && Number(field.next_field_id) > 0) {
+                    if (option.hasOwnProperty("next_field_id") && Number(option.next_field_id) > 0) {
                         try {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
@@ -4633,6 +4636,18 @@ function FormConfigService(objCollection) {
         }
 
         try {
+            // Check for duplicate bot creation
+            const [_, botOperationData] = await adminListingService.botOperationMappingSelectOperationType({
+                ...request,
+                bot_operation_type_id: newRequest.bot_operation_type_id,
+                form_id: request.form_id,
+                field_id: newRequest.field_id
+            });
+            if (botOperationData.length > 0) {
+                // Do no create the bot, return
+                return "";
+            }
+
             let botData = await botService.addBot(newRequest);
             console.log('botData : ', botData[0].bot_id);
 
