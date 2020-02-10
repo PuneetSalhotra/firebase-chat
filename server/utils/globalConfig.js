@@ -805,6 +805,10 @@ config.platformApplicationIosTonyPushProd = 'arn:aws:sns:ap-south-1:430506864995
 //iTONY IOS normal Push platform endpoints
 config.platformApplicationIosiTonyPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/iTonyDevPush';
 
+//Grene Account IOS normal Push platform endpoints
+config.platformApplicationIosGreneAccountPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/greneConnectIOSDevPush';
+config.platformApplicationIosGreneAccountPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/greneConnectIOSProdPush';
+
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
 config.nexmoAPIKey = "533696c3";
