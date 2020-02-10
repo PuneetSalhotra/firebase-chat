@@ -257,6 +257,16 @@ var AwsSns = function () {
                         global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for iTony App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
                     }
+                } else if (flagAppAccount == 9) { //flagAppAccount == 9 i.e. Grene Account normal IOS Push
+                    if (flag == 0) {
+                        //console.log('Flag is 0. Creating IOS Dev for Grene Account');
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Account App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
+                    } else {
+                        //console.log('Flag is 1. Creating IOS Prod for Grene Account');
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Account Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
+                    }
                 }
                 break;
             case 3: // windows
