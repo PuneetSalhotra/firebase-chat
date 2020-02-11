@@ -15,6 +15,8 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 //config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
 config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
 
+config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
+
 if (mode === 'testingprodissueenv') {
 
     //Ports Config
@@ -55,7 +57,7 @@ if (mode === 'testingprodissueenv') {
     config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -146,7 +148,7 @@ if (mode === 'masimukku') {
     config.efsPath = "/Users/masimukku/Downloads/worlddesk/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -250,7 +252,7 @@ if (mode === 'local') {
     config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092";
+    //config.BROKER_HOST = "kafka1:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -272,9 +274,13 @@ if (mode === 'local') {
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     //Desker
-    config.TOPIC_ID = 8;
-    config.TOPIC_NAME = "desker-activities";
-    config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';    
+    //config.TOPIC_ID = 8;
+    //config.TOPIC_NAME = "desker-activities";
+    //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
+    
+    config.TOPIC_ID = 23;
+    config.TOPIC_NAME = "desker-activities-test-topic";
+    config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group';
     
     //Widget
     config.WIDGET_TOPIC_NAME = 'desker-form-widgets';    
@@ -345,7 +351,7 @@ if (mode === 'dev') {
     config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -437,7 +443,7 @@ if (mode === 'sprint') {
     config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    ////config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -458,9 +464,9 @@ if (mode === 'sprint') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 20;
-    config.TOPIC_NAME = 'sprint-desker-activities'; //v1 is only one partition
-    config.CONSUMER_GROUP_ID = 'sprint-desker-activities-cg';
+    config.TOPIC_ID = 24;
+    config.TOPIC_NAME = 'sprint-desker-activities-msk'; //v1 is only one partition
+    config.CONSUMER_GROUP_ID = 'sprint-desker-activities-msk-cg';
     
     //staging-desker-form-widgets-v2 - 1 partition
     config.WIDGET_TOPIC_NAME = 'sprint-desker-form-widgets';    
@@ -538,7 +544,7 @@ if (mode === 'staging') {
     config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -559,9 +565,13 @@ if (mode === 'staging') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 16;
-    config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
-    config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
+    //config.TOPIC_ID = 16;
+    //config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
+    //config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
+
+    config.TOPIC_ID = 25;
+    config.TOPIC_NAME = 'staging-desker-activities-msk';
+    config.CONSUMER_GROUP_ID = 'staging-desker-activities-msk-cg';
     
     //staging-desker-form-widgets-v2 - 1 partition
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v2';    
@@ -634,7 +644,7 @@ if (mode === 'preprod') {
     config.efsPath = "/data/";
 
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
@@ -718,7 +728,7 @@ if (mode === 'prod') {
     config.redisPort = 6379;
 
     //Kafka Configuration
-    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;

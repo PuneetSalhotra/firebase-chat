@@ -3114,7 +3114,7 @@ function FormConfigService(objCollection) {
 
                     }
                     // Update next field ID, if needed
-                    if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) > 0 || Number(field.next_field_id) === -1)) {
+                    if (option.hasOwnProperty("next_field_id") && (Number(option.next_field_id) > 0 || Number(option.next_field_id) === -1)) {
                         try {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
