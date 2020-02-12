@@ -54,7 +54,7 @@ if (mode === 'testingprodissueenv') {
     config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/apistaging-data/";
+    config.efsPath = "/data/";
     
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
@@ -199,8 +199,8 @@ if (mode === 'masimukku') {
 if (mode === 'local') {
 
     //Ports Config
-    config.version = 'r1';
-    config.servicePort = 7000;
+    config.version = 'r0';
+    config.servicePort = 4000;
     config.standAlonePamServicePort = 7100;
 
     config.consumerZero = 7200;
