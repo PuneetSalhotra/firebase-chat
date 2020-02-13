@@ -20,6 +20,10 @@ switch (global.mode) {
         fileName = `${global.config.efsPath}api/logs/${ipAddress}_%DATE%`;
         break;
 
+    case 'testingprodissueenv':
+        fileName = `${global.config.efsPath}api/logs/${ipAddress}_%DATE%`;
+        break;
+
     default:
         fileName = `logs/${ipAddress}_%DATE%`;
 }
