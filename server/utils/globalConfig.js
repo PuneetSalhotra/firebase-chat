@@ -665,9 +665,13 @@ if (mode === 'preprod') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 11;
-    config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
-    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
+    //config.TOPIC_ID = 11;
+    //config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
+    //config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
+
+    config.TOPIC_ID = 27;
+    config.TOPIC_NAME = 'preprod-desker-activities-msk'; //Only one partition
+    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-msk';
 
     //WIDGETS    
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets-v1'; //Only one partition
