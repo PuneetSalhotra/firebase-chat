@@ -753,9 +753,13 @@ if (mode === 'prod') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 12;
-    config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
-    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
+    //config.TOPIC_ID = 12;
+    //config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
+    //config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
+
+    config.TOPIC_ID = 28;
+    config.TOPIC_NAME = 'prod-desker-activities-msk'; //Only one partition
+    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-msk';
     
     // Widget
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets-v1'; //Only one partition
