@@ -1944,6 +1944,9 @@ function BotService(objectCollection) {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
+        let documentData = {},
+            documentFieldUpdateInlineData = [],
+            flagAddAttestedDocumentToTimeline = 0;
         for (const attachment of attachments) {
 
             // If the bot operation inline data doesn't have the key "attestation",
@@ -1955,8 +1958,14 @@ function BotService(objectCollection) {
                 await addAttachment(request, [attachment.document]);
                 continue;
             }
+            
+            flagAddAttestedDocumentToTimeline = Number(attachment.flag_add_attested_document_to_timeline);
+
             const documentFormID = Number(attachment.document.form_id);
             const documentFieldID = Number(attachment.document.field_id);
+            documentData.documentFormID = documentFormID;
+            documentData.documentFieldID = documentFieldID;
+
             let documentFormTransactionID = 0,
                 documentFormActivityID = 0;
             
@@ -1974,6 +1983,9 @@ function BotService(objectCollection) {
             if (Number(documentFormData.length) > 0) {
                 documentFormTransactionID = Number(documentFormData[0].data_form_transaction_id);
                 documentFormActivityID = Number(documentFormData[0].data_activity_id);
+
+                documentData.documentFormTransactionID = documentFormTransactionID;
+                documentData.documentFormActivityID = documentFormActivityID;
             }
             // Fetch the attestation's URL
             const attestationFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -2080,6 +2092,17 @@ function BotService(objectCollection) {
                     }, null);
 
                     attachmentsList.push(uploadDetails.Location);
+                    documentFieldUpdateInlineData.push({
+                        "data_type_combo_id": Number(documentFieldData[0].data_type_combo_id),
+                        "data_type_combo_value": Number(documentFieldData[0].data_type_combo_value) || "",
+                        "field_data_type_category_id": Number(documentFieldData[0].data_type_category_id),
+                        "field_data_type_id": Number(documentFieldData[0].data_type_id),
+                        "field_id": documentFieldID,
+                        "field_name": String(documentFieldData[0].field_name),
+                        "field_value": uploadDetails.Location,
+                        "form_id": documentFormID,
+                        "message_unique_id": 123123123123123123
+                    });
 
                 } else {
                     throw new Error("Couldn't Fetch document URL or attestation URL");
@@ -2092,6 +2115,28 @@ function BotService(objectCollection) {
         // Do not do anything if no attachments are to be added
         if (
             Number(attachmentsList.length) === 0
+        ) {
+            return;
+        }
+
+        // alterFormActivityFieldValues Update the document's field value to the attested one
+        let fieldsAlterRequest = Object.assign({}, request);
+        fieldsAlterRequest.form_transaction_id = documentData.documentFormTransactionID;
+        fieldsAlterRequest.form_id = documentData.documentFormID;
+        fieldsAlterRequest.field_id = documentData.documentFieldID;
+        fieldsAlterRequest.activity_inline_data = JSON.stringify(documentFieldUpdateInlineData);
+        fieldsAlterRequest.activity_id = documentData.documentFormActivityID;
+        fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+
+        try {
+            await alterFormActivityFieldValues(fieldsAlterRequest);
+        } catch (error) {
+            console.log("addAttachmentWithAttestation | alterFormActivityFieldValues | Error: ", error);
+        }
+
+        // Decide whether to add the attested document to timeline or not
+        if (
+            flagAddAttestedDocumentToTimeline === 0
         ) {
             return;
         }
