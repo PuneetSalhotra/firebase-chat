@@ -1700,8 +1700,8 @@ function ActivityTimelineService(objectCollection) {
 
             //Send pushes using Pusher
             //let eventName = 'retrieveTimelineList';
-            //pusherWrapper.push(request.asset_id, pubnubMsg, eventName);
-            //pusherWrapper.push(request.organization_id, pubnubMsg, eventName, isOrgRateLimitExceeded);
+            //pusherWrapper.push('asset_' + request.asset_id, pubnubMsg, eventName);
+            //pusherWrapper.push('org_' + request.organization_id, pubnubMsg, eventName, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
