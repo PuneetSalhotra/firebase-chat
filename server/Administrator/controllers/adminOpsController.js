@@ -468,6 +468,28 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     }); 
+
+    //Upload the ID proof PAN/Adhaar/Passport
+    app.post('/' + global.config.version + '/asset/id_proof/upload', async (req, res) => {
+        const [err, data] = await adminOpsService.idProofUpload(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/asset/id_proof/upload | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    ///organization/ai_bot/config/alter
+    app.post('/' + global.config.version + '/organization/ai_bot/config/alter', async (req, res) => {
+        try {
+            let result = await adminOpsService.organizationInlineDataUpdate(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });   
 }
 
 module.exports = AdminOpsController;
