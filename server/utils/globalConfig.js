@@ -199,8 +199,8 @@ if (mode === 'masimukku') {
 if (mode === 'local') {
 
     //Ports Config
-    config.version = 'r0';
-    config.servicePort = 4000;
+    config.version = 'r1';
+    config.servicePort = 7000;
     config.standAlonePamServicePort = 7100;
 
     config.consumerZero = 7200;
@@ -279,8 +279,10 @@ if (mode === 'local') {
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
     
     config.TOPIC_ID = 23;
+    // config.TOPIC_ID = 26;
     config.TOPIC_NAME = "desker-activities-test-topic";
-    config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group';
+    // config.TOPIC_NAME = "demo-eks-test-topic";
+    config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
     
     //Widget
     config.WIDGET_TOPIC_NAME = 'desker-form-widgets';    

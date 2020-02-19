@@ -42,6 +42,7 @@
     "pusher": "^3.0.0",
     "redis": "^2.8.0",
     "request": "^2.88.2",
+    "serialize-error": "^5.0.0",
     "sib-api-v3-sdk": "^7.1.4",
     "stringstream": "^1.0.0",
     "tinyurl": "^1.1.5",
