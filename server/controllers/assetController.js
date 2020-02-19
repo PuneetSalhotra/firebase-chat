@@ -627,5 +627,17 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    //FeedBack for QR / Barcode scanned
+    app.post('/' + global.config.version + '/asset/qr_barcode/feedback', async (req, res) => {
+        const [err, data] = await assetService.getQrBarcodeFeeback(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/asset/qr_barcode/feedback | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 module.exports = AssetController;

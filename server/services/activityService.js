@@ -22,6 +22,8 @@ function ActivityService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
+    const fridsJson = require('../vodafone/utils/frids');
+
     const logger = require("../logger/winstonLogger");
     const self = this;
 
@@ -261,6 +263,15 @@ function ActivityService(objectCollection) {
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
                                 await addValueToWidgetForAnalytics(request);
+
+                                //Grene Account - update FRID Timeline
+                                /*let i;
+                                for(i=0; i<fridsJson.length; i++) {
+                                    if(Number(request.activity_form_id) === fridsJson[i].form_id) {
+                                        //fridsJson[i].field_id
+                                        //let requestFormData = JSON.parse(request.activity_inline_data);
+                                    }
+                                }*/
                             }
 
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
