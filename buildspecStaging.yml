@@ -2,15 +2,14 @@
 #Date: 02-Aug-2018
 #Description: yml file to build the Mobile API Services
 
-version: 0.2
+version: 0.1
           
 phases:
   install:
-    runtime-versions:                
-        nodejs: 12.14.1
     commands: 
       - npm install pm2 -g
       - npm install --production
+      - npm link hummus
   pre_build:
     commands:      
   build:
