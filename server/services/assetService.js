@@ -4351,12 +4351,12 @@ this.getQrBarcodeFeeback = async(request) => {
             });
     }*/
     let resp = {
-        "feedback" : "Awesome!"
+        "scanned_content" : request.scanned_content
     }
 
     responseData.push(resp);
     
-    return [false, responseData];
+    return [false, resp];
 }
 
 }

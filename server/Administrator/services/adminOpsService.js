@@ -5614,9 +5614,10 @@ function AdminOpsService(objectCollection) {
                 //return [errTwo, []]
             } else {
                 const idCardActivityID = Number(idCardData[0].activity_id);
-                let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
-                    idCardJSON.employee_id_proof_document_name = request.id_proof_document_name || '';
-                    idCardJSON.employee_id_proof_document_link = request.id_proof_document_link;
+                let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);                    
+                    idCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                    idCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                    idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
                     idCardJSON.employee_id_proof_verification_status = 0;
         
                 // Update the ID Card's Activity List table
@@ -5657,9 +5658,10 @@ function AdminOpsService(objectCollection) {
                 //return [errFour, []]
             } else {
                 const contactCardActivityID = Number(contactCardData[0].activity_id);
-                let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
-                    contactCardJSON.employee_id_proof_document_name = request.id_proof_document_name || '';
-                    contactCardJSON.employee_id_proof_document_link = request.id_proof_document_link;
+                let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);                    
+                    contactCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                    contactCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                    contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
                     contactCardJSON.employee_id_proof_verification_status = 0;
         
                 // Update the Contact Card's Activity List table
@@ -5689,8 +5691,9 @@ function AdminOpsService(objectCollection) {
 
     //3.Update in asset_list inline data
     await updateAssetInlineData(request, {
-        id_proof_document_name: request.id_proof_document_name || '',
-        id_proof_document_link: request.id_proof_document_link,
+        id_proof_document_1: request.id_proof_document_1,
+        id_proof_document_2: request.id_proof_document_2,
+        id_proof_document_3: request.id_proof_document_3,
         id_proof_verification_status: 0
     });
 
