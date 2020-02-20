@@ -4351,7 +4351,8 @@ this.getQrBarcodeFeeback = async(request) => {
             });
     }*/
     let resp = {
-        "scanned_content" : request.scanned_content
+        "scanned_content" : request.scanned_content,
+        "message": "Successfully scanned!"
     }
 
     responseData.push(resp);
