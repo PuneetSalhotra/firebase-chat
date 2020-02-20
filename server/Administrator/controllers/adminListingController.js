@@ -338,6 +338,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/organization/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.organizationListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/organization/list/by_name | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
