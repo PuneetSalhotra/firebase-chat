@@ -9,7 +9,7 @@ const tracer = require('dd-trace').init({
     env: process.env.mode,
     logInjection: true
 });
-
+const { serializeError } = require('serialize-error')
 var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
 var Logger = require('./server/utils/logger.js');
 var express = require('express');
@@ -51,7 +51,7 @@ redisClient.on('connect', function (response) {
 });
 
 redisClient.on('error', function (error) {
-    logger.error('Redis Error', { type: 'redis', error });
+    logger.error('Redis Error', { type: 'redis', error: serializeError(error) });
     // console.log(error);
 });
 
@@ -185,25 +185,25 @@ function connectToKafkaBroker(){
     });
 
     kafkaProducer.on('error', function (error) {
-        logger.error('Kafka Producer Error', { type: 'kafka', error });
+        logger.error('Kafka Producer Error', { type: 'kafka', error: serializeError(error) });
         connectToKafkaBroker();        
     });
     
     kafkaProducer.on('brokersChanged', function (error) {
-        logger.error('Kafka Producer brokersChanged', { type: 'kafka', error });
+        logger.error('Kafka Producer brokersChanged', { type: 'kafka', error: serializeError(error) });
         // console.log('brokersChanged: ', error);
     });
     
 };
 
 process.on('uncaughtException', (error, origin) => {
-    logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: error });
+    logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: serializeError(error) });
 });
 
 process.on('error', (error) => {
-    logger.error("Process Error", { type: 'process_error', error: error });
+    logger.error("Process Error", { type: 'process_error', error: serializeError(error) });
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: reason });
+    logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
 });

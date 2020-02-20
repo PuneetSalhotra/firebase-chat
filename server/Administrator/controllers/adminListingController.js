@@ -327,7 +327,17 @@ function AdminListingController(objCollection) {
             console.log("/admin/tag_type/mappings/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-    });    
+    });
+    
+    app.post('/' + global.config.version + '/admin/organization/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.organizationListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/organization/list/by_name | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

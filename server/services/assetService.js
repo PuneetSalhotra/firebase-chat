@@ -4326,6 +4326,39 @@ function AssetService(objectCollection) {
         }
         return [error, responseData];
     }
+
+this.getQrBarcodeFeeback = async(request) => {
+    let responseData = [],
+        error = true;
+
+    /*const paramsArr = new Array(
+        request.asset_id,
+        request.operating_asset_id,
+        organizationID,
+        request.weekly_summary_id,
+        request.data_entity_date_1
+    );
+    const queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }*/
+    let resp = {
+        "feedback" : "Awesome!"
+    }
+
+    responseData.push(resp);
+    
+    return [false, responseData];
+}
+
 }
 
 module.exports = AssetService;

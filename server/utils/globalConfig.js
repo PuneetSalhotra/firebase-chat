@@ -54,7 +54,7 @@ if (mode === 'testingprodissueenv') {
     config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/apistaging-data/";
+    config.efsPath = "/data/";
     
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
@@ -279,8 +279,10 @@ if (mode === 'local') {
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
     
     config.TOPIC_ID = 23;
+    // config.TOPIC_ID = 26;
     config.TOPIC_NAME = "desker-activities-test-topic";
-    config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group';
+    // config.TOPIC_NAME = "demo-eks-test-topic";
+    config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
     
     //Widget
     config.WIDGET_TOPIC_NAME = 'desker-form-widgets';    
@@ -665,9 +667,13 @@ if (mode === 'preprod') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 11;
-    config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
-    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
+    //config.TOPIC_ID = 11;
+    //config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
+    //config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
+
+    config.TOPIC_ID = 27;
+    config.TOPIC_NAME = 'preprod-desker-activities-msk'; //Only one partition
+    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-msk';
 
     //WIDGETS    
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets-v1'; //Only one partition
@@ -749,9 +755,13 @@ if (mode === 'prod') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 12;
-    config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
-    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
+    //config.TOPIC_ID = 12;
+    //config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
+    //config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
+
+    config.TOPIC_ID = 28;
+    config.TOPIC_NAME = 'prod-desker-activities-msk'; //Only one partition
+    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-msk';
     
     // Widget
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets-v1'; //Only one partition
