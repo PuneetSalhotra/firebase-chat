@@ -53,7 +53,7 @@ function AdminListingService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.organization_id
+            (request.organization_id).toString()
         );
         const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
 

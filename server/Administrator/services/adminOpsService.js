@@ -5615,7 +5615,7 @@ function AdminOpsService(objectCollection) {
                                                 }, organizationID);
             
             if (errTwo || Number(idCardData.length) === 0) {
-                logger.error(`idProofUpload.activityAssetMappingSelectAssetIdCard`, { type: 'admin_ops', request_body: request, error: errOne });
+                logger.error(`idProofUpload.activityAssetMappingSelectAssetIdCard idCardData doesn't exist`, { type: 'admin_ops', request_body: request, error: errTwo });
                 //return [errTwo, []]
             } else {
                 const idCardActivityID = Number(idCardData[0].activity_id);
@@ -5667,7 +5667,7 @@ function AdminOpsService(objectCollection) {
                                                     asset_id: deskAssetID
                                                 }, organizationID);
             if (errFour || Number(contactCardData.length) === 0) {
-                logger.error(`idProofUpload.activityListSelectCategoryContact`, { type: 'admin_ops', request_body: request, error: errFour });
+                logger.error(`idProofUpload.activityListSelectCategoryContact contactCardData doesn't exist`, { type: 'admin_ops', request_body: request, error: errFour });
                 //return [errFour, []]
             } else {
                 const contactCardActivityID = Number(contactCardData[0].activity_id);
