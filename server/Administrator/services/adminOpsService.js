@@ -5619,10 +5619,18 @@ function AdminOpsService(objectCollection) {
                 //return [errTwo, []]
             } else {
                 const idCardActivityID = Number(idCardData[0].activity_id);
-                let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);                    
-                    idCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
-                    idCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
-                    idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
+                    if(request.id_proof_document_1 !== "") {
+                        idCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                    }
+                    
+                    if(request.id_proof_document_2 !== "") {
+                        idCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                    } 
+
+                    if(request.id_proof_document_3 !== "") {
+                        idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                    }
                     idCardJSON.employee_id_proof_verification_status = 0;
         
                 // Update the ID Card's Activity List table
@@ -5664,9 +5672,18 @@ function AdminOpsService(objectCollection) {
             } else {
                 const contactCardActivityID = Number(contactCardData[0].activity_id);
                 let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);                    
-                    contactCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
-                    contactCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
-                    contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                    if(request.id_proof_document_1 !== "") {
+                        contactCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                    }
+
+                    if(request.id_proof_document_2 !== "") {
+                        contactCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                    }
+                    
+                    if(request.id_proof_document_3 !== "") {
+                        contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                    }
+                    
                     contactCardJSON.employee_id_proof_verification_status = 0;
         
                 // Update the Contact Card's Activity List table
@@ -5695,10 +5712,18 @@ function AdminOpsService(objectCollection) {
     }
 
     //3.Update in asset_list inline data
+    //Fetch inlineData first and assign the value accordingly
+    let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+    //console.log('ASSETDATA : ', assetData);
+    let assetInlineData;    
+    if(assetData.length > 0){
+        assetInlineData = JSON.parse(assetData[0].asset_inline_data);
+        //console.log('assetInlineData : ', assetInlineData);
+    }
     await updateAssetInlineData(request, {
-        id_proof_document_1: request.id_proof_document_1,
-        id_proof_document_2: request.id_proof_document_2,
-        id_proof_document_3: request.id_proof_document_3,
+        id_proof_document_1: (request.id_proof_document_1 !== "") ? request.id_proof_document_1 : assetInlineData.id_proof_document_1,
+        id_proof_document_2: (request.id_proof_document_2 !== "") ? request.id_proof_document_2 : assetInlineData.id_proof_document_2,
+        id_proof_document_3: (request.id_proof_document_3 !== "") ? request.id_proof_document_3 : assetInlineData.id_proof_document_3,
         id_proof_verification_status: 0
     });
 

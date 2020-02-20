@@ -329,7 +329,7 @@ function AdminListingController(objCollection) {
         }
     });
     
-    app.post('/' + global.config.version + '/admin/organization/list', async function (req, res) {
+    app.post('/' + global.config.version + '/admin/organization/ai_bot/config/list', async function (req, res) {
         const [err, orgData] = await adminListingService.organizationListSelect(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
