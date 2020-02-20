@@ -5587,6 +5587,11 @@ function AdminOpsService(objectCollection) {
     }
 
     this.idProofUpload = async(request) => {
+
+        //id_proof_document_1 - Adhaar Card
+        //id_proof_document_2 - Pan Card
+        //id_proof_document_3 - Passport
+
         let responseData = [],
             error = true;
     
