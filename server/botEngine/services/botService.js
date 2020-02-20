@@ -2286,10 +2286,10 @@ function BotService(objectCollection) {
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
         //newRequest.activity_status_type_category_id = ""; 
         newReq.activity_type_category_id = 48;
-        newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
         newReq.log_asset_id = 100; // Tony
         newReq.asset_id = 100; // Tony
+        newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
 
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
@@ -2619,7 +2619,7 @@ function BotService(objectCollection) {
             workflowFile705Request.activity_type_category_id = 48;
             workflowFile705Request.activity_stream_type_id = 705;
             workflowFile705Request.flag_timeline_entry = 1;
-            workflowFile705Request.message_unique_id = util.getMessageUniqueId(createTargetFormRequest.asset_id);
+            workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
 
@@ -4271,13 +4271,18 @@ function BotService(objectCollection) {
             params.push(request.update_sequence_id);
 
             global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
-
+         
             let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-            if (queryString != '') {
-                try {
-                    await db.executeQueryPromise(0, queryString, request);
-                } catch (err) {
-                    global.logger.write('debug', err, {}, {});
+            if(request.asset_id === 0 || request.asset_id === null) {
+                global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+            }
+            else {
+                if (queryString != '') {
+                    try {
+                        await db.executeQueryPromise(0, queryString, request);
+                    } catch (err) {
+                        global.logger.write('debug', err, {}, {});
+                    }
                 }
             }
         }
@@ -4541,7 +4546,7 @@ function BotService(objectCollection) {
             workflowFile713Request.activity_type_category_id = 48;
             workflowFile713Request.activity_stream_type_id = 713;
             workflowFile713Request.flag_timeline_entry = 1;
-            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(Number(request.asset_id));
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);

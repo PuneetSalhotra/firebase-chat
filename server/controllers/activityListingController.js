@@ -836,6 +836,16 @@ function ActivityListingController(objCollection) {
         } 
     });
 
+
+    app.post('/' + global.config.version + '/activity/lead/workflow/list', async function (req, res) {
+        const [err, responseData] = await activityListingService.getLeadAssetWorkload(req.body, req.body.lead_asset_id);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("'/activity/lead/workflow/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
 }
 
 module.exports = ActivityListingController;
