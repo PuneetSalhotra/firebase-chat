@@ -4093,8 +4093,8 @@ function AssetService(objectCollection) {
                 request.organization_id,
                 request.tag_type_id,
                 request.tag_id,
-                request._flag || 0,
-                request.sort_flag || 0,
+                // request._flag || 0,
+                // request.sort_flag || 0,
                 request.page_start,
                 request.page_limit
             );
