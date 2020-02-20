@@ -4359,6 +4359,34 @@ this.getQrBarcodeFeeback = async(request) => {
     return [false, responseData];
 }
 
+    this.assetAvailableUpdate = async (request) => {
+        let responseData = {},
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.available_flag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    if (request.available_flag === 1) {
+                        //call the trigger service
+                        activityCommonService.RMResourceAvailabilityTrigger(request);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }   
+
 }
 
 module.exports = AssetService;

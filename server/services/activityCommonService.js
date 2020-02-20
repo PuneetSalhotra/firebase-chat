@@ -4878,40 +4878,61 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.activityListLeadUpdate = async function (request, lead_asset_id) {
         let responseData = [],
             error = true;
+        try {
+            let paramsArr = new Array(
+                request.activity_id,
+                lead_asset_id,
+                request.organization_id,
+                null,
+                request.flag || 0,
+                request.asset_id,
+                request.datetime_log
+            );
 
-        let paramsArr = new Array(
-            request.activity_id,
-            lead_asset_id,
-            request.organization_id,
-            null,
-            request.flag || 0,
-            request.asset_id,
-            request.datetime_log
-        );
+            var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
 
-        var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
+                        responseData = data;
+                        error = false;
+                        request.datetime_log = util.getCurrentUTCTime();
+                        let self = this;
+                        self.activityListHistoryInsertAsync(request, 15);
+                        // timeline transaction insert
+                        if (request.timeline_stream_type_id == 2401) {
+
+                        } else if (data[0].existing_lead_asset_id > 0) {
+                            request.timeline_stream_type_id = 2403;
+                        } else {
+                            request.timeline_stream_type_id = 2402;
+                        }
+                        request.track_gps_datetime = util.getCurrentUTCTime();
+                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);
+
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("error :: " + error);
+                    });
+            }
+
+            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (error) {
+            console.log("error :: " + error);
         }
 
-        var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }        
         return [error, responseData];
     };
 

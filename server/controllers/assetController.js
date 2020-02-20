@@ -639,5 +639,15 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/available/set', async function (req, res) {
+        const [err, data] = await assetService.assetAvailableUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/asset/available/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+ 
 }
 module.exports = AssetController;
