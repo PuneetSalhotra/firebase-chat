@@ -837,6 +837,15 @@ function ActivityController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/lead/update', async function (req, res) {
+        const [err, responseData] = await activityCommonService.activityListLeadUpdate(req.body, req.body.lead_asset_id);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/lead/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
 }
 
 

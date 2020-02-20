@@ -5585,6 +5585,178 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.idProofUpload = async(request) => {
+        let responseData = [],
+            error = true;
+    
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            employeeAssetID = Number(request.employee_asset_id) || Number(request.asset_id),
+            deskAssetID = Number(request.desk_asset_id);
+    
+        //1.Update in ID Card - If it exists
+        //2.Update in contact Card - If it exists
+        //3.Update in asset_list inline data
+        //4.Make an entry in asset timeline entry
+    
+        
+    //1.Update in ID Card - If it exists
+        if (employeeAssetID != 0) {    
+            // Fetch the Employee's ID card
+            const [errTwo, idCardData] = await adminListingService.activityAssetMappingSelectAssetIdCard({
+                                                    asset_id: employeeAssetID
+                                                }, organizationID);
+            
+            if (errTwo || Number(idCardData.length) === 0) {
+                logger.error(`idProofUpload.activityAssetMappingSelectAssetIdCard`, { type: 'admin_ops', request_body: request, error: errOne });
+                //return [errTwo, []]
+            } else {
+                const idCardActivityID = Number(idCardData[0].activity_id);
+                let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
+                    idCardJSON.employee_id_proof_document_name = request.id_proof_document_name || '';
+                    idCardJSON.employee_id_proof_document_link = request.id_proof_document_link;
+                    idCardJSON.employee_id_proof_verification_status = 0;
+        
+                // Update the ID Card's Activity List table
+                try {
+                    await activityListUpdateInlineData({
+                        activity_id: idCardActivityID,
+                        activity_inline_data: JSON.stringify(idCardJSON)
+                    }, organizationID);
+                } catch (error) {
+                    logger.error(`idProofUpload.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+                }
+        
+                // Update the ID Card's Activity Asset Mapping table
+                try {
+                    await activityAssetMappingUpdateInlineData({
+                        activity_id: idCardActivityID,
+                        asset_id: employeeAssetID,
+                        activity_inline_data: JSON.stringify(idCardJSON),
+                        pipe_separated_string: '',
+                        log_asset_id: request.asset_id
+                    }, organizationID);
+                } catch (error) {
+                    logger.error(`idProofUpload.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+                }         
+            }
+        }
+            
+    
+    //2.Update in contact Card - If it exists
+        if (deskAssetID !== 0) {
+            // Fetch the desk's contact card
+            // Fetch the Employee's ID card
+            const [errFour, contactCardData] = await adminListingService.activityListSelectCategoryContact({
+                                                    asset_id: deskAssetID
+                                                }, organizationID);
+            if (errFour || Number(contactCardData.length) === 0) {
+                logger.error(`idProofUpload.activityListSelectCategoryContact`, { type: 'admin_ops', request_body: request, error: errFour });
+                //return [errFour, []]
+            } else {
+                const contactCardActivityID = Number(contactCardData[0].activity_id);
+                let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
+                    contactCardJSON.employee_id_proof_document_name = request.id_proof_document_name || '';
+                    contactCardJSON.employee_id_proof_document_link = request.id_proof_document_link;
+                    contactCardJSON.employee_id_proof_verification_status = 0;
+        
+                // Update the Contact Card's Activity List table
+                try {
+                    await activityListUpdateInlineData({
+                        activity_id: contactCardActivityID,
+                        activity_inline_data: JSON.stringify(contactCardJSON)
+                    }, organizationID);
+                } catch (error) {
+                    logger.error(`idProofUpload.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+                }
+        
+                // Update the Contact Card's Activity Asset Mapping table
+                try {
+                    await activityAssetMappingUpdateInlineData({
+                        activity_id: contactCardActivityID,
+                        asset_id: deskAssetID,
+                        activity_inline_data: JSON.stringify(contactCardJSON),
+                        pipe_separated_string: '',
+                        log_asset_id: request.asset_id
+                    }, organizationID);
+                } catch (error) {
+                    logger.error(`idProofUpload.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+                }
+            }
+    }
+
+    //3.Update in asset_list inline data
+    await updateAssetInlineData(request, {
+        id_proof_document_name: request.id_proof_document_name || '',
+        id_proof_document_link: request.id_proof_document_link,
+        id_proof_verification_status: 0
+    });
+
+    //4.Make an entry in asset timeline entry
+        request.stream_type_id = 325;
+        request.entity_text_1 = "ID Proof Document is uploaded";
+        const [errTwo, assetTimelineData] = await assetTimelineTransactionInsert(request, workforceID, organizationID, accountID);
+        if (errTwo) {
+            console.log("idProofUpload | Asset Timeline Transaction Insert | Error: ", errTwo);
+        }
+
+    return [false, responseData];
+
+    }
+
+
+    async function updateAssetInlineData(request, assetInlineData) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            JSON.stringify(assetInlineData),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    
+    this.organizationInlineDataUpdate = async function(request) {
+
+        const [err, orgData] = await adminListingService.organizationListSelect(request);
+
+        let org_config_data = orgData[0].organization_inline_data?orgData[0].organization_inline_data:{};
+        org_config_data = JSON.parse(org_config_data);
+        console.log("org_config_data :: "+JSON.stringify(org_config_data));
+        console.log("request.org_bot_config_data :: "+request.org_bot_config_data);
+        org_config_data.rm_bot_config = JSON.parse(request.org_bot_config_data);
+
+        let paramsArr = new Array(
+            request.organization_id,
+            JSON.stringify(org_config_data),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_organization_list_update_inline_data', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
+    } 
+
+
 }
 
 module.exports = AdminOpsService;

@@ -478,23 +478,29 @@ this.getAllParticipantsAsync = async (request) => {
             request.data_activity_id || 0
         );
         let queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, true);
-                    return;
-                } else {
-                    callback(err, false);
-                    global.logger.write('conLog', JSON.stringify(err), err, request);
-                    return;
-                }
-            });
+        if(assetId === 0 || assetId === null) {
+            console.log(`ds_v1_3_asset_timeline_transaction_insert is not called as assetId is ${assetId}`);
+            callback(false, true)
+        }
+        else {
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        callback(false, true);
+                        return;
+                    } else {
+                        callback(err, false);
+                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        return;
+                    }
+                });
+            }
         }
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
-        //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
+        global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -759,17 +765,23 @@ this.getAllParticipantsAsync = async (request) => {
         );
         //let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
         let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, true);
-                    return;
-                } else {
-                    callback(err, false);
-                    global.logger.write('conLog', JSON.stringify(err), err, request);
-                    return;
-                }
-            });
+        if(assetId === 0 || assetId === null){
+            global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            callback(false, true)
+        }
+        else {
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        callback(false, true);
+                        return;
+                    } else {
+                        callback(err, false);
+                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        return;
+                    }
+                });
+            }
         }
     };
 
@@ -2980,11 +2992,17 @@ this.getAllParticipantsAsync = async (request) => {
                 request.asset_id,
                 request.datetime_log
             );
-            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_history_insert', paramsArr);
-            if (queryString !== '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
-                    (err) ? reject(err): resolve(data);
-                });
+            if(request.asset_id === 0 || request.asset_id === null){
+                console.log(`ds_p1_queue_activity_mapping_history_insert db call is not done as asset_id is ${request.asset_id}`);
+                resolve([]);
+            }
+            else {
+                const queryString = util.getQueryString('ds_p1_queue_activity_mapping_history_insert', paramsArr);
+                if (queryString !== '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        (err) ? reject(err): resolve(data);
+                    });
+                }
             }
         });
     };
@@ -4093,18 +4111,25 @@ this.getAllParticipantsAsync = async (request) => {
 
         const queryString = util.getQueryString("ds_v1_asset_summary_transaction_insert", paramsArr);
 
-        if (queryString !== "") {
-            await db
-                .executeQueryPromise(0, queryString, request)
-                .then(data => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch(err => {
-                    error = err;
-                });
+        if(request.asset_id === 0) {
+            console.log('Not making db call when the asset_id is 0', request.asset_id );
+            return[error = false, []];
         }
-        return [error, responseData];
+        else {
+            if (queryString !== "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then(data => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch(err => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        }
+      
     };
 
 
@@ -4376,17 +4401,25 @@ this.getAllParticipantsAsync = async (request) => {
             request.trigger_form_transaction_id || 0
         );
         let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
-        if (queryString != '') {           
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    global.logger.write('conLog', JSON.stringify(err), err, request);
-                    error = true;
-                });
+        if(assetId === 0 || assetId === null){
+            global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            responseData = [];
+            error = false;
         }
+        else {
+            if (queryString != '') {           
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        error = true;
+                    });
+            }
+        }
+      
 
         return [error, responseData];
     };
@@ -4593,18 +4626,24 @@ this.getAllParticipantsAsync = async (request) => {
             request.data_activity_id || 0
         );
         const queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
-        if (queryString != '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    //error = true;                
-                    global.logger.write('conLog', JSON.stringify(err), err, request);
-                });
+        if (assetId === 0 || assetId === null) {
+            console.log(`ds_v1_3_asset_timeline_transaction_insert is not called as assetId is ${assetId}`);
+            error = false;
+            responseData = [];
         }
-
+        else {
+            if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        //error = true;                
+                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                    });
+            }
+        }
         return [error, responseData];
     };
 
@@ -4878,40 +4917,61 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.activityListLeadUpdate = async function (request, lead_asset_id) {
         let responseData = [],
             error = true;
+        try {
+            let paramsArr = new Array(
+                request.activity_id,
+                lead_asset_id,
+                request.organization_id,
+                null,
+                request.flag || 0,
+                request.asset_id,
+                request.datetime_log
+            );
 
-        let paramsArr = new Array(
-            request.activity_id,
-            lead_asset_id,
-            request.organization_id,
-            null,
-            request.flag || 0,
-            request.asset_id,
-            request.datetime_log
-        );
+            var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
 
-        var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
+                        responseData = data;
+                        error = false;
+                        request.datetime_log = util.getCurrentUTCTime();
+                        let self = this;
+                        self.activityListHistoryInsertAsync(request, 15);
+                        // timeline transaction insert
+                        if (request.timeline_stream_type_id == 2401) {
+
+                        } else if (data[0].existing_lead_asset_id > 0) {
+                            request.timeline_stream_type_id = 2403;
+                        } else {
+                            request.timeline_stream_type_id = 2402;
+                        }
+                        request.track_gps_datetime = util.getCurrentUTCTime();
+                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);
+
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("error :: " + error);
+                    });
+            }
+
+            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (error) {
+            console.log("error :: " + error);
         }
 
-        var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }        
         return [error, responseData];
     };
 

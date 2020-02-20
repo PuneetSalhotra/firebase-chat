@@ -60,6 +60,68 @@ function AdminListingService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    if(data.length > 0) {
+                        let organizationInlineData = JSON.parse(data[0].organization_inline_data);
+                        //console.log(organizationInlineData);
+
+                        if(organizationInlineData.hasOwnProperty("rm_bot_config")) {
+                            let rmBotConfig = organizationInlineData.rm_bot_config;
+                            //console.log(rmBotConfig);
+
+                            for(let fieldID of Object.keys(rmBotConfig)) {
+                                //console.log('fieldID : ', fieldID);                                
+                                switch(fieldID) {
+                                    case "work_efficiency": if(rmBotConfig[fieldID] === "") {                                                                                                                            
+                                                                rmBotConfig[fieldID] = 30;
+                                                            }
+                                                            break;
+                                    case "read_efficiency": if(rmBotConfig[fieldID] === "") {
+                                                                rmBotConfig[fieldID] = 10;
+                                                            }
+                                                            break;
+                                    case "status_rollback_percentage": if(rmBotConfig[fieldID] === "") {
+                                                                            rmBotConfig[fieldID] = 15;
+                                                                        }
+                                                                        break;
+                                    case "customer_exposure_percentage": if(rmBotConfig[fieldID] === "") {
+                                                                                rmBotConfig[fieldID] = 20;
+                                                                            }
+                                                                        break;
+                                    case "industry_exposure": if(rmBotConfig[fieldID] === "") {
+                                                                    rmBotConfig[fieldID] = 10;
+                                                                }
+                                                              break;
+                                    case "workflow_exposure_percentage": if(rmBotConfig[fieldID] === "") {
+                                                                            rmBotConfig[fieldID] = 15;
+                                                                        }
+                                                                         break;
+                                    case "workflow_type_exposure_percentage": if(rmBotConfig[fieldID] === "") {
+                                                                                    rmBotConfig[fieldID] = 0;
+                                                                                }
+                                                                              break;
+                                    case "workflow_category_exposure_percentage": if(rmBotConfig[fieldID] === "") {
+                                                                                    rmBotConfig[fieldID] = 0;
+                                                                                }
+                                                                                break;
+                                }                                
+                            }
+                        } else {
+                            organizationInlineData = {}
+                            organizationInlineData.rm_bot_config = {
+                                                "work_efficiency": 30,
+                                                "read_efficiency": 10,
+                                                "status_rollback_percentage": 15,
+                                                "customer_exposure_percentage": 20,
+                                                "industry_exposure Percentage'": 10,
+                                                "workflow_exposure_percentage": 15,
+                                                "workflow_type_exposure_percentage": 0,
+                                                "workflow_category_exposure_percentage": 0
+                                            };
+                            
+                        }
+                        
+                        data[0].organization_inline_data = JSON.stringify(organizationInlineData);
+                    }
                     responseData = data;
                     error = false;
                 })
