@@ -1124,152 +1124,155 @@ function FormConfigService(objCollection) {
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
-
-                        global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
-
-                        let idWorkflow = 0;
-                        let idWorkflowType = 0;
-
-                        if(Object.keys(orderValueFields).includes(String(row.field_id))){
-
-                            activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
-                                if(workflowData.length > 0){
-
-                                    idWorkflow = workflowData[0].activity_id;
-                                    idWorkflowType = workflowData[0].activity_sub_type_id;                                    
-                                    request.workflow_activity_id = idWorkflow;
-
-                                    if(idWorkflowType == 0){ 
-                                        if(Number(row.field_value) >= 0)  {
-                                            widgetAggrFieldValueUpdateWorkflow(request);
-                                            await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
-                                        } else {
-                                            console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
-                                        }                                            
-                                    }else{
-                                            console.log("This field is not configured to update in intermediate table "+row.field_id);
-                                    }                                        
-                                }                                
-                            });
-                        }else{
-
-                            try{
-                                if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 1;                                         
-                                         //otc_1 = isNaN(row.field_value) ? 0 : row.field_value;
-                                }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 2;                                         
-                                         //arc_1 = isNaN(row.field_value) ? 0 : row.field_value;
-                                }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 3;                                         
-                                         //otc_2 = isNaN(row.field_value) ? 0 : row.field_value;
-                                }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 4;                                         
-                                         //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
-                                }
-
-                                console.log('valueflag :: '+valueflag);
-                                request['flag'] = valueflag;
-
-                                console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
-                                let finalValue = 0;
-                                if(valueflag > 0){
-                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
+                if(request.asset_id === 0 || request.asset_id === null) {
+                    global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                }
+                else {
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+    
+                            global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
+    
+                            let idWorkflow = 0;
+                            let idWorkflowType = 0;
+    
+                            if(Object.keys(orderValueFields).includes(String(row.field_id))){
+    
+                                activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                     if(workflowData.length > 0){
-
-                                        if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
-                                            Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
-                                            Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                            Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
-                                            
-                                            (Number(arc_1) > Number(arc_2)) ?
-                                                finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
-                                                finalValue = Number(otc_1);
-
-                                                await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
-                                        } else {
-                                            setTimeout(()=>{
-                                                updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
-                                            },3000);
-                                        }
-
                                         idWorkflow = workflowData[0].activity_id;
-                                        idWorkflowType = workflowData[0].activity_sub_type_id;
-                                        request.is_bulk_order = idWorkflowType;
+                                        idWorkflowType = workflowData[0].activity_sub_type_id;                                    
                                         request.workflow_activity_id = idWorkflow;
-                                        if(idWorkflowType == 1){ 
-                                            if(Number(row.field_value) >= 0){
-                                                widgetAggrFieldValueUpdate(request);
-                                            }
-                                            else{
-                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
-                                            }
+                                        if(idWorkflowType == 0){ 
+                                            if(Number(row.field_value) >= 0)  {
+                                                widgetAggrFieldValueUpdateWorkflow(request);
+                                                await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
+                                            } else {
+                                                console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                            }                                            
                                         }else{
-
-                                            if(Number(row.field_value) >= 0){
-                                                widgetAggrFieldValueUpdate(request);
-                                            }
-                                            else{
-                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
-                                            }
-                                        }
+                                                console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                        }                                        
+                                    }                                
+                                });
+                            }else{
+    
+                                try{
+                                    if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
+                                             valueflag = 1;                                         
+                                             //otc_1 = isNaN(row.field_value) ? 0 : row.field_value;
+                                    }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
+                                             valueflag = 2;                                         
+                                             //arc_1 = isNaN(row.field_value) ? 0 : row.field_value;
+                                    }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
+                                             valueflag = 3;                                         
+                                             //otc_2 = isNaN(row.field_value) ? 0 : row.field_value;
+                                    }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
+                                             valueflag = 4;                                         
+                                             //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                     }
-                                    });
-
-                                }else{                                    
-                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
+    
+                                    console.log('valueflag :: '+valueflag);
+                                    request['flag'] = valueflag;
+    
+                                    console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+                                    let finalValue = 0;
+                                    if(valueflag > 0){
+                                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                         if(workflowData.length > 0){
-                                            
+    
                                             if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                                 Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                                 Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
                                                 Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
-                                                //Do Nothing
-                                            } else {
-                                                if(Number(request.organization_id) !== 868) {
-                                                    addValueToWidgetForAnalyticsWF(request, 
-                                                        workflowData[0].activity_id, 
-                                                        workflowData[0].activity_type_id, 
-                                                        1); //1 - Final value Widget
-                                                    }
-                                                }
                                                 
-                                        }           
-                                            
-                                    });                                    
-
-                                    console.log("This field is not configured to update in intermediate table "+row.field_id);
-                                }
-                            }catch(err){
-                                console.log('Error in updating Intermediate Table : ', err);
-                            }                             
-
-                        }
-
-                         global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
-                         if(Object.keys(poFields).includes(String(row.field_id))){
-                                global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
-                                activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
-                                    global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
-                                    request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
-                                    request['order_po_date'] = row.field_value;
-                                    request['flag'] = 1;
-                                    request['datetime_log'] = util.getCurrentUTCTime();
-                                    activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
-                                });          
-                            }else if(Object.keys(creditDebitFields).includes(String(row.field_id))){
-                                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                                    let creditDebitValue = 0;
-                                    console.log("row.field_value.transaction_data.transaction_type_id :: "+row.field_value.transaction_data.transaction_type_id);
-                                    row.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = row.field_value.transaction_data.transaction_amount: creditDebitValue = row.field_value.transaction_data.transaction_amount;
-                                    activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, creditDebitValue);
-                                });
+                                                (Number(arc_1) > Number(arc_2)) ?
+                                                    finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
+                                                    finalValue = Number(otc_1);
+    
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
+                                            } else {
+                                                setTimeout(()=>{
+                                                    updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
+                                                },3000);
+                                            }
+    
+                                            idWorkflow = workflowData[0].activity_id;
+                                            idWorkflowType = workflowData[0].activity_sub_type_id;
+                                            request.is_bulk_order = idWorkflowType;
+                                            request.workflow_activity_id = idWorkflow;
+                                            if(idWorkflowType == 1){ 
+                                                if(Number(row.field_value) >= 0){
+                                                    widgetAggrFieldValueUpdate(request);
+                                                }
+                                                else{
+                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                }
+                                            }else{
+    
+                                                if(Number(row.field_value) >= 0){
+                                                    widgetAggrFieldValueUpdate(request);
+                                                }
+                                                else{
+                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                }
+                                            }
+                                        }
+                                        });
+    
+                                    }else{                                    
+                                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
+                                            if(workflowData.length > 0){
+                                                
+                                                if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                                    Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                                    Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                                    Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
+                                                    //Do Nothing
+                                                } else {
+                                                    if(Number(request.organization_id) !== 868) {
+                                                        addValueToWidgetForAnalyticsWF(request, 
+                                                            workflowData[0].activity_id, 
+                                                            workflowData[0].activity_type_id, 
+                                                            1); //1 - Final value Widget
+                                                        }
+                                                    }
+                                                    
+                                            }           
+                                                
+                                        });                                    
+    
+                                        console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                    }
+                                }catch(err){
+                                    console.log('Error in updating Intermediate Table : ', err);
+                                }                             
+    
                             }
-                        next();
-                        
-                    });
+    
+                             global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
+                             if(Object.keys(poFields).includes(String(row.field_id))){
+                                    global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
+                                    activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
+                                        global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
+                                        request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
+                                        request['order_po_date'] = row.field_value;
+                                        request['flag'] = 1;
+                                        request['datetime_log'] = util.getCurrentUTCTime();
+                                        activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
+                                    });          
+                                }else if(Object.keys(creditDebitFields).includes(String(row.field_id))){
+                                    activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                                        let creditDebitValue = 0;
+                                        console.log("row.field_value.transaction_data.transaction_type_id :: "+row.field_value.transaction_data.transaction_type_id);
+                                        row.field_value.transaction_data.transaction_type_id == 1? creditDebitValue = row.field_value.transaction_data.transaction_amount: creditDebitValue = row.field_value.transaction_data.transaction_amount;
+                                        activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, creditDebitValue);
+                                    });
+                                }
+                            next();
+                            
+                        });
+                    }
                 }
             }).then(() => {
                 resolve();
@@ -4479,39 +4482,44 @@ function FormConfigService(objCollection) {
         if(err || workflowData.length === 0) {
             return err;
         }
-
-        const workflowActivityId = Number(workflowData[0].activity_id);
-        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);        
-
-        let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err1 || inlineData.length === 0) {
-            return err1;
-        }
-        
-        //console.log('inlineData : ', inlineData[0]);
-        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
-        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
-        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
-                let workflowFields = finalInlineData.workflow_fields;
-                for(let fieldId in workflowFields){                    
-                    if(fieldId == request.field_id) {
-                        //console.log('fieldId : ', fieldId);
-                        //console.log('workflowFields[fieldId].sequence_id : ', workflowFields[fieldId].sequence_id);
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                            workflowActivityId, 
-                                                                            workflowFields[fieldId].sequence_id, 
-                                                                            request.new_field_value
-                                                                            );
-                        break;
+        try {
+            const workflowActivityId = Number(workflowData[0].activity_id);
+            const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
+            console.log("workflowActivityId: ", workflowActivityId);
+            console.log("workflowActivityTypeID: ", workflowActivityTypeID);        
+    
+            let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
+            if(err1 || inlineData.length === 0) {
+                return err1;
+            }
+            
+            //console.log('inlineData : ', inlineData[0]);
+            console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+            
+            let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
+            console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+            if(finalInlineData.hasOwnProperty('workflow_fields')) {
+                    let workflowFields = finalInlineData.workflow_fields;
+                    for(let fieldId in workflowFields){                    
+                        if(fieldId == request.field_id) {
+                            //console.log('fieldId : ', fieldId);
+                            //console.log('workflowFields[fieldId].sequence_id : ', workflowFields[fieldId].sequence_id);
+                            await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                                workflowActivityId, 
+                                                                                workflowFields[fieldId].sequence_id, 
+                                                                                request.new_field_value
+                                                                                );
+                            break;
+                        }
                     }
                 }
-            }
-
-        return "success";
+    
+            return "success";
+        }
+        catch (error) {
+            return error;
+        }
+      
     }
 
     function isObject(arg) {

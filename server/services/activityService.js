@@ -4193,47 +4193,51 @@ function ActivityService(objectCollection) {
         if(err || workflowData.length === 0) {
             return err;
         }
-
-        const workflowActivityId = Number(workflowData[0].activity_id);
-        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        
-        console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
-        
-        let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err1 || inlineData.length === 0) {
-            return err;
-        }        
-        //console.log('inlineData : ', inlineData[0]);        
-        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
-        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
-
-        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
-
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
-            let i, fieldId;
-            let workflowFields = finalInlineData.workflow_fields;
-            let activityInlineData = JSON.parse(request.activity_inline_data);
-
-            console.log('workflowFields : ', workflowFields);
-            console.log('activityInlineData : ', activityInlineData);
-            console.log('activityInlineData.length : ', activityInlineData.length);
-
-            for(i=0; i<activityInlineData.length; i++) {
-                for(fieldId in workflowFields){
-                    if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                               workflowActivityId, 
-                                                                               workflowFields[fieldId].sequence_id, 
-                                                                               activityInlineData[i].field_value);
-                        break;
-                    }
-                }   
+        try {
+            const workflowActivityId = Number(workflowData[0].activity_id);
+            const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
+            
+            console.log("workflowActivityId: ", workflowActivityId);
+            console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+            
+            let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
+            if(err1 || inlineData.length === 0) {
+                return err;
+            }        
+            //console.log('inlineData : ', inlineData[0]);        
+            console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+            
+            let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
+    
+            console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+    
+            if(finalInlineData.hasOwnProperty('workflow_fields')) {
+                let i, fieldId;
+                let workflowFields = finalInlineData.workflow_fields;
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+    
+                console.log('workflowFields : ', workflowFields);
+                console.log('activityInlineData : ', activityInlineData);
+                console.log('activityInlineData.length : ', activityInlineData.length);
+    
+                for(i=0; i<activityInlineData.length; i++) {
+                    for(fieldId in workflowFields){
+                        if(fieldId === activityInlineData[i].field_id) {
+                            await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                                   workflowActivityId, 
+                                                                                   workflowFields[fieldId].sequence_id, 
+                                                                                   activityInlineData[i].field_value);
+                            break;
+                        }
+                    }   
+                }
             }
+    
+            return "success";
         }
-
-        return "success";
+        catch(error) {
+            return error;
+        }
     }
 
     function sleep(ms){
