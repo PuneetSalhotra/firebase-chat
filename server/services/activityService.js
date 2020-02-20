@@ -22,6 +22,8 @@ function ActivityService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
+    const fridsJson = require('../vodafone/utils/frids');
+
     const logger = require("../logger/winstonLogger");
     const self = this;
 
@@ -261,6 +263,15 @@ function ActivityService(objectCollection) {
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
                                 await addValueToWidgetForAnalytics(request);
+
+                                //Grene Account - update FRID Timeline
+                                /*let i;
+                                for(i=0; i<fridsJson.length; i++) {
+                                    if(Number(request.activity_form_id) === fridsJson[i].form_id) {
+                                        //fridsJson[i].field_id
+                                        //let requestFormData = JSON.parse(request.activity_inline_data);
+                                    }
+                                }*/
                             }
 
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
@@ -4193,47 +4204,51 @@ function ActivityService(objectCollection) {
         if(err || workflowData.length === 0) {
             return err;
         }
-
-        const workflowActivityId = Number(workflowData[0].activity_id);
-        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        
-        console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
-        
-        let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err1 || inlineData.length === 0) {
-            return err;
-        }        
-        //console.log('inlineData : ', inlineData[0]);        
-        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
-        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
-
-        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
-
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
-            let i, fieldId;
-            let workflowFields = finalInlineData.workflow_fields;
-            let activityInlineData = JSON.parse(request.activity_inline_data);
-
-            console.log('workflowFields : ', workflowFields);
-            console.log('activityInlineData : ', activityInlineData);
-            console.log('activityInlineData.length : ', activityInlineData.length);
-
-            for(i=0; i<activityInlineData.length; i++) {
-                for(fieldId in workflowFields){
-                    if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                               workflowActivityId, 
-                                                                               workflowFields[fieldId].sequence_id, 
-                                                                               activityInlineData[i].field_value);
-                        break;
-                    }
-                }   
+        try {
+            const workflowActivityId = Number(workflowData[0].activity_id);
+            const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
+            
+            console.log("workflowActivityId: ", workflowActivityId);
+            console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+            
+            let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
+            if(err1 || inlineData.length === 0) {
+                return err;
+            }        
+            //console.log('inlineData : ', inlineData[0]);        
+            console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+            
+            let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
+    
+            console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+    
+            if(finalInlineData.hasOwnProperty('workflow_fields')) {
+                let i, fieldId;
+                let workflowFields = finalInlineData.workflow_fields;
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+    
+                console.log('workflowFields : ', workflowFields);
+                console.log('activityInlineData : ', activityInlineData);
+                console.log('activityInlineData.length : ', activityInlineData.length);
+    
+                for(i=0; i<activityInlineData.length; i++) {
+                    for(fieldId in workflowFields){
+                        if(fieldId === activityInlineData[i].field_id) {
+                            await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                                   workflowActivityId, 
+                                                                                   workflowFields[fieldId].sequence_id, 
+                                                                                   activityInlineData[i].field_value);
+                            break;
+                        }
+                    }   
+                }
             }
+    
+            return "success";
         }
-
-        return "success";
+        catch(error) {
+            return error;
+        }
     }
 
     function sleep(ms){

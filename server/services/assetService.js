@@ -4093,8 +4093,8 @@ function AssetService(objectCollection) {
                 request.organization_id,
                 request.tag_type_id,
                 request.tag_id,
-                request._flag || 0,
-                request.sort_flag || 0,
+                // request._flag || 0,
+                // request.sort_flag || 0,
                 request.page_start,
                 request.page_limit
             );
@@ -4326,6 +4326,67 @@ function AssetService(objectCollection) {
         }
         return [error, responseData];
     }
+
+this.getQrBarcodeFeeback = async(request) => {
+    let responseData = [],
+        error = true;
+
+    /*const paramsArr = new Array(
+        request.asset_id,
+        request.operating_asset_id,
+        organizationID,
+        request.weekly_summary_id,
+        request.data_entity_date_1
+    );
+    const queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }*/
+    let resp = {
+        "feedback" : "Awesome!"
+    }
+
+    responseData.push(resp);
+    
+    return [false, responseData];
+}
+
+    this.assetAvailableUpdate = async (request) => {
+        let responseData = {},
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.available_flag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    if (request.available_flag === 1) {
+                        //call the trigger service
+                        activityCommonService.RMResourceAvailabilityTrigger(request);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }   
+
 }
 
 module.exports = AssetService;
