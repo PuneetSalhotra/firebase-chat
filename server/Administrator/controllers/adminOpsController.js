@@ -489,7 +489,18 @@ function AdminOpsController(objCollection) {
             global.logger.write('conLog', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });   
+    });
+    
+    //Check Manager Details
+    app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
+        const [err, data] = await adminOpsService.checkManagerDetails(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/manager/assets/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

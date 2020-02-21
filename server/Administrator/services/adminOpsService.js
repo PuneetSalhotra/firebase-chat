@@ -5528,6 +5528,11 @@ function AdminOpsService(objectCollection) {
         return [false,{}]
     }
 
+    this.checkManagerDetails = async (request) => {
+        request.target_asset_id = request.asset_id;
+        return await checkManager(request, 3);
+    }
+    
     //check manager flag
     async function checkManager(request, checkFlag){
         let responseData = [],
