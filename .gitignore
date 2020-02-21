@@ -23,3 +23,4 @@ server/queue/consumerNani.js
 newrelic_agent.log
 launch.json
 settings.json
+.env
