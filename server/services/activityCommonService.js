@@ -6,6 +6,8 @@
 function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
     const self = this;
+    const nodeUtil = require('util');
+
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -690,7 +692,12 @@ this.getAllParticipantsAsync = async (request) => {
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;          
+                break; 
+            case 2401: //Bot added lead
+            case 2402: //Admin marked lead
+            case 2403: //Admin replaced lead     
+                entityText2 = request.activity_timeline_text;  
+                break;  
             default:
                 entityTypeId = 0;
                 entityText1 = "";
@@ -4917,60 +4924,60 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.activityListLeadUpdate = async function (request, lead_asset_id) {
         let responseData = [],
             error = true;
-        try {
-            let paramsArr = new Array(
-                request.activity_id,
-                lead_asset_id,
-                request.organization_id,
-                null,
-                request.flag || 0,
-                request.asset_id,
-                request.datetime_log
-            );
+        try{
+        let paramsArr = new Array(
+            request.activity_id,
+            lead_asset_id,
+            request.organization_id,
+            null,
+            request.flag || 0,
+            request.asset_id,
+            request.datetime_log
+        );
 
-            var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
-            if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
+        var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
 
-                        responseData = data;
-                        error = false;
-                        request.datetime_log = util.getCurrentUTCTime();
-                        let self = this;
-                        self.activityListHistoryInsertAsync(request, 15);
-                        // timeline transaction insert
-                        if (request.timeline_stream_type_id == 2401) {
+                    responseData = data;
+                    error = false;
+                    request.datetime_log = util.getCurrentUTCTime();
+                    let self = this;
+                    self.activityListHistoryInsertAsync(request, 15);
+                    // timeline transaction insert
+                    if(request.timeline_stream_type_id == 2401){
+                         
+                    }else if(data[0].existing_lead_asset_id > 0){
+                        request.timeline_stream_type_id = 2403;
+                    }else {
+                        request.timeline_stream_type_id = 2402;
+                    }
+                    request.track_gps_datetime = util.getCurrentUTCTime();
+                    request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);                 
 
-                        } else if (data[0].existing_lead_asset_id > 0) {
-                            request.timeline_stream_type_id = 2403;
-                        } else {
-                            request.timeline_stream_type_id = 2402;
-                        }
-                        request.track_gps_datetime = util.getCurrentUTCTime();
-                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                        self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);
-
-                    })
-                    .catch((err) => {
-                        error = err;
-                        console.log("error :: " + error);
-                    });
-            }
-
-            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
-            if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
-                        responseData = data;
-                        error = false;
-                    })
-                    .catch((err) => {
-                        error = err;
-                    });
-            }
-        } catch (error) {
-            console.log("error :: " + error);
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("error :: "+error);
+                });
         }
+
+        var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }      
+        }catch(error){
+            console.log("error :: "+error);
+        } 
 
         return [error, responseData];
     };
@@ -4985,6 +4992,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.start_datetime = '1970-01-01 00:00:00';
             request.end_datetime = '2049-12-31 18:30:00';
             request.monthly_summary_id = 5;
+            request.timeline_stream_type_id = 2401;
             let assetID = 0;
 
             let leadRequest = Object.assign({}, request);
@@ -5141,6 +5149,1057 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     };
+
+    this.RMOnAvailabilityOFAResource = async function (request) {
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.lead_asset_type_id,
+            0,
+            request.page_start||0,
+            request.page_limit||500
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }
+
+    this.unallocatedWorkflowInsert = async function (request) {
+
+        console.log(" request.bot_mapping_inline_data :: "+ request.bot_mapping_inline_data);
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.ai_bot_id,
+            request.ai_bot_status_id,
+            JSON.stringify(request.bot_mapping_inline_data),
+            request.bot_id || 0,
+            request.bot_operation_id || 0,
+            util.getCurrentUTCTime()
+        );
+
+
+        const queryString = util.getQueryString('ds_v1_activity_ai_bot_mapping_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    // record ai transaction insert
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    } 
+
+    this.AIEventTransactionInsert = async function (request) {
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.ai_bot_id,
+            request.ai_bot_status_id,
+            JSON.stringify(request.bot_mapping_inline_data),
+            request.bot_id,
+            request.bot_operation_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    }       
+
+    this.RMUnoccupiedResources = async function (request) {
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_list_select_role_flag', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }     
+   this.getWorkingHoursOfanAsset = async function(request){
+    try{
+        console.log("duration_in_minutes :: "+request.duration_in_minutes);
+        let statusDuration = request.duration_in_minutes;
+        let self = this;
+        let hours_array = [];
+        let hours_array_map = {};
+        let hours_array_endtime_map = {};
+        var map1 = new Map(); 
+        var map2 = new Map(); 
+        var map3 = new Map(); 
+        var map4 = new Map();
+        const [err, assetData] = await self.assetListSelectAssetWorkforce(request); 
+        //console.log("DATA ::"+assetData[0].asset_inline_data);
+        let businessDays = [];
+        let minutes_per_day = 0;
+
+        let remaining_mins_in_current_day = 0;
+        let assetInlineData = JSON.parse(assetData[0].asset_inline_data?assetData[0].asset_inline_data:{});
+        let workforceInlineData = JSON.parse(assetData[0].workforce_inline_data?assetData[0].workforce_inline_data:{});
+
+        if(workforceInlineData.hasOwnProperty("business_days")){
+             //console.log("workforceInlineData2 :: "+workforceInlineData.business_days);
+             workforceInlineData.business_days.map((day) => {
+                let temp = day.value;
+                console.log(day.value);
+                businessDays.push(day.value);
+                
+             });
+        }
+        console.log("day "+JSON.stringify(businessDays));
+
+        console.log("CURRENT TIME IST:: "+util.getCurrentTimeHHmmIST_());
+        
+        
+        if(assetInlineData.hasOwnProperty("business_hours")){
+            //console.log("assetInlineData1 :: "+assetInlineData.business_hours);
+            if(assetInlineData.business_hours.length > 0){
+                console.log("Specific workhours for asset exists, hence processing asset working hours");
+                assetInlineData.business_hours.map((hours) => {
+                    console.log("assetInlineData business_hours_start_time ",hours.business_hour_start_time);
+                    console.log("assetInlineData business_hours_end_time ",hours.business_hour_end_time);
+
+                    //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                    let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
+                    hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
+                    console.log("temp : "+Number(temp));
+                    map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                    map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
+                    map2.set(Number(temp), hours.business_hour_end_time);
+                    map3.set(Number(temp), hours.business_hour_start_time);
+
+                    //hours_array_map[temp] = Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
+                    //hours_array_endtime_map[temp] = hours.business_hour_end_time;
+
+                    remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
+                    minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
+                    console.log("minutes_per_day : "+minutes_per_day);
+                    console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                    console.log("map1 :: "+map1.get(Number(temp)));
+                    console.log("map2 :: "+map2.get(Number(temp)));
+                    console.log("map3 :: "+map3.get(Number(temp)));
+                    
+                })
+            }else{
+                console.log("Asset business Hours length = 0 Hence going with workforce level working hours");
+                if(workforceInlineData.hasOwnProperty("business_hours")){
+                 //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
+                    if(workforceInlineData.business_hours.length > 0){
+                        workforceInlineData.business_hours.map((hours) => {
+                       // console.log("business_hours_start_time ",hours.business_hour_start_time);
+                       // console.log("business_hours_end_time ",hours.business_hour_end_time);
+
+
+                        //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                        let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
+                        hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
+
+                        map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST())));
+                        map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                        map2.set(Number(temp), hours.business_hour_end_time);
+                        map3.set(Number(temp), hours.business_hour_start_time);
+
+                        //hours_array_map[temp] = Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
+                        //hours_array_endtime_map[temp] = hours.business_hour_end_time;
+
+                        remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_()));
+                        minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
+                        console.log("minutes_per_day : "+minutes_per_day);
+                        console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                        })
+                    }
+                };
+            }
+        }else{
+            console.log("No Specific workhours for asset, hence going for workforce level working hours");
+            if(workforceInlineData.hasOwnProperty("business_hours")){
+             //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
+                if(workforceInlineData.business_hours.length > 0){
+                    workforceInlineData.business_hours.map((hours) => {
+                   // console.log("business_hours_start_time ",hours.business_hour_start_time);
+                   // console.log("business_hours_end_time ",hours.business_hour_end_time);
+
+ 
+                    //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                    let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
+                    hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
+
+                    map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST())));
+                    map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                    map2.set(Number(temp), hours.business_hour_end_time);
+                    map3.set(Number(temp), hours.business_hour_start_time);
+
+                    //hours_array_map[temp] = Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
+                    //hours_array_endtime_map[temp] = hours.business_hour_end_time;
+
+                    remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_()));
+                    minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
+                    console.log("minutes_per_day : "+minutes_per_day);
+                    console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                    })
+                }
+            };
+        }
+
+        console.log("101 Minutes per day : "+minutes_per_day);
+        console.log("102 (Number(statusDuration) : "+(Number(statusDuration)));
+        let dueDate = "";
+        let temp_current_datetime = util.getCurrentISTTime();
+        let remianing_minutes_after_today = Number(statusDuration);
+
+        if(businessDays.includes(util.getDayOfWeek(temp_current_datetime)))
+            remianing_minutes_after_today = Number(statusDuration) - remaining_mins_in_current_day;
+
+        let num_of_days = Math.floor(remianing_minutes_after_today/minutes_per_day);
+        let unallocated_remaining_minutes = remianing_minutes_after_today%minutes_per_day;
+
+        console.log("103 Days :: "+num_of_days);
+        console.log("104 remianing_minutes_after_today:: "+remianing_minutes_after_today);
+        console.log("105 Remaining Minutes after day calculations:: "+remianing_minutes_after_today%minutes_per_day);
+        console.log("106 unallocated_remaining_minutes:: "+unallocated_remaining_minutes);
+
+
+         for(let i = 0; i < num_of_days; ){
+            if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
+                temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[hours_array.length-1]));
+                temp_current_datetime = util.addDays(temp_current_datetime,1);
+                console.log("Working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+                i++
+            }else{
+                temp_current_datetime = util.addDays(temp_current_datetime,1); 
+                console.log("Non working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+            }   
+         }
+         console.log("107 Due Datetime :: "+temp_current_datetime);
+         console.log("108 Number(remaining_mins_in_current_day) :: "+Number(remaining_mins_in_current_day));
+         console.log("109 Number(unallocated_remaining_minutes) :: "+Number(unallocated_remaining_minutes));
+
+         let current_datetime = util.getCurrentISTTime();
+         let end_time = "";
+         console.log("110 hours array :: "+hours_array.sort(function(a, b){return a - b}));
+         console.log("111 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+
+         if(Number(num_of_days) <= 0){
+            if(unallocated_remaining_minutes >= 0){
+                for(let i = 0; i < 1; ){
+                    if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
+                        temp_current_datetime = util.addDays(temp_current_datetime,1);
+                        console.log("112 hours_array[0] :: "+hours_array[0]);
+                        console.log("113 map3.get(hours_array[0]) :: "+map3.get(hours_array[0]));
+                        temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
+                        for(let k = 0; k < hours_array.length;){ 
+                            console.log("114 hours_array[k] :: "+hours_array[k]);
+                             console.log("115 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                             console.log("116 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                       
+                            if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
+                                end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                                unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
+                                k++;
+                                console.log(k+" 117 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                console.log(k+" 118 if end_time :: "+end_time);
+                            }else{
+                                end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                                unallocated_remaining_minutes = Number(map1.get(hours_array[k]) - Number(unallocated_remaining_minutes));
+                                k = hours_array.length;
+                                console.log(k+" 119 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                console.log(k+" 120 else end_time :: "+end_time);
+                            } 
+                        }
+                        i++;
+                    }
+                }
+
+                temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
+                console.log("121 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                
+              //  request.status_due_datetime = temp_current_datetime;
+              //  self.updateStatusDueDate(request);
+            }else{
+                 
+                if(businessDays.includes(util.getDayOfWeek(temp_current_datetime))){
+                    unallocated_remaining_minutes = minutes_per_day + unallocated_remaining_minutes;
+                    temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
+                    for(let k = 0; k < hours_array.length;){ 
+                        console.log("122 hours_array[k] :: "+hours_array[k]);
+                         console.log("123 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                         console.log("124 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                   
+                        if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
+                            end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                            unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
+                            k++;
+                            console.log(k+" 125 no of days = 0 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            console.log(k+" 126 no of days = 0 if end_time :: "+end_time);
+                        }else{
+                            end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                            unallocated_remaining_minutes = Number(map1.get(hours_array[k])) - Number(unallocated_remaining_minutes);
+                            k = hours_array.length;
+                            console.log(k+" 127 no of days = 0 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            console.log(k+" 128 no of days = 0 else end_time :: "+end_time);
+                        } 
+                    }
+                    
+                }
+                temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
+                console.log("129 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                
+               // request.status_due_datetime = temp_current_datetime;
+               // self.updateStatusDueDate(request);
+            }
+
+         }else if(num_of_days > 0){
+                for(let i = 0; i < num_of_days; ){
+                    if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
+                        temp_current_datetime = util.addDays(temp_current_datetime,1);
+                        temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
+                        for(let k = 0; k < hours_array.length;){ 
+                            console.log("130 hours_array[k] :: "+hours_array[k]);
+                             console.log("131 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                             console.log("132 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                       
+                            if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
+                                end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                                unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
+                                k++;
+                                console.log(k+" 133 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                console.log(k+" 134 if end_time :: "+end_time);
+                            }else{
+                                end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
+                                unallocated_remaining_minutes = Number(map1.get(hours_array[k])) - Number(unallocated_remaining_minutes);
+                                k = hours_array.length;
+                                console.log(k+" 135 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                console.log(k+" 136 else end_time :: "+end_time);
+                            } 
+                        }
+                        i++;
+                    }
+                }
+                temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
+                console.log("137 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                
+         }
+
+         //temp_current_datetime = temp_current_datetime.substring(0,10)+" "+map2.get(hours_array[hours_array.length-1]);
+         console.log("Due Datetime with minutes:: "+temp_current_datetime);
+         console.log("Due time:: "+end_time);
+
+         request.status_due_datetime = temp_current_datetime;
+         self.updateStatusDueDate(request);
+
+        return temp_current_datetime;
+    }catch(e){
+        console.log(e);
+    }
+
+        //if(Number(statusDuration) > Number(minutes_per_day))
+
+       // let days = statusDuration/minutes_per_day;
+
+   }
+
+
+    this.RMResourceAvailabilityTrigger = async function (request) {
+
+        let self = this;
+        //request.lead_asset_type_id = 134505;
+        let [error, responseData]= await self.RMOnAvailabilityOFAResource(request);
+        console.log('responseData '+responseData);
+        //generate score, find the top score asset
+        let highest_score_workflow = 0;
+        let highest_score = 0;
+        let rm_bot_scores = [];
+                    //generate score, find the top score asset
+            for(let k = 0; k < responseData.length; k++){
+                
+                request.activity_id = responseData[k].activity_id;
+                let [err, data] = await self.generateResourceScore(request);
+                console.log("Generated Score data ::: "+JSON.stringify(data));
+                console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
+                
+                if(data.total_score >= highest_score){
+                    highest_score = data.total_score;
+                    highest_score_workflow = responseData[k].activity_id;
+                    rm_bot_scores = data.rm_bot_scores;
+                }
+            }
+
+        if(responseData.length > 0){
+
+            // request.res_account_id = request.;
+            // request.res_workforce_id = 5660;
+            // request.res_asset_type_id = 134505;
+            // request.res_asset_category_id = 3;
+            // request.res_asset_id = 38261;
+            request.activity_id = highest_score_workflow;
+            request.rm_bot_scores = rm_bot_scores;
+            console.log("Before Making Request ", JSON.stringify(request,null,2));
+            self.addParticipantMakeRequest(request);
+        }
+        console.log('request '+JSON.stringify(request, null,2));
+        return [false, {}];
+    };  
+
+    this.assignResourceAsLead = async function (request, leadAssetId) {
+        let self = this;
+        request.timeline_stream_type_id = 2401;
+        await self.activityListLeadUpdate(request, leadAssetId);
+
+        request.target_asset_id = leadAssetId;
+        console.log("duration_in_minutes :: "+request.duration_in_minutes);
+        await self.getWorkingHoursOfanAsset(request);
+        //setting duedate is still pending
+
+        request.ai_bot_id = 1;
+        request.ai_bot_status_id = 2;
+        request.bot_mapping_inline_data = {};
+
+        await self.unallocatedWorkflowInsert(request);
+        await self.AIEventTransactionInsert(request);
+        
+        return [error, responseData];
+    } 
+
+
+    this.addParticipantMakeRequest = async function (request) {
+
+        let participantArray = [];
+
+        let participantCollection = {
+            organization_id: request.organization_id,
+            account_id: request.res_account_id,
+            workforce_id: request.res_workforce_id,
+            asset_type_id: request.res_asset_type_id,
+            asset_category_id:request.res_asset_category_id,
+            asset_id:request.res_asset_id,
+            access_role_id:0,
+            message_unique_id:util.getMessageUniqueId(request.asset_id)
+        }
+        participantArray.push(participantCollection);
+        const assignRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: request.asset_id,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            asset_message_counter: 0,
+            activity_id: request.activity_id,
+            activity_type_id: 0,  
+            activity_type_category_id: 48, 
+            activity_participant_collection: JSON.stringify(participantArray),
+            activity_access_role_id: request.activity_access_role_id || 0,            
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0.0,
+            track_gps_status: 1,
+            track_gps_location: 'HYD',
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5,
+            datetime_log: util.getCurrentUTCTime(),
+            add_as_lead: 1,
+            duration_in_minutes:request.duration_in_minutes,
+            rm_bot_scores:request.rm_bot_scores
+        };
+        console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const assignActAsync = nodeUtil.promisify(makingRequest.post);
+        //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const makeRequestOptions1 = {
+            form: assignRequest
+        };
+        try {
+             //console.log("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await assignActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/participant/access/set', makeRequestOptions1);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("Activity Mapping Assign | Body: ", body);
+                return [false, {}];
+            }else{
+                console.log("Error ", body);
+            }
+        } catch (error) {
+            console.log("Activity Mapping Assign | Error: ", error);
+            return [true, {}];
+        }
+        
+    }    
+
+    this.workforceActivityStatusMappingSelectStatusId = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.target_activity_id || 0
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status_id', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
+
+    this.updateStatusDueDate = async function(request) {
+        try{
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.activity_id, 
+            request.status_due_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_list_update_status_due_date', paramsArr);
+       // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
+        if (queryString != '') {
+                         //(db.executeQueryPromise(0, queryStringMapping, request));
+            return await (db.executeQueryPromise(0, queryString, request));
+                            
+        }
+    }catch(err){
+        console.log('Error '+err);
+    }
+    };
+
+
+    this.generateResourceScore = async function(request){
+
+        console.log("******* Generating score for asset "+request.target_asset_id+" on workflow "+request.activity_id);
+        let self = this;
+        let read_efficiency_percentage = 0;
+        let work_efficiency_percentage = 0;
+        let status_rollback_percentage = 0;
+        let customer_exposure_percentage = 0;
+        let industry_exposure_percentage = 0;
+        let workflow_exposure_percentage = 0;
+        let workflow_type_exposure_percentage = 0;
+        let workflow_category_exposure_percentage = 0;
+
+        let work_efficiency = 0;
+        let read_efficiency = 0;
+        let rollback_percentage = 0;
+
+        let customer_asset_id = 0;
+        let industry_id = 0;
+        let workflow_id = 0;
+        let workflow_type_id = 0;
+        let workflow_category_id = 0;
+
+        let workload_data = {};
+
+        let industry_score = 0;
+        let customer_score = 0;
+        let workflow_score = 0;
+        let workflow_type_score = 0;
+        let workflow_category_score = 0;
+
+        let total_score = 0;
+
+        let score_details = {};
+        let score_details_array = [];
+
+        try{
+        //retrieve the two rows from the asset_summary_transaction
+        //get the organizaation level setting
+        //get the work efficiency
+        //calculate the remaining params
+         let [error, responseCode]  = await self.organizationListSelect(request);
+         let data_config = JSON.parse(responseCode[0].organization_inline_data).rm_bot_config;
+        // console.log("org_level_scores :: "+JSON.parse(responseCode[0].organization_inline_data).rm_bot_config);
+         read_efficiency_percentage = data_config.read_efficiency;
+         work_efficiency_percentage = data_config.work_efficiency;
+         status_rollback_percentage = data_config.status_rollback_percentage;
+         customer_exposure_percentage = data_config.customer_exposure_percentage;
+         industry_exposure_percentage = data_config.industry_exposure_percentage;
+         workflow_exposure_percentage = data_config.workflow_exposure_percentage;
+         workflow_type_exposure_percentage = data_config.workflow_type_exposure_percentage;
+         workflow_category_exposure_percentage = data_config.workflow_category_exposure_percentage;
+
+         console.log("read_efficiency_percentage :: "+read_efficiency_percentage);
+         console.log("work_efficiency_percentage :: "+work_efficiency_percentage);
+         console.log("status_rollback_percentage :: "+status_rollback_percentage);
+         console.log("customer_exposure_percentage :: "+customer_exposure_percentage);
+         console.log("industry_exposure_percentage :: "+industry_exposure_percentage);
+         console.log("workflow_exposure_percentage :: "+workflow_exposure_percentage);
+         console.log("workflow_category_exposure_percentage :: "+workflow_category_exposure_percentage);
+         console.log("workflow_type_exposure_percentage :: "+workflow_type_exposure_percentage);
+
+         request.summary_id = 1;
+         request.flag = 0;
+
+        //self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
+        let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
+
+            //console.log("getActivityDetailsPromise :: ", data);
+            /*
+            let [error1, responseCode1] = await  self.assetSummarytransactionSelect(request);
+            workload_data = responseCode1.length>0?responseCode1[0].data_entity_inline:{};
+
+            console.log("workload_data :: "+JSON.parse(workload_data).workload_data.customer_workload_data);
+
+            let customer_workload_data = JSON.parse(workload_data).workload_data.customer_workload_data;
+            let industry_workload_data = JSON.parse(workload_data).workload_data.industry_workload_data;
+            let workflow_workload_data = JSON.parse(workload_data).workload_data.workflow_workload_data;
+            let workflow_type_workload_data = JSON.parse(workload_data).workload_data.workflow_type_workload_data;
+            let workflow_category_workload_data = JSON.parse(workload_data).workload_data.workflow_category_workload_data;
+
+            console.log("customer_workload_data :: "+JSON.stringify(customer_workload_data));
+            console.log("industry_workload_data :: "+JSON.stringify(industry_workload_data));
+            console.log("workflow_workload_data :: "+JSON.stringify(workflow_workload_data));
+            console.log("workflow_type_workload_data :: "+JSON.stringify(workflow_type_workload_data));
+            console.log("workflow_category_workload_data :: "+JSON.stringify(workflow_category_workload_data));
+
+            industry_id = data[0].industry_id?data[0].industry_id:0;
+            customer_asset_id = data[0].customer_asset_id?data[0].customer_asset_id:0;
+            workflow_id = data[0].activity_type_id?data[0].activity_type_id:0;
+            workflow_type_id = data[0].activity_type_tag_id?data[0].activity_type_tag_id:0;
+            workflow_category_id = data[0].tag_type_id?data[0].tag_type_id:0;
+
+            console.log("industry_id "+data[0].industry_id?data[0].industry_id:0);
+            console.log("customer_asset_id "+data[0].customer_asset_id?data[0].customer_asset_id:0);
+            console.log("tag_id "+data[0].activity_type_tag_id?data[0].activity_type_tag_id:0);
+            console.log("tag_type_id "+data[0].tag_type_id?data[0].tag_type_id:0);
+            console.log("activity_type_id "+data[0].activity_type_id?data[0].activity_type_id:0);
+
+            for(let i=0; i<customer_workload_data.length;i++) {
+                console.log(customer_workload_data[i].cusomter_workload_hours);
+                if(customer_asset_id == customer_workload_data[i].customer_asset_id){
+                    customer_score = customer_workload_data[i].cusomter_workload_hours * customer_exposure_percentage;
+                }
+            }
+
+            for(let j=0; j<industry_workload_data.length;j++) {
+                console.log(industry_workload_data[j].industry_workload_hours);
+                if(industry_id == industry_workload_data[j].industry_id){
+                    industry_score = industry_workload_data[j].industry_workload_hours * industry_exposure_percentage;
+                }
+            }
+            for(let k=0; k<workflow_workload_data.length;k++) {
+                console.log(workflow_workload_data[k].workflow_workload_hours);
+                if(workflow_id == workflow_workload_data[k].workflow_id){
+                    workflow_score = workflow_workload_data[k].workflow_workload_hours * workflow_exposure_percentage;
+                }
+            }
+            for(let m=0; m<workflow_type_workload_data.length;m++) {
+                console.log(workflow_type_workload_data[m].workflow_type_workload_hours);
+                 if(workflow_type_id == workflow_type_workload_data[m].workflow_type_id){
+                    workflow_type_score = workflow_type_workload_data[m].workflow_type_workload_hours * workflow_type_exposure_percentage;
+                }
+            }
+            for(let n=0; n<workflow_category_workload_data.length;n++) {
+                console.log(workflow_category_workload_data[n].workflow_category_workload_hours);
+                if(workflow_category_id == workflow_category_workload_data[n].workflow_category_id){
+                    workflow_category_score = workflow_category_workload_data[n].workflow_category_workload_hours * workflow_category_exposure_percentage;
+                }
+            }
+            */
+
+            console.log("activity_type_id "+data[0].activity_type_id);
+            console.log("activity_type_tag_id "+data[0].activity_type_tag_id);
+            console.log("tag_type_id "+data[0].tag_type_id);
+            console.log("industry_id "+data[0].industry_id);
+            console.log("customer_asset_id "+data[0].customer_asset_id);
+
+            request.flag = 1;
+            request.entity_id = data[0].activity_type_id;
+            let [error1, responseCode1] = await self.assetTaskParticipatedCount(request);
+            let [error2, responseCode2] = await self.assetTaskLeadedCount(request);
+
+            if(responseCode1.length > 0 && responseCode2.length > 0){
+                if(responseCode1[0].activity_type_count > 0 && responseCode2[0].activity_type_count > 0)
+                workflow_score = (responseCode2[0].activity_type_count/responseCode1[0].activity_type_count)*100;
+            }
+            else
+                workflow_score = 0;
+
+            request.flag = 2;
+            request.entity_id = data[0].activity_type_tag_id;
+            let [error3, responseCode3] = await self.assetTaskParticipatedCount(request);
+            let [error4, responseCode4] = await self.assetTaskLeadedCount(request);
+
+            if(responseCode3.length > 0 && responseCode4.length > 0){
+                if(responseCode4[0].activity_type_tag_count > 0 && responseCode3[0].activity_type_tag_count > 0)
+                workflow_type_score = (responseCode4[0].activity_type_tag_count/responseCode3[0].activity_type_tag_count)*100;
+            }else
+                workflow_type_score = 0;
+
+            request.flag = 3;
+            request.entity_id = data[0].tag_type_id;
+            let [error5, responseCode5] = await self.assetTaskParticipatedCount(request);
+            let [error6, responseCode6] = await self.assetTaskLeadedCount(request);
+
+
+            if(responseCode5.length > 0 && responseCode6.length > 0){
+                if(responseCode5[0].tag_type_count > 0 && responseCode6[0].tag_type_count > 0)
+                workflow_category_score = (responseCode6[0].tag_type_count/responseCode5[0].tag_type_count)*100;
+            }else
+                workflow_category_score = 0;
+
+            request.flag = 4;
+            request.entity_id = data[0].industry_id;
+            let [error7, responseCode7] = await self.assetTaskParticipatedCount(request);
+            let [error8, responseCode8] = await self.assetTaskLeadedCount(request);
+
+
+            if(responseCode7.length > 0 && responseCode8.length > 0){
+                console.log("Industry Count :: "+responseCode8[0].industry_count + "  "+responseCode7[0].industry_count);
+                industry_score = Number(responseCode8[0].industry_count/responseCode7[0].industry_count)>=0?Number(responseCode8[0].industry_count/responseCode7[0].industry_count)*100:0;
+            }
+            else
+                industry_score = 0;
+
+            request.flag = 5;
+            request.entity_id = data[0].customer_asset_id;
+            let [error9, responseCode9] = await self.assetTaskParticipatedCount(request);
+            let [error10, responseCode10] = await self.assetTaskLeadedCount(request);
+
+            if(responseCode9.length > 0 && responseCode10.length > 0){
+                console.log("Customer Count :: "+responseCode9[0].customer_asset_count + "  "+responseCode10[0].customer_asset_count);
+                customer_score = Number(responseCode10[0].customer_asset_count/responseCode9[0].customer_asset_count)>=0?Number(responseCode10[0].customer_asset_count/responseCode9[0].customer_asset_count)*100:0;
+            }
+            else
+                customer_score = 0;
+
+            console.log("industry_score "+industry_score);
+            console.log("customer_score "+customer_score);
+            console.log("workflow_score "+workflow_score);
+            console.log("workflow_type_score "+workflow_type_score);
+            console.log("workflow_category_score "+workflow_category_score);
+
+            request.summary_id = 5;
+            request.flag = 0;
+            let [error11, responseCode11] = await self.assetSummarytransactionSelect(request);
+            work_efficiency = responseCode11.length>0?responseCode11[0].data_entity_double_1:0;
+            //work_efficiency = work_efficiency * work_efficiency_percentage;
+            console.log("work_efficiency "+work_efficiency);
+
+
+
+            total_score = ((work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (workflow_type_score * workflow_type_exposure_percentage) + (workflow_category_score * workflow_category_exposure_percentage));
+            console.log("Total Score :: "+((work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (workflow_type_score * workflow_type_exposure_percentage) + (workflow_category_score * workflow_category_exposure_percentage)));
+
+            score_details.work_efficiency_score = work_efficiency * work_efficiency_percentage;
+            score_details.read_efficiency_score =  read_efficiency * read_efficiency_percentage;
+            score_details.status_rollback_score = rollback_percentage * rollback_percentage;
+            score_details.customer_exposure_score = customer_score * customer_exposure_percentage;
+            score_details.industry_exposure_score = industry_score * industry_exposure_percentage;
+            score_details.workflow_exposure_score = workflow_score * workflow_exposure_percentage;
+            score_details.workflow_type_exposure_score = workflow_type_score * workflow_type_exposure_percentage;
+            score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
+            score_details.overall_score = total_score;
+
+            score_details_array.push(score_details);
+
+        }catch(err){
+            console.log('Error ',err);
+        }
+        console.log("Return :: "+total_score);
+        return[false, {"total_score":total_score, "rm_bot_scores":score_details_array}]
+    }
+
+    this.generateWorkflowScore = async function(request){
+        try{
+
+        }catch(err){
+            console.log('Error ',err);
+        }
+    }
+
+    this.organizationListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+    this.assetSummarytransactionSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.summary_id
+        );
+        const queryString = util.getQueryString('ds_v1_1_asset_summary_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+   this.RMStatusChangeTrigger = async function (request) {
+
+        let self = this;
+
+        try{
+
+            let roleLinkedToStatus = 0;
+            let statusDuration = 0;
+
+            request.ai_bot_id = 1;
+            request.ai_bot_status_id = 3;
+            request.bot_mapping_inline_data = {};
+
+            await self.unallocatedWorkflowInsert(request);
+            await self.AIEventTransactionInsert(request);
+            
+            let [error, responseCode] = await self.workforceActivityStatusMappingSelectStatusId(request);
+
+            if(responseCode.length > 0){
+                roleLinkedToStatus = responseCode[0].asset_type_id;
+                statusDuration = responseCode[0].activity_status_duration;
+            }
+
+            console.log("roleLinkedToStatus :: "+roleLinkedToStatus);
+            console.log("statusDuration :: "+statusDuration);
+
+            request.asset_type_id = roleLinkedToStatus;
+            request.flag = -1;
+            request.page_start = 0;
+            request.page_limit = 500
+            request.workforce_id = 0;
+            request.account_id = 0;
+            let [error1, responseCode1] = await self.RMUnoccupiedResources(request);
+            let highest_score_asset = 0;
+            let highest_score = 0;
+            let rm_bot_scores = [];
+            //generate score, find the top score asset
+            for(let k = 0; k < responseCode1.length; k++){
+                
+                request.target_asset_id = responseCode1[k].asset_id;
+               let [err, data] = await self.generateResourceScore(request);
+               console.log("Generated Score data ::: "+JSON.stringify(data));
+               console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
+                
+                if(data.total_score >= highest_score){
+                    highest_score = data.total_score;
+                    highest_score_asset = responseCode1[k].asset_id;
+                    rm_bot_scores = data.rm_bot_scores;
+                }
+            }
+            
+            console.log("Highest Score :: "+highest_score_asset+" : "+highest_score);
+            console.log("responseCode1 :: "+responseCode1.length);
+            if(responseCode1.length > 0){
+
+                request.res_account_id = responseCode1[0].account_id;
+                request.res_workforce_id = responseCode1[0].workforce_id;
+                request.res_asset_type_id = responseCode1[0].asset_type_id;
+                request.res_asset_category_id = responseCode1[0].asset_type_category_id;
+                request.res_asset_id = highest_score_asset;
+                request.duration_in_minutes = statusDuration;
+                request.rm_bot_scores = rm_bot_scores;
+                self.addParticipantMakeRequest(request);
+            }
+        }catch(error){
+            console.log("error :: "+error);
+        }
+        console.log('request '+JSON.stringify(request, null,2));
+        return [false, {}];
+    };
+
+    this.assetListSelectAssetWorkforce = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select_asset_workforce', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    console.log("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };   
+
+    this.assetTaskParticipatedCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.entity_id
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_asset_task_stats', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    console.log("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }; 
+
+    this.assetTaskLeadedCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.entity_id
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_asset_task_stats', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    console.log("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+
+    this.getActivityDetailsPromiseAsync = async function (request, activityId) {
+
+        let responseData = [],
+            error = true;
+       
+        var paramsArr;
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                activityId,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+        }
+        const queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        }
+        return [error, responseData];
+    }; 
 
 }
 

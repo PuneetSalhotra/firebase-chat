@@ -2120,7 +2120,18 @@ function ActivityService(objectCollection) {
                             to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
                         }).then(() => {
                             console.log("*****activityService WORKLOAD UPDATE | data: ", JSON.stringify(data));
-                            activityCommonService.activityLeadUpdate(request, {}, true);
+                               request.target_activity_id = 0;
+                              let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                              request.duration_in_minutes = response[0].activity_status_duration;
+                              if(request.flag_trigger_resource_manager == 1){
+                                    console.log("AI BOT Trigger Received");
+                                    if(response[0].activity_type_flag_persist_role == 1)
+                                    activityCommonService.activityLeadUpdate(request, participantData, false); 
+                                    else
+                                    activityCommonService.RMStatusChangeTrigger(request);
+                                }else{
+                                    console.log("NO AI BOT Trigger");
+                                }
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
