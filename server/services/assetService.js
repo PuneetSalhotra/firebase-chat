@@ -4379,7 +4379,8 @@ this.getQrBarcodeFeeback = async(request) => {
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
-            request.available_flag
+            request.available_flag,
+            request.available_till_datetime
         );
         const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
 
@@ -4388,8 +4389,14 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    if (request.available_flag === 1) {
+                    if(request.available_flag == 1){
                         //call the trigger service
+                        request.lead_asset_type_id = responseData[0].asset_type_id;
+                        request.res_account_id = responseData[0].account_id;
+                        request.res_workforce_id = responseData[0].workforce_id;
+                        request.res_asset_type_id = responseData[0].asset_type_id;
+                        request.res_asset_id = responseData[0].asset_id;
+                        request.res_asset_category_id = responseData[0].asset_type_category_id;
                         activityCommonService.RMResourceAvailabilityTrigger(request);
                     }
                 })
@@ -4398,8 +4405,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
         }
         return [error, responseData];
-    }   
-
+    }    
 }
 
 module.exports = AssetService;

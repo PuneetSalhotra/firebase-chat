@@ -846,6 +846,16 @@ function ActivityController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/set/status/due_date', async (req, res) => {
+        try {
+            let result = await activityCommonService.getWorkingHoursOfanAsset(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('/activity/set/status/due_date', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });      
 }
 
 
