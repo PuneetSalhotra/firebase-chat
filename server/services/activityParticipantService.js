@@ -135,7 +135,18 @@ function ActivityParticipantService(objectCollection) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
-                            activityCommonService.activityLeadUpdate(request, participantData, false); 
+                            
+                            //else
+                            if(request.hasOwnProperty("add_as_lead")){
+                                activityCommonService.assignResourceAsLead(request, participantData.asset_id);
+                            }else{
+                                request.target_activity_id = request.activity_id;
+                                let [err, response] = activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                                if(response[0].activity_type_flag_persist_role === 1)
+                                activityCommonService.activityLeadUpdate(request, participantData, false); 
+                                else
+                                activityCommonService.RMResourceAvailabilityTrigger(request);
+                            }
                             global.logger.write('conLog', 'participant successfully added', {}, {})
                             //check participant is active in last 48 hrs or not
                             if (activityTypeCategroyId === 28 || activityTypeCategroyId === 8) {
