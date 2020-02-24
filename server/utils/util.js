@@ -581,6 +581,29 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.substractMinutes = function (datetime, minutes) {
+       // console.log("substractMinutes datetime :: "+datetime +" "+minutes);
+       /* if(Number(minutes) < 0){
+            minutes = Number(minutes) * -1;
+        } */
+       // console.log("substractMinutes datetime :: "+datetime +" "+minutes);
+        var value = moment(datetime).subtract(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
+
+    this.getDayOfWeek = function (datetime) {
+        let arr = new Array();
+        arr.push("SUNDAY");
+        arr.push("MONDAY");
+        arr.push("TUESDAY");
+        arr.push("WEDNESDAY");
+        arr.push("THURSDAY");
+        arr.push("FRIDAY");
+        arr.push("SATURDAY");
+        var value = arr[moment(datetime).weekday()];
+        return value;
+    };
+
     this.getEndDateTimeOfWeek = function () {
         var value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
@@ -807,6 +830,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.addDaysToGivenDate = function (timeString, days) {
+        var value = moment(timeString, "YYYY-MM-DD").add(days, 'days').format("YYYY-MM-DD");
+        return value;
+    };
+
     this.addUnitsToDateTime = function (timeString, days, unit) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, unit).format("YYYY-MM-DD HH:mm:ss");
         return value;
@@ -856,6 +884,126 @@ function Util(objectCollection) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
         return value;
     };*/
+
+    this.getCurrentTimeHHmmIST = function () {
+        var value = moment().tz('Asia/Kolkata').format('hh:mm A');
+        return value;
+    };
+
+    this.getCurrentTimeHHmmIST_ = function () {
+        var value = moment().tz('Asia/Kolkata').format('HH:mm');
+        return value;
+    };    
+
+    this.reminingTimeOfTheDay = function(startTime, endTime, currentTime){
+        let self = this;
+        let startTimeTemp = startTime, endTimeTemp = endTime, currentTimeTemp = currentTime;
+
+        // console.log("startTime :: "+startTime);
+        // console.log("endTime :: "+endTime);
+        // console.log("currentTime :: "+currentTime);
+
+
+        let startTimeT = self.getCustomTimeHHmm(startTime);
+        let endTimeT = self.getCustomTimeHHmm(endTime);
+        let currentTimeT = self.getCustomTimeHHmm(currentTime);
+
+        // console.log("startTime1 :: "+startTime);
+        // console.log("endTime1 :: "+endTime);
+        // console.log("currentTime1 :: "+currentTime);
+
+        let startTimeT1 = Number(startTimeT[0]+startTimeT[1]);
+        let endTimeT1 = Number(endTimeT[0]+endTimeT[1]);
+        let currentTimeT1 = Number(currentTimeT[0]+currentTimeT[1]);
+
+        console.log("startTime2 :: "+startTimeT1);
+        console.log("endTime2 :: "+endTimeT1);
+        console.log("currentTime2 :: "+currentTimeT1);
+
+        if(currentTimeT1 < endTimeT1 && currentTimeT1 < startTimeT1){
+            console.log("reminingTimeOfTheDay :: 1")
+            return self.getDiffAMPM(startTimeTemp, endTimeTemp);
+        }
+
+        else if(currentTimeT1 < endTimeT1 && currentTimeT1 >= startTimeT1){
+            console.log("reminingTimeOfTheDay :: 2")
+            return self.getDiffAMPM(currentTimeTemp, endTimeTemp);
+        }
+
+        else if(currentTimeT1 > endTimeT1 && currentTimeT1 >= startTimeT1){
+            console.log("reminingTimeOfTheDay :: 3")
+            return 0;
+        }
+
+    }
+
+    this.getCustomTimeHHmm = function (time) {
+        //console.log("time :: ",time);
+        if(time.indexOf("PM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            time[0]=Number(time[0])+12;
+            //console.log("time[0] "+time[0]);
+        }else if(time.indexOf("AM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            //console.log("time[0] "+time[0]);
+        }
+        return time;
+    };  
+
+    this.getCustomTimeHHmmNumber = function (time) {
+        //console.log("time :: ",time);
+        if(time.indexOf("PM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            time[0]=Number(time[0])+12;
+            //console.log("time[0] "+time[0]);
+        }else if(time.indexOf("AM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            //console.log("time[0] "+time[0]);
+        }
+        time = time.join("");
+        return time;
+    };      
+
+    this.getCustomTimeHHmm24Hr = function (time) {
+        console.log("time :: ",time);
+        if(time.indexOf("PM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            time[0]=Number(time[0])+12;
+            //console.log("time[0] "+time[0]);
+        }else if(time.indexOf("AM") >= 0){
+            time=time.split(" ")[0];
+            time= time.split(":");
+            //console.log("time[0] "+time[0]);
+        }
+        time = time.join(":")+":00";
+        return time;
+    }; 
+    this.getDiffAMPM = function (startTime, endTime) {
+
+        let self = this;
+        let startTimeT = self.getCustomTimeHHmm(startTime);
+        let endTimeT = self.getCustomTimeHHmm(endTime);
+
+       // console.log(Number(endTime[0]) +" : "+Number(startTime[0]));
+        let diff = (Number(endTimeT[0]) - Number(startTimeT[0])) * 60;
+        //console.log("diff in minutes: "+diff);
+        if(Number(startTimeT[1]) > Number(endTimeT[1]))
+            diff = diff - (Number(startTimeT[1]) - Number(endTimeT[1]));
+        else if(Number(startTimeT[1]) < Number(endTimeT[1]))
+             diff = diff + (Number(endTimeT[1]) - Number(startTimeT[1]));
+
+        //console.log("diff in minutes inculding minutes part : "+diff);
+        return diff;
+    };
+
+    this.getDueDate = function(minutes, businessDays, businessHours){
+
+    }
 
     this.getDayStartDatetimeIST = function () {
         var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
