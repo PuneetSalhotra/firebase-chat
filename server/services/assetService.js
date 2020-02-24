@@ -120,6 +120,7 @@ function AssetService(objectCollection) {
         var emailId = request.asset_email_id;
         var verificationMethod = Number(request.verification_method);
         var organizationId = request.organization_id;
+        //let appID = Number(request.app_id) || 0;
 
         try {
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
@@ -862,24 +863,35 @@ function AssetService(objectCollection) {
         });
     }
 
-    var sendCallOrSms = function (verificationMethod, countryCode, phoneNumber, verificationCode, request) {
+    var sendCallOrSms = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) =>{
 
         var smsString = util.getSMSString(verificationCode);
         var domesticSmsMode = global.config.domestic_sms_mode;
         var internationalSmsMode = global.config.international_sms_mode;
         var phoneCall = global.config.phone_call;
+        let appID = Number(request.app_id) || 0;
 
         // SMS heart-beat logic
         if (`${countryCode}${phoneNumber}` === '919100112970') {
             verificationCode = util.getOTPHeartBeatCode();
         }
 
+        //Get the appID
+        let[err, appData] = await activityCommonService.getAppName(request, appID);
+        if(err) {
+            appName = 'TONY';
+        } else {
+            appName = appData[0].app_name;
+        }
+        console.log('appName : ', appName);
+
         let smsOptions = {
             type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
             countryCode,
             phoneNumber,
             verificationCode,
-            failOver: true
+            failOver: true,
+            appName
         };
         switch (verificationMethod) {
             case 0:
@@ -989,16 +1001,16 @@ function AssetService(objectCollection) {
                             //console.log('Making Nexmo Call');
                             global.logger.write('conLog', 'Making Nexmo Call', {}, request);
                             var passcode = request.passcode;
-                            passcode = passcode.split("");
-                            passcode = passcode.toString();
-                            passcode = passcode.replace(/,/g, " ");
+                                passcode = passcode.split("");
+                                passcode = passcode.toString();
+                                passcode = passcode.replace(/,/g, " ");
 
                             //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
                             var text = "Your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             //console.log('Text: ' + text);
                             global.logger.write('debug', 'Text: ' + text, {}, request);
 
@@ -1019,10 +1031,10 @@ function AssetService(objectCollection) {
                             //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
                             //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
                             var text = "Your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
-                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             //console.log('Text: ' + text);
                             global.logger.write('debug', 'Text: ' + text, {}, request);
                             util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
@@ -4367,7 +4379,8 @@ this.getQrBarcodeFeeback = async(request) => {
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
-            request.available_flag
+            request.available_flag,
+            request.available_till_datetime
         );
         const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
 
@@ -4376,8 +4389,14 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    if (request.available_flag === 1) {
+                    if(request.available_flag == 1){
                         //call the trigger service
+                        request.lead_asset_type_id = responseData[0].asset_type_id;
+                        request.res_account_id = responseData[0].account_id;
+                        request.res_workforce_id = responseData[0].workforce_id;
+                        request.res_asset_type_id = responseData[0].asset_type_id;
+                        request.res_asset_id = responseData[0].asset_id;
+                        request.res_asset_category_id = responseData[0].asset_type_category_id;
                         activityCommonService.RMResourceAvailabilityTrigger(request);
                     }
                 })
@@ -4386,8 +4405,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
         }
         return [error, responseData];
-    }   
-
+    }    
 }
 
 module.exports = AssetService;

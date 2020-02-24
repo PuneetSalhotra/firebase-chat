@@ -7,7 +7,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:                
-        nodejs: 12.14.1
+        nodejs: 12.15.0
     commands: 
       - npm install pm2@latest -g
       - npm install --production

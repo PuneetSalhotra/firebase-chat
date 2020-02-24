@@ -87,7 +87,7 @@ function sendSinfiniSms(options) {
     dlrurl = (options.failOver === true) ? dlrurl : '';
 
     if (options.type === 'OTP') {
-        msgString = getOTPString(options.verificationCode);
+        msgString = getOTPString(options.verificationCode, options);
 
     } else if (options.type === 'NOTFCTN') {
         msgString = options.msgString;
@@ -145,7 +145,7 @@ function sendMvayooSms(options) {
 
     let url = 'http://api.mvaayoo.com/mvaayooapi/MessageCompose';
     if (options.type === 'OTP') {
-        msgString = getOTPString(options.verificationCode);
+        msgString = getOTPString(options.verificationCode, options);
     }
     let qs = {
         user: 'junaid.m@grene.in:greneapple',
@@ -192,7 +192,7 @@ function sendBulkSms(options) {
     let msgString;
 
     if (options.type === 'OTP') {
-        msgString = getOTPString(options.verificationCode);
+        msgString = getOTPString(options.verificationCode, options);
     }
 
     let url = 'http://bulksmsapps.com/apisms.aspx';
@@ -243,7 +243,7 @@ function sendTwilioSms(options) {
 
     let msgString;
     if (options.type === 'OTP') {
-        msgString = getOTPString(options.verificationCode);
+        msgString = getOTPString(options.verificationCode, options);
     }
 
     let callbackQs = `ph=${'' + options.countryCode + options.phoneNumber}&vcode=${options.verificationCode}&type=${options.type}`;
@@ -286,7 +286,7 @@ function sendNexmoSms(options) {
 
     let msgString;
     if (options.type === 'OTP') {
-        msgString = getOTPString(options.verificationCode);
+        msgString = getOTPString(options.verificationCode, options);
     }
 
     // Nexmo params
@@ -317,8 +317,8 @@ function sendNexmoSms(options) {
 
 ////////////////////////////////////////////////////////////
 // Utility functions
-function getOTPString(verificationCode) {    
-    var msg_body = verificationCode + " is the OTP to verify your mobile number - TONY";
+function getOTPString(verificationCode, options) {    
+    var msg_body = verificationCode + " is the OTP to verify your mobile number - " + options.appName;
     return msg_body;
 }
 
