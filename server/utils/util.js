@@ -830,6 +830,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.addDaysToGivenDate = function (timeString, days) {
+        var value = moment(timeString, "YYYY-MM-DD").add(days, 'days').format("YYYY-MM-DD");
+        return value;
+    };
+
     this.addUnitsToDateTime = function (timeString, days, unit) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, unit).format("YYYY-MM-DD HH:mm:ss");
         return value;
