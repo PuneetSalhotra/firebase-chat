@@ -2118,7 +2118,7 @@ function ActivityService(objectCollection) {
                             to_status_id: Number(request.activity_status_id),
                             from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
                             to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
-                        }).then(() => {
+                        }).then(async () => {
                             console.log("*****activityService WORKLOAD UPDATE | data: ", JSON.stringify(data));
                                request.target_activity_id = 0;
                               let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
