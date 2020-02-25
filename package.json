@@ -38,6 +38,7 @@
     "mysql": "^2.18.1",
     "nexmo": "~2.3.2",
     "nodemailer": "~4.6.8",
+    "opentok": "^2.9.2",
     "pdfmake": "^0.1.63",
     "pubnub": "~4.21.7",
     "pusher": "^3.0.0",
