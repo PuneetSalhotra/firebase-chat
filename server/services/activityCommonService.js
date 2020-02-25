@@ -5586,7 +5586,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
-            request.activity_lead_timeline_collection = rm_bot_scores;
+            request.activity_lead_timeline_collection = JSON.stringify(rm_bot_scores);
             console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
         }
