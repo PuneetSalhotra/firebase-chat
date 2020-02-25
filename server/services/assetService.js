@@ -4385,6 +4385,10 @@ this.getQrBarcodeFeeback = async(request) => {
                         request.res_asset_type_id = responseData[0].asset_type_id;
                         request.res_asset_id = responseData[0].asset_id;
                         request.res_asset_category_id = responseData[0].asset_type_category_id;
+                        request.target_asset_id = responseData[0].asset_id;
+                        request.target_asset_name = responseData[0].asset_first_name;
+                        request.target_operating_asset_id = responseData[0].operating_asset_id;
+                        request.target_operating_asset_name = responseData[0].operating_asset_first_name;
                         activityCommonService.RMResourceAvailabilityTrigger(request);
                     }
                 })
