@@ -916,9 +916,9 @@ function Util(objectCollection) {
         let endTimeT1 = Number(endTimeT[0]+endTimeT[1]);
         let currentTimeT1 = Number(currentTimeT[0]+currentTimeT[1]);
 
-        console.log("startTime2 :: "+startTimeT1);
-        console.log("endTime2 :: "+endTimeT1);
-        console.log("currentTime2 :: "+currentTimeT1);
+        // console.log("startTime2 :: "+startTimeT1);
+        // console.log("endTime2 :: "+endTimeT1);
+        // console.log("currentTime2 :: "+currentTimeT1);
 
         if(currentTimeT1 < endTimeT1 && currentTimeT1 < startTimeT1){
             console.log("reminingTimeOfTheDay :: 1")

@@ -5268,7 +5268,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     }     
-   this.getWorkingHoursOfanAsset = async function(request){
+   this.getWorkingHoursOfanAsset = async function(request, flag){
     try{
         console.log("duration_in_minutes :: "+request.duration_in_minutes);
         let statusDuration = request.duration_in_minutes;
@@ -5536,9 +5536,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          console.log("Due Datetime with minutes:: "+temp_current_datetime);
          console.log("Due time:: "+end_time);
 
-         request.status_due_datetime = temp_current_datetime;
-         self.updateStatusDueDate(request);
-
+         if(flag==1){
+            request.status_due_datetime = temp_current_datetime;
+            self.updateStatusDueDate(request);
+         }
         return temp_current_datetime;
     }catch(e){
         console.log(e);
@@ -5558,36 +5559,47 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let [error, responseData]= await self.RMOnAvailabilityOFAResource(request);
         console.log('responseData '+responseData);
         //generate score, find the top score asset
-        let highest_score_workflow = 0;
+        let highest_score_workflow = -1;
         let highest_score = 0;
         let rm_bot_scores = [];
-                    //generate score, find the top score asset
-            for(let k = 0; k < responseData.length; k++){
-                
-                request.activity_id = responseData[k].activity_id;
-                let [err, data] = await self.generateResourceScore(request);
-                console.log("Generated Score data ::: "+JSON.stringify(data));
-                console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
-                
-                if(data.total_score >= highest_score){
-                    highest_score = data.total_score;
-                    highest_score_workflow = responseData[k].activity_id;
-                    rm_bot_scores = data.rm_bot_scores;
-                }
-            }
 
-        if(responseData.length > 0){
 
-            // request.res_account_id = request.;
-            // request.res_workforce_id = 5660;
-            // request.res_asset_type_id = 134505;
-            // request.res_asset_category_id = 3;
-            // request.res_asset_id = 38261;
+        //generate score, find the top score asset
+        for(let k = 0; k < responseData.length; k++){
+
+        request.activity_id = responseData[k].activity_id;
+        request.activity_status_id = responseData[k].activity_status_id;
+        request.target_activity_id = responseData[k].activity_id;
+
+        let [error1, responseData1] = await self.workforceActivityStatusMappingSelectStatusId(request);
+
+        if(responseData1.length > 0){
+            roleLinkedToStatus = responseData1[0].asset_type_id;
+            statusDuration = responseData1[0].activity_status_duration;
+        }
+
+        console.log("roleLinkedToStatus :: "+roleLinkedToStatus);
+        console.log("statusDuration :: "+statusDuration);
+
+        request.duration_in_minutes = statusDuration
+
+        let [error2, data] = await self.generateResourceScore(request);
+        console.log("Generated Score data ::: "+JSON.stringify(data));
+        console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
+
+        if(data.total_score >= highest_score){
+            highest_score = data.total_score;
+            highest_score_workflow = responseData[k].activity_id;
+            rm_bot_scores = data.rm_bot_scores;
+        }
+    }
+
+        if(responseData.length > 0 && highest_score_workflow >= 0){
 
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
             request.activity_lead_timeline_collection = JSON.stringify(rm_bot_scores);
-            console.log("Before Making Request ", JSON.stringify(request,null,2));
+            //console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
         }
         console.log('request '+JSON.stringify(request, null,2));
@@ -5601,7 +5613,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         request.target_asset_id = leadAssetId;
         console.log("duration_in_minutes :: "+request.duration_in_minutes);
-        await self.getWorkingHoursOfanAsset(request);
+        await self.getWorkingHoursOfanAsset(request, 1);
         //setting duedate is still pending
 
         request.ai_bot_id = 1;
@@ -5663,7 +5675,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             activity_lead_timeline_collection:request.activity_lead_timeline_collection,
             timeline_stream_type_id:718
         };
-        console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const assignActAsync = nodeUtil.promisify(makingRequest.post);
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const makeRequestOptions1 = {
@@ -5777,6 +5789,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         //get the work efficiency
         //calculate the remaining params
          let [error, responseCode]  = await self.organizationListSelect(request);
+
          let data_config = JSON.parse(responseCode[0].organization_inline_data).rm_bot_config;
         // console.log("org_level_scores :: "+JSON.parse(responseCode[0].organization_inline_data).rm_bot_config);
          read_efficiency_percentage = data_config.read_efficiency;
@@ -5904,6 +5917,30 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             score_details_array.push(score_details);
 
+            let temp_status_due_datetime = await self.getWorkingHoursOfanAsset(request, 0);
+
+            let reqObj =  Object.assign({}, request);
+            reqObj.asset_id = request.target_asset_id;
+            let [err1, assetData] = await self.getAssetDetailsAsync(reqObj);
+
+            let availableDatetime = assetData[0].asset_datetime_available_till?assetData[0].asset_datetime_available_till:"1970-01-01 00:00:00";
+            let t1 = availableDatetime.split(" ").join("").split(":").join("").split("-").join("");
+            let t2 = temp_status_due_datetime.split(" ").join("").split(":").join("").split("-").join("");
+
+            t1 = t1?t1:0;
+            t2 = t2?t2:0;
+
+            console.log("RESOURCE AVAILABLE TILL "+(availableDatetime.split(" ").join("").split(":").join("").split("-").join("")));
+            console.log("DERIVED STAUTS DUE DATE "+(temp_status_due_datetime.split(" ").join("").split(":").join("").split("-").join("")));
+            console.log("AFTER DUE DATE "+(t1-t2));
+
+            let diff = Number(t1)-Number(t2);
+            console.log("diff :: "+diff);
+
+            if(diff > 0){
+                total_score = -1;
+            }
+
         }catch(err){
             console.log('Error ',err);
         }
@@ -6002,7 +6039,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.workforce_id = 0;
             request.account_id = 0;
             let [error1, responseCode1] = await self.RMUnoccupiedResources(request);
-            let highest_score_asset = 0;
+            let highest_score_asset = -1;
             let highest_score_asset_name = "";
             let highest_score_operating_asset_id = 0;
             let highest_score_operating_asset_name = "";
@@ -6015,6 +6052,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.target_asset_name = responseCode1[k].asset_first_name;
                 request.target_operating_asset_id = responseCode1[k].operating_asset_id;
                 request.target_operating_asset_name = responseCode1[k].operating_asset_first_name;
+                request.duration_in_minutes = statusDuration;
                let [err, data] = await self.generateResourceScore(request);
                console.log("Generated Score data ::: "+JSON.stringify(data));
                console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
@@ -6028,7 +6066,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             
             console.log("Highest Score :: "+highest_score_asset+" : "+highest_score);
             console.log("responseCode1 :: "+responseCode1.length);
-            if(responseCode1.length > 0){
+            if(responseCode1.length > 0 && highest_score_asset > 0){
 
                 let timelineCollection = {};
                 timelineCollection.content="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
