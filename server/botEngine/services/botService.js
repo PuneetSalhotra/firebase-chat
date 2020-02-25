@@ -1769,13 +1769,22 @@ function BotService(objectCollection) {
     async function addComment(request, comments) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0,
-            activityInlineData = {},
+            //activityInlineData = {},
             fridExpiryDate;
+
+        let reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        for(let i=0; i<reqActivityInlineData.length; i++){
+            if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
+                console.log('field_value: ', reqActivityInlineData[i].field_value);
+                fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
+                break;
+            }
+        }
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {                
-                activityInlineData = JSON.parse(workflowActivityData[0].activity_inline_data)
+                /*activityInlineData = JSON.parse(workflowActivityData[0].activity_inline_data)
                 console.log('Number(request.trigger_field_id) : ', Number(request.trigger_field_id));
 
                 for(let i=0; i<activityInlineData.length; i++){
@@ -1784,7 +1793,7 @@ function BotService(objectCollection) {
                         fridExpiryDate = util.addDaysToGivenDate((activityInlineData[i].field_value).toString(), 60); //Add 60 days to it
                         break;
                     }
-                }
+                }*/
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
             }
         } catch (error) {
