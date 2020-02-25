@@ -3,6 +3,9 @@
  * author: Sri Sai Venkatesh
  */
 
+const OpenTok = require('opentok');
+let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
+
 function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
     const self = this;
@@ -6229,6 +6232,62 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 });            
         }
 
+        return [error, responseData];
+    };
+
+
+    //OpenTok
+    this.openTokGetSessionData = async (request) => {
+        let responseData = [],
+            error = false;
+
+         //if a room name is already associated with a session ID
+        // fetch the sessionId from local storage
+        // generate token
+
+        //else
+        //Create Session ID
+        // store the sessionId into local
+        // generate token
+        /*opentok.createSession(function(err, session) {
+            if (err) return console.log(err);
+    
+            // save the sessionId
+            //db.save('session', session.sessionId, done);
+    
+            let token = session.generateToken();
+            let response = {
+                "apiKey": apiKey,
+            "sessionId": session.sessionId,
+            "token": token
+            }
+    
+            console.log(response);
+            return response;
+        });	   
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id || 0,
+            request.bot_id || 0,
+            request.bot_operation_type_id || 0,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        } */
         return [error, responseData];
     };
 

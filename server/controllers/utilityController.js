@@ -3,7 +3,7 @@
  * 
  */
 var AwsSss = require('../utils/s3Wrapper');
-var fs = require('fs');
+//var fs = require('fs');
 
 function UtilityController(objCollection) {
 
@@ -334,6 +334,18 @@ function UtilityController(objCollection) {
         } else {
             console.log("/send/asset/push_notification | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    
+    //OpenTOK
+    app.post('/' + global.config.version + '/room/name', async (req, res) => {
+        const [err, openTokData] = await activityCommonService.openTokGetSessionData(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, openTokData, 200, req.body));
+        } else {
+            console.log("/room/name | Error: ", err);
+            res.send(responseWrapper.getResponse(err, openTokData, -9999, req.body));
         }
     });
 
