@@ -384,6 +384,8 @@ this.getAllParticipantsAsync = async (request) => {
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
                 break;
+            case 718:
+                activityTimelineCollection = request.activity_lead_timeline_collection || '{}';
             case 710: // form field alter
                 entityTypeId = 0;
                 //entityText2 = request.activity_timeline_collection;
@@ -616,6 +618,10 @@ this.getAllParticipantsAsync = async (request) => {
                 request.entity_bigint_1 = request.reference_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
                 break;
+            case 718: // Workflow: Percentage alter
+                entityTypeId = 0;
+                activityTimelineCollection = request.activity_lead_timeline_collection || '{}';
+                break;                
             case 710: // form field alter
                 entityTypeId = 0;
                 //entityText2 = request.activity_timeline_collection;
@@ -4946,8 +4952,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     let self = this;
                     self.activityListHistoryInsertAsync(request, 15);
                     // timeline transaction insert
-                    if(request.timeline_stream_type_id == 2401){
-                         
+                    if(request.timeline_stream_type_id == 718){
+                         request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
                     }else if(data[0].existing_lead_asset_id > 0){
                         request.timeline_stream_type_id = 2403;
                     }else {
@@ -4955,6 +4961,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     }
                     request.track_gps_datetime = util.getCurrentUTCTime();
                     request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    
+                    console.log("activityListLeadUpdate :: "+JSON.stringify(request,null,2));
                     self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);                 
 
                 })
@@ -4992,7 +5000,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.start_datetime = '1970-01-01 00:00:00';
             request.end_datetime = '2049-12-31 18:30:00';
             request.monthly_summary_id = 5;
-            request.timeline_stream_type_id = 2401;
+            request.timeline_stream_type_id = 718;
             let assetID = 0;
 
             let leadRequest = Object.assign({}, request);
@@ -5575,8 +5583,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             // request.res_asset_type_id = 134505;
             // request.res_asset_category_id = 3;
             // request.res_asset_id = 38261;
+
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
+            request.activity_lead_timeline_collection = JSON.stringify(rm_bot_scores);
             console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
         }
@@ -5586,7 +5596,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.assignResourceAsLead = async function (request, leadAssetId) {
         let self = this;
-        request.timeline_stream_type_id = 2401;
+        request.timeline_stream_type_id = 718;
         await self.activityListLeadUpdate(request, leadAssetId);
 
         request.target_asset_id = leadAssetId;
@@ -5649,7 +5659,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             datetime_log: util.getCurrentUTCTime(),
             add_as_lead: 1,
             duration_in_minutes:request.duration_in_minutes,
-            rm_bot_scores:request.rm_bot_scores
+            rm_bot_scores:request.rm_bot_scores,
+            activity_lead_timeline_collection:request.activity_lead_timeline_collection,
+            timeline_stream_type_id:718
         };
         console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const assignActAsync = nodeUtil.promisify(makingRequest.post);
@@ -5791,69 +5803,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         //self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
         let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
-            //console.log("getActivityDetailsPromise :: ", data);
-            /*
-            let [error1, responseCode1] = await  self.assetSummarytransactionSelect(request);
-            workload_data = responseCode1.length>0?responseCode1[0].data_entity_inline:{};
-
-            console.log("workload_data :: "+JSON.parse(workload_data).workload_data.customer_workload_data);
-
-            let customer_workload_data = JSON.parse(workload_data).workload_data.customer_workload_data;
-            let industry_workload_data = JSON.parse(workload_data).workload_data.industry_workload_data;
-            let workflow_workload_data = JSON.parse(workload_data).workload_data.workflow_workload_data;
-            let workflow_type_workload_data = JSON.parse(workload_data).workload_data.workflow_type_workload_data;
-            let workflow_category_workload_data = JSON.parse(workload_data).workload_data.workflow_category_workload_data;
-
-            console.log("customer_workload_data :: "+JSON.stringify(customer_workload_data));
-            console.log("industry_workload_data :: "+JSON.stringify(industry_workload_data));
-            console.log("workflow_workload_data :: "+JSON.stringify(workflow_workload_data));
-            console.log("workflow_type_workload_data :: "+JSON.stringify(workflow_type_workload_data));
-            console.log("workflow_category_workload_data :: "+JSON.stringify(workflow_category_workload_data));
-
-            industry_id = data[0].industry_id?data[0].industry_id:0;
-            customer_asset_id = data[0].customer_asset_id?data[0].customer_asset_id:0;
-            workflow_id = data[0].activity_type_id?data[0].activity_type_id:0;
-            workflow_type_id = data[0].activity_type_tag_id?data[0].activity_type_tag_id:0;
-            workflow_category_id = data[0].tag_type_id?data[0].tag_type_id:0;
-
-            console.log("industry_id "+data[0].industry_id?data[0].industry_id:0);
-            console.log("customer_asset_id "+data[0].customer_asset_id?data[0].customer_asset_id:0);
-            console.log("tag_id "+data[0].activity_type_tag_id?data[0].activity_type_tag_id:0);
-            console.log("tag_type_id "+data[0].tag_type_id?data[0].tag_type_id:0);
-            console.log("activity_type_id "+data[0].activity_type_id?data[0].activity_type_id:0);
-
-            for(let i=0; i<customer_workload_data.length;i++) {
-                console.log(customer_workload_data[i].cusomter_workload_hours);
-                if(customer_asset_id == customer_workload_data[i].customer_asset_id){
-                    customer_score = customer_workload_data[i].cusomter_workload_hours * customer_exposure_percentage;
-                }
-            }
-
-            for(let j=0; j<industry_workload_data.length;j++) {
-                console.log(industry_workload_data[j].industry_workload_hours);
-                if(industry_id == industry_workload_data[j].industry_id){
-                    industry_score = industry_workload_data[j].industry_workload_hours * industry_exposure_percentage;
-                }
-            }
-            for(let k=0; k<workflow_workload_data.length;k++) {
-                console.log(workflow_workload_data[k].workflow_workload_hours);
-                if(workflow_id == workflow_workload_data[k].workflow_id){
-                    workflow_score = workflow_workload_data[k].workflow_workload_hours * workflow_exposure_percentage;
-                }
-            }
-            for(let m=0; m<workflow_type_workload_data.length;m++) {
-                console.log(workflow_type_workload_data[m].workflow_type_workload_hours);
-                 if(workflow_type_id == workflow_type_workload_data[m].workflow_type_id){
-                    workflow_type_score = workflow_type_workload_data[m].workflow_type_workload_hours * workflow_type_exposure_percentage;
-                }
-            }
-            for(let n=0; n<workflow_category_workload_data.length;n++) {
-                console.log(workflow_category_workload_data[n].workflow_category_workload_hours);
-                if(workflow_category_id == workflow_category_workload_data[n].workflow_category_id){
-                    workflow_category_score = workflow_category_workload_data[n].workflow_category_workload_hours * workflow_category_exposure_percentage;
-                }
-            }
-            */
 
             console.log("activity_type_id "+data[0].activity_type_id);
             console.log("activity_type_tag_id "+data[0].activity_type_tag_id);
@@ -5948,6 +5897,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             score_details.workflow_type_exposure_score = workflow_type_score * workflow_type_exposure_percentage;
             score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
             score_details.overall_score = total_score;
+            score_details.asset_id = request.target_asset_id;
+            score_details.asset_name = request.target_asset_name;
+            score_details.operating_asset_id = request.target_operating_asset_id;
+            score_details.operating_asset_name = request.target_operating_asset_name;
 
             score_details_array.push(score_details);
 
@@ -6050,12 +6003,18 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.account_id = 0;
             let [error1, responseCode1] = await self.RMUnoccupiedResources(request);
             let highest_score_asset = 0;
+            let highest_score_asset_name = "";
+            let highest_score_operating_asset_id = 0;
+            let highest_score_operating_asset_name = "";
             let highest_score = 0;
             let rm_bot_scores = [];
             //generate score, find the top score asset
             for(let k = 0; k < responseCode1.length; k++){
                 
                 request.target_asset_id = responseCode1[k].asset_id;
+                request.target_asset_name = responseCode1[k].asset_first_name;
+                request.target_operating_asset_id = responseCode1[k].operating_asset_id;
+                request.target_operating_asset_name = responseCode1[k].operating_asset_first_name;
                let [err, data] = await self.generateResourceScore(request);
                console.log("Generated Score data ::: "+JSON.stringify(data));
                console.log("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
@@ -6071,6 +6030,15 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log("responseCode1 :: "+responseCode1.length);
             if(responseCode1.length > 0){
 
+                let timelineCollection = {};
+                timelineCollection.content="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+                timelineCollection.subject="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+                timelineCollection.mail_body="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+                timelineCollection.attachments=[];
+                timelineCollection.asset_reference=[];
+                timelineCollection.activity_reference=[];
+                timelineCollection.rm_bot_scores=rm_bot_scores;
+
                 request.res_account_id = responseCode1[0].account_id;
                 request.res_workforce_id = responseCode1[0].workforce_id;
                 request.res_asset_type_id = responseCode1[0].asset_type_id;
@@ -6078,6 +6046,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.res_asset_id = highest_score_asset;
                 request.duration_in_minutes = statusDuration;
                 request.rm_bot_scores = rm_bot_scores;
+                request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                 self.addParticipantMakeRequest(request);
             }
         }catch(error){
