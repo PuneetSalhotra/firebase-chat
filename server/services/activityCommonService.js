@@ -6243,6 +6243,32 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     }; 
 
+         //Get the APP_name given app_id
+     this.getAppName = async (request, appID) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            (appID).toString()
+        );
+
+        const queryString = util.getQueryString('ds_v1_common_app_master_select_id', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    };
+
+    
+
     this.calculateAssetSummary = async function(leadRequest, newLeadAssetId){
         // await self.activityListLeadUpdate(request, assetID);
         let existingAssetWorkLoad = 0;
