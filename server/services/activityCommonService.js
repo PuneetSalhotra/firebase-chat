@@ -4963,7 +4963,16 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                     
                     console.log("activityListLeadUpdate :: "+JSON.stringify(request,null,2));
-                    self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id);                 
+                    self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id); 
+
+                    //calculate Stats
+
+                    let leadRequest = Object.assign({},request);
+                    if(data[0].existing_lead_asset_id > 0){
+                        leadRequest.asset_id = lead_asset_id;
+                        self.calculateAssetSummary(leadRequest, data[0].existing_lead_asset_id);                
+                    }
+                    
 
                 })
                 .catch((err) => {
@@ -5065,9 +5074,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             if (participantCheck || isAlterStatus) {
 
-                await self.activityListLeadUpdate(request, assetID);
+                let self = this;
 
-                let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
+               await self.activityListLeadUpdate(request, assetID);
+
+               //self.calculateAssetSummary(request, leadRequest, data);
+
+            /*    let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
                 console.log("exisitngAssetData :: ", exisitngAssetData);
                 let existingAssetWorkLoad = (Number(exisitngAssetData[0].expected_duration)*60) - Number(exisitngAssetData[0].actual_duration);
                 leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
@@ -5096,7 +5109,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 await self.assetSummaryTransactionInsert(leadRequest);
 
                 console.log("existingAssetEfficiency ", existingAssetWorkLoad);
-                console.log("newAssetEfficiency ", newAssetWorkload);
+                console.log("newAssetEfficiency ", newAssetWorkload); */
             }
         });
     };
@@ -5432,9 +5445,15 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          console.log("111 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
 
          if(Number(num_of_days) <= 0){
-            if(unallocated_remaining_minutes >= 0){
+            console.log("111.1 num_of_days :: "+num_of_days);
+            if(Number(unallocated_remaining_minutes) >= 0){
+                console.log("111.2 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                let counter = 0;
                 for(let i = 0; i < 1; ){
+                    counter++;
+                    console.log("112.1 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                     if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
+                        console.log("112.2 business days includes :: "+businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1))));
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
                         console.log("112 hours_array[0] :: "+hours_array[0]);
                         console.log("113 map3.get(hours_array[0]) :: "+map3.get(hours_array[0]));
@@ -5459,6 +5478,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             } 
                         }
                         i++;
+                    }else{
+                        if(counter === 7)
+                            i = 1;
+                        temp_current_datetime = util.addDays(temp_current_datetime,1);
+                        console.log("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
                     }
                 }
 
@@ -5501,8 +5525,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             }
 
          }else if(num_of_days > 0){
+            console.log("111.3 num_of_days :: "+num_of_days);
+                let counter = 0;
                 for(let i = 0; i < num_of_days; ){
+                    counter++;
+                    console.log("111.4 num_of_days :: "+num_of_days);
                     if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
+                        counter = 0;
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
                         temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
                         for(let k = 0; k < hours_array.length;){ 
@@ -5525,6 +5554,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             } 
                         }
                         i++;
+                    }else{
+                        if(counter === 7)
+                            i = num_of_days;
+                        
+                        temp_current_datetime = util.addDays(temp_current_datetime,1);
+                        console.log("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
                     }
                 }
                 temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
@@ -5937,7 +5972,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             let diff = Number(t1)-Number(t2);
             console.log("diff :: "+diff);
 
-            if(diff > 0){
+            if(diff < 0){
                 total_score = -1;
             }
 
@@ -6208,7 +6243,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     }; 
 
-     //Get the APP_name given app_id
+
      this.getAppName = async (request, appID) => {
         let responseData = [],
             error = true;
@@ -6231,6 +6266,59 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     };
+
+
+    this.calculateAssetSummary = async function(leadRequest, newLeadAssetId){
+        // await self.activityListLeadUpdate(request, assetID);
+        let existingAssetWorkLoad = 0;
+        let newAssetWorkload = 0;
+
+        leadRequest.flag = -1;
+        leadRequest.start_datetime = '1970-01-01 00:00:00';
+        leadRequest.end_datetime = '2049-12-31 18:30:00';
+        leadRequest.monthly_summary_id = 5;
+
+       if(leadRequest.asset_id > 0){
+            console.log("Existing Lead Asset GreaterThan 0")
+            let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
+            console.log("exisitngAssetData :: ", exisitngAssetData);
+            existingAssetWorkLoad = (Number(exisitngAssetData[0].expected_duration)*60) - Number(exisitngAssetData[0].actual_duration);
+            leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+            leadRequest.entity_decimal_2 = Number(exisitngAssetData[0].actual_duration)/60;
+            leadRequest.entity_decimal_3 = Number(existingAssetWorkLoad);
+
+            console.log('After activityListLeadUpdate : ', leadRequest);
+            //leadRequest.asset_id = leadRequest.asset_id;
+            await self.assetSummaryTransactionInsert(leadRequest);
+            console.log('After assetSummaryTransactionInsert : ');
+        }else{
+            console.log("Existing Lead Asset Not GreaterThan 0")
+        }
+
+        if(newLeadAssetId > 0){
+            console.log("New Lead Asset GreaterThan 0")
+            leadRequest.asset_id = newLeadAssetId;
+
+            let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
+            console.log("newAssetData[0].query_status ", newAssetData[0].query_status)
+            newAssetWorkload = (Number(newAssetData[0].expected_duration)*60) - Number(newAssetData[0].actual_duration);
+            leadRequest.entity_decimal_1 = newAssetData[0].expected_duration;
+            leadRequest.entity_decimal_2 = Number(newAssetData[0].actual_duration)/60;
+            leadRequest.entity_decimal_3 = Number(newAssetWorkload);
+
+            console.log("Expected Duration :: ", newAssetData[0].expected_duration);
+            console.log("Actual Duration :: ", newAssetData[0].actual_duration);
+            console.log("newAssetEfficiency :: ", newAssetWorkload);
+
+            leadRequest.asset_id = newLeadAssetId;
+            await self.assetSummaryTransactionInsert(leadRequest);
+
+            console.log("existingAssetEfficiency ", existingAssetWorkLoad);
+            console.log("newAssetEfficiency ", newAssetWorkload);
+        }else{
+            console.log("New Lead Asset Not GreaterThan 0")
+        }
+    }
 
 }
 
