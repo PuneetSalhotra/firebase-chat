@@ -1808,14 +1808,15 @@ function BotService(objectCollection) {
             let addCommentRequest = Object.assign(request, {});
 
             if(comment.comment === "<<vf_frid_expire>>") {
-                let fridExpiryDateArr = fridExpiryDate.split("-");
-                let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
+                //let fridExpiryDateArr = fridExpiryDate.split("-");
+                //let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
+                let currentDateArr = (util.getCurrentDate()).toString();
 
-                console.log('fridExpiryDateArr : ', fridExpiryDateArr);
+                console.log('fridExpiryDate : ', fridExpiryDate);
                 console.log('currentDateArr : ', currentDateArr);
                 
-                let a = moment([fridExpiryDateArr[0], fridExpiryDateArr[1], fridExpiryDateArr[2]]);
-                let b = moment([currentDateArr[0], currentDateArr[1], currentDateArr[2]]);
+                let a = moment(fridExpiryDate, "YYYY-MM-DD");
+                let b = moment(currentDateArr, "YYYY-MM-DD");
                 
                 let difference = a.diff(b, 'days');
                 console.log('Difference : ', difference);
