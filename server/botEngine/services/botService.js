@@ -1987,7 +1987,8 @@ function BotService(objectCollection) {
 
         let documentData = {},
             documentFieldUpdateInlineData = [],
-            flagAddAttestedDocumentToTimeline = 0;
+            flagAddAttestedDocumentToTimeline = 0,
+            flagAttestationIsText = 0;
         for (const attachment of attachments) {
 
             // If the bot operation inline data doesn't have the key "attestation",
@@ -2001,6 +2002,7 @@ function BotService(objectCollection) {
             }
             
             flagAddAttestedDocumentToTimeline = Number(attachment.flag_add_attested_document_to_timeline);
+            flagAttestationIsText = Number(attachment.flag_attestation_is_text);
 
             const documentFormID = Number(attachment.document.form_id);
             const documentFieldID = Number(attachment.document.field_id);
@@ -2079,9 +2081,16 @@ function BotService(objectCollection) {
                     logger.silly(`documentPath: ${documentPath}`, { type: 'document_with_attestation' });
                     
                     // Signature
-                    let attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
-                    const attestationPath = path.resolve(global.config.efsPath, attestationName);
-                    logger.silly(`attestationPath: ${attestationPath}`, { type: 'document_with_attestation' });
+                    let attestationName = "",
+                        attestationPath = "",
+                        attestationText = "";
+                    if (flagAttestationIsText) {
+                        attestationText = attestationFieldData[0].data_entity_text_1;
+                    } else {
+                        attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
+                        attestationPath = path.resolve(global.config.efsPath, attestationName);
+                        logger.silly(`attestationPath: ${attestationPath}`, { type: 'document_with_attestation' });
+                    }
                     
                     // Document With Attestation/Signature
                     const documentWithAttestationPath = `${documentPath.split('.')[0]}_with_attestation.pdf`
@@ -2093,12 +2102,26 @@ function BotService(objectCollection) {
                         documentWithAttestationPath
                     );
                     for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
-                
-                        pdfDoc
-                            .editPage(i)
-                            .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
-                            .endPage();
+                        if (flagAttestationIsText) {
+                            pdfDoc
+                                .editPage(i)
+                                .text(attestationText, 400, 640, {
+                                    color: '#000000',
+                                    fontSize: 20,
+                                    bold: true,
+                                    font: 'Helvatica',
+                                    opacity: 0.8,
+                                    rotation: 325
+                                })
+                                .endPage();
                             // .endPDF();
+                        } else {
+                            pdfDoc
+                                .editPage(i)
+                                .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
+                                .endPage();
+                            // .endPDF();
+                        }
                     }
                     pdfDoc.endPDF();
                     
