@@ -6243,7 +6243,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     }; 
 
-         //Get the APP_name given app_id
+
      this.getAppName = async (request, appID) => {
         let responseData = [],
             error = true;
@@ -6267,7 +6267,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    
 
     this.calculateAssetSummary = async function(leadRequest, newLeadAssetId){
         // await self.activityListLeadUpdate(request, assetID);

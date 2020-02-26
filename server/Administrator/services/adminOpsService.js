@@ -5636,7 +5636,10 @@ function AdminOpsService(objectCollection) {
                     if(request.id_proof_document_3 !== "") {
                         idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
                     }
-                    idCardJSON.employee_id_proof_verification_status = 0;
+                    
+                    idCardJSON.employee_id_proof_verification_status_1 = 0;
+                    idCardJSON.employee_id_proof_verification_status_2 = 0;
+                    idCardJSON.employee_id_proof_verification_status_3 = 0;
         
                 // Update the ID Card's Activity List table
                 try {
@@ -5689,7 +5692,9 @@ function AdminOpsService(objectCollection) {
                         contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
                     }
                     
-                    contactCardJSON.employee_id_proof_verification_status = 0;
+                    contactCardJSON.employee_id_proof_verification_status_1 = 0;
+                    contactCardJSON.employee_id_proof_verification_status_2 = 0;
+                    contactCardJSON.employee_id_proof_verification_status_3 = 0;
         
                 // Update the Contact Card's Activity List table
                 try {

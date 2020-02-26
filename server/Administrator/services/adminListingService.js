@@ -61,7 +61,7 @@ function AdminListingService(objectCollection) {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     if(data.length > 0) {
-                        let organizationInlineData = JSON.parse(data[0].organization_inline_data);
+                        let organizationInlineData = JSON.parse(data[0].organization_inline_data || '{}');
                         //console.log(organizationInlineData);
 
                         if(organizationInlineData.hasOwnProperty("rm_bot_config")) {

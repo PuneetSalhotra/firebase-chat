@@ -855,3 +855,7 @@ config.cassandraCredentialsProd = {
     log_keyspace: 'deskerlogv2',
     session_keyspace: 'deskersession'
 };
+
+//OPENTOK
+config.opentok_apiKey = "46050712";
+config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";

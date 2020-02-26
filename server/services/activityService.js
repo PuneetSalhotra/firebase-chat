@@ -22,7 +22,7 @@ function ActivityService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
-    const fridsJson = require('../vodafone/utils/frids');
+    //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
     const self = this;

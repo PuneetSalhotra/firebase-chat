@@ -3,7 +3,7 @@
  * 
  */
 var AwsSss = require('../utils/s3Wrapper');
-var fs = require('fs');
+//var fs = require('fs');
 
 function UtilityController(objCollection) {
 

@@ -1767,13 +1767,33 @@ function BotService(objectCollection) {
     }
 
     async function addComment(request, comments) {
-
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
-            workflowActivityTypeID = 0;
+            workflowActivityTypeID = 0,
+            //activityInlineData = {},
+            fridExpiryDate;
+
+        let reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        for(let i=0; i<reqActivityInlineData.length; i++){
+            if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
+                console.log('field_value: ', reqActivityInlineData[i].field_value);
+                fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
+                break;
+            }
+        }
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
-            if (Number(workflowActivityData.length) > 0) {
+            if (Number(workflowActivityData.length) > 0) {                
+                /*activityInlineData = JSON.parse(workflowActivityData[0].activity_inline_data)
+                console.log('Number(request.trigger_field_id) : ', Number(request.trigger_field_id));
+
+                for(let i=0; i<activityInlineData.length; i++){
+                    if(Number(activityInlineData[i].field_id) === Number(request.trigger_field_id)) {
+                        console.log('field_value: ', activityInlineData[i].field_value);
+                        fridExpiryDate = util.addDaysToGivenDate((activityInlineData[i].field_value).toString(), 60); //Add 60 days to it
+                        break;
+                    }
+                }*/
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
             }
         } catch (error) {
@@ -1786,6 +1806,26 @@ function BotService(objectCollection) {
 
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});
+
+            if(comment.comment === "<<vf_frid_expire>>") {
+                let fridExpiryDateArr = fridExpiryDate.split("-");
+                let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
+
+                console.log('fridExpiryDateArr : ', fridExpiryDateArr);
+                console.log('currentDateArr : ', currentDateArr);
+                
+                let a = moment([fridExpiryDateArr[0], fridExpiryDateArr[1], fridExpiryDateArr[2]]);
+                let b = moment([currentDateArr[0], currentDateArr[1], currentDateArr[2]]);
+                
+                let difference = a.diff(b, 'days');
+                console.log('Difference : ', difference);
+
+                if(Math.sign(difference) === 1) { //Positive
+                    comment.comment = `This Order's FRID is going to expire on ${fridExpiryDate} (in ${difference} Days).`;
+                } else {
+                    comment.comment = `This Order's FRID is expired on ${fridExpiryDate}, please raise a new FRID for this Order.`;
+                }
+            }
 
             addCommentRequest.asset_id = 100;
             addCommentRequest.device_os_id = 7;
@@ -1813,9 +1853,10 @@ function BotService(objectCollection) {
             addCommentRequest.bot_operation_type = 'add_comment';
             addCommentRequest.push_message = `${comment.comment}`;
 
-            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
-                await addTimelineTransactionAsync(addCommentRequest);
+                //await addTimelineTransactionAsync(addCommentRequest);
+                await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);
             } catch (error) {
                 console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
                 throw new Error(error);
@@ -1946,7 +1987,8 @@ function BotService(objectCollection) {
 
         let documentData = {},
             documentFieldUpdateInlineData = [],
-            flagAddAttestedDocumentToTimeline = 0;
+            flagAddAttestedDocumentToTimeline = 0,
+            flagAttestationIsText = 0;
         for (const attachment of attachments) {
 
             // If the bot operation inline data doesn't have the key "attestation",
@@ -1960,6 +2002,7 @@ function BotService(objectCollection) {
             }
             
             flagAddAttestedDocumentToTimeline = Number(attachment.flag_add_attested_document_to_timeline);
+            flagAttestationIsText = Number(attachment.flag_attestation_is_text);
 
             const documentFormID = Number(attachment.document.form_id);
             const documentFieldID = Number(attachment.document.field_id);
@@ -2038,9 +2081,16 @@ function BotService(objectCollection) {
                     logger.silly(`documentPath: ${documentPath}`, { type: 'document_with_attestation' });
                     
                     // Signature
-                    let attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
-                    const attestationPath = path.resolve(global.config.efsPath, attestationName);
-                    logger.silly(`attestationPath: ${attestationPath}`, { type: 'document_with_attestation' });
+                    let attestationName = "",
+                        attestationPath = "",
+                        attestationText = "";
+                    if (flagAttestationIsText) {
+                        attestationText = attestationFieldData[0].data_entity_text_1;
+                    } else {
+                        attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
+                        attestationPath = path.resolve(global.config.efsPath, attestationName);
+                        logger.silly(`attestationPath: ${attestationPath}`, { type: 'document_with_attestation' });
+                    }
                     
                     // Document With Attestation/Signature
                     const documentWithAttestationPath = `${documentPath.split('.')[0]}_with_attestation.pdf`
@@ -2052,12 +2102,26 @@ function BotService(objectCollection) {
                         documentWithAttestationPath
                     );
                     for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
-                
-                        pdfDoc
-                            .editPage(i)
-                            .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
-                            .endPage();
+                        if (flagAttestationIsText) {
+                            pdfDoc
+                                .editPage(i)
+                                .text(attestationText, 400, 640, {
+                                    color: '#000000',
+                                    fontSize: 20,
+                                    bold: true,
+                                    font: 'Helvatica',
+                                    opacity: 0.8,
+                                    rotation: 325
+                                })
+                                .endPage();
                             // .endPDF();
+                        } else {
+                            pdfDoc
+                                .editPage(i)
+                                .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
+                                .endPage();
+                            // .endPDF();
+                        }
                     }
                     pdfDoc.endPDF();
                     
