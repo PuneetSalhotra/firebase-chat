@@ -9,6 +9,9 @@ var fs = require('fs');
 const moment = require('moment');
 const xlsx = require('xlsx');
 
+const OpenTok = require('opentok');
+let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -1006,7 +1009,7 @@ function AssetService(objectCollection) {
                                 passcode = passcode.replace(/,/g, " ");
 
                             //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for Mytony App is, " + passcode;
+                            var text = "Your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
@@ -1030,7 +1033,7 @@ function AssetService(objectCollection) {
 
                             //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
                             //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for Mytony App is, " + passcode;
+                            var text = "Your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                             text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
@@ -4364,7 +4367,8 @@ this.getQrBarcodeFeeback = async(request) => {
     }*/
     let resp = {
         "scanned_content" : request.scanned_content,
-        "message": "Successfully scanned!"
+        //"message": "Successfully scanned!"
+        "message": "Invalid scan!"
     }
 
     responseData.push(resp);
@@ -4410,6 +4414,112 @@ this.getQrBarcodeFeeback = async(request) => {
         }
         return [error, responseData];
     }    
+
+
+    //OpenTok
+    this.openTokGetSessionData = async (request) => {
+        let responseData = {},
+            error = false;
+
+        //if a room name is already associated with a session ID
+        let [err, sessionData] = await getSessionID(request);
+        if(err) {
+            return [true, "Unable to retrive the session data"];
+        }
+        console.log('Retrieved sessionData : ', sessionData);
+        if(sessionData.length > 0) {
+            // fetch the sessionId from local storage
+            // generate token
+            let sessionID = sessionData[0].video_call_session_id;
+            let token = opentok.generateToken(sessionID);
+            responseData = {
+                "apiKey": global.config.opentok_apiKey,
+                "sessionId": sessionID,
+                "token": token
+            }
+        } else {
+            //Create Session ID
+            // store the sessionId into local
+            // generate token
+            await new Promise((resolve, reject)=>{
+                opentok.createSession({mediaMode:"routed"}, (err, session)=>{
+                    if (err){
+                        console.log(err);
+                        error = true;
+                        resolve();
+                    } 
+                    request.session_id = session.sessionId;
+                    saveSessionID(request);
+            
+                    let token = session.generateToken();
+                    responseData = {
+                        "apiKey": global.config.opentok_apiKey,
+                        "sessionId": session.sessionId,
+                        "token": token
+                    }
+                    resolve();
+                });
+            });            
+        }
+        
+        return [error, responseData];
+    };
+
+    //Store room id against session id
+    async function saveSessionID(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.from_asset_id,
+            request.to_asset_id,
+            request.room_id,
+            request.session_id,
+            request.inline_data || '{}',
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_video_call_transaction_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    };
+
+    //Get the session id associated with a room_id
+    async function getSessionID(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.room_id
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_video_call_transaction_select_room', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;
