@@ -337,17 +337,5 @@ function UtilityController(objCollection) {
         }
     });
 
-    
-    //OpenTOK
-    app.post('/' + global.config.version + '/room/name', async (req, res) => {
-        const [err, openTokData] = await activityCommonService.openTokGetSessionData(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse({}, openTokData, 200, req.body));
-        } else {
-            console.log("/room/name | Error: ", err);
-            res.send(responseWrapper.getResponse(err, openTokData, -9999, req.body));
-        }
-    });
-
 }
 module.exports = UtilityController;
