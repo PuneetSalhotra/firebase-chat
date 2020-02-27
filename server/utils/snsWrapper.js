@@ -261,11 +261,11 @@ var AwsSns = function () {
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Account');
                         global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Account App Plain Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
+                        platformApplicationArn = global.config.platformApplicationIosGreneAccountPushDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Account');
                         global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Account Plain Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
+                        platformApplicationArn = global.config.platformApplicationIosGreneAccountPushProd;
                     }
                 }
                 break;
