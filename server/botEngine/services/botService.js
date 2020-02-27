@@ -2187,6 +2187,7 @@ function BotService(objectCollection) {
         // alterFormActivityFieldValues Update the document's field value to the attested one
         let fieldsAlterRequest = Object.assign({}, request);
         fieldsAlterRequest.form_transaction_id = documentData.documentFormTransactionID;
+        fieldsAlterRequest.activity_form_id = documentData.documentFormID;
         fieldsAlterRequest.form_id = documentData.documentFormID;
         fieldsAlterRequest.field_id = documentData.documentFieldID;
         fieldsAlterRequest.activity_inline_data = JSON.stringify(documentFieldUpdateInlineData);
@@ -2355,6 +2356,13 @@ function BotService(objectCollection) {
         newReq.log_asset_id = 100; // Tony
         newReq.asset_id = 100; // Tony
         newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
+
+        // Trigger flag for resource manager
+        if (inlineData.hasOwnProperty("flag_trigger_resource_manager")) {
+            newReq.flag_trigger_resource_manager = Number(inlineData.flag_trigger_resource_manager);
+        } else {
+            newReq.flag_trigger_resource_manager = 0;
+        }
 
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
