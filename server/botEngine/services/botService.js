@@ -2357,6 +2357,13 @@ function BotService(objectCollection) {
         newReq.asset_id = 100; // Tony
         newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
 
+        // Trigger flag for resource manager
+        if (inlineData.hasOwnProperty("flag_trigger_resource_manager")) {
+            newReq.flag_trigger_resource_manager = Number(inlineData.flag_trigger_resource_manager);
+        } else {
+            newReq.flag_trigger_resource_manager = 0;
+        }
+
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
