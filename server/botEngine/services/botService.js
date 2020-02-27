@@ -2187,6 +2187,7 @@ function BotService(objectCollection) {
         // alterFormActivityFieldValues Update the document's field value to the attested one
         let fieldsAlterRequest = Object.assign({}, request);
         fieldsAlterRequest.form_transaction_id = documentData.documentFormTransactionID;
+        fieldsAlterRequest.activity_form_id = documentData.documentFormID;
         fieldsAlterRequest.form_id = documentData.documentFormID;
         fieldsAlterRequest.field_id = documentData.documentFieldID;
         fieldsAlterRequest.activity_inline_data = JSON.stringify(documentFieldUpdateInlineData);
