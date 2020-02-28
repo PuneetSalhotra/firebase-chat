@@ -2100,7 +2100,10 @@ function BotService(objectCollection) {
                     await sleep(4000);
                     const pdfDoc = new HummusRecipe(
                         documentPath,
-                        documentWithAttestationPath
+                        documentWithAttestationPath,
+                        {
+                            fontSrcPath: `${__dirname}/../../../fonts`
+                        }
                     );
                     for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
                         if (flagAttestationIsText) {
@@ -2108,11 +2111,22 @@ function BotService(objectCollection) {
                                 .editPage(i)
                                 .text(attestationText, 400, 640, {
                                     color: '#000000',
-                                    fontSize: 20,
-                                    bold: true,
-                                    font: 'Helvatica',
+                                    fontSize: 15,
+                                    // bold: true,
+                                    // underline: true,
+                                    font: 'Audhistine',
                                     opacity: 0.8,
-                                    rotation: 325
+                                    rotation: 325,
+                                    textBox: {
+                                        width: 250,
+                                        height: 300,
+                                        wrap: 'trim',
+                                        style: {
+                                            lineWidth: 0,
+                                            fill: "#FFFFFF",
+                                            opacity: 1,
+                                        }
+                                    }
                                 })
                                 .endPage();
                             // .endPDF();
