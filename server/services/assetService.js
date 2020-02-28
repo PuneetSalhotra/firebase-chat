@@ -660,7 +660,8 @@ function AssetService(objectCollection) {
                 'asset_status_datetime': util.replaceDefaultDatetime(row['asset_status_datetime']),
                 'asset_assigned_status_id': util.replaceDefaultNumber(row['asset_assigned_status_id']),
                 'asset_assigned_status_name': util.replaceDefaultString(row['asset_assigned_status_name']),
-                'asset_assigned_status_datetime': util.replaceDefaultDatetime(row['asset_assigned_status_datetime'])
+                'asset_assigned_status_datetime': util.replaceDefaultDatetime(row['asset_assigned_status_datetime']),
+                'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
             };
             responseArr.push(rowData);
             next();
@@ -720,8 +721,9 @@ function AssetService(objectCollection) {
             'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']), // Legacy
             'asset_flag_account_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']),
             'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
-            'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']) 
-
+            'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']),
+            'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
+            
         };
 
         callback(false, rowData);

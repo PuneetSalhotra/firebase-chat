@@ -5924,6 +5924,15 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log("workflow_type_score "+workflow_type_score);
             console.log("workflow_category_score "+workflow_category_score);
 
+            //read efficiency
+            //rollback 
+            request.monthly_summary_id = 32;
+
+            let [error12, responseCode12] = await self.getAssetMonthlySummary(request);
+            read_efficiency = responseCode12.length>0?responseCode12[0].data_entity_decimal_1:0;
+            //work_efficiency = work_efficiency * work_efficiency_percentage;
+            console.log("read_efficiency "+read_efficiency);            
+
             request.summary_id = 5;
             request.flag = 0;
             let [error11, responseCode11] = await self.assetSummarytransactionSelect(request);
@@ -6320,6 +6329,33 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
     }
 
+    this.getAssetMonthlySummary = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.target_asset_id,
+            request.operating_asset_id,
+            request.organization_id,
+            request.monthly_summary_id,
+            util.getStartDayOfPrevMonth(),
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_timeline', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }
 }
 
 
