@@ -2126,7 +2126,7 @@ function ActivityService(objectCollection) {
                               if(request.flag_trigger_resource_manager == 1){
                                     console.log("AI BOT Trigger Received");
                                     if(response[0].activity_type_flag_persist_role == 1)
-                                    activityCommonService.activityLeadUpdate(request, participantData, false); 
+                                    activityCommonService.activityLeadUpdate(request, {}, true); 
                                     else
                                     activityCommonService.RMStatusChangeTrigger(request);
                                 }else{
