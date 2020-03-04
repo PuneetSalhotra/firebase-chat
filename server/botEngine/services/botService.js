@@ -1786,9 +1786,10 @@ function BotService(objectCollection) {
         for(let i=0; i<reqActivityInlineData.length; i++){
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
                 console.log('field_value: ', reqActivityInlineData[i].field_value);
-                if(request.device_os_id === 2) { //IOS
-                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "dd MMM yyyy"); //Add 60 days to it    
-                } else if(request.device_os_id === 1) { //Android
+                console.log('Number(request.device_os_id): ', Number(request.device_os_id));
+                if(Number(request.device_os_id) === 2) { //IOS
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
+                } else if(Number(request.device_os_id) === 1) { //Android
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                 } else {
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it    
