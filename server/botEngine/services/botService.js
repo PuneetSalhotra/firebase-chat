@@ -1772,7 +1772,17 @@ function BotService(objectCollection) {
             //activityInlineData = {},
             fridExpiryDate;
 
-        let reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        let reqActivityInlineData;
+        if (!request.hasOwnProperty('activity_inline_data')) {
+            // Usually mobile apps send only activity_timeline_collection parameter in
+            // the "/activity/timeline/entry/add" call
+            const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+            reqActivityInlineData = activityTimelineCollection.form_submitted;
+        } else {
+            reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        }
+
+        //let reqActivityInlineData = JSON.parse(request.activity_inline_data);
         for(let i=0; i<reqActivityInlineData.length; i++){
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
                 console.log('field_value: ', reqActivityInlineData[i].field_value);
