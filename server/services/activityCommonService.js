@@ -4948,6 +4948,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                     responseData = data;
                     error = false;
+
+                    if(lead_asset_id == 0){
+                            request.ai_bot_id = 1;
+                            request.ai_bot_status_id = 3;
+                            request.bot_mapping_inline_data = {};
+                            self.unallocatedWorkflowInsert(request);
+                    }
+
                     request.datetime_log = util.getCurrentUTCTime();
                     let self = this;
                     self.activityListHistoryInsertAsync(request, 15);
@@ -6164,9 +6172,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                 self.addParticipantMakeRequest(request);
             }else{
-            console.log("RMResourceAvailabilityTrigger Lead from the workflow");
-            
-            self.activityListLeadUpdate(request, 0);
+                console.log("RMStatusChangeTrigger Lead from the workflow");
+                self.activityListLeadUpdate(request, 0);
             }
         }catch(error){
             console.log("error :: "+error);
