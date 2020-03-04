@@ -4954,9 +4954,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     // timeline transaction insert
                     if(request.timeline_stream_type_id == 718){
                          request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
+                    }else if(data[0].existing_lead_asset_id > 0 && lead_asset_id == 0){
+                        request.timeline_stream_type_id = 718;
+
+                         let timelineCollection = {};
+                        timelineCollection.content="Tony has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.subject="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.mail_body="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.attachments=[];
+                        timelineCollection.asset_reference=[];
+                        timelineCollection.activity_reference=[];
+                        timelineCollection.rm_bot_scores=[];
+                        request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                     }else if(data[0].existing_lead_asset_id > 0){
                         request.timeline_stream_type_id = 2403;
-                    }else {
+                    }else if(lead_asset_id > 0){
                         request.timeline_stream_type_id = 2402;
                     }
                     request.track_gps_datetime = util.getCurrentUTCTime();
@@ -5343,6 +5355,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     console.log("map1 :: "+map1.get(Number(temp)));
                     console.log("map2 :: "+map2.get(Number(temp)));
                     console.log("map3 :: "+map3.get(Number(temp)));
+                    console.log("map3 :: "+map4.get(Number(temp)));
                     
                 })
             }else{
@@ -5351,26 +5364,29 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                  //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
                     if(workforceInlineData.business_hours.length > 0){
                         workforceInlineData.business_hours.map((hours) => {
-                       // console.log("business_hours_start_time ",hours.business_hour_start_time);
-                       // console.log("business_hours_end_time ",hours.business_hour_end_time);
-
+                        console.log("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
+                        console.log("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
 
                         //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                         let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                         hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-
-                        map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST())));
+                        console.log("temp : "+Number(temp));
                         map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                        map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                         map2.set(Number(temp), hours.business_hour_end_time);
                         map3.set(Number(temp), hours.business_hour_start_time);
 
                         //hours_array_map[temp] = Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                         //hours_array_endtime_map[temp] = hours.business_hour_end_time;
 
-                        remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_()));
+                        remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                         minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
                         console.log("minutes_per_day : "+minutes_per_day);
                         console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                        console.log("map1 :: "+map1.get(Number(temp)));
+                        console.log("map2 :: "+map2.get(Number(temp)));
+                        console.log("map3 :: "+map3.get(Number(temp)));
+                        console.log("map4 :: "+map3.get(Number(temp)));
                         })
                     }
                 };
@@ -5381,26 +5397,29 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
                 if(workforceInlineData.business_hours.length > 0){
                     workforceInlineData.business_hours.map((hours) => {
-                   // console.log("business_hours_start_time ",hours.business_hour_start_time);
-                   // console.log("business_hours_end_time ",hours.business_hour_end_time);
+                    console.log("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
+                    console.log("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
 
- 
                     //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                     let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                     hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-
-                    map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST())));
+                    console.log("temp : "+Number(temp));
                     map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
+                    map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                     map2.set(Number(temp), hours.business_hour_end_time);
                     map3.set(Number(temp), hours.business_hour_start_time);
 
                     //hours_array_map[temp] = Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                     //hours_array_endtime_map[temp] = hours.business_hour_end_time;
 
-                    remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_()));
+                    remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                     minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
                     console.log("minutes_per_day : "+minutes_per_day);
                     console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                    console.log("map1 :: "+map1.get(Number(temp)));
+                    console.log("map2 :: "+map2.get(Number(temp)));
+                    console.log("map3 :: "+map3.get(Number(temp)));
+                    console.log("map3 :: "+map4.get(Number(temp)));
                     })
                 }
             };
@@ -5633,9 +5652,23 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
-            request.activity_lead_timeline_collection = JSON.stringify(rm_bot_scores);
+            let timelineCollection = {};
+            timelineCollection.content="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.subject="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.mail_body="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.attachments=[];
+            timelineCollection.asset_reference=[];
+            timelineCollection.activity_reference=[];
+            timelineCollection.rm_bot_scores=rm_bot_scores;
+            request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
             //console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
+        }else{
+            console.log("RMResourceAvailabilityTrigger Lead Workflow "+request.target_activity_id);
+            if(request.target_activity_id > 0){
+                request.activity_id = request.target_activity_id;
+                self.activityListLeadUpdate(request, 0);
+            }
         }
         console.log('request '+JSON.stringify(request, null,2));
         return [false, {}];
@@ -5967,7 +6000,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             reqObj.asset_id = request.target_asset_id;
             let [err1, assetData] = await self.getAssetDetailsAsync(reqObj);
 
-            let availableDatetime = assetData[0].asset_datetime_available_till?assetData[0].asset_datetime_available_till:"1970-01-01 00:00:00";
+            let availableDatetime = assetData[0].asset_datetime_available_till?util.replaceDefaultDatetime(assetData[0].asset_datetime_available_till):"1970-01-01 00:00:00";
             let t1 = availableDatetime.split(" ").join("").split(":").join("").split("-").join("");
             let t2 = temp_status_due_datetime.split(" ").join("").split(":").join("").split("-").join("");
 
@@ -6130,6 +6163,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.rm_bot_scores = rm_bot_scores;
                 request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                 self.addParticipantMakeRequest(request);
+            }else{
+            console.log("RMResourceAvailabilityTrigger Lead from the workflow");
+            
+            self.activityListLeadUpdate(request, 0);
             }
         }catch(error){
             console.log("error :: "+error);

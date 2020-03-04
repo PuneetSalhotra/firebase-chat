@@ -2087,6 +2087,12 @@ function BotService(objectCollection) {
                         attestationText = "";
                     if (flagAttestationIsText) {
                         attestationText = attestationFieldData[0].data_entity_text_1;
+                        let signatureWords = attestationText.split(" ");
+                        if (signatureWords.length < 2) {
+                            attestationText = `${signatureWords[0].toUpperCase()[0]}.`;
+                        } else {
+                            attestationText = `${signatureWords[0].toUpperCase()[0]}. ${signatureWords[1]}`;
+                        }
                     } else {
                         attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
                         attestationPath = path.resolve(global.config.efsPath, attestationName);
@@ -2100,7 +2106,10 @@ function BotService(objectCollection) {
                     await sleep(4000);
                     const pdfDoc = new HummusRecipe(
                         documentPath,
-                        documentWithAttestationPath
+                        documentWithAttestationPath,
+                        {
+                            fontSrcPath: `${__dirname}/../../../fonts`
+                        }
                     );
                     for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
                         if (flagAttestationIsText) {
@@ -2108,11 +2117,23 @@ function BotService(objectCollection) {
                                 .editPage(i)
                                 .text(attestationText, 400, 640, {
                                     color: '#000000',
-                                    fontSize: 20,
-                                    bold: true,
-                                    font: 'Helvatica',
+                                    fontSize: 15,
+                                    // bold: true,
+                                    // underline: true,
+                                    // font: 'Audhistine',
+                                    font: 'HerrVonMuellerhoff',
                                     opacity: 0.8,
-                                    rotation: 325
+                                    rotation: 325,
+                                    textBox: {
+                                        width: 250,
+                                        height: 300,
+                                        wrap: 'trim',
+                                        style: {
+                                            lineWidth: 0,
+                                            fill: "#FFFFFF",
+                                            opacity: 1,
+                                        }
+                                    }
                                 })
                                 .endPage();
                             // .endPDF();
