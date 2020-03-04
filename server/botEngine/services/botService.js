@@ -2087,6 +2087,12 @@ function BotService(objectCollection) {
                         attestationText = "";
                     if (flagAttestationIsText) {
                         attestationText = attestationFieldData[0].data_entity_text_1;
+                        let signatureWords = attestationText.split(" ");
+                        if (signatureWords.length < 2) {
+                            attestationText = `${signatureWords[0].toUpperCase()[0]}.`;
+                        } else {
+                            attestationText = `${signatureWords[0].toUpperCase()[0]}. ${signatureWords[1]}`;
+                        }
                     } else {
                         attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
                         attestationPath = path.resolve(global.config.efsPath, attestationName);
