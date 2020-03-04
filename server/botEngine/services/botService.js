@@ -2120,7 +2120,8 @@ function BotService(objectCollection) {
                                     fontSize: 15,
                                     // bold: true,
                                     // underline: true,
-                                    font: 'Audhistine',
+                                    // font: 'Audhistine',
+                                    font: 'HerrVonMuellerhoff',
                                     opacity: 0.8,
                                     rotation: 325,
                                     textBox: {
