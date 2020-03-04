@@ -4954,9 +4954,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     // timeline transaction insert
                     if(request.timeline_stream_type_id == 718){
                          request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
+                    }else if(data[0].existing_lead_asset_id > 0 && lead_asset_id == 0){
+                        request.timeline_stream_type_id = 718;
+
+                         let timelineCollection = {};
+                        timelineCollection.content="Tony has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.subject="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.mail_body="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.attachments=[];
+                        timelineCollection.asset_reference=[];
+                        timelineCollection.activity_reference=[];
+                        timelineCollection.rm_bot_scores=[];
+                        request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                     }else if(data[0].existing_lead_asset_id > 0){
                         request.timeline_stream_type_id = 2403;
-                    }else {
+                    }else if(lead_asset_id > 0){
                         request.timeline_stream_type_id = 2402;
                     }
                     request.track_gps_datetime = util.getCurrentUTCTime();
@@ -5640,9 +5652,23 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
-            request.activity_lead_timeline_collection = JSON.stringify(rm_bot_scores);
+            let timelineCollection = {};
+            timelineCollection.content="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.subject="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.mail_body="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.attachments=[];
+            timelineCollection.asset_reference=[];
+            timelineCollection.activity_reference=[];
+            timelineCollection.rm_bot_scores=rm_bot_scores;
+            request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
             //console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
+        }else{
+            console.log("RMResourceAvailabilityTrigger Lead Workflow "+request.target_activity_id);
+            if(request.target_activity_id > 0){
+                request.activity_id = request.target_activity_id;
+                self.activityListLeadUpdate(request, 0);
+            }
         }
         console.log('request '+JSON.stringify(request, null,2));
         return [false, {}];
@@ -6137,6 +6163,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.rm_bot_scores = rm_bot_scores;
                 request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                 self.addParticipantMakeRequest(request);
+            }else{
+            console.log("RMResourceAvailabilityTrigger Lead from the workflow");
+            
+            self.activityListLeadUpdate(request, 0);
             }
         }catch(error){
             console.log("error :: "+error);
