@@ -4627,11 +4627,16 @@ function VodafoneService(objectCollection) {
                         // If activity_sub_type_id is successfully set, proceed to parse the bulk order excel file
                         // and generate child orders
                         try {
-                            await self.vodafoneCreateChildOrdersFromBulkOrder(
-                                request,
-                                workflowActivityID,
-                                annexureExcelS3Url
-                            );
+                            if (
+                                Number(batch.SOURCE_FORM_ID) === Number(request.form_id) ||
+                                Number(batch.SOURCE_FORM_ID) === Number(request.activity_form_id)
+                            ) {
+                                await self.vodafoneCreateChildOrdersFromBulkOrder(
+                                    request,
+                                    workflowActivityID,
+                                    annexureExcelS3Url
+                                );
+                            }
                         } catch (error) {
                             console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
                         }
