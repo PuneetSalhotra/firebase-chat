@@ -103,6 +103,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
+                console.time('DB-Query-Execution-Callback');
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
                         logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -115,6 +116,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         conn.release();
                         callback(err, false);
                     }
+                console.timeEnd('DB-Query-Execution-Callback');
                 });
             }
         });
@@ -129,7 +131,7 @@ var executeQuery = function (flag, queryString, request, callback) {
 var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
-
+        
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
         try {
@@ -139,6 +141,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
                 } else {
+                    console.time('DB-Query-Execution-Promise');                    
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
                             logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -152,6 +155,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                             conn.release();
                             reject(err);
                         }
+                    console.timeEnd('DB-Query-Execution-Promise');
                     });
                 }
             });

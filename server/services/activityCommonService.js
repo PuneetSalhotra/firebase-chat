@@ -4948,6 +4948,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
                     responseData = data;
                     error = false;
+
+                  /*  if(lead_asset_id == 0){
+                            request.ai_bot_id = 1;
+                            request.ai_bot_status_id = 3;
+                            request.bot_mapping_inline_data = {};
+                            self.unallocatedWorkflowInsert(request);
+                    } */
+
                     request.datetime_log = util.getCurrentUTCTime();
                     let self = this;
                     self.activityListHistoryInsertAsync(request, 15);
@@ -4975,6 +4983,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                     
                     console.log("activityListLeadUpdate :: "+JSON.stringify(request,null,2));
+                    if(request.timeline_stream_type_id > 0)
                     self.asyncActivityTimelineTransactionInsert(request, {}, request.timeline_stream_type_id); 
 
                     //calculate Stats
@@ -5294,7 +5303,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     }     
    this.getWorkingHoursOfanAsset = async function(request, flag){
+
     try{
+
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        console.log("*******Generating Status Due Date for "+request.target_asset_id+" on workflow "+request.activity_id);
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+
         console.log("duration_in_minutes :: "+request.duration_in_minutes);
         let statusDuration = request.duration_in_minutes;
         let self = this;
@@ -5317,17 +5332,17 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         if(workforceInlineData.hasOwnProperty("business_days")){
              //console.log("workforceInlineData2 :: "+workforceInlineData.business_days);
              workforceInlineData.business_days.map((day) => {
-                let temp = day.value;
-                console.log(day.value);
+                //let temp = day.value;
+                //console.log(day.value);
                 businessDays.push(day.value);
                 
              });
         }
-        console.log("day "+JSON.stringify(businessDays));
+
+        console.log("BUSINESS DAYS "+JSON.stringify(businessDays));
 
         console.log("CURRENT TIME IST:: "+util.getCurrentTimeHHmmIST_());
-        
-        
+   
         if(assetInlineData.hasOwnProperty("business_hours")){
             //console.log("assetInlineData1 :: "+assetInlineData.business_hours);
             if(assetInlineData.business_hours.length > 0){
@@ -5447,11 +5462,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
                 temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[hours_array.length-1]));
                 temp_current_datetime = util.addDays(temp_current_datetime,1);
-                console.log("Working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+                console.log("106.1 Working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
                 i++
             }else{
                 temp_current_datetime = util.addDays(temp_current_datetime,1); 
-                console.log("Non working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+                console.log("106.2 Non working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
             }   
          }
          console.log("107 Due Datetime :: "+temp_current_datetime);
@@ -5587,36 +5602,35 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          }
 
          //temp_current_datetime = temp_current_datetime.substring(0,10)+" "+map2.get(hours_array[hours_array.length-1]);
-         console.log("Due Datetime with minutes:: "+temp_current_datetime);
-         console.log("Due time:: "+end_time);
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        console.log("*******Generated Status Due Date for "+request.target_asset_id+" is "+temp_current_datetime);
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
-         if(flag==1){
+        if(flag==1){
+            console.log("########################### Updating Status Due Date for workflow "+request.activity_id);
             request.status_due_datetime = temp_current_datetime;
             self.updateStatusDueDate(request);
-         }
+        }
+
         return temp_current_datetime;
     }catch(e){
         console.log(e);
     }
-
-        //if(Number(statusDuration) > Number(minutes_per_day))
-
-       // let days = statusDuration/minutes_per_day;
-
    }
-
 
     this.RMResourceAvailabilityTrigger = async function (request) {
 
         let self = this;
         //request.lead_asset_type_id = 134505;
         let [error, responseData]= await self.RMOnAvailabilityOFAResource(request);
-        console.log('responseData '+responseData);
+        console.log('Available Resources :: '+responseData.length);
         //generate score, find the top score asset
         let highest_score_workflow = -1;
         let highest_score = 0;
         let rm_bot_scores = [];
 
+        let roleLinkedToStatus = 0;
+        let statusDuration = 0;        
 
         //generate score, find the top score asset
         for(let k = 0; k < responseData.length; k++){
@@ -5663,14 +5677,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
             //console.log("Before Making Request ", JSON.stringify(request,null,2));
             self.addParticipantMakeRequest(request);
-        }else{
-            console.log("RMResourceAvailabilityTrigger Lead Workflow "+request.target_activity_id);
-            if(request.target_activity_id > 0){
-                request.activity_id = request.target_activity_id;
-                self.activityListLeadUpdate(request, 0);
-            }
         }
-        console.log('request '+JSON.stringify(request, null,2));
+        //console.log('request '+JSON.stringify(request, null,2));
         return [false, {}];
     };  
 
@@ -5781,7 +5789,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status_id', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -5816,8 +5824,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
 
     this.generateResourceScore = async function(request){
-
+        console.log("************************************************************************************************");
         console.log("******* Generating score for asset "+request.target_asset_id+" on workflow "+request.activity_id);
+        console.log("************************************************************************************************");
         let self = this;
         let read_efficiency_percentage = 0;
         let work_efficiency_percentage = 0;
@@ -5869,14 +5878,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          workflow_type_exposure_percentage = data_config.workflow_type_exposure_percentage;
          workflow_category_exposure_percentage = data_config.workflow_category_exposure_percentage;
 
-         console.log("read_efficiency_percentage :: "+read_efficiency_percentage);
-         console.log("work_efficiency_percentage :: "+work_efficiency_percentage);
-         console.log("status_rollback_percentage :: "+status_rollback_percentage);
-         console.log("customer_exposure_percentage :: "+customer_exposure_percentage);
-         console.log("industry_exposure_percentage :: "+industry_exposure_percentage);
-         console.log("workflow_exposure_percentage :: "+workflow_exposure_percentage);
-         console.log("workflow_category_exposure_percentage :: "+workflow_category_exposure_percentage);
-         console.log("workflow_type_exposure_percentage :: "+workflow_type_exposure_percentage);
+         console.log("read_efficiency_percentage************ :: "+read_efficiency_percentage);
+         console.log("work_efficiency_percentage************ :: "+work_efficiency_percentage);
+         console.log("status_rollback_percentage************ :: "+status_rollback_percentage);
+         console.log("customer_exposure_percentage********** :: "+customer_exposure_percentage);
+         console.log("industry_exposure_percentage********** :: "+industry_exposure_percentage);
+         console.log("workflow_exposure_percentage********** :: "+workflow_exposure_percentage);
+         console.log("workflow_category_exposure_percentage* :: "+workflow_category_exposure_percentage);
+         console.log("workflow_type_exposure_percentage***** :: "+workflow_type_exposure_percentage);
 
          request.summary_id = 1;
          request.flag = 0;
@@ -5884,99 +5893,205 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         //self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
         let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
+            if(data.length == 0){
+                console.log("No Activities exists, hence total_score = -1");
+                return[false, {"total_score":-1, "rm_bot_scores":[]}];
+            }
+            
 
-            console.log("activity_type_id "+data[0].activity_type_id);
-            console.log("activity_type_tag_id "+data[0].activity_type_tag_id);
-            console.log("tag_type_id "+data[0].tag_type_id);
-            console.log("industry_id "+data[0].industry_id);
-            console.log("customer_asset_id "+data[0].customer_asset_id);
+            console.log("Activity activity_type_id***** :: "+data[0].activity_type_id);
+            console.log("Activity activity_type_tag_id* :: "+data[0].activity_type_tag_id);
+            console.log("Activity tag_type_id********** :: "+data[0].tag_type_id);
+            console.log("Activity industry_id********** :: "+data[0].industry_id);
+            console.log("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
 
             request.flag = 1;
             request.entity_id = data[0].activity_type_id;
-            let [error1, responseCode1] = await self.assetTaskParticipatedCount(request);
-            let [error2, responseCode2] = await self.assetTaskLeadedCount(request);
+            let [error1, activityTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error2, activityTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
 
+            if(activityTypeStatusCount.length > 0)
+            {
+                if(activityTypeIntimeStatusCount.length > 0){
+                    workflow_score = (Number(activityTypeIntimeStatusCount[0].activity_type_count)/Number(activityTypeStatusCount[0].activity_type_count));
+                }else{
+                    workflow_score = 0;
+                }
+            }else{
+                workflow_score = 0;
+            }
+
+            /*
             if(responseCode1.length > 0 && responseCode2.length > 0){
                 if(responseCode1[0].activity_type_count > 0 && responseCode2[0].activity_type_count > 0)
                 workflow_score = (responseCode2[0].activity_type_count/responseCode1[0].activity_type_count)*100;
-            }
-            else
+            }else
                 workflow_score = 0;
+            */
 
             request.flag = 2;
             request.entity_id = data[0].activity_type_tag_id;
-            let [error3, responseCode3] = await self.assetTaskParticipatedCount(request);
-            let [error4, responseCode4] = await self.assetTaskLeadedCount(request);
+            let [error3, activityTypeTagStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error4, activityTypeTagIntimeStatusCount] = await self.assetTaskLeadedCount(request);
 
+            if(activityTypeTagStatusCount.length > 0)
+            {
+                if(activityTypeTagIntimeStatusCount.length > 0){
+                    workflow_type_score = (Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count)/Number(activityTypeTagStatusCount[0].activity_type_tag_count));
+                }else{
+                    workflow_type_score = 0;
+                }
+            }else{
+                workflow_type_score = 0;
+            }
+
+/*
             if(responseCode3.length > 0 && responseCode4.length > 0){
                 if(responseCode4[0].activity_type_tag_count > 0 && responseCode3[0].activity_type_tag_count > 0)
                 workflow_type_score = (responseCode4[0].activity_type_tag_count/responseCode3[0].activity_type_tag_count)*100;
             }else
                 workflow_type_score = 0;
-
+*/
             request.flag = 3;
             request.entity_id = data[0].tag_type_id;
-            let [error5, responseCode5] = await self.assetTaskParticipatedCount(request);
-            let [error6, responseCode6] = await self.assetTaskLeadedCount(request);
+            let [error5, tagTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error6, tagTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
 
+            if(tagTypeStatusCount.length > 0)
+            {
+                if(tagTypeIntimeStatusCount.length > 0){
+                    workflow_category_score = (Number(tagTypeIntimeStatusCount[0].tag_type_count)/Number(tagTypeStatusCount[0].tag_type_count));
+                }else{
+                    workflow_category_score = 0;
+                }
+            }else{
+                workflow_category_score = 0;
+            }
 
+/*
             if(responseCode5.length > 0 && responseCode6.length > 0){
                 if(responseCode5[0].tag_type_count > 0 && responseCode6[0].tag_type_count > 0)
                 workflow_category_score = (responseCode6[0].tag_type_count/responseCode5[0].tag_type_count)*100;
             }else
                 workflow_category_score = 0;
-
+*/
             request.flag = 4;
             request.entity_id = data[0].industry_id;
-            let [error7, responseCode7] = await self.assetTaskParticipatedCount(request);
-            let [error8, responseCode8] = await self.assetTaskLeadedCount(request);
+            let [error7, industryStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error8, industryIntimeStatusCount] = await self.assetTaskLeadedCount(request);
 
+            if(industryStatusCount.length > 0)
+            {
+                if(industryIntimeStatusCount.length > 0){
+                    industry_score = (Number(industryIntimeStatusCount[0].industry_count)/Number(industryStatusCount[0].industry_count));
+                }else{
+                    industry_score = 0;
+                }
+            }else{
+                industry_score = 0;
+            }
 
+/*
             if(responseCode7.length > 0 && responseCode8.length > 0){
                 console.log("Industry Count :: "+responseCode8[0].industry_count + "  "+responseCode7[0].industry_count);
                 industry_score = Number(responseCode8[0].industry_count/responseCode7[0].industry_count)>=0?Number(responseCode8[0].industry_count/responseCode7[0].industry_count)*100:0;
             }
             else
                 industry_score = 0;
-
+*/
             request.flag = 5;
             request.entity_id = data[0].customer_asset_id;
-            let [error9, responseCode9] = await self.assetTaskParticipatedCount(request);
-            let [error10, responseCode10] = await self.assetTaskLeadedCount(request);
+            let [error9, customerStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error10, customerIntimeStatusCount] = await self.assetTaskLeadedCount(request);
 
+            if(customerStatusCount.length > 0)
+            {
+                if(customerIntimeStatusCount.length > 0){
+                    customer_score = (Number(customerIntimeStatusCount[0].customer_asset_count)/Number(customerStatusCount[0].customer_asset_count));
+                }else{
+                    customer_score = 0;
+                }
+            }else{
+                customer_score = 0;
+            }
+
+/*
             if(responseCode9.length > 0 && responseCode10.length > 0){
                 console.log("Customer Count :: "+responseCode9[0].customer_asset_count + "  "+responseCode10[0].customer_asset_count);
                 customer_score = Number(responseCode10[0].customer_asset_count/responseCode9[0].customer_asset_count)>=0?Number(responseCode10[0].customer_asset_count/responseCode9[0].customer_asset_count)*100:0;
             }
             else
                 customer_score = 0;
-
-            console.log("industry_score "+industry_score);
-            console.log("customer_score "+customer_score);
-            console.log("workflow_score "+workflow_score);
-            console.log("workflow_type_score "+workflow_type_score);
-            console.log("workflow_category_score "+workflow_category_score);
-
+*/
             //read efficiency
-            //rollback 
+            //rollback
+
+            request.flag = 6;
+            request.entity_id = request.target_asset_id;
+            let [error11, totalUpdateCount] = await self.assetTaskParticipatedCount(request);
+            let [error12, totalIntimeUpdateCount] = await self.assetTaskLeadedCount(request);
+
+            if(totalUpdateCount.length > 0)
+            {
+                if(totalIntimeUpdateCount.length > 0){
+                    read_efficiency = (Number(totalIntimeUpdateCount[0].update_count)/Number(totalUpdateCount[0].update_count));
+                }else{
+                    read_efficiency = 0;
+                }
+            }else{
+                read_efficiency = 0;
+            }
+
+/*            
             request.monthly_summary_id = 32;
 
             let [error12, responseCode12] = await self.getAssetMonthlySummary(request);
             read_efficiency = responseCode12.length>0?responseCode12[0].data_entity_decimal_1:0;
             //work_efficiency = work_efficiency * work_efficiency_percentage;
-            console.log("read_efficiency "+read_efficiency);            
+*/            
+ 
 
+            request.flag = 7;
+            request.entity_id = request.target_asset_id;
+            let [error13, totalStatusCount] = await self.assetTaskParticipatedCount(request);
+            let [error14, totalIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+
+            if(totalStatusCount.length > 0)
+            {
+                if(totalIntimeStatusCount.length > 0){
+                    work_efficiency = (Number(totalIntimeStatusCount[0].activity_count)/Number(totalStatusCount[0].activity_count));
+                }else{
+                    work_efficiency = 0;
+                }
+            }else{
+                work_efficiency = 0;
+            }
+
+/*
             request.summary_id = 5;
             request.flag = 0;
             let [error11, responseCode11] = await self.assetSummarytransactionSelect(request);
             work_efficiency = responseCode11.length>0?responseCode11[0].data_entity_double_1:0;
             //work_efficiency = work_efficiency * work_efficiency_percentage;
-            console.log("work_efficiency "+work_efficiency);
+*/  
+            work_efficiency = work_efficiency?work_efficiency:0;
+            read_efficiency = read_efficiency?read_efficiency:0;
+            industry_score = industry_score?industry_score:0;
+            customer_score = customer_score?customer_score:0;
+            workflow_score = workflow_score?workflow_score:0;
+            workflow_type_score = workflow_type_score?workflow_type_score:0;
+            workflow_category_score = workflow_category_score?workflow_category_score:0;
+            
+            console.log("work_efficiency********* "+work_efficiency); 
+            console.log("read_efficiency********* "+read_efficiency);                      
+            console.log("industry_score********** "+industry_score);
+            console.log("customer_score********** "+customer_score);
+            console.log("workflow_score********** "+workflow_score);
+            console.log("workflow_type_score***** "+workflow_type_score);
+            console.log("workflow_category_score* "+workflow_category_score);
 
-
-
-            total_score = ((work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (workflow_type_score * workflow_type_exposure_percentage) + (workflow_category_score * workflow_category_exposure_percentage));
-            console.log("Total Score :: "+((work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (workflow_type_score * workflow_type_exposure_percentage) + (workflow_category_score * workflow_category_exposure_percentage)));
+            total_score = ((read_efficiency * read_efficiency_percentage) + (work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (workflow_type_score * workflow_type_exposure_percentage) + (workflow_category_score * workflow_category_exposure_percentage));
+            console.log("Total Score :: "+total_score);
 
             score_details.work_efficiency_score = work_efficiency * work_efficiency_percentage;
             score_details.read_efficiency_score =  read_efficiency * read_efficiency_percentage;
@@ -5988,11 +6103,15 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
             score_details.overall_score = total_score;
             score_details.asset_id = request.target_asset_id;
-            score_details.asset_name = request.target_asset_name;
-            score_details.operating_asset_id = request.target_operating_asset_id;
-            score_details.operating_asset_name = request.target_operating_asset_name;
+            score_details.asset_name = request.target_asset_name?request.target_asset_name:"";
+            score_details.operating_asset_id = request.target_operating_asset_id?request.target_operating_asset_id:0;
+            score_details.operating_asset_name = request.target_operating_asset_name?request.target_operating_asset_name:"";
 
             score_details_array.push(score_details);
+
+            console.log("************************************************************************************************");
+            console.log("******* Generated score for asset "+request.target_asset_id+" on workflow "+request.activity_id+" is "+total_score);
+            console.log("************************************************************************************************");
 
             let temp_status_due_datetime = await self.getWorkingHoursOfanAsset(request, 0);
 
@@ -6007,21 +6126,25 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             t1 = t1?t1:0;
             t2 = t2?t2:0;
 
-            console.log("RESOURCE AVAILABLE TILL "+(availableDatetime.split(" ").join("").split(":").join("").split("-").join("")));
-            console.log("DERIVED STAUTS DUE DATE "+(temp_status_due_datetime.split(" ").join("").split(":").join("").split("-").join("")));
-            console.log("AFTER DUE DATE "+(t1-t2));
+            console.log("RESOURCE AVAILABLE TILL "+availableDatetime); //(availableDatetime.split(" ").join("").split(":").join("").split("-").join("")));
+            console.log("DERIVED STAUTS DUE DATE "+temp_status_due_datetime); //(temp_status_due_datetime.split(" ").join("").split(":").join("").split("-").join("")));
+            console.log("TIME BETWEEN TWO DATES "+(t1-t2));
 
             let diff = Number(t1)-Number(t2);
-            console.log("diff :: "+diff);
+            console.log("DIFF :: "+diff);
 
             if(diff < 0){
+                console.log("RESOURCE AVAILABLE TIME IS LESS THAN THE STATUS DUE DATE, HENCE total_score = -1");
                 total_score = -1;
+            }else{
+                console.log("DIFF GREATER THAN 0");
             }
 
         }catch(err){
             console.log('Error ',err);
         }
         console.log("Return :: "+total_score);
+
         return[false, {"total_score":total_score, "rm_bot_scores":score_details_array}]
     }
 
@@ -6096,9 +6219,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.ai_bot_status_id = 3;
             request.bot_mapping_inline_data = {};
 
+            await self.activityListLeadUpdate(request, 0);
             await self.unallocatedWorkflowInsert(request);
             await self.AIEventTransactionInsert(request);
-            
+
             let [error, responseCode] = await self.workforceActivityStatusMappingSelectStatusId(request);
 
             if(responseCode.length > 0){
@@ -6163,10 +6287,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 request.rm_bot_scores = rm_bot_scores;
                 request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                 self.addParticipantMakeRequest(request);
-            }else{
-            console.log("RMResourceAvailabilityTrigger Lead from the workflow");
-            
-            self.activityListLeadUpdate(request, 0);
             }
         }catch(error){
             console.log("error :: "+error);
@@ -6190,7 +6310,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    console.log("DD :: "+JSON.stringify(data));
+                    //console.log("DD :: "+JSON.stringify(data));
                     responseData = data;
                     error = false;
                 })
@@ -6218,7 +6338,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    console.log("DD :: "+JSON.stringify(data));
+                    //console.log("Response :: "+JSON.stringify(data, null, 2));
                     responseData = data;
                     error = false;
                 })
@@ -6246,7 +6366,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    console.log("DD :: "+JSON.stringify(data));
+                    //console.log("Response :: "+JSON.stringify(data, null, 2));
                     responseData = data;
                     error = false;
                 })
@@ -6393,6 +6513,52 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     }
+
+    this.updateCustomerOnWorkflowAsync = async function(request, requestFormData) {
+        let self = this;
+
+        forEachAsync(requestFormData, function (next, fieldObj) {
+            global.logger.write('conLog', '*****CHECKING FOR CUSTOMER *******'+fieldObj.field_id+" "+fieldObj.field_data_type_id, {}, request);
+            if(fieldObj.field_data_type_id == 59){
+                let assetReference = fieldObj.field_value.split('|');
+                if(assetReference.length>1){
+                    request['customer_asset_id'] = assetReference[0];
+                    self.updateCustomerOnWorkflow(request);
+                     
+                }else{
+                    console.log("CUSTOMER REFERENCE VALUE IS IMPROPER "+fieldObj.field_value);
+                }
+                next();
+            }else{
+                next();
+            }
+           
+        }).then(()=>{
+            console.log("DONE WITH CUSTOMER CHECK");
+        })
+    };
+
+    this.updateCustomerOnWorkflow = async function(request) {
+
+        try{
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.activity_id, 
+            request.customer_asset_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+       // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
+        if (queryString != '') {
+                         //(db.executeQueryPromise(0, queryStringMapping, request));
+            return await (db.executeQueryPromise(0, queryString, request));
+                            
+        }
+    }catch(err){
+        console.log('Error '+err);
+    }
+    };
 }
 
 

@@ -1772,11 +1772,28 @@ function BotService(objectCollection) {
             //activityInlineData = {},
             fridExpiryDate;
 
-        let reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        let reqActivityInlineData;
+        if (!request.hasOwnProperty('activity_inline_data')) {
+            // Usually mobile apps send only activity_timeline_collection parameter in
+            // the "/activity/timeline/entry/add" call
+            const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+            reqActivityInlineData = activityTimelineCollection.form_submitted;
+        } else {
+            reqActivityInlineData = JSON.parse(request.activity_inline_data);
+        }
+
+        //let reqActivityInlineData = JSON.parse(request.activity_inline_data);
         for(let i=0; i<reqActivityInlineData.length; i++){
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
                 console.log('field_value: ', reqActivityInlineData[i].field_value);
-                fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
+                console.log('Number(request.device_os_id): ', Number(request.device_os_id));
+                if(Number(request.device_os_id) === 2) { //IOS
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
+                } else if(Number(request.device_os_id) === 1) { //Android
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
+                } else {
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it    
+                }
                 break;
             }
         }
@@ -2117,8 +2134,8 @@ function BotService(objectCollection) {
                                 .editPage(i)
                                 .text(attestationText, 400, 640, {
                                     color: '#000000',
-                                    fontSize: 15,
-                                    // bold: true,
+                                    fontSize: 25,
+                                    bold: true,
                                     // underline: true,
                                     // font: 'Audhistine',
                                     font: 'HerrVonMuellerhoff',

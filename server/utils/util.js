@@ -830,8 +830,8 @@ function Util(objectCollection) {
         return value;
     };
 
-    this.addDaysToGivenDate = function (timeString, days) {
-        var value = moment(timeString, "YYYY-MM-DD").add(days, 'days').format("YYYY-MM-DD");
+    this.addDaysToGivenDate = function (timeString, days, dateFormat = "YYYY-MM-DD") {
+        var value = moment(timeString, dateFormat).add(days, 'days').format("YYYY-MM-DD");
         return value;
     };
 
