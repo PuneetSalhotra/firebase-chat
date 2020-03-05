@@ -2135,7 +2135,7 @@ function BotService(objectCollection) {
                                 .text(attestationText, 400, 640, {
                                     color: '#000000',
                                     fontSize: 25,
-                                    bold: true,
+                                    // bold: true,
                                     // underline: true,
                                     // font: 'Audhistine',
                                     font: 'HerrVonMuellerhoff',
