@@ -319,6 +319,9 @@ function ActivityService(objectCollection) {
                                 let finalValue = 0;
                                 request['dedicated_activity_id'] = 0; //result[0].activity_id;
                                 let requestFormData = JSON.parse(request.activity_inline_data);
+
+                                activityCommonService.updateCustomerOnWorkflowAsync(request, requestFormData);
+
                                 let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
                                 
                                 let widgetRow = await activityCommonService.getWidgetByActivityType(request);                                

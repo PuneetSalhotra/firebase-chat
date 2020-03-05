@@ -6513,6 +6513,52 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     }
+
+    this.updateCustomerOnWorkflowAsync = async function(request, requestFormData) {
+        let self = this;
+
+        forEachAsync(requestFormData, function (next, fieldObj) {
+            global.logger.write('conLog', '*****CHECKING FOR CUSTOMER *******'+fieldObj.field_id+" "+fieldObj.field_data_type_id, {}, request);
+            if(fieldObj.field_data_type_id == 59){
+                let assetReference = fieldObj.field_value.split('|');
+                if(assetReference.length>1){
+                    request['customer_asset_id'] = assetReference[0];
+                    self.updateCustomerOnWorkflow(request);
+                     
+                }else{
+                    console.log("CUSTOMER REFERENCE VALUE IS IMPROPER "+fieldObj.field_value);
+                }
+                next();
+            }else{
+                next();
+            }
+           
+        }).then(()=>{
+            console.log("DONE WITH CUSTOMER CHECK");
+        })
+    };
+
+    this.updateCustomerOnWorkflow = async function(request) {
+
+        try{
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.activity_id, 
+            request.customer_asset_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+       // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
+        if (queryString != '') {
+                         //(db.executeQueryPromise(0, queryStringMapping, request));
+            return await (db.executeQueryPromise(0, queryString, request));
+                            
+        }
+    }catch(err){
+        console.log('Error '+err);
+    }
+    };
 }
 
 
