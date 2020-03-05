@@ -2134,8 +2134,8 @@ function BotService(objectCollection) {
                                 .editPage(i)
                                 .text(attestationText, 400, 640, {
                                     color: '#000000',
-                                    fontSize: 15,
-                                    // bold: true,
+                                    fontSize: 25,
+                                    bold: true,
                                     // underline: true,
                                     // font: 'Audhistine',
                                     font: 'HerrVonMuellerhoff',
