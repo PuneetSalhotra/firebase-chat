@@ -166,7 +166,11 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
-                        global.logger.write('conLog', 'participant already assigned', {}, {})
+                        global.logger.write('conLog', 'participant already assigned', {}, {});
+                        if(request.hasOwnProperty("add_as_lead")){
+                            console.log("Assigning already added resource as Lead");
+                            activityCommonService.assignResourceAsLead(request, participantData.asset_id);
+                        }
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
