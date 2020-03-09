@@ -654,8 +654,9 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
 
         }).catch((err) => {
-            data = {};
-            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+            console.log('ERR in /form/field/validation/collection : ', err);
+            //data = {};
+            res.send(responseWrapper.getResponse(err, {}, -999, req.body));
 
         });
     });

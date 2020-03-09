@@ -4950,7 +4950,7 @@ function VodafoneService(objectCollection) {
         }
 
         // Fetch relevant source and target form field mappings
-        const SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
+        let SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
         console.log('SOURCE_FORM_FIELD_MAPPING_DATA : ', SOURCE_FORM_FIELD_MAPPING_DATA);
         //console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
 

@@ -1770,7 +1770,8 @@ function BotService(objectCollection) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0,
             //activityInlineData = {},
-            fridExpiryDate;
+            fridExpiryDate,
+            fridNotExists = true;
 
         let reqActivityInlineData;
         if (!request.hasOwnProperty('activity_inline_data')) {
@@ -1785,7 +1786,16 @@ function BotService(objectCollection) {
         //let reqActivityInlineData = JSON.parse(request.activity_inline_data);
         for(let i=0; i<reqActivityInlineData.length; i++){
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
-                console.log('field_value: ', reqActivityInlineData[i].field_value);
+                let fieldValue = reqActivityInlineData[i].field_value;
+
+                console.log('typeof field_value: ', typeof fieldValue);
+                console.log('field_value: ', fieldValue);
+                
+                if(fieldValue === undefined || fieldValue === null || fieldValue === "") {
+                    //fridNotExists = false;
+                    return;
+                }
+
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
@@ -1824,7 +1834,7 @@ function BotService(objectCollection) {
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});
 
-            if(comment.comment === "<<vf_frid_expire>>") {
+            if(comment.comment === "<<vf_frid_expire>>" && fridNotExists) {
                 //let fridExpiryDateArr = fridExpiryDate.split("-");
                 //let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
                 let currentDateArr = (util.getCurrentDate()).toString();
@@ -1837,7 +1847,8 @@ function BotService(objectCollection) {
                 
                 let difference = a.diff(b, 'days');
                 console.log('Difference : ', difference);
-
+                
+                fridExpiryDate = util.formatDate(fridExpiryDate, "DD MMM YYYY");
                 if(Math.sign(difference) === 1) { //Positive
                     comment.comment = `This Order's FRID is going to expire on ${fridExpiryDate} (in ${difference} Days).`;
                 } else {
