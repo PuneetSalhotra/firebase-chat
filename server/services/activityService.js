@@ -2144,6 +2144,20 @@ function ActivityService(objectCollection) {
 
                         // Capture workflow, customer and industry exposure for a desk asset
                         await captureWorkExperienceForDeskAsset(request);
+                    }else{
+                            console.log("*****activityService NO EXISTING STATUS (No Shared Status)");
+                               request.target_activity_id = 0;
+                              let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                              request.duration_in_minutes = response[0].activity_status_duration;
+                              if(request.flag_trigger_resource_manager == 1){
+                                    console.log("NO EXISTING STATUS :: AI BOT Trigger Received");
+                                    if(response[0].activity_type_flag_persist_role == 1)
+                                    activityCommonService.activityLeadUpdate(request, {}, true); 
+                                    else
+                                    activityCommonService.RMStatusChangeTrigger(request);
+                                }else{
+                                    console.log("NO EXISTING STATUS :: NO AI BOT Trigger");
+                                }
                     }
                 }
 
