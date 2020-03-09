@@ -4949,13 +4949,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     responseData = data;
                     error = false;
 
-                  /*  if(lead_asset_id == 0){
-                            request.ai_bot_id = 1;
-                            request.ai_bot_status_id = 3;
-                            request.bot_mapping_inline_data = {};
-                            self.unallocatedWorkflowInsert(request);
-                    } */
-
                     request.datetime_log = util.getCurrentUTCTime();
                     let self = this;
                     self.activityListHistoryInsertAsync(request, 15);
@@ -5887,8 +5880,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          console.log("workflow_category_exposure_percentage* :: "+workflow_category_exposure_percentage);
          console.log("workflow_type_exposure_percentage***** :: "+workflow_type_exposure_percentage);
 
-         request.summary_id = 1;
-         request.flag = 0;
+         //request.summary_id = 1;
+         //request.flag = 0;
 
         //self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
         let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
@@ -6114,7 +6107,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log("************************************************************************************************");
 
             let temp_status_due_datetime = await self.getWorkingHoursOfanAsset(request, 0);
-
+            temp_status_due_datetime = util.subtractUnitsFromDateTime(temp_status_due_datetime,5.5,'hours');
             let reqObj =  Object.assign({}, request);
             reqObj.asset_id = request.target_asset_id;
             let [err1, assetData] = await self.getAssetDetailsAsync(reqObj);
