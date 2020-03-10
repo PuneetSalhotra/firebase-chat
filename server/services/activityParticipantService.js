@@ -131,7 +131,7 @@ function ActivityParticipantService(objectCollection) {
             activityCommonService.isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
                 if ((err === false) && (!alreadyAssignedStatus)) {
                     //proceed and add a participant
-                    addParticipant(request, participantData, newRecordStatus, function (err, data) {
+                    addParticipant(request, participantData, newRecordStatus, async function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
@@ -141,7 +141,7 @@ function ActivityParticipantService(objectCollection) {
                                 activityCommonService.assignResourceAsLead(request, participantData.asset_id);
                             }else{
                                 request.target_activity_id = request.activity_id;
-                                let [err, response] = activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                                let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
                                 if(response[0].activity_type_flag_persist_role === 1)
                                 activityCommonService.activityLeadUpdate(request, participantData, false); 
                                 else
