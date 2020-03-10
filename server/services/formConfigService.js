@@ -4756,6 +4756,8 @@ function FormConfigService(objCollection) {
 
             console.log('FLAG : ', flag);
             if(flag === 1) {
+                console.log('request.asset_id', request.asset_id);
+                
                 //Add the asset as participant
                 const [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); 
                 if(err) {
@@ -4763,29 +4765,32 @@ function FormConfigService(objCollection) {
                 }               
                 console.log('ASSETDATA : ', assetData[0]);
 
-                let participantCollection = [];
-                let temp = {};
-                    temp.asset_id = assetData[0].asset_id;
-                    temp.organization_id = request.organization_id;
-                    temp.account_id = request.account_id;
-                    temp.workforce_id = request.workforce_id;
-                    temp.access_role_id = 1;
-                    temp.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
-                    temp.asset_first_name =  assetData[0].asset_first_name;
-                    temp.operating_asset_first_name = assetData[0].operating_asset_first_name;
-                    temp.workforce_name = assetData[0].workforce_name;
-                    temp.asset_type_id = assetData[0].asset_type_id;
-                    temp.asset_category_id = 1;
+                if(assetData.length > 0) {
+                    let participantCollection = [];
+                
+                    let temp = {};
+                        temp.asset_id = assetData[0].asset_id;
+                        temp.organization_id = request.organization_id;
+                        temp.account_id = request.account_id;
+                        temp.workforce_id = request.workforce_id;
+                        temp.access_role_id = 1;
+                        temp.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+                        temp.asset_first_name =  assetData[0].asset_first_name;
+                        temp.operating_asset_first_name = assetData[0].operating_asset_first_name;
+                        temp.workforce_name = assetData[0].workforce_name;
+                        temp.asset_type_id = assetData[0].asset_type_id;
+                        temp.asset_category_id = 1;
 
-                participantCollection.push(temp);
+                    participantCollection.push(temp);
 
-                let addPartipantReq = Object.assign({}, newReq);
-                    addPartipantReq.activity_type_category_id = 48;
-                    addPartipantReq.activity_type_id = Number(workflowData[0].activity_type_id);
-                    addPartipantReq.activity_participant_collection = JSON.stringify(participantCollection);
-                    addPartipantReq.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+                    let addPartipantReq = Object.assign({}, newReq);
+                        addPartipantReq.activity_type_category_id = 48;
+                        addPartipantReq.activity_type_id = Number(workflowData[0].activity_type_id);
+                        addPartipantReq.activity_participant_collection = JSON.stringify(participantCollection);
+                        addPartipantReq.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
 
-                participantService.assignCoworker(addPartipantReq, ()=>{});
+                    participantService.assignCoworker(addPartipantReq, ()=>{});
+                }
             }
 
             return "success";
