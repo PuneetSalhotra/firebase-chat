@@ -2810,7 +2810,13 @@ async function processFormInlineDataV1(request, data){
 	//console.log('inline DATA : ', inlineData);
 
 	for(let i=0; i<inlineData.length;i++) {
-		let fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+		let fieldData;
+		try{
+			fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+		} catch(err) {
+			console.log('err in processFormInlineDataV1 : ', err);
+		}
+		
 		if(fieldData !== true) {
 			if(fieldData.length > 0) {
 				//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
