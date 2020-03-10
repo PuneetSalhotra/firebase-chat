@@ -22,6 +22,9 @@ function ActivityService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
+    const RMBotService = require('../botEngine/services/rmbotService');
+    const rmbotService = new RMBotService(objectCollection);
+
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
@@ -2124,14 +2127,14 @@ function ActivityService(objectCollection) {
                         }).then(async () => {
                             console.log("*****activityService WORKLOAD UPDATE | data: ", JSON.stringify(data));
                                request.target_activity_id = 0;
-                              let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                              let [err, response] = await rmbotService.workforceActivityStatusMappingSelectStatusId(request);
                               request.duration_in_minutes = response[0].activity_status_duration;
                               if(request.flag_trigger_resource_manager == 1){
                                     console.log("AI BOT Trigger Received");
                                     if(response[0].activity_type_flag_persist_role == 1)
                                     activityCommonService.activityLeadUpdate(request, {}, true); 
                                     else
-                                    activityCommonService.RMStatusChangeTrigger(request);
+                                    rmbotService.RMStatusChangeTrigger(request);
                                 }else{
                                     console.log("NO AI BOT Trigger");
                                 }
@@ -2145,19 +2148,19 @@ function ActivityService(objectCollection) {
                         // Capture workflow, customer and industry exposure for a desk asset
                         await captureWorkExperienceForDeskAsset(request);
                     }else{
-                            console.log("*****activityService NO EXISTING STATUS (No Shared Status)");
-                               request.target_activity_id = 0;
-                              let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
-                              request.duration_in_minutes = response[0].activity_status_duration;
-                              if(request.flag_trigger_resource_manager == 1){
-                                    console.log("NO EXISTING STATUS :: AI BOT Trigger Received");
-                                    if(response[0].activity_type_flag_persist_role == 1)
-                                    activityCommonService.activityLeadUpdate(request, {}, true); 
-                                    else
-                                    activityCommonService.RMStatusChangeTrigger(request);
-                                }else{
-                                    console.log("NO EXISTING STATUS :: NO AI BOT Trigger");
-                                }
+                        console.log("*****activityService NO EXISTING STATUS (No Shared Status)");
+                        request.target_activity_id = 0;
+                        let [err, response] = await rmbotService.workforceActivityStatusMappingSelectStatusId(request);
+                        request.duration_in_minutes = response[0].activity_status_duration;
+                        if(request.flag_trigger_resource_manager == 1){
+                            console.log("NO EXISTING STATUS :: AI BOT Trigger Received");
+                            if(response[0].activity_type_flag_persist_role == 1)
+                            activityCommonService.activityLeadUpdate(request, {}, true); 
+                            else
+                            rmbotService.RMStatusChangeTrigger(request);
+                        }else{
+                            console.log("NO EXISTING STATUS :: NO AI BOT Trigger");
+                        }
                     }
                 }
 

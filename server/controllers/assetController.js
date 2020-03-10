@@ -649,17 +649,6 @@ function AssetController(objCollection) {
         }
     });
  
-    app.post('/' + global.config.version + '/generate/workflow/score', async function (req, res) {
-        const [err, data] = await activityCommonService.generateResourceScore(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
-        } else {
-            console.log("/generate/workflow/score | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
-        }
-    });  
-
-
     //OpenTOK
     app.post('/' + global.config.version + '/room/name', async (req, res) => {
         const [err, openTokData] = await assetService.openTokGetSessionData(req.body);
