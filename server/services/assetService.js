@@ -12,6 +12,8 @@ const xlsx = require('xlsx');
 const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
 
+const RMBotService = require('../botEngine/services/rmbotService');
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -21,6 +23,7 @@ function AssetService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var sns = new AwsSns();
     var sss = new AwsSss();
+    const rmbotService = new RMBotService(objectCollection);
     // SMS
     const smsEngine = require('../utils/smsEngine');
     //PAM
@@ -4407,7 +4410,7 @@ this.getQrBarcodeFeeback = async(request) => {
                         request.target_asset_name = responseData[0].asset_first_name;
                         request.target_operating_asset_id = responseData[0].operating_asset_id;
                         request.target_operating_asset_name = responseData[0].operating_asset_first_name;
-                        activityCommonService.RMResourceAvailabilityTrigger(request);
+                        rmbotService.RMResourceAvailabilityTrigger(request);
                     }
                 })
                 .catch((err) => {

@@ -1973,7 +1973,13 @@ function Util(objectCollection) {
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
         }];
-    }
+    };
+
+    this.formatDate = (timeString, formatToTimeString, dateFormat = "YYYY-MM-DD") => {
+        const value = moment(timeString, dateFormat).format(formatToTimeString);
+        return value;
+    };
+
 }
 
 module.exports = Util;
