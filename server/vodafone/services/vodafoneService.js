@@ -3869,7 +3869,14 @@ function VodafoneService(objectCollection) {
             return [new Error("workflow_activity_id not found in the request."), false];
         }
 
-        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        let TARGET_FORM_ID;
+        try{
+            TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        } catch(err) {
+            console.log('ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - ', err);
+        }
+
+        //const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
         // Check if the target form generation request is from the target form generated (from this 
         // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
         if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
