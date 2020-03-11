@@ -14,6 +14,9 @@ function ActivityParticipantService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
+    const RMBotService = require('../botEngine/services/rmbotService');
+    const rmbotService = new RMBotService(objectCollection);
+
     this.getParticipantsList = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -138,14 +141,14 @@ function ActivityParticipantService(objectCollection) {
                             
                             //else
                             if(request.hasOwnProperty("add_as_lead")){
-                                activityCommonService.assignResourceAsLead(request, participantData.asset_id);
+                                rmbotService.assignResourceAsLead(request, participantData.asset_id);
                             }else{
                                 request.target_activity_id = request.activity_id;
-                                let [err, response] = await activityCommonService.workforceActivityStatusMappingSelectStatusId(request);
+                                let [err, response] = await rmbotService.workforceActivityStatusMappingSelectStatusId(request);
                                 if(response[0].activity_type_flag_persist_role === 1)
                                 activityCommonService.activityLeadUpdate(request, participantData, false); 
                                 else
-                                activityCommonService.RMResourceAvailabilityTrigger(request);
+                                rmbotService.RMResourceAvailabilityTrigger(request);
                             }
                             global.logger.write('conLog', 'participant successfully added', {}, {})
                             //check participant is active in last 48 hrs or not
@@ -166,7 +169,11 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
-                        global.logger.write('conLog', 'participant already assigned', {}, {})
+                        global.logger.write('conLog', 'participant already assigned', {}, {});
+                        if(request.hasOwnProperty("add_as_lead")){
+                            console.log("Assigning already added resource as Lead");
+                            rmbotService.assignResourceAsLead(request, participantData.asset_id);
+                        }
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
