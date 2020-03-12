@@ -613,6 +613,17 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldCount, -9999, req.body));
         }
     });
+
+    // Insert the form field history
+    app.post('/' + global.config.version + '/form/fields/history/insert', async function (req, res) {
+        const [err, formFieldHistory] = await formConfigService.insertFormFieldsHistory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldHistory, 200, req.body));
+        } else {
+            console.log("/form/fields/history/insert | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
+        }
+    });
 }
 
 module.exports = FormConfigController;

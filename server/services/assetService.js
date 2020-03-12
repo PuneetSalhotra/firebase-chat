@@ -4398,19 +4398,27 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    if(request.available_flag == 1){
-                        //call the trigger service
-                        request.lead_asset_type_id = responseData[0].asset_type_id;
-                        request.res_account_id = responseData[0].account_id;
-                        request.res_workforce_id = responseData[0].workforce_id;
-                        request.res_asset_type_id = responseData[0].asset_type_id;
-                        request.res_asset_id = responseData[0].asset_id;
-                        request.res_asset_category_id = responseData[0].asset_type_category_id;
-                        request.target_asset_id = responseData[0].asset_id;
-                        request.target_asset_name = responseData[0].asset_first_name;
-                        request.target_operating_asset_id = responseData[0].operating_asset_id;
-                        request.target_operating_asset_name = responseData[0].operating_asset_first_name;
-                        rmbotService.RMResourceAvailabilityTrigger(request);
+                    if(responseData.length > 0){
+                        if(responseData[0].organization_ai_bot_enabled == 1){
+                            if(request.available_flag == 1){
+                                //call the trigger service
+                                request.lead_asset_type_id = responseData[0].asset_type_id;
+                                request.res_account_id = responseData[0].account_id;
+                                request.res_workforce_id = responseData[0].workforce_id;
+                                request.res_asset_type_id = responseData[0].asset_type_id;
+                                request.res_asset_id = responseData[0].asset_id;
+                                request.res_asset_category_id = responseData[0].asset_type_category_id;
+                                request.target_asset_id = responseData[0].asset_id;
+                                request.target_asset_name = responseData[0].asset_first_name;
+                                request.target_operating_asset_id = responseData[0].operating_asset_id;
+                                request.target_operating_asset_name = responseData[0].operating_asset_first_name;
+                                rmbotService.RMResourceAvailabilityTrigger(request);
+                            }
+                        }else{
+                            console.log("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
+                        }
+                    }else{
+                            console.log("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
                     }
                 })
                 .catch((err) => {
