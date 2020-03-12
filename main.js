@@ -204,6 +204,24 @@ process.on('error', (error) => {
     logger.error("Process Error", { type: 'process_error', error: serializeError(error) });
 });
 
+process.on('beforeExit', (code) => {
+    logger.debug("Process beforeExit event with code: %j", code);
+});
+
+process.on('exit', (code) => {
+    logger.debug("Process exit event with code: %j", code);
+});
+
+process.on('warning', (warning) => {
+    logger.error("Process Warning", { type: 'process_warning', error: serializeError(warning) });
+});
+
+[`SIGINT`, `SIGUSR1`, `SIGUSR2`, `SIGTERM`, `SIGHUP`, `SIGUSR1`, `SIGUSR2`, `SIGABRT`, `SIGQUIT`].forEach((eventType) => {
+    process.on(eventType, (signal) => {
+        logger.debug("Process signalled: %j", signal);
+    });
+})
+
 process.on('unhandledRejection', (reason, promise) => {
     logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
 });
