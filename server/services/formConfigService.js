@@ -4883,6 +4883,33 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
+    // Insert field history of a particular field and form
+    this.insertFormFieldsHistory = async function(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.form_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_form_transaction_select_trans_field_history', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = FormConfigService;
