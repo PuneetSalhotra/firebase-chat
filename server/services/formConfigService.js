@@ -25,8 +25,6 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
 
-    console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection));
-
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
