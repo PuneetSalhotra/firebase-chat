@@ -5799,8 +5799,8 @@ function AdminOpsService(objectCollection) {
 
         let org_config_data = orgData[0].organization_inline_data?orgData[0].organization_inline_data:{};
         org_config_data = JSON.parse(org_config_data);
-        console.log("org_config_data :: "+JSON.stringify(org_config_data));
-        console.log("request.org_bot_config_data :: "+request.org_bot_config_data);
+        //console.log("org_config_data :: "+JSON.stringify(org_config_data));
+        //console.log("request.org_bot_config_data :: "+request.org_bot_config_data);
         org_config_data.rm_bot_config = JSON.parse(request.org_bot_config_data);
 
         let paramsArr = new Array(
@@ -5815,6 +5815,31 @@ function AdminOpsService(objectCollection) {
         }
     } 
 
+
+    this.updateOrganizationAIBot = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.organization_ai_bot,         
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_ai_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 

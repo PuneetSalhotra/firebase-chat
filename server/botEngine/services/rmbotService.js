@@ -41,7 +41,7 @@ function RMBotService(objectCollection) {
             request.lead_asset_type_id,
             0,
             request.page_start||0,
-            request.page_limit||500
+            request.page_limit||5
         );
 
         const queryString = util.getQueryString('ds_v1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
@@ -486,6 +486,8 @@ function RMBotService(objectCollection) {
 
         let self = this;
         //request.lead_asset_type_id = 134505;
+        request.page_start = 0;
+        request.page_limit = 5;
         let [error, responseData]= await self.RMOnAvailabilityOFAResource(request);
         console.log('Available Resources :: '+responseData.length);
         //generate score, find the top score asset
@@ -1547,6 +1549,36 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, assetData];
+    };
+
+    this.triggerAIOnStatusChange = async function (request) {
+        let data = [],
+            error = true;
+        let [err, response] = await self.workforceActivityStatusMappingSelectStatusId(request);
+        
+        if(response.length > 0){
+            request.duration_in_minutes = response[0].activity_status_duration;
+            if(response[0].organization_ai_bot_enabled == 1){
+              if(request.flag_trigger_resource_manager == 1){
+                    console.log("AI TRIGGER FLAG RECEIVED FROM ALTER STATUS BOT");
+                    if(response[0].activity_type_flag_persist_role == 1){
+                        console.log("PERSIST ROLE FLAG SET FOR THIS STATUS");
+                        activityCommonService.activityLeadUpdate(request, {}, true); 
+                    }else{
+                        console.log("NO PERSIST ROLE FLAG SET: HENCE EXECUTING RMStatusChangeTrigger");
+                        self.RMStatusChangeTrigger(request);
+                    }
+                }else{
+                    console.log("AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT ");
+                }
+            }else{
+                console.log("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI");
+            }
+        }else{
+            console.log("STATUS DOESNT EXIST, HENCE NO AI ");
+        }
+
+        return [error, data];
     };
     
 }
