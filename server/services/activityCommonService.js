@@ -3020,7 +3020,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.asset_id,
                 request.datetime_log
             );
-            if(request.asset_id === 0 || request.asset_id === null){
+            console.log('request.asset_id in queueHistoryInsert: ', request.asset_id);
+            if(request.asset_id === 0 || request.asset_id === null || request.asset_id === undefined){
                 console.log(`ds_p1_queue_activity_mapping_history_insert db call is not done as asset_id is ${request.asset_id}`);
                 resolve([]);
             }
