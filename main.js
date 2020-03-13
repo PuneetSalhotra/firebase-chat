@@ -122,7 +122,12 @@ app.use(function (req, res, next) {
 const logger = require('./server/logger/winstonLogger');
 loggerstream = {
     write: function (message, encoding) {
-        message = JSON.parse(message);
+        try{
+            message = JSON.parse(message);
+        } catch(err) {
+            console.log('Unable to parse the message');
+        }
+        
         logger.info(`${message.method} ${message.url}`, { type: 'http_log', ...message });
     }
 };
