@@ -959,7 +959,7 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
     // Promisified version of the getActivityDetails()
-    this.getActivityDetailsPromise = function (request, activityId) {
+    this.getActivityDetailsPromise = async function (request, activityId) {
 
         return new Promise((resolve, reject) => {
             var paramsArr;
@@ -976,7 +976,7 @@ this.getAllParticipantsAsync = async (request) => {
             }
             const queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString !== '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
+                await db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 });
             }

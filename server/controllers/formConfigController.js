@@ -615,12 +615,12 @@ function FormConfigController(objCollection) {
     });
 
     // Insert the form field history
-    app.post('/' + global.config.version + '/form/fields/history/insert', async function (req, res) {
+    app.post('/' + global.config.version + '/form/fields/history', async function (req, res) {
         const [err, formFieldHistory] = await formConfigService.insertFormFieldsHistory(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, formFieldHistory, 200, req.body));
         } else {
-            console.log("/form/fields/history/insert | Error: ", err);
+            console.log("/form/fields/history | Error: ", err);
             res.send(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
         }
     });

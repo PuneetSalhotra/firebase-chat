@@ -4891,8 +4891,8 @@ function FormConfigService(objCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.form_transaction_id,
-            request.field_id,
-            request.form_id
+            request.form_id,
+            request.field_id
         );
         const queryString = util.getQueryString('ds_p1_activity_form_transaction_select_trans_field_history', paramsArr);
 
