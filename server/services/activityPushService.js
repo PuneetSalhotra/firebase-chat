@@ -376,7 +376,7 @@ function ActivityPushService(objectCollection) {
                     case 48: // Process/Workflow
                     case 53: // Accounts
                         // Check for activity_creator_asset_id and asset_id for enabling push notification
-                        activityCommonService.getActivityDetailsPromise(request, request.activity_id).then(async (activityData) => {
+                        let [err, activityData] = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                             if(err === false){
                                 if(activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
                                     if (
@@ -586,8 +586,6 @@ function ActivityPushService(objectCollection) {
                                     console.log("getPushString | request.asset_id: ", request.asset_id);
                                 }
                             }
-                        })
-                     
                         break;
 
                     case 52: // Widget
