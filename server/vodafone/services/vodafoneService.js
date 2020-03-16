@@ -3874,6 +3874,7 @@ function VodafoneService(objectCollection) {
             TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
         } catch(err) {
             console.log('ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - ', err);
+            return [false, {}];
         }
 
         //const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
