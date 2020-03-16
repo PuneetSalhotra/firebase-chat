@@ -376,7 +376,7 @@ function ActivityPushService(objectCollection) {
                     case 48: // Process/Workflow
                     case 53: // Accounts
                         // Check for activity_creator_asset_id and asset_id for enabling push notification
-                        let [err, activityData] = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+                        let [err, activityData] = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                             if(err === false){
                                 if(activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
                                     if (
@@ -452,7 +452,7 @@ function ActivityPushService(objectCollection) {
                                                 Number(request.activity_stream_type_id) === 705 ||
                                                 Number(request.activity_stream_type_id) === 713
                                             ) {
-                                                [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                                                [formConfigError, formConfigData] = await objectCollection.activityCommonService.workforceFormMappingSelect({
                                                     organization_id: request.organization_id,
                                                     account_id: request.account_id,
                                                     workforce_id: request.workforce_id,
@@ -497,7 +497,7 @@ function ActivityPushService(objectCollection) {
                                             if (Number(request.activity_stream_type_id) === 713) {
                                                 // Fetch form definition details
                                                 let formConfigError = false, formConfigData = [];
-                                                [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                                                [formConfigError, formConfigData] = await objectCollection.activityCommonService.workforceFormMappingSelect({
                                                     organization_id: request.organization_id,
                                                     account_id: request.account_id,
                                                     workforce_id: request.workforce_id,
