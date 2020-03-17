@@ -523,6 +523,9 @@ function FormConfigService(objCollection) {
                                 
                                 newFieldValue = jsonData.transaction_data.transaction_amount;
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+
+                                console.log('Old Transaction Amount: ', oldFieldValue);
+                                console.log('New Transaction Amount: ', newFieldValue);
                             } catch (err) {
                                 console.log(err);
                             }
@@ -1123,7 +1126,7 @@ function FormConfigService(objCollection) {
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                if(request.asset_id === 0 || request.asset_id === null) {
+                if(Number(request.asset_id) === 0 || request.asset_id === null) {
                     global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
                 }
                 else {
@@ -3457,6 +3460,14 @@ function FormConfigService(objCollection) {
         return [false, []]
     }
 
+    this.workforceFormFieldMappingDeleteFunc = async(request) => {        
+        const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+            field_id: request.field_id,
+            data_type_combo_id: request.data_type_combo_id,
+        });
+        return[false, {}];
+    }
+    
     async function workforceFormFieldMappingDelete(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
         // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -4909,6 +4920,35 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
+
+    this.getStatusBasedForms = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.start_from || 0,
+            request.limit_value || 10
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
 }
 
 module.exports = FormConfigService;

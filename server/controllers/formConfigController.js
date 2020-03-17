@@ -624,6 +624,29 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
         }
     });
+
+    // Get the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/list', async (req, res) => {
+        const [err, formData] = await formConfigService.getStatusBasedForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/status_based/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+    // Delete the form field mapping - single selection and multi selection
+    app.post('/' + global.config.version + '/workflow/form/field/alter', async (req, res) => {
+        const [err, formData] = await formConfigService.workforceFormFieldMappingDeleteFunc(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/form/field/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
