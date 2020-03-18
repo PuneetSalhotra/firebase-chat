@@ -54,6 +54,8 @@ function BotService(objectCollection) {
     const fs = require('fs');
 
     const HummusRecipe = require('hummus-recipe');
+
+    const { serializeError } = require('serialize-error')
     /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
@@ -3581,6 +3583,51 @@ function BotService(objectCollection) {
         let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
         global.logger.write('conLog', resp, {}, {});
 
+        if (Number(wfCompletionPercentage) !== 0) {
+            // Update the workflow percentage in the activity_list table
+            try {
+                await activityListUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+                logger.debug(`alterWFCompletionPercentage | workflow ${newrequest.workflow_activity_id} percentage updated to ${wfCompletionPercentage}, in the activity_list table.`, { type: 'bot_engine' });
+            } catch (error) {
+                logger.error("Bot Engine | alterWFCompletionPercentage | activityListUpdateWorkflowPercent | Error", { type: 'bot_engine', error: serializeError(error), request_body: newrequest });
+            }
+            // Update the workflow percentage in the activity_asset_mapping table
+            try {
+                await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+                logger.debug(`alterWFCompletionPercentage | workflow ${newrequest.workflow_activity_id} percentage updated to ${wfCompletionPercentage}, in the activity_asset_mapping table.`, { type: 'bot_engine' });
+            } catch (error) {
+                logger.error("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error", { type: 'bot_engine', error: serializeError(error), request_body: newrequest });
+            }
+
+            // Update the workflow's timeline as well
+            try {
+                let workflowTimelineUpdateRequest = Object.assign({}, newrequest);
+                workflowTimelineUpdateRequest.activity_id = newrequest.workflow_activity_id;
+                workflowTimelineUpdateRequest.activity_timeline_collection = JSON.stringify({
+                    "activity_reference": [{
+                        "activity_id": newrequest.workflow_activity_id,
+                        "activity_title": ""
+                    }],
+                    "asset_reference": [{}],
+                    "attachments": [],
+                    "content": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                    "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                    "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
+                });
+                workflowTimelineUpdateRequest.asset_id = 100; // Tony
+                workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
+                await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
+
+                // Send push notification to mobile devices for live loading of the updates 
+                workflowTimelineUpdateRequest.activity_stream_type_id = 717;
+                workflowTimelineUpdateRequest.bot_operation_type = 'workflow_percentage_alter';
+                workflowTimelineUpdateRequest.push_message = `Workflow percentage updated to ${wfCompletionPercentage}%`;
+                activityPushService.sendPush(workflowTimelineUpdateRequest, objectCollection, 0, function () { });
+            } catch (error) {
+                logger.error("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error", { type: 'bot_engine', error: serializeError(error), request_body: newrequest });
+            }
+        }
+
         if (Number(wfCompletionPercentage) !== 0 && resp.length > 0) {
 
             //Adding to OMT Queue                
@@ -3627,45 +3674,45 @@ function BotService(objectCollection) {
                 }
             }
             // Update the workflow percentage in the activity_list table
-            try {
-                await activityListUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
-            } catch (error) {
-                console.log("Bot Engine | alterWFCompletionPercentage | activityListUpdateWorkflowPercent | Error: ", error)
-            }
+            // try {
+            //     await activityListUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            // } catch (error) {
+            //     console.log("Bot Engine | alterWFCompletionPercentage | activityListUpdateWorkflowPercent | Error: ", error)
+            // }
             // Update the workflow percentage in the activity_asset_mapping table
-            try {
-                await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
-            } catch (error) {
-                console.log("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error: ", error)
-            }
+            // try {
+            //     await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            // } catch (error) {
+            //     console.log("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error: ", error)
+            // }
             // [Last Step] Update the workflow's timeline as well
             if (Number(wfCompletionPercentage) !== 0) {
-                try {
-                    let workflowTimelineUpdateRequest = Object.assign({}, newrequest);
-                    workflowTimelineUpdateRequest.activity_id = newrequest.workflow_activity_id;
-                    workflowTimelineUpdateRequest.activity_timeline_collection = JSON.stringify({
-                        "activity_reference": [{
-                            "activity_id": newrequest.workflow_activity_id,
-                            "activity_title": ""
-                        }],
-                        "asset_reference": [{}],
-                        "attachments": [],
-                        "content": `Workflow percentage updated to ${wfCompletionPercentage}%`,
-                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
-                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
-                    });
-                    workflowTimelineUpdateRequest.asset_id = 100; // Tony
-                    workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
-                    await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
+                // try {
+                //     let workflowTimelineUpdateRequest = Object.assign({}, newrequest);
+                //     workflowTimelineUpdateRequest.activity_id = newrequest.workflow_activity_id;
+                //     workflowTimelineUpdateRequest.activity_timeline_collection = JSON.stringify({
+                //         "activity_reference": [{
+                //             "activity_id": newrequest.workflow_activity_id,
+                //             "activity_title": ""
+                //         }],
+                //         "asset_reference": [{}],
+                //         "attachments": [],
+                //         "content": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                //         "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                //         "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
+                //     });
+                //     workflowTimelineUpdateRequest.asset_id = 100; // Tony
+                //     workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
+                //     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
 
-                    // Send push notification to mobile devices for live loading of the updates 
-                    workflowTimelineUpdateRequest.activity_stream_type_id = 717;
-                    workflowTimelineUpdateRequest.bot_operation_type = 'workflow_percentage_alter';
-                    workflowTimelineUpdateRequest.push_message = `Workflow percentage updated to ${wfCompletionPercentage}%`;
-                    activityPushService.sendPush(workflowTimelineUpdateRequest, objectCollection, 0, function () {});
-                } catch (error) {
-                    console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
-                }
+                //     // Send push notification to mobile devices for live loading of the updates 
+                //     workflowTimelineUpdateRequest.activity_stream_type_id = 717;
+                //     workflowTimelineUpdateRequest.bot_operation_type = 'workflow_percentage_alter';
+                //     workflowTimelineUpdateRequest.push_message = `Workflow percentage updated to ${wfCompletionPercentage}%`;
+                //     activityPushService.sendPush(workflowTimelineUpdateRequest, objectCollection, 0, function () {});
+                // } catch (error) {
+                //     console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
+                // }
             }
 
             //Listeners
