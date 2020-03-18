@@ -647,6 +647,29 @@ function FormConfigController(objCollection) {
         }
     });
 
+    // Insert the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/add', async (req, res) => {
+        const [err, formData] = await formConfigService.insertStatusBasedForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/status_based/form/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+
+    // Delete the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/alter', async (req, res) => {
+        const [err, formData] = await formConfigService.deleteStatusBasedForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/status_based/form/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
