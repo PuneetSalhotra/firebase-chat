@@ -215,7 +215,7 @@ function ActivityConfigService(db, util, objCollection) {
             );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, async function (err, data) {
+                db.executeQuery(0, queryString, request, async (err, data) => {
                     if (err === false) {
                         // Update the default workflow duration as well
                         try {
@@ -270,7 +270,7 @@ function ActivityConfigService(db, util, objCollection) {
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data) : reject(err);
+                    (err === false) ? resolve(data) : resolve(err);
                 });
             }
         });
