@@ -123,7 +123,12 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Has added an update to the form: ' + activityTitle;
 
-                                const newOrderFormId = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
+                                let newOrderFormId = 0;
+                                try{
+                                    newOrderFormId = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
+                                } catch(err) {
+                                    console.log('ERROR in activityPushservice global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER');
+                                }                                
 
                                 if (Number(activityData[0].form_id) === Number(newOrderFormId)) {
                                     switch (Number(request.form_id)) {
@@ -158,8 +163,8 @@ function ActivityPushService(objectCollection) {
                                     // console.log("ActivityPushService | getPushString: ", request);
                                 }
 
-                                msg.activity_type_category_id = 9
-                                msg.type = 'activity_unread'
+                                msg.activity_type_category_id = 9;
+                                msg.type = 'activity_unread';
                                 msg.organization_id = request.organization_id;
 
                                 break;
@@ -168,8 +173,8 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Status changed for form: ' + activityTitle;
 
-                                msg.activity_type_category_id = 9
-                                msg.type = 'activity_unread'
+                                msg.activity_type_category_id = 9;
+                                msg.type = 'activity_unread';
                                 msg.organization_id = request.organization_id;
 
                                 break;
