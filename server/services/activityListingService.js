@@ -1572,8 +1572,11 @@ function ActivityListingService(objCollection) {
  				"activity_lead_operating_asset_first_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_first_name']),
  				"activity_lead_operating_asset_last_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_last_name']),
  				"activity_lead_operating_asset_phone_number": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_number'])), 
-				 "activity_lead_operating_asset_phone_country_code": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_country_code'])),
-				 "activity_datetime_end_status": util.replaceDefaultString(rowData['activity_datetime_end_status'])
+				"activity_lead_operating_asset_phone_country_code": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_country_code'])),
+				"activity_datetime_end_status": util.replaceDefaultString(rowData['activity_datetime_end_status']),
+				"activity_flag_status_rollback": util.replaceDefaultNumber(rowData['activity_flag_status_rollback']),
+				"activity_flag_lead_enabled": util.replaceDefaultNumber(rowData['activity_flag_lead_enabled']),
+				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
