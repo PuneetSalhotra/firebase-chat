@@ -4951,12 +4951,16 @@ function FormConfigService(objCollection) {
 
     this.insertStatusBasedForms = async (request) => {
         let responseData = [],
-            error = true;        
+            error = false;
         
         let formIds = JSON.parse(request.form_ids);
         let i;
         for(i=0;i<formIds.length; i++) {
-            await insertStatusBasedForm(request, formIds[i]);
+            try{
+                await insertStatusBasedForm(request, formIds[i]);
+            } catch(err) {
+                error = true;
+            }            
         }
 
         return [error, responseData];
