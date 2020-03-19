@@ -2145,7 +2145,7 @@ function BotService(objectCollection) {
                         if (flagAttestationIsText) {
                             pdfDoc
                                 .editPage(i)
-                                .text(attestationText, 400, 640, {
+                                .text(attestationText, 400, 790, {
                                     color: '#000000',
                                     fontSize: 25,
                                     // bold: true,
@@ -2156,7 +2156,7 @@ function BotService(objectCollection) {
                                     rotation: 325,
                                     textBox: {
                                         width: 250,
-                                        height: 300,
+                                        height: 40,
                                         wrap: 'trim',
                                         style: {
                                             lineWidth: 0,
