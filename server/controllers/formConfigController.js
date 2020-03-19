@@ -649,7 +649,10 @@ function FormConfigController(objCollection) {
 
     // Insert the status based forms in a workflow
     app.post('/' + global.config.version + '/workflow/status_based/form/add', async (req, res) => {
-        try{
+        try{            
+            console.log("req.body.form_ids : ", req.body.form_ids);
+            console.log("typeof req.body.form_ids : ", typeof req.body.form_ids);
+                        
             JSON.parse(req.body.form_ids);
             const [err, formData] = await formConfigService.insertStatusBasedForms(req.body);
             if (!err) {
