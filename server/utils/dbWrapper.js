@@ -103,8 +103,8 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {                
-                label = 'DB-Query-Execution-Callback' + Date.now();
-                console.time(label);
+                // label = 'DB-Query-Execution-Callback' + Date.now();
+                // console.time(label);
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
                         logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -117,7 +117,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         conn.release();
                         callback(err, false);
                     }
-                console.timeEnd(label);
+                // console.timeEnd(label);
                 });
             }
         });
@@ -143,8 +143,8 @@ var executeQueryPromise = function (flag, queryString, request) {
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
                 } else {
-                    label = 'DB-Query-Execution-Promise' + Date.now();
-                    console.time(label);
+                    // label = 'DB-Query-Execution-Promise' + Date.now();
+                    // console.time(label);
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
                             logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -158,7 +158,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                             conn.release();
                             reject(err);
                         }
-                    console.timeEnd(label);
+                    // console.timeEnd(label);
                     });
                 }
             });
