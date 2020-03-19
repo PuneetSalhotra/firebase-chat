@@ -4949,8 +4949,21 @@ function FormConfigService(objCollection) {
         return [error, responseData];
     }
 
-
     this.insertStatusBasedForms = async (request) => {
+        let responseData = [],
+            error = true;        
+        
+        let formIds = JSON.parse(request.form_ids);
+        let i;
+        for(i=0;i<formIds.length; i++) {
+            await insertStatusBasedForm(request, formIds[i]);
+        }
+
+        return [error, responseData];
+    }
+    
+    
+    async function insertStatusBasedForm(request, formID) {
         let responseData = [],
             error = true;
 
@@ -4958,7 +4971,7 @@ function FormConfigService(objCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.form_id,
+            formID,
             request.activity_status_id,
             request.asset_id,
             util.getCurrentUTCTime()
