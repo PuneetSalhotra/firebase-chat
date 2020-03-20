@@ -921,17 +921,13 @@ function Util(objectCollection) {
         // console.log("currentTime2 :: "+currentTimeT1);
 
         if(currentTimeT1 < endTimeT1 && currentTimeT1 < startTimeT1){
-            console.log("reminingTimeOfTheDay :: 1")
+            //console.log("reminingTimeOfTheDay :: 1")
             return self.getDiffAMPM(startTimeTemp, endTimeTemp);
-        }
-
-        else if(currentTimeT1 < endTimeT1 && currentTimeT1 >= startTimeT1){
-            console.log("reminingTimeOfTheDay :: 2")
+        }else if(currentTimeT1 < endTimeT1 && currentTimeT1 >= startTimeT1){
+            //console.log("reminingTimeOfTheDay :: 2")
             return self.getDiffAMPM(currentTimeTemp, endTimeTemp);
-        }
-
-        else if(currentTimeT1 > endTimeT1 && currentTimeT1 >= startTimeT1){
-            console.log("reminingTimeOfTheDay :: 3")
+        }else if(currentTimeT1 > endTimeT1 && currentTimeT1 >= startTimeT1){
+            //console.log("reminingTimeOfTheDay :: 3")
             return 0;
         }
 
@@ -969,7 +965,7 @@ function Util(objectCollection) {
     };      
 
     this.getCustomTimeHHmm24Hr = function (time) {
-        console.log("time :: ",time);
+        logger.info("time :: "+time);
         if(time.indexOf("PM") >= 0){
             time=time.split(" ")[0];
             time= time.split(":");

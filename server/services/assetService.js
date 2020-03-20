@@ -4389,9 +4389,10 @@ this.getQrBarcodeFeeback = async(request) => {
             request.organization_id,
             request.target_asset_id,
             request.available_flag,
-            request.available_till_datetime
+            request.available_till_datetime,
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_available', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -4412,7 +4413,7 @@ this.getQrBarcodeFeeback = async(request) => {
                                 request.target_asset_name = responseData[0].asset_first_name;
                                 request.target_operating_asset_id = responseData[0].operating_asset_id;
                                 request.target_operating_asset_name = responseData[0].operating_asset_first_name;
-                                rmbotService.RMResourceAvailabilityTrigger(request);
+                                rmbotService.RMLoopInResoources(request);
                             }
                         }else{
                             console.log("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");

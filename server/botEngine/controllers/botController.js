@@ -268,7 +268,7 @@ function BotController(objCollection) {
     }); 
     
     app.post('/' + global.config.version + '/activity/lead/update', async function (req, res) {
-        const [err, responseData] = await rmbotService.activityListLeadUpdate(req.body, req.body.lead_asset_id);
+        const [err, responseData] = await rmbotService.activityListLeadUpdateV1(req.body, req.body.lead_asset_id);
         if (!err) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
@@ -287,6 +287,15 @@ function BotController(objCollection) {
         }
     });      
     
+    app.post('/' + global.config.version + '/asset/lead/summary', async (req, res) => {
+        try {
+            let result = await rmbotService.calculateAssetNewSummary(req.body,0);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('/asset/lead/summary', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });   
 }
 
 module.exports = BotController;
