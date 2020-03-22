@@ -65,6 +65,8 @@ function RMBotService(objectCollection) {
                     logger.info("request.target_status_lead_asset_id ::"+request.target_status_lead_asset_id);
                     logger.info("request.target_status_lead_asset_name ::"+request.target_status_lead_asset_name);
 
+                    //free the current lead
+
                     if(previous_activity_status_id > 0){
                         //status rollback
                         request.activity_status_id = previous_activity_status_id;
@@ -79,8 +81,14 @@ function RMBotService(objectCollection) {
                         request.duration_in_minutes = statusDuration;
                         request.asset_type_id = roleLinkedToStatus;
                         request.activity_status_type_id = responseData[0].from_activity_status_type_id
+
+                        request.is_status_rollback = 1;                
+                        request.rm_flag = 1;  
+                        self.activityListUpdateRMFlags(request);
+
                         logger.info("Alter Status :: "+JSON.stringify(request));
                         request.global_array.push({"alterStatusMakeRequest":previous_activity_status_id});
+       
                         self.alterStatusMakeRequest(request);
 
                     }/*else{
@@ -117,6 +125,14 @@ function RMBotService(objectCollection) {
     }
 
     this.callAddParticipant = async function(request){
+
+        //request.global_array = [];
+        if(!request.hasOwnProperty("global_array"))
+        {   request.global_array = [];
+            let [err, logData] = await self.getAIBotTransaction(request);
+            request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
+        }
+
 
         logger.info("callAddParticipant"+JSON.stringify(request,null,2));
         let timelineCollection = {};
@@ -764,6 +780,13 @@ function RMBotService(objectCollection) {
 
     this.assignResourceAsLead = async function (request, leadAssetId) {
 
+        if(!request.hasOwnProperty("global_array"))
+        {
+            request.global_array = [];
+            let [err, logData] = await self.getAIBotTransaction(request);
+            request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
+        }
+
         request.timeline_stream_type_id = 718;
         await self.activityListLeadUpdateV1(request, leadAssetId);
         request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
@@ -779,6 +802,7 @@ function RMBotService(objectCollection) {
 
         request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
         await self.unallocatedWorkflowInsert(request);
+
         if(request.activity_type_flag_persist_role == 1){
             self.RMLoopInResoources(request);
             request.activity_type_flag_persist_role = 0;
@@ -790,6 +814,12 @@ function RMBotService(objectCollection) {
 
 
     this.addParticipantMakeRequest = async function (request) {
+
+        let ai_bot_transaction_id = 0;
+        let [err, responseData] = await self.AIEventTransactionInsert(request);
+        if(responseData.length > 0){
+            ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
+        }
 
         let participantArray = [];
 
@@ -836,10 +866,11 @@ function RMBotService(objectCollection) {
             rm_bot_scores:request.rm_bot_scores,
             activity_lead_timeline_collection:request.activity_lead_timeline_collection,
             timeline_stream_type_id:718,
-            global_array:request.global_array
+            ai_bot_transaction_id:ai_bot_transaction_id
+            //global_array:request.global_array
         };
-        console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
-        request.global_array.push({"participant_assign_request":JSON.stringify(assignRequest, null,2)})
+        //console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
+        //request.global_array.push({"participant_assign_request":JSON.stringify(assignRequest, null,2)})
         const assignActAsync = nodeUtil.promisify(makingRequest.post);
         //logger.info("assignRequest :: "+JSON.stringify(assignRequest, null,2));
         const makeRequestOptions1 = {
@@ -863,6 +894,12 @@ function RMBotService(objectCollection) {
     }    
 
     this.alterStatusMakeRequest = async function (request) {
+
+        let ai_bot_transaction_id = 0;
+        let [err, responseData] = self.AIEventTransactionInsert(request);
+        if(responseData.length > 0){
+            ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
+        }
 
         const alterStatusRequest = {
             organization_id: request.organization_id,
@@ -896,9 +933,10 @@ function RMBotService(objectCollection) {
             insufficient_data: true,
             is_status_rollback:1,
             timeline_stream_type_id:704,
-            global_array:request.global_array,
+            //global_array:request.global_array,
             target_status_lead_asset_id:request.target_status_lead_asset_id,
-            target_status_lead_asset_name:request.target_status_lead_asset_name
+            target_status_lead_asset_name:request.target_status_lead_asset_name,
+            ai_bot_transaction_id:ai_bot_transaction_id
         };
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
@@ -1007,8 +1045,11 @@ function RMBotService(objectCollection) {
         let workload_data = {};
 
         let industry_score = 0;
+        let industry_name = "";
         let customer_score = 0;
+        let customer_asset_name = "";
         let workflow_score = 0;
+        let workflow_name = "";
         let workflow_type_score = 0;
         let workflow_category_score = 0;
 
@@ -1044,10 +1085,6 @@ function RMBotService(objectCollection) {
          //logger.info("workflow_category_exposure_percentage* :: "+workflow_category_exposure_percentage, { type: 'rm_bot', request, error: false });
          //logger.info("workflow_type_exposure_percentage***** :: "+workflow_type_exposure_percentage, { type: 'rm_bot', request, error: false });
 
-         //request.summary_id = 1;
-         //request.flag = 0;
-
-        //self.getActivityDetailsPromise(request, request.activity_id).then(async (data) => {
         let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
             if(data.length == 0){
@@ -1077,12 +1114,18 @@ function RMBotService(objectCollection) {
                 work_efficiency = rmInlineData.work_efficiency;
             if(rmInlineData.hasOwnProperty("read_efficiency"))
                 read_efficiency = rmInlineData.read_efficiency;
-            if(rmInlineData.hasOwnProperty("customer_exposure"))
+            if(rmInlineData.hasOwnProperty("customer_exposure")){
                 customer_score = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_score;
-            if(rmInlineData.hasOwnProperty("industry_exposure"))
+                customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name;
+            }
+            if(rmInlineData.hasOwnProperty("industry_exposure")){
                 industry_score = rmInlineData.industry_exposure[data[0].industry_id].industry_score;
-            if(rmInlineData.hasOwnProperty("workflow_exposure"))
+                industry_name = rmInlineData.industry_exposure[data[0].industry_id].industry_name;
+            }
+            if(rmInlineData.hasOwnProperty("workflow_exposure")){
                 workflow_score = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_score;
+                workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name;
+            }
             if(rmInlineData.hasOwnProperty("status_no_rollback"))
                 status_no_rollback = rmInlineData.status_no_rollback;
 
@@ -1107,13 +1150,27 @@ function RMBotService(objectCollection) {
 
             total_score = ((read_efficiency * read_efficiency_percentage) + (work_efficiency * work_efficiency_percentage) + (industry_score * industry_exposure_percentage) + (customer_score * customer_exposure_percentage) + (workflow_score * workflow_exposure_percentage) + (status_no_rollback * status_rollback_percentage));
             logger.info("Total Score "+total_score, { type: 'rm_bot', request, error: false });
-
+/*
             score_details.work_efficiency_score = work_efficiency * work_efficiency_percentage;
+            //Delivered <Workflow Name> - <Status Name> statuses on time <Percentage> of time.
             score_details.read_efficiency_score =  read_efficiency * read_efficiency_percentage;
+            //Read <Percentage> of workflow updates on time in the last 30 days.
             score_details.status_rollback_score = status_no_rollback * status_rollback_percentage;
+            //Achieved <Percentage> of <Workflow Name> - <Status Name> statuses without rollbacks.
             score_details.customer_exposure_score = customer_score * customer_exposure_percentage;
+            //Exposure to <Percentage> of the <Customer Name> workflows.
             score_details.industry_exposure_score = industry_score * industry_exposure_percentage;
+            //Exposure to <Percentage> of <Industry Name> workflows.
             score_details.workflow_exposure_score = workflow_score * workflow_exposure_percentage;
+            //Exposure to <Percentage> of <Workflow Name> workflows.
+*/
+            score_details.work_efficiency_score = (work_efficiency * work_efficiency_percentage).toFixed(2);
+            score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+" percentage of workflow updates on time in the last 30 days";
+            score_details.status_rollback_score = (status_no_rollback * status_rollback_percentage).toFixed(2);
+            score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+" of the "+customer_asset_name+" workflows";
+            score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+" of "+industry_name+" workflows";
+            score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+" of "+workflow_name+" workflows";
+
             //score_details.workflow_type_exposure_score = workflow_type_score * workflow_type_exposure_percentage;
             //score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
             score_details.overall_score = total_score;
@@ -1329,59 +1386,7 @@ function RMBotService(objectCollection) {
         }
         return [error, responseData];
     }; 
-/*
-    this.calculateAssetSummary = async function(leadRequest, newLeadAssetId){
-        
-        let existingAssetWorkLoad = 0;
-        let newAssetWorkload = 0;
 
-        leadRequest.flag = -1;
-        leadRequest.start_datetime = '1970-01-01 00:00:00';
-        leadRequest.end_datetime = '2049-12-31 18:30:00';
-        leadRequest.monthly_summary_id = 5;
-
-       if(leadRequest.asset_id > 0){
-            console.log("Existing Lead Asset GreaterThan 0")
-            let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
-            console.log("exisitngAssetData :: ", exisitngAssetData);
-            existingAssetWorkLoad = (Number(exisitngAssetData[0].expected_duration)*60) - Number(exisitngAssetData[0].actual_duration);
-            leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
-            leadRequest.entity_decimal_2 = Number(exisitngAssetData[0].actual_duration)/60;
-            leadRequest.entity_decimal_3 = Number(existingAssetWorkLoad);
-
-            console.log('After activityListLeadUpdate : ', leadRequest);
-            //leadRequest.asset_id = leadRequest.asset_id;
-            await self.assetSummaryTransactionInsert(leadRequest);
-            console.log('After assetSummaryTransactionInsert : ');
-        }else{
-            console.log("Existing Lead Asset Not GreaterThan 0")
-        }
-
-        if(newLeadAssetId > 0){
-            console.log("New Lead Asset GreaterThan 0")
-            leadRequest.asset_id = newLeadAssetId;
-
-            let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
-            console.log("newAssetData[0].query_status ", newAssetData[0].query_status)
-            newAssetWorkload = (Number(newAssetData[0].expected_duration)*60) - Number(newAssetData[0].actual_duration);
-            leadRequest.entity_decimal_1 = newAssetData[0].expected_duration;
-            leadRequest.entity_decimal_2 = Number(newAssetData[0].actual_duration)/60;
-            leadRequest.entity_decimal_3 = Number(newAssetWorkload);
-
-            console.log("Expected Duration :: ", newAssetData[0].expected_duration);
-            console.log("Actual Duration :: ", newAssetData[0].actual_duration);
-            console.log("newAssetEfficiency :: ", newAssetWorkload);
-
-            leadRequest.asset_id = newLeadAssetId;
-            await self.assetSummaryTransactionInsert(leadRequest);
-
-            console.log("existingAssetEfficiency ", existingAssetWorkLoad);
-            console.log("newAssetEfficiency ", newAssetWorkload);
-        }else{
-            console.log("New Lead Asset Not GreaterThan 0")
-        }
-    }
-*/
     this.getAssetMonthlySummary = async function (request) {
 
         let responseData = [],
@@ -1881,7 +1886,7 @@ function RMBotService(objectCollection) {
             if(activityTypeStatusCount.length > 0)
             {
                 if(activityTypeIntimeStatusCount.length > 0){
-                    workflow_score = (Number(activityTypeIntimeStatusCount[0].activity_type_count)/Number(activityTypeStatusCount[0].activity_type_count));
+                    workflow_score = (Number(activityTypeIntimeStatusCount[0].activity_type_count)/Number(activityTypeStatusCount[0].activity_type_count)).toFixed(2);
                     activityTypeIntimeCount = Number(activityTypeIntimeStatusCount[0].activity_type_count);
                     activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
                 }else{
@@ -1909,7 +1914,7 @@ function RMBotService(objectCollection) {
             if(industryStatusCount.length > 0)
             {
                 if(industryIntimeStatusCount.length > 0){
-                    industry_score = (Number(industryIntimeStatusCount[0].industry_count)/Number(industryStatusCount[0].industry_count));
+                    industry_score = (Number(industryIntimeStatusCount[0].industry_count)/Number(industryStatusCount[0].industry_count)).toFixed(2);
                     industryIntimeCount = Number(industryIntimeStatusCount[0].industry_count);
                     industryCount = Number(industryStatusCount[0].industry_count);               
                 }else{
@@ -1935,7 +1940,7 @@ function RMBotService(objectCollection) {
             if(customerStatusCount.length > 0)
             {
                 if(customerIntimeStatusCount.length > 0){
-                    customer_score = (Number(customerIntimeStatusCount[0].customer_asset_count)/Number(customerStatusCount[0].customer_asset_count));
+                    customer_score = (Number(customerIntimeStatusCount[0].customer_asset_count)/Number(customerStatusCount[0].customer_asset_count)).toFixed(2);
                     customerIntimeCount = Number(customerIntimeStatusCount[0].customer_asset_count);
                     customerCount = Number(customerStatusCount[0].customer_asset_count);               
                 }else{
@@ -1944,7 +1949,7 @@ function RMBotService(objectCollection) {
             }else{
                 customer_score = 0;
             }
-            rmInlineData.customer_exposure[data[0].customer_asset_id]={"intime":customerIntimeCount,"total":customerCount, "customer_asset_id":data[0].customer_asset_id, "customer_asset_name":data[0].customer_operating_asset_first_name, "customer_score":customer_score};
+            rmInlineData.customer_exposure[data[0].customer_asset_id]={"intime":customerIntimeCount,"total":customerCount, "customer_asset_id":data[0].customer_asset_id, "customer_asset_name":data[0].customer_asset_first_name, "customer_score":customer_score};
         }catch(e){
             console.log(e);
         }
@@ -1962,7 +1967,7 @@ function RMBotService(objectCollection) {
             if(totalUpdateCount.length > 0)
             {
                 if(totalIntimeUpdateCount.length > 0){
-                    read_efficiency = (Number(totalIntimeUpdateCount[0].update_count)/Number(totalUpdateCount[0].update_count));
+                    read_efficiency = (Number(totalIntimeUpdateCount[0].update_count)/Number(totalUpdateCount[0].update_count)).toFixed(2);
                     totalUpdatesIntimeCount = Number(totalIntimeUpdateCount[0].update_count);
                     totalUpdatesCount = Number(totalUpdateCount[0].update_count);             
                 }else{
@@ -1988,7 +1993,7 @@ function RMBotService(objectCollection) {
             if(totalStatusCount.length > 0)
             {
                 if(totalIntimeStatusCount.length > 0){
-                    work_efficiency = (Number(totalIntimeStatusCount[0].activity_count)/Number(totalStatusCount[0].activity_count));
+                    work_efficiency = (Number(totalIntimeStatusCount[0].activity_count)/Number(totalStatusCount[0].activity_count)).toFixed(2);
                     totalIntimeCount = Number(totalIntimeStatusCount[0].activity_count);
                     totalCount = Number(totalStatusCount[0].activity_count);                 
                 }else{
@@ -2015,7 +2020,7 @@ function RMBotService(objectCollection) {
             {
                 if(totalRollbackStatusCount.length > 0){
 
-                    status_no_rollback_efficiency = ((Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count))/Number(totalStatusCount1[0].activity_status_count));
+                    status_no_rollback_efficiency = ((Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count))/Number(totalStatusCount1[0].activity_status_count)).toFixed(2);
                     noRollbackCount = Number(totalRollbackStatusCount[0].status_rollback_count);
                     overallCount = Number(totalStatusCount1[0].activity_status_count);      
                     totalRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
@@ -2073,8 +2078,19 @@ function RMBotService(objectCollection) {
                         if(Number(request.timeline_stream_type_id) == 718){
                             request.lead_asset_id = lead_asset_id;
                             await self.activityAssetMappingUpdateLead(request);
+
+                            if(data[0].existing_lead_asset_id > 0){
+                                request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                                await self.assetListUpdatePoolEntry(request);
+                            }
+
+                            request.rm_flag = 2; 
+                            request.is_lead_enabled = 1; 
+                            self.activityListUpdateRMFlags(request);
+
                             request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
                         }
+
                         logger.info("EXISTING LEAD DATA"+JSON.stringify(data));
                         request.global_array.push({"EXISTING_LEAD_DATA":JSON.stringify(data)});
 
@@ -2086,6 +2102,7 @@ function RMBotService(objectCollection) {
                                 request.global_array.push({"new_lead_asset_id":lead_asset_id});
                                 logger.info("new_lead_asset_id:: "+lead_asset_id);
                                 if(Number(lead_asset_id) == 0){
+
                                     logger.info("LEAD_UNASSIGNMENT"+request.lead_asset_id);;
                                     let timelineCollection = {};
                                     timelineCollection.content="Tony has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
@@ -2096,6 +2113,7 @@ function RMBotService(objectCollection) {
                                     timelineCollection.activity_reference=[];
                                     timelineCollection.rm_bot_scores=[];
                                     request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
+
                                 }else{
                                     request.global_array.push({"NO_LEAD_UNASSIGNMENT":lead_asset_id});
                                 }
@@ -2103,15 +2121,19 @@ function RMBotService(objectCollection) {
                                 let ObjReq = Object.assign({}, request);
                                 ObjReq.lead_asset_id = 0;
                                 ObjReq.target_lead_asset_id = data[0].existing_lead_asset_id;
-                                await self.activityAssetMappingUpdateLead(ObjReq);
-                                await self.assetListUpdatePoolEntry(ObjReq);
+                                self.activityAssetMappingUpdateLead(ObjReq);
+                                self.assetListUpdatePoolEntry(ObjReq);
                                
+                                request.rm_flag = 2; 
+                                request.is_lead_enabled = 0; 
+                                self.activityListUpdateRMFlags(request);
+
                                 request.global_array.push({"calculateAssetNewSummary":""});
                                 logger.info();
                                 self.calculateAssetNewSummary(ObjReq);
 
                             }else{
-                                logger.info("Exising Lead Asset Id is not greaterthan zero, hence no unassinment");
+                                request.global_array.push({"NO_LEAD_UNASSIGNMENT":"Exising Lead Asset Id is not greaterthan zero, hence no unassinment"});
                                 logger.debug("Exising Lead Asset Id is not greaterthan zero, hence no unassinment ", { type: "rm_bot", request_body: request });
                             }
                         }  
@@ -2242,7 +2264,67 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
-    };    
+    }; 
+
+    this.activityListUpdateRMFlags = async function (request) {
+        let responseData = [],
+        error = true;
+
+        try{
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.is_status_rollback || 0,
+                request.is_lead_enabled || 0,
+                request.rm_flag,  // 1 - status rollback, 2 = lead enabled
+                request.asset_id,
+                request.datetime_log
+            );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_update_rm_flags', paramsArr);
+            request.global_array.push({"activityListUpdateRMFlags":queryString});
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                        request.global_array.push({"activityListUpdateRMFlags":queryString+" : "+data.length})
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            } 
+        }catch(error){
+            console.log("error :: "+error);
+        }   
+        return [error, responseData]; 
+    }   
+
+
+    this.getAIBotTransaction = async function (request) {
+        let responseData = [],
+        error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.ai_bot_transaction_id
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    request.global_array.push({"getAIBotTransaction":"LENGTH :: "+responseData.length+" : "+queryString});
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }    
 
 }
 
