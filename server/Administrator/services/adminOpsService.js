@@ -120,7 +120,9 @@ function AdminOpsService(objectCollection) {
 
             // 4. Fire Create Activity Service
             // Fetch activity types
-            const [errThree, activityTypeMappingData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);
+            let newReq = Object.assign({}, request);
+                newReq.account_id = 0;
+            const [errThree, activityTypeMappingData] = await adminListingService.workforceActivityTypeMappingSelectCategory(newReq);
             if (errThree || Number(activityTypeMappingData.length) === 0) {
                 console.log("createAssetBundle | Error: ", errThree);
                 return [true, {

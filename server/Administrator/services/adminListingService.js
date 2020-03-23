@@ -260,7 +260,7 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
-    this.workforceActivityTypeMappingSelectCategory = async function (request) {
+    this.workforceActivityTypeMappingSelectCategory = async (request) => {
         let responseData = [],
             error = true;
 

@@ -24,3 +24,4 @@ newrelic_agent.log
 launch.json
 settings.json
 .env
+server/queue/queueWrapper_ably.js
