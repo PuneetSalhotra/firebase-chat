@@ -2415,6 +2415,13 @@ function BotService(objectCollection) {
             newReq.flag_trigger_resource_manager = 0;
         }
 
+        // Flag to persist role on the activity type (workflow type)
+        if (inlineData.hasOwnProperty("activity_type_flag_persist_role")) {
+            newReq.activity_type_flag_persist_role = Number(inlineData.activity_type_flag_persist_role);
+        } else {
+            newReq.activity_type_flag_persist_role = 0;
+        }
+
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
