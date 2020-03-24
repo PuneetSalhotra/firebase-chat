@@ -1988,16 +1988,15 @@ function RMBotService(objectCollection) {
         reqObj.summary_id = 6;
         reqObj.flag = 0;
         let inlineData = {};
-/*
-        let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
-        console.log("summary_data :: "+JSON.stringify(summaryData));
-        if(summaryData.length == 1){
-            rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
-        }
-*/
+        /*
+            let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
+            console.log("summary_data :: "+JSON.stringify(summaryData));
+            if(summaryData.length == 1){
+                rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
+            }
+        */
         console.log("Activity activity_type_id***** :: "+data[0].activity_type_id);
-        console.log("Activity activity_type_tag_id* :: "+data[0].activity_type_tag_id);
-        console.log("Activity tag_type_id********** :: "+data[0].tag_type_id);
+        console.log("Activity activity_status_id* :: "+data[0].activity_status_id);
         console.log("Activity industry_id********** :: "+data[0].industry_id);
         console.log("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
 
@@ -2117,7 +2116,8 @@ function RMBotService(objectCollection) {
         }
 
         request.flag = 7;
-        request.entity_id = request.target_asset_id;
+        
+        request.entity_id = data[0].activity_status_id;
         let [error13, totalStatusCount] = await self.assetTaskParticipatedCount(request);
         let [error14, totalIntimeStatusCount] = await self.assetTaskLeadedCount(request);
         let totalIntimeCount = 0;
@@ -2144,7 +2144,8 @@ function RMBotService(objectCollection) {
         }
 
         request.flag = 8;
-        request.entity_id = request.target_asset_id;
+        
+        request.entity_id = data[0].activity_status_id;
         let [error15, totalStatusCount1] = await self.assetTaskParticipatedCount(request);
         let [error16, totalRollbackStatusCount] = await self.assetTaskLeadedCount(request);
         let rollbackCount = 0;
