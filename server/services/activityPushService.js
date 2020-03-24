@@ -6,6 +6,7 @@ const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 //const smsEngine = require('../utils/smsEngine');
 const moment = require('moment');
 const path = require('path');
+const logger = require("../logger/winstonLogger");
 
 function ActivityPushService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
@@ -381,9 +382,10 @@ function ActivityPushService(objectCollection) {
                     case 48: // Process/Workflow
                     case 53: // Accounts
                         // Check for activity_creator_asset_id and asset_id for enabling push notification
-                        let [err, activityData] = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
-                            if(err === false){
-                                if(activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
+                        try {
+                            let activityData = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+                            if (activityData.length > 0) {
+                                if (activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
                                     if (
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
@@ -398,7 +400,7 @@ function ActivityPushService(objectCollection) {
                                                 const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
                                                 attachments = activityTimelineCollection.attachments;
                                                 content = activityTimelineCollection.content;
-            
+    
                                             } catch (error) { }
                                             // if (Number(attachments.length) > 0) {
                                             // Text comment
@@ -406,13 +408,13 @@ function ActivityPushService(objectCollection) {
                                                 msg.activity_type_category_id = activityTypeCategoryId;
                                                 msg.type = 'activity_unread';
                                                 msg.description = `Added text in ${activityTitle}.`;
-            
+    
                                                 pushString.description = `${content} - ${senderName}`;
-            
+    
                                                 pushString.title = activityTitle;
                                                 pushString.subtitle = content;
                                                 pushString.body = senderName;
-            
+    
                                                 if (Number(attachments.length) === 1) {
                                                     const fileExtension = path.extname(attachments[0]);
                                                     switch (fileExtension) {
@@ -442,15 +444,15 @@ function ActivityPushService(objectCollection) {
                                                             break;
                                                     }
                                                     pushString.description = `${pushString.subtitle} - ${senderName}`;
-            
+    
                                                 } else if (Number(attachments.length) > 0) {
                                                     msg.description = `Added attachment in ${activityTitle}.`;
-            
+    
                                                     pushString.description = `Added attachment(s)`;
                                                     pushString.subtitle = `Added attachment(s)`;
                                                 }
                                             }
-            
+    
                                             // Fetch form definition details
                                             let formConfigError = false, formConfigData = [];
                                             if (
@@ -467,29 +469,29 @@ function ActivityPushService(objectCollection) {
                                             // When a form is freshly added to a workflow
                                             if (Number(request.activity_stream_type_id) === 705) {
                                                 let formName = formConfigData[0].form_name || "";
-            
+    
                                                 pushString.description = `${formName} form submitted - ${senderName}`;
-            
+    
                                                 pushString.title = activityTitle;
                                                 pushString.subtitle = `${formName} form submitted`;
                                                 pushString.body = senderName;
                                             }
-            
+    
                                             // When a form is freshly added to a workflow
                                             if (Number(request.activity_stream_type_id) === 713) {
                                                 let formName = formConfigData[0].form_name || "";
-            
+    
                                                 pushString.description = `${formName} form updated - ${senderName}`;
-            
+    
                                                 pushString.title = activityTitle;
                                                 pushString.subtitle = `${formName} form updated`;
                                                 pushString.body = senderName;
-            
+    
                                             } else {
                                                 // console.log("Wow!!!!! Request", request);
                                                 // pushString = {};
                                             }
-            
+    
                                             // Do not sent mobile push notification for any other stream types
                                             if (
                                                 !(Object.keys(pushString).length > 1)
@@ -508,15 +510,15 @@ function ActivityPushService(objectCollection) {
                                                     workforce_id: request.workforce_id,
                                                     form_id: request.form_id
                                                 });
-            
+    
                                                 let formName = formConfigData[0].form_name || "";
-            
+    
                                                 pushString.description = `${formName} form updated - ${senderName}`;
-            
+    
                                                 pushString.title = activityTitle;
                                                 pushString.subtitle = `${formName} form updated`;
                                                 pushString.body = senderName;
-            
+    
                                             } else {
                                                 // console.log("Wow!!!!! Request", request);
                                             }
@@ -532,39 +534,39 @@ function ActivityPushService(objectCollection) {
                                         case '/' + global.config.version + '/activity/unread/count/reset/v1':
                                             msg.activity_type_category_id = activityTypeCategoryId;
                                             msg.type = 'activity_read';
-            
+    
                                             // 2nd July 2019 04:03 PM IST: DO NOT SEND push to Android or iOS
                                             pushString = {};
                                             break;
                                         case '/' + global.config.version + '/engine/bot/init':
                                             // 22nd July 2019 08:54 PM IST: DO NOT SEND push to Android or iOS
                                             // 28th August 2019 11:52 AM IST: Send push for select bot operations for live updates load
-            
+    
                                             switch (Number(request.activity_stream_type_id)) {
                                                 case 717: // Workflow Percentage Updated
                                                     pushString.description = `${request.push_message || 'Workflow percentage updated'} - ${senderName}`;
-            
+    
                                                     pushString.title = activityTitle;
                                                     pushString.subtitle = request.push_message || 'Workflow percentage updated';
                                                     pushString.body = senderName;
                                                     break;
-                                            
+    
                                                 case 704: // Alter the status of the Form Activity
                                                     pushString.description = `${request.push_message || 'Workflow status altered'} - ${senderName}`;
-            
+    
                                                     pushString.title = activityTitle;
                                                     pushString.subtitle = request.push_message || 'Workflow status altered';
                                                     pushString.body = senderName;
                                                     break;
-                                            
+    
                                                 case 325: // Add Collection to the file
                                                     pushString.description = `${request.push_message || 'Added comment to workflow'} - ${senderName}`;
-            
+    
                                                     pushString.title = activityTitle;
                                                     pushString.subtitle = request.push_message || 'Added comment to workflow';
                                                     pushString.body = senderName;
                                                     break;
-                                            
+    
                                                 default:
                                                     pushString = {};
                                                     break;
@@ -575,7 +577,7 @@ function ActivityPushService(objectCollection) {
                                                 pushString.title = activityTitle;
                                                 pushString.subtitle = 'due date changed';
                                                 pushString.body = senderName;
-            
+    
                                                 msg.activity_type_category_id = activityTypeCategoryId;
                                                 msg.type = 'activity_duedate';
                                             }
@@ -589,8 +591,18 @@ function ActivityPushService(objectCollection) {
                                     console.log("getPushString | pushString: ", pushString);
                                     console.log("getPushString | msg: ", msg);
                                     console.log("getPushString | request.asset_id: ", request.asset_id);
+                                } else {
+                                    pushString = {};
+                                    logger.silly("getPushString | Request from the creator.");
                                 }
+                            } else {
+                                pushString = {};
+                                logger.silly("getPushString | Origin form activity ID couldn't be found");
                             }
+                        } catch (error) {
+                            pushString = {};
+                            logger.silly("getPushString | [Error] Origin form activity ID couldn't be found");
+                        }
                         break;
 
                     case 52: // Widget
@@ -656,6 +668,11 @@ function ActivityPushService(objectCollection) {
                     // 
                     pushString.activity_id = request.activity_id;
                     pushString.activity_type_category_id = request.activity_type_category_id;
+
+                    console.log("[987987] getPushString | request.url: ", request.url);
+                    console.log("[987987] getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
+                    console.log("[987987] getPushString | pushString: ", pushString);
+                    console.log("[987987] getPushString | request.asset_id: ", request.asset_id);
                 }
 
                 callback(false, pushString, msg, smsString);

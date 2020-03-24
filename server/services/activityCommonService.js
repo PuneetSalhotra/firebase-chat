@@ -1,7 +1,3 @@
-/* eslint-disable no-case-declarations */
-/*
- * author: Sri Sai Venkatesh
- */
 
 function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
@@ -385,6 +381,7 @@ this.getAllParticipantsAsync = async (request) => {
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 718:
+            case 719:
             case 720:
             case 721:
             case 722:
@@ -624,9 +621,11 @@ this.getAllParticipantsAsync = async (request) => {
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 718: //
-                entityTypeId = 0;
-                activityTimelineCollection = request.activity_lead_timeline_collection || '{}'; 
-                break;
+            case 719: //
+                /*entityTypeId = 0;
+                activityTimelineCollection = request.activity_lead_timeline_collection || '{}';
+                entityText2 = request.lead_reject_reason?request.lead_reject_reason:""; 
+                break;*/
             case 720:
             case 721:
             case 722: 
@@ -3094,9 +3093,10 @@ this.getAllParticipantsAsync = async (request) => {
                 duration,
                 util.getCurrentUTCTime(),
                 request.asset_id,
-                request.status_changed_flag
+                request.status_changed_flag,
+                request.is_status_rollback || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_activity_status_change_transaction_insert', paramsArr);
+            var queryString = util.getQueryString('ds_p1_2_activity_status_change_transaction_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
