@@ -17,9 +17,18 @@ function RMBotService(objectCollection) {
     const activityCommonService = objectCollection.activityCommonService;
 
     this.alterWorkflowLead = async function(request){
+         request.global_array = [];
         try{
-            request.global_array = [];
+
             request.global_array.push({"alterWorkflowLead":""});
+            let ai_bot_transaction_id = 0;
+
+            request.global_array.push({"alterWorkflowLead":"Unassignment in process"})
+            request.ai_trace_insert_location = "alterWorkflowLead, Unassignment in process";
+            let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
+            if(responseDataAI.length > 0){
+                request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+            }            
             let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
             let previous_status_lead_asset_id = 0;
             let previous_status_lead_asset_name = "";
@@ -89,7 +98,7 @@ function RMBotService(objectCollection) {
                         logger.info("Alter Status :: "+JSON.stringify(request));
                         request.global_array.push({"alterStatusMakeRequest":previous_activity_status_id});
        
-                        self.alterStatusMakeRequest(request);
+                        await self.alterStatusMakeRequest(request);
 
                     }/*else{
                         //make the creator as lead
@@ -120,6 +129,7 @@ function RMBotService(objectCollection) {
         }catch(e){
             logger.info("Exception occured in alterWorkflowLead"+e);
             request.global_array.push({"Exception alterWorkflowLead":e});
+            request.ai_trace_insert_location = "Exception alterWorkflowLead";
             self.AIEventTransactionInsert(request);
         }
     }
@@ -127,7 +137,7 @@ function RMBotService(objectCollection) {
     this.callAddParticipant = async function(request){
 
         //request.global_array = [];
-        if(!request.hasOwnProperty("global_array"))
+        if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
         {   request.global_array = [];
             let [err, logData] = await self.getAIBotTransaction(request);
             request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
@@ -162,14 +172,18 @@ function RMBotService(objectCollection) {
         if(request.hasOwnProperty("duration_in_minutes")){
             if(request.duration_in_minutes > 0)
                 await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
+                request.ai_trace_insert_location = "callAddParticipant, after seeting status duedate";
                 self.AIEventTransactionInsert(request);
         }else{
+            request.ai_trace_insert_location = "No duration_in_minutes, hence no staus due date set";
             self.AIEventTransactionInsert(request);
         }
         return "";
     }
 
     this.RMOnAvailabilityOFAResource = async function (request) {
+        let responseData = [],
+            error = true;
 
         let paramsArr = new Array(
             request.organization_id,
@@ -197,7 +211,8 @@ function RMBotService(objectCollection) {
     }
 
     this.unallocatedWorkflowInsert = async function (request) {
-
+        let responseData = [],
+            error = true;
         console.log(" request.bot_mapping_inline_data :: "+ request.bot_mapping_inline_data);
 
         let paramsArr = new Array(
@@ -231,6 +246,9 @@ function RMBotService(objectCollection) {
 
     this.AIEventTransactionInsert = async function (request) {
 
+        let responseData = [],
+        error = true;
+
         let paramsArr = new Array(
             request.organization_id,
             request.activity_id,
@@ -239,7 +257,11 @@ function RMBotService(objectCollection) {
             JSON.stringify(request.global_array),
             request.bot_id,
             request.bot_operation_id,
-            util.getCurrentUTCTime()
+            util.getCurrentUTCTime(),
+            request.ai_bot_transaction_id || 0,
+            request.ai_trace_insert_location || '',
+            request.target_asset_id || 0,
+            request.asset_id || 0
         );
 
         const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_insert', paramsArr);
@@ -634,6 +656,7 @@ function RMBotService(objectCollection) {
         request.global_array.push({"RESOURCES_IN_POOL":assetData.length});
         if(assetData.length == 0){
             request.global_array.push({"END_OF_FLOW":"NO RESOURCES IN THE POOL, HENCE END OF FLOW"});
+            request.ai_trace_insert_location = "RMLoopInResoources, No Resources Found";
             self.AIEventTransactionInsert(request);
             return "";
         }
@@ -662,7 +685,7 @@ function RMBotService(objectCollection) {
                 logger.debug("NO WORKFLOWS ", { type: "rm_bot", request_body: request });
                 request.global_array.push({"NO_WORKFLOWS_EXISTS":"NO WORKFLOWS EXISTS FOR THE ASSET_TYPE "+rowData.asset_type_id+": END OF FLOW"});
                 //request.bot_mapping_inline_data = request.proof;
-                self.AIEventTransactionInsert(request);
+                //self.AIEventTransactionInsert(request);
                 next();
             }else{
                     request.workflow_data = workflowData;
@@ -672,7 +695,9 @@ function RMBotService(objectCollection) {
                     next();
              }
         }).then(()=>{
-            request.global_array.push({"AFTER THE LOOP":request.target_asset_id});
+            request.global_array.push({"AFTER LOOPING THROUGH ALL THE RESOURCES":request.target_asset_id});
+            request.ai_trace_insert_location = "RMLoopInResoources, After iterating through all the resources";
+            //self.AIEventTransactionInsert(request);
             return "";
         })
     }
@@ -724,6 +749,7 @@ function RMBotService(objectCollection) {
             let [error2, data] = await self.generateResourceScore(request);
             logger.info("Generated Score data ::: "+JSON.stringify(data));
             logger.info("*****************************************Asset Score "+request.target_asset_id+" : "+data.total_score);
+            request.global_array.push({"GENERATED_SCORE":"ASSET :: "+request.target_asset_id+" ACTIVITY :: "+responseData[k].activity_id+" : "+data.total_score});
             jsonObj.asset_id = request.target_asset_id;
             jsonObj.total_score = data.total_score;
             jsonObj.rm_bot_scores = data.rm_bot_scores;
@@ -761,16 +787,57 @@ function RMBotService(objectCollection) {
             request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
             //console.log("Before Making Request ", JSON.stringify(request,null,2));
 
-            request.ai_bot_id = 1;
-            request.ai_bot_status_id = 2;
-            request.bot_mapping_inline_data = {};
+            logger.info("ai_bot_transaction_id EXISTS :: "+request.hasOwnProperty("ai_bot_transaction_id"));
+           
+           /* if(request.hasOwnProperty("ai_bot_transaction_id"))
+            {
+                existing_array = [];
+                let [err, logData] = await self.getAIBotTransaction(request);
+                existing_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
+                request.global_array = existing_array.concat(request.global_array);
+                await self.AIEventTransactionInsert(request);
+            } else if(!request.hasOwnProperty("ai_bot_transaction_id")){
+                request.ai_trace_insert_location = "addParticipantMakeRequest, before add particiapnt";
+                let [err, responseData] = await self.AIEventTransactionInsert(request);
+                if(responseData.length > 0){
+                    request.ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
+                } 
+            } 
 
-            await self.unallocatedWorkflowInsert(request);
+            logger.info("ai_bot_transaction_id:: "+request.ai_bot_transaction_id); */
+            request.target_workflow_id = highest_score_workflow;
+            let workflowErr, updatedWorkflowData;
 
-            self.addParticipantMakeRequest(request);
-            return [false, {}];
+            if(highest_score_workflow > 0)
+                [workflowErr, updatedWorkflowData] = await self.assetListUpdateLeadWorkflow(request);
+
+            if(updatedWorkflowData.length > 0){
+                if(updatedWorkflowData[0].query_status == 0){
+
+                    request.ai_bot_id = 1;
+                    request.ai_bot_status_id = 2;
+                    request.bot_mapping_inline_data = {};
+
+                    request.global_array.push({"RESOURCE_AVAILABLE_AND_LOCKED":request.target_asset_id+" OCCUPIED BY "+updatedWorkflowData[0].occupied_workflow_id});
+
+                    await self.unallocatedWorkflowInsert(request);
+                    await self.AIEventTransactionInsert(request);
+                    await self.addParticipantMakeRequest(request);
+                    return [false, {}];
+                }else{
+                    request.global_array.push({"RESOURCE_ALREADY_OCUUPIED":request.target_asset_id+" OCCUPIED BY "+updatedWorkflowData[0].occupied_workflow_id});
+                     await self.AIEventTransactionInsert(request);
+                     return [false, {}];
+                }
+            }else{
+                request.global_array.push({"RESOURCE_AVAILABLE_ISSUE":"SOMETHING WENT WRONG "});
+                 await self.AIEventTransactionInsert(request);
+                return [false, {}];
+            }
+            
         }else{
             request.global_array.push({"NO_WORKFLOW_CHOSEN_END_OF_FLOW":"Choosen workflow ::: "+highest_score_workflow+" :: Choosen Asset"+request.target_asset_id});
+            request.ai_trace_insert_location = "RMResourceAvailabilityTrigger, NO_WORKFLOW_CHOSEN_END_OF_FLOW";
             self.AIEventTransactionInsert(request);
             return [false, {}];
         }
@@ -779,8 +846,9 @@ function RMBotService(objectCollection) {
     };  
 
     this.assignResourceAsLead = async function (request, leadAssetId) {
-
-        if(!request.hasOwnProperty("global_array"))
+        let error = true, responseData = [];
+        
+        if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
         {
             request.global_array = [];
             let [err, logData] = await self.getAIBotTransaction(request);
@@ -807,6 +875,7 @@ function RMBotService(objectCollection) {
             self.RMLoopInResoources(request);
             request.activity_type_flag_persist_role = 0;
         }else{
+            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
             self.AIEventTransactionInsert(request);
         }
         return [error, responseData];
@@ -814,12 +883,15 @@ function RMBotService(objectCollection) {
 
 
     this.addParticipantMakeRequest = async function (request) {
-
-        let ai_bot_transaction_id = 0;
-        let [err, responseData] = await self.AIEventTransactionInsert(request);
-        if(responseData.length > 0){
-            ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
-        }
+      /*  let ai_bot_transaction_id = 0;
+        logger.info("ai_bot_transaction_id EXISTS :: "+request.hasOwnProperty("ai_bot_transaction_id"));
+        if(!request.hasOwnProperty("ai_bot_transaction_id")){
+            request.ai_trace_insert_location = "addParticipantMakeRequest, before add particiapnt";
+            let [err, responseData] = await self.AIEventTransactionInsert(request);
+            if(responseData.length > 0){
+                request.ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
+            } 
+        } */
 
         let participantArray = [];
 
@@ -866,7 +938,7 @@ function RMBotService(objectCollection) {
             rm_bot_scores:request.rm_bot_scores,
             activity_lead_timeline_collection:request.activity_lead_timeline_collection,
             timeline_stream_type_id:718,
-            ai_bot_transaction_id:ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id
             //global_array:request.global_array
         };
         //console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
@@ -886,6 +958,7 @@ function RMBotService(objectCollection) {
                 return [false, {}];
             }else{
                 console.log("Error ", body);
+                return [true, {}];
             }
         } catch (error) {
             console.log("Activity Mapping Assign | Error: ", error);
@@ -894,12 +967,13 @@ function RMBotService(objectCollection) {
     }    
 
     this.alterStatusMakeRequest = async function (request) {
-
+        
         let ai_bot_transaction_id = 0;
-        let [err, responseData] = self.AIEventTransactionInsert(request);
+        request.ai_trace_insert_location = "alterStatusMakeRequest, before the status rollback";
+        let [err, responseData] = await self.AIEventTransactionInsert(request);
         if(responseData.length > 0){
             ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
-        }
+        } 
 
         const alterStatusRequest = {
             organization_id: request.organization_id,
@@ -936,7 +1010,7 @@ function RMBotService(objectCollection) {
             //global_array:request.global_array,
             target_status_lead_asset_id:request.target_status_lead_asset_id,
             target_status_lead_asset_name:request.target_status_lead_asset_name,
-            ai_bot_transaction_id:ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id
         };
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
@@ -954,6 +1028,7 @@ function RMBotService(objectCollection) {
                 return [false, {}];
             }else{
                 console.log("Error ", body);
+                return [true, {}];
             }
         } catch (error) {
             console.log("Activity Status Alter | Error: ", error);
@@ -1033,8 +1108,17 @@ function RMBotService(objectCollection) {
         //let workflow_category_exposure_percentage = 0;
 
         let work_efficiency = 0;
+        let we_activity_status_id = 0;
+        let we_activity_status_name = "";
+        let we_activity_type_id = 0;
+        let we_activity_type_name = "";
+
         let read_efficiency = 0;
         let status_no_rollback = 0;
+        let sor_activity_status_id = 0;
+        let sor_activity_status_name = "";
+        let sor_activity_type_id = 0;
+        let sor_activity_type_name = "";
 
         let customer_asset_id = 0;
         let industry_id = 0;
@@ -1110,10 +1194,18 @@ function RMBotService(objectCollection) {
                 rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):{};
             }
 
-            if(rmInlineData.hasOwnProperty("work_efficiency"))
-                work_efficiency = rmInlineData.work_efficiency;
-            if(rmInlineData.hasOwnProperty("read_efficiency"))
+            if(rmInlineData.hasOwnProperty("work_efficiency")){
+                work_efficiency = rmInlineData.work_efficiency[data[0].activity_status_id].work_efficiency;
+                we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id;
+                we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name;
+                we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id;
+                we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name;
+            }else{
+
+            }
+            if(rmInlineData.hasOwnProperty("read_efficiency")){
                 read_efficiency = rmInlineData.read_efficiency;
+            }
             if(rmInlineData.hasOwnProperty("customer_exposure")){
                 customer_score = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_score;
                 customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name;
@@ -1126,8 +1218,13 @@ function RMBotService(objectCollection) {
                 workflow_score = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_score;
                 workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name;
             }
-            if(rmInlineData.hasOwnProperty("status_no_rollback"))
-                status_no_rollback = rmInlineData.status_no_rollback;
+            if(rmInlineData.hasOwnProperty("status_no_rollback")){
+                status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback;
+                sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id;
+                sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name;
+                sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id;
+                sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name;                
+            }
 
             work_efficiency = work_efficiency?work_efficiency:0;
             read_efficiency = read_efficiency?read_efficiency:0;
@@ -1683,6 +1780,14 @@ function RMBotService(objectCollection) {
         let data = [],
             error = true;
         try{
+
+            let ai_bot_transaction_id = 0;
+            request.ai_trace_insert_location = "triggerAIOnStatusChange, triggerAIOnStatusChange execution started";
+            let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
+            if(responseDataAI.length > 0){
+                request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+            }
+
             let [err, response] = await self.workforceActivityStatusMappingSelectStatusId(request);
             //request.proof.i1_1_triggerAIOnStatusChange_workforceActivityStatusMappingSelectStatusId_response_length= response.length;
             //logger.info("triggerAIOnStatusChange :: "+JSON.stringify(request,null,2));
@@ -1731,36 +1836,43 @@ function RMBotService(objectCollection) {
                                     }else{
                                         logger.info("NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger");
                                         request.global_array.push({"NO_PARTICIPANT":"NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger"});
+                                        request.ai_trace_insert_location = "NO_PARTICIPANT WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger";
                                         await self.RMStatusChangeTrigger(request);
                                     }
                                 }else{
                                     logger.info("NO PERSIST ROLE FLAG SET: HENCE EXECUTING RMStatusChangeTrigger");
                                     request.global_array.push({"NO_PERSIST_ROLE_FLAG_SET": "NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger"});
+                                    request.ai_trace_insert_location = "NO_PERSIST_ROLE_FLAG_SET, NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger";
                                     await self.RMStatusChangeTrigger(request);
                                 }
                             }else{
                                 logger.info("FORM RESUBMISSION, HENCE NO RM BOT TRIGGER");
                                 request.global_array.push({"FORM_RESUBMISSION": "FORM RESUBMISSION, HENCE NO RM BOT TRIGGER"});
+                                request.ai_trace_insert_location = "FORM_RESUBMISSION, FORM RESUBMISSION, HENCE NO RM BOT TRIGGER";
                                 self.AIEventTransactionInsert(request)                            
                             }
                     }else{
                         logger.info("AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT ");
                         request.global_array.push({"AI_TRIGGER_FLAG":"AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT"});
+                        request.ai_trace_insert_location = "AI_TRIGGER_FLAG, AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT";
                         self.AIEventTransactionInsert(request)                    
                     }
                 }else{
                     request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI"});
+                    request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
                     self.AIEventTransactionInsert(request)                
                     logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI");
                 }
             }else{
                 request.global_array.push({"STATUS_DOESNT_EXIST":"STATUS DOESNT EXIST, HENCE NO AI"});
+                request.ai_trace_insert_location = "STATUS_DOESNT_EXIST, STATUS DOESNT EXIST, HENCE NO AI";
                 self.AIEventTransactionInsert(request);
                 logger.info("STATUS DOESNT EXIST, HENCE NO AI ");
             }
         }catch(e){
             request.global_array.push({"Exception triggerAIOnStatusChange":e});
             logger.info("Exception occured in  triggerAIOnStatusChange :: "+e);
+            request.ai_trace_insert_location = "Exception occured in  triggerAIOnStatusChange";
             self.AIEventTransactionInsert(request);
         }
         return [error, data];
@@ -1841,8 +1953,8 @@ function RMBotService(objectCollection) {
 
         let rmInlineData = {};
         rmInlineData.read_efficiency="";
-        rmInlineData.work_efficiency="";
-        rmInlineData.status_no_rollback=0;
+        rmInlineData.work_efficiency={};
+        rmInlineData.status_no_rollback={};
         rmInlineData.customer_exposure={}
         rmInlineData.industry_exposure={};
         rmInlineData.workflow_exposure={};
@@ -1862,13 +1974,13 @@ function RMBotService(objectCollection) {
         reqObj.summary_id = 6;
         reqObj.flag = 0;
         let inlineData = {};
-
+/*
         let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
         console.log("summary_data :: "+JSON.stringify(summaryData));
         if(summaryData.length == 1){
             rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
         }
-
+*/
         console.log("Activity activity_type_id***** :: "+data[0].activity_type_id);
         console.log("Activity activity_type_tag_id* :: "+data[0].activity_type_tag_id);
         console.log("Activity tag_type_id********** :: "+data[0].tag_type_id);
@@ -1891,6 +2003,8 @@ function RMBotService(objectCollection) {
                     activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
                 }else{
                     workflow_score = 0;
+                    activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                    activityTypeIntimeCount = 0;
                 }
             }else{
                 workflow_score = 0;
@@ -1919,6 +2033,8 @@ function RMBotService(objectCollection) {
                     industryCount = Number(industryStatusCount[0].industry_count);               
                 }else{
                     industry_score = 0;
+                    industryCount = Number(industryStatusCount[0].industry_count);  
+                    industryIntimeCount = 0;    
                 }
             }else{
                 industry_score = 0;
@@ -1945,6 +2061,8 @@ function RMBotService(objectCollection) {
                     customerCount = Number(customerStatusCount[0].customer_asset_count);               
                 }else{
                     customer_score = 0;
+                    customerCount = Number(customerStatusCount[0].customer_asset_count);  
+                    customerIntimeCount = 0;
                 }
             }else{
                 customer_score = 0;
@@ -1972,6 +2090,8 @@ function RMBotService(objectCollection) {
                     totalUpdatesCount = Number(totalUpdateCount[0].update_count);             
                 }else{
                     read_efficiency = 0;
+                    totalUpdatesCount = Number(totalUpdateCount[0].update_count);  
+                    totalUpdatesIntimeCount = 0;
                 }
             }else{
                 read_efficiency = 0;
@@ -1998,11 +2118,13 @@ function RMBotService(objectCollection) {
                     totalCount = Number(totalStatusCount[0].activity_count);                 
                 }else{
                     work_efficiency = 0;
+                    totalIntimeCount = 0;
+                    totalCount = Number(totalStatusCount[0].activity_count);  
                 }
             }else{
                 work_efficiency = 0;
             }
-            rmInlineData.work_efficiency=work_efficiency;
+            rmInlineData.work_efficiency[data[0].activity_status_id]={"intime":totalIntimeCount,"total":totalCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "work_efficiency":work_efficiency};;
         }catch(e){
             console.log(e);
         }
@@ -2011,9 +2133,9 @@ function RMBotService(objectCollection) {
         request.entity_id = request.target_asset_id;
         let [error15, totalStatusCount1] = await self.assetTaskParticipatedCount(request);
         let [error16, totalRollbackStatusCount] = await self.assetTaskLeadedCount(request);
-        let noRollbackCount = 0;
+        let rollbackCount = 0;
         let overallCount = 0;
-        let totalRollbackCount = 0;
+        let totalNoRollbackCount = 0;
 
         try{
             if(totalStatusCount1.length > 0)
@@ -2021,16 +2143,19 @@ function RMBotService(objectCollection) {
                 if(totalRollbackStatusCount.length > 0){
 
                     status_no_rollback_efficiency = ((Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count))/Number(totalStatusCount1[0].activity_status_count)).toFixed(2);
-                    noRollbackCount = Number(totalRollbackStatusCount[0].status_rollback_count);
+                    rollbackCount = Number(totalRollbackStatusCount[0].status_rollback_count);
                     overallCount = Number(totalStatusCount1[0].activity_status_count);      
-                    totalRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
+                    totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
                 }else{
-                    status_no_rollback_efficiency = 0;
+                    totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count);
+                    overallCount = Number(totalStatusCount1[0].activity_status_count);
+                    status_no_rollback_efficiency = 1;
                 }
             }else{
                 status_no_rollback_efficiency = 0;
             }
-            rmInlineData.status_no_rollback=status_no_rollback_efficiency;
+            //rmInlineData.status_no_rollback=status_no_rollback_efficiency;
+            rmInlineData.status_no_rollback[data[0].activity_status_id]={"intime":totalNoRollbackCount,"total":overallCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "status_no_rollback_efficiency":status_no_rollback_efficiency};;
         }catch(e){
             console.log(e);
         }
@@ -2324,7 +2449,34 @@ function RMBotService(objectCollection) {
         }
 
         return [error, responseData];
-    }    
+    }  
+
+    this.assetListUpdateLeadWorkflow = async function (request) {
+        let responseData = [],
+        error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.target_workflow_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_lead_workflow', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    request.global_array.push({"assetListUpdateLeadWorkflow":"LENGTH :: "+responseData[0].query_status+" : "+queryString});
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+
+        return [error, responseData];
+    }       
 
 }
 
