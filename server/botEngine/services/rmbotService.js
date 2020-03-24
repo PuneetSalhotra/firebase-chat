@@ -1201,7 +1201,10 @@ function RMBotService(objectCollection) {
                 we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id;
                 we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name;
             }else{
-
+                we_activity_type_id = data[0].activity_type_id;
+                we_activity_type_name = data[0].activity_type_name;
+                we_activity_status_id = data[0].activity_status_id;
+                we_activity_status_name = data[0].activity_status_name;                
             }
             if(rmInlineData.hasOwnProperty("read_efficiency")){
                 read_efficiency = rmInlineData.read_efficiency;
@@ -1209,14 +1212,20 @@ function RMBotService(objectCollection) {
             if(rmInlineData.hasOwnProperty("customer_exposure")){
                 customer_score = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_score;
                 customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name;
+            }else{
+                customer_asset_name = data[0].customer_asset_name;
             }
             if(rmInlineData.hasOwnProperty("industry_exposure")){
                 industry_score = rmInlineData.industry_exposure[data[0].industry_id].industry_score;
                 industry_name = rmInlineData.industry_exposure[data[0].industry_id].industry_name;
+            }else{
+                industry_name = data[0].industry_name;
             }
             if(rmInlineData.hasOwnProperty("workflow_exposure")){
                 workflow_score = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_score;
                 workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name;
+            }else{
+                workflow_name = data[0].activity_type_name;
             }
             if(rmInlineData.hasOwnProperty("status_no_rollback")){
                 status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback;
@@ -1224,6 +1233,11 @@ function RMBotService(objectCollection) {
                 sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name;
                 sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id;
                 sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name;                
+            }else{
+                sor_activity_type_id = data[0].activity_type_id;
+                sor_activity_type_name = data[0].activity_type_name;
+                sor_activity_status_id = data[0].activity_status_id;
+                sor_activity_status_name = data[0].activity_status_name;                
             }
 
             work_efficiency = work_efficiency?work_efficiency:0;
@@ -1261,9 +1275,9 @@ function RMBotService(objectCollection) {
             score_details.workflow_exposure_score = workflow_score * workflow_exposure_percentage;
             //Exposure to <Percentage> of <Workflow Name> workflows.
 */
-            score_details.work_efficiency_score = (work_efficiency * work_efficiency_percentage).toFixed(2);
+            score_details.work_efficiency_score =  "Delivered "+we_activity_type_name+" - "+we_activity_status_name+" statuses on time "+(work_efficiency * work_efficiency_percentage).toFixed(2) +" of time";
             score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+" percentage of workflow updates on time in the last 30 days";
-            score_details.status_rollback_score = (status_no_rollback * status_rollback_percentage).toFixed(2);
+            score_details.status_rollback_score = "Achieved "+(status_no_rollback * status_rollback_percentage).toFixed(2)+" of  "+sor_activity_type_name+" - "+sor_activity_status_name+" statuses without rollbacks";
             score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+" of the "+customer_asset_name+" workflows";
             score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+" of "+industry_name+" workflows";
             score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+" of "+workflow_name+" workflows";
@@ -2206,11 +2220,13 @@ function RMBotService(objectCollection) {
 
                             if(data[0].existing_lead_asset_id > 0){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                                request.target_asset_id = data[0].existing_lead_asset_id;
+                                self.calculateAssetNewSummary(request);
                                 await self.assetListUpdatePoolEntry(request);
                             }
 
                             request.rm_flag = 2; 
-                            request.is_lead_enabled = 1; 
+                            request.is_lead_enabled = lead_asset_id; 
                             self.activityListUpdateRMFlags(request);
 
                             request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
