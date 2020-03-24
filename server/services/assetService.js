@@ -4384,20 +4384,31 @@ this.getQrBarcodeFeeback = async(request) => {
     this.assetAvailableUpdate = async (request) => {
         let responseData = {},
             error = true;
-
+        
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
             request.available_flag,
-            request.available_till_datetime
+            request.available_till_datetime,
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_asset_list_update_available', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_available', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
+
+                    let ai_bot_transaction_id = 0;
+                    request.global_array = [];
+                    request.global_array.push({"assetAvailableUpdate":"AFTER SETTING THE RESOURCE TO AVAILBALE, Initiating AI "+queryString})
+                    request.ai_trace_insert_location = "assetAvailableUpdate, AFTER SETTING THE RESOURCE TO AVAILBALE";
+                    let [errAI, responseDataAI] = await rmbotService.AIEventTransactionInsert(request);
+                    if(responseDataAI.length > 0){
+                        request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+                    }
+                    request.global_array.push({"assetAvailableUpdate":"AIEventTransactionInsert, idTransaction "+request.ai_bot_transaction_id})
                     if(responseData.length > 0){
                         if(responseData[0].organization_ai_bot_enabled == 1){
                             if(request.available_flag == 1){
@@ -4412,17 +4423,28 @@ this.getQrBarcodeFeeback = async(request) => {
                                 request.target_asset_name = responseData[0].asset_first_name;
                                 request.target_operating_asset_id = responseData[0].operating_asset_id;
                                 request.target_operating_asset_name = responseData[0].operating_asset_first_name;
-                                rmbotService.RMResourceAvailabilityTrigger(request);
+                                request.global_array.push({"assetAvailableUpdate":"Hitting the resource pool (RMLoopInResoources)"});
+                                rmbotService.RMLoopInResoources(request);
+                            }else{
+                                logger.info("assetAvailableUpdate :: AVAILABLE FLAG NOT SET FOR THIS ASSET");
+                                request.global_array.push({"assetAvailableUpdate":"AVAILABLE FLAG NOT SET FOR THIS ASSET, aiTransactionId"+request.ai_bot_transaction_id})
+                                rmbotService.AIEventTransactionInsert(request);                                 
                             }
                         }else{
-                            console.log("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
+                            logger.info("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
+                            request.global_array.push({"assetAvailableUpdate":"AI NOT ENABLED FOR THIS ORGANIZATION, aiTransactionId"+request.ai_bot_transaction_id})
+                            rmbotService.AIEventTransactionInsert(request);                            
                         }
                     }else{
-                            console.log("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
+                        logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
+                        request.global_array.push({"assetAvailableUpdate":"RESOURCE IS NOT ACTIVE, aiTransactionId"+request.ai_bot_transaction_id})
+                        rmbotService.AIEventTransactionInsert(request);
                     }
                 })
                 .catch((err) => {
                     error = err;
+                    request.global_array.push({"assetAvailableUpdaten Exceptio":error})
+                    rmbotService.AIEventTransactionInsert(request);                    
                 });
         }
         return [error, responseData];

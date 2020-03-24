@@ -2141,23 +2141,38 @@ function ActivityService(objectCollection) {
                         }).then(async () => {
                             console.log("*****activityService WORKLOAD UPDATE | data: ", JSON.stringify(data));
                             request.target_activity_id = 0;
+                            
+                            if(request.hasOwnProperty("insufficient_data")){
+                                //request.global_array = [];
+                                logger.info("activityService insufficient_data CALLING callAddParticipant");
+                                rmbotService.callAddParticipant(request);
+                            }else{
+                                request.global_array = [];
+                                request.global_array.push({"0.0":request.activity_id+" triggering ai in after status change"});
 
-                            rmbotService.triggerAIOnStatusChange(request);
-
+                                rmbotService.triggerAIOnStatusChange(request);
+                            }
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
                         }).catch((err)=>{
-                            global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2' + err, {}, request);
+                            global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2 '+err, {}, request);
                         })
-
-                        // Capture workflow, customer and industry exposure for a desk asset
-                        await captureWorkExperienceForDeskAsset(request);
+                        //Capture workflow, customer and industry exposure for a desk asset
+                        //await captureWorkExperienceForDeskAsset(request);
                     }else{
                         console.log("*****activityService NO EXISTING STATUS (No Shared Status)");
                         request.target_activity_id = 0;
-                        
-                        rmbotService.triggerAIOnStatusChange(request);
+                        if(request.hasOwnProperty("insufficient_data")){
+                            logger.info("activityService insufficient_data CALLING callAddParticipant");
+                            //request.global_array = [];
+                            rmbotService.callAddParticipant(request);
+                        }else{
+                            request.global_array = [];
+                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
+                            //request.proof={"0.0": request.activity_id+"triggering ai in after status change with no existing status"};
+                            rmbotService.triggerAIOnStatusChange(request);
+                        }
                     }
                 }
 
