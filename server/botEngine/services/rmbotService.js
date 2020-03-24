@@ -1195,11 +1195,11 @@ function RMBotService(objectCollection) {
             }
 
             if(rmInlineData.hasOwnProperty("work_efficiency")){
-                work_efficiency = rmInlineData.work_efficiency[data[0].activity_status_id].work_efficiency;
-                we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id;
-                we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name;
-                we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id;
-                we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name;
+                work_efficiency = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].work_efficiency:0;
+                we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;
             }else{
                 we_activity_type_id = data[0].activity_type_id;
                 we_activity_type_name = data[0].activity_type_name;
@@ -1228,11 +1228,11 @@ function RMBotService(objectCollection) {
                 workflow_name = data[0].activity_type_name;
             }
             if(rmInlineData.hasOwnProperty("status_no_rollback")){
-                status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback;
-                sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id;
-                sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name;
-                sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id;
-                sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name;                
+                status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback:0;
+                sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;                
             }else{
                 sor_activity_type_id = data[0].activity_type_id;
                 sor_activity_type_name = data[0].activity_type_name;
