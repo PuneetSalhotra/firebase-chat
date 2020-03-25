@@ -197,10 +197,87 @@ function RMBotService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
                     request.global_array.push({"RMOnAvailabilityOFAResource":"LENGTH :: "+responseData.length+" : "+queryString});
+                    if(data.length>0){
+                            responseData = data;
+                            error = false; 
+                    }else{
+                        request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 15);
+                        let paramsArr1 = new Array(
+                            request.organization_id,
+                            request.lead_asset_type_id,
+                            request.end_due_datetime,
+                            request.due_date_flag,
+                            request.page_start||0,
+                            request.page_limit||500
+                        );
+                        let queryString1 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr1);
+                        await db.executeQueryPromise(1, queryString1, request).then(async (data1) => { 
+ 
+                            if(data.length>0){
+                                responseData = data1;
+                                error = false; 
+                            }else{
+                                request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 30);
+                                 let paramsArr2 = new Array(
+                                    request.organization_id,
+                                    request.lead_asset_type_id,
+                                    request.end_due_datetime,
+                                    request.due_date_flag,
+                                    request.page_start||0,
+                                    request.page_limit||500
+                                );
+                                let queryString2 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr2);
+                                await db.executeQueryPromise(1, queryString2, request).then(async (data2) => {
+                                    if(data2.length > 0){
+                                        responseData = data2;
+                                        error = false; 
+                                    }else{
+
+                                        request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 60);
+                                         let paramsArr3 = new Array(
+                                            request.organization_id,
+                                            request.lead_asset_type_id,
+                                            request.end_due_datetime,
+                                            request.due_date_flag,
+                                            request.page_start||0,
+                                            request.page_limit||500
+                                        );
+                                        let queryString3 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr3);
+                                        await db.executeQueryPromise(1, queryString3, request).then(async (data3) => {
+                                            if(data3.length > 0){
+                                                responseData = data3;
+                                                error = false; 
+                                            }else{
+                                                request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 60);
+                                                request.due_date_flag = 1;
+                                                 let paramsArr4 = new Array(
+                                                    request.organization_id,
+                                                    request.lead_asset_type_id,
+                                                    request.end_due_datetime,
+                                                    request.due_date_flag,
+                                                    request.page_start||0,
+                                                    request.page_limit||500
+                                                );
+                                                let queryString4 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr4);
+                                                await db.executeQueryPromise(1, queryString4, request).then(async (data4) => {
+                                                    logger.info("RMOnAvailabilityOFAResource LENGTH4 :: "+data4.length);   
+                                                        responseData = data4;
+                                                        error = false;
+                                                        return [error, responseData];
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+
+                            logger.info("RMOnAvailabilityOFAResource LENGTH1 :: "+data1.length);   
+                        });                     
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -653,6 +730,7 @@ function RMBotService(objectCollection) {
     this.RMLoopInResoources = async function (request) {
 
         let [err, assetData] = await self.getAvailableResourcePool(request);
+        let resources_exists = false;
         request.global_array.push({"RESOURCES_IN_POOL":assetData.length});
         if(assetData.length == 0){
             request.global_array.push({"END_OF_FLOW":"NO RESOURCES IN THE POOL, HENCE END OF FLOW"});
@@ -688,6 +766,7 @@ function RMBotService(objectCollection) {
                 //self.AIEventTransactionInsert(request);
                 next();
             }else{
+                    resources_exists = true;
                     request.workflow_data = workflowData;
                     request.global_array.push({"FINALLY_WORKFLOWS_EXISTS":"ASSET "+rowData.asset_id+" WORKFLOW "+workflowData.length+" FINALLY WORKFLOWS EXISTS, HENCE GOING WITH AI TRIGGERED (RMResourceAvailabilityTrigger)"});
                     await self.RMResourceAvailabilityTrigger(request);
@@ -697,7 +776,11 @@ function RMBotService(objectCollection) {
         }).then(()=>{
             request.global_array.push({"AFTER LOOPING THROUGH ALL THE RESOURCES":request.target_asset_id});
             request.ai_trace_insert_location = "RMLoopInResoources, After iterating through all the resources";
-            //self.AIEventTransactionInsert(request);
+            logger.debug("END_OF_RESOURCE_POLL ", { type: "rm_bot", request_body: request });
+            if(!resources_exists){
+                logger.info("NO WORKFLOWS EXISTS FOR THE RESOURCES IN THE POOL")
+                self.AIEventTransactionInsert(request);
+            }
             return "";
         })
     }
