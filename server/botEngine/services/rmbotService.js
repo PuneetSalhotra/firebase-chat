@@ -1279,49 +1279,65 @@ function RMBotService(objectCollection) {
 
             if(rmInlineData.hasOwnProperty("work_efficiency")){
                 work_efficiency = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].work_efficiency:0;
-                we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
-                we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
-                we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
-                we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;
+                // we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                // we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                // we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                // we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;
             }else{
+                // we_activity_type_id = data[0].activity_type_id;
+                // we_activity_type_name = data[0].activity_type_name;
+                // we_activity_status_id = data[0].activity_status_id;
+                // we_activity_status_name = data[0].activity_status_name;                
+            }
                 we_activity_type_id = data[0].activity_type_id;
                 we_activity_type_name = data[0].activity_type_name;
                 we_activity_status_id = data[0].activity_status_id;
                 we_activity_status_name = data[0].activity_status_name;                
-            }
+
             if(rmInlineData.hasOwnProperty("read_efficiency")){
                 read_efficiency = rmInlineData.read_efficiency?rmInlineData.read_efficiency:0;
             }
             if(rmInlineData.hasOwnProperty("customer_exposure")){
                 customer_score = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_score:0;
-                customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name:data[0].customer_asset_name;
+                //customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name:data[0].customer_asset_name;
             }else{
-                customer_asset_name = data[0].customer_asset_name;
+                //customer_asset_name = data[0].customer_asset_name;
             }
+            customer_asset_name = data[0].customer_asset_first_name;
+
             if(rmInlineData.hasOwnProperty("industry_exposure")){
                 industry_score = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_score:0;
-                industry_name = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_name:data[0].industry_name;
+                //industry_name = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_name:data[0].industry_name;
             }else{
-                industry_name = data[0].industry_name;
+                //industry_name = data[0].industry_name;
             }
+            industry_name = data[0].industry_name;
+
             if(rmInlineData.hasOwnProperty("workflow_exposure")){
                 workflow_score = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_score:0;
-                workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name:data[0].activity_type_name;
+                //workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name:data[0].activity_type_name;
             }else{
-                workflow_name = data[0].activity_type_name;
+                //workflow_name = data[0].activity_type_name;
             }
+            workflow_name = data[0].activity_type_name;
+
             if(rmInlineData.hasOwnProperty("status_no_rollback")){
                 status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback_efficiency:0;
-                sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
-                sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
-                sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
-                sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;                
+                // sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                // sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                // sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                // sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;                
             }else{
-                sor_activity_type_id = data[0].activity_type_id;
-                sor_activity_type_name = data[0].activity_type_name;
-                sor_activity_status_id = data[0].activity_status_id;
-                sor_activity_status_name = data[0].activity_status_name;                
+                // sor_activity_type_id = data[0].activity_type_id;
+                // sor_activity_type_name = data[0].activity_type_name;
+                // sor_activity_status_id = data[0].activity_status_id;
+                // sor_activity_status_name = data[0].activity_status_name;                
             }
+
+            sor_activity_type_id = data[0].activity_type_id;
+            sor_activity_type_name = data[0].activity_type_name;
+            sor_activity_status_id = data[0].activity_status_id;
+            sor_activity_status_name = data[0].activity_status_name;                
 
             work_efficiency = work_efficiency?work_efficiency:0;
             read_efficiency = read_efficiency?read_efficiency:0;
@@ -1358,12 +1374,12 @@ function RMBotService(objectCollection) {
             score_details.workflow_exposure_score = workflow_score * workflow_exposure_percentage;
             //Exposure to <Percentage> of <Workflow Name> workflows.
 */
-            score_details.work_efficiency_score =  "Delivered "+we_activity_type_name+" - "+we_activity_status_name+" statuses on time "+(work_efficiency * work_efficiency_percentage).toFixed(2) +" of time";
-            score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+" percentage of workflow updates on time in the last 30 days";
-            score_details.status_rollback_score = "Achieved "+(status_no_rollback * status_rollback_percentage).toFixed(2)+" of  "+sor_activity_type_name+" - "+sor_activity_status_name+" statuses without rollbacks";
-            score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+" of the "+customer_asset_name+" workflows";
-            score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+" of "+industry_name+" workflows";
-            score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+" of "+workflow_name+" workflows";
+            score_details.work_efficiency_score =  "Delivered "+we_activity_type_name+" - "+we_activity_status_name+" statuses on time "+(work_efficiency * work_efficiency_percentage).toFixed(2) +"% of time";
+            score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+"% percentage of workflow updates on time in the last 30 days";
+            score_details.status_rollback_score = "Achieved "+(status_no_rollback * status_rollback_percentage).toFixed(2)+"% of  "+sor_activity_type_name+" - "+sor_activity_status_name+" statuses without rollbacks";
+            score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+"% of the "+customer_asset_name+" workflows";
+            score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+"% of "+industry_name+" workflows";
+            score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+"% of "+workflow_name+" workflows";
 
             //score_details.workflow_type_exposure_score = workflow_type_score * workflow_type_exposure_percentage;
             //score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
@@ -1958,7 +1974,7 @@ function RMBotService(objectCollection) {
                     request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI"});
                     request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
                     self.AIEventTransactionInsert(request)                
-                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI");
+                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI");
                 }
             }else{
                 request.global_array.push({"STATUS_DOESNT_EXIST":"STATUS DOESNT EXIST, HENCE NO AI"});
@@ -2338,6 +2354,10 @@ function RMBotService(objectCollection) {
                         if(Number(request.timeline_stream_type_id) == 718){
                             request.lead_asset_id = lead_asset_id;
                             await self.activityAssetMappingUpdateLead(request);
+                            let objR = Object.assign({},request);
+                            objR.target_asset_id = lead_asset_id;
+
+                            await self.calculateAssetNewSummary(objR);
 
                             if(data[0].existing_lead_asset_id > 0){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
