@@ -4402,6 +4402,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
                     let ai_bot_transaction_id = 0;
                     request.global_array = [];
+                    request.global_array.push({"asset_available_set":JSON.stringify(request)});
                     request.global_array.push({"assetAvailableUpdate":"AFTER SETTING THE RESOURCE TO AVAILBALE, Initiating AI "+queryString})
                     request.ai_trace_insert_location = "assetAvailableUpdate, AFTER SETTING THE RESOURCE TO AVAILBALE";
                     let [errAI, responseDataAI] = await rmbotService.AIEventTransactionInsert(request);
