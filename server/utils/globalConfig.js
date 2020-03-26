@@ -596,6 +596,16 @@ if (mode === 'staging') {
     config.emailbaseUrlApprove = "https://stagingweb.officedesk.app"; 
     config.emailbaseUrlUpload = "https://stagingweb.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+
+    // ECS microservices update
+    if (
+        Number(process.env.ms_mode) === 1
+    ) {
+        config.TOPIC_ID = 26;
+        config.TOPIC_NAME = "ms-ecs-staging-v1";
+        config.CONSUMER_GROUP_ID = "desker-activities-test-topic-consumer-group-v1";
+        config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
+    }
 }
 
 if (mode === 'preprod') {
