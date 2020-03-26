@@ -122,7 +122,12 @@ app.use(function (req, res, next) {
 const logger = require('./server/logger/winstonLogger');
 loggerstream = {
     write: function (message, encoding) {
-        message = JSON.parse(message);
+        try{
+            message = JSON.parse(message);
+        } catch(err) {
+            console.log('Unable to parse the message');
+        }
+        
         logger.info(`${message.method} ${message.url}`, { type: 'http_log', ...message });
     }
 };
@@ -203,6 +208,24 @@ process.on('uncaughtException', (error, origin) => {
 process.on('error', (error) => {
     logger.error("Process Error", { type: 'process_error', error: serializeError(error) });
 });
+
+process.on('beforeExit', (code) => {
+    logger.debug("Process beforeExit event with code: %j", code);
+});
+
+process.on('exit', (code) => {
+    logger.debug("Process exit event with code: %j", code);
+});
+
+process.on('warning', (warning) => {
+    logger.error("Process Warning", { type: 'process_warning', error: serializeError(warning) });
+});
+
+[`SIGINT`, `SIGUSR1`, `SIGUSR2`, `SIGTERM`, `SIGHUP`, `SIGUSR1`, `SIGUSR2`, `SIGABRT`, `SIGQUIT`].forEach((eventType) => {
+    process.on(eventType, (signal) => {
+        logger.debug("Process signalled: %j", signal);
+    });
+})
 
 process.on('unhandledRejection', (reason, promise) => {
     logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });

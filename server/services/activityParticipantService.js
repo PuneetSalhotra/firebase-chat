@@ -145,10 +145,16 @@ function ActivityParticipantService(objectCollection) {
                             }/*else{
                                 request.target_activity_id = request.activity_id;
                                 let [err, response] = await rmbotService.workforceActivityStatusMappingSelectStatusId(request);
-                                if(response[0].activity_type_flag_persist_role === 1)
-                                    activityCommonService.activityLeadUpdate(request, participantData, false); 
-                                //else
-                                //rmbotService.RMResourceAvailabilityTrigger(request);
+                                
+                                if(response.length > 0) {
+                                    if(response[0].activity_type_flag_persist_role === 1)
+                                        activityCommonService.activityLeadUpdate(request, participantData, false); 
+                                    else
+                                        rmbotService.RMResourceAvailabilityTrigger(request);
+                                } else {
+                                    rmbotService.RMResourceAvailabilityTrigger(request);
+                                }
+                                
                             }*/
                             global.logger.write('conLog', 'participant successfully added', {}, {})
                             //check participant is active in last 48 hrs or not

@@ -613,6 +613,73 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldCount, -9999, req.body));
         }
     });
+
+    // Insert the form field history
+    app.post('/' + global.config.version + '/form/fields/history', async function (req, res) {
+        const [err, formFieldHistory] = await formConfigService.insertFormFieldsHistory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldHistory, 200, req.body));
+        } else {
+            console.log("/form/fields/history | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
+        }
+    });
+
+    // Get the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/list', async (req, res) => {
+        const [err, formData] = await formConfigService.getStatusBasedForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/status_based/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+    // Delete the form field mapping - single selection and multi selection
+    app.post('/' + global.config.version + '/workflow/form/field/alter', async (req, res) => {
+        const [err, formData] = await formConfigService.workforceFormFieldMappingDeleteFunc(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/form/field/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+    // Insert the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/add', async (req, res) => {
+        try{            
+            console.log("req.body.form_ids : ", req.body.form_ids);
+            console.log("typeof req.body.form_ids : ", typeof req.body.form_ids);
+                        
+            JSON.parse(req.body.form_ids);
+            const [err, formData] = await formConfigService.insertStatusBasedForms(req.body);
+            if (!err) {
+                res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+            } else {
+                console.log("/workflow/status_based/form/add | Error: ", err);
+                res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+            }
+        } catch(err) {
+            console.log("/workflow/status_based/form/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, "form id paramter is not a valid array", -3308, req.body));
+        }
+        
+    });
+
+
+    // Delete the status based forms in a workflow
+    app.post('/' + global.config.version + '/workflow/status_based/form/alter', async (req, res) => {
+        const [err, formData] = await formConfigService.deleteStatusBasedForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/status_based/form/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

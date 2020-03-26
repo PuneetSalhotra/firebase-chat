@@ -76,7 +76,7 @@ var checkDBInstanceAvailablity = async (flag) => {
 };
 
 var executeQuery = function (flag, queryString, request, callback) {
-
+    let label;
     /*
      * flag = 0 --> master
      * flag = 1 --> slave 1
@@ -102,8 +102,9 @@ var executeQuery = function (flag, queryString, request, callback) {
 
                 callback(err, false);
                 return;
-            } else {
-                console.time('DB-Query-Execution-Callback');
+            } else {                
+                // label = 'DB-Query-Execution-Callback' + Date.now();
+                // console.time(label);
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
                         logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -116,7 +117,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         conn.release();
                         callback(err, false);
                     }
-                console.timeEnd('DB-Query-Execution-Callback');
+                // console.timeEnd(label);
                 });
             }
         });
@@ -131,6 +132,7 @@ var executeQuery = function (flag, queryString, request, callback) {
 var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
+        let label;
         
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
@@ -141,7 +143,8 @@ var executeQueryPromise = function (flag, queryString, request) {
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
                 } else {
-                    console.time('DB-Query-Execution-Promise');                    
+                    // label = 'DB-Query-Execution-Promise' + Date.now();
+                    // console.time(label);
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
                             logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
@@ -155,7 +158,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                             conn.release();
                             reject(err);
                         }
-                    console.timeEnd('DB-Query-Execution-Promise');
+                    // console.timeEnd(label);
                     });
                 }
             });

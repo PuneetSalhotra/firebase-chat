@@ -3869,7 +3869,15 @@ function VodafoneService(objectCollection) {
             return [new Error("workflow_activity_id not found in the request."), false];
         }
 
-        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        let TARGET_FORM_ID;
+        try{
+            TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        } catch(err) {
+            console.log('ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - ', err);
+            return [false, {}];
+        }
+
+        //const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
         // Check if the target form generation request is from the target form generated (from this 
         // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
         if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
@@ -4950,9 +4958,14 @@ function VodafoneService(objectCollection) {
         }
 
         // Fetch relevant source and target form field mappings
-        const SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
-        console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
+        let SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
+        console.log('SOURCE_FORM_FIELD_MAPPING_DATA : ', SOURCE_FORM_FIELD_MAPPING_DATA);
+        //console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
 
+        if(SOURCE_FORM_FIELD_MAPPING_DATA === undefined) {
+            SOURCE_FORM_FIELD_MAPPING_DATA = null;
+        }
+        
         let targetFieldsUpdated = [],
             REQUEST_FIELD_ID = 0;
 

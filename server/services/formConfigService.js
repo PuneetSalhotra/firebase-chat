@@ -25,8 +25,6 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
 
-    console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection));
-
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
@@ -334,7 +332,8 @@ function FormConfigService(objCollection) {
                 "form_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_name'])),
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
                 "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),
-                "field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
+                //"field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
+                "field_name": util.replaceDefaultString(rowData['field_name']),
                 "field_sequence_id": util.replaceDefaultNumber(rowData['field_sequence_id']),
                 "field_mandatory_enabled": util.replaceDefaultNumber(rowData['field_mandatory_enabled']),
                 "field_preview_enabled": util.replaceDefaultNumber(rowData['field_preview_enabled']),
@@ -524,6 +523,9 @@ function FormConfigService(objCollection) {
                                 
                                 newFieldValue = jsonData.transaction_data.transaction_amount;
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+
+                                console.log('Old Transaction Amount: ', oldFieldValue);
+                                console.log('New Transaction Amount: ', newFieldValue);
                             } catch (err) {
                                 console.log(err);
                             }
@@ -1124,7 +1126,7 @@ function FormConfigService(objCollection) {
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                if(request.asset_id === 0 || request.asset_id === null) {
+                if(Number(request.asset_id) === 0 || request.asset_id === null) {
                     global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
                 }
                 else {
@@ -3105,7 +3107,7 @@ function FormConfigService(objCollection) {
                         field_id: field.field_id,
                         data_type_combo_id: option.dataTypeComboId,
                         field_name: fieldName,
-                        field_description: '',
+                        field_description: field.placeholder || '',
                         data_type_combo_value: dataTypeComboValue,
                         field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
@@ -3141,7 +3143,7 @@ function FormConfigService(objCollection) {
                     field_id: field.field_id,
                     data_type_combo_id: field.dataTypeComboId,
                     field_name: fieldName,
-                    field_description: '',
+                    field_description: field.placeholder || '',
                     data_type_combo_value: dataTypeComboValue,
                     field_sequence_id: field.sequence_id,
                     field_mandatory_enabled: fieldMandatoryEnabled,
@@ -3458,6 +3460,14 @@ function FormConfigService(objCollection) {
         return [false, []]
     }
 
+    this.workforceFormFieldMappingDeleteFunc = async(request) => {        
+        const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+            field_id: request.field_id,
+            data_type_combo_id: request.data_type_combo_id,
+        });
+        return[false, {}];
+    }
+    
     async function workforceFormFieldMappingDelete(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
         // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -4756,6 +4766,8 @@ function FormConfigService(objCollection) {
 
             console.log('FLAG : ', flag);
             if(flag === 1) {
+                console.log('request.asset_id', request.asset_id);
+                
                 //Add the asset as participant
                 const [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); 
                 if(err) {
@@ -4763,29 +4775,32 @@ function FormConfigService(objCollection) {
                 }               
                 console.log('ASSETDATA : ', assetData[0]);
 
-                let participantCollection = [];
-                let temp = {};
-                    temp.asset_id = assetData[0].asset_id;
-                    temp.organization_id = request.organization_id;
-                    temp.account_id = request.account_id;
-                    temp.workforce_id = request.workforce_id;
-                    temp.access_role_id = 1;
-                    temp.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
-                    temp.asset_first_name =  assetData[0].asset_first_name;
-                    temp.operating_asset_first_name = assetData[0].operating_asset_first_name;
-                    temp.workforce_name = assetData[0].workforce_name;
-                    temp.asset_type_id = assetData[0].asset_type_id;
-                    temp.asset_category_id = 1;
+                if(assetData.length > 0) {
+                    let participantCollection = [];
+                
+                    let temp = {};
+                        temp.asset_id = assetData[0].asset_id;
+                        temp.organization_id = request.organization_id;
+                        temp.account_id = request.account_id;
+                        temp.workforce_id = request.workforce_id;
+                        temp.access_role_id = 1;
+                        temp.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+                        temp.asset_first_name =  assetData[0].asset_first_name;
+                        temp.operating_asset_first_name = assetData[0].operating_asset_first_name;
+                        temp.workforce_name = assetData[0].workforce_name;
+                        temp.asset_type_id = assetData[0].asset_type_id;
+                        temp.asset_category_id = 1;
 
-                participantCollection.push(temp);
+                    participantCollection.push(temp);
 
-                let addPartipantReq = Object.assign({}, newReq);
-                    addPartipantReq.activity_type_category_id = 48;
-                    addPartipantReq.activity_type_id = Number(workflowData[0].activity_type_id);
-                    addPartipantReq.activity_participant_collection = JSON.stringify(participantCollection);
-                    addPartipantReq.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+                    let addPartipantReq = Object.assign({}, newReq);
+                        addPartipantReq.activity_type_category_id = 48;
+                        addPartipantReq.activity_type_id = Number(workflowData[0].activity_type_id);
+                        addPartipantReq.activity_participant_collection = JSON.stringify(participantCollection);
+                        addPartipantReq.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
 
-                participantService.assignCoworker(addPartipantReq, ()=>{});
+                    participantService.assignCoworker(addPartipantReq, ()=>{});
+                }
             }
 
             return "success";
@@ -4878,6 +4893,134 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
+    // Insert field history of a particular field and form
+    this.insertFormFieldsHistory = async function(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.form_transaction_id,
+            request.form_id,
+            request.field_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_form_transaction_select_trans_field_history', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+    this.getStatusBasedForms = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.start_from || 0,
+            request.limit_value || 10
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.insertStatusBasedForms = async (request) => {
+        let responseData = [],
+            error = false;
+        
+        let formIds = JSON.parse(request.form_ids);
+        let i;
+        for(i=0;i<formIds.length; i++) {
+            try{
+                await insertStatusBasedForm(request, formIds[i]);
+            } catch(err) {
+                error = true;
+            }            
+        }
+
+        return [error, responseData];
+    }
+    
+    
+    async function insertStatusBasedForm(request, formID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            formID,
+            request.activity_status_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
+    this.deleteStatusBasedForms = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.form_status_mapping_id,
+            request.organization_id,
+            request.log_state || 3,            
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workflow_form_status_mapping_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    //responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
 }
 
 module.exports = FormConfigService;
