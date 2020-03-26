@@ -205,6 +205,7 @@ function RMBotService(objectCollection) {
                             responseData = data;
                             error = false; 
                     }else{
+
                         request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 15);
                         let paramsArr1 = new Array(
                             request.organization_id,
@@ -215,8 +216,9 @@ function RMBotService(objectCollection) {
                             request.page_limit||500
                         );
                         let queryString1 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr1);
+
                         await db.executeQueryPromise(1, queryString1, request).then(async (data1) => { 
- 
+                            request.global_array.push({"RMOnAvailabilityOFAResource1":"LENGTH1 :: "+data1.length+" : "+queryString1});
                             if(data.length>0){
                                 responseData = data1;
                                 error = false; 
@@ -232,6 +234,7 @@ function RMBotService(objectCollection) {
                                 );
                                 let queryString2 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr2);
                                 await db.executeQueryPromise(1, queryString2, request).then(async (data2) => {
+                                    request.global_array.push({"RMOnAvailabilityOFAResource2":"LENGTH2 :: "+data2.length+" : "+queryString2});
                                     if(data2.length > 0){
                                         responseData = data2;
                                         error = false; 
@@ -247,7 +250,9 @@ function RMBotService(objectCollection) {
                                             request.page_limit||500
                                         );
                                         let queryString3 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr3);
+                                        
                                         await db.executeQueryPromise(1, queryString3, request).then(async (data3) => {
+                                            request.global_array.push({"RMOnAvailabilityOFAResource3":"LENGTH3 :: "+data3.length+" : "+queryString3});                                        
                                             if(data3.length > 0){
                                                 responseData = data3;
                                                 error = false; 
@@ -264,7 +269,8 @@ function RMBotService(objectCollection) {
                                                 );
                                                 let queryString4 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr4);
                                                 await db.executeQueryPromise(1, queryString4, request).then(async (data4) => {
-                                                    logger.info("RMOnAvailabilityOFAResource LENGTH4 :: "+data4.length);   
+                                                    request.global_array.push({"RMOnAvailabilityOFAResource4":"LENGTH4 :: "+data4.length+" : "+queryString4});
+                                                    logger.info("RMOnAvailabilityOFAResource4 LENGTH4 :: "+data4.length);   
                                                         responseData = data4;
                                                         error = false;
                                                         return [error, responseData];
@@ -338,7 +344,11 @@ function RMBotService(objectCollection) {
             request.ai_bot_transaction_id || 0,
             request.ai_trace_insert_location || '',
             request.target_asset_id || 0,
-            request.asset_id || 0
+            request.asset_id || 0,
+            request.ai_bot_trigger_key || "",
+            request.ai_bot_trigger_activity_id || 0,
+            request.ai_bot_trigger_activity_status_id || 0,
+            request.ai_bot_trigger_asset_id || 0
         );
 
         const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_insert', paramsArr);
@@ -1021,7 +1031,11 @@ function RMBotService(objectCollection) {
             rm_bot_scores:request.rm_bot_scores,
             activity_lead_timeline_collection:request.activity_lead_timeline_collection,
             timeline_stream_type_id:718,
-            ai_bot_transaction_id:request.ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id,
+            ai_bot_trigger_key:request.ai_bot_trigger_key,
+            ai_bot_trigger_activity_id:request.ai_bot_trigger_activity_id,
+            ai_bot_trigger_activity_status_id:request.ai_bot_trigger_activity_status_id,
+            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
             //global_array:request.global_array
         };
         //console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
@@ -1093,7 +1107,11 @@ function RMBotService(objectCollection) {
             //global_array:request.global_array,
             target_status_lead_asset_id:request.target_status_lead_asset_id,
             target_status_lead_asset_name:request.target_status_lead_asset_name,
-            ai_bot_transaction_id:request.ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id,
+            ai_bot_trigger_key:request.ai_bot_trigger_key,
+            ai_bot_trigger_activity_id:request.ai_bot_trigger_activity_id,
+            ai_bot_trigger_activity_status_id:request.ai_bot_trigger_activity_status_id,
+            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
         };
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
