@@ -17,11 +17,11 @@ phases:
     commands:
       - echo Build started on `date`
       # API Service
-      - echo Building the Staging API Service's Docker image...
+      - echo Building the Staging API Service Docker image...
       - docker build -f docker/staging.api.Dockerfile -t $API_REPOSITORY_URI:latest .
       - docker tag $API_REPOSITORY_URI:latest $API_REPOSITORY_URI:$IMAGE_TAG
       # Consumer Service
-      - echo Building the Staging Consumer Service's Docker image...
+      - echo Building the Staging Consumer Service Docker image...
       - docker build -f docker/staging.consumer.Dockerfile -t $CONSUMER_REPOSITORY_URI:latest .
       - docker tag $CONSUMER_REPOSITORY_URI:latest $CONSUMER_REPOSITORY_URI:$IMAGE_TAG
   post_build:
