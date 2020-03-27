@@ -385,7 +385,7 @@ function ActivityPushService(objectCollection) {
                         try {
                             let activityData = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                             if (activityData.length > 0) {
-                                if (activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
+                                if ((activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) || 1 === 1) {
                                     if (
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
