@@ -6,9 +6,9 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws --version
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-      # - API_REPOSITORY_URI=012345678910.dkr.ecr.us-east-1.amazonaws.com/base-image
       - echo "API_REPOSITORY_URI is $API_REPOSITORY_URI"
       - echo "CONSUMER_REPOSITORY_URI is $CONSUMER_REPOSITORY_URI"
+      # Create the image tag version using the git commit hash
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo "COMMIT_HASH is $COMMIT_HASH"
       - IMAGE_TAG=${COMMIT_HASH:=latest}
@@ -16,18 +16,27 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
+      # API Service
+      - echo Building the Staging API Service's Docker image...
       - docker build -f docker/staging.api.Dockerfile -t $API_REPOSITORY_URI:latest .
       - docker tag $API_REPOSITORY_URI:latest $API_REPOSITORY_URI:$IMAGE_TAG
+      # Consumer Service
+      - echo Building the Staging Consumer Service's Docker image...
+      - docker build -f docker/staging.consumer.Dockerfile -t $CONSUMER_REPOSITORY_URI:latest .
+      - docker tag $CONSUMER_REPOSITORY_URI:latest $CONSUMER_REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
+      # API Service
       - docker push $API_REPOSITORY_URI:latest
       - docker push $API_REPOSITORY_URI:$IMAGE_TAG
       - printf '[{"name":"staging-api-service","imageUri":"%s:%s"}]' $API_REPOSITORY_URI $IMAGE_TAG > api_imagedefinitions.json
-      # - printf '[{"name":"staging-api-service","imageUri":"%s:%s"}]' $API_REPOSITORY_URI $IMAGE_TAG > imageDetail.json # This was basically a mistake, it should have been just imagedefinitions.json
+      # Consumer Service
+      - docker push $CONSUMER_REPOSITORY_URI:latest
+      - docker push $CONSUMER_REPOSITORY_URI:$IMAGE_TAG
+      - printf '[{"name":"staging-consumer-service","imageUri":"%s:%s"}]' $CONSUMER_REPOSITORY_URI $IMAGE_TAG > consumer_imagedefinitions.json
 artifacts:
   files:
     - api_imagedefinitions.json
-    # - imageDetail.json # This was basically a mistake, it should have been just imagedefinitions.json
+    - consumer_imagedefinitions.json
