@@ -2372,10 +2372,17 @@ function RMBotService(objectCollection) {
                         if(Number(request.timeline_stream_type_id) == 718){
                             request.lead_asset_id = lead_asset_id;
                             await self.activityAssetMappingUpdateLead(request);
+
                             let objR = Object.assign({},request);
                             objR.target_asset_id = lead_asset_id;
+                            if(request.asset_id == 100)
+                                objR.message = "Tony has assigned you as lead";
+                            /*else
+                                 objR.message = request.asset_id+" has assigned you as lead";*/
 
-                            await self.calculateAssetNewSummary(objR);
+                            util.sendCustomPushNotification(objR,data);
+
+                            self.calculateAssetNewSummary(objR);
 
                             if(data[0].existing_lead_asset_id > 0){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
