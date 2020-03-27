@@ -205,6 +205,7 @@ function RMBotService(objectCollection) {
                             responseData = data;
                             error = false; 
                     }else{
+
                         request.end_due_datetime = util.addDays(util.getCurrentUTCTime(), 15);
                         let paramsArr1 = new Array(
                             request.organization_id,
@@ -215,8 +216,9 @@ function RMBotService(objectCollection) {
                             request.page_limit||500
                         );
                         let queryString1 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr1);
+
                         await db.executeQueryPromise(1, queryString1, request).then(async (data1) => { 
- 
+                            request.global_array.push({"RMOnAvailabilityOFAResource1":"LENGTH1 :: "+data1.length+" : "+queryString1});
                             if(data.length>0){
                                 responseData = data1;
                                 error = false; 
@@ -232,6 +234,7 @@ function RMBotService(objectCollection) {
                                 );
                                 let queryString2 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr2);
                                 await db.executeQueryPromise(1, queryString2, request).then(async (data2) => {
+                                    request.global_array.push({"RMOnAvailabilityOFAResource2":"LENGTH2 :: "+data2.length+" : "+queryString2});
                                     if(data2.length > 0){
                                         responseData = data2;
                                         error = false; 
@@ -247,7 +250,9 @@ function RMBotService(objectCollection) {
                                             request.page_limit||500
                                         );
                                         let queryString3 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr3);
+                                        
                                         await db.executeQueryPromise(1, queryString3, request).then(async (data3) => {
+                                            request.global_array.push({"RMOnAvailabilityOFAResource3":"LENGTH3 :: "+data3.length+" : "+queryString3});                                        
                                             if(data3.length > 0){
                                                 responseData = data3;
                                                 error = false; 
@@ -264,7 +269,8 @@ function RMBotService(objectCollection) {
                                                 );
                                                 let queryString4 = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr4);
                                                 await db.executeQueryPromise(1, queryString4, request).then(async (data4) => {
-                                                    logger.info("RMOnAvailabilityOFAResource LENGTH4 :: "+data4.length);   
+                                                    request.global_array.push({"RMOnAvailabilityOFAResource4":"LENGTH4 :: "+data4.length+" : "+queryString4});
+                                                    logger.info("RMOnAvailabilityOFAResource4 LENGTH4 :: "+data4.length);   
                                                         responseData = data4;
                                                         error = false;
                                                         return [error, responseData];
@@ -338,7 +344,11 @@ function RMBotService(objectCollection) {
             request.ai_bot_transaction_id || 0,
             request.ai_trace_insert_location || '',
             request.target_asset_id || 0,
-            request.asset_id || 0
+            request.asset_id || 0,
+            request.ai_bot_trigger_key || "",
+            request.ai_bot_trigger_activity_id || 0,
+            request.ai_bot_trigger_activity_status_id || 0,
+            request.ai_bot_trigger_asset_id || 0
         );
 
         const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_insert', paramsArr);
@@ -1021,7 +1031,11 @@ function RMBotService(objectCollection) {
             rm_bot_scores:request.rm_bot_scores,
             activity_lead_timeline_collection:request.activity_lead_timeline_collection,
             timeline_stream_type_id:718,
-            ai_bot_transaction_id:request.ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id,
+            ai_bot_trigger_key:request.ai_bot_trigger_key,
+            ai_bot_trigger_activity_id:request.ai_bot_trigger_activity_id,
+            ai_bot_trigger_activity_status_id:request.ai_bot_trigger_activity_status_id,
+            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
             //global_array:request.global_array
         };
         //console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
@@ -1093,7 +1107,11 @@ function RMBotService(objectCollection) {
             //global_array:request.global_array,
             target_status_lead_asset_id:request.target_status_lead_asset_id,
             target_status_lead_asset_name:request.target_status_lead_asset_name,
-            ai_bot_transaction_id:request.ai_bot_transaction_id
+            ai_bot_transaction_id:request.ai_bot_transaction_id,
+            ai_bot_trigger_key:request.ai_bot_trigger_key,
+            ai_bot_trigger_activity_id:request.ai_bot_trigger_activity_id,
+            ai_bot_trigger_activity_status_id:request.ai_bot_trigger_activity_status_id,
+            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
         };
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
@@ -1279,49 +1297,65 @@ function RMBotService(objectCollection) {
 
             if(rmInlineData.hasOwnProperty("work_efficiency")){
                 work_efficiency = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].work_efficiency:0;
-                we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
-                we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
-                we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
-                we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;
+                // we_activity_type_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                // we_activity_type_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                // we_activity_status_id = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                // we_activity_status_name = rmInlineData.work_efficiency[data[0].activity_status_id]?rmInlineData.work_efficiency[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;
             }else{
+                // we_activity_type_id = data[0].activity_type_id;
+                // we_activity_type_name = data[0].activity_type_name;
+                // we_activity_status_id = data[0].activity_status_id;
+                // we_activity_status_name = data[0].activity_status_name;                
+            }
                 we_activity_type_id = data[0].activity_type_id;
                 we_activity_type_name = data[0].activity_type_name;
                 we_activity_status_id = data[0].activity_status_id;
                 we_activity_status_name = data[0].activity_status_name;                
-            }
+
             if(rmInlineData.hasOwnProperty("read_efficiency")){
                 read_efficiency = rmInlineData.read_efficiency?rmInlineData.read_efficiency:0;
             }
             if(rmInlineData.hasOwnProperty("customer_exposure")){
                 customer_score = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_score:0;
-                customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name:data[0].customer_asset_name;
+                //customer_asset_name = rmInlineData.customer_exposure[data[0].customer_asset_id]?rmInlineData.customer_exposure[data[0].customer_asset_id].customer_asset_name:data[0].customer_asset_name;
             }else{
-                customer_asset_name = data[0].customer_asset_name;
+                //customer_asset_name = data[0].customer_asset_name;
             }
+            customer_asset_name = data[0].customer_asset_first_name;
+
             if(rmInlineData.hasOwnProperty("industry_exposure")){
                 industry_score = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_score:0;
-                industry_name = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_name:data[0].industry_name;
+                //industry_name = rmInlineData.industry_exposure[data[0].industry_id]?rmInlineData.industry_exposure[data[0].industry_id].industry_name:data[0].industry_name;
             }else{
-                industry_name = data[0].industry_name;
+                //industry_name = data[0].industry_name;
             }
+            industry_name = data[0].industry_name;
+
             if(rmInlineData.hasOwnProperty("workflow_exposure")){
                 workflow_score = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_score:0;
-                workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name:data[0].activity_type_name;
+                //workflow_name = rmInlineData.workflow_exposure[data[0].activity_type_id]?rmInlineData.workflow_exposure[data[0].activity_type_id].workflow_name:data[0].activity_type_name;
             }else{
-                workflow_name = data[0].activity_type_name;
+                //workflow_name = data[0].activity_type_name;
             }
+            workflow_name = data[0].activity_type_name;
+
             if(rmInlineData.hasOwnProperty("status_no_rollback")){
                 status_no_rollback = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].status_no_rollback_efficiency:0;
-                sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
-                sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
-                sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
-                sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;                
+                // sor_activity_type_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_id:data[0].activity_type_id;
+                // sor_activity_type_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_type_name:data[0].activity_type_name;
+                // sor_activity_status_id = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_id:data[0].activity_status_id;
+                // sor_activity_status_name = rmInlineData.status_no_rollback[data[0].activity_status_id]?rmInlineData.status_no_rollback[data[0].activity_status_id].activity_status_name:data[0].activity_status_name;                
             }else{
-                sor_activity_type_id = data[0].activity_type_id;
-                sor_activity_type_name = data[0].activity_type_name;
-                sor_activity_status_id = data[0].activity_status_id;
-                sor_activity_status_name = data[0].activity_status_name;                
+                // sor_activity_type_id = data[0].activity_type_id;
+                // sor_activity_type_name = data[0].activity_type_name;
+                // sor_activity_status_id = data[0].activity_status_id;
+                // sor_activity_status_name = data[0].activity_status_name;                
             }
+
+            sor_activity_type_id = data[0].activity_type_id;
+            sor_activity_type_name = data[0].activity_type_name;
+            sor_activity_status_id = data[0].activity_status_id;
+            sor_activity_status_name = data[0].activity_status_name;                
 
             work_efficiency = work_efficiency?work_efficiency:0;
             read_efficiency = read_efficiency?read_efficiency:0;
@@ -1358,12 +1392,12 @@ function RMBotService(objectCollection) {
             score_details.workflow_exposure_score = workflow_score * workflow_exposure_percentage;
             //Exposure to <Percentage> of <Workflow Name> workflows.
 */
-            score_details.work_efficiency_score =  "Delivered "+we_activity_type_name+" - "+we_activity_status_name+" statuses on time "+(work_efficiency * work_efficiency_percentage).toFixed(2) +" of time";
-            score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+" percentage of workflow updates on time in the last 30 days";
-            score_details.status_rollback_score = "Achieved "+(status_no_rollback * status_rollback_percentage).toFixed(2)+" of  "+sor_activity_type_name+" - "+sor_activity_status_name+" statuses without rollbacks";
-            score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+" of the "+customer_asset_name+" workflows";
-            score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+" of "+industry_name+" workflows";
-            score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+" of "+workflow_name+" workflows";
+            score_details.work_efficiency_score =  "Delivered "+we_activity_type_name+" - "+we_activity_status_name+" statuses on time "+(work_efficiency * work_efficiency_percentage).toFixed(2) +"% of time";
+            score_details.read_efficiency_score =  "Read "+(read_efficiency * read_efficiency_percentage).toFixed(2)+"% percentage of workflow updates on time in the last 30 days";
+            score_details.status_rollback_score = "Achieved "+(status_no_rollback * status_rollback_percentage).toFixed(2)+"% of  "+sor_activity_type_name+" - "+sor_activity_status_name+" statuses without rollbacks";
+            score_details.customer_exposure_score = "Exposure to "+(customer_score * customer_exposure_percentage).toFixed(2)+"% of the "+customer_asset_name+" workflows";
+            score_details.industry_exposure_score = "Exposure to "+(industry_score * industry_exposure_percentage).toFixed(2)+"% of "+industry_name+" workflows";
+            score_details.workflow_exposure_score = "Exposure to "+(workflow_score * workflow_exposure_percentage).toFixed(2)+"% of "+workflow_name+" workflows";
 
             //score_details.workflow_type_exposure_score = workflow_type_score * workflow_type_exposure_percentage;
             //score_details.workflow_category_exposure_score = workflow_category_score * workflow_category_exposure_percentage;
@@ -1958,7 +1992,7 @@ function RMBotService(objectCollection) {
                     request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI"});
                     request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
                     self.AIEventTransactionInsert(request)                
-                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI");
+                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI");
                 }
             }else{
                 request.global_array.push({"STATUS_DOESNT_EXIST":"STATUS DOESNT EXIST, HENCE NO AI"});
@@ -2338,6 +2372,10 @@ function RMBotService(objectCollection) {
                         if(Number(request.timeline_stream_type_id) == 718){
                             request.lead_asset_id = lead_asset_id;
                             await self.activityAssetMappingUpdateLead(request);
+                            let objR = Object.assign({},request);
+                            objR.target_asset_id = lead_asset_id;
+
+                            await self.calculateAssetNewSummary(objR);
 
                             if(data[0].existing_lead_asset_id > 0){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
