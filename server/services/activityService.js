@@ -2147,8 +2147,13 @@ function ActivityService(objectCollection) {
                                 logger.info("activityService insufficient_data CALLING callAddParticipant");
                                 rmbotService.callAddParticipant(request);
                             }else{
+                                
                                 request.global_array = [];
-                                request.global_array.push({"0.0":request.activity_id+" triggering ai in after status change"});
+                                request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
+                                request.ai_bot_trigger_asset_id = 0;
+                                request.ai_bot_trigger_activity_id = request.activity_id;
+                                request.ai_bot_trigger_activity_status_id = request.activity_status_id;
+                                request.global_array.push({"status_change_":"NonMobile triggering ai in after status change "+JSON.stringify(request)});
 
                                 rmbotService.triggerAIOnStatusChange(request);
                             }
@@ -2168,9 +2173,13 @@ function ActivityService(objectCollection) {
                             //request.global_array = [];
                             rmbotService.callAddParticipant(request);
                         }else{
+                            
                             request.global_array = [];
-                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
-                            //request.proof={"0.0": request.activity_id+"triggering ai in after status change with no existing status"};
+                            request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
+                            request.ai_bot_trigger_asset_id = 0;
+                            request.ai_bot_trigger_activity_id = request.activity_id;
+                            request.ai_bot_trigger_activity_status_id = request.activity_status_id;                            
+                            request.global_array.push({"status_change_":"Mobile: triggering ai in after status change with no existing status "+JSON.stringify(request)});                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
                             rmbotService.triggerAIOnStatusChange(request);
                         }
                     }

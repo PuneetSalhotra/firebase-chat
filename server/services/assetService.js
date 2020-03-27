@@ -4384,7 +4384,15 @@ this.getQrBarcodeFeeback = async(request) => {
     this.assetAvailableUpdate = async (request) => {
         let responseData = {},
             error = true;
-        
+
+        request.ai_bot_trigger_key = "asset_"+request.target_asset_id;
+        request.ai_bot_trigger_asset_id = request.target_asset_id;
+        request.ai_bot_trigger_activity_id = 0;
+        request.ai_bot_trigger_activity_status_id = 0;
+
+        request.global_array = [];
+        request.global_array.push({"asset_available_set_":request.target_asset_id+" "+JSON.stringify(request, null, 2)});
+
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
@@ -4401,9 +4409,7 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = false;
 
                     let ai_bot_transaction_id = 0;
-                    request.global_array = [];
-                    request.global_array.push({"asset_available_set":JSON.stringify(request)});
-                    request.global_array.push({"assetAvailableUpdate":"AFTER SETTING THE RESOURCE TO AVAILBALE, Initiating AI "+queryString})
+
                     request.ai_trace_insert_location = "assetAvailableUpdate, AFTER SETTING THE RESOURCE TO AVAILBALE";
                     let [errAI, responseDataAI] = await rmbotService.AIEventTransactionInsert(request);
                     if(responseDataAI.length > 0){
@@ -4444,7 +4450,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 })
                 .catch((err) => {
                     error = err;
-                    request.global_array.push({"assetAvailableUpdaten Exceptio":error})
+                    request.global_array.push({"assetAvailableUpdaten Exception":error})
                     rmbotService.AIEventTransactionInsert(request);                    
                 });
         }
