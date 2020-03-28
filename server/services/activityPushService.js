@@ -684,10 +684,11 @@ function ActivityPushService(objectCollection) {
 
     var getAssetBadgeCount = function (request, objectCollection, assetId, organizationId, callback) {
         var paramsArr = new Array(
-            organizationId,
-            assetId
+            assetId,
+            organizationId            
         );
-        var queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        //var queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        var queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
         if (queryString != '') {
             objectCollection.db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1416,12 +1417,13 @@ function ActivityPushService(objectCollection) {
         let responseData = [],
             error = true;
 
-        const paramsArr = new Array(
-            organizationId,
-            assetId
+        const paramsArr = new Array(            
+            assetId,
+            organizationId
         );
 
-        const queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        //const queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        const queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
         
         if (queryString != '') {
             await objectCollection.db.executeQueryPromise(1, queryString, request)
