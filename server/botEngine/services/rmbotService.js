@@ -20,16 +20,20 @@ function RMBotService(objectCollection) {
          request.global_array = [];
         try{
 
-            request.global_array.push({"alterWorkflowLead":""});
-            let ai_bot_transaction_id = 0;
+            request.global_array.push({"Unassignment_":request.activity_id+"_"+request.timeline_stream_type_id});
+            let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
-            request.global_array.push({"alterWorkflowLead":"Unassignment in process"})
+            let ai_bot_transaction_id = 0;
+            //request.global_array.push({"alterWorkflowLead":"Unassignment in process"})
             request.ai_trace_insert_location = "alterWorkflowLead, Unassignment in process";
+            request.ai_bot_trigger_activity_id = request.activity_id;
+            request.ai_bot_trigger_activity_status_id = data[0].activity_status_id?data[0].activity_status_id:0;
+            request.ai_bot_trigger_key = "Unassignment_"+request.activity_id+"_"+request.ai_bot_trigger_activity_status_id+"_"+request.timeline_stream_type_id;
             let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
             if(responseDataAI.length > 0){
                 request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
             }            
-            let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
+            
             let previous_status_lead_asset_id = 0;
             let previous_status_lead_asset_name = "";
             let previous_status_id = 0;
