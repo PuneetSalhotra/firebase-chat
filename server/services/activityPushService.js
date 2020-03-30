@@ -524,12 +524,22 @@ function ActivityPushService(objectCollection) {
                                             }
                                             break;
                                         case '/' + global.config.version + '/activity/status/alter':
-                                            // case '/' + global.config.version + '/activity/participant/access/set':
-                                            msg.activity_type_category_id = activityTypeCategoryId;
-                                            msg.type = 'activity_unread';
-                                            pushString.title = senderName;
-                                            pushString.description = 'has added an update - ' + activityTitle + '.';
-                                            break;
+                                            
+                                            	if (Number(request.activity_stream_type_id) === 704) {
+                                                    pushString.description = `${request.push_message || 'Workflow status altered'} - ${senderName}`;
+    
+                                                    pushString.title = activityTitle;
+                                                    pushString.subtitle = request.push_message || 'Workflow status altered';
+                                                    pushString.body = senderName;
+                                               }else{  
+                                                
+                                                                                            // case '/' + global.config.version + '/activity/participant/access/set':
+	                                            msg.activity_type_category_id = activityTypeCategoryId;
+	                                            msg.type = 'activity_unread';
+	                                            pushString.title = senderName;
+	                                            pushString.description = 'has added an update - ' + activityTitle + '.';
+	                                           }                                     	
+                                            	break;
                                         case '/' + global.config.version + '/activity/unread/count/reset':
                                         case '/' + global.config.version + '/activity/unread/count/reset/v1':
                                             msg.activity_type_category_id = activityTypeCategoryId;
