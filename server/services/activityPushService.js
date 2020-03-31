@@ -385,7 +385,7 @@ function ActivityPushService(objectCollection) {
                         try {
                             let activityData = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                             if (activityData.length > 0) {
-                                if (activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) {
+                                if ((activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) || 1 === 1) {
                                     if (
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
@@ -694,10 +694,11 @@ function ActivityPushService(objectCollection) {
 
     var getAssetBadgeCount = function (request, objectCollection, assetId, organizationId, callback) {
         var paramsArr = new Array(
-            organizationId,
-            assetId
+            assetId,
+            organizationId            
         );
-        var queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        //var queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        var queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
         if (queryString != '') {
             objectCollection.db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1426,12 +1427,13 @@ function ActivityPushService(objectCollection) {
         let responseData = [],
             error = true;
 
-        const paramsArr = new Array(
-            organizationId,
-            assetId
+        const paramsArr = new Array(            
+            assetId,
+            organizationId
         );
 
-        const queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        //const queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        const queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
         
         if (queryString != '') {
             await objectCollection.db.executeQueryPromise(1, queryString, request)

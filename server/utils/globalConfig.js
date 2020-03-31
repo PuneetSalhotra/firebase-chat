@@ -596,6 +596,16 @@ if (mode === 'staging') {
     config.emailbaseUrlApprove = "https://stagingweb.officedesk.app"; 
     config.emailbaseUrlUpload = "https://stagingweb.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+
+    // ECS microservices update
+    if (
+        Number(process.env.ms_mode) === 1
+    ) {
+        config.TOPIC_ID = 26;
+        config.TOPIC_NAME = "ms-ecs-staging-v1";
+        config.CONSUMER_GROUP_ID = "desker-activities-test-topic-consumer-group-v1";
+        config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
+    }
 }
 
 if (mode === 'preprod') {
@@ -759,9 +769,9 @@ if (mode === 'prod') {
     //config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
     //config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
 
-    config.TOPIC_ID = 28;
-    config.TOPIC_NAME = 'prod-desker-activities-msk'; //Only one partition
-    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-msk';
+    config.TOPIC_ID = 33;
+    config.TOPIC_NAME = 'production-desker-30-March-2020-00'; //Only one partition
+    config.CONSUMER_GROUP_ID = 'production-desker-30-March-2020-00-consumer-group';
     
     // Widget
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets-v1'; //Only one partition
