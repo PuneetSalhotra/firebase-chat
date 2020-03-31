@@ -3,6 +3,7 @@
  * Upate: PreProd Test 1
  */
 const logger = require(__dirname + "/../../logger/winstonLogger");
+const { serializeError } = require('serialize-error')
 
 function VodafoneService(objectCollection) {
 
@@ -4174,7 +4175,7 @@ function VodafoneService(objectCollection) {
                     payload: workflowFile713Request
                 };
 
-                await queueWrapper.raiseActivityEventPromise(workflowFile713RequestEvent, request.activity_id);
+                await queueWrapper.raiseActivityEventPromise(workflowFile713RequestEvent, request.activity_id || request.workflow_activity_id);
 
                 /*queueWrapper.raiseActivityEvent(workflowFile713RequestEvent, workflowFile713Request.activity_id, (err, resp) => {
                     if (err) {
@@ -4184,7 +4185,7 @@ function VodafoneService(objectCollection) {
                     }
                 });*/
             } catch (error) {
-                console.log("addTimelineTransaction | Error: ", error);
+                logger.error(`addTimelineTransaction | Error | Workflow: ${request.workflow_activity_id}`, { type: "vodafone", request_body: request, error: serializeError(error) });
             }
         }
 
