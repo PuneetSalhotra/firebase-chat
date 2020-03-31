@@ -1,5 +1,5 @@
 /**
- * author Sravankumar
+ * author Nani Kalyan V
  */
 const tracer = require('dd-trace').init({
     service: `${process.env.mode}_desker_api`,
@@ -155,6 +155,11 @@ var Consumer = function () {
             global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
 
             var messageJson = JSON.parse(message.value);
+
+            if (!messageJson.hasOwnProperty("payload")) {
+                return;
+            }
+
             var request = messageJson['payload'];
             request.partition = message.partition;
             request.offset = message.offset;
@@ -179,7 +184,7 @@ var Consumer = function () {
 
                 activityCommonService.checkingPartitionOffset(request, (err, data) => {
                     global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
-                    if (true) {
+                    if (err === false) {
                         global.logger.write('conLog', 'Consuming the message', {}, request);
                         activityCommonService.partitionOffsetInsert(request, (err, data) => {});
                         consumingMsg(message, kafkaMsgId, objCollection).then(() => {
