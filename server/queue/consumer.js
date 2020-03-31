@@ -1,5 +1,5 @@
 /**
- * author Nani Kalyan V
+ * author Sravankumar
  */
 const tracer = require('dd-trace').init({
     service: `${process.env.mode}_desker_api`,
@@ -155,11 +155,6 @@ var Consumer = function () {
             global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
 
             var messageJson = JSON.parse(message.value);
-
-            if (!messageJson.hasOwnProperty("payload")) {
-                return;
-            }
-
             var request = messageJson['payload'];
             request.partition = message.partition;
             request.offset = message.offset;
@@ -184,7 +179,7 @@ var Consumer = function () {
 
                 activityCommonService.checkingPartitionOffset(request, (err, data) => {
                     global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
-                    if (err === false) {
+                    if (true) {
                         global.logger.write('conLog', 'Consuming the message', {}, request);
                         activityCommonService.partitionOffsetInsert(request, (err, data) => {});
                         consumingMsg(message, kafkaMsgId, objCollection).then(() => {
@@ -240,7 +235,7 @@ var Consumer = function () {
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            logger.crit('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
+            logger.error('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
             // global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
