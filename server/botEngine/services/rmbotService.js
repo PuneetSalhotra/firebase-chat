@@ -20,16 +20,20 @@ function RMBotService(objectCollection) {
          request.global_array = [];
         try{
 
-            request.global_array.push({"alterWorkflowLead":""});
-            let ai_bot_transaction_id = 0;
+            request.global_array.push({"Unassignment_":request.activity_id+"_"+request.timeline_stream_type_id});
+            let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
-            request.global_array.push({"alterWorkflowLead":"Unassignment in process"})
+            let ai_bot_transaction_id = 0;
+            //request.global_array.push({"alterWorkflowLead":"Unassignment in process"})
             request.ai_trace_insert_location = "alterWorkflowLead, Unassignment in process";
+            request.ai_bot_trigger_activity_id = request.activity_id;
+            request.ai_bot_trigger_activity_status_id = data[0].activity_status_id?data[0].activity_status_id:0;
+            request.ai_bot_trigger_key = "Unassignment_"+request.activity_id+"_"+request.ai_bot_trigger_activity_status_id+"_"+request.timeline_stream_type_id;
             let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
             if(responseDataAI.length > 0){
                 request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
             }            
-            let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
+            
             let previous_status_lead_asset_id = 0;
             let previous_status_lead_asset_name = "";
             let previous_status_id = 0;
@@ -54,7 +58,7 @@ function RMBotService(objectCollection) {
                         previous_status_lead_asset_id = responseData[0].lead_asset_id;
                         previous_status_lead_asset_name = responseData[0].lead_operating_asset_first_name;
                     }else{
-                        request.global_array.push({"NO_PREVIOUS_STATUS": "LEAD DATA EXISTS, HENCE ASSIGNING CREATOR AS LEAD "+data[0].activity_creator_asset_id});
+                        request.global_array.push({"NO_PREVIOUS_STATUS_LEAD_DATA_EXISTS": "NO LEAD EXISTS FOR PREVIOUS STATUS, HENCE ASSIGNING CREATOR AS LEAD "+data[0].activity_creator_asset_id});
                         previous_status_lead_asset_id = data[0].activity_creator_asset_id;
                         previous_status_lead_asset_name = data[0].activity_creator_operating_asset_first_name;
                     }
@@ -74,9 +78,8 @@ function RMBotService(objectCollection) {
                     logger.info("request.target_status_lead_asset_id ::"+request.target_status_lead_asset_id);
                     logger.info("request.target_status_lead_asset_name ::"+request.target_status_lead_asset_name);
 
-                    //free the current lead
+                    if(previous_activity_status_id > 0){                  
 
-                    if(previous_activity_status_id > 0){
                         //status rollback
                         request.activity_status_id = previous_activity_status_id;
                         request.global_array.push({"STATUS_ROLLBACK_TO":previous_activity_status_id});
@@ -86,10 +89,17 @@ function RMBotService(objectCollection) {
                         if(responseCode2.length > 0){
                             roleLinkedToStatus = responseCode2[0].asset_type_id;
                             statusDuration = responseCode2[0].activity_status_duration;
+                            request.activity_status_name = responseCode2[0].activity_status_name
                         }
                         request.duration_in_minutes = statusDuration;
                         request.asset_type_id = roleLinkedToStatus;
                         request.activity_status_type_id = responseData[0].from_activity_status_type_id
+
+                        let objReq2 = Object.assign({},request);
+                        objReq2.timeline_stream_type_id = 718;
+                        objReq2.lead_asset_id = previous_status_lead_asset_id;
+                        objReq2.is_prior_update = 1;
+                        self.activityListLeadUpdateV1(objReq2, previous_status_lead_asset_id);
 
                         request.is_status_rollback = 1;                
                         request.rm_flag = 1;  
@@ -100,16 +110,14 @@ function RMBotService(objectCollection) {
        
                         await self.alterStatusMakeRequest(request);
 
-                    }/*else{
+                    }else{
                         //make the creator as lead
                         request.global_array.push({"PREVIOUS STATUS DATA FOUND, BUT LEAD NOT FOUND, HENCE ASSIGNING CREATOR AS LEAD :: ":previous_status_lead_asset_id});
-                        objReq.timeline_stream_type_id = 719;
-                        await self.activityListLeadUpdateV1(objReq, 0);
-
-                        request.target_status_lead_asset_id = previous_status_lead_asset_id;
-                        request.target_status_lead_asset_name = previous_status_lead_asset_name;
-                        self.callAddParticipant(request);
-                    }*/
+                        let objReq2 = Object.assign({},request);
+                        objReq2.timeline_stream_type_id = 718;
+                        objReq2.lead_asset_id = previous_status_lead_asset_id;
+                        self.activityListLeadUpdateV1(objReq2, previous_status_lead_asset_id);
+                    }
                 }else{
                     request.global_array.push({"NO PREVIOUS STATUS DATA FOUND, HENCE ASSIGNING CREATOR AS LEAD :: ":previous_status_lead_asset_id});
                     previous_status_lead_asset_id = data[0].activity_creator_asset_id;
@@ -1072,6 +1080,20 @@ function RMBotService(objectCollection) {
             ai_bot_transaction_id = responseData[0].ai_bot_transaction_id;
         } 
 
+        let rollback_status_name = request.activity_status_name;
+
+        let x = JSON.stringify({
+                "activity_reference": [{
+                    "activity_id": request.activity_id,
+                    "activity_title": ""
+                }],
+                "asset_reference": [{}],
+                "attachments": [],
+                "content": "Status updated to "+rollback_status_name,
+                "mail_body": "Status updated to "+rollback_status_name,
+                "subject": "Status updated to "+rollback_status_name
+            });
+
         const alterStatusRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -1103,6 +1125,7 @@ function RMBotService(objectCollection) {
             datetime_log: util.getCurrentUTCTime(),
             insufficient_data: true,
             is_status_rollback:1,
+            activity_stream_type_id:704,
             timeline_stream_type_id:704,
             //global_array:request.global_array,
             target_status_lead_asset_id:request.target_status_lead_asset_id,
@@ -1111,7 +1134,9 @@ function RMBotService(objectCollection) {
             ai_bot_trigger_key:request.ai_bot_trigger_key,
             ai_bot_trigger_activity_id:request.ai_bot_trigger_activity_id,
             ai_bot_trigger_activity_status_id:request.ai_bot_trigger_activity_status_id,
-            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
+            ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id,
+            push_message:"Status updated to "+rollback_status_name,
+            activity_timeline_collection:x
         };
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
@@ -1989,10 +2014,10 @@ function RMBotService(objectCollection) {
                         self.AIEventTransactionInsert(request)                    
                     }
                 }else{
-                    request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI"});
+                    request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW"});
                     request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
                     self.AIEventTransactionInsert(request)                
-                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI");
+                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW");
                 }
             }else{
                 request.global_array.push({"STATUS_DOESNT_EXIST":"STATUS DOESNT EXIST, HENCE NO AI"});
@@ -2372,12 +2397,32 @@ function RMBotService(objectCollection) {
                         if(Number(request.timeline_stream_type_id) == 718){
                             request.lead_asset_id = lead_asset_id;
                             await self.activityAssetMappingUpdateLead(request);
+
                             let objR = Object.assign({},request);
                             objR.target_asset_id = lead_asset_id;
+                            objR.target_lead_asset_id = lead_asset_id;
+                            logger.info("ROLLBACK:: LOGASSET "+request.asset_id+" PUSH_STATUS "+data[0].push_status);
 
-                            await self.calculateAssetNewSummary(objR);
+                            if(data[0].push_status == 0){
 
-                            if(data[0].existing_lead_asset_id > 0){
+                                objR.message = "Tony has assigned you as lead"; 
+                                util.sendCustomPushNotification(objR,data); 
+
+                                /*
+                                if(Number(request.asset_id) === 100){
+                                    objR.message = "Tony has assigned you as lead"; 
+                                    util.sendCustomPushNotification(objR,data); 
+                                }
+                                if(Number(request.asset_id) !== 100){
+                                    objR.message = " has assigned you as lead";  
+                                    util.sendCustomPushNotification(objR,data); 
+                                }
+                               */
+                            } 
+                            self.assetListUpdatePoolEntry(objR);
+                            self.calculateAssetNewSummary(objR);
+
+                            if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
                                 self.calculateAssetNewSummary(request);

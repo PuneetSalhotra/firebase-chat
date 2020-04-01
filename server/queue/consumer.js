@@ -240,7 +240,7 @@ var Consumer = function () {
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            logger.crit('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
+            logger.error('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
             // global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
