@@ -7,6 +7,7 @@ const tracerFormats = require('dd-trace/ext/formats')
 
 const logger = require("../logger/winstonLogger");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
+const cacheWrapper = new(require('../utils/cacheWrapper'))();
 
 function QueueWrapper(producer) {
 
@@ -108,7 +109,7 @@ function QueueWrapper(producer) {
 
         return new Promise((resolve, reject)=>{
             let obj;
-            let channelId;
+            let channelId, newChannelId;
             event.payload.pubnub_push = 1;
             
             global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
@@ -118,7 +119,7 @@ function QueueWrapper(producer) {
                 key: activityId.toString()
             }];
 
-            producer.send(payloads, function (err, data) {
+            producer.send(payloads, async function (err, data) {
                 if (err) {
                     logger.error(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
                     // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
@@ -131,8 +132,10 @@ function QueueWrapper(producer) {
                     obj = data[global.config.TOPIC_NAME];
                     channelId = `${global.config.TOPIC_NAME}_${Object.keys(obj)[0]}_${Object.values(obj)[0]}`;
                     console.log(channelId);
+
+                    newChannelId = `${Object.keys(obj)[0]}_${Object.values(obj)[0]}`;
                     
-                    pubnubWrapper.subscribe(channelId).then((msg)=>{
+                    /*pubnubWrapper.subscribe(channelId).then((msg)=>{
                         console.log('msg.status : ', msg.status);
                         if(msg.status === 200) {
                             resolve(msg);
@@ -141,14 +144,27 @@ function QueueWrapper(producer) {
                         }                        
                     }).catch((err)=>{
                         global.logger.write('serverError', err, {}, {});
-                    });
-                    
-                }            
+                    });*/
+
+                    await cacheWrapper.setOffset(global.config.TOPIC_NAME, newChannelId, 1); // 1 Means Open
+                    await checkingWhetherMsgIsConsumed(newChannelId);
+                    resolve();
+                }
             });
         });        
 
     };
-    
+
+    async function checkingWhetherMsgIsConsumed(channelId) {
+        setTimeout(async () => {
+            let data = await cacheWrapper.getOffset(global.config.TOPIC_NAME, channelId);
+            if(data === 0) {
+                return "success";
+            } else {
+                checkingWhetherMsgIsConsumed();
+            }
+        }, 2000);
+    }
     
 }
 

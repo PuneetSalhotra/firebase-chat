@@ -460,6 +460,45 @@ function CacheWrapper(client) {
         });
     };
 
+    
+    this.setOffset = (kafkaTopic, partitionOffset, status) => { 
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hset(kafkaTopic, partitionOffset, status, (err, reply) => {
+                if (err) {
+                    logger.error(`HSET asset_map ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HSET asset_map ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve();
+                }
+            });
+        });
+    };
+    
+
+    this.getOffset = (kafkaTopic, partitionOffset) => {
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hget(kafkaTopic, partitionOffset, (err, reply) => {
+                if (err) {
+                    logger.error(`HGET asset_map ${JSON.stringify(partitionOffset)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HGET asset_map ${JSON.stringify(partitionOffset)}`, { type: 'redis', cache_response: reply, error: err });
+                    // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;
