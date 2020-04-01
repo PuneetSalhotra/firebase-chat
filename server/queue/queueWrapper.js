@@ -147,7 +147,9 @@ function QueueWrapper(producer) {
                     });*/
 
                     await cacheWrapper.setOffset(global.config.TOPIC_NAME, newChannelId, 1); // 1 Means Open
+                    console.log('Checking whether Message is consumed on not');
                     await checkingWhetherMsgIsConsumed(newChannelId);
+                    console.log('Checking whether Message is consumed on not - Message Consumed');
                     resolve();
                 }
             });
@@ -158,6 +160,7 @@ function QueueWrapper(producer) {
     async function checkingWhetherMsgIsConsumed(channelId) {
         setTimeout(async () => {
             let data = await cacheWrapper.getOffset(global.config.TOPIC_NAME, channelId);
+            console.log('Status of the Message with this offset : ', channelId, ' is : ', data);
             if(data === 0) {
                 return "success";
             } else {
