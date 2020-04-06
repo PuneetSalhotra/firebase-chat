@@ -512,7 +512,7 @@ function AdminOpsController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/organization/asset/signup', async (req, res) => {
+    app.post('/' + global.config.version + '/asset/signup', async (req, res) => {
         try {
             let result = await adminOpsService.processSignup(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));

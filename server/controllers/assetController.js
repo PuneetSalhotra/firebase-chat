@@ -660,5 +660,26 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/email/passcode/generate', async (req, res) => {
+        const [err, generatedData] = await assetService.generateEmailPasscode(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, generatedData, 200, req.body));
+        } else {
+            console.log("/room/name | Error: ", err);
+            res.send(responseWrapper.getResponse(err, generatedData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/email/passcode/verify', async (req, res) => {
+        const [err, verifiedData] = await assetService.verifyEmailSignup(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, verifiedData, verifiedData.code, req.body));
+        } else {
+            console.log("/email/passcode/verify | Error: ", err);
+            res.send(responseWrapper.getResponse(err, verifiedData, verifiedData.code, req.body));
+        }
+    });
+   
+
 }
 module.exports = AssetController;
