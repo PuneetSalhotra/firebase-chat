@@ -511,6 +511,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/signup', async (req, res) => {
+        try {
+            let result = await adminOpsService.processSignup(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('conLog', err, err, err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });    
 }
 
 module.exports = AdminOpsController;
