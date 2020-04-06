@@ -5843,6 +5843,330 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.processSignup = async function(request){
+        let responseData = [],
+            error = true;
+
+        logger.info("country_code :: "+request.country_code);
+        logger.info("phone_number :: "+request.asset_phone_number);
+        logger.info("email :: "+request.asset_email_id);
+        logger.info("fullname :: "+request.asset_full_name);
+        logger.info("domain :: "+request.organziation_domain_name);
+
+        let domainIndex = request.asset_email_id.indexOf('@');
+        request.organization_name = request.asset_email_id.substring(domainIndex+1,request.asset_email_id.length);
+        request.organization_phone_country_code = request.country_code;
+        request.organization_phone_number = request.asset_phone_number;
+        request.asset_id = 100;
+        request.organization_domain_name = request.organization_name;
+        request.organization_email = request.asset_email_id;
+
+        let [orgErr, idOrganization] = await self.createOrganizationV1(request);
+
+        request.organization_id = idOrganization;
+        request.account_city = request.country_code+""+request.asset_phone_number;
+
+        let [accErr, idAccount] = await self.createAccountV1(request);
+
+        request.account_id = idAccount;
+        request.workforce_name = "CommonFloor";
+        request.workforce_type_id = 16;
+
+        let [workforceErr, idWorkforce] = await self.createWorkforceV1(request);
+
+
+        //create employee and desk(employee and contact card)
+
+        return [workforceErr, idWorkforce];
+    }
+
+
+    this.createOrganizationV1 = async function (request) {
+
+        let organizationID = 0;
+        let [orgErr, responseOrgData] = await adminListingService.organizationListSelectName(request);
+        if(!orgErr){
+            if(responseOrgData.length > 0){
+                return [false,responseOrgData[0].organization_id];
+            }else{
+                const [err, orgData] = await organizationListInsert(request);
+                if(err){
+                    return[true, err];
+                }else{
+                    if(orgData.length > 0){
+                        request.organization_id = orgData[0].organization_id;
+                        request.update_type_id = 0;
+                        organizationListHistoryInsert(request);
+                        return[false, orgData[0].organization_id];
+                    }else{
+                        return[true, 0];
+                    }
+                   
+                }                
+            }
+        }else{
+            return[true,orgErr];
+        }      
+
+        
+    }
+
+    // Get account bassed on country code
+    this.createAccountV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        [error, responseData] = await adminListingService.accountListSelectCountryCode(request);
+        if(!error){
+            if(responseData.length > 0){
+
+                return [false, responseData[0].account_id];
+
+            }else{
+
+                const [errOne, accountData] = await accountListInsert(request, request.organization_id);
+                if (errOne) {
+
+                    return [true, errOne];
+
+                } else if (accountData.length > 0) {
+
+                    request.account_id = accountData[0].account_id;
+                    request.update_type_id = 0;
+                    accountListHistoryInsert(request);
+                    return [false, accountData[0].account_id];
+                }else{
+                    return [true, 0];
+                }
+
+            }
+        }else{
+            return [true, error];
+        }
+    } 
+
+    this.createWorkforceV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        let assetTypes = {};
+        [error, responseData] = await adminListingService.workforceListSelectWorkforceType(request);
+        if(!error){
+            if(responseData.length > 0){
+                
+                request.workforce_id = responseData[0].workforce_id;
+
+                request.asset_type_category_id = 2;
+                const [errEmp, empAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);
+                assetTypes[2]= empAssetTypeData[0].asset_type_id?empAssetTypeData[0].asset_type_id:0;
+
+                request.asset_type_category_id = 3;
+                const [errDesk, deskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);                
+                assetTypes[3]= deskAssetTypeData[0].asset_type_id?deskAssetTypeData[0].asset_type_id:0;
+
+                return [false, {organization_id:request.organization_id,
+                                account_id: request.account_id,
+                                workforce_id: responseData[0].workforce_id,
+                                asset_types:assetTypes}];
+            }else{
+                let [err3,workforceData] = await self.createWorkforceWithDefaults(request);
+                return [err3,workforceData];
+            }
+        }else{
+            return [true, error];
+        }
+    } 
+
+    // Create a new workforce, department or a floor
+    this.createWorkforceWithDefaults = async function (request) {
+
+        let assetTypes = {"2":0,"3":0};
+
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            // workforceID = Number(request.workforce_id),
+            assetID = Number(request.asset_id),
+            workforceName = String(request.workforce_name),
+            workforceTypeID = (request.workforce_type_id) ? Number(request.workforce_type_id) : 1;
+
+        // Create the workforce
+        let [errOne, workforceData] = await workforceListInsert({
+            workforce_name: workforceName,
+            workforce_type_id: workforceTypeID
+        }, organizationID, accountID);
+        if (errOne) {
+            return [true, {
+                message: "Couldn't create the workforce."
+            }]
+        }
+
+        const workforceID = Number(workforceData[0].workforce_id);
+
+        // Workforce List History insert
+        try {
+            await workforceListHistoryInsert({
+                workforce_id: workforceData[0].workforce_id,
+                organization_id: organizationID
+            });
+        } catch (error) { }
+
+        // Fetch workforce asset types
+        const [errTwo, workforceAssetTypes] = await adminListingService.assetTypeCategoryMasterSelectV1({
+            product_id: 1,
+            start_from: 0,
+            limit_value: 50
+        });
+        if (errTwo || workforceAssetTypes.length === 0) {
+            return [true, {
+                message: `[createWorkforce] Error fetching workforceAssetTypes`
+            }]
+        }
+
+        // Create workforce asset types
+        for (const assetType of workforceAssetTypes) {
+
+            const [errThree, assetTypeData] = await workforceAssetTypeMappingInsert({
+                asset_type_name: assetType.asset_type_category_name,
+                asset_type_description: assetType.asset_type_category_description,
+                asset_type_category_id: assetType.asset_type_category_id
+            }, workforceID, organizationID, accountID);
+
+            if (errThree || assetTypeData.length === 0) {
+                console.log(`[createWorkforce] Error creating assetType ${assetType.asset_type_category_name} for workforce ${workforceID}`);
+            }else{
+                let category = assetType.asset_type_category_id;
+                assetTypes[category] = assetTypeData[0].asset_type_id;
+            }
+
+            // Workforce asset types history insert
+            if (assetTypeData.length > 0) {
+                let assetTypeID = assetTypeData[0].asset_type_id;
+                try {
+                    await workforceAssetTypeMappingHistoryInsert({
+                        update_type_id: 0
+                    }, assetTypeID, organizationID);
+                } catch (error) { }
+                // 
+            }
+        }
+
+        // Fetch workforce activity types
+        const [errFour, workforceActivityTypes] = await adminListingService.activityTypeCategoryMasterSelectV1({
+            product_id: 1,
+            start_from: 0,
+            limit_value: 50
+        });
+        if (errFour || workforceActivityTypes.length === 0) {
+            return [true, {
+                message: `[createWorkforce] Error fetching workforceActivityTypes`
+            }]
+        }
+
+        // Create workforce activity types
+        for (const activityType of workforceActivityTypes) {
+
+            const [errFive, activityTypeData] = await workforceActivityTypeMappingInsert({
+                activity_type_name: activityType.activity_type_category_name,
+                activity_type_description: activityType.activity_type_category_description,
+                activity_type_category_id: activityType.activity_type_category_id
+            }, workforceID, organizationID, accountID);
+
+            if (errFive || activityTypeData.length === 0) {
+                console.log(`[createWorkforce] Error creating activityType ${activityType.asset_type_category_name} for workforce ${workforceID}`);
+            }
+
+            // Activity types history insert
+            let activityTypeID = activityTypeData[0].activity_type_id;
+            if (activityTypeData.length > 0) {
+                try {
+                    await workforceActivityTypeMappingHistoryInsert({
+                        update_type_id: 0
+                    }, activityTypeID, organizationID);
+                } catch (error) { }
+                // 
+            }
+
+            // Once the activity type for the workforce is created, the corresponding statuses
+            // need to be created as well. First, fetch the statuses for the activity_type_category_id
+            // Fetch workforce activity types
+            const [errSix, activityStatusTypes] = await adminListingService.activityStatusTypeMasterSelectCategory({
+                activity_type_category_id: activityType.activity_type_category_id,
+                start_from: 0,
+                limit_value: 50
+            });
+            if (errSix || activityStatusTypes.length === 0) {
+                // Do nothing, just skip
+                continue;
+            }
+
+            for (const activityStatusType of activityStatusTypes) {
+
+                const [errSeven, activityStatusTypeData] = await workforceActivityStatusMappingInsert({
+                    activity_status_name: activityStatusType.activity_status_type_name,
+                    activity_status_description: activityStatusType.activity_status_type_description,
+                    activity_status_sequence_id: 0,
+                    activity_status_type_id: activityStatusType.activity_status_type_id,
+                    log_asset_id: request.log_asset_id || request.asset_id
+                }, activityTypeID, workforceID, organizationID, accountID);
+
+                if (errSeven || activityStatusTypeData.length === 0) {
+                    console.log(`[createWorkforce] Error creating activityStatusType ${activityStatusType.activity_status_type_name} for the activity ${activityType.activity_type_category_name} workforce ${workforceID}`);
+                }
+
+                if (activityStatusTypeData.length > 0) {
+                    const activityStatusID = activityStatusTypeData[0].activity_status_id;
+                    try {
+                        await workforceActivityStatusMappingHistoryInsert({
+                            update_type_id: 0
+                        }, activityStatusID, organizationID);
+                    } catch (error) {
+                        console.log("Exception : "+error);
+                     }
+                    // 
+                }
+            }
+        }
+
+        return [false, {
+            workforce_id: workforceID,
+            account_id:request.account_id,
+            organization_id:request.organization_id,
+            asset_types: assetTypes
+        }] 
+
+    }
+
+    this.createAssetTypesV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        [error, responseData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);
+        if(!error){
+            if(responseData.length > 0){
+
+                return [false, responseData[0].account_id];
+
+            }else{
+
+                const [errOne, assetTypeData] = await workforceAssetTypeMappingInsert(request, request.workforce_id, request.organization_id, request.account_id);
+                if (errOne) {
+
+                    return [true, errOne];
+
+                } else if (assetTypeData.length > 0) {
+
+                    request.asset_type_id = assetTypeData[0].asset_type_id;
+                    request.update_type_id = 0;
+                    workforceAssetTypeMappingHistoryInsert(request,assetTypeData[0].asset_type_id,request.organization_id);
+                    return [false, assetTypeData[0].asset_type_id];
+                }else{
+                    return [true, 0];
+                }
+
+            }
+        }else{
+            return [true, error];
+        }
+    } 
+
+
 }
 
 module.exports = AdminOpsService;
