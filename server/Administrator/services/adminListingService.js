@@ -179,6 +179,30 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.assetTypeCategoryMasterSelectV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.product_id || 1,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_2_asset_type_category_master_select_common', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
     this.activityTypeCategoryMasterSelect = async function (request) {
         let responseData = [],
             error = true;
@@ -202,6 +226,30 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.activityTypeCategoryMasterSelectV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.product_id || 1,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_2_activity_type_category_master_select_common', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
 
     this.listActivityStatusTypeByActivityTypeCategoryID = async function (request) {
         const [errOne, activityStatusTypes] = await self.activityStatusTypeMasterSelectCategory({
@@ -1395,6 +1443,56 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    // Get account bassed on country code
+    this.accountListSelectCountryCode = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.country_code
+        );
+        const queryString = util.getQueryString('ds_v1_account_list_select_country_code', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get workforce based on workforce_type_id
+    this.workforceListSelectWorkforceType = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_type_id,
+            0,
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_select_workforce_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
 }
 
 module.exports = AdminListingService;

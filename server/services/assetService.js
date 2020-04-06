@@ -4562,6 +4562,119 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+
+     this.generateEmailPasscode = async function(request){
+        let responseData = [],
+            error = true;
+
+        let verificationCode = util.getVerificationCode();
+        //request.asset_full_name = request.asset_full_name?request.asset_full_name:"";
+        var paramsArr = new Array(
+            request.email_id,
+            verificationCode,
+            util.getCurrentUTCTime(),
+            moment().utc().add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'), // util.getCurrentUTCTime(),
+            util.getCurrentUTCTime()
+        );
+        var queryString = util.getQueryString('ds_v1_email_passcode_transaction_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                //send email
+                request.email_receiver_name="";
+                request.email_sender_name="DESKER";
+                //request.email_id = request.email_id;
+                request.email_sender="admin@desker.co";
+                request.subject = "DESKER OTP";
+                request.body = "Hi, <br/> Desker signup verification code is "+verificationCode+".";
+                let self = this;
+                self.sendEmail(request);
+
+            })
+            .catch((err) => {
+                error = err;
+            });  
+        }
+        return[error, responseData];
+    } 
+
+    this.sendEmail = async function (request) {
+        
+        global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
+        const emailSubject = request.subject;
+        const Template = request.body;
+
+        //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+        //request.email_sender_name = 'Vodafoneidea';
+
+        global.logger.write('conLog', emailSubject, {}, {});
+        global.logger.write('conLog', Template, {}, {});
+
+        util.sendEmailV3(request,
+            request.email_id,
+            emailSubject,
+            "IGNORE",
+            Template,
+            (err, data) => {
+                if (err) {
+                    global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                    global.logger.write('conLog', err, {}, {});
+                } else {
+                    global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                    global.logger.write('conLog', data, {}, {});
+                }
+
+               return "Email Sent";
+            });
+       
+    }
+
+    this.verifyEmailSignup = async function (request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.email_id,
+        );
+
+        const queryString = util.getQueryString('ds_v1_email_passcode_transaction_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    
+                    if(data.length == 1){
+                        if(data[0].email_passcode == request.passcode){
+                            responseData.code = 200;
+                            responseData.message = "passcode matched";
+                            error = false;
+                            console.log("::::::::::::::::::: PASSCODE MATCHED :::::::::::::::::::");
+                        }else{
+                            responseData.code = -3202;
+                            responseData.message = "passcode doesn't match";
+                            error = true;
+                            console.log("::::::::::::::::::: PASSCODE DOESN'T MATCHED :::::::::::::::::::");
+                        }
+                    }else{
+                        responseData.code = -3210;
+                        responseData.message = "no entry exists with this emailid";
+                        error = true;
+                        console.log("::::::::::::::::::: NO ENTRY EXISTS WITH THIS EMAILID :::::::::::::::::::");
+                    }
+
+                })
+                .catch((err) => {
+                    error = err;
+                     console.log("Error :: verifyEmailSignup ",err);
+                });            
+        }
+
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AssetService;
