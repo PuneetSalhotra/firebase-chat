@@ -3466,12 +3466,14 @@ this.getAllParticipantsAsync = async (request) => {
                         request.order_po_date || null,
                         request.order_caf_approval_datetime || null,
                         request.order_logged_datetime || null,
-                        order_po_trigger_diff,
+                        //order_po_trigger_diff,
+                        isNaN(order_po_trigger_diff) ? 0 : order_po_trigger_diff,
                         order_trigger_log_diff,
                         order_caf_approval_log_diff,
                         order_po_log_diff,
                         order_docs__log_diff,
-                        order_po__order_docs_diff,
+                        //order_po__order_docs_diff,
+                        isNaN(order_po__order_docs_diff) ? 0 : order_po__order_docs_diff,
                         flag,
                         request.datetime_log
                     );
