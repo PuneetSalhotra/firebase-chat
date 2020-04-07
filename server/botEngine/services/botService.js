@@ -1324,6 +1324,19 @@ function BotService(objectCollection) {
                 case 17: // Combo Field Selection Bot
                     logger.silly("Combo Field Selection Bot");
                     break;
+
+                case 18: // Workbook Mapping Bot
+                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot");
+                    break;
+
+                case 19: // Update CUID Bot
+                    logger.silly("Update CUID Bot");
+                    try {
+                        await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
+                    } catch (error) {
+                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -4996,6 +5009,170 @@ function BotService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {
+        for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
+            let cuidUpdateFlag = 0,
+                activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
+                fieldValue = "";
+
+            if (
+                formInlineDataMap.has(Number(cuidValue.field_id))
+            ) {
+                const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
+                fieldValue = fieldData.field_value || "";
+            }
+            switch (cuidKey) {
+                case "CUID1":
+                    cuidUpdateFlag = 1;
+                    activityCUID1 = fieldValue;
+                    break;
+
+                case "CUID2":
+                    cuidUpdateFlag = 2;
+                    activityCUID2 = fieldValue;
+                    break;
+
+                case "CUID3":
+                    cuidUpdateFlag = 3;
+                    activityCUID3 = fieldValue;
+                    break;
+
+                default:
+                    throw new Error(`cuidInlineData contains incorrect cuid key: ${cuidKey}`)
+                // break;
+            }
+
+            // Update the activity list table
+            try {
+                await activityListUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.activityListUpdateCuids | Error updating CUID in the activity_list table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the activity list history table
+            try {
+                await activityCommonService.activityListHistoryInsertAsync({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, 418);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation activityListHistoryInsertAsync | Error updating CUID in the activity_list_history table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the activity_asset_mapping table
+            try {
+                await activityAssetMappingUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.activityAssetMappingUpdateCUIDs | Error updating CUID in the activity_asset_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the queue_activity_mapping table
+            try {
+                await queueActivityMappingUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.queueActivityMappingUpdateCUIDs | Error updating CUID in the queue_activity_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+        }
+
+        return;
+    }
+
+    async function activityListUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function activityAssetMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function queueActivityMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_queue_activity_mapping_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = BotService;
