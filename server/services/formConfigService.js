@@ -1708,14 +1708,15 @@ function FormConfigService(objCollection) {
             let paramsArr = new Array(
                 formID,
                 levelID || 3,
+                request.target_asset_id || 0,
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                request.asset_id,
+                request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
 
-            const queryString = util.getQueryString('ds_p1_form_entity_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -4566,17 +4567,36 @@ function FormConfigService(objCollection) {
         return [error, workforceData];
     } 
 
-    this.setMultipleWorkforceAccess = 
+    this.setMultipleWorkforceAccess =
         async (request) => {
-            try{
+            try {
                 let targetWorkforceInline = JSON.parse(request.target_workforces);
-                for(let counter = 0; counter < targetWorkforceInline.length; counter++){
+                for (let counter = 0; counter < targetWorkforceInline.length; counter++) {
                     request.workforce_id = targetWorkforceInline[counter].target_workforce_id;
                     request.account_id = targetWorkforceInline[counter].target_account_id;
                     let [err, formFieldData] = await self.formEntityAccessCheck(request);
-                    console.log("formFieldData :: "+formFieldData.length);
-                    if(formFieldData.length === 0)
-                    await formEntityMappingInsert(request, request.form_id, 3);
+                    console.log("formFieldData :: " + formFieldData.length);
+                    if (formFieldData.length === 0)
+                        await formEntityMappingInsert(request, request.form_id, 3);
+                }
+
+                const targetAssetsArray = JSON.parse(request.target_assets || '[]');
+                for (const targetAssetData of targetAssetsArray) {
+                    let [err, formEntityData] = await self.formEntityAccessCheck({
+                        ...request,
+                        target_asset_id: targetAssetData.asset_id,
+                        workforce_id: targetAssetData.workforce_id,
+                        account_id: targetAssetData.account_id,
+                    });
+                    if (formEntityData.length === 0) {
+                        await formEntityMappingInsert({
+                            ...request,
+                            asset_id: targetAssetData.asset_id,
+                            workforce_id: targetAssetData.workforce_id,
+                            account_id: targetAssetData.account_id,
+                            log_asset_id: request.asset_id
+                        }, request.form_id, 6);
+                    }
                 }
             } catch (error) {
                 return Promise.reject(error);
