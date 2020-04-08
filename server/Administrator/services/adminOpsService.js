@@ -121,7 +121,7 @@ function AdminOpsService(objectCollection) {
             // 4. Fire Create Activity Service
             // Fetch activity types
             let newReq = Object.assign({}, request);
-                newReq.account_id = 0;
+            newReq.account_id = 0;
             const [errThree, activityTypeMappingData] = await adminListingService.workforceActivityTypeMappingSelectCategory(newReq);
             if (errThree || Number(activityTypeMappingData.length) === 0) {
                 console.log("createAssetBundle | Error: ", errThree);
@@ -655,11 +655,11 @@ function AdminOpsService(objectCollection) {
 
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
-        if(!err && roleData.length > 0) {
+        if (!err && roleData.length > 0) {
             request.asset_type_name = roleData[0].asset_type_name;
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
-        
+
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
@@ -823,7 +823,7 @@ function AdminOpsService(objectCollection) {
 
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
-        if(!err && roleData.length > 0) {
+        if (!err && roleData.length > 0) {
             request.asset_type_name = roleData[0].asset_type_name;
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
@@ -1122,7 +1122,7 @@ function AdminOpsService(objectCollection) {
 
         //Update Manager Details
         let newReq = Object.assign({}, request);
-            newReq.asset_id = deskAssetID;
+        newReq.asset_id = deskAssetID;
         this.updateAssetsManagerDetails(newReq);
 
         return [false, {
@@ -3517,7 +3517,7 @@ function AdminOpsService(objectCollection) {
                     }
                 }
             }
-        
+
             // Create Customer Floor
             const [errFour, customerWorkforceResponse] = await self.createWorkforce({
                 workforce_name: "Customer Floor",
@@ -3534,7 +3534,7 @@ function AdminOpsService(objectCollection) {
                 workforce_id: customerWorkforceResponse.workforce_id,
                 workforce_name: "Customer Floor"
             });
-        
+
         }
 
         return [false, {
@@ -4125,19 +4125,19 @@ function AdminOpsService(objectCollection) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
             }
 
-            try{
+            try {
                 let newReq = {
                     activity_id: idCardActivityID,
                     activity_inline_data: JSON.stringify(idCardJSON),
                     asset_id: employeeAssetID,
                     operating_asset_id: 0
-                };                
+                };
                 await activityAssetMappingUpdateOperationAssetData(newReq, organizationID);
                 await activityListUpdateOperatingAssetData(newReq, organizationID);
-            } catch(error){
+            } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateOperationAssetData`, { type: 'admin_ops', request_body: request, error });
                 logger.error(`upateDeskAndEmployeeAsset.activityListUpdateOperatingAssetData`, { type: 'admin_ops', request_body: request, error });
-            }          
+            }
         }
 
         if (deskAssetID !== 0) {
@@ -4225,16 +4225,16 @@ function AdminOpsService(objectCollection) {
                 logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Employee]`, { type: 'admin_ops', request_body: request, error });
             }
 
-            try{
+            try {
                 let newReq = {
                     activity_id: contactCardActivityID,
                     activity_inline_data: JSON.stringify(contactCardJSON),
                     asset_id: deskAssetID,
                     operating_asset_id: employeeAssetID
-                };                
+                };
                 await activityAssetMappingUpdateOperationAssetData(newReq, organizationID);
                 await activityListUpdateOperatingAssetData(newReq, organizationID);
-            } catch(error){
+            } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateOperationAssetData`, { type: 'admin_ops', request_body: request, error });
                 logger.error(`upateDeskAndEmployeeAsset.activityListUpdateOperatingAssetData`, { type: 'admin_ops', request_body: request, error });
             }
@@ -4242,7 +4242,7 @@ function AdminOpsService(objectCollection) {
 
         //Update Manager Details
         let newReq = Object.assign({}, request);
-            newReq.asset_id = deskAssetID;
+        newReq.asset_id = deskAssetID;
         this.updateAssetsManagerDetails(newReq);
 
         return [false, []];
@@ -4324,10 +4324,10 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     };
 
-    this.queueWithStatusTag = async function (request) {             
+    this.queueWithStatusTag = async function (request) {
         let responseData = [],
-            error = true;            
-        
+            error = true;
+
         let statusTags = JSON.parse(request.status_tag_ids);
         let finalStatusIdsArray = new Array;
         let iterator_x;
@@ -4335,7 +4335,7 @@ function AdminOpsService(objectCollection) {
 
         console.log('statusTags : ', statusTags);
 
-        for(iterator_x=0; iterator_x < statusTags.length; iterator_x++) {
+        for (iterator_x = 0; iterator_x < statusTags.length; iterator_x++) {
             let newReqObj = Object.assign({}, request);
             newReqObj.activity_status_tag_id = statusTags[iterator_x].status_tag_id;
             let [err, statusList] = await adminListingService.workforceActivityStatusMappingSelectFlag(newReqObj);
@@ -4348,12 +4348,12 @@ function AdminOpsService(objectCollection) {
 
             console.log('statusList.length : ', statusList.length);
 
-            for(iterator_y=0; iterator_y < statusList.length; iterator_y++) {
+            for (iterator_y = 0; iterator_y < statusList.length; iterator_y++) {
                 let temp = {};
                 temp.activity_status_id = statusList[iterator_y].activity_status_id;
-                console.log('statusList for ', statusTags[iterator_x].status_tag , ' ------ ' ,statusList[iterator_y].activity_status_id);
+                console.log('statusList for ', statusTags[iterator_x].status_tag, ' ------ ', statusList[iterator_y].activity_status_id);
                 finalStatusIdsArray.push(temp);
-            }                        
+            }
 
             console.log('*******************************************');
             console.log('finalStatusIdsArray : ', finalStatusIdsArray);
@@ -4366,22 +4366,22 @@ function AdminOpsService(objectCollection) {
             request,
             'workflowQueue/add',
             1
-        ).then(()=>{
+        ).then(() => {
             error = false;
-        }).catch((err)=>{
+        }).catch((err) => {
             error = true;
-        });        
-        
+        });
+
         return [error, responseData];
     };
 
-    this.uploadSmartForm = async (request) => {       
+    this.uploadSmartForm = async (request) => {
         //let jsonFormat = await util.getJSONfromXcel(request);   
-        
+
         let fileName = request.bucket_url;
-        const result = excelToJson({sourceFile: fileName});
+        const result = excelToJson({ sourceFile: fileName });
         jsonFormat = JSON.stringify(result, null, 4)
-        
+
         console.log('typeof jsonformat : ', typeof jsonFormat);
         let data = JSON.parse(jsonFormat);
         let sheetsData = data['Sheet1'];
@@ -4390,7 +4390,7 @@ function AdminOpsService(objectCollection) {
         console.log('sheetsData.length : ', sheetsData.length);
         request.form_id = sheetsData[1].J;
 
-        for(iterator_x = 1; iterator_x < sheetsData.length; iterator_x++) {
+        for (iterator_x = 1; iterator_x < sheetsData.length; iterator_x++) {
             //sheetsData[iterator_x].A //field_id
             //sheetsData[iterator_x].F //next_field_id
 
@@ -4574,7 +4574,7 @@ function AdminOpsService(objectCollection) {
         );*/
 
         return [false, 'success'];
-        
+
     };
 
     async function workforceFormFieldMappingNextFieldIdUpdate(request, fieldOptions) {
@@ -4591,7 +4591,7 @@ function AdminOpsService(objectCollection) {
         let paramsArr = new Array(
             fieldOptions.field_id,
             fieldOptions.data_type_combo_id,
-            request.form_id,                        
+            request.form_id,
             fieldOptions.field_sequence_id,
             fieldOptions.field_mandatory_enabled,
             fieldOptions.field_preview_enabled,
@@ -4857,21 +4857,21 @@ function AdminOpsService(objectCollection) {
     //Update the Asset Type
     this.updateAssetType = async (request) => {
         //async function updateAssetType(request){
-            const paramsArr = new Array(
-                request.asset_id,
-                request.asset_type_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.log_asset_id || request.asset_id,
-                util.getCurrentUTCTime()
-            );
-            const queryString = util.getQueryString('ds_p1_asset_list_update_asset_type', paramsArr);
-            if (queryString != '') {
-                return await (db.executeQueryPromise(0, queryString, request));
-            }
+        const paramsArr = new Array(
+            request.asset_id,
+            request.asset_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_asset_type', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
     }
-    
+
     //Update the Asset's Manager Data
     this.updateAssetsManagerDetails = async (request) => {
         let responseData = [],
@@ -4883,18 +4883,18 @@ function AdminOpsService(objectCollection) {
         let deskAssetID = request.asset_id;
         let organizationID = request.organization_id;
         const paramsArr = new Array(
-                deskAssetID, //desk_asset_id
-                request.manager_asset_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.log_asset_id || request.asset_id,
-                util.getCurrentUTCTime()
-            );
-            const queryString = util.getQueryString('ds_p1_asset_list_update_manager', paramsArr);
-            if (queryString != '') {
-                await (db.executeQueryPromise(0, queryString, request));
-            }
+            deskAssetID, //desk_asset_id
+            request.manager_asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_manager', paramsArr);
+        if (queryString != '') {
+            await (db.executeQueryPromise(0, queryString, request));
+        }
 
         //STEP 2. Get Contact Card - AND - Update the data
         // Fetch the desk's contact card
@@ -4908,15 +4908,15 @@ function AdminOpsService(objectCollection) {
             logger.error(`upateDeskAndEmployeeAsset.activityListSelectCategoryContact`, { type: 'admin_ops', request_body: request, error: errOne });
             return [errOne, []]
         }
-        
+
         //console.log('contactCardData : ', contactCardData);
 
         const contactCardActivityID = Number(contactCardData[0].activity_id);
         let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
-            contactCardJSON.contact_manager_asset_id = request.manager_asset_id;
+        contactCardJSON.contact_manager_asset_id = request.manager_asset_id;
 
         let employeeAssetID = Number(contactCardJSON.contact_operating_asset_id);
-        
+
         // Update the Contact Card's Activity List table
         try {
             await activityListUpdateInlineData({
@@ -4952,7 +4952,7 @@ function AdminOpsService(objectCollection) {
         }
         const idCardActivityID = Number(idCardData[0].activity_id);
         let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
-            idCardJSON.employee_manager_asset_id = request.manager_asset_id;
+        idCardJSON.employee_manager_asset_id = request.manager_asset_id;
 
         // Update the ID Card's Activity List table
         try {
@@ -4976,8 +4976,8 @@ function AdminOpsService(objectCollection) {
         } catch (error) {
             logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
         }
-     
-    return [error, responseData];
+
+        return [error, responseData];
     }
 
     this.updateStatusRoleMapping = async function (request) {
@@ -5047,7 +5047,7 @@ function AdminOpsService(objectCollection) {
                     }
                     workflowInlineData.workflow_fields = newWorkflowFieldsInlineData;
                     break;
-                
+
                 case 2: // Add fields
                     if (
                         (
@@ -5068,7 +5068,7 @@ function AdminOpsService(objectCollection) {
                         console.log(error);
                     }
                     break;
-                
+
                 case 3: // Remove fields
                     for (const fieldID of Object.keys(newWorkflowFieldsInlineData)) {
                         delete existingWorkflowFieldsInlineData[fieldID];
@@ -5214,7 +5214,7 @@ function AdminOpsService(objectCollection) {
             workforceID = Number(request.workforce_id);
 
         if (
-            !request.hasOwnProperty("tag_type_id") || 
+            !request.hasOwnProperty("tag_type_id") ||
             Number(request.tag_type_id) <= 0
         ) {
             return [new ClientInputError("tag_type_id missing or 0. Tags must be associated with a Tag Type.", -3001), []];
@@ -5246,7 +5246,7 @@ function AdminOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    
+
                     request.tag_id = data[0].tag_id;
                     self.tagListHistoryInsert(request, 2001);
                 })
@@ -5305,9 +5305,9 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    
+
     //Set Business Hours @Account Level
-    this.setBusinessHoursAccountLevel = async (request) =>{
+    this.setBusinessHoursAccountLevel = async (request) => {
         let responseData = [],
             error = true;
 
@@ -5335,7 +5335,7 @@ function AdminOpsService(objectCollection) {
     }
 
     //Set Business Hours @Floor(Workforce) Level
-    this.setBusinessHoursWorkforceLevel = async (request) =>{
+    this.setBusinessHoursWorkforceLevel = async (request) => {
         let responseData = [],
             error = true;
 
@@ -5364,7 +5364,7 @@ function AdminOpsService(objectCollection) {
     }
 
     //Set Business Hours @Individual(Desk) Level
-    this.setBusinessHoursDeskLevel = async (request) =>{
+    this.setBusinessHoursDeskLevel = async (request) => {
         let responseData = [],
             error = true;
 
@@ -5424,7 +5424,7 @@ function AdminOpsService(objectCollection) {
     }
 
     //Deletiing ActivityType Tag Id
-    this.activityTypeTagDelete = async (request) =>{
+    this.activityTypeTagDelete = async (request) => {
         let responseData = [],
             error = true;
 
@@ -5436,7 +5436,7 @@ function AdminOpsService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_v1_tag_list_delete', paramsArr);
-        
+
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -5450,10 +5450,10 @@ function AdminOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
-    }    
+    }
 
     //tag history insert
-    this.tagListHistoryInsert = async (request, updateTypeId) =>{
+    this.tagListHistoryInsert = async (request, updateTypeId) => {
         let responseData = [],
             error = true;
 
@@ -5476,10 +5476,10 @@ function AdminOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
-    }  
+    }
 
-   //Delete tag type
-    this.tagTypeDelete = async (request) =>{
+    //Delete tag type
+    this.tagTypeDelete = async (request) => {
         let responseData = [],
             error = true;
 
@@ -5491,7 +5491,7 @@ function AdminOpsService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_v1_tag_type_master_delete', paramsArr);
-        
+
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -5500,43 +5500,43 @@ function AdminOpsService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                    console.log('error :: '+error);
+                    console.log('error :: ' + error);
                 })
         }
         return [error, responseData];
-    }   
+    }
 
     this.assetListUpdateAdminFlag = async function (request) {
 
-        if(request.flag == 3){
-          const [error, responseData] = await checkManager(request, 0);
-            if(responseData[0].count > 0){
+        if (request.flag == 3) {
+            const [error, responseData] = await checkManager(request, 0);
+            if (responseData[0].count > 0) {
                 const [error1, responseData1] = await checkManager(request, 2);
-                if(responseData1[0].count > 0){
+                if (responseData1[0].count > 0) {
                     request.is_manager = 2;
                     await updateAdminFlag(request);
-                }else{
+                } else {
                     request.is_manager = 1;
                     await updateAdminFlag(request);
                 }
-            }else{
+            } else {
                 request.is_manager = 0;
                 await updateAdminFlag(request);
             }
-        }else{
+        } else {
             await updateAdminFlag(request);
         }
 
-        return [false,{}]
+        return [false, {}]
     }
 
     this.checkManagerDetails = async (request) => {
         request.target_asset_id = request.asset_id;
         return await checkManager(request, 3);
     }
-    
+
     //check manager flag
-    async function checkManager(request, checkFlag){
+    async function checkManager(request, checkFlag) {
         let responseData = [],
             error = true;
 
@@ -5563,7 +5563,7 @@ function AdminOpsService(objectCollection) {
     }
 
     //Set Admin Flags on targetAssetId
-    async function updateAdminFlag(request){
+    async function updateAdminFlag(request) {
         let responseData = [],
             error = true;
 
@@ -5593,7 +5593,7 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    this.idProofUpload = async(request) => {
+    this.idProofUpload = async (request) => {
 
         //id_proof_document_1 - Adhaar Card
         //id_proof_document_2 - Pan Card
@@ -5601,56 +5601,56 @@ function AdminOpsService(objectCollection) {
 
         let responseData = [],
             error = true;
-    
+
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id),
             employeeAssetID = Number(request.employee_asset_id) || Number(request.asset_id),
             deskAssetID = Number(request.desk_asset_id);
-    
+
         //1.Update in ID Card - If it exists
         //2.Update in contact Card - If it exists
         //3.Update in asset_list inline data
         //4.Make an entry in asset timeline entry
-    
-        
-    //1.Update in ID Card - If it exists
-        if (employeeAssetID != 0) {    
+
+
+        //1.Update in ID Card - If it exists
+        if (employeeAssetID != 0) {
             // Fetch the Employee's ID card
             const [errTwo, idCardData] = await adminListingService.activityAssetMappingSelectAssetIdCard({
-                                                    asset_id: employeeAssetID
-                                                }, organizationID);
-            
+                asset_id: employeeAssetID
+            }, organizationID);
+
             if (errTwo || Number(idCardData.length) === 0) {
                 logger.error(`idProofUpload.activityAssetMappingSelectAssetIdCard idCardData doesn't exist`, { type: 'admin_ops', request_body: request, error: errTwo });
                 //return [errTwo, []]
             } else {
                 const idCardActivityID = Number(idCardData[0].activity_id);
                 let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
-                    if(request.id_proof_document_1 !== "") {
-                        idCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
-                    }
-                    
-                    if(request.id_proof_document_2 !== "") {
-                        idCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
-                    } 
+                if (request.id_proof_document_1 !== "") {
+                    idCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                }
 
-                    if(request.id_proof_document_3 !== "") {
-                        idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
-                    }
-                    
-                    if(!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_1")) {
-                        idCardJSON.employee_id_proof_verification_status_1 = 0;
-                    }
+                if (request.id_proof_document_2 !== "") {
+                    idCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                }
 
-                    if(!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_2")) {
-                        idCardJSON.employee_id_proof_verification_status_2 = 0;
-                    }
+                if (request.id_proof_document_3 !== "") {
+                    idCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                }
 
-                    if(!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_3")) {
-                        idCardJSON.employee_id_proof_verification_status_3 = 0;
-                    }
-        
+                if (!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_1")) {
+                    idCardJSON.employee_id_proof_verification_status_1 = 0;
+                }
+
+                if (!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_2")) {
+                    idCardJSON.employee_id_proof_verification_status_2 = 0;
+                }
+
+                if (!idCardJSON.hasOwnProperty("employee_id_proof_verification_status_3")) {
+                    idCardJSON.employee_id_proof_verification_status_3 = 0;
+                }
+
                 // Update the ID Card's Activity List table
                 try {
                     await activityListUpdateInlineData({
@@ -5660,7 +5660,7 @@ function AdminOpsService(objectCollection) {
                 } catch (error) {
                     logger.error(`idProofUpload.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
                 }
-        
+
                 // Update the ID Card's Activity Asset Mapping table
                 try {
                     await activityAssetMappingUpdateInlineData({
@@ -5672,48 +5672,48 @@ function AdminOpsService(objectCollection) {
                     }, organizationID);
                 } catch (error) {
                     logger.error(`idProofUpload.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
-                }         
+                }
             }
         }
-            
-    
-    //2.Update in contact Card - If it exists
+
+
+        //2.Update in contact Card - If it exists
         if (deskAssetID !== 0) {
             // Fetch the desk's contact card
             // Fetch the Employee's ID card
             const [errFour, contactCardData] = await adminListingService.activityListSelectCategoryContact({
-                                                    asset_id: deskAssetID
-                                                }, organizationID);
+                asset_id: deskAssetID
+            }, organizationID);
             if (errFour || Number(contactCardData.length) === 0) {
                 logger.error(`idProofUpload.activityListSelectCategoryContact contactCardData doesn't exist`, { type: 'admin_ops', request_body: request, error: errFour });
                 //return [errFour, []]
             } else {
                 const contactCardActivityID = Number(contactCardData[0].activity_id);
-                let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);                    
-                    if(request.id_proof_document_1 !== "") {
-                        contactCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
-                    }
+                let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
+                if (request.id_proof_document_1 !== "") {
+                    contactCardJSON.employee_id_proof_document_1 = request.id_proof_document_1;
+                }
 
-                    if(request.id_proof_document_2 !== "") {
-                        contactCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
-                    }
-                    
-                    if(request.id_proof_document_3 !== "") {
-                        contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
-                    }
-                    
-                    if(!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_1")) {
-                        contactCardJSON.employee_id_proof_verification_status_1 = 0;
-                    }
+                if (request.id_proof_document_2 !== "") {
+                    contactCardJSON.employee_id_proof_document_2 = request.id_proof_document_2;
+                }
 
-                    if(!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_2")) {
-                        contactCardJSON.employee_id_proof_verification_status_2 = 0;
-                    }
+                if (request.id_proof_document_3 !== "") {
+                    contactCardJSON.employee_id_proof_document_3 = request.id_proof_document_3;
+                }
 
-                    if(!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_3")) {
-                        contactCardJSON.employee_id_proof_verification_status_3 = 0;
-                    }
-        
+                if (!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_1")) {
+                    contactCardJSON.employee_id_proof_verification_status_1 = 0;
+                }
+
+                if (!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_2")) {
+                    contactCardJSON.employee_id_proof_verification_status_2 = 0;
+                }
+
+                if (!contactCardJSON.hasOwnProperty("employee_id_proof_verification_status_3")) {
+                    contactCardJSON.employee_id_proof_verification_status_3 = 0;
+                }
+
                 // Update the Contact Card's Activity List table
                 try {
                     await activityListUpdateInlineData({
@@ -5723,7 +5723,7 @@ function AdminOpsService(objectCollection) {
                 } catch (error) {
                     logger.error(`idProofUpload.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
                 }
-        
+
                 // Update the Contact Card's Activity Asset Mapping table
                 try {
                     await activityAssetMappingUpdateInlineData({
@@ -5737,25 +5737,25 @@ function AdminOpsService(objectCollection) {
                     logger.error(`idProofUpload.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
                 }
             }
-    }
+        }
 
-    //3.Update in asset_list inline data
-    //Fetch inlineData first and assign the value accordingly
-    let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
-    //console.log('ASSETDATA : ', assetData);
-    let assetInlineData;    
-    if(assetData.length > 0){
-        assetInlineData = JSON.parse(assetData[0].asset_inline_data);
-        //console.log('assetInlineData : ', assetInlineData);
-    }
-    await updateAssetInlineData(request, {
-        id_proof_document_1: (request.id_proof_document_1 !== "") ? request.id_proof_document_1 : assetInlineData.id_proof_document_1,
-        id_proof_document_2: (request.id_proof_document_2 !== "") ? request.id_proof_document_2 : assetInlineData.id_proof_document_2,
-        id_proof_document_3: (request.id_proof_document_3 !== "") ? request.id_proof_document_3 : assetInlineData.id_proof_document_3,
-        id_proof_verification_status: 0
-    });
+        //3.Update in asset_list inline data
+        //Fetch inlineData first and assign the value accordingly
+        let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+        //console.log('ASSETDATA : ', assetData);
+        let assetInlineData;
+        if (assetData.length > 0) {
+            assetInlineData = JSON.parse(assetData[0].asset_inline_data);
+            //console.log('assetInlineData : ', assetInlineData);
+        }
+        await updateAssetInlineData(request, {
+            id_proof_document_1: (request.id_proof_document_1 !== "") ? request.id_proof_document_1 : assetInlineData.id_proof_document_1,
+            id_proof_document_2: (request.id_proof_document_2 !== "") ? request.id_proof_document_2 : assetInlineData.id_proof_document_2,
+            id_proof_document_3: (request.id_proof_document_3 !== "") ? request.id_proof_document_3 : assetInlineData.id_proof_document_3,
+            id_proof_verification_status: 0
+        });
 
-    //4.Make an entry in asset timeline entry
+        //4.Make an entry in asset timeline entry
         request.stream_type_id = 325;
         request.entity_text_1 = "ID Proof Document is uploaded";
         const [errTwo, assetTimelineData] = await assetTimelineTransactionInsert(request, workforceID, organizationID, accountID);
@@ -5763,7 +5763,7 @@ function AdminOpsService(objectCollection) {
             console.log("idProofUpload | Asset Timeline Transaction Insert | Error: ", errTwo);
         }
 
-    return [false, responseData];
+        return [false, responseData];
 
     }
 
@@ -5794,12 +5794,12 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    
-    this.organizationInlineDataUpdate = async function(request) {
+
+    this.organizationInlineDataUpdate = async function (request) {
 
         const [err, orgData] = await adminListingService.organizationListSelect(request);
 
-        let org_config_data = orgData[0].organization_inline_data?orgData[0].organization_inline_data:{};
+        let org_config_data = orgData[0].organization_inline_data ? orgData[0].organization_inline_data : {};
         org_config_data = JSON.parse(org_config_data);
         //console.log("org_config_data :: "+JSON.stringify(org_config_data));
         //console.log("request.org_bot_config_data :: "+request.org_bot_config_data);
@@ -5815,16 +5815,16 @@ function AdminOpsService(objectCollection) {
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));
         }
-    } 
+    }
 
 
-    this.updateOrganizationAIBot = async function(request) {
+    this.updateOrganizationAIBot = async function (request) {
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
-            request.organization_ai_bot,         
+            request.organization_ai_bot,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -5843,18 +5843,18 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    this.processSignup = async function(request){
+    this.processSignup = async function (request) {
         let responseData = [],
             error = true;
 
-        logger.info("country_code :: "+request.country_code);
-        logger.info("phone_number :: "+request.asset_phone_number);
-        logger.info("email :: "+request.asset_email_id);
-        logger.info("fullname :: "+request.asset_full_name);
-        logger.info("domain :: "+request.organziation_domain_name);
+        logger.info("country_code :: " + request.country_code);
+        logger.info("phone_number :: " + request.asset_phone_number);
+        logger.info("email :: " + request.asset_email_id);
+        logger.info("fullname :: " + request.asset_full_name);
+        logger.info("domain :: " + request.organziation_domain_name);
 
         let domainIndex = request.asset_email_id.indexOf('@');
-        request.organization_name = request.asset_email_id.substring(domainIndex+1,request.asset_email_id.length);
+        request.organization_name = request.asset_email_id.substring(domainIndex + 1, request.asset_email_id.length);
         request.organization_phone_country_code = request.country_code;
         request.organization_phone_number = request.asset_phone_number;
         request.asset_id = 100;
@@ -5864,7 +5864,7 @@ function AdminOpsService(objectCollection) {
         let [orgErr, idOrganization] = await self.createOrganizationV1(request);
 
         request.organization_id = idOrganization;
-        request.account_city = request.country_code+""+request.asset_phone_number;
+        request.account_city = request.country_code + "" + request.asset_phone_number;
 
         let [accErr, idAccount] = await self.createAccountV1(request);
 
@@ -5885,30 +5885,30 @@ function AdminOpsService(objectCollection) {
 
         let organizationID = 0;
         let [orgErr, responseOrgData] = await adminListingService.organizationListSelectName(request);
-        if(!orgErr){
-            if(responseOrgData.length > 0){
-                return [false,responseOrgData[0].organization_id];
-            }else{
+        if (!orgErr) {
+            if (responseOrgData.length > 0) {
+                return [false, responseOrgData[0].organization_id];
+            } else {
                 const [err, orgData] = await organizationListInsert(request);
-                if(err){
-                    return[true, err];
-                }else{
-                    if(orgData.length > 0){
+                if (err) {
+                    return [true, err];
+                } else {
+                    if (orgData.length > 0) {
                         request.organization_id = orgData[0].organization_id;
                         request.update_type_id = 0;
                         organizationListHistoryInsert(request);
-                        return[false, orgData[0].organization_id];
-                    }else{
-                        return[true, 0];
+                        return [false, orgData[0].organization_id];
+                    } else {
+                        return [true, 0];
                     }
-                   
-                }                
-            }
-        }else{
-            return[true,orgErr];
-        }      
 
-        
+                }
+            }
+        } else {
+            return [true, orgErr];
+        }
+
+
     }
 
     // Get account bassed on country code
@@ -5916,12 +5916,12 @@ function AdminOpsService(objectCollection) {
         let responseData = [],
             error = true;
         [error, responseData] = await adminListingService.accountListSelectCountryCode(request);
-        if(!error){
-            if(responseData.length > 0){
+        if (!error) {
+            if (responseData.length > 0) {
 
                 return [false, responseData[0].account_id];
 
-            }else{
+            } else {
 
                 const [errOne, accountData] = await accountListInsert(request, request.organization_id);
                 if (errOne) {
@@ -5934,15 +5934,15 @@ function AdminOpsService(objectCollection) {
                     request.update_type_id = 0;
                     accountListHistoryInsert(request);
                     return [false, accountData[0].account_id];
-                }else{
+                } else {
                     return [true, 0];
                 }
 
             }
-        }else{
+        } else {
             return [true, error];
         }
-    } 
+    }
 
     this.createWorkforceV1 = async function (request) {
         let responseData = [],
@@ -5950,49 +5950,51 @@ function AdminOpsService(objectCollection) {
         let assetTypes = {};
         let activityTypes = {};
         [error, responseData] = await adminListingService.workforceListSelectWorkforceType(request);
-        if(!error){
-            if(responseData.length > 0){
-                
+        if (!error) {
+            if (responseData.length > 0) {
+
                 request.workforce_id = responseData[0].workforce_id;
 
                 request.asset_type_category_id = 2;
                 const [errEmp, empAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);
-                assetTypes[2]= empAssetTypeData[0].asset_type_id?empAssetTypeData[0].asset_type_id:0;
+                assetTypes[2] = empAssetTypeData[0].asset_type_id ? empAssetTypeData[0].asset_type_id : 0;
 
                 request.asset_type_category_id = 3;
-                const [errDesk, deskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);                
-                assetTypes[3]= deskAssetTypeData[0].asset_type_id?deskAssetTypeData[0].asset_type_id:0;
+                const [errDesk, deskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);
+                assetTypes[3] = deskAssetTypeData[0].asset_type_id ? deskAssetTypeData[0].asset_type_id : 0;
 
                 request.activity_type_category_id = 4;
-                const [errIdCard, idCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);                
-                activityTypes[4]= idCardCData[0].activity_type_id?idCardCData[0].activity_type_id:0;
+                const [errIdCard, idCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);
+                activityTypes[4] = idCardCData[0].activity_type_id ? idCardCData[0].activity_type_id : 0;
 
                 request.activity_type_category_id = 5;
-                const [errContactCard, contactCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);                
-                activityTypes[5]= contactCardCData[0].activity_type_id?contactCardCData[0].activity_type_id:0;
+                const [errContactCard, contactCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);
+                activityTypes[5] = contactCardCData[0].activity_type_id ? contactCardCData[0].activity_type_id : 0;
 
-                return [false, {organization_id:request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: responseData[0].workforce_id,
-                                asset_types:assetTypes,
-                                employee_activity_type_id:activityTypes[4],
-                                desk_activity_type_id:activityTypes[5],
-                                employee_asset_type_id:assetTypes[2],
-                                desk_asset_type_id:assetTypes[3]}];
-            }else{
-                let [err3,workforceData] = await self.createWorkforceWithDefaults(request);
-                return [err3,workforceData];
+                return [false, {
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: responseData[0].workforce_id,
+                    asset_types: assetTypes,
+                    employee_activity_type_id: activityTypes[4],
+                    desk_activity_type_id: activityTypes[5],
+                    employee_asset_type_id: assetTypes[2],
+                    desk_asset_type_id: assetTypes[3]
+                }];
+            } else {
+                let [err3, workforceData] = await self.createWorkforceWithDefaults(request);
+                return [err3, workforceData];
             }
-        }else{
+        } else {
             return [true, error];
         }
-    } 
+    }
 
     // Create a new workforce, department or a floor
     this.createWorkforceWithDefaults = async function (request) {
 
-        let assetTypes = {"2":0,"3":0};
-        let activityTypes = {"4":0,"5":0};
+        let assetTypes = { "2": 0, "3": 0 };
+        let activityTypes = { "4": 0, "5": 0 };
 
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
@@ -6045,7 +6047,7 @@ function AdminOpsService(objectCollection) {
 
             if (errThree || assetTypeData.length === 0) {
                 console.log(`[createWorkforce] Error creating assetType ${assetType.asset_type_category_name} for workforce ${workforceID}`);
-            }else{
+            } else {
                 let category = assetType.asset_type_category_id;
                 assetTypes[category] = assetTypeData[0].asset_type_id;
             }
@@ -6090,10 +6092,10 @@ function AdminOpsService(objectCollection) {
             // Activity types history insert
             let activityTypeID = activityTypeData[0].activity_type_id;
 
-            if(activityType.activity_type_category_id === 4){
-                activityTypes[4]=activityTypeID;
-            }else if(activityType.activity_type_category_id === 5){
-                 activityTypes[5]=activityTypeID;
+            if (activityType.activity_type_category_id === 4) {
+                activityTypes[4] = activityTypeID;
+            } else if (activityType.activity_type_category_id === 5) {
+                activityTypes[5] = activityTypeID;
             }
 
             if (activityTypeData.length > 0) {
@@ -6139,8 +6141,8 @@ function AdminOpsService(objectCollection) {
                             update_type_id: 0
                         }, activityStatusID, organizationID);
                     } catch (error) {
-                        console.log("Exception : "+error);
-                     }
+                        console.log("Exception : " + error);
+                    }
                     // 
                 }
             }
@@ -6148,14 +6150,14 @@ function AdminOpsService(objectCollection) {
 
         return [false, {
             workforce_id: workforceID,
-            account_id:request.account_id,
-            organization_id:request.organization_id,
+            account_id: request.account_id,
+            organization_id: request.organization_id,
             asset_types: assetTypes,
-            employee_activity_type_id:activityTypes[4],
-            desk_activity_type_id:activityTypes[5],
-            employee_asset_type_id:assetTypes[2],
-            desk_asset_type_id:assetTypes[3]
-        }] 
+            employee_activity_type_id: activityTypes[4],
+            desk_activity_type_id: activityTypes[5],
+            employee_asset_type_id: assetTypes[2],
+            desk_asset_type_id: assetTypes[3]
+        }]
 
     }
 
@@ -6163,12 +6165,12 @@ function AdminOpsService(objectCollection) {
         let responseData = [],
             error = true;
         [error, responseData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);
-        if(!error){
-            if(responseData.length > 0){
+        if (!error) {
+            if (responseData.length > 0) {
 
                 return [false, responseData[0].account_id];
 
-            }else{
+            } else {
 
                 const [errOne, assetTypeData] = await workforceAssetTypeMappingInsert(request, request.workforce_id, request.organization_id, request.account_id);
                 if (errOne) {
@@ -6179,18 +6181,121 @@ function AdminOpsService(objectCollection) {
 
                     request.asset_type_id = assetTypeData[0].asset_type_id;
                     request.update_type_id = 0;
-                    workforceAssetTypeMappingHistoryInsert(request,assetTypeData[0].asset_type_id,request.organization_id);
+                    workforceAssetTypeMappingHistoryInsert(request, assetTypeData[0].asset_type_id, request.organization_id);
                     return [false, assetTypeData[0].asset_type_id];
-                }else{
+                } else {
                     return [true, 0];
                 }
 
             }
-        }else{
+        } else {
             return [true, error];
         }
-    } 
+    }
 
+    this.updateWorkbookMappingForWorkflow = async function (request) {
+        const organizationID = Number(request.organization_id),
+            workbookURL = request.workbook_url || "",
+            isWorkbookMapped = Number(request.is_workbook_mapped);
+
+        // Update workbook data in the activity_list table
+        try {
+            await activityListUpdateWorkbookBot({
+                ...request,
+                activity_id: request.activity_id,
+                workbook_url: workbookURL,
+                is_workbook_mapped: isWorkbookMapped
+            }, organizationID);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow.activityListUpdateWorkbookBot | Error updating workbook data in the activity_list table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // Update the activity list history table
+        try {
+            await activityCommonService.activityListHistoryInsertAsync({
+                ...request,
+                activity_id: request.activity_id,
+                datetime_log: util.getCurrentUTCTime()
+            }, 419);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow activityListHistoryInsertAsync | Error updating workbook data in the activity_list_history table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // Update workbook data in the activity_list table
+        try {
+            await activityAssetMappingUpdateWorkbookBot({
+                ...request,
+                activity_id: request.activity_id,
+                workbook_url: workbookURL,
+                is_workbook_mapped: isWorkbookMapped
+            }, organizationID);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow.activityAssetMappingUpdateWorkbookBot | Error updating workbook data in the activity_asset_mapping table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // return [new ClientInputError("Error fetching workflow's inline data", -9998), []];
+        return [false, [{
+            activity_id: request.activity_id,
+            workbook_url: workbookURL,
+            is_workbook_mapped: isWorkbookMapped
+        }]];
+    };
+
+    // Asset List Update v1: update workbook URL
+    async function activityListUpdateWorkbookBot(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_id,
+            request.workbook_url,
+            request.is_workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_workbook_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Asset Asset Mapping Update v1: update workbook URL
+    async function activityAssetMappingUpdateWorkbookBot(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_id,
+            request.workbook_url,
+            request.is_workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_workbook_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 
