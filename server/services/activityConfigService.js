@@ -171,9 +171,9 @@ function ActivityConfigService(db, util, objCollection) {
         callback(false, responseData);
     };
 
-    this.workForceActivityTypeInsert = function (request) {
+    this.workForceActivityTypeInsert = (request) => {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.activity_type_name,
                 request.activity_type_description,
                 request.activity_type_category_id,
@@ -182,9 +182,11 @@ function ActivityConfigService(db, util, objCollection) {
                 request.account_id,
                 request.organization_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log || util.getCurrentUTCTime(),
+                request.activity_type_flag_control_visibility || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -200,9 +202,9 @@ function ActivityConfigService(db, util, objCollection) {
         });
     };
 
-    this.workForceActivityTypeUpdate = function (request) {
+    this.workForceActivityTypeUpdate = (request) => {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -211,9 +213,11 @@ function ActivityConfigService(db, util, objCollection) {
                 request.activity_type_description,
                 request.access_level_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.activity_type_flag_control_visibility || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_update', paramsArr);            
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, async (err, data) => {
                     if (err === false) {
@@ -265,7 +269,7 @@ function ActivityConfigService(db, util, objCollection) {
                 request.activity_type_id,
                 request.organization_id,
                 request.update_type_id,
-                request.datetime_log
+                request.datetime_log || util.getCurrentUTCTime()
             );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {

@@ -267,6 +267,7 @@ function BotController(objCollection) {
         }
     }); 
     
+    //SET & RESET Lead - Manual
     app.post('/' + global.config.version + '/activity/lead/update', async function (req, res) {
         const [err, responseData] = await rmbotService.activityListLeadUpdateV1(req.body, req.body.lead_asset_id);
         if (!err) {

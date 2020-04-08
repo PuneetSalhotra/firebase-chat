@@ -674,6 +674,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
+            case 2505: // [Contact] Add Comment 
+            case 2605: // [Product] Add Comment
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -794,7 +796,7 @@ this.getAllParticipantsAsync = async (request) => {
         let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
             global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
-            callback(false, true)
+            callback(false, true);
         }
         else {
             if (queryString != '') {
@@ -4323,6 +4325,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
+            case 2505: // [Contact] Add Comment
+            case 2605: // [Product] Add Comment
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {

@@ -165,6 +165,12 @@ function ActivityService(objectCollection) {
                             break;
                         case 52: activityStreamTypeId = 26001;
                                  break;
+                        case 54: //Added Contact Activity
+                            activityStreamTypeId = 2501;
+                            break;
+                        case 55: //Added Product Activity
+                            activityStreamTypeId = 2601;
+                            break;
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -2005,6 +2011,12 @@ function ActivityService(objectCollection) {
                     break;
                 case 41: //Event
                     activityStreamTypeId = 17004;
+                    break;
+                case 54: //Contact Activity
+                    activityStreamTypeId = 2504;
+                    break;
+                case 55: //Product Activity
+                    activityStreamTypeId = 2604;
                     break;
                 default:
                     activityStreamTypeId = 11; //by default so that we know
