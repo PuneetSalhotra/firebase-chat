@@ -5948,6 +5948,7 @@ function AdminOpsService(objectCollection) {
         let responseData = [],
             error = true;
         let assetTypes = {};
+        let activityTypes = {};
         [error, responseData] = await adminListingService.workforceListSelectWorkforceType(request);
         if(!error){
             if(responseData.length > 0){
@@ -5962,10 +5963,22 @@ function AdminOpsService(objectCollection) {
                 const [errDesk, deskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(request);                
                 assetTypes[3]= deskAssetTypeData[0].asset_type_id?deskAssetTypeData[0].asset_type_id:0;
 
+                request.activity_type_category_id = 4;
+                const [errIdCard, idCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);                
+                activityTypes[4]= idCardCData[0].activity_type_id?idCardCData[0].activity_type_id:0;
+
+                request.activity_type_category_id = 5;
+                const [errContactCard, contactCardCData] = await adminListingService.workforceActivityTypeMappingSelectCategory(request);                
+                activityTypes[5]= contactCardCData[0].activity_type_id?contactCardCData[0].activity_type_id:0;
+
                 return [false, {organization_id:request.organization_id,
                                 account_id: request.account_id,
                                 workforce_id: responseData[0].workforce_id,
-                                asset_types:assetTypes}];
+                                asset_types:assetTypes,
+                                employee_activity_type_id:activityTypes[4],
+                                desk_activity_type_id:activityTypes[5],
+                                employee_asset_type_id:assetTypes[2],
+                                desk_asset_type_id:assetTypes[3]}];
             }else{
                 let [err3,workforceData] = await self.createWorkforceWithDefaults(request);
                 return [err3,workforceData];
@@ -5979,6 +5992,7 @@ function AdminOpsService(objectCollection) {
     this.createWorkforceWithDefaults = async function (request) {
 
         let assetTypes = {"2":0,"3":0};
+        let activityTypes = {"4":0,"5":0};
 
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
@@ -6075,6 +6089,13 @@ function AdminOpsService(objectCollection) {
 
             // Activity types history insert
             let activityTypeID = activityTypeData[0].activity_type_id;
+
+            if(activityType.activity_type_category_id === 4){
+                activityTypes[4]=activityTypeID;
+            }else if(activityType.activity_type_category_id === 5){
+                 activityTypes[5]=activityTypeID;
+            }
+
             if (activityTypeData.length > 0) {
                 try {
                     await workforceActivityTypeMappingHistoryInsert({
@@ -6129,7 +6150,11 @@ function AdminOpsService(objectCollection) {
             workforce_id: workforceID,
             account_id:request.account_id,
             organization_id:request.organization_id,
-            asset_types: assetTypes
+            asset_types: assetTypes,
+            employee_activity_type_id:activityTypes[4],
+            desk_activity_type_id:activityTypes[5],
+            employee_asset_type_id:assetTypes[2],
+            desk_asset_type_id:assetTypes[3]
         }] 
 
     }
