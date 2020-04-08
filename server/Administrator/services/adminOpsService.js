@@ -6168,6 +6168,109 @@ function AdminOpsService(objectCollection) {
         }
     }
 
+    this.updateWorkbookMappingForWorkflow = async function (request) {
+        const organizationID = Number(request.organization_id),
+            workbookURL = request.workbook_url || "",
+            isWorkbookMapped = Number(request.is_workbook_mapped);
+
+        // Update workbook data in the activity_list table
+        try {
+            await activityListUpdateWorkbookBot({
+                ...request,
+                activity_id: request.activity_id,
+                workbook_url: workbookURL,
+                is_workbook_mapped: isWorkbookMapped
+            }, organizationID);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow.activityListUpdateWorkbookBot | Error updating workbook data in the activity_list table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // Update the activity list history table
+        try {
+            await activityCommonService.activityListHistoryInsertAsync({
+                ...request,
+                activity_id: request.activity_id,
+                datetime_log: util.getCurrentUTCTime()
+            }, 419);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow activityListHistoryInsertAsync | Error updating workbook data in the activity_list_history table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // Update workbook data in the activity_list table
+        try {
+            await activityAssetMappingUpdateWorkbookBot({
+                ...request,
+                activity_id: request.activity_id,
+                workbook_url: workbookURL,
+                is_workbook_mapped: isWorkbookMapped
+            }, organizationID);
+        } catch (error) {
+            logger.error("updateWorkbookMappingForWorkflow.activityAssetMappingUpdateWorkbookBot | Error updating workbook data in the activity_asset_mapping table", { type: 'admin_service', error: serializeError(error), request_body: request });
+        }
+
+        // return [new ClientInputError("Error fetching workflow's inline data", -9998), []];
+        return [false, [{
+            activity_id: request.activity_id,
+            workbook_url: workbookURL,
+            is_workbook_mapped: isWorkbookMapped
+        }]];
+    };
+
+    // Asset List Update v1: update workbook URL
+    async function activityListUpdateWorkbookBot(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_id,
+            request.workbook_url,
+            request.is_workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_workbook_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Asset Asset Mapping Update v1: update workbook URL
+    async function activityAssetMappingUpdateWorkbookBot(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_id,
+            request.workbook_url,
+            request.is_workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_workbook_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 
