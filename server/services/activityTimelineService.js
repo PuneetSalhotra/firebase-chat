@@ -2446,7 +2446,8 @@ function ActivityTimelineService(objectCollection) {
                 '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
-                '' //IN p_location_datetime DATETIME                            26
+                '', //IN p_location_datetime DATETIME                           26
+                '' //IN p_inline_data JSON                                      27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -2685,6 +2686,12 @@ function ActivityTimelineService(objectCollection) {
                         console.log(err);
                     }
                     break;
+                case 64: // Address DataType
+                    params[27] = row.field_value;
+                    break;
+                case 65: // Business Card DataType
+                    params[27] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -2706,7 +2713,8 @@ function ActivityTimelineService(objectCollection) {
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
-            var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            var queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
@@ -3105,7 +3113,8 @@ async function addFormEntriesAsync(request) {
             '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
             '', //IN p_location_gps_enabled TINYINT(1)                      24
             '', //IN p_location_address VARCHAR(300)                        25
-            '' //IN p_location_datetime DATETIME                            26
+            '', //IN p_location_datetime DATETIME                           26
+            '' //IN p_inline_data JSON                                      27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -3343,6 +3352,12 @@ async function addFormEntriesAsync(request) {
                         console.log(err);
                     }
                 break;
+            case 64: // Address DataType
+                params[27] = row.field_value;
+                break;
+            case 65: // Business Card DataType
+                params[27] = row.field_value;
+                break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3362,7 +3377,8 @@ async function addFormEntriesAsync(request) {
 
             global.logger.write('conLog', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-            const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            // const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            const queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
