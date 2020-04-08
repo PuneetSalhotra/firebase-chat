@@ -4229,7 +4229,8 @@ function BotService(objectCollection) {
                 '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
-                '', //IN p_location_datetime DATETIME                          26
+                '', //IN p_location_datetime DATETIME                           26
+                '' //IN p_inline_data JSON                                     27
             );
 
             const dataTypeId = Number(row.field_data_type_id);
@@ -4441,6 +4442,12 @@ function BotService(objectCollection) {
                         console.log(err);
                     }
                     break;
+                case 64: // Address DataType
+                    params[27] = row.field_value;
+                    break;
+                case 65: // Business Card DataType
+                    params[27] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -4461,9 +4468,10 @@ function BotService(objectCollection) {
 
             global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
          
-            let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+            // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+            let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
             if(request.asset_id === 0 || request.asset_id === null) {
-                global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
             }
             else {
                 if (queryString != '') {
