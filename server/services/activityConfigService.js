@@ -469,7 +469,7 @@ function ActivityConfigService(db, util, objCollection) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.activity_status_name,
-                request.activity_status_description,
+                request.activity_status_description || 0,
                 request.status_sequence_id,
                 request.activity_status_type_id,
                 request.is_customer_exposed,
@@ -478,9 +478,12 @@ function ActivityConfigService(db, util, objCollection) {
                 request.account_id,
                 request.organization_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.previous_status_id || 0,
+                request.parent_status_id || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
+            // var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_workforce_activity_status_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
