@@ -499,6 +499,25 @@ function CacheWrapper(client) {
         });
     };
 
+
+    this.deleteOffset = (kafkaTopic, partitionOffset, status) => { 
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hdel(kafkaTopic, partitionOffset, status, (err, reply) => {
+                if (err) {
+                    logger.error(`HDEL asset_map ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HDEL asset_map ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve();
+                }
+            });
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;

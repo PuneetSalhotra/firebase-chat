@@ -161,7 +161,8 @@ function QueueWrapper(producer) {
         setTimeout(async () => {
             let data = await cacheWrapper.getOffset(global.config.TOPIC_NAME, channelId);
             console.log('Status of the Message with this offset : ', channelId, ' is : ', data);
-            if(data === 0) {
+            if(data === 0) {                
+                cacheWrapper.deleteOffset(global.config.TOPIC_NAME, channelId, 1);
                 return "success";
             } else {
                 checkingWhetherMsgIsConsumed();
