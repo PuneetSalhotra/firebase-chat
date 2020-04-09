@@ -349,6 +349,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/activity_type/status/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.workforceActivityStatusMappingSelectStatusType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });    
 }
 
 module.exports = AdminListingController;
