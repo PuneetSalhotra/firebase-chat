@@ -28,6 +28,7 @@ function ActivityService(objectCollection) {
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
+    const serializeError = require("serialize-error");
     const self = this;
 
     this.addActivity = function (request, callback) {
@@ -1911,8 +1912,110 @@ function ActivityService(objectCollection) {
         });
     };
 
-    this.alterActivityStatus = function (request, callback) {
+    async function getAssetTypeIDForAStatusID(request, activityStatusID) {
+        let responseData = [],
+            error = true;
 
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityStatusID
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function activitySubStatusMappingUpdateAchievedTime(request, activityStatusID) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            activityStatusID,
+            request.sub_status_achieved_time,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_update_achieved_time', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function activitySubStatusMappingUpdateLogState(request, activityStatusID) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            activityStatusID,
+            request.log_state,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_update_log_state', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function activitySubStatusMappingInsert(request, activityStatusID) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            activityStatusID,
+            request.sub_status_trigger_time,
+            request.sub_status_achieved_time,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.alterActivityStatus = async function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityStreamTypeId = 11;
@@ -2030,6 +2133,42 @@ function ActivityService(objectCollection) {
                     break;
             }
             request.activity_stream_type_id = activityStreamTypeId;
+        }
+        // Check for the sub-status
+        try {
+            const [error, workforceActivityStatusData] = await getAssetTypeIDForAStatusID(request, activityStatusId);
+            // Check:
+            // 1. If a sub-status exists AND
+            // 2. It is of status type category 2 (sub status) AND
+            // 3. Previous sub status is defined 
+            if (
+                Number(workforceActivityStatusData.length) > 0 &&
+                Number(workforceActivityStatusData[0].activity_status_type_category_id) === 2 && // 2 => for checking sub status type ID
+                Number(workforceActivityStatusData[0].previous_sub_status_id) > 0
+            ) {
+                // Update the achieved time for the previous sub-status
+                await activitySubStatusMappingUpdateAchievedTime({
+                    request,
+                    sub_status_achieved_time: util.getCurrentUTCTime()
+                }, Number(workforceActivityStatusData[0].previous_sub_status_id))
+                
+                // Archive the previous sub status mapping
+                await activitySubStatusMappingUpdateAchievedTime({
+                    request,
+                    log_state: 3
+                }, Number(workforceActivityStatusData[0].previous_sub_status_id))
+
+                // Make an entry with the new sub-status for the acitivity/workflow
+                await activitySubStatusMappingInsert({
+                    ...request,
+                    sub_status_trigger_time: util.getCurrentUTCTime()
+                }, activityStatusId)
+
+                callback(false, {}, 200);
+                return;
+            }
+        } catch (error) {
+            logger.error(`Error checking sub-status data`, { type: "alter_status", error: serializeError(error), request_body: request });
         }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, async function (err, data) {
