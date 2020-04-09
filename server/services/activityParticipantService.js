@@ -289,6 +289,9 @@ function ActivityParticipantService(objectCollection) {
                 case 53: //Account
                     activityStreamTypeId = 27004;
                     break;
+                case 56: //Move
+                    activityStreamTypeId = 2702;
+                    break;                    
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
