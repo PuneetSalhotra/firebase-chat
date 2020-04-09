@@ -135,7 +135,7 @@ function QueueWrapper(producer) {
 
                     newChannelId = `${Object.keys(obj)[0]}_${Object.values(obj)[0]}`;
                     
-                    /*pubnubWrapper.subscribe(channelId).then((msg)=>{
+                    pubnubWrapper.subscribe(channelId).then((msg)=>{
                         console.log('msg.status : ', msg.status);
                         if(msg.status === 200) {
                             resolve(msg);
@@ -144,13 +144,13 @@ function QueueWrapper(producer) {
                         }                        
                     }).catch((err)=>{
                         global.logger.write('serverError', err, {}, {});
-                    });*/
+                    });
 
-                    await cacheWrapper.setOffset(global.config.TOPIC_NAME, newChannelId, 1); // 1 Means Open
+                    /*await cacheWrapper.setOffset(global.config.TOPIC_NAME, newChannelId, 1); // 1 Means Open
                     console.log('Checking whether Message is consumed on not');
                     await checkingWhetherMsgIsConsumed(newChannelId);
                     console.log('Checking whether Message is consumed on not - Message Consumed');
-                    resolve();
+                    resolve();*/
                 }
             });
         });        

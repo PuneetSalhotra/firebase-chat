@@ -189,13 +189,13 @@ var Consumer = function () {
                         activityCommonService.partitionOffsetInsert(request, (err, data) => {});
                         consumingMsg(message, kafkaMsgId, objCollection).then(async () => {
                             if (Number(request.pubnub_push) === 1) {
-                                //pubnubWrapper.publish(kafkaMsgId, { "status": 200 });
-                                await cacheWrapper.setOffset(global.config.TOPIC_NAME, channelID, 0); // 1 Means Open; 0 means read
+                                pubnubWrapper.publish(kafkaMsgId, { "status": 200 });
+                                //await cacheWrapper.setOffset(global.config.TOPIC_NAME, channelID, 0); // 1 Means Open; 0 means read
                             }
                         }).catch(async (err) => {
                             if (Number(request.pubnub_push) === 1) {
-                                //pubnubWrapper.publish(kafkaMsgId, { "status": err });
-                                await cacheWrapper.setOffset(global.config.TOPIC_NAME, channelID, 0); // 1 Means Open; 0 means read
+                                pubnubWrapper.publish(kafkaMsgId, { "status": err });
+                                //await cacheWrapper.setOffset(global.config.TOPIC_NAME, channelID, 0); // 1 Means Open; 0 means read
                             }
                         });
 
