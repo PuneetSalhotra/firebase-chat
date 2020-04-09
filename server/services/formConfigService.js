@@ -5094,6 +5094,59 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select_asset', paramsArr);
 
         if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormAlter = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.form_id,
+            request.form_transaction_id,
+            request.form_inline_data || '{}',
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.form_id,
+            request.form_transaction_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_delete', paramsArr);
+
+        if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {                    
                     responseData = data;

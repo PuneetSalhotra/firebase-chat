@@ -543,6 +543,27 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/tag/entity/mapping/map', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagEntityMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/entity/mapping/map | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag/entity/mapping/unmap', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagEntityMappingDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/entity/mapping/unmap | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+    
 }
 
 module.exports = AdminOpsController;

@@ -703,6 +703,26 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/draft/form/alter', async (req, res) => {
+        const [err, formData] = await formConfigService.draftFormAlter(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/draft/form/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/draft/form/archive', async (req, res) => {
+        const [err, formData] = await formConfigService.draftFormDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/draft/form/archive | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
