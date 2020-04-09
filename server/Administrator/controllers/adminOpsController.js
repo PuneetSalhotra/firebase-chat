@@ -533,6 +533,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/tag_type/alter', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagTypeUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

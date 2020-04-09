@@ -1369,14 +1369,16 @@ function AdminListingService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
-            request.organization_id,
-            request.tag_type_id,
-            request.start_from || 0,
-            request.limit_value || 1
-        );
+        const paramsArr = new Array(
+                    request.organization_id,
+                    request.tag_type_category_id || 1,
+                    request.tag_type_id,
+                    request.start_from || 0,
+                    request.limit_value || 1
+                );
 
-        var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
+        const queryString = util.getQueryString('ds_p1_tag_list_select_tag_type', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
