@@ -4675,6 +4675,43 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    this.callPushService = async function(request){
+
+        let error = false,
+             responseData = [];
+        let assetName = "";
+
+        if(request.hasOwnProperty("operating_asset_first_name")){
+            assetName = request.operating_asset_first_name;
+        }else{
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+            if(assetData.length > 0){
+                assetName = assetData[0].operating_asset_first_name;
+            }
+        }
+        
+        if(assetName != ""){
+
+            request.target_workforce_id = request.workforce_id;
+            request.activity_id = 0;
+            if(request.swipe_type_id == 1){
+
+                request.push_title = "Logged In";
+                request.push_message = assetName+" has logged in";
+
+            }else if(request.swipe_type_id == 2){
+
+                request.push_title = "Logged Out";
+                request.push_message = assetName+" has logged out";
+
+            } 
+
+            activityCommonService.sendPushToWorkforceAssets(request);
+        }
+
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AssetService;

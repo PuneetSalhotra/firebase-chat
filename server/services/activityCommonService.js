@@ -5165,23 +5165,80 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.updateCustomerOnWorkflow = async function(request) {
 
         try{
-        let paramsArr = new Array(                
-            request.organization_id, 
-            request.activity_id, 
-            request.customer_asset_id,
-            request.asset_id,
-            util.getCurrentUTCTime()
-        );
-        let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
-       // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
-        if (queryString != '') {
-                         //(db.executeQueryPromise(0, queryStringMapping, request));
-            return await (db.executeQueryPromise(0, queryString, request));
-                            
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.activity_id, 
+                request.customer_asset_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+           // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
+            if (queryString != '') {
+                             //(db.executeQueryPromise(0, queryStringMapping, request));
+                return await (db.executeQueryPromise(0, queryString, request));
+                                
+            }
+        }catch(err){
+            console.log('Error '+err);
         }
-    }catch(err){
-        console.log('Error '+err);
+    };
+
+    this.sendPushToAsset = async function(request){
+        if(request.hasOwnProperty("target_asset_id")){
+            util.sendPushToAsset(request);
+        }
+
+        return "";
     }
+
+    this.sendPushToWorkforceAssets = async function(request){
+
+        if(request.hasOwnProperty("target_workforce_id")){
+            util.sendPushToWorkforce(request); //pubnub
+        }
+
+       let [error, responseData] = await self.getLinkedAssetsInWorkforce(request);
+
+        if(responseData.length > 0){
+            for(let i = 0; i < responseData.length; i++){
+                request.target_asset_id = responseData[i].asset_id;
+                request.asset_push_arn = responseData[i].asset_push_arn;
+                util.sendPushToAsset(request);
+            }
+        }
+
+        return "";
+    }
+
+    this.getLinkedAssetsInWorkforce = async function(request) {
+        let error = false,
+            responseData = [];
+        try{
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.account_id, 
+                request.target_workforce_id,
+                0,
+                500
+            );
+            let queryString = util.getQueryString('ds_v1_asset_list_select_linked_workforce', paramsArr);
+           
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        }catch(err){
+            console.log('Error '+err);
+        }
+
+        return [error, responseData];   
     };
 }
 
