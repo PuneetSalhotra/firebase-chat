@@ -359,30 +359,23 @@ function ActivityController(objCollection) {
                             break;
                         case 9: // form                        
                             //generate a form transaction id first and give it back to the client along with new activity id
-                            cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
-                                if (err) {
-                                    // console.log(err);
+                            cacheWrapper.getFormTransactionId((err, formTransactionId) => {
+                                if (err) {                                    
                                     global.logger.write('serverError', err, err, req);
-                                    res.send(responseWrapper.getResponse(false, {
-                                        activity_id: 0
-                                    }, -7998, req.body));
+                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                     return;
                                 } else {
                                     req.body['form_transaction_id'] = formTransactionId;
-                                    addActivity(req.body, function (err, activityId) {
+                                    
+                                    addActivity(req.body, (err, activityId) => {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {
-                                                activity_id: activityId,
-                                                form_transaction_id: formTransactionId
-                                            }, 200, req.body));
+                                            res.send(responseWrapper.getResponse(false, {activity_id: activityId,
+                                                                                         form_transaction_id: formTransactionId
+                                                                                        }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                            res.send(responseWrapper.getResponse(false, {
-                                                    activity_id: 0
-                                                }, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {
-                                                    activity_id: 0
-                                                }, -5998, req.body));
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
                                         }
                                     });
                                 }

@@ -206,12 +206,15 @@ function ActivityTimelineService(objectCollection) {
 
         } else {
 
-            console.log("I AM HERE 1!")
+            console.log("I AM HERE 1!");
             request.form_id = 0;
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
             });
         }
+
+        //If it is a comment with a mention
+        commentWithMentions(request);
 
         new Promise(() => {
             setTimeout(() => {
@@ -415,6 +418,8 @@ function ActivityTimelineService(objectCollection) {
                 error=false; 
         }
 
+        commentWithMentions(request);
+        
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
@@ -3648,6 +3653,62 @@ async function addFormEntriesAsync(request) {
                 error=false;
 
             return [error, responseData];
+    }
+
+    async function commentWithMentions(request) {
+        if(Number(request.activity_type_category_id === 48) && 
+           Number(request.is_mention === 1)) {
+            let mentions = request.mentions_array;
+
+            for(let i=0; i<mentions.length; i++) {
+                //mentions[i] - asset_id
+                await sendEmail();
+            }
+        }
+
+        return "success";
+    }
+
+    async function sendEmail(request) {
+
+        /*const jsonString = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: Number(customerCollection.customerServiceDeskAssetID),
+            asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+            auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+            activity_id: request.activity_id || 0,
+            activity_type_category_id: 9,
+            activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
+            activity_stream_type_id: 705,
+            form_id: Number(customerCollection.activity_form_id),
+            type: 'approval'
+        };
+
+        if (String(customerCollection.contactEmailId).includes('%40')) {
+            customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
+        }
+
+        const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+        const Template = "";
+        let emailSubject = "You have been mentioned on [Workflow Title] @ [DD-MM-YYYY HH:MM AM/PM] By [Operating Asset Name]";
+
+        util.sendEmailV3(request,
+                         customerCollection.contactEmailId,
+                         emailSubject,
+                         "IGNORE",
+                         Template,
+                         (err, data) => {
+                                    if (err) {
+                                        console.log("[Send Email - Mention | Error]: ", data);
+                                    } else {
+                                        console.log("[Send Email - Mention | Response]: ", "Email Sent");
+                                    }                
+                                }
+                         );*/
+        
+        return "success";
     }
 
 }
