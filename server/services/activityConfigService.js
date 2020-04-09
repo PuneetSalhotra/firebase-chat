@@ -581,6 +581,48 @@ function ActivityConfigService(db, util, objCollection) {
             }
         });
     }
+
+    this.getSubStatusedMappedToWorkflow = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        let [error, subStatusData] = await activitySubStatusMappingSelect(request, organizationID, accountID, workforceID);
+        return [error, subStatusData];
+    }
+
+    // List sub-statuses mapped to an activity
+    async function activitySubStatusMappingSelect(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_id,
+            request.activity_sub_status_id || 0,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = ActivityConfigService;
