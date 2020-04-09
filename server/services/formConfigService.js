@@ -5048,6 +5048,63 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
+    this.draftFormAdd = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let formTransactionID = await cacheWrapper.getFormTransactionIdPromise();        
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.asset_id, 
+            request.operating_asset_id, 
+            formTransactionID, 
+            request.form_draft_inline_data || '{}',
+            request.form_id, 
+            request.workflow_activity_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    //responseData = data;
+                    responseData.push({"form_transaction_id" : formTransactionID});
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
     
 }
 

@@ -289,6 +289,12 @@ function ActivityParticipantService(objectCollection) {
                 case 53: //Account
                     activityStreamTypeId = 27004;
                     break;
+                case 54: //Contact
+                    activityStreamTypeId = 2502;
+                    break;
+                case 55: //Product
+                    activityStreamTypeId = 2602;
+                    break;
                 case 56: //Move
                     activityStreamTypeId = 2702;
                     break;                    
@@ -446,13 +452,19 @@ function ActivityParticipantService(objectCollection) {
                 case 52: //Widget
                     activityStreamTypeId = 26005;
                     break;
+                case 54: //Contact
+                    activityStreamTypeId = 2503;
+                    break;
+                case 55: //Product
+                    activityStreamTypeId = 2603;
+                    break;
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
                     global.logger.write('conLog', 'adding streamtype id 3', {}, request)
                     break;
 
-            };
+            }
         }
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;

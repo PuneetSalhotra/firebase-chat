@@ -165,6 +165,12 @@ function ActivityService(objectCollection) {
                             break;
                         case 52: activityStreamTypeId = 26001;
                                  break;
+                        case 54: //Added Contact Activity
+                            activityStreamTypeId = 2501;
+                            break;
+                        case 55: //Added Product Activity
+                            activityStreamTypeId = 2601;
+                            break;
                         case 56: activityStreamTypeId = 2701;
                                  break;                                 
                         default:
@@ -2007,6 +2013,12 @@ function ActivityService(objectCollection) {
                     break;
                 case 41: //Event
                     activityStreamTypeId = 17004;
+                    break;
+                case 54: //Contact Activity
+                    activityStreamTypeId = 2504;
+                    break;
+                case 55: //Product Activity
+                    activityStreamTypeId = 2604;
                     break;
                 case 56:
                     activityStreamTypeId = 2703;
