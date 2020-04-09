@@ -3,12 +3,12 @@
  */
 // This line must come before importing any instrumented module.
 const tracer = require('dd-trace');
-const tracerFormats = require('dd-trace/ext/formats')
+const tracerFormats = require('dd-trace/ext/formats');
 
 const logger = require("../logger/winstonLogger");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
 
-function QueueWrapper(producer) {
+function QueueWrapper(producer, cacheWrapper) {    
 
     producer.on('brokersChanged', function (error) {        
         logger.error('Kafka Producer brokersChanged', { type: 'kafka', error });
@@ -108,7 +108,7 @@ function QueueWrapper(producer) {
 
         return new Promise((resolve, reject)=>{
             let obj;
-            let channelId;
+            let channelId, newChannelId;
             event.payload.pubnub_push = 1;
             
             global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
@@ -118,7 +118,7 @@ function QueueWrapper(producer) {
                 key: activityId.toString()
             }];
 
-            producer.send(payloads, function (err, data) {
+            producer.send(payloads, async (err, data) =>{
                 if (err) {
                     logger.error(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
                     // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
@@ -131,8 +131,10 @@ function QueueWrapper(producer) {
                     obj = data[global.config.TOPIC_NAME];
                     channelId = `${global.config.TOPIC_NAME}_${Object.keys(obj)[0]}_${Object.values(obj)[0]}`;
                     console.log(channelId);
+
+                    newChannelId = `${Object.keys(obj)[0]}_${Object.values(obj)[0]}`;
                     
-                    pubnubWrapper.subscribe(channelId).then((msg)=>{
+                    /*pubnubWrapper.subscribe(channelId).then((msg)=>{
                         console.log('msg.status : ', msg.status);
                         if(msg.status === 200) {
                             resolve(msg);
@@ -141,14 +143,38 @@ function QueueWrapper(producer) {
                         }                        
                     }).catch((err)=>{
                         global.logger.write('serverError', err, {}, {});
-                    });
-                    
-                }            
+                    });*/
+
+                    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                    console.log('Redis Layer: Setting offset : ', newChannelId);
+                    //await cacheWrapper.setOffset(global.config.TOPIC_NAME, newChannelId, 1); // 1 Means Open
+                    console.log('Checking whether Message is consumed on not');
+                    await checkingWhetherMsgIsConsumed(newChannelId);
+                    console.log('Checking whether Message is consumed on not - Message Consumed');
+                    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                    resolve();
+                }
             });
         });        
 
     };
-    
+
+    async function checkingWhetherMsgIsConsumed(channelId) {
+        let cnt = 0;
+        setTimeout(async () => {
+            let data = await cacheWrapper.getOffset(global.config.TOPIC_NAME, channelId);
+            console.log('Status of the Message with this offset : ', channelId, ' is : ', data);            
+            if(Number(data) === 0) {
+                cacheWrapper.deleteOffset(global.config.TOPIC_NAME, channelId, 1);
+                return "success";
+            } else if(cnt === 30) { //30 * 2 = 60 Seconds/1 Minute
+                return "success";
+            } else {
+                cnt++;
+                checkingWhetherMsgIsConsumed();
+            }
+        }, 2000);
+    }
     
 }
 

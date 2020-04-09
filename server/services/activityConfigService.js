@@ -171,9 +171,9 @@ function ActivityConfigService(db, util, objCollection) {
         callback(false, responseData);
     };
 
-    this.workForceActivityTypeInsert = function (request) {
+    this.workForceActivityTypeInsert = (request) => {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.activity_type_name,
                 request.activity_type_description,
                 request.activity_type_category_id,
@@ -182,9 +182,11 @@ function ActivityConfigService(db, util, objCollection) {
                 request.account_id,
                 request.organization_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log || util.getCurrentUTCTime(),
+                request.activity_type_flag_control_visibility || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -200,9 +202,9 @@ function ActivityConfigService(db, util, objCollection) {
         });
     };
 
-    this.workForceActivityTypeUpdate = function (request) {
+    this.workForceActivityTypeUpdate = (request) => {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -211,9 +213,11 @@ function ActivityConfigService(db, util, objCollection) {
                 request.activity_type_description,
                 request.access_level_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.activity_type_flag_control_visibility || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_update', paramsArr);            
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, async (err, data) => {
                     if (err === false) {
@@ -265,7 +269,7 @@ function ActivityConfigService(db, util, objCollection) {
                 request.activity_type_id,
                 request.organization_id,
                 request.update_type_id,
-                request.datetime_log
+                request.datetime_log || util.getCurrentUTCTime()
             );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
@@ -469,7 +473,7 @@ function ActivityConfigService(db, util, objCollection) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.activity_status_name,
-                request.activity_status_description,
+                request.activity_status_description || 0,
                 request.status_sequence_id,
                 request.activity_status_type_id,
                 request.is_customer_exposed,
@@ -478,9 +482,12 @@ function ActivityConfigService(db, util, objCollection) {
                 request.account_id,
                 request.organization_id,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.previous_status_id || 0,
+                request.parent_status_id || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
+            // var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_workforce_activity_status_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -577,6 +584,48 @@ function ActivityConfigService(db, util, objCollection) {
                 });
             }
         });
+    }
+
+    this.getSubStatusedMappedToWorkflow = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        let [error, subStatusData] = await activitySubStatusMappingSelect(request, organizationID, accountID, workforceID);
+        return [error, subStatusData];
+    }
+
+    // List sub-statuses mapped to an activity
+    async function activitySubStatusMappingSelect(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_id,
+            request.activity_sub_status_id || 0,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
