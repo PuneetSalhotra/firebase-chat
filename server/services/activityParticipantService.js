@@ -138,15 +138,7 @@ function ActivityParticipantService(objectCollection) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
-                            
-                            if(Number(request.activity_type_category_id) === 16){
-                                
-                                let newObject = Object.assign({}, request);
-                                newObject.target_workforce_id = data[0].idWorkforce;
-                                newObject.push_title = "Connected";
-                                newObject.push_message = data[0].firstNameCreatorOperatingAsset+" connected with "+data[0].firstNameOperatingAsset;
-                                activityCommonService.sendPushToWorkforceAssets(newObject);
-                            }
+
                             //else
                             if(request.hasOwnProperty("add_as_lead")){
                                 rmbotService.assignResourceAsLead(request, participantData.asset_id);

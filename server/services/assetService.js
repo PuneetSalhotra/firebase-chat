@@ -4684,7 +4684,7 @@ this.getQrBarcodeFeeback = async(request) => {
         if(request.hasOwnProperty("operating_asset_first_name")){
             assetName = request.operating_asset_first_name;
         }else{
-            let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); // source for 1 and 2
             if(assetData.length > 0){
                 assetName = assetData[0].operating_asset_first_name;
             }
@@ -4704,7 +4704,21 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.push_title = "Logged Out";
                 request.push_message = assetName+" has logged out";
 
-            } 
+            }else if(request.swipe_type_id == 3){
+
+                request.push_title = "Chai";
+                request.push_message = assetName+" and "+request.target_operating_asset_first_name+" connected for chai";
+
+            }else if(request.swipe_type_id == 4){
+
+                request.push_title = "DND Removed";
+                request.push_message = "DND removed on "+assetName;
+                
+            }else if(request.swipe_type_id == 5){
+
+                request.push_title = "Chat Inititated";
+                request.push_message = "Chat Inititated between "+assetName+" and "+request.target_operating_asset_first_name;
+            }  
 
             activityCommonService.sendPushToWorkforceAssets(request);
         }
