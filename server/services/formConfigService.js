@@ -5089,9 +5089,12 @@ function FormConfigService(objCollection) {
 
         const paramsArr = new Array(
             request.organization_id,            
-            request.asset_id
+            request.asset_id,
+            request.workflow_activity_id || 0,
+            request.form_id || 0
         );
-        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select_asset', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select_asset', paramsArr);
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
