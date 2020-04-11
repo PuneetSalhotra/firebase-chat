@@ -744,7 +744,7 @@ function ActivityTimelineService(objectCollection) {
                             ) {
                                 throw new Error("ChildOrder::NoPush")
                             }
-                            if(activityStreamTypeId !== 711) {
+                            if(activityStreamTypeId !== 711 && activityStreamTypeId !== 111 && activityStreamTypeId !== 112 && activityStreamTypeId !== 113) {
                                 activityPushService.sendPush(request, objectCollection, 0, function () {});
                             }
                         } catch (error) {

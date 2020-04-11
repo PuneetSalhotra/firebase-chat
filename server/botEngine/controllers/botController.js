@@ -297,6 +297,16 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });   
+
+    app.post('/' + global.config.version + '/asset_type/unallocated/workflows', async (req, res) => {
+        try {
+            let result = await rmbotService.getUnallocatedWorkflowsOfAssetType(req.body,0);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });     
 }
 
 module.exports = BotController;
