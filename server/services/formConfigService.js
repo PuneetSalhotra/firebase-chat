@@ -5161,7 +5161,34 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
     
+    this.getMultipleSubmissionsData = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workflow_activity_id,
+            request.form_id,
+            request.page_start || 0,
+			util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_activity_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = FormConfigService;
