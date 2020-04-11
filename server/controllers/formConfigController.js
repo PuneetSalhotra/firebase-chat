@@ -723,6 +723,17 @@ function FormConfigController(objCollection) {
         }
     });
 
+    
+    app.post('/' + global.config.version + '/workflow/form/submissions/list', async (req, res) => {
+        const [err, formData] = await formConfigService.getMultipleSubmissionsData(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/form/submissions/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
