@@ -1581,8 +1581,35 @@ function BotService(objectCollection) {
 
         console.log("htmlTemplate: ", htmlTemplate);
 
+        let annexures = [];
+        try {
+            if (
+                templateData.hasOwnProperty("annexures") &&
+                Array.isArray(templateData.annexures)
+            ) {
+                console.log("templateData.annexures: ", templateData.annexures);
+
+                for (const annexure of templateData.annexures) {
+                    if (
+                        formFieldDataMap.has(annexure.field_id) &&
+                        formFieldDataMap.get(annexure.field_id).field_value !== ""
+                    ) {
+                        let annexureName = await util.downloadS3Object(request, formFieldDataMap.get(annexure.field_id).field_value);
+                        const annexurePath = path.resolve(global.config.efsPath, annexureName);
+                        logger.silly(`annexurePath: ${annexurePath}`, { type: 'html_to_pdf_bot' });
+                        annexures.push({
+                            ...annexure,
+                            filepath: annexurePath
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            logger.error(`Error parsing/fetching annexure data`, { type: 'html_to_pdf_bot', error: serializeError(error) });
+        }
+        
         // Generate PDF readable stream
-        const readableStream = await generatePDFreadableStream(request, htmlTemplate);
+        const readableStream = await generatePDFreadableStream(request, htmlTemplate, annexures);
         const bucketName = await util.getS3BucketName();
         const prefixPath = await util.getS3PrefixPath(request);
         console.log("bucketName: ", bucketName);
@@ -2305,7 +2332,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function generatePDFreadableStream(request, htmlTemplate) {
+    async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
             "height": "10.5in", // allowed units: mm, cm, in, px
             "width": "9in",
@@ -2318,13 +2345,76 @@ function BotService(objectCollection) {
             }
         };
         return new Promise((resolve, reject) => {
+            let filesToCleanup = new Set();
 
-            pdf.create(htmlTemplate, pdfOptions).toStream(function (err, pdfStream) {
-                console.log("generatePDFreadableStream | Error: ", err);
-                // console.log("pdfStream: ", pdfStream);
-                resolve(pdfStream)
-            });
+            if (annexures.length === 0) {
+                pdf.create(htmlTemplate, pdfOptions).toStream(function (err, pdfStream) {
+                    if (err) {
+                        logger.error(`Error creating pdf from html template [no annexures]`, { type: 'generatePDFreadableStream', error: serializeError(error) });
+                        reject(err)
+                        return;
+                    }
+                    // console.log("pdfStream: ", pdfStream);
+                    resolve(pdfStream)
+                });
+            } else {
+                pdf.create(htmlTemplate, pdfOptions).toBuffer(function (err, pdfBuffer) {
+                    if (err) {
+                        logger.error(`Error creating pdf from html template [annexures]`, { type: 'generatePDFreadableStream', error: serializeError(error) });
+                        reject(err)
+                        return;
+                    }
 
+                    const finalOutputPDF = `${global.config.efsPath}/${request.activity_id}_${moment().utc().format('YYYY-MM-DD_HH-mm-ss')}.pdf`
+                    const pdfDoc = new HummusRecipe(pdfBuffer, finalOutputPDF, {
+                        // version: 1.6,
+                        // author: 'John Doe',
+                        // title: 'Hummus Recipe',
+                        // subject: 'A brand new PDF'
+                    });
+    
+                    for (const annexure of annexures) {
+                        // 51 => PDF Documents
+                        if (Number(annexure.data_type_id) === 51) {
+                            console.log(`${annexure.data_type_id} annexure: `, annexure)
+                            pdfDoc
+                                .appendPage(`${annexure.filepath}`)
+                                .endPage();
+                        }
+                        // Images:
+                        // 24 => Gallery Image
+                        // 25 => Camera Image
+                        if (
+                            Number(annexure.data_type_id) === 24 ||
+                            Number(annexure.data_type_id) === 25
+                        ) {
+                            // Create a temporary empty PDF document
+                            const tempBlankPDFDocumentPath = `${global.config.efsPath}/${request.workflow_activity_id}_blank_pdf_document.pdf`;
+                            const tempBlankPDFDocument = new HummusRecipe('new', tempBlankPDFDocumentPath);
+                            tempBlankPDFDocument
+                                .createPage('A4')
+                                .image(`${annexure.filepath}`, 20, 100, { width: 400, keepAspectRatio: true })
+                                .endPage()
+                                .endPDF();
+
+                            filesToCleanup.add(tempBlankPDFDocumentPath)
+                            pdfDoc
+                                .appendPage(tempBlankPDFDocumentPath)
+                                .endPage();
+                        }
+
+                        filesToCleanup.add(annexure.filepath);
+                    }
+                    pdfDoc.endPDF();
+
+                    // CleanUp!
+                    for (const file of filesToCleanup.values()) {
+                        fs.unlinkSync(file);
+                    }
+
+                    resolve(fs.createReadStream(finalOutputPDF));
+                });
+            }
         });
     }
 
