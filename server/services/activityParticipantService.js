@@ -138,7 +138,7 @@ function ActivityParticipantService(objectCollection) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
-                            
+
                             //else
                             if(request.hasOwnProperty("add_as_lead")){
                                 rmbotService.assignResourceAsLead(request, participantData.asset_id);
