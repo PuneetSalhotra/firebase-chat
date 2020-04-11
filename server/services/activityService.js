@@ -4748,6 +4748,32 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
+
+    this.updateMentionsCnt = async (request) => {        
+        let responseData = [],
+            error = true;
+    
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_mention_count', paramsArr);
+    
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+            
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityService;

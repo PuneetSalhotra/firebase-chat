@@ -829,6 +829,17 @@ function ActivityController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
+
+
+    app.post('/' + global.config.version + '/activity/asset/mention/count/update', async function (req, res) {
+        const [err, responseData] = await activityService.updateMentionsCnt(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/status/roll_back | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
     
 }
 
