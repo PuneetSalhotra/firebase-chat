@@ -727,6 +727,7 @@ function AssetService(objectCollection) {
             'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']),
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
             'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled'])
+
         };
 
         callback(false, rowData);
@@ -4670,6 +4671,57 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
                      console.log("Error :: verifyEmailSignup ",err);
                 });            
+        }
+
+        return [error, responseData];
+    }
+
+    this.callPushService = async function(request){
+
+        let error = false,
+             responseData = [];
+        let assetName = "";
+
+        if(request.hasOwnProperty("operating_asset_first_name")){
+            assetName = request.operating_asset_first_name;
+        }else{
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); // source for 1 and 2
+            if(assetData.length > 0){
+                assetName = assetData[0].operating_asset_first_name;
+            }
+        }
+        
+        if(assetName != ""){
+
+            request.target_workforce_id = request.workforce_id;
+            request.activity_id = 0;
+            if(request.swipe_type_id == 1){
+
+                request.push_title = "Logged In";
+                request.push_message = assetName+" has logged in";
+
+            }else if(request.swipe_type_id == 2){
+
+                request.push_title = "Logged Out";
+                request.push_message = assetName+" has logged out";
+
+            }else if(request.swipe_type_id == 3){
+
+                request.push_title = "Chai";
+                request.push_message = assetName+" and "+request.target_operating_asset_first_name+" connected for chai";
+
+            }else if(request.swipe_type_id == 4){
+
+                request.push_title = "DND Removed";
+                request.push_message = "DND removed on "+assetName;
+                
+            }else if(request.swipe_type_id == 5){
+
+                request.push_title = "Chat Inititated";
+                request.push_message = "Chat Inititated between "+assetName+" and "+request.target_operating_asset_first_name;
+            }  
+
+            activityCommonService.sendPushToWorkforceAssets(request);
         }
 
         return [error, responseData];

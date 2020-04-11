@@ -325,7 +325,12 @@ function RMBotService(objectCollection) {
                     responseData = data;
                     error = false;
                     // record ai transaction insert
-                    request.global_array.push({"unallocatedWorkflowInsert":queryString})
+                    request.global_array.push({"unallocatedWorkflowInsert":queryString});
+
+                    if(request.ai_bot_status_id == 3){
+                        request.target_activity_status_id = data[0].activity_status_id;
+                        self.sendPushtoSuitableUnAvailableResources(request);
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -2696,7 +2701,96 @@ function RMBotService(objectCollection) {
         }
 
         return [error, responseData];
-    }       
+    }  
+
+    this.getUnallocatedWorkflowsOfAssetType = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.lead_asset_type_id,
+            request.end_due_datetime || '1970-01-01 00:00:00',
+            request.due_date_flag || 1,
+            request.page_start||0,
+            request.page_limit||500
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    }
+                )   
+            }
+
+        return [error, responseData];
+    }  
+
+    this.getStatusByStatusId = async function (request) {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+
+    this.getSuitableUnAvailableResource = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_id,
+            util.getCurrentUTCTime(),
+            request.page_start||0,
+            request.page_limit||500
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_suitable_unavail_resources', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    }
+                )   
+            }
+
+        return [error, responseData];
+    }     
+
+    this.sendPushtoSuitableUnAvailableResources = async function(request){
+        let error = false,
+            statusData = [], assetData = [];
+
+       statusData = await self.getStatusByStatusId(request);
+
+       if(statusData.length > 0){
+            if(statusData[0].asset_type_id > 0){
+                request.asset_type_id = statusData[0].asset_type_id;
+                request.page_start = 0;
+                request.page_limit = 500;
+                [error, assetData] = self.getSuitableUnAvailableResource(request);
+                for(let i = 0; i < assetData.length; i++){
+                    request.target_asset_id = assetData[i].asset_id;
+                    request.asset_push_arn = assetData[i].asset_push_arn;
+                    util.sendPushToAsset(request);
+                }
+            }
+       }
+
+        
+    }
 
 }
 

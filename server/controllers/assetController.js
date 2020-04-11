@@ -679,7 +679,36 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, verifiedData, verifiedData.code, req.body));
         }
     });
-   
+ 
+    app.post('/' + global.config.version + '/asset/send_push', async (req, res) => {
+        const [err, responseData] = await activityCommonService.sendPushToAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/asset/send_push | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/workforce/send_push', async (req, res) => {
+        const [err, responseData] = await activityCommonService.sendPushToWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/workforce/send_push | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });    
+
+    app.post('/' + global.config.version + '/asset/swipe', async (req, res) => {
+        const [err, responseData] = await assetService.callPushService(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/asset/swipe | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });   
 
 }
 module.exports = AssetController;

@@ -1976,6 +1976,67 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.sendPushToWorkforce = async function(request) {
+
+         let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_workforce_id") ||
+            Number(request.target_workforce_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target workforce_id specified."
+            }]
+        }
+
+        pubnubWrapper.publish(request.target_workforce_id, {
+            type: "workforce_push",
+            organization_id: Number(request.organization_id),
+            activity_type_category_id: 0,
+            activity_id: 0,
+            activity_title: request.push_title,
+            description: request.push_message,
+            target_workforce_id:request.target_workforce_id
+        });
+
+        return [error, {
+            message: `Push sent to ${request.target_workforce_id}`
+        }];
+    };
+
+    this.sendPushToAsset = async function (request) {
+        let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_asset_id") ||
+            Number(request.target_asset_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target asset_id specified."
+            }]
+        }
+        let  assetPushARN = "";
+        if(request.hasOwnProperty("asset_push_arn")){
+            assetPushARN = request.asset_push_arn;
+        }else{
+            const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
+            assetPushARN = assetMapData.asset_push_arn;
+        }
+        
+        sns.publish({
+            description: request.message,
+            title: request.push_title,
+            subtitle: request.push_message,
+            body: `DESKER`,
+            activity_id: 0,
+            activity_type_category_id: 0
+        }, 1, assetPushARN);
+
+        return [error, {
+            message: `Push sent to ${request.target_asset_id}`
+        }];
+    }    
+
 }
 
 module.exports = Util;

@@ -2730,6 +2730,17 @@ function AdminOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    if(responseData[0].push_status == 0 && responseData[0].asset_type_category_id == 3){
+
+                        let newObject = Object.assign({},request);
+                        newObject.target_workforce_id = workforceID;
+                        newObject.push_title = "Resource Joined";
+                        newObject.organization_id = organizationID;
+                        newObject.push_message = responseData[0].operating_asset_first_name +" has joined our team from "+responseData[0].existing_workforce_name;
+                        activityCommonService.sendPushToWorkforceAssets(newObject);
+
+                    }
                 })
                 .catch((err) => {
                     error = err;
