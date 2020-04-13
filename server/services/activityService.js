@@ -173,7 +173,9 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 2601;
                             break;
                         case 56: activityStreamTypeId = 2701;
-                                 break;                                 
+                                 break; 
+                        case 27: activityStreamTypeId = 2801;
+                                 break;                                                                    
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -2125,7 +2127,10 @@ function ActivityService(objectCollection) {
                     break;
                 case 56:
                     activityStreamTypeId = 2703;
-                    break;                
+                    break;     
+                case 27:
+                    activityStreamTypeId = 2803;
+                    break;                                
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
