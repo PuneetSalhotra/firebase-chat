@@ -563,7 +563,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
-    
+
+    app.post('/' + global.config.version + '/admin/asset/entity/mapping', async (req, res) => {
+        const [err, responseData] = await adminOpsService.assetAccessRoleMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/entity/mapping | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });    
 }
 
 module.exports = AdminOpsController;

@@ -6436,6 +6436,41 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.assetAccessRoleMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.asset_email_id,
+            request.asset_access_role_id,
+            request.asset_access_level_id,
+            request.sharing_asset_id,
+            request.sharing_asset_type_id,
+            request.sharing_activity_id,
+            request.sharing_activity_type_id,
+            request.sharing_workforce_id,
+            request.sharing_account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+            request.asset_access_type_id || 2
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
 }
 
 module.exports = AdminOpsService;
