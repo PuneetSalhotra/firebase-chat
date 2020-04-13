@@ -291,7 +291,10 @@ function ActivityParticipantService(objectCollection) {
                     break;
                 case 56: //Move
                     activityStreamTypeId = 2702;
-                    break;                    
+                    break;  
+                case 27: //GroupChat
+                    activityStreamTypeId = 2802;
+                    break;                                       
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
@@ -446,6 +449,9 @@ function ActivityParticipantService(objectCollection) {
                 case 52: //Widget
                     activityStreamTypeId = 26005;
                     break;
+                case 27: //Group Chat
+                    activityStreamTypeId = 2804;
+                    break;                    
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
