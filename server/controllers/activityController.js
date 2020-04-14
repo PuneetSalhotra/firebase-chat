@@ -410,7 +410,7 @@ function ActivityController(objCollection) {
                             // Sanity check
                             // 0. This service uses auth_asset_id for token authentication
                             // 
-                            if (!req.body.hasOwnProperty('auth_asset_id')) {
+                            /*if (!req.body.hasOwnProperty('auth_asset_id')) {
                                 let data = 'Please use the request parameter auth_asset_id for token authentication.';
                                 res.send(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
@@ -428,7 +428,7 @@ function ActivityController(objCollection) {
                                 let data = 'The asset_id (Creator) must be less than the owner_asset_id (Owner).';
                                 res.send(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
-                            }
+                            } */
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {
