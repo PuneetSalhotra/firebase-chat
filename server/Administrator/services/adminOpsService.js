@@ -3,6 +3,7 @@ const logger = require('../../logger/winstonLogger');
 const XLSX = require('xlsx');
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
+const { serializeError } = require('serialize-error')
 
 function AdminOpsService(objectCollection) {
 
@@ -6471,6 +6472,223 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }    
 
+    this.addDottedManagerForAsset = async function (request) {
+        let dottedManagersList = [],
+            responseData = [],
+            error = true;
+
+        try {
+            dottedManagersList = JSON.parse(request.dotted_managers_list);
+        } catch (error) {
+            logger.error("Error parsing the request parameter: dotted_managers_list", { type: 'admin_service', error: serializeError(error), request_body: request });
+            return [error, {
+                error: "Error parsing the request parameter: dotted_managers_list"
+            }];
+        }
+
+        for (const dottedManager of dottedManagersList) {
+            let isUpdateSuccessful = true;
+            // Add the dotted manager
+            try {
+                const [error, dottedManagerData] = await assetManagerMappingInsert({
+                    ...request,
+                    manager_asset_id: dottedManager.asset_id,
+                    flag_dotted_manager: 1
+                });
+                if (error && error.code === "ER_DUP_ENTRY") {
+                    await assetManagerMappingHistoryUpdateLogState({
+                        ...request,
+                        manager_asset_id: dottedManager.asset_id,
+                        log_state: 2
+                    });
+                } else {
+                    throw error;
+                }
+                responseData.push(dottedManagerData);
+            } catch (error) {
+                isUpdateSuccessful = false;
+                logger.error("Error updating dotted manager", { type: 'admin_service', error: serializeError(error), request_body: request, dotted_manager: dottedManager });
+            }
+
+            // History update
+            if (isUpdateSuccessful) {
+                try {
+                    await assetManagerMappingHistoryInsert({
+                        ...request,
+                        manager_asset_id: dottedManager.asset_id,
+                    }, 0);
+                } catch (error) {
+                    // Do nothing for now
+                }
+            }
+        }
+
+        return [false, responseData];
+    }
+
+    async function assetManagerMappingInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.manager_asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.flag_highest_level || 0,
+            request.flag_lowest_level || 0,
+            request.flag_dotted_manager,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function assetManagerMappingHistoryInsert(request, updateTypeID = 0) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.manager_asset_id,
+            updateTypeID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function assetManagerMappingHistoryUpdateLogState(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.manager_asset_id,
+            request.log_state,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.removeDottedManagerForAsset = async function (request) {
+        let dottedManagersList = [],
+            responseData = [],
+            error = true;
+
+        try {
+            dottedManagersList = JSON.parse(request.dotted_managers_list);
+        } catch (error) {
+            logger.error("Error parsing the request parameter: dotted_managers_list", { type: 'admin_service', error: serializeError(error), request_body: request });
+            return [error, {
+                error: "Error parsing the request parameter: dotted_managers_list"
+            }];
+        }
+
+        for (const dottedManager of dottedManagersList) {
+            // Archive the mapping
+            try {
+                const [_, dottedManagerData] = await assetManagerMappingHistoryUpdateLogState({
+                    ...request,
+                    manager_asset_id: dottedManager.asset_id,
+                    log_state: 3
+                });
+
+                responseData.push(dottedManagerData);
+            } catch (error) {
+                logger.error("Error removing dotted manager", { type: 'admin_service', error: serializeError(error), request_body: request, dotted_manager: dottedManager });
+            }
+            // History
+            try {
+                await assetManagerMappingHistoryInsert({
+                    ...request,
+                    manager_asset_id: dottedManager.asset_id,
+                }, 1);
+            } catch (error) {
+                // Do nothing for now
+            }
+        }
+
+        return [false, responseData]
+    };
+    
+    this.listDottedManagerForAsset = async function (request) {
+        const [error, assetManagersData] = await assetManagerMappingSelect({
+            ...request,
+            target_asset_id: request.target_asset_id
+        });
+
+        return [error, assetManagersData];
+    };
+
+    async function assetManagerMappingSelect(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.manager_asset_id,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

@@ -573,6 +573,46 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });    
+
+    // To add dotted managers
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/add', async (req, res) => {
+        const [err, responseData] = await adminOpsService.addDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    // To remove dotted managers
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/remove', async (req, res) => {
+        const [err, responseData] = await adminOpsService.removeDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/remove | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    // To list dotted managers
+    // If flag = 0 then select a check mapping for a particular asset and manager
+    // If flag = 1 THEN select all managers (direct / indirect / dotted) for a given asset
+    // If flag = 2 then select all managers ( dotted) for a given asset
+    // If flag = 3 then select all managers (direct / indirect ) for a given asset
+    // If flag = 4 then select all employees reporting (direct / indirect / dotted) to a given asset 
+    // If flag = 5 then select all employees reporting ( dotted) to a given asset 
+    // If flag = 6 then select all employees reporting (direct / indirect d) to a given asset 
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/list', async (req, res) => {
+        const [err, responseData] = await adminOpsService.listDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
