@@ -1459,7 +1459,7 @@ function ActivityService(objectCollection) {
                                     }
                                 });
                             }
-                        } else if ((activityTypeCategoryId === 16) && (request.asset_id !== ownerAssetID)) {
+                        }/* else if ((activityTypeCategoryId === 16) && (request.asset_id !== ownerAssetID)) {
                             // Chats
                             // 
                             // Handle the owner's activity_asset_mapping entry in this block. The creator's 
@@ -1499,7 +1499,7 @@ function ActivityService(objectCollection) {
                                 });
                             }
 
-                        } else {
+                        }*/ else {
 
                             // TimeCard Form Submission for Swipe In
                             var isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
