@@ -315,9 +315,11 @@ function AssetService(objectCollection) {
     this.getAssetDetails = function (request, callback) {
         var paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
