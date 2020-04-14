@@ -10,7 +10,7 @@ var CommnElasticService = require("../services/elasticSearchService.js");
 
     app.post
     (
-        '/' + global.config.version + '/elasticSearch/elasticsearch/create',
+        '/' + global.config.version + '/document/add',
         async (req, res) =>
         {
 
@@ -27,7 +27,7 @@ var CommnElasticService = require("../services/elasticSearchService.js");
 
   app.post
     (
-        '/' + global.config.version + '/elasticSearch/elasticsearch', 
+        '/' + global.config.version + '/document/query', 
         async (req, res) =>
         {
           try
@@ -43,7 +43,7 @@ var CommnElasticService = require("../services/elasticSearchService.js");
 
   app.post
     (
-        '/' + global.config.version + '/elasticSearch/elasticsearch/delete',
+        '/' + global.config.version + '/document/delete',
         async (req, res) =>
         {
 
@@ -60,7 +60,7 @@ var CommnElasticService = require("../services/elasticSearchService.js");
 
   app.post
     (
-        '/' + global.config.version + '/elasticSearch/elasticsearch/test',
+        '/' + global.config.version + '/document/test',
         async (req, res) =>
         {
           try
