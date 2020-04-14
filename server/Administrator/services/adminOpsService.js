@@ -6652,6 +6652,43 @@ function AdminOpsService(objectCollection) {
 
         return [false, responseData]
     };
+    
+    this.listDottedManagerForAsset = async function (request) {
+        const [error, assetManagersData] = await assetManagerMappingSelect({
+            ...request,
+            target_asset_id: request.target_asset_id
+        });
+
+        return [error, assetManagersData];
+    };
+
+    async function assetManagerMappingSelect(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.manager_asset_id,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
