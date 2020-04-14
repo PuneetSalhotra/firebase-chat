@@ -1025,7 +1025,7 @@ function BotService(objectCollection) {
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
-            global.logger.write('conLog', botSteps, {}, {});
+            logger.silly("botSteps: %j", botSteps);
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -1062,8 +1062,7 @@ function BotService(objectCollection) {
                 case 2: // Alter Status
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'STATUS ALTER', {}, {});
-                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
-                    global.logger.write('conLog', request, {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
                         let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
@@ -1073,8 +1072,7 @@ function BotService(objectCollection) {
                             });
                         }
                     } catch (err) {
-                        global.logger.write('serverError', err, {}, {});
-                        global.logger.write('conLog', 'Error in executing changeStatus Step', {}, {});
+                        logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1108,8 +1106,7 @@ function BotService(objectCollection) {
                 case 4: //Update Workflow Percentage
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
-                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
-                    global.logger.write('conLog', request, {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if (result[0]) {
@@ -1119,8 +1116,7 @@ function BotService(objectCollection) {
                             });
                         }
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing alterWFCompletionPercentage Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1270,11 +1266,11 @@ function BotService(objectCollection) {
                 case 12: // form_pdf
                     console.log('****************************************************************');
                     console.log('form_pdf');
-                    console.log('form_pdf | Request Params received by BOT ENGINE', request);
+                    logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     try {
                         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
-                        console.log('form_pdf  | Error', err);
+                        logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1331,6 +1327,7 @@ function BotService(objectCollection) {
 
                 case 19: // Update CUID Bot
                     logger.silly("Update CUID Bot");
+                    logger.silly("Update CUID Bot Request: %j", request);
                     try {
                         await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
                     } catch (error) {
@@ -2498,9 +2495,105 @@ function BotService(objectCollection) {
     }
     
     // Bot Step to change the status
-    async function changeStatus(request, inlineData) {
+    async function changeStatus(request, inlineData = {}) {
+        const workflowActivityID = request.workflow_activity_id;
+
+        // Status alter or substatus completion bot incorporating arithmetic condition
+        if (
+            // Check if the new condition array exists
+            inlineData.hasOwnProperty("condition") &&
+            Array.isArray(inlineData.condition) &&
+            inlineData.condition.length > 0 &&
+            // Check if the pass and fail status objects exist
+            inlineData.hasOwnProperty("pass") &&
+            inlineData.hasOwnProperty("fail")
+        ) {
+            let conditionChain = [];
+            for (const condition of inlineData.condition) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+            
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                inlineData.activity_status_id = inlineData.pass.activity_status_id;
+                inlineData.flag_trigger_resource_manager = inlineData.pass.flag_trigger_resource_manager;
+
+            } else if (!finalCondition.value) {
+                inlineData.activity_status_id = inlineData.fail.activity_status_id;
+                inlineData.flag_trigger_resource_manager = inlineData.fail.flag_trigger_resource_manager;
+
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+                return [true, "Error processing the condition chain"];
+            }
+        }
+
         let newReq = Object.assign({}, request);
-        global.logger.write('conLog', inlineData, {}, {});
+        logger.silly("inlineData: %j", inlineData);
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -2562,7 +2655,7 @@ function BotService(objectCollection) {
         }
 
         let resp = await getQueueActivity(newReq, request.workflow_activity_id);
-        global.logger.write('conLog', resp, {}, {});
+        logger.silly("getQueueActivity | resp: %j", resp);
 
         if (resp.length > 0) {
             let workflowActivityPercentage = 0;
@@ -2575,18 +2668,18 @@ function BotService(objectCollection) {
                         }
                     })
                     .catch((error) => {
-                        console.log("BotEngine: changeStatus | getActivityDetailsPromise | error: ", error);
+                        logger.error("changeStatus | getActivityDetailsPromise | error", { type: 'bot_engine', error: error, request_body: request });
                     });
             } catch (error) {
-                console.log("BotEngine: changeStatus | Activity Details Fetch Error | error: ", error);
+                logger.error("changeStatus | Activity Details Fetch Error | error", { type: 'bot_engine', error: error, request_body: request });
             }
 
             // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
-            global.logger.write('conLog', 'Status Alter BOT Step - status Name : ', statusName, {});
+            logger.silly("Status Alter BOT Step - status Name: %j ", statusName, { type: 'bot_engine' });
 
             let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);
 
-            global.logger.write('conLog', 'queues Data : ', queuesData, {});
+            logger.silly("queues Data: %j ", queuesData, { type: 'bot_engine' });
 
             let queueActMapInlineData;
             let data;
@@ -2603,7 +2696,7 @@ function BotService(objectCollection) {
                 }
 
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
-                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ', data, {});
+                logger.silly("Status Alter BOT Step - Updating the Queue Json: %j ", data, { type: 'bot_engine' });
 
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
@@ -4320,7 +4413,7 @@ function BotService(objectCollection) {
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
                 '', //IN p_location_datetime DATETIME                           26
-                '' //IN p_inline_data JSON                                     27
+                '{}' //IN p_inline_data JSON                                     27
             );
 
             const dataTypeId = Number(row.field_data_type_id);
