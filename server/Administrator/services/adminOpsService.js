@@ -6612,6 +6612,46 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.removeDottedManagerForAsset = async function (request) {
+        let dottedManagersList = [],
+            responseData = [],
+            error = true;
+
+        try {
+            dottedManagersList = JSON.parse(request.dotted_managers_list);
+        } catch (error) {
+            logger.error("Error parsing the request parameter: dotted_managers_list", { type: 'admin_service', error: serializeError(error), request_body: request });
+            return [error, {
+                error: "Error parsing the request parameter: dotted_managers_list"
+            }];
+        }
+
+        for (const dottedManager of dottedManagersList) {
+            // Archive the mapping
+            try {
+                const [_, dottedManagerData] = await assetManagerMappingHistoryUpdateLogState({
+                    ...request,
+                    manager_asset_id: dottedManager.asset_id,
+                    log_state: 3
+                });
+
+                responseData.push(dottedManagerData);
+            } catch (error) {
+                logger.error("Error removing dotted manager", { type: 'admin_service', error: serializeError(error), request_body: request, dotted_manager: dottedManager });
+            }
+            // History
+            try {
+                await assetManagerMappingHistoryInsert({
+                    ...request,
+                    manager_asset_id: dottedManager.asset_id,
+                }, 1);
+            } catch (error) {
+                // Do nothing for now
+            }
+        }
+
+        return [false, responseData]
+    };
 }
 
 module.exports = AdminOpsService;
