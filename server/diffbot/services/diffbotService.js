@@ -34,15 +34,14 @@ function DiffbotService(objectCollection) {
                   parsedResponse.data[k].id,
                   diffbotrequest
                 );
-                if (checkResult[0]["COUNT(*)"] >= 1) {
-                } else {
+                if (checkResult[0]["COUNT(*)"] == 0) {
                   var result = await insertPageUrlCorrespondingAccountId(
                     accountsList[j].activity_id,
                     parsedResponse.data[k].id,
                     parsedResponse.data[k].pageUrl,
                     diffbotrequest
                   );
-                }
+                } 
               }
             }
           }
