@@ -573,6 +573,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });    
+
+    // To add dotted managers
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/add', async (req, res) => {
+        const [err, responseData] = await adminOpsService.addDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
