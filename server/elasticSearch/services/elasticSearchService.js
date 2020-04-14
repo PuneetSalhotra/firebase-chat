@@ -104,16 +104,17 @@ function   CommnElasticService(objectCollection)
     {
         try
         {
-             const  results  = await client.search({
-              index: 'documentrepository',
-                "query": {
+          const  result  = await client.deleteByQuery({
+            index: 'documentrepository',
+            body: {
+              "query": {
                     "match": {
-                        "id": request.id
-                    }
-                }
-            })
-            console.log(results)
-            return results
+                            "id": request.id
+                          }
+                  }
+          }
+          })
+          return result
         }
         catch(error)
         {
@@ -175,7 +176,6 @@ console.log(ids)
                 // util.replaceQueryLimit(request.page_limit)
             );
             results[0] = await db.callDBProcedure(request, 'athmin.ds_p1_document_select', paramsArray, 1);
-            
             console.log(results[0])
             return results[0];
         }
