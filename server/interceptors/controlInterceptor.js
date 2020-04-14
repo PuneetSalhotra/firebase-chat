@@ -34,6 +34,9 @@ const WorkflowQueueController = require('../workflowQueue/controllers/workflowQu
 const CommnTemplateController = require('../commnTemplate/controllers/commnTemplateController.js');
 ///////////////////////////////////////////////////////////////////////
 
+//  diffbot
+var DiffbotController = require('../diffbot/controllers/diffbotController')
+
 // Administrator Services UI
 const AdminListingController = require('../Administrator/controllers/adminListingController');
 const AdminOpsController = require('../Administrator/controllers/adminOpsController');
@@ -85,6 +88,10 @@ function ControlInterceptor(objCollection) {
     new WorkflowQueueController(objCollection);
     new CommnTemplateController(objCollection);
     ////////////////////////////////
+
+    // diffbot
+
+    new DiffbotController(objCollection)
 
     // Administrator Services UI
     new AdminListingController(objCollection);

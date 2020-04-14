@@ -16,6 +16,14 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
 
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
+config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=54efa5825bcf4e68b9c4c1792f686aa5&size=50&from=0&query=type"
+config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
+,"Internet leased line (ILL)", "MPLS", "NPLC", "IPLC", "SDWAN",
+"Data Centre", "DC", "DR", "Infra as a service (IAAS)", "Platform as a service (PAAS)", "software as a service (SAAS)","Colocation, Hosting",
+"Cloud","WFME","office 360","Mobile device management (MDM)","cloud telephony",
+"IOT", "M2M", "Tracking system",
+"PRI", "SIP","Toll-free (TFS)"
+]
 
 if (mode === 'testingprodissueenv') {
 
@@ -218,11 +226,18 @@ if (mode === 'local') {
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
+    // config.dbUser = 'vinkalathmin';
     config.dbUser = 'apiuser';
+
+
     //config.database = 'desker';// desker_staging
     // config.database = 'desker_staging';
+    // config.database = 'athmin';
     config.database = 'worlddesk_staging';
+
+    // config.dbPassword = 'm2Fnbs47nKX7';
     config.dbPassword = 'apidbuser';
+
     config.conLimit = 5;
     
     //Log Mysql Config
@@ -277,10 +292,12 @@ if (mode === 'local') {
     //config.TOPIC_ID = 8;
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
-    
-    config.TOPIC_ID = 23;
+
+    // config.TOPIC_ID = 23;
+    config.TOPIC_ID = 36;
     // config.TOPIC_ID = 26;
-    config.TOPIC_NAME = "desker-activities-test-topic";
+    // config.TOPIC_NAME = "desker-activities-test-topic";
+    config.TOPIC_NAME = "desker-activities-test-topic-two";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
     
