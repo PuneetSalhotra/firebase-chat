@@ -226,18 +226,11 @@ if (mode === 'local') {
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
-    // config.dbUser = 'vinkalathmin';
     config.dbUser = 'apiuser';
-
-
     //config.database = 'desker';// desker_staging
     // config.database = 'desker_staging';
-    // config.database = 'athmin';
     config.database = 'worlddesk_staging';
-
-    // config.dbPassword = 'm2Fnbs47nKX7';
     config.dbPassword = 'apidbuser';
-
     config.conLimit = 5;
     
     //Log Mysql Config
@@ -292,12 +285,10 @@ if (mode === 'local') {
     //config.TOPIC_ID = 8;
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
-
+    
     config.TOPIC_ID = 23;
-    // config.TOPIC_ID = 36;
     // config.TOPIC_ID = 26;
     config.TOPIC_NAME = "desker-activities-test-topic";
-    // config.TOPIC_NAME = "desker-activities-test-topic-two";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
     
