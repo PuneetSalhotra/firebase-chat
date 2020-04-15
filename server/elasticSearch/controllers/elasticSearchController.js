@@ -1,12 +1,6 @@
-const elasticsearch = require('elasticsearch');
-var fs = require('fs')
 var CommnElasticService = require("../services/elasticSearchService.js");
 
 function elasticSearchController(objCollection) {
-  const client = new elasticsearch.Client({
-    host: 'localhost:9200',
-    log: 'error'
-  });
   var responseWrapper = objCollection.responseWrapper;
   var app = objCollection.app;
   const commnElasticService = new CommnElasticService(objCollection);

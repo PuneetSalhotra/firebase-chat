@@ -168,7 +168,7 @@ function CommnElasticService(objectCollection) {
           new Array(
             request.id
           );
-        results[0] = await db.callDBProcedure(request, 'athmin.ds_p1_document_delete', paramsArray, 1);
+        results[0] = await db.callDBProcedure(request, 'ds_p1_document_delete', paramsArray, 1);
 
         return result
       } catch (error) {
@@ -232,7 +232,7 @@ function CommnElasticService(objectCollection) {
           new Array(
             ids
           );
-        results[0] = await db.callDBProcedure(request, 'athmin.ds_p1_document_select', paramsArray, 1);
+        results[0] = await db.callDBProcedure(request, 'ds_p1_document_select', paramsArray, 1);
         return results[0];
       } catch (error) {
         return Promise.reject(error);
