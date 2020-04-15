@@ -40,7 +40,7 @@ function CommnElasticService(objectCollection) {
        var temp = await util.downloadS3Object(request, pdfUrl).then(filename => {
           var fileFullPath = global.config.efsPath + filename;
           var filePath = path.join(fileFullPath)
-           setTimeout(() => {
+          setTimeout(() => {
             extract(filePath, function (err, pages) {
               if (err) {
                 console.dir(err)
@@ -51,7 +51,6 @@ function CommnElasticService(objectCollection) {
             })
           }, 1000)
         })
-
         return 'file successfully uploaded';
       } catch (error) {
         return Promise.reject(error);
@@ -154,8 +153,6 @@ function CommnElasticService(objectCollection) {
         paramsArray =
           new Array(
             request.id
-            // request.page_start,
-            // util.replaceQueryLimit(request.page_limit)
           );
         results[0] = await db.callDBProcedure(request, 'athmin.ds_p1_document_delete', paramsArray, 1);
 
@@ -208,8 +205,6 @@ function CommnElasticService(objectCollection) {
         paramsArray =
           new Array(
             ids
-            // request.page_start,
-            // util.replaceQueryLimit(request.page_limit)
           );
         results[0] = await db.callDBProcedure(request, 'athmin.ds_p1_document_select', paramsArray, 1);
         return results[0];
