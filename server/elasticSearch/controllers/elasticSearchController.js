@@ -16,8 +16,7 @@ function elasticSearchController(objCollection) {
     async (req, res) => {
 
       try {
-        let result = await commnElasticService.addFile(req.body);
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        let result = await commnElasticService.addFile(req.body, res);
       } catch (err) {
         res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
       }
@@ -28,8 +27,7 @@ function elasticSearchController(objCollection) {
     async (req, res) => {
 
       try {
-        let result = await commnElasticService.updateFile(req.body);
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        let result = await commnElasticService.updateFile(req.body, res);
       } catch (err) {
         res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
       }
