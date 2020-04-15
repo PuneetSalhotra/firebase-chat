@@ -1421,7 +1421,13 @@ function ActivityService(objectCollection) {
             paramsArr.push(activitySubTypeName); //PAM
             paramsArr.push(expiryDateTime); //PAM
 
-            var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
+            let botCreatedFlag = 0;
+            if(request.hasOwnProperty("activity_flag_created_by_bot"))
+                botCreatedFlag = request.activity_flag_created_by_bot;
+
+            paramsArr.push(botCreatedFlag);
+            
+            var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
