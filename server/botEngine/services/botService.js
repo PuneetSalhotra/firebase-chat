@@ -1044,8 +1044,9 @@ function BotService(objectCollection) {
                 case 1: // Add Participant                 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
-                        await addParticipant(request, botOperationsJson.bot_operations.participant_add);
+                        await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing addParticipant Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -3024,7 +3025,7 @@ function BotService(objectCollection) {
     }
 
     // Bot Step Adding a participant
-    async function addParticipant(request, inlineData) {
+    async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
         global.logger.write('conLog', inlineData, {}, {});
@@ -3096,7 +3097,56 @@ function BotService(objectCollection) {
                     }
                 }
             }
+        } else if (type[0] === 'asset_reference') {
+            const formID = Number(inlineData["asset_reference"].form_id),
+                fieldID = Number(inlineData["asset_reference"].field_id),
+                workflowActivityID = Number(request.workflow_activity_id);
+
+            let formTransactionID = 0, formActivityID = 0;
+
+            if (!formInlineDataMap.has(fieldID)) {
+                // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
+                // newReq.desk_asset_id = fieldValue[0];
+                // newReq.customer_name = fieldValue[1]
+
+            } else {
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, formID);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
+                    newReq.customer_name = fieldData[0].data_entity_text_1;
+                }
+            }
+
+            if (Number(newReq.desk_asset_id) > 0) {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: newReq.desk_asset_id
+                });
+                if (assetData.length > 0) {
+                    newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
+                    newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+                }
+            }
         }
+
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
             try {
@@ -3111,7 +3161,7 @@ function BotService(objectCollection) {
                     console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
                 }
             } catch (error) {
-                console.log("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", error);
+                logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
             }
         }
 
@@ -3123,7 +3173,7 @@ function BotService(objectCollection) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
-            console.log("BotService | addParticipant | Error: ", `Phone number: ${newReq.phone_number}, has got problems!`);
+            logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 

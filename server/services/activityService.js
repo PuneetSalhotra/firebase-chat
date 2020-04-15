@@ -1421,7 +1421,13 @@ function ActivityService(objectCollection) {
             paramsArr.push(activitySubTypeName); //PAM
             paramsArr.push(expiryDateTime); //PAM
 
-            var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
+            let botCreatedFlag = 0;
+            if(request.hasOwnProperty("activity_flag_created_by_bot"))
+                botCreatedFlag = request.activity_flag_created_by_bot;
+
+            paramsArr.push(botCreatedFlag);
+            
+            var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -4770,6 +4776,68 @@ function ActivityService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+            
+        return [error, responseData];
+    }
+
+
+    this.updateCalendarEventDates = async (request) => {        
+        request.datetime_log = util.getCurrentUTCTime();
+
+        let responseData = [],
+            error = true;
+    
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.start_datetime,
+            request.end_datetime,
+            request.asset_id,
+            request.datetime_log
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_calendar_dates', paramsArr);
+    
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                    await activityCommonService.activityListHistoryInsertAsync(request, 420);
+                    await updateCalendarEventDatesActAssetMapping(request);
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+            
+        return [error, responseData];
+    }
+
+
+    async function updateCalendarEventDatesActAssetMapping(request) {
+        let responseData = [],
+            error = true;
+    
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.start_datetime,
+            request.end_datetime,
+            request.asset_id,
+            request.datetime_log
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_calendar_dates', paramsArr);
+    
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;                    
                 })
                 .catch((err) => {
                     error = err;

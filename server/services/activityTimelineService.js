@@ -2452,7 +2452,7 @@ function ActivityTimelineService(objectCollection) {
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
                 '', //IN p_location_datetime DATETIME                           26
-                '' //IN p_inline_data JSON                                      27
+                '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -3119,7 +3119,7 @@ async function addFormEntriesAsync(request) {
             '', //IN p_location_gps_enabled TINYINT(1)                      24
             '', //IN p_location_address VARCHAR(300)                        25
             '', //IN p_location_datetime DATETIME                           26
-            '' //IN p_inline_data JSON                                      27
+            '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
