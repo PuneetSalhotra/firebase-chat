@@ -17,12 +17,12 @@ function CommnElasticService(objectCollection) {
           var fileFullPath = global.config.efsPath + filename;
           var filePath = path.join(fileFullPath)
           setTimeout(() => {
-            extract(filePath, function (err, pages) {
+            extract(filePath, function (err, documentcontent) {
               if (err) {
                 console.dir(err)
                 return err
               }
-              var result = updateFileDescription(request, pages, pdfUrl, client)
+              var result = updateDocumetInformation(request, documentcontent, pdfUrl, client)
               return result
             })
           }, 1000)
@@ -41,12 +41,12 @@ function CommnElasticService(objectCollection) {
           var fileFullPath = global.config.efsPath + filename;
           var filePath = path.join(fileFullPath)
           setTimeout(() => {
-            extract(filePath, function (err, pages) {
+            extract(filePath, function (err, documentcontent) {
               if (err) {
                 console.dir(err)
                 return err
               }
-              var result = saveFileDescription(request, pages, pdfUrl, client)
+              var result = addDocumetInformation(request, documentcontent, pdfUrl, client)
               return result
             })
           }, 1000)
@@ -56,7 +56,7 @@ function CommnElasticService(objectCollection) {
         return Promise.reject(error);
       }
     }
-  async function saveFileDescription(request, pages, url, client) {
+  async function addDocumetInformation(request, documentcontent, url, client) {
     let results = new Array();
     var documentversion = 1;
     let paramsArray;
@@ -80,8 +80,8 @@ function CommnElasticService(objectCollection) {
         "id": results[0][0]['id'],
         "orgid": request.organization_id,
         "product": request.product,
-        "content": request.content,
-        "documentdesc": pages,
+        "content": documentcontent,
+        "documentdesc": request.documentdesc,
         "documenttitle": request.documenttitle,
         "filetitle": request.filetitle
       }
@@ -89,7 +89,7 @@ function CommnElasticService(objectCollection) {
     return result
   }
 
-  async function updateFileDescription(request, pages, url, client) {
+  async function updateDocumetInformation(request, documentcontent, url, client) {
     let results = new Array();
     let paramsArray;
     paramsArray =
@@ -108,6 +108,7 @@ function CommnElasticService(objectCollection) {
 
     const result = await client.updateByQuery({
       index: 'documentrepository',
+
       "body": {
         "query": {
           "match": {
@@ -121,8 +122,8 @@ function CommnElasticService(objectCollection) {
             "id": request.id,
             "orgid": request.organization_id,
             "product": request.product,
-            "content": request.content,
-            "documentdesc": pages,
+            "content": documentcontent,
+            "documentdesc": request.documentdesc,
             "documenttitle": request.documenttitle,
             "filetitle": request.filetitle
           }
