@@ -28,7 +28,6 @@ function CommnElasticService(objectCollection) {
             })
           }, 1000)
         })
-        return 'file successfully updated';
       } catch (error) {
         return Promise.reject(error);
       }
@@ -52,7 +51,6 @@ function CommnElasticService(objectCollection) {
             })
           }, 1000)
         })
-        return 'file successfully uploaded';
       } catch (error) {
         return Promise.reject(error);
       }
@@ -91,7 +89,7 @@ function CommnElasticService(objectCollection) {
     resultObj['id'] = results[0][0]['id']
     resultObj['version_id'] = documentversion
     return res.status(200).json({
-      Response : resultObj
+      response : resultObj
   })
   }
 
@@ -111,7 +109,6 @@ function CommnElasticService(objectCollection) {
         request.asset_id
       )
     results[0] = await db.callDBProcedure(request, 'ds_p1_document_alter', paramsArray, 0);
-console.log(results[0][0]['document_version_val'])
     const result = await client.updateByQuery({
       index: 'documentrepository',
 
@@ -138,9 +135,15 @@ console.log(results[0][0]['document_version_val'])
     })
     resultObj['id'] = request.id
     resultObj['version_id'] = results[0][0]['document_version_val']
-    return res.status(200).json({
-      Response : resultObj
-  })
+    if(results[0][0]['document_version_val'] != null){
+      return res.status(200).json({
+        response : resultObj
+    })
+    }else{
+      return res.status(200).json({
+        response : 'invalid id'
+      })
+    }
   }
 
 
