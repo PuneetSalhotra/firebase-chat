@@ -710,5 +710,14 @@ function AssetController(objCollection) {
         }
     });   
 
+    app.post('/' + global.config.version + '/phone_number/verify/invite', async (req, res) => {
+        const [err, responseData] = await assetService.getAssetUsingPhoneNumber(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/phone_number/verify/invite | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
 }
 module.exports = AssetController;
