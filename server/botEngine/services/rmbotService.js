@@ -2735,7 +2735,7 @@ function RMBotService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.activity_status_id
+            request.target_activity_status_id
         );
         let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
         if (queryString != '') {

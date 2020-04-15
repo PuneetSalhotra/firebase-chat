@@ -262,7 +262,7 @@ function AdminListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            console.log("/admin/activity_status_type/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
@@ -278,7 +278,7 @@ function AdminListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            console.log("/admin/workforce/asset_type/role/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });

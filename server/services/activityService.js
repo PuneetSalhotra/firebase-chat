@@ -173,7 +173,9 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 2601;
                             break;
                         case 56: activityStreamTypeId = 2701;
-                                 break;                                 
+                                 break; 
+                        case 27: activityStreamTypeId = 2801;
+                                 break;                                                                    
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -1457,7 +1459,7 @@ function ActivityService(objectCollection) {
                                     }
                                 });
                             }
-                        } else if ((activityTypeCategoryId === 16) && (request.asset_id !== ownerAssetID)) {
+                        }/* else if ((activityTypeCategoryId === 16) && (request.asset_id !== ownerAssetID)) {
                             // Chats
                             // 
                             // Handle the owner's activity_asset_mapping entry in this block. The creator's 
@@ -1497,7 +1499,7 @@ function ActivityService(objectCollection) {
                                 });
                             }
 
-                        } else {
+                        }*/ else {
 
                             // TimeCard Form Submission for Swipe In
                             var isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
@@ -2125,7 +2127,10 @@ function ActivityService(objectCollection) {
                     break;
                 case 56:
                     activityStreamTypeId = 2703;
-                    break;                
+                    break;     
+                case 27:
+                    activityStreamTypeId = 2803;
+                    break;                                
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');

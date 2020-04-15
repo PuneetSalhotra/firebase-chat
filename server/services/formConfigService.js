@@ -863,7 +863,7 @@ function FormConfigService(objCollection) {
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
                     '', //IN p_location_datetime DATETIME                           26                    
-                    '' //IN p_inline_data JSON                                     27
+                    '{}' //IN p_inline_data JSON                                     27
                 );
 
                 var dataTypeId = Number(row.field_data_type_id);
