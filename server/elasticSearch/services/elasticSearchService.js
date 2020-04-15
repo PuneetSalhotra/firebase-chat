@@ -12,7 +12,7 @@ function CommnElasticService(objectCollection) {
   this.updateFile =
     async (request) => {
       try {
-        var pdfUrl = request.urlpath
+        var pdfUrl = request.url
         util.downloadS3Object(request, pdfUrl).then(filename => {
           var fileFullPath = global.config.efsPath + filename;
           var filePath = path.join(fileFullPath)
@@ -36,7 +36,7 @@ function CommnElasticService(objectCollection) {
   this.addFile =
     async (request) => {
       try {
-        var pdfUrl = request.urlpath
+        var pdfUrl = request.url
        var temp = await util.downloadS3Object(request, pdfUrl).then(filename => {
           var fileFullPath = global.config.efsPath + filename;
           var filePath = path.join(fileFullPath)
@@ -64,10 +64,10 @@ function CommnElasticService(objectCollection) {
       new Array(
         request.organization_id,
         request.product,
-        request.documenttitle,
-        request.documentdesc,
+        request.document_title,
+        request.document_desc,
         documentversion,
-        request.filetitle,
+        request.file_title,
         url,
         request.asset_id
       )
@@ -81,9 +81,9 @@ function CommnElasticService(objectCollection) {
         "orgid": request.organization_id,
         "product": request.product,
         "content": documentcontent,
-        "documentdesc": request.documentdesc,
-        "documenttitle": request.documenttitle,
-        "filetitle": request.filetitle
+        "documentdesc": request.document_desc,
+        "documenttitle": request.document_title,
+        "filetitle": request.file_title
       }
     })
     return result
@@ -97,10 +97,10 @@ function CommnElasticService(objectCollection) {
         request.id,
         request.organization_id,
         request.product,
-        request.documenttitle,
-        request.documentdesc,
+        request.document_title,
+        request.document_desc,
         request.documentversion,
-        request.filetitle,
+        request.file_title,
         url,
         request.asset_id
       )
@@ -123,9 +123,9 @@ function CommnElasticService(objectCollection) {
             "orgid": request.organization_id,
             "product": request.product,
             "content": documentcontent,
-            "documentdesc": request.documentdesc,
-            "documenttitle": request.documenttitle,
-            "filetitle": request.filetitle
+            "documentdesc": request.document_desc,
+            "documenttitle": request.document_title,
+            "filetitle": request.file_title
           }
         }
       }
