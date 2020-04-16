@@ -2073,8 +2073,8 @@ function RMBotService(objectCollection) {
             request.asset_type_id || 0,
             util.getCurrentUTCTime(),
             request.current_lead_asset_id || 0,
-            request.start_from || 0,
-            request.limit_value || 500
+            0,
+            500
         );
         const queryString = util.getQueryString('ds_v1_asset_list_select_resource_pool', paramsArr);
         if (queryString !== '') {
@@ -2788,8 +2788,6 @@ function RMBotService(objectCollection) {
                 }
             }
        }
-
-        
     }
 
 }

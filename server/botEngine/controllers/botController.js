@@ -306,18 +306,7 @@ function BotController(objCollection) {
             global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });    
-
-    app.post('/' + global.config.version + '/organization/resource/pool', async (req, res) => {
-        try {
-                req.body.global_array = [];
-            let result = await rmbotService.getAvailableResourcePool(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {            
-            global.logger.write('/organization/resource/pool', err, {}, {});
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-        }
-    });   
+    });      
 
 }
 
