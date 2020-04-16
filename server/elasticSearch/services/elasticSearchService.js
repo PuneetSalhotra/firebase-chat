@@ -180,10 +180,21 @@ function CommnElasticService(objectCollection) {
   this.getResult =
     async (request) => {
       try {
+        var flag = true;
+        const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
         var operator = 'and';
         var searchFields = []
+        console.log(request.fields)
         if(request.hasOwnProperty('fields') && request.fields.length>0){
-          searchFields = request.fields;
+          for(var i=0;i<request.fields.length;i++){
+            if(validSearchFields.includes(request.fields[i])){
+              searchFields.push(request.fields[i]);
+            }else{
+              flag = false
+              return request.fields[i]+' fields is not valid'
+              break;
+            }
+          }
         }else{
           searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
         }
@@ -192,6 +203,7 @@ function CommnElasticService(objectCollection) {
         if(request.hasOwnProperty('search_option') && request.search_option.length>0){
           operator = request.search_option;
         }
+      if(flag){
         const search_text = request.search_text
         const orgid = request.organization_id
         const result = await client.search({
@@ -234,6 +246,7 @@ function CommnElasticService(objectCollection) {
           );
         results[0] = await db.callDBProcedure(request, 'ds_p1_document_select', paramsArray, 1);
         return results[0];
+      }
       } catch (error) {
         return Promise.reject(error);
       }
