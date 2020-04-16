@@ -1,5 +1,6 @@
 var path = require('path')
 var extract = require('pdf-text-extract')
+
 function CommnElasticService(objectCollection) {
   const util = objectCollection.util;
   const db = objectCollection.db;
@@ -214,6 +215,8 @@ function CommnElasticService(objectCollection) {
     async (request) => {
       try {
         var flag = true;
+        var responseObj ={}
+        var responseArray = []
         var queryType = "cross_fields"
         const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
         var operator = 'and';
@@ -225,8 +228,11 @@ function CommnElasticService(objectCollection) {
         if(request.hasOwnProperty('page_no')){
           page_no = request.page_no;
         }
+        if(request.search_text == null ||  request.search_text.length<3){
+          flag = false
+          return 'minimum 3 char required for search'
+        }
         var searchFields = []
-        console.log(request.fields)
         if(request.hasOwnProperty('fields') && request.fields.length>0){
           for(var i=0;i<request.fields.length;i++){
             if(validSearchFields.includes(request.fields[i])){
@@ -240,8 +246,6 @@ function CommnElasticService(objectCollection) {
         }else{
           searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
         }
-        console.log(request.fields)
-        console.log(searchFields)
         if(request.hasOwnProperty('search_option') && request.search_option.length>0){
           if(request.search_option == 'EXACT_SEARCH'){
             queryType = "phrase"
@@ -283,9 +287,20 @@ function CommnElasticService(objectCollection) {
           }
         })
         // var ids = []
-        // for (var i = 0; i < result.body.hits['hits'].length; i++) {
-        //   ids.push(result.body.hits['hits'][i]['_source']['id'])
-        // }
+
+        for (var i = 0; i < result.body.hits['hits'].length; i++) {
+          var obj= {}
+          obj['id'] = result.body.hits['hits'][i]['_source']['id']
+          obj['orgid'] = result.body.hits['hits'][i]['_source']['orgid']
+          obj['product'] = result.body.hits['hits'][i]['_source']['product']
+          obj['documentdesc'] = result.body.hits['hits'][i]['_source']['documentdesc']
+          obj['documenttitle'] = result.body.hits['hits'][i]['_source']['documenttitle']
+          obj['assetid'] = result.body.hits['hits'][i]['_source']['assetid']
+          obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
+          obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
+          responseArray.push(obj)
+          }
+          responseObj['response'] = responseArray
         // let results = new Array();
         // let paramsArray;
         // paramsArray =
@@ -295,7 +310,7 @@ function CommnElasticService(objectCollection) {
         //     ids
         //   );
         // results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_select', paramsArray, 1);
-        return result.body.hits['hits'];
+        return responseObj;
       }
       } catch (error) {
         return Promise.reject(error);
