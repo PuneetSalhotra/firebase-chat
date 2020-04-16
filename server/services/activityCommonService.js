@@ -713,6 +713,11 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break; 
+            case 326:
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = "";                
+                break;
             case 2401: //Bot added lead
             case 2402: //Admin marked lead
             case 2403: //Admin replaced lead     
