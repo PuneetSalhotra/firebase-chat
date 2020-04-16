@@ -1,6 +1,9 @@
 function DiffbotService(objectCollection) {
   const request = require("request");
+  const moment = require("moment");
   const db = objectCollection.db;
+  var ActivityTimelineService = require("../../services/activityTimelineService.js");
+  const activityTimelineService = new ActivityTimelineService(objectCollection);
 
   this.queryDiffbot = async diffbotrequest => {
     try {
@@ -41,7 +44,16 @@ function DiffbotService(objectCollection) {
                     parsedResponse.data[k].pageUrl,
                     diffbotrequest
                   );
-                } 
+                  await updateWorkflowTimelineCorrespondingAccountId(
+                    accountsList[j].organization_id,
+                    accountsList[j].account_id,
+                    accountsList[j].workforce_id,
+                    accountsList[j].activity_id,
+                    parsedResponse.data[k].pageUrl,
+                    accountsList[j].activity_type_id,
+                    accountsList[j].activity_type_category_id
+                  );
+                }
               }
             }
           }
@@ -64,7 +76,7 @@ function DiffbotService(objectCollection) {
   function getKnowledgeTypeDateParams() {
     var currentDate = new Date();
     var yesterday = currentDate.setDate(currentDate.getDate() - 1);
-    var dateParam = "date.timestamp>="+yesterday+" "
+    var dateParam = "date.timestamp>=" + yesterday + " ";
     return dateParam;
   }
 
@@ -139,18 +151,7 @@ function DiffbotService(objectCollection) {
     let result;
     let paramsArray;
     let currentDate = new Date();
-    dateTimeFormatCurrentDate =
-      currentDate.getFullYear() +
-      "-" +
-      (currentDate.getMonth() + 1) +
-      "-" +
-      currentDate.getDate() +
-      " " +
-      currentDate.getHours() +
-      ":" +
-      currentDate.getMinutes() +
-      ":" +
-      currentDate.getSeconds();
+    dateTimeFormatCurrentDate = getTimeInDateTimeFormat(currentDate);
     paramsArray = new Array(
       account_id,
       article_id,
@@ -179,6 +180,56 @@ function DiffbotService(objectCollection) {
     return result;
   }
 
+  async function updateWorkflowTimelineCorrespondingAccountId(
+    org_id_val,
+    account_id_val,
+    workforce_id_val,
+    activity_id_val,
+    page_url_val,
+    activity_type_id_val,
+    activity_type_category_id_val
+  ) {
+    var collectionObj = {
+      content:
+        "A new article has been identified for your account. Please refer to this <u>" +
+        page_url_val +
+        "</u> for the article.",
+      subject: page_url_val,
+      mail_body: page_url_val,
+      attachments: [],
+      activity_reference: [{ activity_title: "", activity_id: "" }],
+      asset_reference: [{}],
+      form_approval_field_reference: []
+    };
+
+    var currentDate = new Date();
+    var currentDateInDateTimeFormat = getTimeInDateTimeFormat(currentDate);
+    var epoch = moment().valueOf();
+
+    var requestParams = {
+      organization_id: org_id_val,
+      account_id: account_id_val,
+      workforce_id: workforce_id_val,
+      activity_type_category_id: activity_type_category_id_val,
+      activity_type_id: activity_type_id_val,
+      activity_id: activity_id_val,
+      activity_stream_type_id: 723,
+      activity_timeline_collection: JSON.stringify(collectionObj),
+      asset_id: 100,
+      data_entity_inline: JSON.stringify(collectionObj),
+      datetime_log: currentDateInDateTimeFormat,
+      timeline_transaction_datetime: currentDateInDateTimeFormat,
+      track_gps_datetime: currentDateInDateTimeFormat,
+      device_os_id: 7,
+      message_unique_id: epoch,
+      timeline_stream_type_id: 723
+    };
+
+    var result = await activityTimelineService.addTimelineTransactionAsync(
+      requestParams
+    );
+  }
+
   function doDiffBotRequest(knowledgeGraphApiUrl) {
     return new Promise(function(resolve, reject) {
       request(
@@ -198,6 +249,10 @@ function DiffbotService(objectCollection) {
         }
       );
     });
+  }
+
+  function getTimeInDateTimeFormat(date) {
+    return moment(date).format("YYYY-MM-DD HH:mm:ss");
   }
 }
 
