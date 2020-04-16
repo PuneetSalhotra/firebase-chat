@@ -5865,6 +5865,9 @@ function AdminOpsService(objectCollection) {
         logger.info("email :: " + request.asset_email_id);
         logger.info("fullname :: " + request.asset_full_name);
         logger.info("domain :: " + request.organziation_domain_name);
+        logger.info("move_assets :: "+request.move_assets);
+        logger.info("asset_id :: "+request.desk_asset_id);
+        logger.info("operating_asset_id :: "+request.operating_asset_id);
 
         let domainIndex = request.asset_email_id.indexOf('@');
         request.organization_name = request.asset_email_id.substring(domainIndex + 1, request.asset_email_id.length);
@@ -5885,12 +5888,33 @@ function AdminOpsService(objectCollection) {
         request.workforce_name = "CommonFloor";
         request.workforce_type_id = 16;
 
-        let [workforceErr, idWorkforce] = await self.createWorkforceV1(request);
+        let [workforceErr, workforceData] = await self.createWorkforceV1(request);
 
+        logger.info("workforceData.length :: "+JSON.stringify(workforceData));
 
-        //create employee and desk(employee and contact card)
+        if(request.move_assets == 1){
 
-        return [workforceErr, idWorkforce];
+           if(workforceData.hasOwnProperty("workforce_id")){
+
+            let ObjectRequest = Object.assign({},request);
+
+            ObjectRequest.new_organization_id = workforceData.organization_id;
+            ObjectRequest.new_account_id = workforceData.account_id;
+            ObjectRequest.new_workforce_id = workforceData.workforce_id;
+            ObjectRequest.new_desk_asset_type_id = workforceData.desk_asset_type_id;
+            ObjectRequest.new_employee_asset_type_id = workforceData.employee_asset_type_id;
+            ObjectRequest.workforce_id = request.temp_workforce_id;
+            ObjectRequest.account_id = request.temp_account_id;
+            ObjectRequest.organization_id = request.temp_organization_id;
+            ObjectRequest.log_asset_id = 1;
+            await  self.moveEmployeeDeskToAnotherOrganization(ObjectRequest);
+
+           }
+        }else{
+            logger.info("move_assets is not 1, hence not moving any assets "+request.move_assets);
+        }
+
+        return [workforceErr, workforceData];
     }
 
 
@@ -6469,7 +6493,323 @@ function AdminOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
-    }    
+    } 
+
+    // Move Employee Desk To Another Organization
+    this.moveEmployeeDeskToAnotherOrganization = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            newAccountID = Number(request.new_account_id),
+            newWorkforceID = Number(request.new_workforce_id),
+            newOrganizationID = Number(request.new_organization_id),
+            deskAssetID = Number(request.desk_asset_id);
+
+        let newWorkforceName = '';
+
+        let operatingAssetID = 0;
+
+        // Fetch Desk Asset Details
+        // const [errOne, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+        //     organization_id: organizationID,
+        //     asset_id: deskAssetID
+        // });
+        // if (!errOne && Number(deskAssetDataFromDB.length) > 0) {
+
+        // }
+
+        const newWorkforceDeskAssetTypeID = request.new_desk_asset_type_id;
+
+        // Update the workforce
+        const [errFour, _] = await self.assetListUpdateNewOrganizationWorkforce({
+            asset_id: deskAssetID,
+            new_asset_type_id: newWorkforceDeskAssetTypeID,
+            new_workforce_id: newWorkforceID,
+            new_account_id: newAccountID,
+            new_organization_id: newOrganizationID,
+            workforce_id: workforceID,
+            account_id: accountID,
+            organization_id: organizationID,            
+            log_asset_id: request.log_asset_id
+        });
+        if (errFour) {
+            console.log("moveEmployeeDeskToAnotherOrganization | assetListUpdateNewOrganizationWorkforce | Error: ", errFour);
+            return [true, {
+                message: "Error updating desk asset of the workforce"
+            }];
+        }
+
+        // Desk Asset List History Insert
+        try {
+            await assetListHistoryInsert({
+                asset_id: deskAssetID,
+                update_type_id: 218
+            }, newOrganizationID);
+        } catch (error) {
+            console.log("moveEmployeeDeskToAnotherOrganization | Desk Asset List History Insert | Error: ", error);
+        }
+
+        // Desk Asset Timeline Transaction Insert
+        try {
+            let assetTimelineTxnRequest = Object.assign({}, request);
+            assetTimelineTxnRequest.asset_id = deskAssetID;
+            assetTimelineTxnRequest.stream_type_id = 11024;
+
+            await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, newOrganizationID, newAccountID);
+        } catch (error) {
+            console.log("moveEmployeeDeskToAnotherOrganization | assetTimelineTransactionInsert | Error: ", error);
+        }
+
+        // Update workforce data in co-worker contact card activity associated with the employee asset
+        // Fetch and update Co-Worker Contact Card of the asset
+        let coWorkerContactCardActivityID = 0;
+        const [errZero, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
+            asset_id: deskAssetID,
+            organization_id: organizationID,
+            activity_type_category_id: 5
+        });
+
+        let deskAssetDataFromDB_Copy = [];
+        if (!errZero && Number(coWorkerContactCardData.length) > 0) {
+            coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
+            let contactCardInlineData = JSON.parse(coWorkerContactCardData[0].activity_inline_data);
+
+            // Fetch Desk Asset Details
+            const [errSeven, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+                organization_id: newOrganizationID,
+                asset_id: deskAssetID
+            });
+
+            if (!errSeven && Number(deskAssetDataFromDB.length) > 0) {
+                deskAssetDataFromDB_Copy = deskAssetDataFromDB;
+
+                // Update workforce name
+                newWorkforceName = deskAssetDataFromDB[0].workforce_name;
+
+                // Update inline data
+                contactCardInlineData.contact_department = deskAssetDataFromDB[0].workforce_name;
+                contactCardInlineData.contact_asset_type_id = deskAssetDataFromDB[0].asset_type_id;
+                contactCardInlineData.contact_designation = deskAssetDataFromDB[0].asset_type_name;
+                contactCardInlineData.contact_account_id = newAccountID;
+                contactCardInlineData.contact_workforce_id = newWorkforceID;
+                contactCardInlineData.contact_organization_id = newOrganizationID;
+                contactCardInlineData.contact_organization = deskAssetDataFromDB[0].organization_name;
+
+                // Co-Worker Contact Card: Activity List and ActivityAssetMapping Update
+                try {
+                    request.activity_inline_data = JSON.stringify(contactCardInlineData);
+                    request.activity_id = coWorkerContactCardActivityID;
+                    request.target_asset_id = deskAssetID;
+                    request.activity_type_category_id = 5;
+                    await activityListUpdateAssetData(request);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | Co-Worker | activityListUpdateOperatingAssetData | Error: ", error);
+                }
+
+                // Co-Worker Contact Card: Activity Timeline Transaction Insert
+                try {
+                    let activityTimelineTxnRequest = Object.assign({}, request);
+                    activityTimelineTxnRequest.activity_id = coWorkerContactCardActivityID;
+                    activityTimelineTxnRequest.asset_id = deskAssetID;
+                    activityTimelineTxnRequest.stream_type_id = 11024;
+
+                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, newWorkforceID, newOrganizationID, newAccountID);
+                } catch (error) {
+                    console.log("removeEmployeeMappedToDesk | Co-Worker | activityTimelineTransactionInsert | Error: ", error);
+                }
+                // Co-Worker Contact Card: History Insert
+                try {
+                    await activityListHistoryInsert({
+                        activity_id: coWorkerContactCardActivityID,
+                        update_type_id: 407
+                    }, newOrganizationID);
+                } catch (error) {
+                    console.log("removeEmployeeMappedToDesk | Co-Worker | activityListHistoryInsert | Error: ", error);
+                }
+            }
+        }
+
+        // Check if the desk has operating asset assigned
+        if (Number(deskAssetDataFromDB_Copy[0].operating_asset_id) > 0) {
+            operatingAssetID = Number(deskAssetDataFromDB_Copy[0].operating_asset_id);
+
+            const newWorkforceEmployeeAssetTypeID = request.new_employee_asset_type_id;
+
+            const [errSix, _] = await self.assetListUpdateNewOrganizationWorkforce({
+                asset_id: operatingAssetID,
+                new_asset_type_id: newWorkforceDeskAssetTypeID,
+                new_workforce_id: newWorkforceID,
+                new_account_id: newAccountID,
+                new_organization_id: newOrganizationID,
+                workforce_id: workforceID,
+                account_id: accountID,
+                organization_id: organizationID,            
+                log_asset_id: request.log_asset_id
+                });
+            if (!errSix) {
+                console.log("moveEmployeeDeskToAnotherOrganization | Employee | assetListUpdateNewOrganizationWorkforce | Error: ", errSix);
+
+                // Employee Asset List History Insert
+                try {
+                    await assetListHistoryInsert({
+                        asset_id: operatingAssetID,
+                        update_type_id: 218
+                    }, newOrganizationID);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | Employee | Asset List History Insert | Error: ", error);
+                }
+
+                // Employee Asset Timeline Transaction Insert
+                try {
+                    let assetTimelineTxnRequest = Object.assign({}, request);
+                    assetTimelineTxnRequest.asset_id = operatingAssetID;
+                    assetTimelineTxnRequest.stream_type_id = 11024;
+
+                    await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, newOrganizationID, newAccountID);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | Employee | assetTimelineTransactionInsert | Error: ", error);
+                }
+            }
+
+            // Update ID Card Activity Inline Data
+            // Fetch the ID Card
+            let idCardActivityID = 0;
+            const [errEight, idCardData] = await adminListingService.activityListSelectCategoryAsset({
+                asset_id: operatingAssetID,
+                organization_id: organizationID,
+                activity_type_category_id: 4
+            });
+            if (!errEight && Number(idCardData.length) > 0) {
+                idCardActivityID = idCardData[0].activity_id;
+
+                let idCardActivityInlineData = JSON.parse(idCardData[0].activity_inline_data);
+                idCardActivityInlineData.employee_department = newWorkforceName;
+                idCardActivityInlineData.employee_account_id = newAccountID;
+                idCardActivityInlineData.workforce_name = newWorkforceName;
+                idCardActivityInlineData.employee_workforce_id = newWorkforceID;
+                idCardActivityInlineData.employee_organization_id = newOrganizationID;
+                idCardActivityInlineData.employee_organization = deskAssetDataFromDB_Copy[0].organization_name;
+                idCardActivityInlineData.employee_qr_code = newOrganizationID+"|"+newAccountID+"|"+deskAssetDataFromDB_Copy[0].asset_id+"|"+deskAssetDataFromDB_Copy[0].operating_asset_id+"|"+deskAssetDataFromDB_Copy[0].asset_type_name+"|"+deskAssetDataFromDB_Copy[0].asset_first_name;
+                // ID Card: Activity List Update and Activity Asset Mapping Update
+                try {
+                    request.activity_inline_data = JSON.stringify(idCardActivityInlineData);
+                    request.activity_id = idCardActivityID; 
+                    request.target_asset_id = operatingAssetID; 
+                    request.activity_type_category_id = 4;                  
+                    await activityListUpdateAssetData(request);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | ID Card | activityListUpdateAssetData | Error: ", error);
+                }
+
+                // ID Card: History Insert
+                try {
+                    await activityListHistoryInsert({
+                        activity_id: idCardActivityID,
+                        update_type_id: 407
+                    }, newOrganizationID);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | ID Card | activityListHistoryInsert | Error: ", error);
+                }
+                // ID Card: Activity Timeline Transaction Insert
+                try {
+                    let activityTimelineTxnRequest = Object.assign({}, request);
+                    activityTimelineTxnRequest.activity_id = idCardActivityID;
+                    activityTimelineTxnRequest.asset_id = operatingAssetID;
+                    activityTimelineTxnRequest.stream_type_id = 11010;
+
+                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, newWorkforceID, newOrganizationID, newAccountID);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | ID Card | activityTimelineTransactionInsert | Error: ", error);
+                }
+
+                // ID Card: Activity List Update and Activity Asset Mapping Update
+                try {
+                    let inlineData = {};
+                    request.activity_inline_data = JSON.stringify(inlineData);
+                    request.activity_id = 0; 
+                    request.target_asset_id = deskAssetID; 
+                    request.activity_type_category_id = 0;                  
+                    await activityListUpdateAssetData(request);
+                } catch (error) {
+                    console.log("moveEmployeeDeskToAnotherOrganization | ID Card | activityListUpdateAssetData | Error: ", error);
+                }
+
+            }
+
+        } else {
+            console.log("moveEmployeeDeskToAnotherOrganization | deskAssetDataFromDB[0].operating_asset_id: No operating asset found.");
+        }
+
+        return [false, {
+            message: "Desk (and Employee) moved to the new Organization",
+            organization_id: newOrganizationID,
+            account_id: newAccountID,
+            workforce_id: newWorkforceID,
+            desk_asset_id: deskAssetID,
+            employee_asset_id: operatingAssetID
+        }];
+    }       
+
+    this.assetListUpdateNewOrganizationWorkforce = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.new_asset_type_id,
+            request.new_workforce_id,
+            request.new_account_id,
+            request.new_organization_id,            
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime() // Updated datetime
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_organization', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update operating asset information
+    async function activityListUpdateAssetData(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.activity_id,
+            request.new_organization_id,
+            request.organization_id,
+            request.activity_inline_data,
+            request.activity_type_category_id,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_organization', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 
