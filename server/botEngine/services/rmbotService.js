@@ -2488,6 +2488,11 @@ function RMBotService(objectCollection) {
                             }
                         }  
 
+                        if(Number(request.timeline_stream_type_id) == 326 || Number(request.timeline_stream_type_id) == 327){
+                            request.lead_asset_id = lead_asset_id;
+                            await self.activityAssetMappingUpdateLead(request);
+                        }
+
                         request.track_gps_datetime = util.getCurrentUTCTime();
                         request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                         
