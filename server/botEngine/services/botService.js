@@ -4681,6 +4681,9 @@ function BotService(objectCollection) {
                 case 65: // Business Card DataType
                     params[27] = row.field_value;
                     break;
+                case 67: // Reminder DataType
+                    params[27] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
