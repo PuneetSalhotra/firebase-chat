@@ -1,15 +1,15 @@
 var path = require('path')
-const elasticsearch = require('elasticsearch');
 var extract = require('pdf-text-extract')
-
 function CommnElasticService(objectCollection) {
-
   const util = objectCollection.util;
   const db = objectCollection.db;
-  const client = new elasticsearch.Client({
-    host: 'localhost:9200',
-    log: 'error'
-  });
+  const { Client } = require('@elastic/elasticsearch');
+  const { AmazonConnection } = require('aws-elasticsearch-connector');
+  const client = new Client({
+  node: 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com',
+  Connection: AmazonConnection,
+});
+
   this.updateFile =
     async (request, res) => {
       try {
@@ -196,6 +196,7 @@ function CommnElasticService(objectCollection) {
         const orgid = request.organization_id
         const result = await client.search({
           index: 'documentrepository',
+          type: "_doc",
           body: {
             "query": {
               "bool": {
@@ -221,9 +222,8 @@ function CommnElasticService(objectCollection) {
           }
         })
         var ids = []
-
-        for (var i = 0; i < result.hits['hits'].length; i++) {
-          ids.push(result.hits['hits'][i]['_source']['id'])
+        for (var i = 0; i < result.body.hits['hits'].length; i++) {
+          ids.push(result.body.hits['hits'][i]['_source']['id'])
         }
         let results = new Array();
         let paramsArray;
