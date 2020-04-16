@@ -613,6 +613,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/asset/move/organization', async (req, res) => {
+        const [err, responseData] = await adminOpsService.moveEmployeeDeskToAnotherOrganization(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/move/asset/organization | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    }); 
 }
 
 module.exports = AdminOpsController;

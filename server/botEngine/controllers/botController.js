@@ -306,7 +306,8 @@ function BotController(objCollection) {
             global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });     
+    });      
+
 }
 
 module.exports = BotController;

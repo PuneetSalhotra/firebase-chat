@@ -2788,8 +2788,6 @@ function RMBotService(objectCollection) {
                 }
             }
        }
-
-        
     }
 
 }

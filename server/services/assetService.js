@@ -4729,6 +4729,82 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    this.getAssetUsingPhoneNumber = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_phone_number,
+            request.country_code
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_phone_number_last_seen', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    
+                    if(data.length > 0){
+
+                        responseData = data;
+                        error = false;
+
+                    }else{
+                        console.log("data.length "+data.length);
+                        const rowData = {
+                            'query_status': -1,
+                            'asset_id': 0,
+                            'organization_id': 4,
+                            'organization_type_id': 5,
+                            'organization_type_category_id': 2,
+                            'account_id': 5,
+                            'workforce_id': 6,
+                            'employee_activity_type_id': 53,
+                            'desk_activity_type_id': 54,
+                            'employee_asset_type_id': 34,
+                            'desk_asset_type_id':35
+                        };
+                        responseData[0] = rowData;
+                        error = false;
+                    }
+                    console.log("data.length "+responseData.length);
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }    
+
+    this.assetListSelectCommonPool = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.is_search,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_common_pool', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AssetService;
