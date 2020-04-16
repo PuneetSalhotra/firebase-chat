@@ -2705,7 +2705,7 @@ function RMBotService(objectCollection) {
 
     this.getUnallocatedWorkflowsOfAssetType = async function (request) {
 
-        let responseData = [],
+        let responseData = {"data":[]},
             error = true;
 
         let paramsArr = new Array(
@@ -2721,7 +2721,7 @@ function RMBotService(objectCollection) {
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = data;
+                    responseData.data = data;
                     error = false;
                     }
                 )   
