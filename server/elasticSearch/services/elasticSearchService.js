@@ -58,36 +58,50 @@ function CommnElasticService(objectCollection) {
   async function addDocumetInformation(request, documentcontent, url, client, res) {
     let results = new Array();
     var resultObj = {}
-    var documentversion = 1;
+    var document_version = 1;
+
     let paramsArray;
     paramsArray =
       new Array(
-        request.organization_id,
-        request.product,
-        request.document_title,
-        request.document_desc,
-        documentversion,
         request.file_title,
+        request.document_desc,
+        document_version,
         url,
-        request.asset_id
+        request.activity_id ,
+        request.asset_id,
+        request.organization_id,
+        request.log_asset_id,
+        request.log_datetime,
       )
-    results[0] = await db.callDBProcedure(request, 'ds_p1_document_insert', paramsArray, 0);
+    results[0] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_insert', paramsArray, 0);
+
+    paramsArray =
+      new Array(
+        request.organization_id,
+        results[0][0]['activity_document_id'],
+        request.p_update_type_id,
+        request.log_datetime,
+      )
+        results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
 
     const result = await client.index({
       index: 'documentrepository',
       type: "_doc",
       body: {
-        "id": results[0][0]['id'],
+        "id": results[0][0]['activity_document_id'],
         "orgid": request.organization_id,
         "product": request.product,
         "content": documentcontent,
         "documentdesc": request.document_desc,
         "documenttitle": request.document_title,
-        "filetitle": request.file_title
+        "filetitle": request.file_title,
+        "productid": request.activity_id,
+        "s3url": url,
+        "assetid": request.asset_id
       }
     })
     resultObj['id'] = results[0][0]['id']
-    resultObj['version_id'] = documentversion
+    resultObj['version_id'] = document_version
     return res.status(200).json({
       response : resultObj
   })
@@ -97,18 +111,31 @@ function CommnElasticService(objectCollection) {
     let results = new Array();
     var resultObj = {}
     let paramsArray;
+    let version_id = 1;
     paramsArray =
       new Array(
-        request.id,
         request.organization_id,
-        request.product,
+        request.activity_id,
+        request.id,
         request.document_title,
         request.document_desc,
-        request.file_title,
         url,
-        request.asset_id
+        version_id,
+        request.asset_id,
+        Date.now()
       )
-    results[0] = await db.callDBProcedure(request, 'ds_p1_document_alter', paramsArray, 0);
+    results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_update', paramsArray, 0);
+
+    paramsArray =
+    new Array(
+      request.organization_id,
+      request.id,
+      request.p_update_type_id,
+      request.log_datetime,
+    )
+      results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
+
+
     const result = await client.updateByQuery({
       index: 'documentrepository',
 
@@ -128,22 +155,17 @@ function CommnElasticService(objectCollection) {
             "content": documentcontent,
             "documentdesc": request.document_desc,
             "documenttitle": request.document_title,
-            "filetitle": request.file_title
+            "filetitle": request.file_title,
+            "productid": request.activity_id,
+             "s3url": url,
+             "assetid": request.asset_id
           }
         }
       }
     })
-    resultObj['id'] = request.id
-    resultObj['version_id'] = results[0][0]['document_version_val']
-    if(results[0][0]['document_version_val'] != null){
       return res.status(200).json({
-        response : resultObj
+        response : version_id
     })
-    }else{
-      return res.status(200).json({
-        response : 'invalid id'
-      })
-    }
   }
 
 
@@ -163,12 +185,23 @@ function CommnElasticService(objectCollection) {
 
         let results = new Array();
         let paramsArray;
-
         paramsArray =
           new Array(
-            request.id
+            request.organization_id,
+            request.activity_id,
+            request.id,
+            request.asset_id,
+            request.log_datetime
           );
-        results[0] = await db.callDBProcedure(request, 'ds_p1_document_delete', paramsArray, 1);
+        results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 1);
+      //   paramsArray =
+      // new Array(
+      //   request.organization_id,
+      //   request.id,
+      //   request.p_update_type_id,
+      //   request.log_datetime,
+      // )
+      // results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
 
         return result
       } catch (error) {
@@ -181,8 +214,17 @@ function CommnElasticService(objectCollection) {
     async (request) => {
       try {
         var flag = true;
+        var queryType = "cross_fields"
         const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
         var operator = 'and';
+        var page_size = 50;
+        var page_no = 0;
+        if(request.hasOwnProperty('page_size')){
+          page_size = request.page_size;
+        }
+        if(request.hasOwnProperty('page_no')){
+          page_no = request.page_no;
+        }
         var searchFields = []
         console.log(request.fields)
         if(request.hasOwnProperty('fields') && request.fields.length>0){
@@ -201,7 +243,11 @@ function CommnElasticService(objectCollection) {
         console.log(request.fields)
         console.log(searchFields)
         if(request.hasOwnProperty('search_option') && request.search_option.length>0){
-          operator = request.search_option;
+          if(request.search_option == 'EXACT_SEARCH'){
+            queryType = "phrase"
+          }else{
+            operator = request.search_option;
+          }
         }
       if(flag){
         const search_text = request.search_text
@@ -222,6 +268,7 @@ function CommnElasticService(objectCollection) {
                       "should": {
                         "multi_match": {
                           "query": search_text,
+                          "type": queryType,
                           "fields": searchFields ,
                           "operator": operator
                         }
@@ -230,22 +277,25 @@ function CommnElasticService(objectCollection) {
                   }
                 ]
               }
-            }
+            },
+            "size": page_size,
+            "from": page_no
           }
         })
-        var ids = []
-        for (var i = 0; i < result.body.hits['hits'].length; i++) {
-          ids.push(result.body.hits['hits'][i]['_source']['id'])
-        }
-        let results = new Array();
-        let paramsArray;
-
-        paramsArray =
-          new Array(
-            ids
-          );
-        results[0] = await db.callDBProcedure(request, 'ds_p1_document_select', paramsArray, 1);
-        return results[0];
+        // var ids = []
+        // for (var i = 0; i < result.body.hits['hits'].length; i++) {
+        //   ids.push(result.body.hits['hits'][i]['_source']['id'])
+        // }
+        // let results = new Array();
+        // let paramsArray;
+        // paramsArray =
+        //   new Array(
+        //     request.organization_id,
+        //     request.activity_id,
+        //     ids
+        //   );
+        // results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_select', paramsArray, 1);
+        return result.body.hits['hits'];
       }
       } catch (error) {
         return Promise.reject(error);
