@@ -953,37 +953,43 @@ function RMBotService(objectCollection) {
 
     this.assignResourceAsLead = async function (request, leadAssetId) {
         let error = true, responseData = [];
+
+        if(request.activity_type_category_id == 10){
+            //request.timeline_stream_type_id = 326;
+            await self.activityListLeadUpdateV1(request, leadAssetId);
+        }else if(request.activity_type_category_id == 48){
         
-        if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
-        {
-            request.global_array = [];
-            let [err, logData] = await self.getAIBotTransaction(request);
-            request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
-        }
+            if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
+            {
+                request.global_array = [];
+                let [err, logData] = await self.getAIBotTransaction(request);
+                request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
+            }
 
-        request.timeline_stream_type_id = 718;
-        await self.activityListLeadUpdateV1(request, leadAssetId);
-        request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
+            request.timeline_stream_type_id = 718;
+            await self.activityListLeadUpdateV1(request, leadAssetId);
+            request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
-        request.target_asset_id = leadAssetId;
-        console.log("duration_in_minutes :: "+request.duration_in_minutes);
-        let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
-        request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
+            request.target_asset_id = leadAssetId;
+            console.log("duration_in_minutes :: "+request.duration_in_minutes);
+            let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
+            request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
 
-        request.ai_bot_id = 1;
-        request.ai_bot_status_id = 2;
-        request.bot_mapping_inline_data = {};
+            request.ai_bot_id = 1;
+            request.ai_bot_status_id = 2;
+            request.bot_mapping_inline_data = {};
 
-        request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
-        await self.unallocatedWorkflowInsert(request);
+            request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
+            await self.unallocatedWorkflowInsert(request);
 
-        if(request.activity_type_flag_persist_role == 1){
-            self.RMLoopInResoources(request);
-            request.activity_type_flag_persist_role = 0;
-        }else{
-            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
-            self.AIEventTransactionInsert(request);
-        }
+            if(request.activity_type_flag_persist_role == 1){
+                self.RMLoopInResoources(request);
+                request.activity_type_flag_persist_role = 0;
+            }else{
+                request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
+                self.AIEventTransactionInsert(request);
+            }
+    }
         return [error, responseData];
     } 
 
@@ -2494,7 +2500,8 @@ function RMBotService(objectCollection) {
                         }
 
                         request.track_gps_datetime = util.getCurrentUTCTime();
-                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        if(!request.hasOwnProperty("message_unique_id"))
+                            request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                         
                         console.log("activityListLeadUpdate :: ",request.activity_lead_timeline_collection);
                         
