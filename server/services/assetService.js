@@ -4444,7 +4444,7 @@ this.getQrBarcodeFeeback = async(request) => {
                         }else{
                             logger.info("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
                             request.global_array.push({"assetAvailableUpdate":"AI NOT ENABLED FOR THIS ORGANIZATION, aiTransactionId"+request.ai_bot_transaction_id})
-                            rmbotService.AIEventTransactionInsert(request);                            
+                            //rmbotService.AIEventTransactionInsert(request);                            
                         }
                     }else{
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
