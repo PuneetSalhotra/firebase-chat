@@ -358,7 +358,17 @@ function AdminListingController(objCollection) {
             console.log("/admin/activity_type/status/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
-    });    
+    });  
+
+    app.post('/' + global.config.version + '/admin/asset_category/asset_type/list', async function (req, res) {
+        const [err, assetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetTypeData, 200, req.body));
+        } else {
+            console.log("/admin/asset_category/asset_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetTypeData, -9999, req.body));
+        }
+    });        
 }
 
 module.exports = AdminListingController;
