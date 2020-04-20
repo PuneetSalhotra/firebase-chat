@@ -32,7 +32,11 @@ var VodafoneController = require('../vodafone/controllers/vodafoneController');
 var BotController = require('../botEngine/controllers/botController');
 const WorkflowQueueController = require('../workflowQueue/controllers/workflowQueueController.js');
 const CommnTemplateController = require('../commnTemplate/controllers/commnTemplateController.js');
+const elasticSearchController = require('../elasticSearch/controllers/elasticSearchController')
 ///////////////////////////////////////////////////////////////////////
+
+//  diffbot
+var DiffbotController = require('../diffbot/controllers/diffbotController')
 
 // Administrator Services UI
 const AdminListingController = require('../Administrator/controllers/adminListingController');
@@ -84,7 +88,12 @@ function ControlInterceptor(objCollection) {
     new BotController(objCollection);
     new WorkflowQueueController(objCollection);
     new CommnTemplateController(objCollection);
+    new elasticSearchController(objCollection)
     ////////////////////////////////
+
+    // diffbot
+
+    new DiffbotController(objCollection)
 
     // Administrator Services UI
     new AdminListingController(objCollection);
