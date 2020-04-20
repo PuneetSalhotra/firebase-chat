@@ -4751,9 +4751,34 @@ function FormConfigService(objCollection) {
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
                 //Workflow Reference
-                case 57:let fieldValue = fieldData.field_value.split('|'); 
-                        newRequest.mapping_activity_id = fieldValue[0];
-                        await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                case 57://let fieldValue = fieldData.field_value.split('|'); 
+                        //newRequest.mapping_activity_id = fieldValue[0];
+                        //await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+
+                        let fieldValue = fieldData.field_value;
+                        let parsedFieldValue;
+                        let mappingActivityId;
+                        let multiWorkflowReferenceFlag = 1;
+
+                        try{
+                            parsedFieldValue = JSON.parse(fieldValue);
+                        } catch(err) {
+                            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
+                            console.log('Switching to backward compatibility');
+                            
+                            //Backward Compatibility "workflowactivityid|workflowactivitytitle"
+                            mappingActivityId = fieldData.field_value.split('|');
+                            newRequest.mapping_activity_id = mappingActivityId[0];
+                            await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            multiWorkflowReferenceFlag = 0;
+                        }                     
+    
+                        if(Number(multiWorkflowReferenceFlag) === 1) {
+                            for(let i = 0; i < parsedFieldValue.length; i++) {
+                                newRequest.mapping_activity_id = parsedFieldValue[i].workflow_activity_id;;
+                                await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            }
+                        }
                     break;
 
                 //Combo field

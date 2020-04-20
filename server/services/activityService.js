@@ -451,7 +451,10 @@ function ActivityService(objectCollection) {
                             });
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
-                                if (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) {
+                                if (
+                                    (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) || 
+                                    (request.hasOwnProperty('isESMS'))
+                                    ) {
                                                                             
                                     let workflowEngineRequest = Object.assign({}, request);
 
@@ -503,7 +506,8 @@ function ActivityService(objectCollection) {
                                     fieldData = formInlineData[i];
                                     switch(Number(fieldData.field_data_type_id)) {
                                         case 57: //Fire the Bot                                                 
-                                                await fireBotInsertIntTables(request, fieldData);
+                                                await fireBotInsertIntTables(request, fieldData);                                                
+                                                await activityActivityMappingInsert(request, fieldData);
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
@@ -4476,7 +4480,7 @@ function ActivityService(objectCollection) {
         });
     }
 
-    //Insert in the Intermediate tables - For workflow Reference, Combo Field data types
+    //Insert in the Intermediate tables - For workflow Reference - 57, Combo Field data types - 33
     async function fireBotInsertIntTables(request, fieldData) {
         let workflowActivityId = request.activity_id; //workflow activity id
         if(Number(request.activity_type_category_id) === 9) {
@@ -4532,12 +4536,36 @@ function ActivityService(objectCollection) {
       if(botIsDefined === 1) {
         switch(Number(fieldData.field_data_type_id)) {
             //Workflow Reference
-            case 57: let fieldValue = fieldData.field_value.split('|');
-                     newRequest.entity_type_id = 1;
-                     newRequest.entity_level_id = 9;
-                     newRequest.mapping_activity_id = fieldValue[0];
-                     await activityCommonService.activityEntityMappingInsert(newRequest, 1); //1 - activity_entity_mapping
-                     break;
+            case 57://let fieldValue = fieldData.field_value.split('|');
+                    let fieldValue = fieldData.field_value;
+                    let parsedFieldValue;
+                    let mappingActivityId;
+                    let multiWorkflowReferenceFlag = 1;
+
+                    newRequest.entity_type_id = 1;
+                    newRequest.entity_level_id = 9;                   
+
+                    try{
+                        parsedFieldValue = JSON.parse(fieldValue);
+                    } catch(err) {
+                        console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
+                        console.log('Switching to backward compatibility');
+                        
+                        //Backward Compatibility "workflowactivityid|workflowactivitytitle"
+                        mappingActivityId = fieldData.field_value.split('|');
+                        newRequest.mapping_activity_id = mappingActivityId[0];
+                        await activityCommonService.activityEntityMappingInsert(newRequest, 1); //1 - activity_entity_mapping
+                        multiWorkflowReferenceFlag = 0;
+                    }                     
+
+                    if(Number(multiWorkflowReferenceFlag) === 1) {
+                        for(let i = 0; i < parsedFieldValue.length; i++) {
+                            newRequest.mapping_activity_id = parsedFieldValue[i].workflow_activity_id;;
+                            await activityCommonService.activityEntityMappingInsert(newRequest, 1); //1 - activity_entity_mapping
+                        }
+                    }                    
+                     
+                    break;
 
             //Combo field
             case 33: newRequest.entity_type_id = 2;
@@ -4847,6 +4875,39 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
+    async function activityActivityMappingInsert(request, fieldData) {
+        let currentWorkflowActivityId = request.activity_id; //workflow activity id
+        if(Number(request.activity_type_category_id) === 9) {            
+            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+            if (workflowError !== false || workflowData.length === 0) {
+                console.log('workflowError : ', workflowError);
+                console.log('workflowData : ', workflowData);
+                return [workflowError, workflowData];
+            }
+            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+        }
+
+        let fieldValue = fieldData.field_value;
+        let parsedFieldValue;
+        let errFlag = 0;
+
+        try{
+            parsedFieldValue = JSON.parse(fieldValue);
+        } catch(err) {
+            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
+            return "Failure";
+        }
+        
+        let newReq = Object.assign({}, request);
+            newReq.activity_id = currentWorkflowActivityId;
+        for(let i = 0; i < parsedFieldValue.length; i++) {
+            newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id;
+            await activityCommonService.activityActivityMappingInsert(newReq);
+        }
+
+        return "success";
+
+    }
 }
 
 module.exports = ActivityService;

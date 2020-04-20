@@ -728,8 +728,9 @@ function AssetService(objectCollection) {
             'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
             'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']),
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
-            'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled'])
-
+            'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
+            'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
+            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id'])
         };
 
         callback(false, rowData);
@@ -4443,7 +4444,7 @@ this.getQrBarcodeFeeback = async(request) => {
                         }else{
                             logger.info("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
                             request.global_array.push({"assetAvailableUpdate":"AI NOT ENABLED FOR THIS ORGANIZATION, aiTransactionId"+request.ai_bot_transaction_id})
-                            rmbotService.AIEventTransactionInsert(request);                            
+                            //rmbotService.AIEventTransactionInsert(request);                            
                         }
                     }else{
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
@@ -4726,6 +4727,82 @@ this.getQrBarcodeFeeback = async(request) => {
             activityCommonService.sendPushToWorkforceAssets(request);
         }
 
+        return [error, responseData];
+    }
+
+    this.getAssetUsingPhoneNumber = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_phone_number,
+            request.country_code
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_phone_number_last_seen', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    
+                    if(data.length > 0){
+
+                        responseData = data;
+                        error = false;
+
+                    }else{
+                        console.log("data.length "+data.length);
+                        const rowData = {
+                            'query_status': -1,
+                            'asset_id': 0,
+                            'organization_id': 4,
+                            'organization_type_id': 5,
+                            'organization_type_category_id': 2,
+                            'account_id': 5,
+                            'workforce_id': 6,
+                            'employee_activity_type_id': 53,
+                            'desk_activity_type_id': 54,
+                            'employee_asset_type_id': 34,
+                            'desk_asset_type_id':35
+                        };
+                        responseData[0] = rowData;
+                        error = false;
+                    }
+                    console.log("data.length "+responseData.length);
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }    
+
+    this.assetListSelectCommonPool = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.is_search,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_common_pool', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
         return [error, responseData];
     }
 

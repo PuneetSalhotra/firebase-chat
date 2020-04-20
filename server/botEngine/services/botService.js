@@ -2746,31 +2746,58 @@ function BotService(objectCollection) {
     }
 
     //Bot Step Copying the fields
-    async function copyFields(request, fieldCopyInlineData) {
+    async function copyFields(request, fieldCopyInlineData) {        
 
         const workflowActivityID = Number(request.workflow_activity_id),
             // sourceFormActivityID = Number(request.activity_id),
             // sourceFormID = Number(request.form_id),
             targetFormID = Number(fieldCopyInlineData[0].target_form_id);
 
+        //ESMS Requirement - Check If target_form_id is an origin form
+        let esmsFlag = 0;
+        let esmsReq = Object.assign({}, request);
+            esmsReq.form_id = targetFormID;            
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(esmsReq);
+        if (formConfigError !== false || formConfigData.length === 0) {
+            return [true, {
+                message: `Couldn't fetch form data for form ${request.form_id}.`
+            }];
+        }        
+
+        if (Number(formConfigData.length) > 0) {
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+                //workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                //formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
+                //workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                //formName = String(formConfigData[0].form_name),
+                //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+        
+            if(originFlagSet && isWorkflowEnabled) {
+                esmsFlag = 1;
+            }
+        }        
+
         let targetFormTransactionData = [],
             targetFormActivityID = 0,
             targetFormTransactionID = 0;
 
         // Check if the target form already exists for the given workflow
-        try {
-            targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                organization_id: request.organization_id,
-                account_id: request.account_id
-            }, workflowActivityID, targetFormID);
-
-            if (Number(targetFormTransactionData.length) > 0) {
-                targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
-                targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+        if(Number(esmsFlag) === 0) {
+            try {
+                targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, targetFormID);
+    
+                if (Number(targetFormTransactionData.length) > 0) {
+                    targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                    targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                throw new Error(error);
             }
-        } catch (error) {
-            console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
-            throw new Error(error);
         }
 
         let activityInlineData = [],
@@ -2852,11 +2879,19 @@ function BotService(objectCollection) {
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, create one
             let createTargetFormRequest = Object.assign({}, request);
-            createTargetFormRequest.activity_form_id = targetFormID;
-            createTargetFormRequest.form_id = targetFormID;
-            createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            createTargetFormRequest.workflow_activity_id = workflowActivityID;
-
+                createTargetFormRequest.activity_form_id = targetFormID;
+                createTargetFormRequest.form_id = targetFormID;
+                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
+                
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;  
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;                
+                }
             try {
                 await createTargetFormActivity(createTargetFormRequest);
             } catch (error) {
