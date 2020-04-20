@@ -5960,7 +5960,7 @@ function AdminOpsService(objectCollection) {
                 return [false, responseData[0].account_id];
 
             } else {
-
+                    request.account_type_id = 2;
                 const [errOne, accountData] = await accountListInsert(request, request.organization_id);
                 if (errOne) {
 
@@ -7029,6 +7029,43 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.sendInviteText = async function(request){
+        let responseData = [],
+            error = false;
+
+        // Send SMS to the newly added employee
+        try {
+
+            //get Asset Data
+            let reqObject = Object.assign({}, request);
+            reqObject.asset_id = request.target_asset_id;
+            let [errorOne, responseDataOne]  = await activityCommonService.getAssetDetailsAsync(request);
+
+            // Get the Org data
+            let orgData = [], senderID = '';
+            let orgDataQueryParams = new Array(1);
+            orgDataQueryParams[0] = Number(request.organization_id);
+            const queryString = util.getQueryString('ds_p1_organization_list_select', orgDataQueryParams);
+            if (queryString != '') {
+                orgData = await (db.executeQueryPromise(1, queryString, request));
+            }
+            (orgData.length > 0) ? senderID = orgData[0].organization_text_sender_name : senderID = 'MYTONY';
+
+            const smsMessage = `Dear ${responseDataOne[0].operating_asset_first_name || ''} ${responseDataOne[0].operating_asset_last_name || ''}, you have been added as an '${responseDataOne[0].asset_first_name}' by '${responseDataOne[0].organization_name || ''}' to join their '${responseDataOne[0].workforce_name || ''}' workforce. Please click on the link below to download the Tony App and get started.
+        
+            https://download.mytony.app`;
+
+            util.sendSmsSinfiniV1(smsMessage, responseDataOne[0].operating_asset_phone_country_code || 91, responseDataOne[0].operating_asset_phone_number || 0, senderID, function (err, response) {
+                console.log('[sendInviteText] Sinfini Response: ', response);
+                console.log('[sendInviteText] Sinfini Error: ', err);
+            });
+        } catch (error) {
+            console.log('[sendInviteText] SMS Block Error: ', error);
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;
