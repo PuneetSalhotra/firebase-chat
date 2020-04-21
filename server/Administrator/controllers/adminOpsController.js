@@ -631,7 +631,17 @@ function AdminOpsController(objCollection) {
             console.log("/admin/send/asset/invite | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });     
+    });
+
+    app.post('/' + global.config.version + '/admin/workflow/dependent_form/check', async (req, res) => {
+        const [err, responseData] = await adminOpsService.dependedFormCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/dependent_form/check | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 
 }
 

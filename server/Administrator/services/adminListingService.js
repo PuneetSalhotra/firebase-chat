@@ -1417,7 +1417,7 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
-    this.botOperationMappingSelectOperationType = async function (request) {
+    this.botOperationMappingSelectOperationType = async (request) => {
         let responseData = [],
             error = true;
 
