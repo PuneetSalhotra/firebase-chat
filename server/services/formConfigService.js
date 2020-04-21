@@ -1062,9 +1062,14 @@ function FormConfigService(objCollection) {
                         params[11] = row.field_value;
                         break;
                     case 57: //Workflow reference
-                        workflowReference = row.field_value.split('|');
-                        params[13] = workflowReference[0]; //ID
-                        params[18] = workflowReference[1]; //Name
+                        try{ //Supporting Backward Compatibility
+                            workflowReference = row.field_value.split('|');
+                            params[13] = workflowReference[0]; //ID
+                            params[18] = workflowReference[1]; //Name
+                        } catch(err) {
+                            params[27] = row.field_value;
+                        }
+                        
                         break;
                     case 58://Document reference
                         // documentReference = row.field_value.split('|');
@@ -5216,6 +5221,35 @@ function FormConfigService(objCollection) {
                 })
         }
         return [error, responseData];
+    }
+
+
+    this.assetLevelForms = async (request) => {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];        
     }
 }
 

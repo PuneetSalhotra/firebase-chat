@@ -684,7 +684,8 @@ function AnalyticsService(objectCollection)
                         util.replaceQueryLimit(request.page_limit)
                     );
                     
-                    dbCall = "ds_p1_tag_type_master_select";
+                    //dbCall = "ds_p1_tag_type_master_select";
+                    dbCall = "ds_p1_tag_type_type_select";
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
                     return results[0];
 

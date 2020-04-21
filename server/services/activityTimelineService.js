@@ -2664,9 +2664,13 @@ function ActivityTimelineService(objectCollection) {
                     params[11] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference
-                    workflowReference = row.field_value.split('|');
-                    params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
+                    try{ //Supporting Backward Compatibility
+                        workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                    } catch(err) {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
@@ -3331,9 +3335,13 @@ async function addFormEntriesAsync(request) {
                 params[11] = row.field_value;
                 break;
             case 57: //Workflow(/Activity) reference
-                workflowReference = row.field_value.split('|');
-                params[13] = workflowReference[0]; //ID
-                params[18] = workflowReference[1]; //Name
+                try { //Supporting Backward Compatibility
+                    workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                } catch(err) {
+                    params[27] = row.field_value;
+                }                
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
