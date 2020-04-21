@@ -5205,7 +5205,8 @@ function AdminOpsService(objectCollection) {
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+        //const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_tag_type_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -5504,7 +5505,8 @@ function AdminOpsService(objectCollection) {
             request.datetime_log
         );
 
-        const queryString = util.getQueryString('ds_v1_tag_type_master_delete', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_tag_type_master_delete', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_list_delete', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -6349,7 +6351,8 @@ function AdminOpsService(objectCollection) {
             request.datetime_log || util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_type_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -7063,6 +7066,49 @@ function AdminOpsService(objectCollection) {
         } catch (error) {
             console.log('[sendInviteText] SMS Block Error: ', error);
         }
+        return [error, responseData];
+    }
+
+
+    //Dependent form Submitted?
+    //All conditions satisfying in the bots?
+    this.dependedFormCheck = async (request) => {
+        let responseData = [],
+            error = true;
+
+        request.bot_operation_type_id = 20;
+        const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
+
+        if(botsData.length) {
+            let inlineData
+            for(let i=0;i< botsData.length;i++) {
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
+                console.log(inlineData);
+                //console.log(inlineData.form_enable)
+            }
+        }
+
+        /*const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.manager_asset_id,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }*/
         return [error, responseData];
     }
 
