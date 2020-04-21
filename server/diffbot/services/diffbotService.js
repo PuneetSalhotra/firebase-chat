@@ -254,6 +254,168 @@ function DiffbotService(objectCollection) {
   function getTimeInDateTimeFormat(date) {
     return moment(date).format("YYYY-MM-DD HH:mm:ss");
   }
-}
 
+  this.getTendersFromTenderTigerWebsite = async diffbotrequest => {
+    try {
+      var tenderTigerUrl = "https://www.tendertiger.com";
+      var headers = {
+        "Content-Type": "application/json"
+      };
+      var body = {
+        tabindex: "1",
+        startIndex: 0,
+        PageSize: "10",
+        CompanyName: "",
+        TenderNo: "",
+        Tendervaluefrom: "",
+        Tendervalueto: "",
+        ClosingDate: "",
+        PublishDate: getYesterdaysDate() + " - " + getTodaysDate(),
+        Location: "",
+        W_TID: "",
+        W_DueDate: "",
+        W_PublishDate: "",
+        W_Organizationname: "",
+        W_Industry: "",
+        W_WordSearch: "",
+        TenderValue_Condition: "",
+        BifarcationSearch: ""
+      };
+      tenderTigerApiUrl =
+        "https://www.tendertiger.com/Contentnd/WebMethod/AdvanceTenderSearchWebMethod.aspx/GetAdvaceSearchData";
+      var accountsList = await getAccountsList();
+
+      for (var i = 0; i < global.config.knowledgeGraphKeywords.length; i++) {
+        body["Searchtex"] = global.config.knowledgeGraphKeywords[i];
+        var tenders = [];
+        while (true) {
+          var tenderList = await getTenderList(
+            headers,
+            body,
+            tenderTigerApiUrl
+          );
+          if (tenderList.length > 0) {
+            if (body["startIndex"] == 0) {
+              tenders = [];
+            }
+            for (var i = 0; i < tenderList.length; i++) {
+              tenders.push(tenderList[i]);
+            }
+            body["startIndex"] = body["startIndex"] + 10;
+          } else {
+            body["startIndex"] = 0;
+            break;
+          }
+        }
+        for (var j = 0; j < accountsList.length; j++) {
+          for (var k = 0; k < tenders.length; k++) {
+            if (
+              accountsList[j]["activity_title"] == tenders[k]["CompanyName"]
+            ) {
+              var checkResult = await checkIfAccountIDTenderIdExist(
+                accountsList[j].activity_id,
+                tenders[k].tid,
+                diffbotrequest
+              );
+              if (checkResult[0]["COUNT(*)"] == 0) {
+                var result = await insertTenderCorrespondingAccountId(
+                  tenders[k].tid,
+                  accountsList[j].activity_id,
+                  tenderTigerUrl,
+                  tenderTigerUrl + tenders[k].detailurl,
+                  tenders[k].closingdate,
+                  diffbotrequest
+                );
+              }
+            }
+          }
+        }
+      }
+      return "succesfull";
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+
+  async function getTenderList(headers, body, tenderTigerApiUrl) {
+    let res = await doTenderApiCall(headers, body, tenderTigerApiUrl);
+    var parsedResponse = JSON.parse(res);
+    var tenderList = [];
+    var tenderObj = JSON.parse(parsedResponse["d"]);
+    tenderList = tenderObj[0]["lstTenders"];
+    return tenderList;
+  }
+
+  function doTenderApiCall(headers_val, payload, apiurl) {
+    return new Promise(function(resolve, reject) {
+      request(
+        {
+          url: apiurl,
+          method: "POST",
+          headers: headers_val,
+          body: JSON.stringify(payload)
+        },
+        function(error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        }
+      );
+    });
+  }
+
+  async function checkIfAccountIDTenderIdExist(account_id, tender_id, request) {
+    let paramsArrayForCheckResult;
+    let checkResult;
+    paramsArrayForCheckResult = new Array(account_id, tender_id);
+    checkResult = await db.callDBProcedure(
+      request,
+      "ds_p1_check_accountid_tenderid_exist",
+      paramsArrayForCheckResult,
+      1
+    );
+    return checkResult;
+  }
+
+  async function insertTenderCorrespondingAccountId(
+    tender_id,
+    account_id,
+    tender_from_url,
+    tender_info_url,
+    closing_date,
+    request
+  ) {
+    let result;
+    let paramsArray;
+    let expiry_date = new Date(closing_date);
+    let dateTimeFormatExpiryDate = getTimeInDateTimeFormat(expiry_date);
+    paramsArray = new Array(
+      tender_id,
+      account_id,
+      tender_from_url,
+      tender_info_url,
+      dateTimeFormatExpiryDate
+    );
+    result = await db.callDBProcedure(
+      request,
+      "ds_p1_account_tender_info_insert",
+      paramsArray,
+      0
+    );
+    return result;
+  }
+
+  function getYesterdaysDate() {
+    var date = new Date();
+    date.setDate(date.getDate() - 1);
+    return moment(new Date(date)).format("DD-MM-YYYY");
+  }
+
+  function getTodaysDate() {
+    return moment(new Date()).format("DD-MM-YYYY");
+  }
+
+}
 module.exports = DiffbotService;
