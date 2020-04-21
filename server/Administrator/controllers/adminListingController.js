@@ -368,7 +368,29 @@ function AdminListingController(objCollection) {
             console.log("/admin/asset_category/asset_type/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, assetTypeData, -9999, req.body));
         }
-    });        
+    });  
+
+    app.post('/' + global.config.version + '/admin/workflow/bots_enabled/form/list', async (req, res) => {
+        req.body.bot_operation_type_id = 20;
+        const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/bots_enabled/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
+
+
+    app.post('/' + global.config.version + '/admin/tag_type/list', async (req, res) => {        
+        const [err, botsData] = await adminListingService.getTagTypesBasedOnCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
