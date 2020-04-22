@@ -863,7 +863,7 @@ function FormConfigService(objCollection) {
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
                     '', //IN p_location_datetime DATETIME                           26                    
-                    '' //IN p_inline_data JSON                                     27
+                    '{}' //IN p_inline_data JSON                                     27
                 );
 
                 var dataTypeId = Number(row.field_data_type_id);
@@ -1062,9 +1062,14 @@ function FormConfigService(objCollection) {
                         params[11] = row.field_value;
                         break;
                     case 57: //Workflow reference
-                        workflowReference = row.field_value.split('|');
-                        params[13] = workflowReference[0]; //ID
-                        params[18] = workflowReference[1]; //Name
+                        try{ //Supporting Backward Compatibility
+                            workflowReference = row.field_value.split('|');
+                            params[13] = workflowReference[0]; //ID
+                            params[18] = workflowReference[1]; //Name
+                        } catch(err) {
+                            params[27] = row.field_value;
+                        }
+                        
                         break;
                     case 58://Document reference
                         // documentReference = row.field_value.split('|');
@@ -1110,6 +1115,9 @@ function FormConfigService(objCollection) {
                         params[27] = row.field_value;
                         break;
                     case 65: // Business Card DataType
+                        params[27] = row.field_value;
+                        break;
+                    case 67: // Reminder DataType
                         params[27] = row.field_value;
                         break;
                 }
@@ -4748,9 +4756,34 @@ function FormConfigService(objCollection) {
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
                 //Workflow Reference
-                case 57:let fieldValue = fieldData.field_value.split('|'); 
-                        newRequest.mapping_activity_id = fieldValue[0];
-                        await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                case 57://let fieldValue = fieldData.field_value.split('|'); 
+                        //newRequest.mapping_activity_id = fieldValue[0];
+                        //await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+
+                        let fieldValue = fieldData.field_value;
+                        let parsedFieldValue;
+                        let mappingActivityId;
+                        let multiWorkflowReferenceFlag = 1;
+
+                        try{
+                            parsedFieldValue = JSON.parse(fieldValue);
+                        } catch(err) {
+                            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
+                            console.log('Switching to backward compatibility');
+                            
+                            //Backward Compatibility "workflowactivityid|workflowactivitytitle"
+                            mappingActivityId = fieldData.field_value.split('|');
+                            newRequest.mapping_activity_id = mappingActivityId[0];
+                            await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            multiWorkflowReferenceFlag = 0;
+                        }                     
+    
+                        if(Number(multiWorkflowReferenceFlag) === 1) {
+                            for(let i = 0; i < parsedFieldValue.length; i++) {
+                                newRequest.mapping_activity_id = parsedFieldValue[i].workflow_activity_id;;
+                                await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            }
+                        }
                     break;
 
                 //Combo field
@@ -5188,6 +5221,35 @@ function FormConfigService(objCollection) {
                 })
         }
         return [error, responseData];
+    }
+
+
+    this.assetLevelForms = async (request) => {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];        
     }
 }
 

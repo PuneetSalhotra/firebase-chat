@@ -2452,7 +2452,7 @@ function ActivityTimelineService(objectCollection) {
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
                 '', //IN p_location_datetime DATETIME                           26
-                '' //IN p_inline_data JSON                                      27
+                '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -2664,9 +2664,13 @@ function ActivityTimelineService(objectCollection) {
                     params[11] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference
-                    workflowReference = row.field_value.split('|');
-                    params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
+                    try{ //Supporting Backward Compatibility
+                        workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                    } catch(err) {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
@@ -2695,6 +2699,9 @@ function ActivityTimelineService(objectCollection) {
                     params[27] = row.field_value;
                     break;
                 case 65: // Business Card DataType
+                    params[27] = row.field_value;
+                    break;
+                case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
             }
@@ -3119,7 +3126,7 @@ async function addFormEntriesAsync(request) {
             '', //IN p_location_gps_enabled TINYINT(1)                      24
             '', //IN p_location_address VARCHAR(300)                        25
             '', //IN p_location_datetime DATETIME                           26
-            '' //IN p_inline_data JSON                                      27
+            '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -3328,9 +3335,13 @@ async function addFormEntriesAsync(request) {
                 params[11] = row.field_value;
                 break;
             case 57: //Workflow(/Activity) reference
-                workflowReference = row.field_value.split('|');
-                params[13] = workflowReference[0]; //ID
-                params[18] = workflowReference[1]; //Name
+                try { //Supporting Backward Compatibility
+                    workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                } catch(err) {
+                    params[27] = row.field_value;
+                }                
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
@@ -3361,6 +3372,9 @@ async function addFormEntriesAsync(request) {
                 params[27] = row.field_value;
                 break;
             case 65: // Business Card DataType
+                params[27] = row.field_value;
+                break;
+            case 67: // Reminder DataType
                 params[27] = row.field_value;
                 break;
             }

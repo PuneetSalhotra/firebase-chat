@@ -831,16 +831,26 @@ function ActivityController(objCollection) {
     });
 
 
-    app.post('/' + global.config.version + '/activity/asset/mention/count/update', async function (req, res) {
+    app.post('/' + global.config.version + '/activity/asset/mention/count/update', async (req, res) =>{
         const [err, responseData] = await activityService.updateMentionsCnt(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
-            console.log("/activity/status/roll_back | Error: ", err);
+            console.log("/activity/asset/mention/count/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
     
+    
+    app.post('/' + global.config.version + '/activity/calendar/event/update', async (req, res) =>{
+        const [err, responseData] = await activityService.updateCalendarEventDates(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/calendar/event/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
 }
 
 
