@@ -6352,7 +6352,7 @@ function AdminOpsService(objectCollection) {
         );
 
         //const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
-        const queryString = util.getQueryString('ds_v1_tag_type_type_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_list_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
