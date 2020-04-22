@@ -6372,16 +6372,62 @@ function AdminOpsService(objectCollection) {
     //Insert into Tag Entity Mapping Insert
     this.tagEntityMappingInsert = async (request) => {
         let responseData = [],
+            error = false;
+
+        //Workflow- tag_type_category_id: 1
+        //Workforce- tag_type_category_id: 2
+        //Resource- tag_type_category_id: 3
+        //Status- tag_type_category_id: 4
+
+        console.log('typeof request.entity_list : ', typeof request.entity_list);
+        let entityList;
+        if(typeof request.entity_list === 'string') {
+            entityList = JSON.parse(request.entity_list);
+        } else {
+            entityList = request.entity_list;
+        }        
+        console.log(entityList);
+
+        switch(Number(request.tag_type_category_id)) {
+            case 1: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_type_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 2: for(let i = 0; i < entityList.length; i++) {
+                        request.tag_workforce_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 3: for(let i = 0; i < entityList.length; i++) {
+                        request.resource_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 4: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_status_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            default: break;
+        }       
+        
+        return [error, responseData];
+    }
+
+    //Insert into Tag Entity Mapping DB Insert
+    this.tagEntityMappingInsertDBCall = async (request) => {
+        let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
             request.tag_id,
             request.tag_type_category_id,
-            request.activity_type_id,
-            request.resource_id, //asset_id
-            request.tag_workforce_id,
-            request.activity_status_id,
+            request.activity_type_id || 0,
+            request.resource_id || 0, //asset_id
+            request.tag_workforce_id || 0,
+            request.activity_status_id || 0,
             request.asset_id,
             request.datetime_log || util.getCurrentUTCTime()
         );
