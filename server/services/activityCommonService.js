@@ -674,6 +674,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
+            case 2505: // [Contact] Add Comment 
+            case 2605: // [Product] Add Comment
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -711,6 +713,12 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break; 
+            case 326:
+            case 327:
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = "";                
+                break;
             case 2401: //Bot added lead
             case 2402: //Admin marked lead
             case 2403: //Admin replaced lead     
@@ -794,7 +802,7 @@ this.getAllParticipantsAsync = async (request) => {
         let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
             global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
-            callback(false, true)
+            callback(false, true);
         }
         else {
             if (queryString != '') {
@@ -3466,12 +3474,14 @@ this.getAllParticipantsAsync = async (request) => {
                         request.order_po_date || null,
                         request.order_caf_approval_datetime || null,
                         request.order_logged_datetime || null,
-                        order_po_trigger_diff,
+                        //order_po_trigger_diff,
+                        isNaN(order_po_trigger_diff) ? 0 : order_po_trigger_diff,
                         order_trigger_log_diff,
                         order_caf_approval_log_diff,
                         order_po_log_diff,
                         order_docs__log_diff,
-                        order_po__order_docs_diff,
+                        //order_po__order_docs_diff,
+                        isNaN(order_po__order_docs_diff) ? 0 : order_po__order_docs_diff,
                         flag,
                         request.datetime_log
                     );
@@ -4321,6 +4331,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
+            case 2505: // [Contact] Add Comment
+            case 2605: // [Product] Add Comment
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -5165,23 +5177,133 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.updateCustomerOnWorkflow = async function(request) {
 
         try{
-        let paramsArr = new Array(                
-            request.organization_id, 
-            request.activity_id, 
-            request.customer_asset_id,
-            request.asset_id,
-            util.getCurrentUTCTime()
-        );
-        let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
-       // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
-        if (queryString != '') {
-                         //(db.executeQueryPromise(0, queryStringMapping, request));
-            return await (db.executeQueryPromise(0, queryString, request));
-                            
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.activity_id, 
+                request.customer_asset_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+           // let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_status_due_date', paramsArr);
+            if (queryString != '') {
+                             //(db.executeQueryPromise(0, queryStringMapping, request));
+                return await (db.executeQueryPromise(0, queryString, request));
+                                
+            }
+        }catch(err){
+            console.log('Error '+err);
         }
-    }catch(err){
-        console.log('Error '+err);
+    };
+
+    this.sendPushToAsset = async function(request){
+        if(request.hasOwnProperty("target_asset_id")){
+            util.sendPushToAsset(request);
+        }
+
+        return "";
     }
+
+    this.sendPushToWorkforceAssets = async function(request){
+
+        if(request.hasOwnProperty("target_workforce_id")){
+            util.sendPushToWorkforce(request); //pubnub
+        }
+
+       let [error, responseData] = await self.getLinkedAssetsInWorkforce(request);
+
+        if(responseData.length > 0){
+            for(let i = 0; i < responseData.length; i++){
+                request.target_asset_id = responseData[i].asset_id;
+                request.asset_push_arn = responseData[i].asset_push_arn;
+                util.sendPushToAsset(request);
+            }
+        }
+
+        return "";
+    }
+
+    this.getLinkedAssetsInWorkforce = async function(request) {
+        let error = false,
+            responseData = [];
+        try{
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.account_id, 
+                request.target_workforce_id,
+                0,
+                500
+            );
+            let queryString = util.getQueryString('ds_v1_asset_list_select_linked_workforce', paramsArr);
+           
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        }catch(err){
+            console.log('Error '+err);
+        }
+
+        return [error, responseData];   
+    };
+
+    this.activityActivityMappingInsert = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,
+                        request.message_unique_id,
+                        request.asset_id,
+                        request.datetime_log
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_insert', paramsArr);           
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                        this.activityActivityMappingHistoryInsert(request);
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
+    };
+
+
+    this.activityActivityMappingHistoryInsert = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,                        
+                        request.asset_id,
+                        request.datetime_log
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_history_insert', paramsArr);           
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
     };
 }
 

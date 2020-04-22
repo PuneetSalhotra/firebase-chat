@@ -1342,18 +1342,25 @@ function ActivityListingService(objCollection) {
 
 	function getCatGrpCts(request) {
 		return new Promise((resolve, reject) => {
-			var paramsArr = new Array(
+			const paramsArr = new Array(
 				request.asset_id,
 				request.workforce_id,
 				request.account_id,
 				request.organization_id
 			);
-			var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_counts', paramsArr);
+			const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_counts', paramsArr);
 			if (queryString != '') {
-				db.executeQuery(1, queryString, request, function (err, resp) {
+				db.executeQuery(1, queryString, request, async (err, resp) =>{
 					if (err === false) {
 						// console.log('Data of group counts : ', resp);
-						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});
+						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});						
+
+						let [err, data] = await getMentionsCount(request);				
+						for(let i=0;i <resp.length; i++) {
+							if(Number(resp[i].activity_type_category_id) === 48) {
+								resp[i].mentions_count = (data.length > 0) ? data[0].count : 0;
+							}
+						}
 
 						return resolve(resp);
 						/*forEachAsync(resp, (next, row)=>{                            
@@ -1671,12 +1678,20 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getOrganizationsOfANumber = function (request, callback) {
+		var queryString = '';
+
 		var paramsArr = new Array(
 			request.organization_id || 0,
 			request.phone_number,
 			request.country_code
 		);
-		var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+
+		if(request.hasOwnProperty("allow_temp_organization")){
+			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+		}else{
+			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all_filter', paramsArr);
+		}
+
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -2847,6 +2862,31 @@ async function processFormInlineDataV1(request, data){
 	data[0].activity_inline_data = array;
 	return data;
 		
+	}
+
+	async function getMentionsCount(request) {
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(            
+            request.asset_id,
+            request.workforce_id,
+			request.account_id,
+			request.organization_id
+        );        
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_mcounts', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
 	}
 
 }

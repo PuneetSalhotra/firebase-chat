@@ -460,6 +460,84 @@ function CacheWrapper(client) {
         });
     };
 
+    
+    this.setOffset = (kafkaTopic, partitionOffset, status) => { 
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hset(kafkaTopic, partitionOffset, status, (err, reply) => {
+                if (err) {
+                    logger.error(`HSET ${kafkaTopic} ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HSET ${kafkaTopic} ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve();
+                }
+            });
+        });
+    };
+    
+
+    this.getOffset = (kafkaTopic, partitionOffset) => {
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hget(kafkaTopic, partitionOffset, (err, reply) => {
+                if (err) {
+                    logger.error(`HGET ${kafkaTopic} ${JSON.stringify(partitionOffset)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HGET ${kafkaTopic} ${JSON.stringify(partitionOffset)}`, { type: 'redis', cache_response: reply, error: err });
+                    // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
+
+    this.deleteOffset = (kafkaTopic, partitionOffset, status) => { 
+        //Status - Open 1; Close 0
+        //Open means  - message is yet to be read
+        //Close means - message is read
+        return new Promise((resolve, reject)=>{
+            client.hdel(kafkaTopic, partitionOffset, status, (err, reply) => {
+                if (err) {
+                    logger.error(`HDEL ${kafkaTopic} ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    logger.verbose(`HDEL ${kafkaTopic} ${JSON.stringify(partitionOffset)} ${JSON.stringify(status)}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve();
+                }
+            });
+        });
+    };
+
+
+    this.getTokenAuthPromise = (assetId) => {
+        return new Promise((resolve, reject) => {
+            client.hget('asset_map', assetId, function (err, reply) {
+                if (err) {
+                    logger.error(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    reject([err, false]);
+                } else {
+                    logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    if (typeof reply === 'string') {
+                        var collection = JSON.parse(reply);    
+                        resolve([false, collection.asset_auth_token]);
+                    } else {
+                        resolve([false, false]);
+                    }
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;

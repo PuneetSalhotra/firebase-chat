@@ -315,9 +315,11 @@ function AssetService(objectCollection) {
     this.getAssetDetails = function (request, callback) {
         var paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -726,7 +728,9 @@ function AssetService(objectCollection) {
             'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
             'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']),
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
-            
+            'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
+            'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
+            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id'])
         };
 
         callback(false, rowData);
@@ -4075,13 +4079,14 @@ function AssetService(objectCollection) {
 
     function tagTypeMasterSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.organization_id,
                 request.page_start,
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
+            const queryString = util.getQueryString('ds_p1_tag_type_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4440,7 +4445,7 @@ this.getQrBarcodeFeeback = async(request) => {
                         }else{
                             logger.info("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
                             request.global_array.push({"assetAvailableUpdate":"AI NOT ENABLED FOR THIS ORGANIZATION, aiTransactionId"+request.ai_bot_transaction_id})
-                            rmbotService.AIEventTransactionInsert(request);                            
+                            //rmbotService.AIEventTransactionInsert(request);                            
                         }
                     }else{
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
@@ -4675,6 +4680,159 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    this.callPushService = async function(request){
+
+        let error = false,
+             responseData = [];
+        let assetName = "";
+
+        if(request.hasOwnProperty("operating_asset_first_name")){
+            assetName = request.operating_asset_first_name;
+        }else{
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); // source for 1 and 2
+            if(assetData.length > 0){
+                assetName = assetData[0].operating_asset_first_name;
+            }
+        }
+        
+        if(assetName != ""){
+
+            request.target_workforce_id = request.workforce_id;
+            request.activity_id = 0;
+            if(request.swipe_type_id == 1){
+
+                request.push_title = "Logged In";
+                request.push_message = assetName+" has logged in";
+
+            }else if(request.swipe_type_id == 2){
+
+                request.push_title = "Logged Out";
+                request.push_message = assetName+" has logged out";
+
+            }else if(request.swipe_type_id == 3){
+
+                request.push_title = "Chai";
+                request.push_message = assetName+" and "+request.target_operating_asset_first_name+" connected for chai";
+
+            }else if(request.swipe_type_id == 4){
+
+                request.push_title = "DND Removed";
+                request.push_message = "DND removed on "+assetName;
+                
+            }else if(request.swipe_type_id == 5){
+
+                request.push_title = "Chat Inititated";
+                request.push_message = "Chat Inititated between "+assetName+" and "+request.target_operating_asset_first_name;
+            }  
+
+            activityCommonService.sendPushToWorkforceAssets(request);
+        }
+
+        return [error, responseData];
+    }
+
+    this.getAssetUsingPhoneNumber = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_phone_number,
+            request.country_code
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_phone_number_last_seen', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    
+                    if(data.length > 0){
+
+                        responseData = data;
+                        error = false;
+
+                    }else{
+                        console.log("data.length "+data.length);
+                        const rowData = {
+                            'query_status': -1,
+                            'asset_id': 0,
+                            'organization_id': 4,
+                            'organization_type_id': 5,
+                            'organization_type_category_id': 2,
+                            'account_id': 5,
+                            'workforce_id': 6,
+                            'employee_activity_type_id': 53,
+                            'desk_activity_type_id': 54,
+                            'employee_asset_type_id': 34,
+                            'desk_asset_type_id':35
+                        };
+                        responseData[0] = rowData;
+                        error = false;
+                    }
+                    console.log("data.length "+responseData.length);
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }    
+
+    this.assetListSelectCommonPool = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.is_search,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_common_pool', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getAssetDetailsExclusions = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
+            request.asset_id,
+            request.is_allow_org_category || 1,
+            request.is_allow_common_floor || 1
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_exclusions', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetData];
+    };
 }
 
 module.exports = AssetService;

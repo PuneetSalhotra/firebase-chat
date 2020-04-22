@@ -325,7 +325,12 @@ function RMBotService(objectCollection) {
                     responseData = data;
                     error = false;
                     // record ai transaction insert
-                    request.global_array.push({"unallocatedWorkflowInsert":queryString})
+                    request.global_array.push({"unallocatedWorkflowInsert":queryString});
+
+                    if(request.ai_bot_status_id == 3){
+                        request.target_activity_status_id = data[0].activity_status_id;
+                        self.sendPushtoSuitableUnAvailableResources(request);
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -948,37 +953,43 @@ function RMBotService(objectCollection) {
 
     this.assignResourceAsLead = async function (request, leadAssetId) {
         let error = true, responseData = [];
+
+        if(request.activity_type_category_id == 10){
+            //request.timeline_stream_type_id = 326;
+            await self.activityListLeadUpdateV1(request, leadAssetId);
+        }else if(request.activity_type_category_id == 48){
         
-        if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
-        {
-            request.global_array = [];
-            let [err, logData] = await self.getAIBotTransaction(request);
-            request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
-        }
+            if(request.hasOwnProperty("ai_bot_transaction_id") && !request.hasOwnProperty("global_array"))
+            {
+                request.global_array = [];
+                let [err, logData] = await self.getAIBotTransaction(request);
+                request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
+            }
 
-        request.timeline_stream_type_id = 718;
-        await self.activityListLeadUpdateV1(request, leadAssetId);
-        request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
+            request.timeline_stream_type_id = 718;
+            await self.activityListLeadUpdateV1(request, leadAssetId);
+            request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
-        request.target_asset_id = leadAssetId;
-        console.log("duration_in_minutes :: "+request.duration_in_minutes);
-        let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
-        request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
+            request.target_asset_id = leadAssetId;
+            console.log("duration_in_minutes :: "+request.duration_in_minutes);
+            let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
+            request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
 
-        request.ai_bot_id = 1;
-        request.ai_bot_status_id = 2;
-        request.bot_mapping_inline_data = {};
+            request.ai_bot_id = 1;
+            request.ai_bot_status_id = 2;
+            request.bot_mapping_inline_data = {};
 
-        request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
-        await self.unallocatedWorkflowInsert(request);
+            request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
+            await self.unallocatedWorkflowInsert(request);
 
-        if(request.activity_type_flag_persist_role == 1){
-            self.RMLoopInResoources(request);
-            request.activity_type_flag_persist_role = 0;
-        }else{
-            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
-            self.AIEventTransactionInsert(request);
-        }
+            if(request.activity_type_flag_persist_role == 1){
+                self.RMLoopInResoources(request);
+                request.activity_type_flag_persist_role = 0;
+            }else{
+                request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
+                self.AIEventTransactionInsert(request);
+            }
+    }
         return [error, responseData];
     } 
 
@@ -2483,8 +2494,14 @@ function RMBotService(objectCollection) {
                             }
                         }  
 
+                        if(Number(request.timeline_stream_type_id) == 326 || Number(request.timeline_stream_type_id) == 327){
+                            request.lead_asset_id = lead_asset_id;
+                            await self.activityAssetMappingUpdateLead(request);
+                        }
+
                         request.track_gps_datetime = util.getCurrentUTCTime();
-                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        if(!request.hasOwnProperty("message_unique_id"))
+                            request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                         
                         console.log("activityListLeadUpdate :: ",request.activity_lead_timeline_collection);
                         
@@ -2696,7 +2713,94 @@ function RMBotService(objectCollection) {
         }
 
         return [error, responseData];
-    }       
+    }  
+
+    this.getUnallocatedWorkflowsOfAssetType = async function (request) {
+
+        let responseData = {"data":[]},
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.lead_asset_type_id,
+            request.end_due_datetime || '1970-01-01 00:00:00',
+            request.due_date_flag || 1,
+            request.page_start||0,
+            request.page_limit||500
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData.data = data;
+                    error = false;
+                    }
+                )   
+            }
+
+        return [error, responseData];
+    }  
+
+    this.getStatusByStatusId = async function (request) {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_activity_status_id
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+
+    this.getSuitableUnAvailableResource = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_id,
+            util.getCurrentUTCTime(),
+            request.page_start||0,
+            request.page_limit||500
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_suitable_unavail_resources', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    }
+                )   
+            }
+
+        return [error, responseData];
+    }     
+
+    this.sendPushtoSuitableUnAvailableResources = async function(request){
+        let error = false,
+            statusData = [], assetData = [];
+
+       statusData = await self.getStatusByStatusId(request);
+
+       if(statusData.length > 0){
+            if(statusData[0].asset_type_id > 0){
+                request.asset_type_id = statusData[0].asset_type_id;
+                request.page_start = 0;
+                request.page_limit = 500;
+                [error, assetData] = self.getSuitableUnAvailableResource(request);
+                for(let i = 0; i < assetData.length; i++){
+                    request.target_asset_id = assetData[i].asset_id;
+                    request.asset_push_arn = assetData[i].asset_push_arn;
+                    util.sendPushToAsset(request);
+                }
+            }
+       }
+    }
 
 }
 

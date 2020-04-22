@@ -191,9 +191,9 @@ function AdminOpsController(objCollection) {
     // Create Queue Mapping with Status_tag
     app.post('/' + global.config.version + '/admin/queue/status_tag/add', async function (req, res) {
         const [err, statusData] = await adminOpsService.queueWithStatusTag(req.body);
-        try{
+        try {
             JSON.parse(req.body.status_tag_ids);
-        } catch(err1) {
+        } catch (err1) {
             res.send(responseWrapper.getResponse(err1, {}, -3308, req.body));
         }
         if (!err) {
@@ -214,7 +214,7 @@ function AdminOpsController(objCollection) {
             console.log("/admin/smart_form/upload | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-        
+
     });
 
     // [Redundant] Set Persist Role Flag In The Workforce Activity Type Mapping Table
@@ -309,7 +309,7 @@ function AdminOpsController(objCollection) {
             console.log("/admin/asset_manager/alter | Error: ", err);
         }
     });
-    
+
     // Update the role mapped to a status along with the expected status duration and workflow percentage as well
     app.post('/' + global.config.version + '/admin/workforce/activity_status/role/update', async function (req, res) {
         // flag:
@@ -380,8 +380,8 @@ function AdminOpsController(objCollection) {
         try {
             JSON.parse(req.body.account_inline_data);
         } catch (exeption) {
-                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'account_inline_data'", -3308, req.body));
-                return;
+            res.send(responseWrapper.getResponse(false, "Invalid JSON - 'account_inline_data'", -3308, req.body));
+            return;
         }
 
         const [err, responseData] = await adminOpsService.setBusinessHoursAccountLevel(req.body);
@@ -398,8 +398,8 @@ function AdminOpsController(objCollection) {
         try {
             JSON.parse(req.body.workforce_inline_data);
         } catch (exeption) {
-                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'workforce_inline_data'", -3308, req.body));
-                return;
+            res.send(responseWrapper.getResponse(false, "Invalid JSON - 'workforce_inline_data'", -3308, req.body));
+            return;
         }
 
         const [err, responseData] = await adminOpsService.setBusinessHoursWorkforceLevel(req.body);
@@ -416,8 +416,8 @@ function AdminOpsController(objCollection) {
         try {
             JSON.parse(req.body.asset_inline_data);
         } catch (exeption) {
-                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'desk_inline_data'", -3308, req.body));
-                return;
+            res.send(responseWrapper.getResponse(false, "Invalid JSON - 'desk_inline_data'", -3308, req.body));
+            return;
         }
         const [err, responseData] = await adminOpsService.setBusinessHoursDeskLevel(req.body);
         if (!err) {
@@ -457,7 +457,7 @@ function AdminOpsController(objCollection) {
             console.log("/admin/activity_type_tag/delete | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });   
+    });
 
     app.post('/' + global.config.version + '/admin/tag_type/delete', async function (req, res) {
         const [err, responseData] = await adminOpsService.tagTypeDelete(req.body);
@@ -467,7 +467,7 @@ function AdminOpsController(objCollection) {
             console.log("/admin/tag_type/delete | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    }); 
+    });
 
     //Upload the ID proof PAN/Adhaar/Passport
     app.post('/' + global.config.version + '/asset/id_proof/upload', async (req, res) => {
@@ -485,12 +485,12 @@ function AdminOpsController(objCollection) {
         try {
             let result = await adminOpsService.organizationInlineDataUpdate(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {            
+        } catch (err) {
             global.logger.write('conLog', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-    
+
     //Check Manager Details
     app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
         const [err, data] = await adminOpsService.checkManagerDetails(req.body);
@@ -506,7 +506,7 @@ function AdminOpsController(objCollection) {
         try {
             let result = await adminOpsService.updateOrganizationAIBot(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {            
+        } catch (err) {
             global.logger.write('conLog', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
@@ -516,11 +516,143 @@ function AdminOpsController(objCollection) {
         try {
             let result = await adminOpsService.processSignup(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {            
+        } catch (err) {
             global.logger.write('conLog', err, err, err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
+    });
+
+    // Update workbook mapping for a workflow
+    app.post('/' + global.config.version + '/admin/activity/workbook/update', async function (req, res) {
+        const [err, responseData] = await adminOpsService.updateWorkbookMappingForWorkflow(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/activity/workbook/update: ", err);
+            // res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag_type/alter', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagTypeUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag/entity/mapping/map', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagEntityMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/entity/mapping/map | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag/entity/mapping/unmap', async (req, res) => {
+        const [err, responseData] = await adminOpsService.tagEntityMappingDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/entity/mapping/unmap | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/asset/entity/mapping', async (req, res) => {
+        const [err, responseData] = await adminOpsService.assetAccessRoleMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/entity/mapping | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
     });    
+
+    // To add dotted managers
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/add', async (req, res) => {
+        const [err, responseData] = await adminOpsService.addDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    // To remove dotted managers
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/remove', async (req, res) => {
+        const [err, responseData] = await adminOpsService.removeDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/remove | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    // To list dotted managers
+    // If flag = 0 then select a check mapping for a particular asset and manager
+    // If flag = 1 THEN select all managers (direct / indirect / dotted) for a given asset
+    // If flag = 2 then select all managers ( dotted) for a given asset
+    // If flag = 3 then select all managers (direct / indirect ) for a given asset
+    // If flag = 4 then select all employees reporting (direct / indirect / dotted) to a given asset 
+    // If flag = 5 then select all employees reporting ( dotted) to a given asset 
+    // If flag = 6 then select all employees reporting (direct / indirect d) to a given asset 
+    app.post('/' + global.config.version + '/admin/asset/manager/dotted/list', async (req, res) => {
+        const [err, responseData] = await adminOpsService.listDottedManagerForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/manager/dotted/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/asset/move/organization', async (req, res) => {
+        const [err, responseData] = await adminOpsService.moveEmployeeDeskToAnotherOrganization(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/move/asset/organization | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    }); 
+    app.post('/' + global.config.version + '/admin/send/asset/invite', async (req, res) => {
+        const [err, responseData] = await adminOpsService.sendInviteText(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/send/asset/invite | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/workflow/dependent_form/check', async (req, res) => {
+        const [err, responseData] = await adminOpsService.dependedFormCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/dependent_form/check | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag/update', async function (req, res) {
+        const [err, responseData] = await adminOpsService.tagupdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;

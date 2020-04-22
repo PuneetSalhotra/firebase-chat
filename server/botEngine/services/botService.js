@@ -1025,7 +1025,7 @@ function BotService(objectCollection) {
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
-            global.logger.write('conLog', botSteps, {}, {});
+            logger.silly("botSteps: %j", botSteps);
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -1044,8 +1044,9 @@ function BotService(objectCollection) {
                 case 1: // Add Participant                 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
-                        await addParticipant(request, botOperationsJson.bot_operations.participant_add);
+                        await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing addParticipant Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -1062,8 +1063,7 @@ function BotService(objectCollection) {
                 case 2: // Alter Status
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'STATUS ALTER', {}, {});
-                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
-                    global.logger.write('conLog', request, {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
                         let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
@@ -1073,8 +1073,7 @@ function BotService(objectCollection) {
                             });
                         }
                     } catch (err) {
-                        global.logger.write('serverError', err, {}, {});
-                        global.logger.write('conLog', 'Error in executing changeStatus Step', {}, {});
+                        logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1108,8 +1107,7 @@ function BotService(objectCollection) {
                 case 4: //Update Workflow Percentage
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
-                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
-                    global.logger.write('conLog', request, {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
                     try {
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if (result[0]) {
@@ -1119,8 +1117,7 @@ function BotService(objectCollection) {
                             });
                         }
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing alterWFCompletionPercentage Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1270,11 +1267,11 @@ function BotService(objectCollection) {
                 case 12: // form_pdf
                     console.log('****************************************************************');
                     console.log('form_pdf');
-                    console.log('form_pdf | Request Params received by BOT ENGINE', request);
+                    logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     try {
                         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
-                        console.log('form_pdf  | Error', err);
+                        logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1323,6 +1320,20 @@ function BotService(objectCollection) {
 
                 case 17: // Combo Field Selection Bot
                     logger.silly("Combo Field Selection Bot");
+                    break;
+
+                case 18: // Workbook Mapping Bot
+                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot");
+                    break;
+
+                case 19: // Update CUID Bot
+                    logger.silly("Update CUID Bot");
+                    logger.silly("Update CUID Bot Request: %j", request);
+                    try {
+                        await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
+                    } catch (error) {
+                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
                     break;
             }
 
@@ -1568,8 +1579,35 @@ function BotService(objectCollection) {
 
         console.log("htmlTemplate: ", htmlTemplate);
 
+        let annexures = [];
+        try {
+            if (
+                templateData.hasOwnProperty("annexures") &&
+                Array.isArray(templateData.annexures)
+            ) {
+                console.log("templateData.annexures: ", templateData.annexures);
+
+                for (const annexure of templateData.annexures) {
+                    if (
+                        formFieldDataMap.has(annexure.field_id) &&
+                        formFieldDataMap.get(annexure.field_id).field_value !== ""
+                    ) {
+                        let annexureName = await util.downloadS3Object(request, formFieldDataMap.get(annexure.field_id).field_value);
+                        const annexurePath = path.resolve(global.config.efsPath, annexureName);
+                        logger.silly(`annexurePath: ${annexurePath}`, { type: 'html_to_pdf_bot' });
+                        annexures.push({
+                            ...annexure,
+                            filepath: annexurePath
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            logger.error(`Error parsing/fetching annexure data`, { type: 'html_to_pdf_bot', error: serializeError(error) });
+        }
+        
         // Generate PDF readable stream
-        const readableStream = await generatePDFreadableStream(request, htmlTemplate);
+        const readableStream = await generatePDFreadableStream(request, htmlTemplate, annexures);
         const bucketName = await util.getS3BucketName();
         const prefixPath = await util.getS3PrefixPath(request);
         console.log("bucketName: ", bucketName);
@@ -2292,7 +2330,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function generatePDFreadableStream(request, htmlTemplate) {
+    async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
             "height": "10.5in", // allowed units: mm, cm, in, px
             "width": "9in",
@@ -2305,13 +2343,76 @@ function BotService(objectCollection) {
             }
         };
         return new Promise((resolve, reject) => {
+            let filesToCleanup = new Set();
 
-            pdf.create(htmlTemplate, pdfOptions).toStream(function (err, pdfStream) {
-                console.log("generatePDFreadableStream | Error: ", err);
-                // console.log("pdfStream: ", pdfStream);
-                resolve(pdfStream)
-            });
+            if (annexures.length === 0) {
+                pdf.create(htmlTemplate, pdfOptions).toStream(function (err, pdfStream) {
+                    if (err) {
+                        logger.error(`Error creating pdf from html template [no annexures]`, { type: 'generatePDFreadableStream', error: serializeError(error) });
+                        reject(err)
+                        return;
+                    }
+                    // console.log("pdfStream: ", pdfStream);
+                    resolve(pdfStream)
+                });
+            } else {
+                pdf.create(htmlTemplate, pdfOptions).toBuffer(function (err, pdfBuffer) {
+                    if (err) {
+                        logger.error(`Error creating pdf from html template [annexures]`, { type: 'generatePDFreadableStream', error: serializeError(error) });
+                        reject(err)
+                        return;
+                    }
 
+                    const finalOutputPDF = `${global.config.efsPath}/${request.activity_id}_${moment().utc().format('YYYY-MM-DD_HH-mm-ss')}.pdf`
+                    const pdfDoc = new HummusRecipe(pdfBuffer, finalOutputPDF, {
+                        // version: 1.6,
+                        // author: 'John Doe',
+                        // title: 'Hummus Recipe',
+                        // subject: 'A brand new PDF'
+                    });
+    
+                    for (const annexure of annexures) {
+                        // 51 => PDF Documents
+                        if (Number(annexure.data_type_id) === 51) {
+                            console.log(`${annexure.data_type_id} annexure: `, annexure)
+                            pdfDoc
+                                .appendPage(`${annexure.filepath}`)
+                                .endPage();
+                        }
+                        // Images:
+                        // 24 => Gallery Image
+                        // 25 => Camera Image
+                        if (
+                            Number(annexure.data_type_id) === 24 ||
+                            Number(annexure.data_type_id) === 25
+                        ) {
+                            // Create a temporary empty PDF document
+                            const tempBlankPDFDocumentPath = `${global.config.efsPath}/${request.workflow_activity_id}_blank_pdf_document.pdf`;
+                            const tempBlankPDFDocument = new HummusRecipe('new', tempBlankPDFDocumentPath);
+                            tempBlankPDFDocument
+                                .createPage('A4')
+                                .image(`${annexure.filepath}`, 20, 100, { width: 400, keepAspectRatio: true })
+                                .endPage()
+                                .endPDF();
+
+                            filesToCleanup.add(tempBlankPDFDocumentPath)
+                            pdfDoc
+                                .appendPage(tempBlankPDFDocumentPath)
+                                .endPage();
+                        }
+
+                        filesToCleanup.add(annexure.filepath);
+                    }
+                    pdfDoc.endPDF();
+
+                    // CleanUp!
+                    for (const file of filesToCleanup.values()) {
+                        fs.unlinkSync(file);
+                    }
+
+                    resolve(fs.createReadStream(finalOutputPDF));
+                });
+            }
         });
     }
 
@@ -2395,9 +2496,105 @@ function BotService(objectCollection) {
     }
     
     // Bot Step to change the status
-    async function changeStatus(request, inlineData) {
+    async function changeStatus(request, inlineData = {}) {
+        const workflowActivityID = request.workflow_activity_id;
+
+        // Status alter or substatus completion bot incorporating arithmetic condition
+        if (
+            // Check if the new condition array exists
+            inlineData.hasOwnProperty("condition") &&
+            Array.isArray(inlineData.condition) &&
+            inlineData.condition.length > 0 &&
+            // Check if the pass and fail status objects exist
+            inlineData.hasOwnProperty("pass") &&
+            inlineData.hasOwnProperty("fail")
+        ) {
+            let conditionChain = [];
+            for (const condition of inlineData.condition) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+            
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                inlineData.activity_status_id = inlineData.pass.activity_status_id;
+                inlineData.flag_trigger_resource_manager = inlineData.pass.flag_trigger_resource_manager;
+
+            } else if (!finalCondition.value) {
+                inlineData.activity_status_id = inlineData.fail.activity_status_id;
+                inlineData.flag_trigger_resource_manager = inlineData.fail.flag_trigger_resource_manager;
+
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+                return [true, "Error processing the condition chain"];
+            }
+        }
+
         let newReq = Object.assign({}, request);
-        global.logger.write('conLog', inlineData, {}, {});
+        logger.silly("inlineData: %j", inlineData);
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -2459,7 +2656,7 @@ function BotService(objectCollection) {
         }
 
         let resp = await getQueueActivity(newReq, request.workflow_activity_id);
-        global.logger.write('conLog', resp, {}, {});
+        logger.silly("getQueueActivity | resp: %j", resp);
 
         if (resp.length > 0) {
             let workflowActivityPercentage = 0;
@@ -2472,18 +2669,18 @@ function BotService(objectCollection) {
                         }
                     })
                     .catch((error) => {
-                        console.log("BotEngine: changeStatus | getActivityDetailsPromise | error: ", error);
+                        logger.error("changeStatus | getActivityDetailsPromise | error", { type: 'bot_engine', error: error, request_body: request });
                     });
             } catch (error) {
-                console.log("BotEngine: changeStatus | Activity Details Fetch Error | error: ", error);
+                logger.error("changeStatus | Activity Details Fetch Error | error", { type: 'bot_engine', error: error, request_body: request });
             }
 
             // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
-            global.logger.write('conLog', 'Status Alter BOT Step - status Name : ', statusName, {});
+            logger.silly("Status Alter BOT Step - status Name: %j ", statusName, { type: 'bot_engine' });
 
             let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);
 
-            global.logger.write('conLog', 'queues Data : ', queuesData, {});
+            logger.silly("queues Data: %j ", queuesData, { type: 'bot_engine' });
 
             let queueActMapInlineData;
             let data;
@@ -2500,7 +2697,7 @@ function BotService(objectCollection) {
                 }
 
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
-                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ', data, {});
+                logger.silly("Status Alter BOT Step - Updating the Queue Json: %j ", data, { type: 'bot_engine' });
 
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
@@ -2549,31 +2746,58 @@ function BotService(objectCollection) {
     }
 
     //Bot Step Copying the fields
-    async function copyFields(request, fieldCopyInlineData) {
+    async function copyFields(request, fieldCopyInlineData) {        
 
         const workflowActivityID = Number(request.workflow_activity_id),
             // sourceFormActivityID = Number(request.activity_id),
             // sourceFormID = Number(request.form_id),
             targetFormID = Number(fieldCopyInlineData[0].target_form_id);
 
+        //ESMS Requirement - Check If target_form_id is an origin form
+        let esmsFlag = 0;
+        let esmsReq = Object.assign({}, request);
+            esmsReq.form_id = targetFormID;            
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(esmsReq);
+        if (formConfigError !== false || formConfigData.length === 0) {
+            return [true, {
+                message: `Couldn't fetch form data for form ${request.form_id}.`
+            }];
+        }        
+
+        if (Number(formConfigData.length) > 0) {
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+                //workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                //formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
+                //workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                //formName = String(formConfigData[0].form_name),
+                //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+        
+            if(originFlagSet && isWorkflowEnabled) {
+                esmsFlag = 1;
+            }
+        }        
+
         let targetFormTransactionData = [],
             targetFormActivityID = 0,
             targetFormTransactionID = 0;
 
         // Check if the target form already exists for the given workflow
-        try {
-            targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                organization_id: request.organization_id,
-                account_id: request.account_id
-            }, workflowActivityID, targetFormID);
-
-            if (Number(targetFormTransactionData.length) > 0) {
-                targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
-                targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+        if(Number(esmsFlag) === 0) {
+            try {
+                targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, targetFormID);
+    
+                if (Number(targetFormTransactionData.length) > 0) {
+                    targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                    targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                throw new Error(error);
             }
-        } catch (error) {
-            console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
-            throw new Error(error);
         }
 
         let activityInlineData = [],
@@ -2655,11 +2879,19 @@ function BotService(objectCollection) {
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, create one
             let createTargetFormRequest = Object.assign({}, request);
-            createTargetFormRequest.activity_form_id = targetFormID;
-            createTargetFormRequest.form_id = targetFormID;
-            createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            createTargetFormRequest.workflow_activity_id = workflowActivityID;
-
+                createTargetFormRequest.activity_form_id = targetFormID;
+                createTargetFormRequest.form_id = targetFormID;
+                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
+                
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;  
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;                
+                }
             try {
                 await createTargetFormActivity(createTargetFormRequest);
             } catch (error) {
@@ -2828,7 +3060,7 @@ function BotService(objectCollection) {
     }
 
     // Bot Step Adding a participant
-    async function addParticipant(request, inlineData) {
+    async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
         global.logger.write('conLog', inlineData, {}, {});
@@ -2900,7 +3132,56 @@ function BotService(objectCollection) {
                     }
                 }
             }
+        } else if (type[0] === 'asset_reference') {
+            const formID = Number(inlineData["asset_reference"].form_id),
+                fieldID = Number(inlineData["asset_reference"].field_id),
+                workflowActivityID = Number(request.workflow_activity_id);
+
+            let formTransactionID = 0, formActivityID = 0;
+
+            if (!formInlineDataMap.has(fieldID)) {
+                // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
+                // newReq.desk_asset_id = fieldValue[0];
+                // newReq.customer_name = fieldValue[1]
+
+            } else {
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, formID);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
+                    newReq.customer_name = fieldData[0].data_entity_text_1;
+                }
+            }
+
+            if (Number(newReq.desk_asset_id) > 0) {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: newReq.desk_asset_id
+                });
+                if (assetData.length > 0) {
+                    newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
+                    newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+                }
+            }
         }
+
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
             try {
@@ -2915,7 +3196,7 @@ function BotService(objectCollection) {
                     console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
                 }
             } catch (error) {
-                console.log("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", error);
+                logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
             }
         }
 
@@ -2927,7 +3208,7 @@ function BotService(objectCollection) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
-            console.log("BotService | addParticipant | Error: ", `Phone number: ${newReq.phone_number}, has got problems!`);
+            logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 
@@ -4216,7 +4497,8 @@ function BotService(objectCollection) {
                 '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
-                '', //IN p_location_datetime DATETIME                          26
+                '', //IN p_location_datetime DATETIME                           26
+                '{}' //IN p_inline_data JSON                                     27
             );
 
             const dataTypeId = Number(row.field_data_type_id);
@@ -4428,6 +4710,15 @@ function BotService(objectCollection) {
                         console.log(err);
                     }
                     break;
+                case 64: // Address DataType
+                    params[27] = row.field_value;
+                    break;
+                case 65: // Business Card DataType
+                    params[27] = row.field_value;
+                    break;
+                case 67: // Reminder DataType
+                    params[27] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -4448,9 +4739,10 @@ function BotService(objectCollection) {
 
             global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
          
-            let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+            // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+            let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
             if(request.asset_id === 0 || request.asset_id === null) {
-                global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
             }
             else {
                 if (queryString != '') {
@@ -4996,6 +5288,170 @@ function BotService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {
+        for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
+            let cuidUpdateFlag = 0,
+                activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
+                fieldValue = "";
+
+            if (
+                formInlineDataMap.has(Number(cuidValue.field_id))
+            ) {
+                const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
+                fieldValue = fieldData.field_value || "";
+            }
+            switch (cuidKey) {
+                case "CUID1":
+                    cuidUpdateFlag = 1;
+                    activityCUID1 = fieldValue;
+                    break;
+
+                case "CUID2":
+                    cuidUpdateFlag = 2;
+                    activityCUID2 = fieldValue;
+                    break;
+
+                case "CUID3":
+                    cuidUpdateFlag = 3;
+                    activityCUID3 = fieldValue;
+                    break;
+
+                default:
+                    throw new Error(`cuidInlineData contains incorrect cuid key: ${cuidKey}`)
+                // break;
+            }
+
+            // Update the activity list table
+            try {
+                await activityListUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.activityListUpdateCuids | Error updating CUID in the activity_list table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the activity list history table
+            try {
+                await activityCommonService.activityListHistoryInsertAsync({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, 418);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation activityListHistoryInsertAsync | Error updating CUID in the activity_list_history table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the activity_asset_mapping table
+            try {
+                await activityAssetMappingUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.activityAssetMappingUpdateCUIDs | Error updating CUID in the activity_asset_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            // Update the queue_activity_mapping table
+            try {
+                await queueActivityMappingUpdateCUIDs({
+                    ...request,
+                    activity_id: request.workflow_activity_id
+                }, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3);
+            } catch (error) {
+                logger.error("updateCUIDBotOperation.queueActivityMappingUpdateCUIDs | Error updating CUID in the queue_activity_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+        }
+
+        return;
+    }
+
+    async function activityListUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function activityAssetMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function queueActivityMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            activityCUID1,
+            activityCUID2,
+            activityCUID3,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_queue_activity_mapping_update_cuids', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = BotService;

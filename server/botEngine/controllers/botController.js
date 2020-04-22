@@ -267,10 +267,11 @@ function BotController(objCollection) {
         }
     }); 
     
+    //SET & RESET Lead - Manual
     app.post('/' + global.config.version + '/activity/lead/update', async function (req, res) {
         const [err, responseData] = await rmbotService.activityListLeadUpdateV1(req.body, req.body.lead_asset_id);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/lead/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
@@ -296,6 +297,16 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });   
+
+    app.post('/' + global.config.version + '/asset_type/unallocated/workflows', async (req, res) => {
+        try {
+            let [err, result] = await rmbotService.getUnallocatedWorkflowsOfAssetType(req.body,0);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {            
+            global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });      
 }
 
 module.exports = BotController;

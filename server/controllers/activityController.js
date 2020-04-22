@@ -359,30 +359,23 @@ function ActivityController(objCollection) {
                             break;
                         case 9: // form                        
                             //generate a form transaction id first and give it back to the client along with new activity id
-                            cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
-                                if (err) {
-                                    // console.log(err);
+                            cacheWrapper.getFormTransactionId((err, formTransactionId) => {
+                                if (err) {                                    
                                     global.logger.write('serverError', err, err, req);
-                                    res.send(responseWrapper.getResponse(false, {
-                                        activity_id: 0
-                                    }, -7998, req.body));
+                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                     return;
                                 } else {
                                     req.body['form_transaction_id'] = formTransactionId;
-                                    addActivity(req.body, function (err, activityId) {
+                                    
+                                    addActivity(req.body, (err, activityId) => {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {
-                                                activity_id: activityId,
-                                                form_transaction_id: formTransactionId
-                                            }, 200, req.body));
+                                            res.send(responseWrapper.getResponse(false, {activity_id: activityId,
+                                                                                         form_transaction_id: formTransactionId
+                                                                                        }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                            res.send(responseWrapper.getResponse(false, {
-                                                    activity_id: 0
-                                                }, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {
-                                                    activity_id: 0
-                                                }, -5998, req.body));
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
                                         }
                                     });
                                 }
@@ -417,7 +410,7 @@ function ActivityController(objCollection) {
                             // Sanity check
                             // 0. This service uses auth_asset_id for token authentication
                             // 
-                            if (!req.body.hasOwnProperty('auth_asset_id')) {
+                            /*if (!req.body.hasOwnProperty('auth_asset_id')) {
                                 let data = 'Please use the request parameter auth_asset_id for token authentication.';
                                 res.send(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
@@ -435,7 +428,7 @@ function ActivityController(objCollection) {
                                 let data = 'The asset_id (Creator) must be less than the owner_asset_id (Owner).';
                                 res.send(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
-                            }
+                            } */
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {
@@ -836,7 +829,28 @@ function ActivityController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
+
+
+    app.post('/' + global.config.version + '/activity/asset/mention/count/update', async (req, res) =>{
+        const [err, responseData] = await activityService.updateMentionsCnt(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/asset/mention/count/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
     
+    
+    app.post('/' + global.config.version + '/activity/calendar/event/update', async (req, res) =>{
+        const [err, responseData] = await activityService.updateCalendarEventDates(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/calendar/event/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
 }
 
 

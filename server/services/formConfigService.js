@@ -862,7 +862,8 @@ function FormConfigService(objCollection) {
                     '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
-                    '', //IN p_location_datetime DATETIME                          26                    
+                    '', //IN p_location_datetime DATETIME                           26                    
+                    '{}' //IN p_inline_data JSON                                     27
                 );
 
                 var dataTypeId = Number(row.field_data_type_id);
@@ -1061,9 +1062,14 @@ function FormConfigService(objCollection) {
                         params[11] = row.field_value;
                         break;
                     case 57: //Workflow reference
-                        workflowReference = row.field_value.split('|');
-                        params[13] = workflowReference[0]; //ID
-                        params[18] = workflowReference[1]; //Name
+                        try{ //Supporting Backward Compatibility
+                            workflowReference = row.field_value.split('|');
+                            params[13] = workflowReference[0]; //ID
+                            params[18] = workflowReference[1]; //Name
+                        } catch(err) {
+                            params[27] = row.field_value;
+                        }
+                        
                         break;
                     case 58://Document reference
                         // documentReference = row.field_value.split('|');
@@ -1078,32 +1084,41 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value;
                         break;
                     case 62: //Credit/Debit DataType
-                        try {                            
+                        try {
                             let jsonData;
                             let amount;
-                            (typeof row.field_value === 'object')?
-                                jsonData = row.field_value:
+                            (typeof row.field_value === 'object') ?
+                                jsonData = row.field_value :
                                 jsonData = JSON.parse(row.field_value);
 
                             let newAmount = Number(jsonData.transaction_data.transaction_amount);
                             let oldAmount = Number(activityInlineData[0].old_field_value);
-                            
-                            if(oldAmount > newAmount) {
+
+                            if (oldAmount > newAmount) {
                                 //Decreased so Minus
                                 amount = newAmount - oldAmount;
                             } else {
                                 //Increased so Plus
                                 amount = newAmount - oldAmount;
                             }
-                            
+
                             //console.log('jsonData : ', jsonData);
                             (Number(jsonData.transaction_data.transaction_type_id) === 1) ?
-                                params[15] = amount: //credit
+                                params[15] = amount : //credit
                                 params[16] = amount; // Debit
                             params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                         } catch (err) {
                             console.log(err);
                         }
+                        break;
+                    case 64: // Address DataType
+                        params[27] = row.field_value;
+                        break;
+                    case 65: // Business Card DataType
+                        params[27] = row.field_value;
+                        break;
+                    case 67: // Reminder DataType
+                        params[27] = row.field_value;
                         break;
                 }
 
@@ -1125,9 +1140,10 @@ function FormConfigService(objCollection) {
 
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-                let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
-                    global.logger.write('conLog', '\x1b[ds_p1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                    global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
                 }
                 else {
                     if (queryString != '') {
@@ -1708,14 +1724,15 @@ function FormConfigService(objCollection) {
             let paramsArr = new Array(
                 formID,
                 levelID || 3,
+                request.target_asset_id || 0,
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                request.asset_id,
+                request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
 
-            const queryString = util.getQueryString('ds_p1_form_entity_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -4566,17 +4583,36 @@ function FormConfigService(objCollection) {
         return [error, workforceData];
     } 
 
-    this.setMultipleWorkforceAccess = 
+    this.setMultipleWorkforceAccess =
         async (request) => {
-            try{
+            try {
                 let targetWorkforceInline = JSON.parse(request.target_workforces);
-                for(let counter = 0; counter < targetWorkforceInline.length; counter++){
+                for (let counter = 0; counter < targetWorkforceInline.length; counter++) {
                     request.workforce_id = targetWorkforceInline[counter].target_workforce_id;
                     request.account_id = targetWorkforceInline[counter].target_account_id;
                     let [err, formFieldData] = await self.formEntityAccessCheck(request);
-                    console.log("formFieldData :: "+formFieldData.length);
-                    if(formFieldData.length === 0)
-                    await formEntityMappingInsert(request, request.form_id, 3);
+                    console.log("formFieldData :: " + formFieldData.length);
+                    if (formFieldData.length === 0)
+                        await formEntityMappingInsert(request, request.form_id, 3);
+                }
+
+                const targetAssetsArray = JSON.parse(request.target_assets || '[]');
+                for (const targetAssetData of targetAssetsArray) {
+                    let [err, formEntityData] = await self.formEntityAccessCheck({
+                        ...request,
+                        target_asset_id: targetAssetData.asset_id,
+                        workforce_id: targetAssetData.workforce_id,
+                        account_id: targetAssetData.account_id,
+                    });
+                    if (formEntityData.length === 0) {
+                        await formEntityMappingInsert({
+                            ...request,
+                            asset_id: targetAssetData.asset_id,
+                            workforce_id: targetAssetData.workforce_id,
+                            account_id: targetAssetData.account_id,
+                            log_asset_id: request.asset_id
+                        }, request.form_id, 6);
+                    }
                 }
             } catch (error) {
                 return Promise.reject(error);
@@ -4720,9 +4756,34 @@ function FormConfigService(objCollection) {
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
                 //Workflow Reference
-                case 57:let fieldValue = fieldData.field_value.split('|'); 
-                        newRequest.mapping_activity_id = fieldValue[0];
-                        await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                case 57://let fieldValue = fieldData.field_value.split('|'); 
+                        //newRequest.mapping_activity_id = fieldValue[0];
+                        //await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+
+                        let fieldValue = fieldData.field_value;
+                        let parsedFieldValue;
+                        let mappingActivityId;
+                        let multiWorkflowReferenceFlag = 1;
+
+                        try{
+                            parsedFieldValue = JSON.parse(fieldValue);
+                        } catch(err) {
+                            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
+                            console.log('Switching to backward compatibility');
+                            
+                            //Backward Compatibility "workflowactivityid|workflowactivitytitle"
+                            mappingActivityId = fieldData.field_value.split('|');
+                            newRequest.mapping_activity_id = mappingActivityId[0];
+                            await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            multiWorkflowReferenceFlag = 0;
+                        }                     
+    
+                        if(Number(multiWorkflowReferenceFlag) === 1) {
+                            for(let i = 0; i < parsedFieldValue.length; i++) {
+                                newRequest.mapping_activity_id = parsedFieldValue[i].workflow_activity_id;;
+                                await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                            }
+                        }
                     break;
 
                 //Combo field
@@ -5020,7 +5081,176 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }
+
+    this.draftFormAdd = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let formTransactionID = await cacheWrapper.getFormTransactionIdPromise();        
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.asset_id, 
+            request.operating_asset_id, 
+            formTransactionID, 
+            request.form_draft_inline_data || '{}',
+            request.form_id, 
+            request.workflow_activity_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    //responseData = data;
+                    responseData.push({"form_transaction_id" : formTransactionID});
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.workflow_activity_id || 0,
+            request.form_id || 0
+        );
+        //const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select_asset', paramsArr);
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormAlter = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.form_id,
+            request.form_transaction_id,
+            request.form_inline_data || '{}',
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.draftFormDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.form_id,
+            request.form_transaction_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     
+    this.getMultipleSubmissionsData = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workflow_activity_id,
+            request.form_id,
+            request.page_start || 0,
+			util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_activity_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+    this.assetLevelForms = async (request) => {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];        
+    }
 }
 
 module.exports = FormConfigService;

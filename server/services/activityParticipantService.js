@@ -138,7 +138,7 @@ function ActivityParticipantService(objectCollection) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
-                            
+
                             //else
                             if(request.hasOwnProperty("add_as_lead")){
                                 rmbotService.assignResourceAsLead(request, participantData.asset_id);
@@ -289,6 +289,18 @@ function ActivityParticipantService(objectCollection) {
                 case 53: //Account
                     activityStreamTypeId = 27004;
                     break;
+                case 54: //Contact
+                    activityStreamTypeId = 2502;
+                    break;
+                case 55: //Product
+                    activityStreamTypeId = 2602;
+                    break;
+                case 56: //Move
+                    activityStreamTypeId = 2702;
+                    break;  
+                case 27: //GroupChat
+                    activityStreamTypeId = 2802;
+                    break;                                       
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
@@ -443,13 +455,22 @@ function ActivityParticipantService(objectCollection) {
                 case 52: //Widget
                     activityStreamTypeId = 26005;
                     break;
+                case 54: //Contact
+                    activityStreamTypeId = 2503;
+                    break;
+                case 55: //Product
+                    activityStreamTypeId = 2603;
+                    break;
+                case 27: //Group Chat
+                    activityStreamTypeId = 2804;
+                    break;                    
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
                     global.logger.write('conLog', 'adding streamtype id 3', {}, request)
                     break;
 
-            };
+            }
         }
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;

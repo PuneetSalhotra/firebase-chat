@@ -262,7 +262,7 @@ function AdminListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            console.log("/admin/activity_status_type/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
@@ -278,7 +278,7 @@ function AdminListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            console.log("/admin/workforce/asset_type/role/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
@@ -347,6 +347,58 @@ function AdminListingController(objCollection) {
         } else {
             console.log("/admin/organization/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/activity_type/status/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.workforceActivityStatusMappingSelectStatusType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });  
+
+    app.post('/' + global.config.version + '/admin/asset_category/asset_type/list', async function (req, res) {
+        const [err, assetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetTypeData, 200, req.body));
+        } else {
+            console.log("/admin/asset_category/asset_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetTypeData, -9999, req.body));
+        }
+    });  
+
+    app.post('/' + global.config.version + '/admin/workflow/bots_enabled/form/list', async (req, res) => {
+        req.body.bot_operation_type_id = 20;
+        const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/bots_enabled/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
+
+
+    app.post('/' + global.config.version + '/admin/tag_type/list', async (req, res) => {        
+        const [err, botsData] = await adminListingService.getTagTypesBasedOnCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/tag/entity/mapping/list', async (req, res) => {        
+        const [err, botsData] = await adminListingService.getTagEntityMappingsBasedOnCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/tag/entity/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
         }
     });
 }

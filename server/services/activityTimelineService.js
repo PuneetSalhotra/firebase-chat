@@ -206,12 +206,15 @@ function ActivityTimelineService(objectCollection) {
 
         } else {
 
-            console.log("I AM HERE 1!")
+            console.log("I AM HERE 1!");
             request.form_id = 0;
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
             });
         }
+
+        //If it is a comment with a mention
+        commentWithMentions(request);
 
         new Promise(() => {
             setTimeout(() => {
@@ -415,6 +418,8 @@ function ActivityTimelineService(objectCollection) {
                 error=false; 
         }
 
+        commentWithMentions(request);
+        
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
@@ -739,7 +744,7 @@ function ActivityTimelineService(objectCollection) {
                             ) {
                                 throw new Error("ChildOrder::NoPush")
                             }
-                            if(activityStreamTypeId !== 711) {
+                            if(activityStreamTypeId !== 711 && activityStreamTypeId !== 111 && activityStreamTypeId !== 112 && activityStreamTypeId !== 113) {
                                 activityPushService.sendPush(request, objectCollection, 0, function () {});
                             }
                         } catch (error) {
@@ -2446,7 +2451,8 @@ function ActivityTimelineService(objectCollection) {
                 '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
-                '' //IN p_location_datetime DATETIME                            26
+                '', //IN p_location_datetime DATETIME                           26
+                '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -2658,9 +2664,13 @@ function ActivityTimelineService(objectCollection) {
                     params[11] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference
-                    workflowReference = row.field_value.split('|');
-                    params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
+                    try{ //Supporting Backward Compatibility
+                        workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                    } catch(err) {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
@@ -2685,6 +2695,15 @@ function ActivityTimelineService(objectCollection) {
                         console.log(err);
                     }
                     break;
+                case 64: // Address DataType
+                    params[27] = row.field_value;
+                    break;
+                case 65: // Business Card DataType
+                    params[27] = row.field_value;
+                    break;
+                case 67: // Reminder DataType
+                    params[27] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -2706,7 +2725,8 @@ function ActivityTimelineService(objectCollection) {
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
-            var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            var queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
@@ -3105,7 +3125,8 @@ async function addFormEntriesAsync(request) {
             '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
             '', //IN p_location_gps_enabled TINYINT(1)                      24
             '', //IN p_location_address VARCHAR(300)                        25
-            '' //IN p_location_datetime DATETIME                            26
+            '', //IN p_location_datetime DATETIME                           26
+            '{}' //IN p_inline_data JSON                                    27
             );
 
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
@@ -3314,9 +3335,13 @@ async function addFormEntriesAsync(request) {
                 params[11] = row.field_value;
                 break;
             case 57: //Workflow(/Activity) reference
-                workflowReference = row.field_value.split('|');
-                params[13] = workflowReference[0]; //ID
-                params[18] = workflowReference[1]; //Name
+                try { //Supporting Backward Compatibility
+                    workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                } catch(err) {
+                    params[27] = row.field_value;
+                }                
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
@@ -3343,6 +3368,15 @@ async function addFormEntriesAsync(request) {
                         console.log(err);
                     }
                 break;
+            case 64: // Address DataType
+                params[27] = row.field_value;
+                break;
+            case 65: // Business Card DataType
+                params[27] = row.field_value;
+                break;
+            case 67: // Reminder DataType
+                params[27] = row.field_value;
+                break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3362,7 +3396,8 @@ async function addFormEntriesAsync(request) {
 
             global.logger.write('conLog', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-            const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            // const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
+            const queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
@@ -3632,6 +3667,62 @@ async function addFormEntriesAsync(request) {
                 error=false;
 
             return [error, responseData];
+    }
+
+    async function commentWithMentions(request) {
+        if(Number(request.activity_type_category_id === 48) && 
+           Number(request.is_mention === 1)) {
+            let mentions = request.mentions_array;
+
+            for(let i=0; i<mentions.length; i++) {
+                //mentions[i] - asset_id
+                await sendEmail();
+            }
+        }
+
+        return "success";
+    }
+
+    async function sendEmail(request) {
+
+        /*const jsonString = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: Number(customerCollection.customerServiceDeskAssetID),
+            asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+            auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+            activity_id: request.activity_id || 0,
+            activity_type_category_id: 9,
+            activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
+            activity_stream_type_id: 705,
+            form_id: Number(customerCollection.activity_form_id),
+            type: 'approval'
+        };
+
+        if (String(customerCollection.contactEmailId).includes('%40')) {
+            customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
+        }
+
+        const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+        const Template = "";
+        let emailSubject = "You have been mentioned on [Workflow Title] @ [DD-MM-YYYY HH:MM AM/PM] By [Operating Asset Name]";
+
+        util.sendEmailV3(request,
+                         customerCollection.contactEmailId,
+                         emailSubject,
+                         "IGNORE",
+                         Template,
+                         (err, data) => {
+                                    if (err) {
+                                        console.log("[Send Email - Mention | Error]: ", data);
+                                    } else {
+                                        console.log("[Send Email - Mention | Response]: ", "Email Sent");
+                                    }                
+                                }
+                         );*/
+        
+        return "success";
     }
 
 }
