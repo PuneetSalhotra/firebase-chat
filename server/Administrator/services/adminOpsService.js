@@ -5447,7 +5447,7 @@ function AdminOpsService(objectCollection) {
             request.organization_id,
             request.tag_id,
             request.asset_id,
-            request.datetime_log
+            request.datetime_log || util.getCurrentUTCTime()
         );
 
         const queryString = util.getQueryString('ds_v1_tag_list_delete', paramsArr);
@@ -7109,6 +7109,38 @@ function AdminOpsService(objectCollection) {
                     error = err;
                 })
         }*/
+        return [error, responseData];
+    }
+
+    this.tagupdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.tag_id,
+            request.tag_name,
+            request.inline_data || '{}',
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_tag_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    //self.tagListHistoryInsert(request, 2003);
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
         return [error, responseData];
     }
 
