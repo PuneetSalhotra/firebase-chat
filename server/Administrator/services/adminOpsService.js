@@ -7080,35 +7080,50 @@ function AdminOpsService(objectCollection) {
         const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
 
         if(botsData.length) {
-            let inlineData
-            for(let i=0;i< botsData.length;i++) {
+            let inlineData;
+            let tempArr = []; //Delete once the JSON is fixed at DB layer
+            let conditions;
+            let dependentFormTransactionData;
+
+            for(let i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
                 inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
-                console.log(inlineData);
-                //console.log(inlineData.form_enable)
-            }
-        }
+                //console.log(inlineData);
+                console.log(inlineData.form_enable);
 
-        /*const paramsArr = new Array(
-            request.organization_id,
-            request.target_asset_id,
-            request.manager_asset_id,
-            request.flag || 0,
-            request.start_from || 0,
-            request.limit_value || 50
-        );
+                tempArr.push(inlineData.form_enable);
 
-        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
+                console.log(tempArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }*/
+                for(let j=0; j<tempArr.length; j++) {
+                    console.log(tempArr[j].form_id);
+                    conditions = tempArr[j].condition;
+
+                    console.log('Conditions: ', conditions);
+
+                    if(Number(request.form_id) === Number(tempArr[j].form_id)) { //Checking for the given specific form
+                        //Check whether the dependent form is submitted
+                        try {
+                            dependentFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id
+                            }, Number(request.workflow_activity_id), request.form_id);
+                
+                            if (Number(dependentFormTransactionData.length) > 0) {
+                                console.log('Dependent form Data : ', dependentFormTransactionData);
+                                dependentFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                                dependentFormActivityID = targetFormTransactionData[0].data_activity_id;
+                            } else {
+                                console.log('Dependent form ', conditions[0].form_id, 'is not submitted');
+                                responseData.push({"message": "Dependent form not submitted!"});
+                            }
+                        } catch (error) {
+                            console.log("Fetch Dependent Form Data | Error: ", error);
+                            throw new Error(error);
+                        }
+                    }
+                } // Looping on a Single Form
+            } //Looping on all the bot_enabled forms
+        }        
         return [error, responseData];
     }
 
