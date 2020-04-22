@@ -5447,7 +5447,7 @@ function AdminOpsService(objectCollection) {
             request.organization_id,
             request.tag_id,
             request.asset_id,
-            request.datetime_log
+            request.datetime_log || util.getCurrentUTCTime()
         );
 
         const queryString = util.getQueryString('ds_v1_tag_list_delete', paramsArr);
@@ -6352,7 +6352,7 @@ function AdminOpsService(objectCollection) {
         );
 
         //const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
-        const queryString = util.getQueryString('ds_v1_tag_type_type_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_list_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -6372,16 +6372,62 @@ function AdminOpsService(objectCollection) {
     //Insert into Tag Entity Mapping Insert
     this.tagEntityMappingInsert = async (request) => {
         let responseData = [],
+            error = false;
+
+        //Workflow- tag_type_category_id: 1
+        //Workforce- tag_type_category_id: 2
+        //Resource- tag_type_category_id: 3
+        //Status- tag_type_category_id: 4
+
+        console.log('typeof request.entity_list : ', typeof request.entity_list);
+        let entityList;
+        if(typeof request.entity_list === 'string') {
+            entityList = JSON.parse(request.entity_list);
+        } else {
+            entityList = request.entity_list;
+        }        
+        console.log(entityList);
+
+        switch(Number(request.tag_type_category_id)) {
+            case 1: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_type_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 2: for(let i = 0; i < entityList.length; i++) {
+                        request.tag_workforce_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 3: for(let i = 0; i < entityList.length; i++) {
+                        request.resource_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 4: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_status_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            default: break;
+        }       
+        
+        return [error, responseData];
+    }
+
+    //Insert into Tag Entity Mapping DB Insert
+    this.tagEntityMappingInsertDBCall = async (request) => {
+        let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
             request.tag_id,
             request.tag_type_category_id,
-            request.activity_type_id,
-            request.resource_id, //asset_id
-            request.tag_workforce_id,
-            request.activity_status_id,
+            request.activity_type_id || 0,
+            request.resource_id || 0, //asset_id
+            request.tag_workforce_id || 0,
+            request.activity_status_id || 0,
             request.asset_id,
             request.datetime_log || util.getCurrentUTCTime()
         );
@@ -7080,35 +7126,82 @@ function AdminOpsService(objectCollection) {
         const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
 
         if(botsData.length) {
-            let inlineData
-            for(let i=0;i< botsData.length;i++) {
-                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
-                console.log(inlineData);
-                //console.log(inlineData.form_enable)
-            }
-        }
+            let inlineData;
+            let tempArr = []; //Delete once the JSON is fixed at DB layer
+            let conditions;
+            let dependentFormTransactionData;
 
-        /*const paramsArr = new Array(
+            for(let i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
+                //console.log(inlineData);
+                console.log(inlineData.form_enable);
+
+                tempArr.push(inlineData.form_enable);
+
+                console.log(tempArr);
+
+                for(let j=0; j<tempArr.length; j++) {
+                    console.log(tempArr[j].form_id);
+                    conditions = tempArr[j].condition;
+
+                    console.log('Conditions: ', conditions);
+
+                    if(Number(request.form_id) === Number(tempArr[j].form_id)) { //Checking for the given specific form
+                        //Check whether the dependent form is submitted
+                        try {
+                            dependentFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id
+                            }, Number(request.workflow_activity_id), request.form_id);
+                
+                            if (Number(dependentFormTransactionData.length) > 0) {
+                                console.log('Dependent form Data : ', dependentFormTransactionData);
+                                dependentFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                                dependentFormActivityID = targetFormTransactionData[0].data_activity_id;
+                            } else {
+                                console.log('Dependent form ', conditions[0].form_id, 'is not submitted');
+                                responseData.push({"message": "Dependent form not submitted!"});
+                            }
+                        } catch (error) {
+                            console.log("Fetch Dependent Form Data | Error: ", error);
+                            throw new Error(error);
+                        }
+                    }
+                } // Looping on a Single Form
+            } //Looping on all the bot_enabled forms
+        }        
+        return [error, responseData];
+    }
+
+    this.tagupdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
             request.organization_id,
-            request.target_asset_id,
-            request.manager_asset_id,
-            request.flag || 0,
-            request.start_from || 0,
-            request.limit_value || 50
+            request.account_id,
+            request.workforce_id,
+            request.tag_id,
+            request.tag_name,
+            request.inline_data || '{}',
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_tag_list_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    //self.tagListHistoryInsert(request, 2003);
                 })
                 .catch((err) => {
                     error = err;
                 })
-        }*/
+        }
         return [error, responseData];
     }
 

@@ -643,6 +643,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/tag/update', async function (req, res) {
+        const [err, responseData] = await adminOpsService.tagupdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/tag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/admin/get/asset/access', async (req, res) => {
         const [err, responseData] = await adminOpsService.getAssetAccessDetails(req.body);
         if (!err) {
