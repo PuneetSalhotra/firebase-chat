@@ -648,7 +648,7 @@ function AdminOpsController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
-            console.log("/admin/workflow/dependent_form/check | Error: ", err);
+            console.log("/admin/get/asset/access | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     }); 
