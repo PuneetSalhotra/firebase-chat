@@ -14,7 +14,7 @@ function AssetConfigController(objCollection) {
     var assetConfigService = new AssetConfigService();
     
     app.post('/' + global.config.version + '/asset_type/access/workforce/list', function (req, res) {
-        assetConfigService.getAssetTypesList(req.body, function (err, data, statusCode) {
+        assetConfigService.getAssetTypesList(req.body, (err, data, statusCode) => {
 
             if (err === false) {
                 // got positive response    

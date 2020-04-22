@@ -685,7 +685,7 @@ function AnalyticsService(objectCollection)
                     );
                     
                     //dbCall = "ds_p1_tag_type_master_select";
-                    dbCall = "ds_p1_tag_type_type_select";
+                    dbCall = "ds_p1_tag_type_list_select";
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
                     return results[0];
 
