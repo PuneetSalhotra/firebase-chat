@@ -518,6 +518,26 @@ function CacheWrapper(client) {
         });
     };
 
+
+    this.getTokenAuthPromise = (assetId) => {
+        return new Promise((resolve, reject) => {
+            client.hget('asset_map', assetId, function (err, reply) {
+                if (err) {
+                    logger.error(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    reject([err, false]);
+                } else {
+                    logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    if (typeof reply === 'string') {
+                        var collection = JSON.parse(reply);    
+                        resolve([false, collection.asset_auth_token]);
+                    } else {
+                        resolve([false, false]);
+                    }
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;
