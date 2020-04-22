@@ -7205,6 +7205,65 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getAssetAccessDetails = async function (request) {
+        let assetData = [],
+            error = true
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.desk_asset_id || 0,
+            request.asset_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v1_asset_access_mapping_select_asset_access_all', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData.push(data);
+                    error = false;
+                    assetData = await self.getAssetUnderAManagerInaWorforce(request);
+                    responseData.push(assetData);
+
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.getAssetUnderAManagerInaWorforce = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.manager_asset_id || request.asset_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_workforce', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return assetData;
+    };        
 }
 
 module.exports = AdminOpsService;
