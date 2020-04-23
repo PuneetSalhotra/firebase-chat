@@ -1583,7 +1583,8 @@ function ActivityListingService(objCollection) {
 				"activity_datetime_end_status": util.replaceDefaultString(rowData['activity_datetime_end_status']),
 				"activity_flag_status_rollback": util.replaceDefaultNumber(rowData['activity_flag_status_rollback']),
 				"activity_flag_lead_enabled": util.replaceDefaultNumber(rowData['activity_flag_lead_enabled']),
-				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added'])
+				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added']),
+				"activity_type_flag_control_visibility": util.replaceDefaultNumber(rowData['activity_type_flag_control_visibility'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
