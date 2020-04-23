@@ -7126,38 +7126,72 @@ function AdminOpsService(objectCollection) {
         const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
 
         if(botsData.length) {
-            let inlineData;
-            let tempArr = []; //Delete once the JSON is fixed at DB layer
-            let conditions;
-            let dependentFormTransactionData;
+            let inlineData,tempFormsArr,conditions,dependentFormTransactionData;
+            let i, j, k , l;
 
-            for(let i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
-                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
-                //console.log(inlineData);
-                console.log(inlineData.form_enable);
+            for(i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);                
+                //console.log(inlineData.form_enable);
 
-                tempArr.push(inlineData.form_enable);
+                tempFormsArr = inlineData.form_enable;
+                //console.log('tempFormsArr : ', tempFormsArr);
 
-                console.log(tempArr);
-
-                for(let j=0; j<tempArr.length; j++) {
-                    console.log(tempArr[j].form_id);
-                    conditions = tempArr[j].condition;
+                for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
+                    console.log(tempFormsArr[j].form_id);
+                    conditions = tempFormsArr[j].conditions;
 
                     console.log('Conditions: ', conditions);
 
-                    if(Number(request.form_id) === Number(tempArr[j].form_id)) { //Checking for the given specific form
+                    if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
                         //Check whether the dependent form is submitted
                         try {
                             dependentFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                                 organization_id: request.organization_id,
                                 account_id: request.account_id
-                            }, Number(request.workflow_activity_id), request.form_id);
+                            }, Number(request.workflow_activity_id), conditions[0].form_id);
                 
                             if (Number(dependentFormTransactionData.length) > 0) {
-                                console.log('Dependent form Data : ', dependentFormTransactionData);
-                                dependentFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
-                                dependentFormActivityID = targetFormTransactionData[0].data_activity_id;
+                                //console.log('Dependent form Data : ', dependentFormTransactionData);
+                                dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
+                                //dependentFormTransactionID = dependentFormTransactionData[0].data_form_transaction_id;
+                                //dependentFormActivityID = dependentFormTransactionData[0].data_activity_id;
+
+                                //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
+                                let formData = dependentFormTransactionInlineData.form_submitted;
+                                let breakFlag = 0; //to break the outer loop
+
+                                //Iterate on form data                                
+                                for(k=0;k<conditions.length;k++) { //Conditions Array                                    
+                                    for(l=0;l<formData.length;l++){ //Form Data                                        
+                                        if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
+                                        
+                                            let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
+                                            
+                                            console.log('PROCEED : ', proceed);
+                                            console.log('conditionStatus : ', conditionStatus);                                            
+
+                                            //Reached either EOJ or one of the conditions failed
+                                            if(proceed === 0 || conditionStatus === 0) {
+                                                if(conditionStatus === 1){
+                                                    error = false;
+                                                    responseData.push({"message": "dependent form conditions passed!"});
+                                                } else {                                                    
+                                                    responseData.push({"message": "dependent form conditions failed!"});
+                                                }
+                                                breakFlag = 1;
+                                                break;
+                                            }
+
+                                        } else {
+                                            console.log('In else');
+                                        }
+                                    } //End of for Loop - form data
+                                    if(breakFlag === 1) {
+                                        break;
+                                    }
+                                    console.log('----------------------------------');
+                                } //End of for Loop - Conditions Array
+                                
                             } else {
                                 console.log('Dependent form ', conditions[0].form_id, 'is not submitted');
                                 responseData.push({"message": "Dependent form not submitted!"});
@@ -7263,7 +7297,95 @@ function AdminOpsService(objectCollection) {
                 });
         }
         return assetData;
-    };        
+    };     
+    
+    
+    async function evaluateJoinCondition(conditionData, formData) {
+        let proceed,
+            conditionStatus,
+            error = false;
+
+        console.log(formData);
+        
+        switch(Number(conditionData.data_type_id)) {
+            case 5: let operation = formData.field_value_condition_operator;
+                    let ifStatement;
+                    switch(operation) {
+                        case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
+                                    break;
+                        case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
+                                    break;
+                        case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
+                                    break;
+                        case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
+                                    break;
+                        case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                                    break;
+                    }                    
+
+                    if(ifStatement) {
+                        //Condition Passed
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+
+                    break;
+
+            case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
+                        //Condition Passed                        
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+                
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed                        
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+
+                     break;
+        }
+
+        //proceed = 1 means continue iterating
+        //proceed = 0 means stop iterating
+
+        //conditionStatus =1 means condition passed
+        //conditionStatus =0 means condition failed
+        return [error, proceed, conditionStatus];
+    }
+
+    async function evaluationJoinOperation(joinCondition){
+        let responseData,
+            error =false;
+
+        console.log('joinCondition : ', joinCondition);        
+        //responseData = 0 means stop
+        //responseData = 1 means OR
+        //responseData = 2 means AND
+
+        if(joinCondition === 'OR') {
+            responseData = 1;
+        } else if(joinCondition === 'AND') {
+            responseData = 2;
+        } else if(joinCondition === 'EOJ') {
+            responseData = 0;
+        }
+
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;
