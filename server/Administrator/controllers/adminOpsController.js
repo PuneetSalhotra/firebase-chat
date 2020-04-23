@@ -653,6 +653,15 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/get/asset/access', async (req, res) => {
+        const [err, responseData] = await adminOpsService.getAssetAccessDetails(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/get/asset/access | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    }); 
 }
 
 module.exports = AdminOpsController;
