@@ -380,7 +380,9 @@ function FormConfigService(objCollection) {
                 "form_workflow_activity_type_id": util.replaceDefaultNumber(rowData['form_workflow_activity_type_id']),
                 "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin']),
-                "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled'])
+                "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
+                "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
+                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -5233,6 +5235,7 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.workforce_id,
             request.asset_id,
+            request.differential_datetime,
             request.flag,
             request.page_start || 0,
             util.replaceQueryLimit(request.page_limit)

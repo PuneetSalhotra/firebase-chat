@@ -1550,12 +1550,12 @@ function ActivityListingService(objCollection) {
 				"activity_datetime_lead_assigned": util.replaceDefaultDatetime(rowData['activity_datetime_lead_assigned']),
 				"activity_datetime_lead_status": util.replaceDefaultDatetime(rowData['activity_datetime_lead_status']),
 				"activity_datetime_created": util.replaceDefaultDatetime(rowData['activity_datetime_created']),
-				"activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
-				"activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
-				"activity_creator_operating_asset_last_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
-				"activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
-				"activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_creator_asset_first_name']),
-				"activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_creator_asset_last_name']),
+				//"activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
+				//"activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+				//"activity_creator_operating_asset_last_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
+				//"activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
+				//"activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_creator_asset_first_name']),
+				//"activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_creator_asset_last_name']),
 				"activity_flag_rating_creator": util.replaceDefaultNumber(rowData['activity_rating_creator']),
 				"activity_rating_creator_decision": util.replaceDefaultNumber(rowData['activity_rating_creator_decision']),
 				"activity_rating_creator_planning": util.replaceDefaultNumber(rowData['activity_rating_creator_planning']),
@@ -1583,7 +1583,8 @@ function ActivityListingService(objCollection) {
 				"activity_datetime_end_status": util.replaceDefaultString(rowData['activity_datetime_end_status']),
 				"activity_flag_status_rollback": util.replaceDefaultNumber(rowData['activity_flag_status_rollback']),
 				"activity_flag_lead_enabled": util.replaceDefaultNumber(rowData['activity_flag_lead_enabled']),
-				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added'])
+				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added']),
+				"activity_type_flag_control_visibility": util.replaceDefaultNumber(rowData['activity_type_flag_control_visibility'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
