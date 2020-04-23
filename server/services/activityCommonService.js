@@ -5171,10 +5171,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
            
         }).then(()=>{
             console.log("DONE WITH CUSTOMER CHECK");
-        })
+        });
     };
 
-    this.updateCustomerOnWorkflow = async function(request) {
+    this.updateCustomerOnWorkflow = async (request) => {
 
         try{
             let paramsArr = new Array(                
