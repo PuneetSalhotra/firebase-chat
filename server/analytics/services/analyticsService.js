@@ -269,6 +269,7 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
         widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
         widgetInfo.activity_status_id = request.activity_status_id;
+        widgetInfo.activity_sub_statuses = request.activity_sub_statuses;
         widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
         widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
         widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
@@ -1138,6 +1139,9 @@ function AnalyticsService(objectCollection)
                 case 20: //TAT
                 case 28: //Volume Distribution
                 case 29: //Value Distribution
+                case 27: //Status Type Wise TAT
+                case 26: //Status Tag Wise TAT
+                case 25: //Status Wise TAT                
                 case 43: //SubStatus TAT
                     for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                     {
@@ -1175,7 +1179,7 @@ function AnalyticsService(objectCollection)
                                         parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
                                         parseInt(request.filter_activity_status_tag_id),
                                         parseInt(arrayStatuses[iteratorZ].activity_status_id),
-                                        parseInt(arraySubStatuses[iteratorZ].activity_sub_status_id),
+                                        parseInt(arraySubStatuses[iteratorM].activity_sub_status_id),
                                         //parseInt(filter_activity_status_id),
                                         request.datetime_start,
                                         request.datetime_end,
@@ -1214,6 +1218,24 @@ function AnalyticsService(objectCollection)
                                             }
                                         );
                                     } 
+                                    else if 
+                                    (
+                                        parseInt(request.widget_type_id) === 25 || 
+                                        parseInt(request.widget_type_id) === 27 ||
+                                        parseInt(request.widget_type_id) === 43
+                                    )
+                                    {
+                                        results[iterator] =
+                                        (
+                                            {
+                                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                                "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                                "status_id": arrayStatuses[iteratorZ].activity_status_id,
+                                                "sub_status_id": arraySubStatuses[iteratorM].activity_sub_status_id,
+                                                "result": tempResult,
+                                            }
+                                        );
+                                    }                                     
                                     else 
                                     {
                                         results[iterator] =
@@ -1238,9 +1260,6 @@ function AnalyticsService(objectCollection)
                 case 24: //Cumulated Value
                 case 34: //Cumulated Volume Distribution
                 case 35: //Cumulated Value Distribution
-                case 27: //Status Type Wise TAT
-                case 26: //Status Tag Wise TAT
-                case 25: //Status Wise TAT
                 case 37: //Status Wise Cumulated Volume (Pie Chart)
                 case 38: //Status Wise Cumulated Value (Pie Chart)
                 case 39: //Workflow Reference Volume
@@ -1299,6 +1318,7 @@ function AnalyticsService(objectCollection)
         }
         catch(error)
         {
+            console.log("error :: ",error);
             return Promise.reject(error);
         }
     };
