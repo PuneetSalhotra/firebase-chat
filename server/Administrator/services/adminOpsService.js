@@ -7249,7 +7249,7 @@ function AdminOpsService(objectCollection) {
             request.target_account_id,
             request.target_workforce_id,
             request.desk_asset_id || 0,
-            request.asset_id,
+            request.manager_asset_id || request.asset_id,
             request.page_start,
             request.page_limit
         );
