@@ -2663,23 +2663,21 @@ function ActivityTimelineService(objectCollection) {
                 case 39: //Flag
                     params[11] = row.field_value;
                     break;
-                case 57: //Workflow(/Activity) reference
-                    try{ //Supporting Backward Compatibility
-                        workflowReference = row.field_value.split('|');
-                        params[13] = workflowReference[0]; //ID
-                        params[18] = workflowReference[1]; //Name
-                    } catch(err) {
-                        params[27] = row.field_value;
-                    }
+                case 57: //Workflow(/Activity) reference                    
+                        //workflowReference = row.field_value.split('|');
+                        //params[13] = workflowReference[0]; //ID
+                        //params[18] = workflowReference[1]; //Name                    
+                    params[27] = row.field_value;                    
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
                     params[18] = row.field_value;
                     break;
-                case 59: //Asset reference
-                    assetReference = row.field_value.split('|');
-                    params[13] = assetReference[0]; //ID
-                    params[18] = assetReference[1]; //Name
+                case 59: //Asset reference                    
+                    //assetReference = row.field_value.split('|');
+                    //        params[13] = assetReference[0]; //ID
+                    //        params[18] = assetReference[1]; //Name                    
+                    params[27] = row.field_value;                    
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
@@ -3334,23 +3332,21 @@ async function addFormEntriesAsync(request) {
             case 39: //Flag
                 params[11] = row.field_value;
                 break;
-            case 57: //Workflow(/Activity) reference
-                try { //Supporting Backward Compatibility
-                    workflowReference = row.field_value.split('|');
-                        params[13] = workflowReference[0]; //ID
-                        params[18] = workflowReference[1]; //Name
-                } catch(err) {
+            case 57: //Workflow(/Activity) reference                    
                     params[27] = row.field_value;
-                }                
+                    //workflowReference = row.field_value.split('|');                    
+                    //    params[13] = workflowReference[0]; //ID
+                    //    params[18] = workflowReference[1]; //Name
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
                 params[18] = row.field_value;
                 break;
-            case 59: //Asset reference
-                assetReference = row.field_value.split('|');
-                params[13] = assetReference[0]; //ID
-                params[18] = assetReference[1]; //Name
+            case 59: //Asset reference            
+                params[28] = row.field_value;
+                //assetReference = row.field_value.split('|');
+                //    params[13] = assetReference[0]; //ID
+                //    params[18] = assetReference[1]; //Name
                 break;
             case 61: //Time Datatype
                 params[18] = row.field_value;
