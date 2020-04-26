@@ -2004,7 +2004,7 @@ function Util(objectCollection) {
         }];
     };
 
-    this.sendPushToAsset = async function (request) {
+    this.sendPushToAsset = async (request) =>{
         let error = false;
         // [CHECK] target_asset_id
         if (
@@ -2013,7 +2013,7 @@ function Util(objectCollection) {
         ) {
             return [true, {
                 message: "Incorrect target asset_id specified."
-            }]
+            }];
         }
         let  assetPushARN = "";
         if(request.hasOwnProperty("asset_push_arn")){
@@ -2035,7 +2035,12 @@ function Util(objectCollection) {
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
         }];
-    }    
+    };
+
+    this.mentionsDateFormat = async() => {
+        const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
+        return now;
+    };
 
 }
 

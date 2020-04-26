@@ -3665,47 +3665,100 @@ async function addFormEntriesAsync(request) {
             return [error, responseData];
     }
 
-    async function commentWithMentions(request) {
-        if(Number(request.activity_type_category_id === 48) && 
-           Number(request.is_mention === 1)) {
-            let mentions = request.mentions_array;
+    this.mentionsSendEmail = async (request) => {
+        let mentionedAssets, i;
+        (typeof request.mentioned_assets === 'string')?
+            mentionedAssets = JSON.parse(request.mentioned_assets):        
+            mentionedAssets =request.mentioned_assets;
 
-            for(let i=0; i<mentions.length; i++) {
-                //mentions[i] - asset_id
-                await sendEmail();
+        console.log('mentionedAssets : ', mentionedAssets);
+
+        //Get the sender Details
+        let [err, senderAssetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id, 
+            asset_id: request.asset_id
+         });
+    
+        for(i=0; i<mentionedAssets.length;i++) {
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync({
+                                                                organization_id: request.organization_id, 
+                                                                asset_id: mentionedAssets[i]
+                                                             });
+
+            if(err || assetData.length > 0) {
+                if((assetData[0].operating_asset_email_id).length === 0 || 
+                    (assetData[0].operating_asset_first_name).length === 0) {
+                    console.log('Either Operating asset name or email id not available for : ', mentionedAssets[i]);
+                } else {
+                    sendEmail({
+                        workflow_title: request.workflow_title,
+                        workflow_update: request.workflow_update,
+                        operating_asset_name: assetData[0].operating_asset_first_name,
+                        asset_email_id: assetData[0].operating_asset_email_id,
+                        email_receiver_name: assetData[0].operating_asset_first_name,
+                        email_sender_name: senderAssetData[0].operating_asset_first_name,
+                        email_sender: senderAssetData[0].operating_asset_email_id
+                    });
+                }
+            } else {
+                console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
             }
         }
 
         return "success";
-    }
+    };
 
     async function sendEmail(request) {
 
-        /*const jsonString = {
+        const urlStr = {
             organization_id: request.organization_id,
             account_id: request.account_id,
             workforce_id: request.workforce_id,
-            asset_id: Number(customerCollection.customerServiceDeskAssetID),
-            asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-            auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-            activity_id: request.activity_id || 0,
-            activity_type_category_id: 9,
-            activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
-            activity_stream_type_id: 705,
-            form_id: Number(customerCollection.activity_form_id),
-            type: 'approval'
+            asset_id: Number(request.asset_id),
+            //asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+            //auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+            //activity_id: request.activity_id || 0,
+            //activity_type_category_id: 9,
+            //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
+            //activity_stream_type_id: 705,            
+            //type: 'approval'
         };
 
-        if (String(customerCollection.contactEmailId).includes('%40')) {
+        /*if (String(customerCollection.contactEmailId).includes('%40')) {
             customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
         }
 
         const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
-        const Template = "";
-        let emailSubject = "You have been mentioned on [Workflow Title] @ [DD-MM-YYYY HH:MM AM/PM] By [Operating Asset Name]";
+        const Template = "";*/
+        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${util.mentionsDateFormat()} By ${request.email_sender_name}`;
+
+        const Template = `<table><tbody>
+                            <tr>
+                            <p>
+                            Hello <strong>${request.operating_asset_name},</strong><br/>
+                            You have been mentioned by ${request.operating_asset_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
+                            </p>
+                            <p>
+                                Following is the copy of the exact update... <br/>
+                                ${request.workflow_update} 
+                                </p>
+                            <br/>
+                            <p>
+                            Please login to your desk and access ${request.workflow_title} for more details.
+                            <br/>
+                            Optionally tap on this <a style='color: #ED212C;' target='_blank'  href='${urlStr}'>Link</a>  to reply.
+                            </p>
+                            <p>
+                            Thankyou
+                            <br>
+                            Tony
+                            </p>
+                            </tr>
+                            </tbody>
+                            </table>`;
 
         util.sendEmailV3(request,
-                         customerCollection.contactEmailId,
+                         request.asset_email_id,
                          emailSubject,
                          "IGNORE",
                          Template,
@@ -3716,7 +3769,7 @@ async function addFormEntriesAsync(request) {
                                         console.log("[Send Email - Mention | Response]: ", "Email Sent");
                                     }                
                                 }
-                         );*/
+                         );
         
         return "success";
     }
