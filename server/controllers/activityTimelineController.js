@@ -522,7 +522,7 @@ function ActivityTimelineController(objCollection) {
     });
 
     // Retrieve all attachments from the timeline entries, with a provision to search
-    app.post('/' + global.config.version + '/activity/timeline/attachments/list', async function (req, res) {
+    app.post('/' + global.config.version + '/activity/timeline/attachments/list', async (req, res) => {
         const [err, orgData] = await activityTimelineService.retrieveSearchTimelineAttachments(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
@@ -532,6 +532,17 @@ function ActivityTimelineController(objCollection) {
         }
     });
 
-};
+
+    app.post('/' + global.config.version + '/activity/timeline/mentions/send_email', async function (req, res) {
+        const [err, orgData] = await activityTimelineService.mentionsSendEmail(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/activity/timeline/mentions/send_email | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+}
 
 module.exports = ActivityTimelineController;
