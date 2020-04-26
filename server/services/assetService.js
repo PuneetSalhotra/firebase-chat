@@ -4807,7 +4807,7 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
-    this.getAssetDetailsExclusions = async function (request) {
+    this.getAssetDetailsExclusions = async (request) =>{
         let assetData = [],
             error = true;
 
