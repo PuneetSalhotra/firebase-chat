@@ -3666,6 +3666,9 @@ async function addFormEntriesAsync(request) {
     }
 
     this.mentionsSendEmail = async (request) => {
+        let responseData = [],
+            error = false;
+
         let mentionedAssets, i;
         (typeof request.mentioned_assets === 'string')?
             mentionedAssets = JSON.parse(request.mentioned_assets):        
@@ -3705,10 +3708,12 @@ async function addFormEntriesAsync(request) {
             }
         }
 
-        return "success";
+        return [error, responseData];
     };
 
     async function sendEmail(request) {
+        let responseData = [],
+            error = false;
 
         const urlStr = {
             organization_id: request.organization_id,
@@ -3771,7 +3776,7 @@ async function addFormEntriesAsync(request) {
                                 }
                          );
         
-        return "success";
+        return [error, responseData];
     }
 
 }
