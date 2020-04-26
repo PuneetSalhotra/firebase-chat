@@ -227,6 +227,13 @@ function ActivityConfigService(db, util, objCollection) {
                         } catch (error) {
                             console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ", error);
                         }
+                        //update the activity_type_flag_control_visibility
+                        try {
+                            await activityListUpdateVisibilityFlag(request);
+                            await activityAssetUpdateVisibilityFlag(request);
+                        } catch (error) {
+                            console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ", error);
+                        }
                         request['update_type_id'] = 901;
                         workForceActivityTypeHistoryInsert(request).then(() => { });
                         resolve(data);
@@ -627,6 +634,61 @@ function ActivityConfigService(db, util, objCollection) {
         }
         return [error, responseData];
     }
+
+    
+    async function activityListUpdateVisibilityFlag(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.activity_type_category_id,
+            request.activity_type_id || 0,            
+            request.activity_type_flag_control_visibility || 0,
+            request.datetime_log                
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_visibility_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function activityAssetUpdateVisibilityFlag(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.activity_type_category_id,
+            request.activity_type_id || 0,            
+            request.activity_type_flag_control_visibility || 0,
+            request.datetime_log                
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_visibility_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    
 }
 
 module.exports = ActivityConfigService;

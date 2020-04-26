@@ -7125,7 +7125,7 @@ function AdminOpsService(objectCollection) {
         request.bot_operation_type_id = 20;
         const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
 
-        if(botsData.length) {
+        if(botsData.length > 0) {
             let inlineData,tempFormsArr,conditions,dependentFormTransactionData;
             let i, j, k , l;
 
@@ -7203,6 +7203,9 @@ function AdminOpsService(objectCollection) {
                     }
                 } // Looping on a Single Form
             } //Looping on all the bot_enabled forms
+        } else {
+            error = false;
+            responseData.push({"message": "No Dependent Forms defined for this Form!"});
         }        
         return [error, responseData];
     }
@@ -7249,7 +7252,7 @@ function AdminOpsService(objectCollection) {
             request.target_account_id,
             request.target_workforce_id,
             request.desk_asset_id || 0,
-            request.asset_id,
+            request.manager_asset_id || request.asset_id,
             request.page_start,
             request.page_limit
         );
