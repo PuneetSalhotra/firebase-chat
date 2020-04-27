@@ -214,7 +214,7 @@ function ActivityTimelineService(objectCollection) {
         }
 
         //If it is a comment with a mention
-        commentWithMentions(request);
+        //commentWithMentions(request);
 
         new Promise(() => {
             setTimeout(() => {
@@ -296,7 +296,7 @@ function ActivityTimelineService(objectCollection) {
                     } else { //Number(request.activity_id) === Number(data[0].activity_id)
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m", {}, request);
                         global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : " + Number(request.device_os_id), Number(request.device_os_id), {});
-                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m", {}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] 705 entry on Dedicated File \x1b[0m", {}, request);
 
                         //705 for Dedicated file
                         if (Number(request.device_os_id) === 7) {                            
@@ -418,7 +418,7 @@ function ActivityTimelineService(objectCollection) {
                 error=false; 
         }
 
-        commentWithMentions(request);
+        //commentWithMentions(request);
         
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
@@ -2666,8 +2666,15 @@ function ActivityTimelineService(objectCollection) {
                 case 57: //Workflow(/Activity) reference                    
                         //workflowReference = row.field_value.split('|');
                         //params[13] = workflowReference[0]; //ID
-                        //params[18] = workflowReference[1]; //Name                    
-                    params[27] = row.field_value;                    
+                        //params[18] = workflowReference[1]; //Name
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
@@ -2677,7 +2684,14 @@ function ActivityTimelineService(objectCollection) {
                     //assetReference = row.field_value.split('|');
                     //        params[13] = assetReference[0]; //ID
                     //        params[18] = assetReference[1]; //Name                    
-                    params[27] = row.field_value;                    
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
@@ -2694,7 +2708,12 @@ function ActivityTimelineService(objectCollection) {
                     }
                     break;
                 case 64: // Address DataType
-                    params[27] = row.field_value;
+                    //params[27] = row.field_value;
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 65: // Business Card DataType
                     params[27] = row.field_value;
@@ -3333,20 +3352,35 @@ async function addFormEntriesAsync(request) {
                 params[11] = row.field_value;
                 break;
             case 57: //Workflow(/Activity) reference                    
-                    params[27] = row.field_value;
+                    //params[27] = row.field_value;
                     //workflowReference = row.field_value.split('|');                    
                     //    params[13] = workflowReference[0]; //ID
                     //    params[18] = workflowReference[1]; //Name
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                } else {
+                        params[27] = row.field_value;
+                }
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
                 params[18] = row.field_value;
                 break;
-            case 59: //Asset reference            
-                params[28] = row.field_value;
+            case 59: //Asset reference                
                 //assetReference = row.field_value.split('|');
                 //    params[13] = assetReference[0]; //ID
                 //    params[18] = assetReference[1]; //Name
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                } else {
+                        params[27] = row.field_value;
+                }
                 break;
             case 61: //Time Datatype
                 params[18] = row.field_value;
@@ -3365,7 +3399,12 @@ async function addFormEntriesAsync(request) {
                     }
                 break;
             case 64: // Address DataType
-                params[27] = row.field_value;
+                //params[27] = row.field_value;
+                if(typeof row.field_value === 'object') {
+                    params[27] = JSON.stringify(row.field_value);
+                } else {
+                    params[27] = row.field_value;
+                }
                 break;
             case 65: // Business Card DataType
                 params[27] = row.field_value;
@@ -3434,7 +3473,7 @@ async function addFormEntriesAsync(request) {
                 request['flag'] = 2;
                 request['datetime_log'] = util.getCurrentUTCTime();
                 activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
-            })
+            });
         } else if (Object.keys(order_logged_form_ids).includes(String(request.form_id))) {
             activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                     global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
@@ -3446,19 +3485,19 @@ async function addFormEntriesAsync(request) {
                     request['flag'] = 3;
                     request['datetime_log'] = util.getCurrentUTCTime();
                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
-                })
+                });
             } else if (Object.keys(order_documents_form_ids).includes(String(request.form_id))) {
                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                    global.logger.write('conLog', '***** ORDER DOCUMENTS SUBMITTED*******', {}, request);
                    request['activity_id'] = activityData[0].channel_activity_id;
                    request['documents_submitted'] = 1;
                    activityCommonService.activityUpdateDocumentsSubmitted(request);
-               })
+               });
            }
 
         return [error, responseData];
         
-    };
+    }
 
 
     async function retrievingFormIdandProcessAsync(request, data) {
@@ -3715,19 +3754,7 @@ async function addFormEntriesAsync(request) {
         let responseData = [],
             error = false;
 
-        const urlStr = {
-            organization_id: request.organization_id,
-            account_id: request.account_id,
-            workforce_id: request.workforce_id,
-            asset_id: Number(request.asset_id),
-            //asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-            //auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-            //activity_id: request.activity_id || 0,
-            //activity_type_category_id: 9,
-            //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
-            //activity_stream_type_id: 705,            
-            //type: 'approval'
-        };
+        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
 
         /*if (String(customerCollection.contactEmailId).includes('%40')) {
             customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");

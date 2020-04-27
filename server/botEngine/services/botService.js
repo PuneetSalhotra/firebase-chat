@@ -2994,7 +2994,11 @@ function BotService(objectCollection) {
         if (targetFormConfigData.length > 0) {
             targetFormName = targetFormConfigData[0].form_name;
         }
-        createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        
+        if(Number(createTargetFormRequest.isESMS) === 0) {
+            createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        }            
+        
         createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
 
         // Other miscellaneous parameters
@@ -3103,6 +3107,11 @@ function BotService(objectCollection) {
                 return 'data_entity_text_1';
             case 20: // Long Text
                 return 'data_entity_text_2';
+            case 57: // JSON
+            case 59: // JSON
+            case 64: //JSON
+                return 'data_entity_inline';
+            default: console.log('In default Case : getFielDataValueColumnName');
         }
     }
 

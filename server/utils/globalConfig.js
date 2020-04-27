@@ -312,6 +312,7 @@ if (mode === 'local') {
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
     
+    config.esmsmentionsemail = "https://stagingweb.officedesk.app";
 }
 
 if (mode === 'dev') {
@@ -614,6 +615,8 @@ if (mode === 'staging') {
         config.CONSUMER_GROUP_ID = "desker-activities-test-topic-consumer-group-v1";
         config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
     }
+
+    config.esmsmentionsemail = "https://stagingweb.officedesk.app";
 }
 
 if (mode === 'preprod') {
@@ -713,6 +716,7 @@ if (mode === 'preprod') {
     config.emailbaseUrlApprove = "https://preprodweb.officedesk.app"; 
     config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
 
+    config.esmsmentionsemail = "https://preprodweb.officedesk.app";
 }
 
 if (mode === 'prod') {
@@ -813,7 +817,8 @@ if (mode === 'prod') {
     
     config.emailbaseUrlApprove =  "https://web.officedesk.app"; //"https://officedesk.app"; 
     config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
-    
+
+    config.esmsmentionsemail = "https://web.officedesk.app";    
 }
 
 
