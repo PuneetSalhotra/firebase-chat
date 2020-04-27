@@ -445,6 +445,8 @@ function WorkbookOpsService(objectCollection) {
             outputFormActivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
         }
 
+        const outputFormActivityInlineData = [...outputFormFieldInlineTemplateMap.values()];
+
         const outputFormSubmissionRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -455,7 +457,7 @@ function WorkbookOpsService(objectCollection) {
             asset_message_counter: 0,
             activity_title: `${outputForm.outputFormName} - ${workflowOriginFormActivityTitle}`,
             activity_description: "",
-            activity_inline_data: JSON.stringify([...outputFormFieldInlineTemplateMap.values()]),
+            activity_inline_data: JSON.stringify(outputFormActivityInlineData),
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: workflowActivityDueDate,
             activity_type_category_id: 9,
@@ -497,14 +499,48 @@ function WorkbookOpsService(objectCollection) {
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
             outputFormActivityID = await cacheWrapper.getActivityIdPromise(),
-            outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
-            
+                outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+
             logger.silly(`outputFormActivityID: ${outputFormActivityID} | outputFormTransactionID: ${outputFormTransactionID}`);
 
             outputFormSubmissionRequest.activity_id = outputFormActivityID;
             outputFormSubmissionRequest.form_transaction_id = outputFormTransactionID;
 
             await addActivityAsync(outputFormSubmissionRequest);
+
+            // Make a timeline entry on the workflow
+            let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);
+            workflowFile705Request.activity_id = workflowActivityID;
+            workflowFile705Request.data_activity_id = outputFormActivityID
+            workflowFile705Request.form_transaction_id = outputFormTransactionID
+            workflowFile705Request.activity_timeline_collection = JSON.stringify({
+                "mail_body": `${outputForm.outputFormName} submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${outputForm.outputFormName}`,
+                "content": `${outputForm.outputFormName}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": outputFormActivityInlineData,
+                "attachments": []
+            });
+            workflowFile705Request.activity_type_category_id = 48;
+            workflowFile705Request.activity_stream_type_id = 705;
+            workflowFile705Request.flag_timeline_entry = 1;
+            workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile705Request.device_os_id = 8;
+            // This will be captured in the push-string message-forming switch-case logic
+            workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
+
+            let workflowFile705RequestEvent = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",
+                //method: "addTimelineTransaction",
+                method: "addTimelineTransactionAsync",
+                payload: workflowFile705Request
+            };
+
+            await queueWrapper.raiseActivityEventPromise(workflowFile705RequestEvent, request.activity_id || request.workflow_activity_id);
         } catch (error) {
             throw new Error(error);
         }
