@@ -16,6 +16,8 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
+const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -45,6 +47,8 @@ function BotService(objectCollection) {
 
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
+
+    const workbookOpsService = new WorkbookOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -1323,7 +1327,12 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot");
+                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    try {
+                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                    } catch (error) {
+                        logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
                     break;
 
                 case 19: // Update CUID Bot
@@ -2527,8 +2536,8 @@ function BotService(objectCollection) {
                     formActivityID = Number(formData[0].data_activity_id);
                 }
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
