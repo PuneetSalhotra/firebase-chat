@@ -11,13 +11,19 @@ const XLSX = require('@sheet/core');
 const S5SCalc = require("@sheet/formula");
 S5SCalc.set_XLSX(XLSX);
 
+const ActivityService = require('../../services/activityService.js');
+
 function WorkbookOpsService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
     const activityCommonService = objectCollection.activityCommonService;
     const queueWrapper = objectCollection.queueWrapper;
-    // const nodeUtil = require('util');
+    const cacheWrapper = objectCollection.cacheWrapper;
+    const nodeUtil = require('util');
+
+    const activityService = new ActivityService(objectCollection);
+
     const self = this;
 
     // Helper methods
@@ -85,6 +91,7 @@ function WorkbookOpsService(objectCollection) {
         // Check if the output form exists
         let outFormIsSubmitted = false,
             outputFormID = outputMappings[0].form_id,
+            outputFormName = '',
             outputFormTransactionID = 0,
             outputFormActivityID = 0,
             outputFormFieldInlineTemplateMap = new Map();
@@ -98,6 +105,21 @@ function WorkbookOpsService(objectCollection) {
             if (!(formData.length > 0)) {
                 // throw new Error("Output form does not exist");
                 logger.debug(`The output form ${formID} for the workflow ${workflowActivityID} is not sumitted`, { type: 'bot_engine', request_body: request });
+                try {
+                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                        organization_id: request.organization_id,
+                        account_id: request.account_id,
+                        workforce_id: request.workforce_id,
+                        form_id: outputFormID
+                    });
+                    if (!(formConfigData.length > 0)) {
+                        throw new Error(`Error fetching output form ${outputFormID} details`);
+                    }
+                    outputFormName = formConfigData[0].form_name;
+                } catch (error) {
+                    throw new Error(error);
+                }
+
                 outFormIsSubmitted = false;
             } else {
                 outFormIsSubmitted = true;
@@ -165,7 +187,7 @@ function WorkbookOpsService(objectCollection) {
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
 
         if (outFormIsSubmitted) {
-            // Fire field alter
+            // If the form exists, fire fields alter
             let fieldsAlterRequest = Object.assign({}, request);
             fieldsAlterRequest.form_transaction_id = outputFormTransactionID;
             fieldsAlterRequest.form_id = outputFormID;
@@ -187,6 +209,22 @@ function WorkbookOpsService(objectCollection) {
                 await queueWrapper.raiseActivityEventPromise(fieldsAlterRequestEvent, fieldsAlterRequest.activity_id)
             } catch (error) {
                 logger.error(`Error firing fieldsAlterRequest kafka event for ${outputFormActivityID} and workflow ${workflowActivityID}.`, { type: 'bot_engine', request_body: fieldsAlterRequest, error: serializeError(error) });
+            }
+
+        } else {
+            // If the form does not exist, fire add activity
+            try {
+                await createAndSubmitTheOutputForm(
+                    request, workflowActivityID,
+                    {
+                        outputFormID,
+                        outputFormName,
+                    },
+                    outputFormFieldInlineTemplateMap
+                );
+            } catch (error) {
+                logger.error(`[createAndSubmitTheOutputForm] Error creating and submitting the output form.`, { type: 'bot_engine', error: serializeError(error) });
+                throw new Error(error);
             }
         }
 
@@ -363,6 +401,147 @@ function WorkbookOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
+    }
+
+    // Create and submit the output form
+    async function createAndSubmitTheOutputForm(request, workflowActivityID, outputForm, outputFormFieldInlineTemplateMap) {
+
+        let outputFormActivityTypeID = 0;
+
+        let workflowActivityTypeID = 0,
+            workflowActivityCreatorAssetID = 0,
+            workflowActivityStartDate = '',
+            workflowActivityDueDate = '',
+            workflowActivityOrganizationID = 0,
+            workflowActivityAccountID = 0,
+            workflowActivityWorkforceID = 0,
+            workflowOriginFormActivityTitle = '';
+
+        const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+        if (workflowActivityData.length > 0) {
+            workflowActivityTypeID = workflowActivityData[0].activity_type_id;
+            workflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+            workflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+            workflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+            workflowActivityOrganizationID = workflowActivityData[0].organization_id;
+            workflowActivityAccountID = workflowActivityData[0].account_id;
+            workflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+            workflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
+        } else {
+            throw new Error(`[createAndSubmitTheOutputForm] Parent Workflow ${workflowActivityID} Not Found`)
+        }
+
+        // Get the form's activity type ID
+        const [workforceActivityTypeMappingError, workforceActivityTypeMappingData] = await workforceActivityTypeMappingSelect({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            activity_type_category_id: 9
+        });
+        if (
+            (workforceActivityTypeMappingError === false) &&
+            (Number(workforceActivityTypeMappingData.length) > 0)
+        ) {
+            outputFormActivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
+        }
+
+        const outputFormSubmissionRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: workflowActivityCreatorAssetID,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            asset_message_counter: 0,
+            activity_title: `${outputForm.outputFormName} - ${workflowOriginFormActivityTitle}`,
+            activity_description: "",
+            activity_inline_data: JSON.stringify([...outputFormFieldInlineTemplateMap.values()]),
+            activity_datetime_start: util.getCurrentUTCTime(),
+            activity_datetime_end: workflowActivityDueDate,
+            activity_type_category_id: 9,
+            activity_sub_type_id: 0,
+            activity_type_id: outputFormActivityTypeID,
+            activity_status_type_id: 22,
+            activity_access_role_id: 21,
+            asset_participant_access_id: 21,
+            activity_parent_id: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: outputForm.outputFormID,
+            form_id: outputForm.outputFormID,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: 0,
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "2.0",
+            app_version: "2.5.7",
+            device_os_id: 5,
+            url: 'v1',
+            // create_workflow: 1,
+            workflow_activity_id: workflowActivityID
+        };
+        logger.silly(`outputFormSubmissionRequest: %j`, outputFormSubmissionRequest);
+
+        let outputFormActivityID = 0,
+            outputFormTransactionID = 0;
+
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        try {
+            outputFormActivityID = await cacheWrapper.getActivityIdPromise(),
+            outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            
+            logger.silly(`outputFormActivityID: ${outputFormActivityID} | outputFormTransactionID: ${outputFormTransactionID}`);
+
+            outputFormSubmissionRequest.activity_id = outputFormActivityID;
+            outputFormSubmissionRequest.form_transaction_id = outputFormTransactionID;
+
+            await addActivityAsync(outputFormSubmissionRequest);
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return;
+    }
+
+    async function workforceActivityTypeMappingSelect(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.access_level_id || 0,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
     }
 }
 
