@@ -304,6 +304,7 @@ function WorkbookOpsService(objectCollection) {
                 (CASE data_type_id
                     WHEN 5 THEN 0
                     WHEN 6 THEN 0
+                    WHEN 33 THEN data_type_combo_value
                     ELSE ''
                 END) AS field_value,
                 2222333344445555 AS message_unique_id
@@ -316,7 +317,7 @@ function WorkbookOpsService(objectCollection) {
             paramsArr = paramsArr.concat(fieldIDArray);
             baseQuery = `${baseQuery} AND field_id IN (${new Array(fieldIDArray.length).fill('?').join(', ')})`
         }
-        const queryString = mysql.format(`${baseQuery};`, paramsArr);
+        const queryString = mysql.format(`${baseQuery} ORDER BY field_id ASC , data_type_combo_id DESC;`, paramsArr);
         if (queryString !== '') {
             await db.executeRawQueryPromise(0, queryString, request)
                 .then((data) => {
