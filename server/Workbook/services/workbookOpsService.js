@@ -16,6 +16,7 @@ function WorkbookOpsService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const activityCommonService = objectCollection.activityCommonService;
+    const queueWrapper = objectCollection.queueWrapper;
     // const nodeUtil = require('util');
     const self = this;
 
@@ -83,6 +84,7 @@ function WorkbookOpsService(objectCollection) {
 
         // Check if the output form exists
         let outFormIsSubmitted = false,
+            outputFormID = outputMappings[0].form_id,
             outputFormTransactionID = 0,
             outputFormActivityID = 0,
             outputFormFieldInlineTemplateMap = new Map();
@@ -101,6 +103,21 @@ function WorkbookOpsService(objectCollection) {
                 outFormIsSubmitted = true;
                 outputFormTransactionID = Number(formData[0].data_form_transaction_id);
                 outputFormActivityID = Number(formData[0].data_activity_id);
+                if (!outputFormActivityID && outputFormTransactionID) {
+                    try {
+                        const [error, outputFormTxnData] = await getFormActivityIDFromActivityFormTxnTable(
+                            request,
+                            request.organization_id,
+                            formID,
+                            outputFormTransactionID
+                        );
+                        if (outputFormTxnData.length > 0) {
+                            outputFormActivityID = outputFormTxnData[0].activity_id
+                        }
+                    } catch (error) {
+                        logger.error("[getFormActivityIDFromActivityFormTxnTable] Error fethcing output form activity ID from the activity_form_transaction table.", { type: 'bot_engine', request_body: request, error: serializeError(error) });
+                    }
+                }
             }
 
             [_, formFieldInlineTemplate] = await getWorkforceFormFieldMappingForOutputForm(
@@ -146,6 +163,32 @@ function WorkbookOpsService(objectCollection) {
             }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
+
+        if (outFormIsSubmitted) {
+            // Fire field alter
+            let fieldsAlterRequest = Object.assign({}, request);
+            fieldsAlterRequest.form_transaction_id = outputFormTransactionID;
+            fieldsAlterRequest.form_id = outputFormID;
+            fieldsAlterRequest.activity_form_id = outputFormID;
+            fieldsAlterRequest.field_id = 99999999999;
+            fieldsAlterRequest.activity_inline_data = JSON.stringify([...outputFormFieldInlineTemplateMap.values()]);
+            fieldsAlterRequest.activity_id = outputFormActivityID;
+            fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+
+            const fieldsAlterRequestEvent = {
+                name: "alterFormActivityFieldValues",
+                service: "formConfigService",
+                method: "alterFormActivityFieldValues",
+                payload: fieldsAlterRequest
+            };
+
+            console.log("fieldsAlterRequest: ", fieldsAlterRequest);
+            try {
+                await queueWrapper.raiseActivityEventPromise(fieldsAlterRequestEvent, fieldsAlterRequest.activity_id)
+            } catch (error) {
+                logger.error(`Error firing fieldsAlterRequest kafka event for ${outputFormActivityID} and workflow ${workflowActivityID}.`, { type: 'bot_engine', request_body: fieldsAlterRequest, error: serializeError(error) });
+            }
+        }
 
     }
 
@@ -249,7 +292,6 @@ function WorkbookOpsService(objectCollection) {
             organizationID,
             formID
         );
-        // ${new Array(paramsArr.length).fill('?').join(', ')}
         let baseQuery = `
             SELECT 
                 form_id,
@@ -275,29 +317,40 @@ function WorkbookOpsService(objectCollection) {
             baseQuery = `${baseQuery} AND field_id IN (${new Array(fieldIDArray.length).fill('?').join(', ')})`
         }
         const queryString = mysql.format(`${baseQuery};`, paramsArr);
-        console.log("queryString: ", queryString)
-        // const queryString = mysql.format(`
-        //     SELECT 
-        //         form_id,
-        //         field_id,
-        //         field_name,
-        //         data_type_id AS field_data_type_id,
-        //         data_type_category_id AS field_data_type_category_id,
-        //         data_type_combo_id,
-        //         data_type_combo_value,
-        //         (CASE data_type_id
-        //             WHEN 5 THEN 0
-        //             WHEN 6 THEN 0
-        //             ELSE ''
-        //         END) AS field_value,
-        //         2222333344445555 AS message_unique_id
-        //     FROM
-        //         workforce_form_field_mapping
-        //     WHERE
-        //         organization_id = ? AND form_id = ?
-        //             AND field_id IN (?);
-        // `, paramsArr);
+        if (queryString !== '') {
+            await db.executeRawQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
+    async function getFormActivityIDFromActivityFormTxnTable(request, organizationID, formID, outputFormTransactionID) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            organizationID,
+            formID,
+            outputFormTransactionID
+        );
+        let baseQuery = `
+            SELECT 
+                activity_id, form_name
+            FROM
+                activity_form_transaction
+            WHERE
+                organization_id = ? AND form_id = ?
+                    AND form_transaction_id = ?
+            LIMIT 1;
+        `;
+
+        const queryString = mysql.format(`${baseQuery};`, paramsArr);
         if (queryString !== '') {
             await db.executeRawQueryPromise(0, queryString, request)
                 .then((data) => {
