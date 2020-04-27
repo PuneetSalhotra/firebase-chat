@@ -1584,7 +1584,10 @@ function ActivityListingService(objCollection) {
 				"activity_flag_status_rollback": util.replaceDefaultNumber(rowData['activity_flag_status_rollback']),
 				"activity_flag_lead_enabled": util.replaceDefaultNumber(rowData['activity_flag_lead_enabled']),
 				"activity_datetime_participant_added": util.replaceDefaultDatetime(rowData['activity_datetime_participant_added']),
-				"activity_type_flag_control_visibility": util.replaceDefaultNumber(rowData['activity_type_flag_control_visibility'])
+				"activity_type_flag_control_visibility": util.replaceDefaultNumber(rowData['activity_type_flag_control_visibility']),
+				"activity_cuid_1": util.replaceDefaultString(rowData['activity_cuid_1']),
+				"activity_cuid_2": util.replaceDefaultString(rowData['activity_cuid_2']),
+				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
