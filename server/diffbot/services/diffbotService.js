@@ -317,7 +317,7 @@ function DiffbotService(objectCollection) {
                 tenders[k].tid,
                 diffbotrequest
               );
-              if (checkResult[0]["COUNT(*)"] == 0) {
+              if (checkResult.length == 0) {
                 var result = await insertTenderCorrespondingAccountId(
                   tenders[k].tid,
                   accountsList[j].activity_id,
@@ -325,6 +325,15 @@ function DiffbotService(objectCollection) {
                   tenderTigerUrl + tenders[k].detailurl,
                   tenders[k].closingdate,
                   diffbotrequest
+                );
+                await updateWorkflowTimelineCorrespondingAccountId(
+                  accountsList[j].organization_id,
+                  accountsList[j].account_id,
+                  accountsList[j].workforce_id,
+                  accountsList[j].activity_id,
+                  tenderTigerUrl + tenders[k].detailurl,
+                  accountsList[j].activity_type_id,
+                  accountsList[j].activity_type_category_id
                 );
               }
             }
@@ -370,13 +379,23 @@ function DiffbotService(objectCollection) {
     let paramsArrayForCheckResult;
     let checkResult;
     paramsArrayForCheckResult = new Array(account_id, tender_id);
-    checkResult = await db.callDBProcedure(
-      request,
+    const queryString = util.getQueryString(
       "ds_p1_activity_tender_mapping_select",
       paramsArrayForCheckResult,
       1
     );
-    return checkResult;
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(data => {
+          responseData = data;
+          error = false;
+        })
+        .catch(err => {
+          error = err;
+        });
+    }
+    return responseData;
   }
 
   async function insertTenderCorrespondingAccountId(
