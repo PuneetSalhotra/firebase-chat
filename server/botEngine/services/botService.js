@@ -2940,7 +2940,7 @@ function BotService(objectCollection) {
                     createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
                     //flag to know that this form and workflow is submitted by a Bot
-                    createTargetFormRequest.activity_flag_created_by_bot = 1;                
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;
                 }
             try {
                 await createTargetFormActivity(createTargetFormRequest);
@@ -3023,6 +3023,10 @@ function BotService(objectCollection) {
         createTargetFormRequest.flag_timeline_entry = 1;
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
+
+        console.log('createTargetFormRequest.isESMS : ', createTargetFormRequest.isESMS);
+        console.log('createTargetFormRequest.isEsmsOriginFlag : ', createTargetFormRequest.isEsmsOriginFlag);
+        console.log('createTargetFormRequest.activity_flag_created_by_bot : ', createTargetFormRequest.activity_flag_created_by_bot);        
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(createTargetFormRequest);
