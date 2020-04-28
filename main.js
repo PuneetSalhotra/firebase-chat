@@ -160,7 +160,7 @@ function connectToKafkaBroker(){
         kafkaProducer.on('ready', resolve);
     }).then(() => {  
              
-        var queueWrapper = new QueueWrapper(kafkaProducer);
+        var queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
         //global.logger = new Logger();
         global.logger = new Logger(queueWrapper);
         

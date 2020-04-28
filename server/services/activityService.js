@@ -453,7 +453,7 @@ function ActivityService(objectCollection) {
 
                                 if (
                                     (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) || 
-                                    (request.hasOwnProperty('isESMS'))
+                                    (request.hasOwnProperty('isESMS') && Number(request.esmsOriginFlag) === 1)
                                     ) {
                                                                             
                                     let workflowEngineRequest = Object.assign({}, request);

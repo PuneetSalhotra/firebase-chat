@@ -380,7 +380,9 @@ function FormConfigService(objCollection) {
                 "form_workflow_activity_type_id": util.replaceDefaultNumber(rowData['form_workflow_activity_type_id']),
                 "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin']),
-                "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled'])
+                "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
+                "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
+                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -1061,12 +1063,11 @@ function FormConfigService(objCollection) {
                     case 39: //Flag
                         params[11] = row.field_value;
                         break;
-                    case 57: //Workflow reference
-                        try{ //Supporting Backward Compatibility
-                            workflowReference = row.field_value.split('|');
-                            params[13] = workflowReference[0]; //ID
-                            params[18] = workflowReference[1]; //Name
-                        } catch(err) {
+                    case 57: //Workflow reference                        
+                        //params[27] = row.field_value;                        
+                        if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                        } else {
                             params[27] = row.field_value;
                         }
                         
@@ -1076,9 +1077,14 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value;
                         break;
                     case 59: //Asset reference
-                        assetReference = row.field_value.split('|');
-                        params[13] = assetReference[0]; //ID
-                        params[18] = assetReference[1]; //Name
+                        //assetReference = row.field_value.split('|');
+                        //params[13] = assetReference[0]; //ID
+                        //params[18] = assetReference[1]; //Name
+                        if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                        } else {
+                            params[27] = row.field_value;
+                        }
                         break;
                     case 61: //Time Datatype
                         params[18] = row.field_value;
@@ -1112,7 +1118,12 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 64: // Address DataType
-                        params[27] = row.field_value;
+                        //params[27] = row.field_value;
+                        if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                        } else {
+                            params[27] = row.field_value;
+                        }
                         break;
                     case 65: // Business Card DataType
                         params[27] = row.field_value;
@@ -5233,6 +5244,7 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.workforce_id,
             request.asset_id,
+            request.differential_datetime,
             request.flag,
             request.page_start || 0,
             util.replaceQueryLimit(request.page_limit)
