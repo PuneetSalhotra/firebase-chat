@@ -4,6 +4,7 @@ function DiffbotService(objectCollection) {
   const db = objectCollection.db;
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
+  const util = objectCollection.util;
 
   this.queryDiffbot = async diffbotrequest => {
     try {
@@ -213,7 +214,7 @@ function DiffbotService(objectCollection) {
       activity_type_category_id: activity_type_category_id_val,
       activity_type_id: activity_type_id_val,
       activity_id: activity_id_val,
-      activity_stream_type_id: 723,
+      activity_stream_type_id: 325,
       activity_timeline_collection: JSON.stringify(collectionObj),
       asset_id: 100,
       data_entity_inline: JSON.stringify(collectionObj),
@@ -222,7 +223,7 @@ function DiffbotService(objectCollection) {
       track_gps_datetime: currentDateInDateTimeFormat,
       device_os_id: 7,
       message_unique_id: epoch,
-      timeline_stream_type_id: 723
+      timeline_stream_type_id: 325
     };
 
     var result = await activityTimelineService.addTimelineTransactionAsync(
@@ -307,7 +308,7 @@ function DiffbotService(objectCollection) {
           }
         }
           for (var k = 0; k < tenders.length; k++) {
-            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
+            // tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
              accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
              for( var j=0;j<accountsList.length;j++)
