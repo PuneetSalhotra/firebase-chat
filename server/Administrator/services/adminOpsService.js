@@ -7303,62 +7303,94 @@ function AdminOpsService(objectCollection) {
     };     
     
     
-    async function evaluateJoinCondition(conditionData, formData) {
+    async function evaluateJoinCondition(conditionData, formData, request) {
         let proceed,
             conditionStatus,
             error = false;
 
-        console.log(formData);
+        console.log(formData);        
         
-        switch(Number(conditionData.data_type_id)) {
-            case 5: let operation = formData.field_value_condition_operator;
-                    let ifStatement;
-                    switch(operation) {
-                        case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
-                                    break;
-                        case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
-                                    break;
-                        case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
-                                    break;
-                        case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
-                                    break;
-                        case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
-                                    break;
-                    }                    
+        if(formData.hasOwnProperty('field_value')) {
+            switch(Number(conditionData.data_type_id)) {
+                case 5: let operation = formData.field_value_condition_operator;
+                        let ifStatement;
+                        switch(operation) {
+                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                                        break;
+                        }                    
+    
+                        if(ifStatement) {
+                            //Condition Passed
+                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                            //response: 0 EOJ
+                            //response: 1 OR
+                            //response: 2 AND
+    
+                            (response === 2)? proceed = 1:proceed = 0;
+                            conditionStatus = 1;
+                          } else {
+                            //condition failed
+                            proceed = 0;
+                            conditionStatus = 0;
+                          }
+    
+                        break;
+    
+                case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
+                            //Condition Passed                        
+                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                            //response: 0 EOJ
+                            //response: 1 OR
+                            //response: 2 AND
+                    
+                            (response === 2)? proceed = 1:proceed = 0;
+                            conditionStatus = 1;
+                          } else {
+                            //condition failed                        
+                            proceed = 0;
+                            conditionStatus = 0;
+                          }
+    
+                         break;
+            }
+        } //IF field_value exists
+        else {
+            //If field id is not there obvously data_type_id also wont be there then
+            //Check whether the given form is submitted or not
+            try {
+                let formTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, request.workflow_activity_id, formData.form_id);
 
-                    if(ifStatement) {
-                        //Condition Passed
-                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                        //response: 0 EOJ
-                        //response: 1 OR
-                        //response: 2 AND
-
-                        (response === 2)? proceed = 1:proceed = 0;
-                        conditionStatus = 1;
-                      } else {
-                        //condition failed
-                        proceed = 0;
-                        conditionStatus = 0;
-                      }
-
-                    break;
-
-            case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
-                        //Condition Passed                        
-                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                        //response: 0 EOJ
-                        //response: 1 OR
-                        //response: 2 AND
-                
-                        (response === 2)? proceed = 1:proceed = 0;
-                        conditionStatus = 1;
-                      } else {
-                        //condition failed                        
-                        proceed = 0;
-                        conditionStatus = 0;
-                      }
-
-                     break;
+                if (Number(formTransactionData.length) > 0) {                    
+                    //formTransactionData = Number(formTransactionData[0].activity_type_id);
+                    //formTransactionData = Number(formTransactionData[0].data_form_transaction_id);
+                    //formTransactionData = Number(formTransactionData[0].data_activity_id);
+                    let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                    //response: 0 EOJ
+                    //response: 1 OR
+                    //response: 2 AND
+                    
+                    (response === 2)? proceed = 1:proceed = 0;
+                    conditionStatus = 1;             
+                } else {
+                    proceed = 0;
+                    conditionStatus = 0;
+                }
+            } catch (err) {
+                console.log('In Catch err: ', err);
+                proceed = 0;
+                conditionStatus = 0;
+            }
         }
 
         //proceed = 1 means continue iterating
