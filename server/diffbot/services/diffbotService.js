@@ -4,6 +4,7 @@ function DiffbotService(objectCollection) {
   const db = objectCollection.db;
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
+  const util = objectCollection.util;
 
   this.queryDiffbot = async diffbotrequest => {
     try {
@@ -37,7 +38,7 @@ function DiffbotService(objectCollection) {
                   parsedResponse.data[k].id,
                   diffbotrequest
                 );
-                if (checkResult[0]["COUNT(*)"] == 0) {
+                if (checkResult.length == 0) {
                   var result = await insertPageUrlCorrespondingAccountId(
                     accountsList[j].activity_id,
                     parsedResponse.data[k].id,
@@ -133,13 +134,22 @@ function DiffbotService(objectCollection) {
     let paramsArrayForCheckResult;
     let checkResult;
     paramsArrayForCheckResult = new Array(account_id, article_id);
-    checkResult = await db.callDBProcedure(
-      request,
-      "ds_p1_check_accountid_pageurl_exist",
-      paramsArrayForCheckResult,
-      1
+    const queryString = util.getQueryString(
+      "ds_p1_activity_article_transaction_select",
+      paramsArrayForCheckResult
     );
-    return checkResult;
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(data => {
+          responseData = data;
+          error = false;
+        })
+        .catch(err => {
+          error = err;
+        });
+    }
+    return responseData;
   }
 
   async function insertPageUrlCorrespondingAccountId(
