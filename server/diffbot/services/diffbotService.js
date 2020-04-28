@@ -170,7 +170,7 @@ function DiffbotService(objectCollection) {
   async function getAccountsList(request,searchStr) {
     let result;
     let paramsArray;
-    paramsArray = new Array(868, 0, 0, 0, 0, searchStr, 1, 0, 0, 9000);
+    paramsArray = new Array(906, 0, 0, 0,150450,searchStr, 0, 0, 0, 50);
     result = await db.callDBProcedure(
       request,
       "ds_p1_activity_list_search_workflow_reference",
