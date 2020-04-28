@@ -2890,6 +2890,93 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	}
 
+	this.getActivitySubStatuses =  async function (request) {
+		let responseData = [],
+            error = true, finalResponse = [];
+
+        const paramsArr = new Array(            
+            request.organization_id,
+            request.activity_id,
+            request.activity_status_id,
+			request.page_start,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select_activity', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                    let self = this;
+                    console.log('responseData :: '+JSON.stringify(responseData));
+                    let [error1, configData] = await self.getSubStatusUsingParentStatus(request);
+                    console.log('configData :: '+JSON.stringify(configData));
+                    finalResponse = await self.formatSubStatusData(responseData, configData);
+                    console.log('finalResponse :: '+JSON.stringify(finalResponse));
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, finalResponse];
+	}
+
+
+	this.getSubStatusUsingParentStatus =  async function (request) {
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(            
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+			request.page_start,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_sub_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	}
+
+	this.formatSubStatusData = async function (data, configData) {
+		var responseData = new Array();
+		let dataJson = {};
+		console.log("data1 :"+JSON.stringify(data));
+
+		for(let j = 0; j < data.length; j++){
+			dataJson[data[j].sub_status_id] = {"sub_status_name":data[j].sub_status_name, "triggered_datetime":data[j].sub_status_trigger_time, "achieved_datetime":data[j].sub_status_achieved_time};
+		}
+		console.log('dataJson ::: '+JSON.stringify(dataJson));
+		configData.forEach(function (rowData, index) {
+			let statusId = rowData['activity_status_id'];
+			console.log('dataJson.statusId.triggered_datetime :: '+util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00'));
+			let triggerDatetime = util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00');
+			let achievedDatetime = util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].achieved_datetime:'1970-01-01 00:00:00');
+			var rowDataArr = {
+				"activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
+				"activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
+				"parent_status_id": util.replaceDefaultNumber(rowData['parent_status_id']),
+				"parent_status_name": util.replaceDefaultString(rowData['parent_status_name']),
+				"triggered_datetime": triggerDatetime,
+				"achieved_datetime": achievedDatetime,
+			};
+			responseData.push(rowDataArr);
+		}, this);
+		console.log('responseData :::2 '+JSON.stringify(responseData));
+		return responseData;
+	};
 }
 
 module.exports = ActivityListingService;
