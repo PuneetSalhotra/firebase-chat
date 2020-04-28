@@ -449,11 +449,15 @@ function ActivityService(objectCollection) {
                                 condition_1: `activityTypeCategroyId === 9 && request.device_os_id !== 9: ${activityTypeCategroyId === 9 && request.device_os_id !== 9}`,
                                 condition_2: `Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony'): ${Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')}`
                             });
+                            
+                            console.log('request.isESMS : ', request.isESMS);
+                            console.log('request.isEsmsOriginFlag : ', request.isEsmsOriginFlag);
+                            
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
                                 if (
                                     (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) || 
-                                    (request.hasOwnProperty('isESMS') && Number(request.esmsOriginFlag) === 1)
+                                    (request.hasOwnProperty('isESMS') && Number(request.isEsmsOriginFlag) === 1)
                                     ) {
                                                                             
                                     let workflowEngineRequest = Object.assign({}, request);
