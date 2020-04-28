@@ -401,6 +401,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, botsData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/tag/entity-mappings/list', async (req, res) => {
+        const [err, data] = await adminListingService.getTagEntityMappingsBasedOnID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/tag_type/mappings/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
