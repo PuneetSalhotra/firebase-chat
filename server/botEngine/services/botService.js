@@ -2886,8 +2886,11 @@ function BotService(objectCollection) {
                 organization_id: request.organization_id
             });
 
-            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
+            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
+            console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
+            console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
             const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
 
             activityInlineDataMap.set(sourceFieldID, {
                 // "form_name": Number(sourceFieldData[0].form_name),
@@ -3109,7 +3112,7 @@ function BotService(objectCollection) {
                 return 'data_entity_text_2';
             case 57: // JSON
             case 59: // JSON
-            case 64: //JSON
+            case 64: //JSON                
                 return 'data_entity_inline';
             default: console.log('In default Case : getFielDataValueColumnName');
         }
