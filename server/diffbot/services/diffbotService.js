@@ -372,7 +372,7 @@ function DiffbotService(objectCollection) {
     paramsArrayForCheckResult = new Array(account_id, tender_id);
     checkResult = await db.callDBProcedure(
       request,
-      "ds_p1_check_accountid_tenderid_exist",
+      "ds_p1_activity_tender_mapping_select",
       paramsArrayForCheckResult,
       1
     );
@@ -391,16 +391,19 @@ function DiffbotService(objectCollection) {
     let paramsArray;
     let expiry_date = new Date(closing_date);
     let dateTimeFormatExpiryDate = getTimeInDateTimeFormat(expiry_date);
+    var currentDate = new Date();
+    var currentDateInDateTimeFormat = getTimeInDateTimeFormat(currentDate);
     paramsArray = new Array(
-      tender_id,
       account_id,
+      tender_id,
       tender_from_url,
       tender_info_url,
-      dateTimeFormatExpiryDate
+      dateTimeFormatExpiryDate,
+      currentDateInDateTimeFormat
     );
     result = await db.callDBProcedure(
       request,
-      "ds_p1_account_tender_info_insert",
+      "ds_p1_activity_tender_mapping_insert",
       paramsArray,
       0
     );
