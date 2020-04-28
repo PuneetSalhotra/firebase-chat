@@ -55,6 +55,11 @@ function WorkbookOpsService(objectCollection) {
         const workflowActivityID = request.workflow_activity_id,
             excelSheetFilePath = `/Users/Bensooraj/Desktop/NodeJS/testAPIOne/Workbook_mapping_bot_test_v1.xlsx`;
 
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, botOperationInlineData.workbook_url);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+        
         // Get the single selection value for selecting the sheet
         let sheetIndex = 0;
         try {
@@ -158,7 +163,8 @@ function WorkbookOpsService(objectCollection) {
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
 
         // Parse and process the excel file
-        const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
+        // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer" });
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
