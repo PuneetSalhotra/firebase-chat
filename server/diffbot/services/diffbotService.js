@@ -136,7 +136,8 @@ function DiffbotService(objectCollection) {
     paramsArrayForCheckResult = new Array(account_id, article_id);
     const queryString = util.getQueryString(
       "ds_p1_activity_article_transaction_select",
-      paramsArrayForCheckResult
+      paramsArrayForCheckResult,
+      1
     );
     if (queryString !== "") {
       await db
