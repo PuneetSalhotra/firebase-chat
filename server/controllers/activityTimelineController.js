@@ -29,8 +29,8 @@ function ActivityTimelineController(objCollection) {
             var event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
-                method: "addTimelineTransaction",
-                //method: "addTimelineTransactionAsync",
+                //method: "addTimelineTransaction",
+                method: "addTimelineTransactionAsync",
                 payload: req.body
             };
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
