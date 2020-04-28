@@ -11,7 +11,7 @@ function DiffbotService(objectCollection) {
       var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
       var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
       var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
-      var accountsList = await getAccountsList();
+      var accountsList = await getAccountsList(diffbotrequest,"");
       for (var j = 0; j < accountsList.length; j++) {
         let results = new Array();
         let paramsArray;
@@ -167,10 +167,10 @@ function DiffbotService(objectCollection) {
     return result;
   }
 
-  async function getAccountsList(request) {
+  async function getAccountsList(request,searchStr) {
     let result;
     let paramsArray;
-    paramsArray = new Array(868, 0, 0, 0, 0, "", 1, 0, 0, 9000);
+    paramsArray = new Array(868, 0, 0, 0, 0, searchStr, 1, 0, 0, 9000);
     result = await db.callDBProcedure(
       request,
       "ds_p1_activity_list_search_workflow_reference",
@@ -283,7 +283,6 @@ function DiffbotService(objectCollection) {
       };
       tenderTigerApiUrl =
         "https://www.tendertiger.com/Contentnd/WebMethod/AdvanceTenderSearchWebMethod.aspx/GetAdvaceSearchData";
-      var accountsList = await getAccountsList();
 
       for (var i = 0; i < global.config.knowledgeGraphKeywords.length; i++) {
         body["Searchtex"] = global.config.knowledgeGraphKeywords[i];
@@ -307,44 +306,64 @@ function DiffbotService(objectCollection) {
             break;
           }
         }
-        for (var j = 0; j < accountsList.length; j++) {
           for (var k = 0; k < tenders.length; k++) {
-            if (
-              accountsList[j]["activity_title"] == tenders[k]["CompanyName"]
-            ) {
-              var checkResult = await checkIfAccountIDTenderIdExist(
-                accountsList[j].activity_id,
-                tenders[k].tid,
-                diffbotrequest
-              );
-              if (checkResult.length == 0) {
-                var result = await insertTenderCorrespondingAccountId(
-                  tenders[k].tid,
+            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
+            var accountsList = []
+             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
+             for( var j=0;j<accountsList.length;j++)
+             {
+              if (
+                accountsList[j]["activity_title"] == tenders[k]["CompanyName"]
+              ) {
+                var checkResult = await checkIfAccountIDTenderIdExist(
                   accountsList[j].activity_id,
-                  tenderTigerUrl,
-                  tenderTigerUrl + tenders[k].detailurl,
-                  tenders[k].closingdate,
+                  tenders[k].tid,
                   diffbotrequest
                 );
-                await updateWorkflowTimelineCorrespondingAccountId(
-                  accountsList[j].organization_id,
-                  accountsList[j].account_id,
-                  accountsList[j].workforce_id,
-                  accountsList[j].activity_id,
-                  tenderTigerUrl + tenders[k].detailurl,
-                  accountsList[j].activity_type_id,
-                  accountsList[j].activity_type_category_id
-                );
+                if (checkResult.length == 0) {
+                  var result = await insertTenderCorrespondingAccountId(
+                    tenders[k].tid,
+                    accountsList[j].activity_id,
+                    tenderTigerUrl,
+                    tenderTigerUrl + tenders[k].detailurl,
+                    tenders[k].closingdate,
+                    diffbotrequest
+                  );
+                  await updateWorkflowTimelineCorrespondingAccountId(
+                    accountsList[j].organization_id,
+                    accountsList[j].account_id,
+                    accountsList[j].workforce_id,
+                    accountsList[j].activity_id,
+                    tenderTigerUrl + tenders[k].detailurl,
+                    accountsList[j].activity_type_id,
+                    accountsList[j].activity_type_category_id
+                  );
+                }
               }
-            }
-          }
-        }
+             }           
+          }        
       }
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
     }
   };
+
+  function processTenderCompanyName(CompanyName)
+  {
+     var aplhaNumericCompanyName
+     aplhaNumericCompanyName = CompanyName.replace(/\W/g, '')
+     if(aplhaNumericCompanyName.includes('Ltd'))
+     {
+      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Ltd/gi, "limited")
+     }
+     if(aplhaNumericCompanyName.includes('Pvt'))
+     {
+      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Pvt/gi, "private")
+     }
+     aplhaNumericCompanyName = aplhaNumericCompanyName.toLowerCase()
+     return aplhaNumericCompanyName
+  }
 
   async function getTenderList(headers, body, tenderTigerApiUrl) {
     let res = await doTenderApiCall(headers, body, tenderTigerApiUrl);
