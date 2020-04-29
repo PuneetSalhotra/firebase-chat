@@ -77,6 +77,7 @@ function DiffbotService(objectCollection) {
   function getKnowledgeTypeDateParams() {
     var currentDate = new Date();
     var yesterday = currentDate.setDate(currentDate.getDate() - 1);
+    // var dateParam = "date.timestamp>=1586931240000 ";
     var dateParam = "date.timestamp>=" + yesterday + " ";
     return dateParam;
   }
@@ -182,13 +183,23 @@ function DiffbotService(objectCollection) {
     let result;
     let paramsArray;
     paramsArray = new Array(906, 0, 0, 0,150450,searchStr, 0, 0, 0, 50);
-    result = await db.callDBProcedure(
-      request,
+    const queryString = util.getQueryString(
       "ds_p1_activity_list_search_workflow_reference",
       paramsArray,
       1
     );
-    return result;
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(data => {
+          responseData = data;
+          error = false;
+        })
+        .catch(err => {
+          error = err;
+        });
+    }
+    return responseData;
   }
 
   async function updateWorkflowTimelineCorrespondingAccountId(
@@ -202,8 +213,8 @@ function DiffbotService(objectCollection) {
   ) {
     var collectionObj = {
       content:
-        "A new article has been identified for your account. Please refer to this <u>" +
-        page_url_val +
+        "A new article has been identified for your account. Please refer to this <u>"+"<a href='"+page_url_val+"'  target='_blank'>"+
+        page_url_val+"</a>"+
         "</u> for the article.",
       subject: page_url_val,
       mail_body: page_url_val,

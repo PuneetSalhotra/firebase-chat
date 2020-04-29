@@ -55,6 +55,32 @@ redisClient.on('error', function (error) {
     // console.log(error);
 });
 
+const {
+    requestParamsValidator, requestMethodValidator, requestContentTypeValidator, 
+    setResponseContentType
+} = require('./server/utils/requestValidator');
+
+app.disable('x-powered-by')
+
+// Disallow non-POST requests
+app.use(requestMethodValidator)
+
+// Requests must contain Content-Type header
+app.use(requestContentTypeValidator)
+
+// Validate the request parameters:
+app.use(requestParamsValidator);
+
+// Enforce response Content-Type header
+app.use(setResponseContentType);
+
+const helmet = require('helmet');
+// Sets "Strict-Transport-Security: max-age=5184000; includeSubDomains".
+const sixtyDaysInSeconds = 5184000
+app.use(helmet.hsts({ maxAge: sixtyDaysInSeconds }))
+app.use(helmet.frameguard({ action: 'sameorigin' }))
+app.use(helmet.noSniff())
+
 // Handling null/empty message_unique_ids
 // 
 app.use(function (req, res, next) {
