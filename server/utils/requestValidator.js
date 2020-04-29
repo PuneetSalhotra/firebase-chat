@@ -17,6 +17,7 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
         workforce_id: Joi.number(),
 
         asset_id: Joi.number(),
+        target_asset_id: Joi.number(),
         auth_asset_id: Joi.number(),
         asset_token_auth: Joi.string()
             .uuid({
@@ -30,15 +31,31 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
         activity_id: Joi.number(),
         activity_status_id: Joi.number(),
         activity_type_category_id: Joi.number(),
+        activity_type_id: Joi.number(),
+        workflow_activity_type_id: Joi.number(),
+
+        activity_datetime_start: Joi.date().iso(),
+        activity_datetime_end: Joi.date().iso(),
+        
+        // Timeline
+        activity_stream_type_id: Joi.number(),
 
         // Form
         form_id: Joi.number(),
         activity_form_id: Joi.number(),
+        form_transaction_id: Joi.number(),
+
+        // Pagination
+        start_from:  Joi.number(),
+        limit_value:  Joi.number(),
+        page_start:  Joi.number(),
+        page_limit:  Joi.number(),
 
         // Device specific and track GPS details
         device_os_id: Joi.number().required(),
         track_gps_datetime: Joi.date().iso(),
         datetime_log: Joi.date().iso(),
+        log_datetime: Joi.date().iso(),
 
     })
         .or("asset_id", "auth_asset_id")
