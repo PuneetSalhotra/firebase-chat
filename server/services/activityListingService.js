@@ -2920,7 +2920,7 @@ async function processFormInlineDataV1(request, data){
                 });
         }
         return [error, finalResponse];
-	}
+	};
 
 
 	this.getSubStatusUsingParentStatus =  async function (request) {
@@ -2948,7 +2948,7 @@ async function processFormInlineDataV1(request, data){
                 });
         }
         return [error, responseData];
-	}
+	};
 
 	this.formatSubStatusData = async function (data, configData) {
 		var responseData = new Array();
@@ -2977,6 +2977,36 @@ async function processFormInlineDataV1(request, data){
 		console.log('responseData :::2 '+JSON.stringify(responseData));
 		return responseData;
 	};
+
+	
+	this.getActActChildActivities =  async (request) => {
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(            
+            request.workflow_activity_id,
+            request.activity_type_id,
+            request.activity_type_category_id,
+			request.organization_id,
+			request.flag,
+			request.page_start || 0,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
 }
 
 module.exports = ActivityListingService;
