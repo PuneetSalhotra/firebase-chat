@@ -13,6 +13,7 @@
   "devDependencies": {},
   "dependencies": {
     "@elastic/elasticsearch": "^7.6.1",
+    "@hapi/joi": "^17.1.1",
     "@sendgrid/mail": "^6.5.1",
     "@sheet/core": "^1.20200424.1",
     "@sheet/formula": "^1.20200424.1",
@@ -29,6 +30,7 @@
     "dd-trace": "^0.14.1",
     "express": "^4.17.1",
     "forEachAsync": "^3.0.0",
+    "helmet": "^3.22.0",
     "html-pdf": "^2.2.0",
     "hummus": "^1.0.108",
     "hummus-recipe": "^1.9.2",
@@ -55,6 +57,7 @@
     "stringstream": "^1.0.0",
     "tinyurl": "^1.1.5",
     "twilio": "~3.23.1",
+    "type-is": "^1.6.18",
     "uuid": "^3.4.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^4.4.2",
