@@ -851,6 +851,16 @@ function ActivityController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/expression/update', async (req, res) =>{
+        const [err, responseData] = await activityService.activityUpdateExpression(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/expression/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });    
 }
 
 
