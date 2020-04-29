@@ -55,7 +55,10 @@ redisClient.on('error', function (error) {
     // console.log(error);
 });
 
-const { requestParamsValidator, requestMethodValidator, requestContentTypeValidator } = require('./server/utils/requestValidator');
+const {
+    requestParamsValidator, requestMethodValidator, requestContentTypeValidator, 
+    setResponseContentType
+} = require('./server/utils/requestValidator');
 
 // Disallow non-POST requests
 app.use(requestMethodValidator)
@@ -65,6 +68,9 @@ app.use(requestContentTypeValidator)
 
 // Validate the request parameters:
 app.use(requestParamsValidator);
+
+// Enforce response Content-Type header
+app.use(setResponseContentType);
 
 const helmet = require('helmet');
 // Sets "Strict-Transport-Security: max-age=5184000; includeSubDomains".
