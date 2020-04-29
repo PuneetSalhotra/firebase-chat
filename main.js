@@ -59,6 +59,11 @@ redisClient.on('error', function (error) {
 const requestParamsValidator = require('./server/utils/requestParamsValidator.js');
 app.use(requestParamsValidator);
 
+const helmet = require('helmet');
+// Sets "Strict-Transport-Security: max-age=5184000; includeSubDomains".
+const sixtyDaysInSeconds = 5184000
+app.use(helmet.hsts({ maxAge: sixtyDaysInSeconds }))
+
 // Handling null/empty message_unique_ids
 // 
 app.use(function (req, res, next) {

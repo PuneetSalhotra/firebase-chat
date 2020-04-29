@@ -30,6 +30,7 @@
     "dd-trace": "^0.14.1",
     "express": "^4.17.1",
     "forEachAsync": "^3.0.0",
+    "helmet": "^3.22.0",
     "html-pdf": "^2.2.0",
     "hummus": "^1.0.108",
     "hummus-recipe": "^1.9.2",
