@@ -76,6 +76,7 @@ const helmet = require('helmet');
 // Sets "Strict-Transport-Security: max-age=5184000; includeSubDomains".
 const sixtyDaysInSeconds = 5184000
 app.use(helmet.hsts({ maxAge: sixtyDaysInSeconds }))
+app.use(helmet.frameguard({ action: 'sameorigin' }))
 
 // Handling null/empty message_unique_ids
 // 
