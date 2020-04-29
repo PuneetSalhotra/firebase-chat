@@ -60,6 +60,8 @@ const {
     setResponseContentType
 } = require('./server/utils/requestValidator');
 
+app.disable('x-powered-by')
+
 // Disallow non-POST requests
 app.use(requestMethodValidator)
 
@@ -77,6 +79,7 @@ const helmet = require('helmet');
 const sixtyDaysInSeconds = 5184000
 app.use(helmet.hsts({ maxAge: sixtyDaysInSeconds }))
 app.use(helmet.frameguard({ action: 'sameorigin' }))
+app.use(helmet.noSniff())
 
 // Handling null/empty message_unique_ids
 // 
