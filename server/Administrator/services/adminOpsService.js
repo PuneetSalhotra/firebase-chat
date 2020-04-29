@@ -7024,7 +7024,7 @@ function AdminOpsService(objectCollection) {
                     log_state: 3
                 });
 
-                responseData.push(dottedManagerData);
+                responseData.push(dottedManagerData[0]);
             } catch (error) {
                 logger.error("Error removing dotted manager", { type: 'admin_service', error: serializeError(error), request_body: request, dotted_manager: dottedManager });
             }
