@@ -170,6 +170,47 @@ var executeQueryPromise = function (flag, queryString, request) {
     });
 };
 
+var executeRawQueryPromise = function (flag, queryString, request) {
+    return new Promise((resolve, reject) => {
+        let conPool;
+        let label;
+        
+        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
+
+        try {
+            conPool.getConnection(function (err, conn) {
+                if (err) {
+                    logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                    // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                    reject(err);
+                } else {
+                    // label = 'DB-Query-Execution-Promise' + Date.now();
+                    // console.time(label);
+                    conn.query(queryString, function (err, rows, fields) {
+                        if (!err) {
+                            logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
+                            // global.logger.write('dbResponse', queryString, rows, request);
+                            conn.release();
+                            resolve(rows);
+                        } else {
+                            logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                            // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                            // global.logger.write('serverError', err, err, request);
+                            conn.release();
+                            reject(err);
+                        }
+                    // console.timeEnd(label);
+                    });
+                }
+            });
+        } catch (exception) {
+            logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
+            // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+            reject(exception);
+        }
+    });
+};
+
 /*function retrieveFromMasterDbPool(conPool, queryString, request){
     return new Promise((resolve, reject)=>{
         try {
@@ -387,6 +428,7 @@ process.on('SIGINT', () => {
 module.exports = {
     executeQuery: executeQuery,
     executeQueryPromise: executeQueryPromise,
+    executeRawQueryPromise: executeRawQueryPromise,
     executeRecursiveQuery: executeRecursiveQuery,
     callDBProcedure: callDBProcedure,
     callDBProcedureR2: callDBProcedureR2,

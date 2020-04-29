@@ -7,6 +7,7 @@ function DiffbotController(objCollection)
 
     cron.schedule("0 0 0 * * *",  async function() {
         let result = await diffbotService.queryDiffbot({});
+        diffbotService.getTendersFromTenderTigerWebsite({})
     });
 
 }
