@@ -55,6 +55,18 @@ redisClient.on('error', function (error) {
     // console.log(error);
 });
 
+// Disallow non-POST requests
+app.use((req, res, next) => {
+    const healthcheckURL = `/${global.config.version}/healthcheck`;
+    if (
+        req.url !== healthcheckURL &&
+        req.method !== 'POST'
+    ) {
+        return res.status(405).json({ error: "Oops! That's not allowed" });
+    }
+    next();
+})
+
 // Validate the request parameters:
 const requestParamsValidator = require('./server/utils/requestParamsValidator.js');
 app.use(requestParamsValidator);

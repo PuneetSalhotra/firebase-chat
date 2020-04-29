@@ -5,7 +5,7 @@ const Joi = require('@hapi/joi');
 async function requestParamsValidator(req, res, next) {
 
     if (exclusionList.includes(req.url)) {
-        next()
+        return next();
     }
 
     const validationSchema = Joi.object({
@@ -52,12 +52,13 @@ async function requestParamsValidator(req, res, next) {
             })
         }
     }
-    next();
+    return next();
 }
 
 module.exports = requestParamsValidator;
 
 const exclusionList = [
+    `/${global.config.version}/healthcheck`,
     `/${global.config.version}/asset/passcode/alter`,
     `/${global.config.version}/asset/passcode/alter/v1`,
     `/${global.config.version}/asset/passcode/check`,
