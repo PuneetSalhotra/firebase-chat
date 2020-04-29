@@ -55,20 +55,15 @@ redisClient.on('error', function (error) {
     // console.log(error);
 });
 
+const { requestParamsValidator, requestMethodValidator, requestContentTypeValidator } = require('./server/utils/requestValidator');
+
 // Disallow non-POST requests
-app.use((req, res, next) => {
-    const healthcheckURL = `/${global.config.version}/healthcheck`;
-    if (
-        req.url !== healthcheckURL &&
-        req.method !== 'POST'
-    ) {
-        return res.status(405).json({ error: "Oops! That's not allowed" });
-    }
-    next();
-})
+app.use(requestMethodValidator)
+
+// Requests must contain Content-Type header
+app.use(requestContentTypeValidator)
 
 // Validate the request parameters:
-const requestParamsValidator = require('./server/utils/requestParamsValidator.js');
 app.use(requestParamsValidator);
 
 const helmet = require('helmet');

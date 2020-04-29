@@ -1,8 +1,11 @@
 // server/utils/requestParamsValidator.js
 
 const Joi = require('@hapi/joi');
+const typeis = require('type-is')
 
-async function requestParamsValidator(req, res, next) {
+const requestValidator = {};
+
+requestValidator.requestParamsValidator = async function (req, res, next) {
 
     if (exclusionList.includes(req.url)) {
         return next();
@@ -55,7 +58,29 @@ async function requestParamsValidator(req, res, next) {
     return next();
 }
 
-module.exports = requestParamsValidator;
+requestValidator.requestMethodValidator = (req, res, next) => {
+    const healthcheckURL = `/${global.config.version}/healthcheck`;
+    if (
+        req.url !== healthcheckURL &&
+        req.method !== 'POST'
+    ) {
+        return res.status(405).json({ error: "Oops! That's not allowed" });
+    }
+    next();
+}
+
+requestValidator.requestContentTypeValidator = async function (req, res, next) {
+    const healthcheckURL = `/${global.config.version}/healthcheck`;
+    if (
+        req.url !== healthcheckURL &&
+        !typeis(req, ['application/x-www-form-urlencoded', 'multipart/form-data', 'application/json']) // 
+    ) {
+        return res.status(415).json({ error: "Oops! Content Type not supported" });
+    }
+    next();
+}
+
+module.exports = requestValidator;
 
 const exclusionList = [
     `/${global.config.version}/healthcheck`,
