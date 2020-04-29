@@ -55,6 +55,10 @@ redisClient.on('error', function (error) {
     // console.log(error);
 });
 
+// Validate the request parameters:
+const requestParamsValidator = require('./server/utils/requestParamsValidator.js');
+app.use(requestParamsValidator);
+
 // Handling null/empty message_unique_ids
 // 
 app.use(function (req, res, next) {
