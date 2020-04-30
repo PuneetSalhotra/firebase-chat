@@ -318,6 +318,15 @@ function BotController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/opportunity/set', async (req, res) =>{
+        const [err, responseData] = await botService.generateOppurtunity(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/opportunity/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });  
 }
 
 module.exports = BotController;
