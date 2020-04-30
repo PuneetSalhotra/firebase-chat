@@ -5205,7 +5205,8 @@ function AdminOpsService(objectCollection) {
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+        //const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_tag_type_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -5446,7 +5447,7 @@ function AdminOpsService(objectCollection) {
             request.organization_id,
             request.tag_id,
             request.asset_id,
-            request.datetime_log
+            request.datetime_log || util.getCurrentUTCTime()
         );
 
         const queryString = util.getQueryString('ds_v1_tag_list_delete', paramsArr);
@@ -5504,7 +5505,8 @@ function AdminOpsService(objectCollection) {
             request.datetime_log
         );
 
-        const queryString = util.getQueryString('ds_v1_tag_type_master_delete', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_tag_type_master_delete', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_list_delete', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -5960,7 +5962,7 @@ function AdminOpsService(objectCollection) {
                 return [false, responseData[0].account_id];
 
             } else {
-
+                    request.account_type_id = 2;
                 const [errOne, accountData] = await accountListInsert(request, request.organization_id);
                 if (errOne) {
 
@@ -6349,7 +6351,8 @@ function AdminOpsService(objectCollection) {
             request.datetime_log || util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_tag_type_master_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_tag_type_list_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -6369,16 +6372,62 @@ function AdminOpsService(objectCollection) {
     //Insert into Tag Entity Mapping Insert
     this.tagEntityMappingInsert = async (request) => {
         let responseData = [],
+            error = false;
+
+        //Workflow- tag_type_category_id: 1
+        //Workforce- tag_type_category_id: 2
+        //Resource- tag_type_category_id: 3
+        //Status- tag_type_category_id: 4
+
+        console.log('typeof request.entity_list : ', typeof request.entity_list);
+        let entityList;
+        if(typeof request.entity_list === 'string') {
+            entityList = JSON.parse(request.entity_list);
+        } else {
+            entityList = request.entity_list;
+        }        
+        console.log(entityList);
+
+        switch(Number(request.tag_type_category_id)) {
+            case 1: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_type_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 2: for(let i = 0; i < entityList.length; i++) {
+                        request.tag_workforce_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 3: for(let i = 0; i < entityList.length; i++) {
+                        request.resource_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 4: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_status_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            default: break;
+        }       
+        
+        return [error, responseData];
+    }
+
+    //Insert into Tag Entity Mapping DB Insert
+    this.tagEntityMappingInsertDBCall = async (request) => {
+        let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
             request.tag_id,
             request.tag_type_category_id,
-            request.activity_type_id,
-            request.resource_id, //asset_id
-            request.tag_workforce_id,
-            request.activity_status_id,
+            request.activity_type_id || 0,
+            request.resource_id || 0, //asset_id
+            request.tag_workforce_id || 0,
+            request.activity_status_id || 0,
             request.asset_id,
             request.datetime_log || util.getCurrentUTCTime()
         );
@@ -6975,7 +7024,7 @@ function AdminOpsService(objectCollection) {
                     log_state: 3
                 });
 
-                responseData.push(dottedManagerData);
+                responseData.push(dottedManagerData[0]);
             } catch (error) {
                 logger.error("Error removing dotted manager", { type: 'admin_service', error: serializeError(error), request_body: request, dotted_manager: dottedManager });
             }
@@ -7029,6 +7078,349 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.sendInviteText = async function(request){
+        let responseData = [],
+            error = false;
+
+        // Send SMS to the newly added employee
+        try {
+
+            //get Asset Data
+            let reqObject = Object.assign({}, request);
+            reqObject.asset_id = request.target_asset_id;
+            let [errorOne, responseDataOne]  = await activityCommonService.getAssetDetailsAsync(request);
+
+            // Get the Org data
+            let orgData = [], senderID = '';
+            let orgDataQueryParams = new Array(1);
+            orgDataQueryParams[0] = Number(request.organization_id);
+            const queryString = util.getQueryString('ds_p1_organization_list_select', orgDataQueryParams);
+            if (queryString != '') {
+                orgData = await (db.executeQueryPromise(1, queryString, request));
+            }
+            (orgData.length > 0) ? senderID = orgData[0].organization_text_sender_name : senderID = 'MYTONY';
+
+            const smsMessage = `Dear ${responseDataOne[0].operating_asset_first_name || ''} ${responseDataOne[0].operating_asset_last_name || ''}, you have been added as an '${responseDataOne[0].asset_first_name}' by '${responseDataOne[0].organization_name || ''}' to join their '${responseDataOne[0].workforce_name || ''}' workforce. Please click on the link below to download the Tony App and get started.
+        
+            https://download.mytony.app`;
+
+            util.sendSmsSinfiniV1(smsMessage, responseDataOne[0].operating_asset_phone_country_code || 91, responseDataOne[0].operating_asset_phone_number || 0, senderID, function (err, response) {
+                console.log('[sendInviteText] Sinfini Response: ', response);
+                console.log('[sendInviteText] Sinfini Error: ', err);
+            });
+        } catch (error) {
+            console.log('[sendInviteText] SMS Block Error: ', error);
+        }
+        return [error, responseData];
+    }
+
+
+    //Dependent form Submitted?
+    //All conditions satisfying in the bots?
+    this.dependedFormCheck = async (request) => {
+        let responseData = [],
+            error = true;
+
+        request.bot_operation_type_id = 20;
+        const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
+
+        if(botsData.length > 0) {
+            let inlineData,tempFormsArr,conditions,dependentFormTransactionData;
+            let i, j, k , l;
+
+            for(i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);                
+                //console.log(inlineData.form_enable);
+
+                tempFormsArr = inlineData.form_enable;
+                //console.log('tempFormsArr : ', tempFormsArr);
+
+                for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
+                    console.log(tempFormsArr[j].form_id);
+                    conditions = tempFormsArr[j].conditions;
+
+                    console.log('Conditions: ', conditions);
+
+                    if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
+                        //Check whether the dependent form is submitted
+                        try {
+                            dependentFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id
+                            }, Number(request.workflow_activity_id), conditions[0].form_id);
+                
+                            if (Number(dependentFormTransactionData.length) > 0) {
+                                //console.log('Dependent form Data : ', dependentFormTransactionData);
+                                dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
+                                //dependentFormTransactionID = dependentFormTransactionData[0].data_form_transaction_id;
+                                //dependentFormActivityID = dependentFormTransactionData[0].data_activity_id;
+
+                                //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
+                                let formData = dependentFormTransactionInlineData.form_submitted;
+                                let breakFlag = 0; //to break the outer loop
+
+                                //Iterate on form data                                
+                                for(k=0;k<conditions.length;k++) { //Conditions Array                                    
+                                    for(l=0;l<formData.length;l++){ //Form Data                                        
+                                        if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
+                                        
+                                            let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
+                                            
+                                            console.log('PROCEED : ', proceed);
+                                            console.log('conditionStatus : ', conditionStatus);                                            
+
+                                            //Reached either EOJ or one of the conditions failed
+                                            if(proceed === 0 || conditionStatus === 0) {
+                                                if(conditionStatus === 1){
+                                                    error = false;
+                                                    responseData.push({"message": "dependent form conditions passed!"});
+                                                } else {                                                    
+                                                    responseData.push({"message": "dependent form conditions failed!"});
+                                                }
+                                                breakFlag = 1;
+                                                break;
+                                            }
+
+                                        } else {
+                                            console.log('In else');
+                                        }
+                                    } //End of for Loop - form data
+                                    if(breakFlag === 1) {
+                                        break;
+                                    }
+                                    console.log('----------------------------------');
+                                } //End of for Loop - Conditions Array
+                                
+                            } else {
+                                console.log('Dependent form ', conditions[0].form_id, 'is not submitted');
+                                responseData.push({"message": "Dependent form not submitted!"});
+                            }
+                        } catch (error) {
+                            console.log("Fetch Dependent Form Data | Error: ", error);
+                            throw new Error(error);
+                        }
+                    }
+                } // Looping on a Single Form
+            } //Looping on all the bot_enabled forms
+        } else {
+            error = false;
+            responseData.push({"message": "No Dependent Forms defined for this Form!"});
+        }        
+        return [error, responseData];
+    }
+
+    this.tagupdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.tag_id,
+            request.tag_name,
+            request.inline_data || '{}',
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_tag_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    //self.tagListHistoryInsert(request, 2003);
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getAssetAccessDetails = async function (request) {
+        let assetData = [],
+            error = true
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.desk_asset_id || 0,
+            request.manager_asset_id || request.asset_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v1_asset_access_mapping_select_asset_access_all', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData.push(data);
+                    error = false;
+                    assetData = await self.getAssetUnderAManagerInaWorforce(request);
+                    responseData.push(assetData);
+
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.getAssetUnderAManagerInaWorforce = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.manager_asset_id || request.asset_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_workforce', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return assetData;
+    };     
+    
+    
+    async function evaluateJoinCondition(conditionData, formData, request) {
+        let proceed,
+            conditionStatus,
+            error = false;
+
+        console.log(formData);        
+        
+        if(formData.hasOwnProperty('field_value')) {
+            switch(Number(conditionData.data_type_id)) {
+                case 5: let operation = formData.field_value_condition_operator;
+                        let ifStatement;
+                        switch(operation) {
+                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
+                                        break;
+                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                                        break;
+                        }                    
+    
+                        if(ifStatement) {
+                            //Condition Passed
+                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                            //response: 0 EOJ
+                            //response: 1 OR
+                            //response: 2 AND
+    
+                            (response === 2)? proceed = 1:proceed = 0;
+                            conditionStatus = 1;
+                          } else {
+                            //condition failed
+                            proceed = 0;
+                            conditionStatus = 0;
+                          }
+    
+                        break;
+    
+                case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
+                            //Condition Passed                        
+                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                            //response: 0 EOJ
+                            //response: 1 OR
+                            //response: 2 AND
+                    
+                            (response === 2)? proceed = 1:proceed = 0;
+                            conditionStatus = 1;
+                          } else {
+                            //condition failed                        
+                            proceed = 0;
+                            conditionStatus = 0;
+                          }
+    
+                         break;
+            }
+        } //IF field_value exists
+        else {
+            //If field id is not there obvously data_type_id also wont be there then
+            //Check whether the given form is submitted or not
+            try {
+                let formTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, request.workflow_activity_id, formData.form_id);
+
+                if (Number(formTransactionData.length) > 0) {                    
+                    //formTransactionData = Number(formTransactionData[0].activity_type_id);
+                    //formTransactionData = Number(formTransactionData[0].data_form_transaction_id);
+                    //formTransactionData = Number(formTransactionData[0].data_activity_id);
+                    let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                    //response: 0 EOJ
+                    //response: 1 OR
+                    //response: 2 AND
+                    
+                    (response === 2)? proceed = 1:proceed = 0;
+                    conditionStatus = 1;             
+                } else {
+                    proceed = 0;
+                    conditionStatus = 0;
+                }
+            } catch (err) {
+                console.log('In Catch err: ', err);
+                proceed = 0;
+                conditionStatus = 0;
+            }
+        }
+
+        //proceed = 1 means continue iterating
+        //proceed = 0 means stop iterating
+
+        //conditionStatus =1 means condition passed
+        //conditionStatus =0 means condition failed
+        return [error, proceed, conditionStatus];
+    }
+
+    async function evaluationJoinOperation(joinCondition){
+        let responseData,
+            error =false;
+
+        console.log('joinCondition : ', joinCondition);        
+        //responseData = 0 means stop
+        //responseData = 1 means OR
+        //responseData = 2 means AND
+
+        if(joinCondition === 'OR') {
+            responseData = 1;
+        } else if(joinCondition === 'AND') {
+            responseData = 2;
+        } else if(joinCondition === 'EOJ') {
+            responseData = 0;
+        }
+
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

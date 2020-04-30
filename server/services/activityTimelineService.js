@@ -214,7 +214,7 @@ function ActivityTimelineService(objectCollection) {
         }
 
         //If it is a comment with a mention
-        commentWithMentions(request);
+        //commentWithMentions(request);
 
         new Promise(() => {
             setTimeout(() => {
@@ -242,6 +242,9 @@ function ActivityTimelineService(objectCollection) {
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        if(activityTypeCategoryId === 48 && activityStreamTypeId === 705) {
+            console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        }
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log(' ');
@@ -296,7 +299,7 @@ function ActivityTimelineService(objectCollection) {
                     } else { //Number(request.activity_id) === Number(data[0].activity_id)
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m", {}, request);
                         global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : " + Number(request.device_os_id), Number(request.device_os_id), {});
-                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m", {}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] 705 entry on Dedicated File \x1b[0m", {}, request);
 
                         //705 for Dedicated file
                         if (Number(request.device_os_id) === 7) {                            
@@ -418,7 +421,7 @@ function ActivityTimelineService(objectCollection) {
                 error=false; 
         }
 
-        commentWithMentions(request);
+        //commentWithMentions(request);
         
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
@@ -2663,19 +2666,35 @@ function ActivityTimelineService(objectCollection) {
                 case 39: //Flag
                     params[11] = row.field_value;
                     break;
-                case 57: //Workflow(/Activity) reference
-                    workflowReference = row.field_value.split('|');
-                    params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
+                case 57: //Workflow(/Activity) reference                    
+                        //workflowReference = row.field_value.split('|');
+                        //params[13] = workflowReference[0]; //ID
+                        //params[18] = workflowReference[1]; //Name
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
                     params[18] = row.field_value;
                     break;
-                case 59: //Asset reference
-                    assetReference = row.field_value.split('|');
-                    params[13] = assetReference[0]; //ID
-                    params[18] = assetReference[1]; //Name
+                case 59: //Asset reference                    
+                    //assetReference = row.field_value.split('|');
+                    //        params[13] = assetReference[0]; //ID
+                    //        params[18] = assetReference[1]; //Name                    
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
@@ -2692,7 +2711,12 @@ function ActivityTimelineService(objectCollection) {
                     }
                     break;
                 case 64: // Address DataType
-                    params[27] = row.field_value;
+                    //params[27] = row.field_value;
+                    if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 65: // Business Card DataType
                     params[27] = row.field_value;
@@ -3330,19 +3354,36 @@ async function addFormEntriesAsync(request) {
             case 39: //Flag
                 params[11] = row.field_value;
                 break;
-            case 57: //Workflow(/Activity) reference
-                workflowReference = row.field_value.split('|');
-                params[13] = workflowReference[0]; //ID
-                params[18] = workflowReference[1]; //Name
+            case 57: //Workflow(/Activity) reference                    
+                    //params[27] = row.field_value;
+                    //workflowReference = row.field_value.split('|');                    
+                    //    params[13] = workflowReference[0]; //ID
+                    //    params[18] = workflowReference[1]; //Name
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                } else {
+                        params[27] = row.field_value;
+                }
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
                 params[18] = row.field_value;
                 break;
-            case 59: //Asset reference
-                assetReference = row.field_value.split('|');
-                params[13] = assetReference[0]; //ID
-                params[18] = assetReference[1]; //Name
+            case 59: //Asset reference                
+                //assetReference = row.field_value.split('|');
+                //    params[13] = assetReference[0]; //ID
+                //    params[18] = assetReference[1]; //Name
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                if(typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                } else {
+                        params[27] = row.field_value;
+                }
                 break;
             case 61: //Time Datatype
                 params[18] = row.field_value;
@@ -3361,7 +3402,12 @@ async function addFormEntriesAsync(request) {
                     }
                 break;
             case 64: // Address DataType
-                params[27] = row.field_value;
+                //params[27] = row.field_value;
+                if(typeof row.field_value === 'object') {
+                    params[27] = JSON.stringify(row.field_value);
+                } else {
+                    params[27] = row.field_value;
+                }
                 break;
             case 65: // Business Card DataType
                 params[27] = row.field_value;
@@ -3430,7 +3476,7 @@ async function addFormEntriesAsync(request) {
                 request['flag'] = 2;
                 request['datetime_log'] = util.getCurrentUTCTime();
                 activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
-            })
+            });
         } else if (Object.keys(order_logged_form_ids).includes(String(request.form_id))) {
             activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                     global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
@@ -3442,19 +3488,19 @@ async function addFormEntriesAsync(request) {
                     request['flag'] = 3;
                     request['datetime_log'] = util.getCurrentUTCTime();
                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
-                })
+                });
             } else if (Object.keys(order_documents_form_ids).includes(String(request.form_id))) {
                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                    global.logger.write('conLog', '***** ORDER DOCUMENTS SUBMITTED*******', {}, request);
                    request['activity_id'] = activityData[0].channel_activity_id;
                    request['documents_submitted'] = 1;
                    activityCommonService.activityUpdateDocumentsSubmitted(request);
-               })
+               });
            }
 
         return [error, responseData];
         
-    };
+    }
 
 
     async function retrievingFormIdandProcessAsync(request, data) {
@@ -3661,47 +3707,93 @@ async function addFormEntriesAsync(request) {
             return [error, responseData];
     }
 
-    async function commentWithMentions(request) {
-        if(Number(request.activity_type_category_id === 48) && 
-           Number(request.is_mention === 1)) {
-            let mentions = request.mentions_array;
+    this.mentionsSendEmail = async (request) => {
+        let responseData = [],
+            error = false;
 
-            for(let i=0; i<mentions.length; i++) {
-                //mentions[i] - asset_id
-                await sendEmail();
+        let mentionedAssets, i;
+        (typeof request.mentioned_assets === 'string')?
+            mentionedAssets = JSON.parse(request.mentioned_assets):        
+            mentionedAssets =request.mentioned_assets;
+
+        console.log('mentionedAssets : ', mentionedAssets);
+
+        //Get the sender Details
+        let [err, senderAssetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id, 
+            asset_id: request.asset_id
+         });
+    
+        for(i=0; i<mentionedAssets.length;i++) {
+            let [err, assetData] = await activityCommonService.getAssetDetailsAsync({
+                                                                organization_id: request.organization_id, 
+                                                                asset_id: mentionedAssets[i]
+                                                             });
+
+            if(err || assetData.length > 0) {
+                if((assetData[0].operating_asset_email_id).length === 0 || 
+                    (assetData[0].operating_asset_first_name).length === 0) {
+                    console.log('Either Operating asset name or email id not available for : ', mentionedAssets[i]);
+                } else {
+                    sendEmail({
+                        workflow_title: request.workflow_title,
+                        workflow_update: request.workflow_update,
+                        operating_asset_name: assetData[0].operating_asset_first_name,
+                        asset_email_id: assetData[0].operating_asset_email_id,
+                        email_receiver_name: assetData[0].operating_asset_first_name,
+                        email_sender_name: senderAssetData[0].operating_asset_first_name,
+                        email_sender: senderAssetData[0].operating_asset_email_id
+                    });
+                }
+            } else {
+                console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
             }
         }
 
-        return "success";
-    }
+        return [error, responseData];
+    };
 
     async function sendEmail(request) {
+        let responseData = [],
+            error = false;
 
-        /*const jsonString = {
-            organization_id: request.organization_id,
-            account_id: request.account_id,
-            workforce_id: request.workforce_id,
-            asset_id: Number(customerCollection.customerServiceDeskAssetID),
-            asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-            auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-            activity_id: request.activity_id || 0,
-            activity_type_category_id: 9,
-            activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
-            activity_stream_type_id: 705,
-            form_id: Number(customerCollection.activity_form_id),
-            type: 'approval'
-        };
+        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
 
-        if (String(customerCollection.contactEmailId).includes('%40')) {
+        /*if (String(customerCollection.contactEmailId).includes('%40')) {
             customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
         }
 
         const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
-        const Template = "";
-        let emailSubject = "You have been mentioned on [Workflow Title] @ [DD-MM-YYYY HH:MM AM/PM] By [Operating Asset Name]";
+        const Template = "";*/
+        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${util.mentionsDateFormat()} By ${request.email_sender_name}`;
+
+        const Template = `<table><tbody>
+                            <tr>
+                            <p>
+                            Hello <strong>${request.operating_asset_name},</strong><br/>
+                            You have been mentioned by ${request.operating_asset_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
+                            </p>
+                            <p>
+                                Following is the copy of the exact update... <br/>
+                                ${request.workflow_update} 
+                                </p>
+                            <br/>
+                            <p>
+                            Please login to your desk and access ${request.workflow_title} for more details.
+                            <br/>
+                            Optionally tap on this <a style='color: #ED212C;' target='_blank'  href='${urlStr}'>Link</a>  to reply.
+                            </p>
+                            <p>
+                            Thankyou
+                            <br>
+                            Tony
+                            </p>
+                            </tr>
+                            </tbody>
+                            </table>`;
 
         util.sendEmailV3(request,
-                         customerCollection.contactEmailId,
+                         request.asset_email_id,
                          emailSubject,
                          "IGNORE",
                          Template,
@@ -3712,9 +3804,9 @@ async function addFormEntriesAsync(request) {
                                         console.log("[Send Email - Mention | Response]: ", "Email Sent");
                                     }                
                                 }
-                         );*/
+                         );
         
-        return "success";
+        return [error, responseData];
     }
 
 }

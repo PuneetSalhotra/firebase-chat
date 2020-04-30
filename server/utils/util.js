@@ -1678,6 +1678,50 @@ function Util(objectCollection) {
         return [error, workbook];
     };
 
+    this.getXlsxDataBodyFromS3Url = async function (request, S3Url) {
+        const s3 = new AWS.S3();
+
+        // const bucketName = S3Url.slice(8, 25);
+        // const keyName = S3Url.slice(43);
+        let bucketName = S3Url.slice(8, 25);
+        let keyName = S3Url.slice(43);
+
+        if (S3Url.includes('ap-south-1')) {
+            keyName = S3Url.slice(54);
+        }
+
+        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
+            bucketName = S3Url.slice(8, 33);
+            keyName = S3Url.slice(51);
+
+            if (S3Url.includes('ap-south-1')) {
+                keyName = S3Url.slice(62);
+            }
+        }
+
+        const getObjectParams = {
+            Bucket: bucketName,
+            Key: keyName,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+        // const s3GetObjectPromise = s3.getObject(getObjectParams).createReadStream().pipe();
+
+        let error, dataBody;
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
+                
+                dataBody = data.Body;
+
+            }).catch(function (err) {
+                console.log('getXlsxWorkbookFromS3Url | Error | err: ', err);
+                error = err;
+            });
+
+        return [error, dataBody];
+    };
+
     this.getFileDataFromS3Url = async function (request, S3Url) {
         const s3 = new AWS.S3();
 
@@ -2004,7 +2048,7 @@ function Util(objectCollection) {
         }];
     };
 
-    this.sendPushToAsset = async function (request) {
+    this.sendPushToAsset = async (request) =>{
         let error = false;
         // [CHECK] target_asset_id
         if (
@@ -2013,7 +2057,7 @@ function Util(objectCollection) {
         ) {
             return [true, {
                 message: "Incorrect target asset_id specified."
-            }]
+            }];
         }
         let  assetPushARN = "";
         if(request.hasOwnProperty("asset_push_arn")){
@@ -2035,7 +2079,12 @@ function Util(objectCollection) {
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
         }];
-    }    
+    };
+
+    this.mentionsDateFormat = async() => {
+        const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
+        return now;
+    };
 
 }
 
