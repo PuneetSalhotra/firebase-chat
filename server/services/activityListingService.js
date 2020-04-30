@@ -1587,7 +1587,8 @@ function ActivityListingService(objCollection) {
 				"activity_type_flag_control_visibility": util.replaceDefaultNumber(rowData['activity_type_flag_control_visibility']),
 				"activity_cuid_1": util.replaceDefaultString(rowData['activity_cuid_1']),
 				"activity_cuid_2": util.replaceDefaultString(rowData['activity_cuid_2']),
-				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3'])
+				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3']),
+				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
