@@ -19,9 +19,21 @@ function AssetConfigService() {
         );
         var queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
+            db.executeQuery(1, queryString, request, (err, data) => {
+                let newData;
+                if(request.hasOwnProperty('asset_type_category_id')) {                    
+                    newData = [];
+                    for(let i=0; i< data.length; i++) {                                
+                        if(Number(request.asset_type_category_id) === Number(data[i].asset_type_category_id)) {                 
+                            newData.push(data[i]);
+                        }
+                    }
+                } else {
+                    newData = data;
+                }
+
                 if (err === false) {
-                    data.forEach(function (rowData, index) {
+                    newData.forEach(function (rowData, index) {
                         
                         rowData.log_asset_first_name = util.replaceDefaultString(rowData.log_asset_first_name);
                         rowData.log_asset_last_name = util.replaceDefaultString(rowData.log_asset_last_name);
@@ -34,7 +46,7 @@ function AssetConfigService() {
 
                     }, this);
                     callback(false, {
-                        data: data
+                        data: newData
                     }, 200);
                     return;
                 } else {
@@ -45,6 +57,6 @@ function AssetConfigService() {
             });
         }
     };
-};
+}
 
 module.exports = AssetConfigService;

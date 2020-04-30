@@ -714,6 +714,7 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break; 
             case 326:
+            case 327:
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = "";                
@@ -5170,10 +5171,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
            
         }).then(()=>{
             console.log("DONE WITH CUSTOMER CHECK");
-        })
+        });
     };
 
-    this.updateCustomerOnWorkflow = async function(request) {
+    this.updateCustomerOnWorkflow = async (request) => {
 
         try{
             let paramsArr = new Array(                
@@ -5249,6 +5250,59 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log('Error '+err);
         }
 
+        return [error, responseData];   
+    };
+
+    this.activityActivityMappingInsert = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,
+                        request.message_unique_id,
+                        request.asset_id,
+                        request.datetime_log
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_insert', paramsArr);           
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                        this.activityActivityMappingHistoryInsert(request);
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
+    };
+
+
+    this.activityActivityMappingHistoryInsert = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,                        
+                        request.asset_id,
+                        request.datetime_log
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_history_insert', paramsArr);           
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
         return [error, responseData];   
     };
 }

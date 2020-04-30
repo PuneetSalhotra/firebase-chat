@@ -728,8 +728,9 @@ function AssetService(objectCollection) {
             'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
             'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']),
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
-            'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled'])
-
+            'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
+            'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
+            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id'])
         };
 
         callback(false, rowData);
@@ -4078,13 +4079,14 @@ function AssetService(objectCollection) {
 
     function tagTypeMasterSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = new Array(
                 request.organization_id,
                 request.page_start,
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
+            //var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
+            const queryString = util.getQueryString('ds_p1_tag_type_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4443,7 +4445,7 @@ this.getQrBarcodeFeeback = async(request) => {
                         }else{
                             logger.info("assetAvailableUpdate :: AI NOT ENABLED FOR THIS ORGANIZATION");
                             request.global_array.push({"assetAvailableUpdate":"AI NOT ENABLED FOR THIS ORGANIZATION, aiTransactionId"+request.ai_bot_transaction_id})
-                            rmbotService.AIEventTransactionInsert(request);                            
+                            //rmbotService.AIEventTransactionInsert(request);                            
                         }
                     }else{
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
@@ -4805,6 +4807,32 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    this.getAssetDetailsExclusions = async (request) =>{
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
+            request.asset_id,
+            request.is_allow_org_category || 1,
+            request.is_allow_common_floor || 1
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_exclusions', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetData];
+    };
 }
 
 module.exports = AssetService;

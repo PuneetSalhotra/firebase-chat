@@ -857,6 +857,27 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/sub_status/list', async function (req, res) {
+        const [err, responseData] = await activityListingService.getActivitySubStatuses(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("'/activity/sub_status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    //Contacts Visibility at workflow level
+    app.post('/' + global.config.version + '/activity-activity/mapping/child-activities/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActActChildActivities(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity-activity/mapping/child-activities/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 module.exports = ActivityListingController;

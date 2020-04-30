@@ -32,6 +32,7 @@ var Util = require('./server/utils/util');
 var db = require("./server/utils/dbWrapper");
 var ResponseWrapper = require('./server/utils/responseWrapper');
 var EncTokenInterceptor = require('./server/interceptors/encTokenInterceptor');
+var AccessTokenInterceptor = require('./server/interceptors/accessTokenInterceptor');
 var ControlInterceptor = require('./server/interceptors/controlInterceptor');
 
 var kafka = require('kafka-node');
@@ -45,6 +46,7 @@ var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
+
 redisClient.on('connect', function (response) {
     logger.info('Redis Client Connected', { type: 'redis', response });
     connectToKafkaBroker();
@@ -54,6 +56,34 @@ redisClient.on('error', function (error) {
     logger.error('Redis Error', { type: 'redis', error: serializeError(error) });
     // console.log(error);
 });
+
+//connectToKafkaBroker();
+
+const {
+    requestParamsValidator, requestMethodValidator, requestContentTypeValidator, 
+    setResponseContentType
+} = require('./server/utils/requestValidator');
+
+app.disable('x-powered-by')
+
+// Disallow non-POST requests
+app.use(requestMethodValidator)
+
+// Requests must contain Content-Type header
+app.use(requestContentTypeValidator)
+
+// Validate the request parameters:
+app.use(requestParamsValidator);
+
+// Enforce response Content-Type header
+app.use(setResponseContentType);
+
+const helmet = require('helmet');
+// Sets "Strict-Transport-Security: max-age=5184000; includeSubDomains".
+const sixtyDaysInSeconds = 5184000
+app.use(helmet.hsts({ maxAge: sixtyDaysInSeconds }))
+app.use(helmet.frameguard({ action: 'sameorigin' }))
+app.use(helmet.noSniff())
 
 // Handling null/empty message_unique_ids
 // 
@@ -160,7 +190,7 @@ function connectToKafkaBroker(){
         kafkaProducer.on('ready', resolve);
     }).then(() => {  
              
-        var queueWrapper = new QueueWrapper(kafkaProducer);
+        var queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
         //global.logger = new Logger();
         global.logger = new Logger(queueWrapper);
         
@@ -184,6 +214,7 @@ function connectToKafkaBroker(){
             forEachAsync: forEachAsync
         };
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
+        //new AccessTokenInterceptor(app, responseWrapper);
         new ControlInterceptor(objCollection);
         server.listen(global.config.servicePort);        
         console.log('server running at port ' + global.config.servicePort);
@@ -221,11 +252,11 @@ process.on('warning', (warning) => {
     logger.error("Process Warning", { type: 'process_warning', error: serializeError(warning) });
 });
 
-[`SIGINT`, `SIGUSR1`, `SIGUSR2`, `SIGTERM`, `SIGHUP`, `SIGUSR1`, `SIGUSR2`, `SIGABRT`, `SIGQUIT`].forEach((eventType) => {
+/*[`SIGINT`, `SIGUSR1`, `SIGUSR2`, `SIGTERM`, `SIGHUP`, `SIGUSR1`, `SIGUSR2`, `SIGABRT`, `SIGQUIT`].forEach((eventType) => {
     process.on(eventType, (signal) => {
         logger.debug("Process signalled: %j", signal);
     });
-})
+})*/
 
 process.on('unhandledRejection', (reason, promise) => {
     logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });

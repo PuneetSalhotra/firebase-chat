@@ -16,6 +16,8 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
+const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -45,6 +47,8 @@ function BotService(objectCollection) {
 
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
+
+    const workbookOpsService = new WorkbookOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -1323,7 +1327,12 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot");
+                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    try {
+                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                    } catch (error) {
+                        logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
                     break;
 
                 case 19: // Update CUID Bot
@@ -2527,8 +2536,8 @@ function BotService(objectCollection) {
                     formActivityID = Number(formData[0].data_activity_id);
                 }
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
@@ -2745,33 +2754,102 @@ function BotService(objectCollection) {
         }
     }
 
+    this.copyFieldBot = async (request) => {
+        try {
+            // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+            console.log('form_field_copy | Request Params received by BOT ENGINE', request);
+            await copyFields(request, JSON.parse(request.form_field_copy));
+        } catch (err) {
+         console.log('ERR : ', err);
+        }
+    }
+    
     //Bot Step Copying the fields
-    async function copyFields(request, fieldCopyInlineData) {
+    async function copyFields(request, fieldCopyInlineData) {        
 
         const workflowActivityID = Number(request.workflow_activity_id),
             // sourceFormActivityID = Number(request.activity_id),
             // sourceFormID = Number(request.form_id),
             targetFormID = Number(fieldCopyInlineData[0].target_form_id);
+        
+        let sourceFormActivityTypeID = Number(request.activity_type_id);
+
+        //ESMS Requirement - Check If target_form_id is an origin form
+        //////////////////////////////////////////////////////////////
+        let esmsFlag = 0,
+            esmsOriginFlag = 0;
+
+        let esmsReq = Object.assign({}, request);
+            esmsReq.form_id = targetFormID;            
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(esmsReq);
+        if (formConfigError !== false || formConfigData.length === 0) {
+            return [true, {
+                message: `Couldn't fetch form data for form ${esmsReq.form_id}.`
+            }];
+        }        
+
+        if (Number(formConfigData.length) > 0) {
+            //console.log('############################################################');
+            //console.log('ESMS - Target Form Data - formConfigData : ', formConfigData);
+            //console.log('############################################################');
+
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+                workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                //formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
+                //workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                //formName = String(formConfigData[0].form_name),
+                //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+        
+            console.log('##################################');
+            console.log('originFlagSet : ', originFlagSet);
+            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
+            
+
+            if(sourceFormActivityTypeID !== workflowActivityTypeId){
+                console.log('Target Form Process is different from the Source form');
+                console.log('##################################');
+
+                esmsFlag = 1;
+                if(originFlagSet && isWorkflowEnabled) {
+                    esmsOriginFlag = 1; //This is an origin form in another process
+                    await sleep(4000);
+                }
+            }            
+        }
+        ///////////////////////////////////////////////////// - ESMS  
 
         let targetFormTransactionData = [],
             targetFormActivityID = 0,
             targetFormTransactionID = 0;
 
         // Check if the target form already exists for the given workflow
-        try {
-            targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                organization_id: request.organization_id,
-                account_id: request.account_id
-            }, workflowActivityID, targetFormID);
+        //if(Number(esmsFlag) === 0) {
+            try {
+                targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, targetFormID);
+    
+                if (Number(targetFormTransactionData.length) > 0) {                    
+                    targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                    targetFormActivityID = targetFormTransactionData[0].data_activity_id;
 
-            if (Number(targetFormTransactionData.length) > 0) {
-                targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
-                targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+                    if(Number(esmsFlag) === 1) {
+                        console.log('Target Form Submitted!');
+                        console.log(targetFormTransactionID);
+                        console.log(targetFormActivityID);
+                    }
+                } else {
+                    if(Number(esmsFlag) === 1) {
+                        console.log('Target Form Not Submitted!');
+                    }
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                throw new Error(error);
             }
-        } catch (error) {
-            console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
-            throw new Error(error);
-        }
+        //}
 
         let activityInlineData = [],
             activityInlineDataMap = new Map(),
@@ -2782,6 +2860,7 @@ function BotService(objectCollection) {
                 sourceFormTransactionData = [],
                 sourceFormActivityID = 0,
                 sourceFormTransactionID = 0;
+                
             // Fetch Source Form Transaction Data
             try {
                 sourceFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -2789,7 +2868,8 @@ function BotService(objectCollection) {
                     account_id: request.account_id
                 }, workflowActivityID, sourceFormID);
     
-                if (Number(sourceFormTransactionData.length) > 0) {
+                if (Number(sourceFormTransactionData.length) > 0) {                    
+                    //sourceFormActivityTypeID = Number(sourceFormTransactionData[0].activity_type_id);
                     sourceFormTransactionID = Number(sourceFormTransactionData[0].data_form_transaction_id);
                     sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
                 }
@@ -2815,8 +2895,11 @@ function BotService(objectCollection) {
                 organization_id: request.organization_id
             });
 
-            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
+            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
+            console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
+            console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
             const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
 
             activityInlineDataMap.set(sourceFieldID, {
                 // "form_name": Number(sourceFieldData[0].form_name),
@@ -2830,18 +2913,19 @@ function BotService(objectCollection) {
                 "form_id": targetFormID,
                 "message_unique_id": 123123123123123123
             });
-        }
+        } //For loop Finished
+
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
-            fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
-            fieldsAlterRequest.form_id = targetFormID;
-            fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
-            fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            fieldsAlterRequest.activity_id = targetFormActivityID;
-            fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+                fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
+                fieldsAlterRequest.form_id = targetFormID;
+                fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
+                fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                fieldsAlterRequest.activity_id = targetFormActivityID;
+                fieldsAlterRequest.workflow_activity_id = workflowActivityID;
 
             try {
                 await alterFormActivityFieldValues(fieldsAlterRequest);
@@ -2852,11 +2936,21 @@ function BotService(objectCollection) {
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, create one
             let createTargetFormRequest = Object.assign({}, request);
-            createTargetFormRequest.activity_form_id = targetFormID;
-            createTargetFormRequest.form_id = targetFormID;
-            createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                createTargetFormRequest.activity_form_id = targetFormID;
+                createTargetFormRequest.form_id = targetFormID;
+                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
+                
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;
+                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;
+                }
             try {
                 await createTargetFormActivity(createTargetFormRequest);
             } catch (error) {
@@ -2912,7 +3006,11 @@ function BotService(objectCollection) {
         if (targetFormConfigData.length > 0) {
             targetFormName = targetFormConfigData[0].form_name;
         }
-        createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        
+        if(Number(createTargetFormRequest.isESMS) === 0) {
+            createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        }            
+        
         createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
 
         // Other miscellaneous parameters
@@ -2934,6 +3032,10 @@ function BotService(objectCollection) {
         createTargetFormRequest.flag_timeline_entry = 1;
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
+
+        console.log('createTargetFormRequest.isESMS : ', createTargetFormRequest.isESMS);
+        console.log('createTargetFormRequest.isEsmsOriginFlag : ', createTargetFormRequest.isEsmsOriginFlag);
+        console.log('createTargetFormRequest.activity_flag_created_by_bot : ', createTargetFormRequest.activity_flag_created_by_bot);        
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(createTargetFormRequest);
@@ -2992,7 +3094,7 @@ function BotService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -3021,6 +3123,11 @@ function BotService(objectCollection) {
                 return 'data_entity_text_1';
             case 20: // Long Text
                 return 'data_entity_text_2';
+            case 57: // JSON
+            case 59: // JSON
+            case 64: //JSON                
+                return 'data_entity_inline';
+            default: console.log('In default Case : getFielDataValueColumnName');
         }
     }
 
