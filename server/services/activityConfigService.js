@@ -688,7 +688,68 @@ function ActivityConfigService(db, util, objCollection) {
         return [error, responseData];
     }
 
-    
+     this.checkDuplicate = async function(request){
+        let error = true,
+        responseData = [], finalResponse = {"account_exists": true, "expression": "", "check_with": ""};
+        try{
+            let customerTitle = request.customer_title;
+            customerTitle = customerTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+            customerTitle = customerTitle.split(' ').join('')
+            console.log("customerTitle :: "+customerTitle);
+            finalResponse.expression =  customerTitle;
+            if(request.pan_number.trim() != ""){
+                //check on pan number
+                finalResponse.check_with = "pan_number";
+                request.search_string = request.pan_number.trim();
+                request.flag = 0;
+                [error, responseData] = await self.searchDuplicateWorkflow(request);
+            }else{
+                //check on title
+                finalResponse.check_with = "customer_title";
+                request.search_string = customerTitle;
+                request.flag = 4;
+                [error, responseData] = await self.searchDuplicateWorkflow(request);
+            }
+            if(responseData.length > 0){
+                finalResponse.account_exists = true; 
+            }else{
+                finalResponse.account_exists = false;
+            }
+        }catch(e){
+           console.log("[ERROR] checkDuplicate: ", e);
+        }
+        return [error, finalResponse];
+    }
+
+
+    this.searchDuplicateWorkflow = async function(request){
+        let error = true,
+         responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id || 0,
+            request.flag || 0,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData]; 
+    }
+
 }
 
 module.exports = ActivityConfigService;
