@@ -60,7 +60,7 @@ function CommnElasticService(objectCollection) {
     let results = new Array();
     var resultObj = {}
     var document_version = 1;
-
+    var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
     let paramsArray;
     paramsArray =
       new Array(
@@ -91,6 +91,7 @@ function CommnElasticService(objectCollection) {
       body: {
         "id": results[0][0]['activity_document_id'],
         "orgid": request.organization_id,
+        "filename": filename,
         "product": request.product,
         "content": documentcontent,
         "documentdesc": request.document_desc,
@@ -102,7 +103,6 @@ function CommnElasticService(objectCollection) {
       }
     })
     resultObj['id'] = results[0][0]['id']
-    resultObj['version_id'] = document_version
     return res.status(200).json({
       response : resultObj
   })
@@ -113,6 +113,7 @@ function CommnElasticService(objectCollection) {
     var resultObj = {}
     let paramsArray;
     let version_id = 1;
+    var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
     paramsArray =
       new Array(
         request.organization_id,
@@ -159,14 +160,14 @@ function CommnElasticService(objectCollection) {
             "filetitle": request.file_title,
             "productid": request.activity_id,
              "s3url": url,
-             "assetid": request.asset_id
+             "assetid": request.asset_id,
+             "filename":filename
           }
         }
       }
     })
       return res.status(200).json({
-        response : version_id
-    })
+        response : resultObj   })
   }
 
 
@@ -218,7 +219,7 @@ function CommnElasticService(objectCollection) {
         var responseObj ={}
         var responseArray = []
         var queryType = "cross_fields"
-        const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
+        const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle","filename"];
         var operator = 'and';
         var page_size = 50;
         var page_no = 0;
@@ -244,7 +245,7 @@ function CommnElasticService(objectCollection) {
             }
           }
         }else{
-          searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
+          searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle","filename"];
         }
         if(request.hasOwnProperty('search_option') && request.search_option.length>0){
           if(request.search_option == 'EXACT_SEARCH'){
@@ -298,19 +299,11 @@ function CommnElasticService(objectCollection) {
           obj['assetid'] = result.body.hits['hits'][i]['_source']['assetid']
           obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
           obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
+          obj['filename'] = result.body.hits['hits'][i]['_source']['filename']
           responseArray.push(obj)
           }
           responseObj['response'] = responseArray
-        // let results = new Array();
-        // let paramsArray;
-        // paramsArray =
-        //   new Array(
-        //     request.organization_id,
-        //     request.activity_id,
-        //     ids
-        //   );
-        // results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_select', paramsArray, 1);
-        return responseObj;
+          return responseObj;
       }
       } catch (error) {
         return Promise.reject(error);
