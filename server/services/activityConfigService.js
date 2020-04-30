@@ -690,17 +690,36 @@ function ActivityConfigService(db, util, objCollection) {
 
      this.checkDuplicate = async function(request){
         let error = true,
-        responseData = [], finalResponse = {"account_exists": true, "expression": "", "check_with": ""};
+        responseData = [], finalResponse = {"account_exists": true, "expression": "", "check_with": ""},
+        botError, botData = [],
+        panNumberField = 0,
+        panNumber = "";
         try{
+            // get the bot
+            request.bot_operation_type_id = 22;
+            request.start_from = 0;
+            request.limit_value = 1;
+            [botError, botData] = await self.botOperationMappingSelectOperationType(request);
+
+            if(botData.length > 0){
+                panNumberField = JSON.parse(botData[0].bot_operation_inline_data).dedupe.pan_number;
+            }
+
+            request.pan_number_field = panNumberField;
+
+            panNumber = await self.getFieldValueUsingFieldId(request);
+
+            console.log("panNumber :: "+panNumber);
+
             let customerTitle = request.customer_title;
             customerTitle = customerTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
             customerTitle = customerTitle.split(' ').join('')
             console.log("customerTitle :: "+customerTitle);
             finalResponse.expression =  customerTitle;
-            if(request.pan_number.trim() != ""){
+            if(panNumber.trim() != ""){
                 //check on pan number
                 finalResponse.check_with = "pan_number";
-                request.search_string = request.pan_number.trim();
+                request.search_string = panNumber.trim();
                 request.flag = 0;
                 [error, responseData] = await self.searchDuplicateWorkflow(request);
             }else{
@@ -750,6 +769,50 @@ function ActivityConfigService(db, util, objCollection) {
         return [error, responseData]; 
     }
 
+
+   this.botOperationMappingSelectOperationType = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.bot_id || 0,
+            request.bot_operation_type_id || 0,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.getFieldValueUsingFieldId = async (request) => {
+
+        let fieldValue = "";
+
+        let inlineData = JSON.parse(request.activity_inline_data);
+        for(let i=0; i<inlineData.length;i++) {
+            console.log(inlineData[i].field_id+" : "+request.pan_number_field);
+            if(inlineData[i].field_id == request.pan_number_field){
+                fieldValue = inlineData[i].field_value;
+            }
+        }
+
+        return fieldValue;
+    }
 }
 
 module.exports = ActivityConfigService;
