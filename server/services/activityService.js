@@ -4897,12 +4897,16 @@ function ActivityService(objectCollection) {
             currentWorkflowActivityId = Number(workflowData[0].activity_id);
         }
 
+        console.log('fieldData : ', fieldData);
+        console.log('currentWorkflowActivityId : ', currentWorkflowActivityId);
+        
         let fieldValue = fieldData.field_value;
         let parsedFieldValue;
         let errFlag = 0;
 
         try{
             parsedFieldValue = JSON.parse(fieldValue);
+            console.log('parsedFieldValue : ', parsedFieldValue);
         } catch(err) {
             console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
             return "Failure";
@@ -4911,7 +4915,7 @@ function ActivityService(objectCollection) {
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
         for(let i = 0; i < parsedFieldValue.length; i++) {
-            newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id;
+            newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
             await activityCommonService.activityActivityMappingInsert(newReq);
         }
 
