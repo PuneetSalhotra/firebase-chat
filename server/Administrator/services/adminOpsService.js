@@ -7161,37 +7161,52 @@ function AdminOpsService(objectCollection) {
                                 let breakFlag = 0; //to break the outer loop
 
                                 //Iterate on form data                                
-                                for(k=0;k<conditions.length;k++) { //Conditions Array                                    
-                                    for(l=0;l<formData.length;l++){ //Form Data                                        
-                                        if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
-                                        
-                                            let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
-                                            
-                                            console.log('PROCEED : ', proceed);
-                                            console.log('conditionStatus : ', conditionStatus);                                            
-
-                                            //Reached either EOJ or one of the conditions failed
-                                            if(proceed === 0 || conditionStatus === 0) {
-                                                if(conditionStatus === 1){
-                                                    error = false;
-                                                    responseData.push({"message": "dependent form conditions passed!"});
-                                                } else {                                                    
-                                                    responseData.push({"message": "dependent form conditions failed!"});
-                                                }
-                                                breakFlag = 1;
-                                                break;
-                                            }
-
-                                        } else {
-                                            console.log('In else');
+                                for(k=0;k<conditions.length;k++) { //Conditions Array
+                                    
+                                    if(!conditions[k].hasOwnProperty('field_id')) {
+                                        if(conditions[k].join_condition == 'OR') {
+                                            error = false;
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
+                                        } else if (conditions[k].join_condition == 'AND') {
+                                            continue;
+                                        } else { // EOJ
+                                            error = false;
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
                                         }
-                                    } //End of for Loop - form data
+                                    } else {
+                                        for(l=0;l<formData.length;l++){ //Form Data                                        
+                                            if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
+                                            
+                                                let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
+                                                
+                                                console.log('PROCEED : ', proceed);
+                                                console.log('conditionStatus : ', conditionStatus);                                            
+    
+                                                //Reached either EOJ or one of the conditions failed
+                                                if(proceed === 0 || conditionStatus === 0) {
+                                                    if(conditionStatus === 1){
+                                                        error = false;
+                                                        responseData.push({"message": "dependent form conditions passed!"});
+                                                    } else {                                                    
+                                                        responseData.push({"message": "dependent form conditions failed!"});
+                                                    }
+                                                    breakFlag = 1;
+                                                    break;
+                                                }
+    
+                                            } else {
+                                                console.log('In else');
+                                            }
+                                        } //End of for Loop - form data
+                                    }                                    
+                                    
                                     if(breakFlag === 1) {
                                         break;
                                     }
                                     console.log('----------------------------------');
-                                } //End of for Loop - Conditions Array
-                                
+                                } //End of for Loop - Conditions Array                                
                             } else {
                                 console.log('Dependent form ', conditions[0].form_id, 'is not submitted');
                                 responseData.push({"message": "Dependent form not submitted!"});
