@@ -24,6 +24,15 @@ function ActivityTimelineController(objCollection) {
             deviceOsId = Number(req.body.device_os_id);
         var streamTypeId = Number(req.body.activity_stream_type_id);
 
+        if(req.body.hasOwnProperty('activity_timeline_collection')) {
+            try {
+                JSON.parse(req.body.activity_timeline_collection);
+            } catch (exception) {                
+                res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+                return;
+            }
+        }
+
         var proceedActivityTimelineAdd = function (formTransactionId) {
 
             var event = {
