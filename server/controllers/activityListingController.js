@@ -866,7 +866,18 @@ function ActivityListingController(objCollection) {
             console.log("'/activity/sub_status/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });    
+    });
+
+    //Contacts Visibility at workflow level
+    app.post('/' + global.config.version + '/activity-activity/mapping/child-activities/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActActChildActivities(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity-activity/mapping/child-activities/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 module.exports = ActivityListingController;

@@ -35,6 +35,7 @@
     "hummus": "^1.0.108",
     "hummus-recipe": "^1.9.2",
     "ip": "^1.1.5",
+    "jwk-to-pem": "^2.0.3",
     "kafka-node": "^5.0.0",
     "mailgun-js": "^0.22.0",
     "moment": "^2.24.0",

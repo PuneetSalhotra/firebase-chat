@@ -166,6 +166,8 @@ function ActivityService(objectCollection) {
                             break;
                         case 52: activityStreamTypeId = 26001;
                                  break;
+                        case 53: activityStreamTypeId = 27001;
+                                 break;                                 
                         case 54: //Added Contact Activity
                             activityStreamTypeId = 2501;
                             break;
@@ -317,6 +319,10 @@ function ActivityService(objectCollection) {
                                 )
                                 ) {
                                 handleRollBackFormSubmission(request);
+                            }
+
+                            if(activityTypeCategroyId === 53){
+                                self.activityUpdateExpression(request);
                             }
 
                             if (request.activity_type_category_id == 48) {
@@ -4891,12 +4897,17 @@ function ActivityService(objectCollection) {
             currentWorkflowActivityId = Number(workflowData[0].activity_id);
         }
 
+        console.log('fieldData : ', fieldData);
+        console.log('currentWorkflowActivityId : ', currentWorkflowActivityId);
+        
         let fieldValue = fieldData.field_value;
         let parsedFieldValue;
         let errFlag = 0;
 
         try{
             parsedFieldValue = JSON.parse(fieldValue);
+            console.log('parsedFieldValue : ', parsedFieldValue);
+            console.log('parsedFieldValue.length : ', parsedFieldValue.length);
         } catch(err) {
             console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
             return "Failure";
@@ -4904,14 +4915,43 @@ function ActivityService(objectCollection) {
         
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
-        for(let i = 0; i < parsedFieldValue.length; i++) {
-            newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id;
-            await activityCommonService.activityActivityMappingInsert(newReq);
+        
+        if(parsedFieldValue.length > 0) {
+            for(let i = 0; i < parsedFieldValue.length; i++) {
+                newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+                await activityCommonService.activityActivityMappingInsert(newReq);
+            }
         }
 
         return "success";
 
     }
+
+    this.activityUpdateExpression  = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.activity_id,
+            request.expression,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_update_title_expression', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+            .then((data)=>{
+                responseData = data;
+                error = false;
+            })
+            .catch((err)=>{
+                console.log('[Error] activityUpdateExpression ',err);
+                error = err;
+            })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityService;
