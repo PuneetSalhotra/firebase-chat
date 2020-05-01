@@ -5367,7 +5367,11 @@ function BotService(objectCollection) {
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
                 fieldValue = "";
 
-            if (
+            if(request.hasOwnProperty("opportunity_update"))
+            {
+                fieldValue = cuidValue;
+            }else if
+            (
                 formInlineDataMap.has(Number(cuidValue.field_id))
             ) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
@@ -5524,6 +5528,66 @@ function BotService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.generateOppurtunity = async function (request){
+        let responseData = [],
+            error = false,
+            generatedOpportunityID = "OPP-"; 
+        try{
+
+            let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+            if(targetOpportunityID >= 100000){
+
+            }else if(targetOpportunityID >= 10000){
+                targetOpportunityID = "0"+targetOpportunityID;
+            }else if(targetOpportunityID >= 1000){
+                targetOpportunityID = "00"+targetOpportunityID;
+            }else if(targetOpportunityID >= 100){
+                targetOpportunityID = "000"+targetOpportunityID;
+            }else if(targetOpportunityID >= 10){
+                targetOpportunityID = "0000"+targetOpportunityID;
+            }else if(targetOpportunityID >= 1){
+                targetOpportunityID = "00000"+targetOpportunityID;
+            }
+
+            if(targetOpportunityID == 999900){
+                await cacheWrapper.setOppurtunity(0);
+            }
+            generatedOpportunityID = generatedOpportunityID+targetOpportunityID+'-'+util.getCurrentISTDDMMYY();
+            responseData.push(generatedOpportunityID); 
+
+
+            // request.activity_inline_data
+            // form_id
+/*            let formInlineData = [], formInlineDataMap = new Map();
+            try {
+                
+                    formInlineData = JSON.parse(request.activity_inline_data);
+
+                    for (const field of formInlineData) {
+                        formInlineDataMap.set(Number(field.field_id), field);
+                    }
+            } catch (error) {
+                logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'opportunity', error, request_body: request });
+            }            
+*/
+            logger.silly("Update CUID Bot");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.opportunity_update = true;
+                await updateCUIDBotOperation(request, {}, {"CUID1":generatedOpportunityID});
+            } catch (error) {
+                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }            
+
+        }catch(e){
+            error = true;
+        }
+        return [error, responseData];        
+    }
+
+
+
 }
 
 module.exports = BotService;

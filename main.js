@@ -32,6 +32,7 @@ var Util = require('./server/utils/util');
 var db = require("./server/utils/dbWrapper");
 var ResponseWrapper = require('./server/utils/responseWrapper');
 var EncTokenInterceptor = require('./server/interceptors/encTokenInterceptor');
+var AccessTokenInterceptor = require('./server/interceptors/accessTokenInterceptor');
 var ControlInterceptor = require('./server/interceptors/controlInterceptor');
 
 var kafka = require('kafka-node');
@@ -45,6 +46,7 @@ var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
+
 redisClient.on('connect', function (response) {
     logger.info('Redis Client Connected', { type: 'redis', response });
     connectToKafkaBroker();
@@ -54,6 +56,8 @@ redisClient.on('error', function (error) {
     logger.error('Redis Error', { type: 'redis', error: serializeError(error) });
     // console.log(error);
 });
+
+//connectToKafkaBroker();
 
 const {
     requestParamsValidator, requestMethodValidator, requestContentTypeValidator, 
@@ -210,6 +214,7 @@ function connectToKafkaBroker(){
             forEachAsync: forEachAsync
         };
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
+        //new AccessTokenInterceptor(app, responseWrapper);
         new ControlInterceptor(objCollection);
         server.listen(global.config.servicePort);        
         console.log('server running at port ' + global.config.servicePort);
