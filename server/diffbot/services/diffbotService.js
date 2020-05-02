@@ -6,6 +6,8 @@ function DiffbotService(objectCollection) {
   const activityTimelineService = new ActivityTimelineService(objectCollection);
   const util = objectCollection.util;
   accountsList = []
+  articleType = 'article'
+  tenderType = 'tender'
 
   this.queryDiffbot = async diffbotrequest => {
     try {  
@@ -80,7 +82,10 @@ function DiffbotService(objectCollection) {
                 account.activity_id,
                 parsedResponse.data[k].pageUrl,
                 account.activity_type_id,
-                account.activity_type_category_id
+                account.activity_type_category_id,
+                articleType,
+                parsedResponse.data[k].title
+
               );
             }
           }
@@ -236,13 +241,22 @@ function DiffbotService(objectCollection) {
     activity_id_val,
     page_url_val,
     activity_type_id_val,
-    activity_type_category_id_val
+    activity_type_category_id_val,
+    type,
+    article_title
   ) {
+
+    var contentTxt
+    if(type == articleType)
+    {
+      contentTxt="<div className='chat_content_right'> A new article with title ' "+article_title+" ' has been identified for this account . <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> to know the details of the article</div>"
+    }else
+    {
+      contentTxt="<div className='chat_content_right'>A new tender has been identified for your account. Please refer to this <u> <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> </u>  to know the details of the tender</div>"
+
+    }
     var collectionObj = {
-      content:
-        "A new article has been identified for your account. Please refer to this <u>"+"<a href='"+page_url_val+"'  target='_blank'>"+
-        page_url_val+"</a>"+
-        "</u> for the article.",
+      content:contentTxt,
       subject: page_url_val,
       mail_body: page_url_val,
       attachments: [],
@@ -385,7 +399,8 @@ function DiffbotService(objectCollection) {
                     accountsList[j].activity_id,
                     tenderTigerUrl + tenders[k].detailurl,
                     accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id
+                    accountsList[j].activity_type_category_id,
+                    tenderType
                   );
                 }
               }
