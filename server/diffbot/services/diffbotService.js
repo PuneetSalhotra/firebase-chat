@@ -5,61 +5,14 @@ function DiffbotService(objectCollection) {
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
   const util = objectCollection.util;
+  accountsList = []
 
   this.queryDiffbot = async diffbotrequest => {
-    try {
-      var knowlegdeGraphUrl = getKnowledgeGraphUrl();
-      var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
-      var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
-      var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
-      var accountsList = await getAccountsList(diffbotrequest,"");
-      for (var j = 0; j < accountsList.length; j++) {
-        let results = new Array();
-        let paramsArray;
-        var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
-          accountsList[j]["activity_title"],
-          knowlegeGraphKeywordsOrParams,
-          KnowledgeGraphTypeParams,
-          knowlegeGrapDateParams
-        );
-        var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
-          knowledgeGraphAllParams
-        );
-        var knowledgeGraphApiUrl =
-          knowlegdeGraphUrl + encodedKnowledgeGraphParams;
-        let res = await doDiffBotRequest(knowledgeGraphApiUrl);
-        var parsedResponse = JSON.parse(res);
-        if (typeof parsedResponse != "undefined") {
-          if ("data" in parsedResponse) {
-            if (parsedResponse.data.length > 0) {
-              for (var k = 0; k < parsedResponse.data.length; k++) {
-                var checkResult = await checkIfAccountIDArticleIdExist(
-                  accountsList[j].activity_id,
-                  parsedResponse.data[k].id,
-                  diffbotrequest
-                );
-                if (checkResult.length == 0) {
-                  var result = await insertPageUrlCorrespondingAccountId(
-                    accountsList[j].activity_id,
-                    parsedResponse.data[k].id,
-                    parsedResponse.data[k].pageUrl,
-                    diffbotrequest
-                  );
-                  await updateWorkflowTimelineCorrespondingAccountId(
-                    accountsList[j].organization_id,
-                    accountsList[j].account_id,
-                    accountsList[j].workforce_id,
-                    accountsList[j].activity_id,
-                    parsedResponse.data[k].pageUrl,
-                    accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id
-                  );
-                }
-              }
-            }
-          }
-        }
-      }
+    try {  
+       accountsList =  await getAccountsList(diffbotrequest,"");
+       let channel = Channel(accountsList);
+       let a = Worker('a')(channel);
+       let b = Worker('b')(channel);
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
@@ -81,6 +34,80 @@ function DiffbotService(objectCollection) {
     var dateParam = "date.timestamp>=" + yesterday + " ";
     return dateParam;
   }
+
+   async function processDiffbotRequest(account)
+  {
+    var knowlegdeGraphUrl = getKnowledgeGraphUrl();
+    var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
+    var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
+    var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
+    var diffbotrequest = {}
+    let results = new Array();
+    let paramsArray;
+    var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
+      account["activity_title"],
+      knowlegeGraphKeywordsOrParams,
+      KnowledgeGraphTypeParams,
+      knowlegeGrapDateParams
+    );
+    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
+      knowledgeGraphAllParams
+    );
+    var knowledgeGraphApiUrl =
+      knowlegdeGraphUrl + encodedKnowledgeGraphParams;
+    let res = await doDiffBotRequest(knowledgeGraphApiUrl);
+    var parsedResponse = JSON.parse(res);
+    if (typeof parsedResponse != "undefined") {
+      if ("data" in parsedResponse) {
+        if (parsedResponse.data.length > 0) {
+          for (var k = 0; k < parsedResponse.data.length; k++) {
+            var checkResult = await checkIfAccountIDArticleIdExist(
+              account.activity_id,
+              parsedResponse.data[k].id,
+              diffbotrequest
+            );
+            if (checkResult.length == 0) {
+              var result = await insertPageUrlCorrespondingAccountId(
+                account.activity_id,
+                parsedResponse.data[k].id,
+                parsedResponse.data[k].pageUrl,
+                diffbotrequest
+              );
+              await updateWorkflowTimelineCorrespondingAccountId(
+                account.organization_id,
+                account.account_id,
+                account.workforce_id,
+                account.activity_id,
+                parsedResponse.data[k].pageUrl,
+                account.activity_type_id,
+                account.activity_type_category_id
+              );
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+  const Worker = (name) => (channel) => {
+    const next = async () => {
+      const account = channel.getWork();
+      if (!account) {
+        return;
+      }
+     await processDiffbotRequest(account)
+      next();
+
+    };
+    next();
+  }
+
+  const Channel = (queue) => {
+    return { getWork: () => {
+      return queue.pop();
+    }};
+  };
 
   function getknowledgeGraphOrParams() {
     var knowlegeGraphKeywordsOrParams = "text:or(";
