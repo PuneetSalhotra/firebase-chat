@@ -24,6 +24,7 @@ config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
 "IOT", "M2M", "Tracking system",
 "PRI", "SIP","Toll-free (TFS)"
 ]
+config.numberOfThreadsForDiffbotProcessing=2
 
 if (mode === 'testingprodissueenv') {
 

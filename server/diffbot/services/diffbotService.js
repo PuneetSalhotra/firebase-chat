@@ -13,8 +13,10 @@ function DiffbotService(objectCollection) {
     try {  
        accountsList =  await getAccountsList(diffbotrequest,"");
        let channel = Channel(accountsList);
-       let a = Worker('a')(channel);
-       let b = Worker('b')(channel);
+       for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
+       {
+        Worker()(channel);
+       }
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
@@ -95,7 +97,7 @@ function DiffbotService(objectCollection) {
 
   }
 
-  const Worker = (name) => (channel) => {
+  const Worker = () => (channel) => {
     const next = async () => {
       const account = channel.getWork();
       if (!account) {
