@@ -249,12 +249,15 @@ function DiffbotService(objectCollection) {
   ) {
 
     var contentTxt
+    var streamTypeId
     if(type == articleType)
     {
       contentTxt="<div className='chat_content_right'> A new article with title ' "+article_title+" ' has been identified for this account . <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> to know the details of the article</div>"
+      streamTypeId = 723 
     }else
     {
       contentTxt="<div className='chat_content_right'>A new tender has been identified for your account. Please refer to this <u> <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> </u>  to know the details of the tender</div>"
+      streamTypeId = 724 
 
     }
     var collectionObj = {
@@ -287,7 +290,7 @@ function DiffbotService(objectCollection) {
       track_gps_datetime: currentDateInDateTimeFormat,
       device_os_id: 7,
       message_unique_id: epoch,
-      timeline_stream_type_id: 325
+      timeline_stream_type_id: streamTypeId
     };
 
     var result = await activityTimelineService.addTimelineTransactionAsync(
