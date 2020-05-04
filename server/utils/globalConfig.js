@@ -882,3 +882,7 @@ config.cassandraCredentialsProd = {
 //OPENTOK
 config.opentok_apiKey = "46050712";
 config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
+
+//Cognito
+config.cognito_region = 'us-east-1';
+config.user_pool_id = 'us-east-1_sFNwE7bj1';
