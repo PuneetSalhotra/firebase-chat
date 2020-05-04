@@ -199,10 +199,11 @@ function CommnElasticService(objectCollection) {
 
     }
     resultObj['document_id']= request.id
+    res.send(responseWrapper.getResponse(false, resultObj, 200, request));
   }else{
-      resultObj ='data not found'
+      var err ='data not found'
+      res.send(responseWrapper.getResponse(err, {}, -9998, request));
     }
-     res.send(responseWrapper.getResponse(false, resultObj, 200, request));
   }
 
 
