@@ -538,6 +538,40 @@ function CacheWrapper(client) {
         });        
     };
 
+    this.getOpportunityIdPromise = () => {
+        return new Promise((resolve, reject) => {
+            client.incr('opportunity_id', function (err, id) {
+                if (err) {
+                    logger.error(`INCR opportunity_id`, { type: 'redis', cache_response: id, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `INCR opportunity_id`, err, reqBodyObject);
+                    resolve(0);
+                }
+
+                logger.verbose(`INCR opportunity_id`, { type: 'redis', cache_response: id, error: err });
+                // global.logger.write('cacheResponse', `INCR opportunity_id`, id, reqBodyObject);
+                resolve(id);
+            });
+        });
+    };
+
+    this.setOppurtunity = (setValue) => {
+        return new Promise((resolve, reject) => {
+            client.set('opportunity_id', setValue, function (err, reply) {
+                if (err) {
+                    logger.error(`SET opportunity_id ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, err, reqBodyObject);
+                    resolve(err);
+                } else {
+                    logger.verbose(`SET opportunity_id ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
+                    // global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;

@@ -532,6 +532,15 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 48) { 
                                 await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
+                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
+                            if(request.activity_type_category_id == 48 && request.activity_form_id == 2753){
+                                    console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
+
+                                    let opportunityRequest = Object.assign({}, request);
+                                    opportunityRequest.workflow_activity_id = request.activity_id;
+                                   // rmbotService.generateOppurtunity(opportunityRequest);
+                                    activityCommonService.makeRequest(opportunityRequest,'activity/opportunity/set',1);
+                            }
                             
                             //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
                             //activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, (err, restult)=>{});
