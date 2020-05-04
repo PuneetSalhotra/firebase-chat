@@ -375,7 +375,7 @@ function DiffbotService(objectCollection) {
           }
         }
           for (var k = 0; k < tenders.length; k++) {
-            // tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
+            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
              accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
              for( var j=0;j<accountsList.length;j++)
