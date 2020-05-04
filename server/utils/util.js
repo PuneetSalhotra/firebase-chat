@@ -653,6 +653,11 @@ function Util(objectCollection) {
         return dateTimeString;
     };
 
+    this.getCurrentISTDDMMYY = function () {
+        var now = moment().tz('Asia/Kolkata').format("DDMMYY");
+        return now;
+    };    
+
     // this.getQueryString = function (callName, paramsArr) {
     //     var queryString = "CALL " + callName + "(";
     //     paramsArr.forEach(function (item, index) {
@@ -2068,7 +2073,7 @@ function Util(objectCollection) {
         }
         
         sns.publish({
-            description: request.message,
+            description: request.push_message,
             title: request.push_title,
             subtitle: request.push_message,
             body: `DESKER`,

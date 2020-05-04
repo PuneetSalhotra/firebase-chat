@@ -539,7 +539,8 @@ function ActivityService(objectCollection) {
                                     let opportunityRequest = Object.assign({}, request);
                                     opportunityRequest.workflow_activity_id = request.activity_id;
                                    // rmbotService.generateOppurtunity(opportunityRequest);
-                                    activityCommonService.makeRequest(opportunityRequest,'activity/opportunity/set',1);
+                                    opportunityRequest.generic_url = '/activity/opportunity/set';
+                                    activityCommonService.makeGenericRequest(opportunityRequest);
                             }
                             
                             //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
