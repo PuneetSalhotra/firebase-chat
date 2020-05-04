@@ -210,7 +210,32 @@ function CommnElasticService(objectCollection) {
   this.deleteFile =
     async (request) => {
       try {
+        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         var resultObj = {}
+        paramsArray= new Array(
+          parseInt(request.organization_id),
+          parseInt(request.activity_id),
+          parseInt(request.id)
+        )
+        const queryString = util.getQueryString(
+          "ds_p1_activity_document_mapping_select",
+          paramsArray,
+          1
+          );
+          if (queryString !== "") {
+          await db
+          .executeQueryPromise(1, queryString, request)
+          .then(data => {
+          responseData = data;
+          error = false;
+          })
+          .catch(err => {
+          error = err;
+          });
+          }
+        if(responseData.length>0){
+
+
         const result = await client.deleteByQuery({
           index: 'documentrepository',
           body: {
@@ -232,9 +257,11 @@ function CommnElasticService(objectCollection) {
             parseInt(request.asset_id),
             date
           );
-        results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 1);
+
+        results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 0);
+
         paramsArray =
-      new Array(
+        new Array(
         parseInt(request.organization_id),
         parseInt(request.id),
         2302,
@@ -246,6 +273,10 @@ function CommnElasticService(objectCollection) {
 
       }
         return resultObj
+    }else{
+      var err ='data not found'
+      res.send(responseWrapper.getResponse(err, {}, -9998, request));
+    }
       } catch (error) {
         return Promise.reject(error);
       }
