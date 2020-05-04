@@ -532,7 +532,17 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 48) { 
                                 await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
-                            
+
+                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
+                            if(request.activity_type_category_id == 48 && request.activity_form_id == 2753){
+                                    console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
+
+                                    let opportunityRequest = Object.assign({}, request);
+                                    opportunityRequest.workflow_activity_id = request.activity_id;
+                                    opportunityRequest.generic_url = '/activity/opportunity/set';
+                                    activityCommonService.makeGenericRequest(opportunityRequest);
+                            }
+                                                        
                             //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
                             //activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, (err, restult)=>{});
 
@@ -2048,6 +2058,7 @@ function ActivityService(objectCollection) {
         var assetParticipantAccessId = Number(request.asset_participant_access_id);
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
 
+        console.log('In alterActivityStatus ', activityTypeCategoryId);
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -2161,6 +2172,7 @@ function ActivityService(objectCollection) {
         }
         // Check for the sub-status
         try {
+            console.log('Checking for substatus');
             const [error, workforceActivityStatusData] = await getAssetTypeIDForAStatusID(request, activityStatusId);
             // Check:
             // 1. If a sub-status exists AND
@@ -2189,14 +2201,16 @@ function ActivityService(objectCollection) {
                     sub_status_trigger_time: util.getCurrentUTCTime()
                 }, activityStatusId)
 
-                callback(false, {}, 200);
-                return;
+                //callback(false, {}, 200);
+                //return;
             }
         } catch (error) {
             logger.error(`Error checking sub-status data`, { type: "alter_status", error: serializeError(error), request_body: request });
         }
-        activityCommonService.updateAssetLocation(request, function (err, data) {});
-        activityListUpdateStatus(request, async function (err, data) {
+        
+        activityCommonService.updateAssetLocation(request, (err, data) => {});
+        console.log('Before activityListUpdateStatus');
+        activityListUpdateStatus(request, async (err, data) => {
             if (err === false) {
 
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
