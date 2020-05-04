@@ -88,7 +88,8 @@ function CommnElasticService(objectCollection) {
       )
       try{
         results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-      }catch{
+      }catch(error){
+        console.error(error)
 
       }
     const result = await client.index({
@@ -195,7 +196,8 @@ function CommnElasticService(objectCollection) {
     )
     try{
        results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-    }catch{
+    }catch(error){
+      console.error(error)
 
     }
     resultObj['document_id']= request.id
@@ -269,12 +271,13 @@ function CommnElasticService(objectCollection) {
       )
       try{
       results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-      }catch{
-
+      }catch(error){
+        console.error(error)
       }
         return resultObj
     }else{
-      var err ='data not found'
+      var err={}
+      err ='data not found'
       res.send(responseWrapper.getResponse(err, {}, -9998, request));
     }
       } catch (error) {
@@ -343,7 +346,9 @@ function CommnElasticService(objectCollection) {
             request.search_text != '') {
             if (request.search_text == null || request.search_text.length < 3) {
               flag = false
-              return 'minimum 3 char required for search'
+              var error_msg ='minimum 3 char required for search';
+              return res.send(responseWrapper.getResponse(false, {"error_msg":error_msg}, -9998, request));
+
             } else {
               const search_text = request.search_text
               dynamicQuery.push({
@@ -374,7 +379,6 @@ function CommnElasticService(objectCollection) {
               "from": page_no
             }
           })
-          // var ids = []
 
           for (var i = 0; i < result.body.hits['hits'].length; i++) {
             var obj = {}
