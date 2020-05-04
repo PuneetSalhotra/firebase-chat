@@ -433,6 +433,18 @@ function VodafoneController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+
+    //Search service for workflow reference with activity type restriction
+    app.post('/' + global.config.version + '/workflow_reference/activity_type/search/v1', async (req, res) =>{        
+        const [err, responseData] = await vodafoneService.searchWFBasedOnActivityTypeV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity-activity/mapping/child-activities/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
     
 }
 
