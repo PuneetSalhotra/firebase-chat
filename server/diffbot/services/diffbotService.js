@@ -256,7 +256,7 @@ function DiffbotService(objectCollection) {
       streamTypeId = 723 
     }else
     {
-      contentTxt="<div className='chat_content_right'>A new tender has been identified for your account. Please refer to this <u> <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> </u>  to know the details of the tender</div>"
+      contentTxt="<div className='chat_content_right'>A new tender has been identified for your account. Please refer to this <u> <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Link</span></a> </u>  to know the details of the tender</div>"
       streamTypeId = 724 
 
     }
@@ -281,7 +281,7 @@ function DiffbotService(objectCollection) {
       activity_type_category_id: activity_type_category_id_val,
       activity_type_id: activity_type_id_val,
       activity_id: activity_id_val,
-      activity_stream_type_id: 325,
+      activity_stream_type_id: streamTypeId,
       activity_timeline_collection: JSON.stringify(collectionObj),
       asset_id: 100,
       data_entity_inline: JSON.stringify(collectionObj),
