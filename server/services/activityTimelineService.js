@@ -2672,6 +2672,7 @@ function ActivityTimelineService(objectCollection) {
                         //params[18] = workflowReference[1]; //Name
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                     console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('row.field_value : ', row.field_value);
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                     if(typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);
@@ -2689,6 +2690,7 @@ function ActivityTimelineService(objectCollection) {
                     //        params[18] = assetReference[1]; //Name                    
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                     console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('row.field_value : ', row.field_value);
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                     if(typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);
@@ -3361,6 +3363,7 @@ async function addFormEntriesAsync(request) {
                     //    params[18] = workflowReference[1]; //Name
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                 console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('row.field_value : ', row.field_value);
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                 if(typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);
@@ -3378,6 +3381,7 @@ async function addFormEntriesAsync(request) {
                 //    params[18] = assetReference[1]; //Name
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                 console.log('typeof row.field_value : ', typeof row.field_value);
+                console.log('row.field_value : ', row.field_value);
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
                 if(typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);

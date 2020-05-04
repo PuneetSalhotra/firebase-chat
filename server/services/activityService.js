@@ -2058,6 +2058,7 @@ function ActivityService(objectCollection) {
         var assetParticipantAccessId = Number(request.asset_participant_access_id);
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
 
+        console.log('In alterActivityStatus ', activityTypeCategoryId);
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -2171,6 +2172,7 @@ function ActivityService(objectCollection) {
         }
         // Check for the sub-status
         try {
+            console.log('Checking for substatus');
             const [error, workforceActivityStatusData] = await getAssetTypeIDForAStatusID(request, activityStatusId);
             // Check:
             // 1. If a sub-status exists AND
@@ -2199,14 +2201,16 @@ function ActivityService(objectCollection) {
                     sub_status_trigger_time: util.getCurrentUTCTime()
                 }, activityStatusId)
 
-                callback(false, {}, 200);
-                return;
+                //callback(false, {}, 200);
+                //return;
             }
         } catch (error) {
             logger.error(`Error checking sub-status data`, { type: "alter_status", error: serializeError(error), request_body: request });
         }
-        activityCommonService.updateAssetLocation(request, function (err, data) {});
-        activityListUpdateStatus(request, async function (err, data) {
+        
+        activityCommonService.updateAssetLocation(request, (err, data) => {});
+        console.log('Before activityListUpdateStatus');
+        activityListUpdateStatus(request, async (err, data) => {
             if (err === false) {
 
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
@@ -4917,6 +4921,7 @@ function ActivityService(objectCollection) {
         try{
             parsedFieldValue = JSON.parse(fieldValue);
             console.log('parsedFieldValue : ', parsedFieldValue);
+            console.log('parsedFieldValue.length : ', parsedFieldValue.length);
         } catch(err) {
             console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
             return "Failure";
@@ -4924,9 +4929,12 @@ function ActivityService(objectCollection) {
         
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
-        for(let i = 0; i < parsedFieldValue.length; i++) {
-            newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
-            await activityCommonService.activityActivityMappingInsert(newReq);
+        
+        if(parsedFieldValue.length > 0) {
+            for(let i = 0; i < parsedFieldValue.length; i++) {
+                newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+                await activityCommonService.activityActivityMappingInsert(newReq);
+            }
         }
 
         return "success";
