@@ -1588,7 +1588,9 @@ function ActivityListingService(objCollection) {
 				"activity_cuid_1": util.replaceDefaultString(rowData['activity_cuid_1']),
 				"activity_cuid_2": util.replaceDefaultString(rowData['activity_cuid_2']),
 				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3']),
-				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count'])
+				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count']),
+				"parent_status_id":util.replaceDefaultNumber(rowData['parent_status_id']),
+				"parent_status_name":util.replaceDefaultNumber(rowData['parent_status_name'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
