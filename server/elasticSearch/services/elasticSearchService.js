@@ -61,6 +61,8 @@ function CommnElasticService(objectCollection) {
     let results = new Array();
     var resultObj = {}
     var document_version = 1;
+    let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
     var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
     let paramsArray;
     paramsArray =
@@ -69,20 +71,20 @@ function CommnElasticService(objectCollection) {
         request.document_desc,
         document_version,
         url,
-        request.activity_id ,
-        request.asset_id,
-        request.organization_id,
-        request.log_asset_id,
-        request.log_datetime,
+        parseInt(request.activity_id) ,
+        parseInt(request.asset_id),
+        parseInt(request.organization_id),
+        parseInt(request.asset_id),
+        date,
       )
     results[0] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_insert', paramsArray, 0);
 
     paramsArray =
       new Array(
-        request.organization_id,
+        parseInt(request.organization_id),
         results[0][0]['activity_document_id'],
-        request.p_update_type_id,
-        request.log_datetime,
+        0,
+        date,
       )
       try{
         results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
@@ -116,29 +118,42 @@ function CommnElasticService(objectCollection) {
     let paramsArray;
     let version_id = 1;
     var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
-
+    let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     paramsArray= new Array(
-      request.organization_id,
-      request.activity_id,
-      request.id
+      parseInt(request.organization_id),
+      parseInt(request.activity_id),
+      parseInt(request.id)
     )
-    try{
-    results[3]= await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_select', paramsArray, 1);
-  } catch (err) {
-    res.send(responseWrapper.getResponse(err, {}, -9998, request));
-  }
-    if(results[3]!=undefined && results[3].length>0){
+
+  const queryString = util.getQueryString(
+    "ds_p1_activity_document_mapping_select",
+    paramsArray,
+    1
+    );
+    if (queryString !== "") {
+    await db
+    .executeQueryPromise(1, queryString, request)
+    .then(data => {
+    responseData = data;
+    error = false;
+    })
+    .catch(err => {
+    error = err;
+    });
+    }
+     if(responseData.length>0){
+
     paramsArray =
       new Array(
-        request.organization_id,
-        request.activity_id,
-        request.id,
+        parseInt(request.organization_id),
+        parseInt(request.activity_id),
+        parseInt(request.id),
         request.document_title,
         request.document_desc,
         url,
         version_id,
-        request.asset_id,
-        Date.now()
+        parseInt(request.asset_id),
+        date
       )
     results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_update', paramsArray, 0);
 
@@ -173,10 +188,10 @@ function CommnElasticService(objectCollection) {
 
     paramsArray =
     new Array(
-      request.organization_id,
-      request.id,
-      request.p_update_type_id,
-      request.log_datetime,
+      parseInt(request.organization_id),
+      parseInt(request.id),
+      2301,
+      date,
     )
     try{
        results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
@@ -210,19 +225,19 @@ function CommnElasticService(objectCollection) {
         let paramsArray;
         paramsArray =
           new Array(
-            request.organization_id,
-            request.activity_id,
-            request.id,
-            request.asset_id,
-            request.log_datetime
+            parseInt(request.organization_id),
+            parseInt(request.activity_id),
+            parseInt(request.id),
+            parseInt(request.asset_id),
+            date
           );
         results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 1);
         paramsArray =
       new Array(
-        request.organization_id,
-        request.id,
-        request.p_update_type_id,
-        request.log_datetime,
+        parseInt(request.organization_id),
+        parseInt(request.id),
+        2302,
+        date,
       )
       try{
       results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
@@ -340,6 +355,7 @@ function CommnElasticService(objectCollection) {
             obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
             obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
             obj['filename'] = result.body.hits['hits'][i]['_source']['filename']
+            obj['activity_id'] = result.body.hits['hits'][i]['_source']['productid']
             responseArray.push(obj)
           }
           responseObj['response'] = responseArray
