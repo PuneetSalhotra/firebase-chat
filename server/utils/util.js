@@ -2086,6 +2086,11 @@ function Util(objectCollection) {
         return now;
     };
 
+    this.getCurrentISTDDMMYY = function () {
+        var now = moment().tz('Asia/Kolkata').format("DDMMYY");
+        return now;
+    };    
+
 }
 
 module.exports = Util;

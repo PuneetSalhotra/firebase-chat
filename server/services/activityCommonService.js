@@ -425,6 +425,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -676,6 +678,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4333,6 +4337,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4609,6 +4615,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -5305,6 +5313,32 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             }
         return [error, responseData];   
     };
+
+
+    this.makeGenericRequest = async function(request){
+
+        const genericAsync = nodeUtil.promisify(makingRequest.post);
+        //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const makeRequestOptions = {
+            form: request
+        };
+        try {
+             //console.log("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await genericAsync(global.config.mobileBaseUrl + global.config.version + request.generic_url, makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("makeGenericRequest "+request.generic_url+" | Body: ", body);
+                return [false, {}];
+            }else{
+                console.log("Error ", body);
+                return [true, {}];
+            }
+        } catch (error) {
+            console.log("makeGenericRequest "+request.generic_url+" | Error: ", error);
+            return [true, {}];
+        } 
+    }      
 }
 
 

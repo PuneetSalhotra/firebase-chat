@@ -5060,8 +5060,9 @@ function FormConfigService(objCollection) {
                     responseData = data;
                     error = false;
                 })
-                .catch((err) => {
+                .catch(async (err) => {
                     error = err;
+                    await updateStatusBasedFormLogState(request, formID);
                 })
         }
         return [error, responseData];
@@ -5262,6 +5263,33 @@ function FormConfigService(objCollection) {
                 })
         }
         return [error, responseData];        
+    }
+
+    async function updateStatusBasedFormLogState(request, formID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            formID,
+            request.activity_status_id,
+            request.organization_id,
+            request.log_state || 2,            
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
