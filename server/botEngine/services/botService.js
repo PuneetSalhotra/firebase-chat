@@ -5582,6 +5582,7 @@ function BotService(objectCollection) {
 
         }catch(e){
             error = true;
+            console.log("error : ",e);
         }
         return [error, responseData];        
     }
