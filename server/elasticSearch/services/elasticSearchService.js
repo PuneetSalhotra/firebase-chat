@@ -375,8 +375,8 @@ function CommnElasticService(objectCollection) {
           quertObjArray['must']=dynamicQueryArray
           mainQueryObj['bool']=quertObjArray
           query['query']=mainQueryObj
-          if (!request.hasOwnProperty('id') || request.id == null || request.id == '') {
-            query= Object.assign(query, pagination)
+          if (!request.hasOwnProperty('id') ) {
+              query= Object.assign(query, pagination)
           }
 
           const result = await client.search({
