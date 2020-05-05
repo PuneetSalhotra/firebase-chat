@@ -420,8 +420,10 @@ if (mode === 'sprint') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
     // config.database = 'desker_staging';

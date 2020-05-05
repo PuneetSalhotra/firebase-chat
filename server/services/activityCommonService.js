@@ -425,6 +425,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -676,6 +678,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4333,6 +4337,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4609,6 +4615,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
