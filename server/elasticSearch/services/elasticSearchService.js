@@ -292,7 +292,8 @@ function CommnElasticService(objectCollection) {
         var flag = true;
         var responseObj = {}
         var responseArray = []
-        var dynamicQuery = []
+        var dynamicQuery ={}
+        var dynamicQueryArray = []
         var queryType = "cross_fields"
         const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
         var operator = 'and';
@@ -304,6 +305,9 @@ function CommnElasticService(objectCollection) {
         if (request.hasOwnProperty('page_no')) {
           page_no = request.page_no;
         }
+        var pagination ={}
+        pagination['size']= page_size,
+        pagination['from']= page_no
         var searchFields = []
         if (request.hasOwnProperty('fields') && request.fields.length > 0) {
           for (var i = 0; i < request.fields.length; i++) {
@@ -332,7 +336,7 @@ function CommnElasticService(objectCollection) {
               "orgid": orgid
             }
           }
-          dynamicQuery.push(orgFilter)
+          dynamicQueryArray.push(orgFilter)
           var idFilter = ''
           if (request.hasOwnProperty('id') && request.id != null && request.id != '') {
             idFilter = {
@@ -340,7 +344,7 @@ function CommnElasticService(objectCollection) {
                 "id": request.id
               }
             }
-            dynamicQuery.push(idFilter)
+            dynamicQueryArray.push(idFilter)
           }
           if (request.hasOwnProperty('search_text') && request.search_text != null &&
             request.search_text != '') {
@@ -351,7 +355,7 @@ function CommnElasticService(objectCollection) {
 
             } else {
               const search_text = request.search_text
-              dynamicQuery.push({
+              dynamicQueryArray.push({
                 "bool": {
                   "should": {
                     "multi_match": {
@@ -365,19 +369,20 @@ function CommnElasticService(objectCollection) {
               });
             }
           }
+          var query={}
+          var mainQueryObj ={}
+          var quertObjArray={}
+          quertObjArray['must']=dynamicQueryArray
+          mainQueryObj['bool']=quertObjArray
+          query['query']=mainQueryObj
+          if (!request.hasOwnProperty('id') || request.id == null || request.id == '') {
+            query= Object.assign(query, pagination)
+          }
 
           const result = await client.search({
             index: 'documentrepository',
             type: "_doc",
-            body: {
-              "query": {
-                "bool": {
-                  "must": dynamicQuery
-                }
-              },
-              "size": page_size,
-              "from": page_no
-            }
+            body: query
           })
 
           for (var i = 0; i < result.body.hits['hits'].length; i++) {
