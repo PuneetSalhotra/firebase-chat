@@ -245,18 +245,18 @@ function DiffbotService(objectCollection) {
     activity_type_id_val,
     activity_type_category_id_val,
     type,
-    article_title
+    title
   ) {
 
     var subjectTxt
     var streamTypeId
     if(type == articleType)
     {
-      subjectTxt=" A new article with title ' "+article_title+" ' has been identified for this account."
+      subjectTxt=" A new article with title ' "+title+" ' has been identified for your account."
       streamTypeId = 723 
     }else
     {
-      subjectTxt="A new tender has been identified for this account. "
+      subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. "
       streamTypeId = 724 
 
     }
@@ -405,7 +405,8 @@ function DiffbotService(objectCollection) {
                     tenderTigerUrl + tenders[k].detailurl,
                     accountsList[j].activity_type_id,
                     accountsList[j].activity_type_category_id,
-                    tenderType
+                    tenderType,
+                    tenders[k].tid
                   );
                 }
               }
