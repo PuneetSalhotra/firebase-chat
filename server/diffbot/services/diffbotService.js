@@ -248,21 +248,21 @@ function DiffbotService(objectCollection) {
     article_title
   ) {
 
-    var contentTxt
+    var subjectTxt
     var streamTypeId
     if(type == articleType)
     {
-      contentTxt="<div className='chat_content_right'> A new article with title ' "+article_title+" ' has been identified for this account . <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Click here</span></a> to know the details of the article</div>"
+      subjectTxt=" A new article with title ' "+article_title+" ' has been identified for this account."
       streamTypeId = 723 
     }else
     {
-      contentTxt="<div className='chat_content_right'>A new tender has been identified for your account. Please refer to this <u> <a target='_blank' style={{color:'#2680EB'}} href='"+page_url_val+"' > <span className='doc_cnt_img'>Link</span></a> </u>  to know the details of the tender</div>"
+      subjectTxt="A new tender has been identified for this account. "
       streamTypeId = 724 
 
     }
     var collectionObj = {
-      content:contentTxt,
-      subject: page_url_val,
+      content:page_url_val,
+      subject: subjectTxt,
       mail_body: page_url_val,
       attachments: [],
       activity_reference: [{ activity_title: "", activity_id: "" }],
