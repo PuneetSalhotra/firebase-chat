@@ -213,8 +213,8 @@ function connectToKafkaBroker(){
             activityCommonService: activityCommonService,
             forEachAsync: forEachAsync
         };
-        new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
-        //new AccessTokenInterceptor(app, responseWrapper);
+        new AccessTokenInterceptor(app, responseWrapper);
+        new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);        
         new ControlInterceptor(objCollection);
         server.listen(global.config.servicePort);        
         console.log('server running at port ' + global.config.servicePort);
