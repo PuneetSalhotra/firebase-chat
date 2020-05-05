@@ -515,13 +515,15 @@ function ActivityService(objectCollection) {
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i];
                                     switch(Number(fieldData.field_data_type_id)) {
-                                        case 57: //Fire the Bot                                                 
+                                        case 57: //Fire the Bot
                                                 await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
                                                 break;
+                                        case 68: await activityActivityMappingInsert(request, fieldData);
+                                                 break;
                                         default: break;
                                     }
                                 }
