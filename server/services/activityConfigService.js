@@ -193,6 +193,9 @@ function ActivityConfigService(db, util, objCollection) {
                         request['activity_type_id'] = data[0].activity_type_id;
                         request['update_type_id'] = 0;
                         workForceActivityTypeHistoryInsert(request).then(() => { });
+
+                        self.workforceActivityTypeMappingUpdateTag(request);
+
                         resolve(data);
                     } else {
                         reject(err);
@@ -234,6 +237,18 @@ function ActivityConfigService(db, util, objCollection) {
                         } catch (error) {
                             console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ", error);
                         }
+
+                        try {
+                            if (request.tag_id && Number(request.tag_id) >= 0) {
+                                try {
+                                    self.workforceActivityTypeMappingUpdateTag(request);
+                                } catch (error) {
+                                    console.log("workForceActivityTypeUpdate | workforceActivityTypeMappingUpdateTag | Error: ", error);
+                                }
+                            }
+                        } catch (error) {
+                            console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ", error);
+                        }                            
                         request['update_type_id'] = 901;
                         workForceActivityTypeHistoryInsert(request).then(() => { });
                         resolve(data);
@@ -545,6 +560,16 @@ function ActivityConfigService(db, util, objCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    let reqObj = Object.assign({},request);
+
+                    reqObj.tag_id = request.activity_status_tag_id;
+                    reqObj.tag_type_category_id = 4;
+                    if(request.activity_status_tag_id > 0){
+                        adminOpsService.tagEntityMappingInsertDBCall(reqObj);
+                    }else{
+                        adminOpsService.tagEntityMappingDeleteV1(reqObj);
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -813,6 +838,46 @@ function ActivityConfigService(db, util, objCollection) {
 
         return fieldValue;
     }
+    // Update Status Tag for an activity status
+    this.workforceActivityTypeMappingUpdateTag = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_activity_type_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    let reqObj = Object.assign({},request);
+
+                    reqObj.tag_type_category_id = 1;
+                    if(request.tag_id > 0){
+                        adminOpsService.tagEntityMappingInsertDBCall(reqObj);
+                    }else{
+                        adminOpsService.tagEntityMappingDeleteV1(reqObj);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
 }
 
 module.exports = ActivityConfigService;

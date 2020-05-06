@@ -6482,6 +6482,40 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.tagEntityMappingDeleteV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_id,
+            request.tag_type_category_id,
+            request.activity_type_id || 0,
+            request.tag_workforce_id || 0,
+            request.tag_asset_id || 0,
+            request.activity_status_id || 0,
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_tag_entity_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    //History Insert
+                    tagEntityMappingHistoryInsert(request, 2201);
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log('error :: ' + error);
+                })
+        }
+        return [error, responseData];
+    }
 
     async function tagEntityMappingHistoryInsert(request, updateTypeID) {
         let responseData = [],
