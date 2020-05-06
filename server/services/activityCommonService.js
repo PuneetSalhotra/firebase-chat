@@ -425,6 +425,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -676,6 +678,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4333,6 +4337,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4609,6 +4615,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -5330,7 +5338,32 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log("makeGenericRequest "+request.generic_url+" | Error: ", error);
             return [true, {}];
         } 
-    }      
+    };
+    
+    this.updateMentionsCnt = async (request, assetID) => {
+        let responseData = [],
+            error = true;
+    
+        const paramsArr = new Array(
+            request.activity_id,
+            assetID,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_mention_count', paramsArr);
+    
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+            
+        return [error, responseData];
+    };
 }
 
 
