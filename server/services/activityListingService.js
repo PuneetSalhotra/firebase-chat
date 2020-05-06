@@ -3013,6 +3013,59 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	};
 
+	
+	this.actAssetMappingNewFiltersList =  async (request) => {
+		//p_flag = 1 -- MY FOCUS
+		//p_flag = 2 -- MY UPDATES
+		//p_flag = 3 -- MY WORKFLOWS
+		//p_flag = 4 -- MY TASKS
+		//p_flag = 5 -- MY CONVERSATIONS
+		//p_flag = 6 -- MY DASHBOARD
+
+		//p_is_all = 0 -- ALL
+		//p_is_all = 1 -- created by me
+		//p_is_all = 2 -- lead byme
+
+		//p_is_sort = 1 -- due datetime
+		//p_is_sort = 2 -- created datetime
+		//p_is_sort = 3 -- last updated datetime
+		//p_is_sort = 4 -- log_datetime
+
+		//p_next_datetime = current_datetime + 2 days (used only in flag = 1)
+		
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.asset_id,
+			request.flag,
+			request.is_all_flag,
+			request.is_search,
+			request.search_string,
+			request.is_status,
+			request.is_sort,
+            request.next_datetime,
+			request.page_start || 0,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_new_filters', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
 }
 
 module.exports = ActivityListingService;

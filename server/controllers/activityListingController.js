@@ -878,6 +878,16 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/asset/mapping/new-filters/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.actAssetMappingNewFiltersList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/asset/mapping/new-filters/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 module.exports = ActivityListingController;
