@@ -4813,14 +4813,29 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
+    this.updateMentionsCntArr = async(request) => {
+        let responseData = [],
+            error = false,
+            i;
 
-    this.updateMentionsCnt = async (request) => {        
+        let assetsData = (typeof request.assets_referenced === 'string') ? JSON.parse(request.assets_referenced) : request.assets_referenced;
+        
+        console.log('assetsData : ', assetsData);
+
+        for(i=0;i<assetsData.length;i++){
+            await updateMentionsCnt(request, assetsData[i]);
+        }
+
+        return [error, responseData];
+    }
+
+    async function updateMentionsCnt(request, assetID) {
         let responseData = [],
             error = true;
     
         const paramsArr = new Array(
             request.activity_id,
-            request.asset_id,
+            assetID,
             request.organization_id
         );
         const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_mention_count', paramsArr);
