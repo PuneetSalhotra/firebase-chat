@@ -3733,7 +3733,8 @@ async function addFormEntriesAsync(request) {
                                                                 organization_id: request.organization_id, 
                                                                 asset_id: mentionedAssets[i]
                                                              });
-
+            
+            await activityCommonService.updateMentionsCnt(request, mentionedAssets[i]);
             if(err || assetData.length > 0) {
                 if((assetData[0].operating_asset_email_id).length === 0 || 
                     (assetData[0].operating_asset_first_name).length === 0) {

@@ -6,15 +6,23 @@ const TimeUuid = require('cassandra-driver').types.TimeUuid;
 function AccessTokenInterceptor(app, responseWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
-        console.log('REQ : ', req.headers);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        //console.log('REQ : ', req.headers);
+        //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');    
                 
         let bundleTransactionId = TimeUuid.now();
         req.body.service_id = "";
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
                 
-        if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+        //Check for flag - Cognito or Redis Auth
+        //flag = 1 - Redis
+        //flag = 2 - Cognito
+        if(!req.headers.hasOwnProperty('authenticationflag')){
+            next();
+        } else if(req.headers.hasOwnProperty('authenticationflag') && Number(req.headers.authenticationflag) === 1) {
+            console.log('Proceeding to Redis Auth');
+            next();
+        } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
             req.body['module'] = 'asset';
@@ -130,6 +138,11 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     // get the decoded payload and header
                     decoded = jwt.decode(token, {complete: true});
                     //console.log(decoded);
+                    if(decoded === null) {
+                        console.log('Invalid token');
+                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                        return;
+                    }
                     //console.log(' ');                        
                             
                     url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
@@ -177,7 +190,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     }).on("error", (err) => {
                         console.log("Error: " + err.message);
                         global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});
-                                res.send(responseWrapper.getResponse(null, {}, -3205, req.body));        
+                                res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                         });
                     break;
                     } //switch
