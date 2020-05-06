@@ -7382,6 +7382,8 @@ function AdminOpsService(objectCollection) {
                                         break;
                             case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
                                         break;
+                            case '!=': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                                        break;
                         }                    
     
                         if(ifStatement) {

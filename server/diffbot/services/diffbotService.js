@@ -5,61 +5,18 @@ function DiffbotService(objectCollection) {
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
   const util = objectCollection.util;
+  accountsList = []
+  articleType = 'article'
+  tenderType = 'tender'
 
   this.queryDiffbot = async diffbotrequest => {
-    try {
-      var knowlegdeGraphUrl = getKnowledgeGraphUrl();
-      var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
-      var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
-      var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
-      var accountsList = await getAccountsList(diffbotrequest,"");
-      for (var j = 0; j < accountsList.length; j++) {
-        let results = new Array();
-        let paramsArray;
-        var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
-          accountsList[j]["activity_title"],
-          knowlegeGraphKeywordsOrParams,
-          KnowledgeGraphTypeParams,
-          knowlegeGrapDateParams
-        );
-        var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
-          knowledgeGraphAllParams
-        );
-        var knowledgeGraphApiUrl =
-          knowlegdeGraphUrl + encodedKnowledgeGraphParams;
-        let res = await doDiffBotRequest(knowledgeGraphApiUrl);
-        var parsedResponse = JSON.parse(res);
-        if (typeof parsedResponse != "undefined") {
-          if ("data" in parsedResponse) {
-            if (parsedResponse.data.length > 0) {
-              for (var k = 0; k < parsedResponse.data.length; k++) {
-                var checkResult = await checkIfAccountIDArticleIdExist(
-                  accountsList[j].activity_id,
-                  parsedResponse.data[k].id,
-                  diffbotrequest
-                );
-                if (checkResult.length == 0) {
-                  var result = await insertPageUrlCorrespondingAccountId(
-                    accountsList[j].activity_id,
-                    parsedResponse.data[k].id,
-                    parsedResponse.data[k].pageUrl,
-                    diffbotrequest
-                  );
-                  await updateWorkflowTimelineCorrespondingAccountId(
-                    accountsList[j].organization_id,
-                    accountsList[j].account_id,
-                    accountsList[j].workforce_id,
-                    accountsList[j].activity_id,
-                    parsedResponse.data[k].pageUrl,
-                    accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id
-                  );
-                }
-              }
-            }
-          }
-        }
-      }
+    try {  
+       accountsList =  await getAccountsList(diffbotrequest,"");
+       let channel = Channel(accountsList);
+       for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
+       {
+        Worker()(channel);
+       }
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
@@ -81,6 +38,83 @@ function DiffbotService(objectCollection) {
     var dateParam = "date.timestamp>=" + yesterday + " ";
     return dateParam;
   }
+
+   async function processDiffbotRequest(account)
+  {
+    var knowlegdeGraphUrl = getKnowledgeGraphUrl();
+    var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
+    var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
+    var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
+    var diffbotrequest = {}
+    let results = new Array();
+    let paramsArray;
+    var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
+      account["activity_title"],
+      knowlegeGraphKeywordsOrParams,
+      KnowledgeGraphTypeParams,
+      knowlegeGrapDateParams
+    );
+    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
+      knowledgeGraphAllParams
+    );
+    var knowledgeGraphApiUrl =
+      knowlegdeGraphUrl + encodedKnowledgeGraphParams;
+    let res = await doDiffBotRequest(knowledgeGraphApiUrl);
+    var parsedResponse = JSON.parse(res);
+    if (typeof parsedResponse != "undefined") {
+      if ("data" in parsedResponse) {
+        if (parsedResponse.data.length > 0) {
+          for (var k = 0; k < parsedResponse.data.length; k++) {
+            var checkResult = await checkIfAccountIDArticleIdExist(
+              account.activity_id,
+              parsedResponse.data[k].id,
+              diffbotrequest
+            );
+            if (checkResult.length == 0) {
+              var result = await insertPageUrlCorrespondingAccountId(
+                account.activity_id,
+                parsedResponse.data[k].id,
+                parsedResponse.data[k].pageUrl,
+                diffbotrequest
+              );
+              await updateWorkflowTimelineCorrespondingAccountId(
+                account.organization_id,
+                account.account_id,
+                account.workforce_id,
+                account.activity_id,
+                parsedResponse.data[k].pageUrl,
+                account.activity_type_id,
+                account.activity_type_category_id,
+                articleType,
+                parsedResponse.data[k].title
+
+              );
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+  const Worker = () => (channel) => {
+    const next = async () => {
+      const account = channel.getWork();
+      if (!account) {
+        return;
+      }
+     await processDiffbotRequest(account)
+      next();
+
+    };
+    next();
+  }
+
+  const Channel = (queue) => {
+    return { getWork: () => {
+      return queue.pop();
+    }};
+  };
 
   function getknowledgeGraphOrParams() {
     var knowlegeGraphKeywordsOrParams = "text:or(";
@@ -209,14 +243,26 @@ function DiffbotService(objectCollection) {
     activity_id_val,
     page_url_val,
     activity_type_id_val,
-    activity_type_category_id_val
+    activity_type_category_id_val,
+    type,
+    title
   ) {
+
+    var subjectTxt
+    var streamTypeId
+    if(type == articleType)
+    {
+      subjectTxt=" A new article with title ' "+title+" ' has been identified for your account."
+      streamTypeId = 723 
+    }else
+    {
+      subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. "
+      streamTypeId = 724 
+
+    }
     var collectionObj = {
-      content:
-        "A new article has been identified for your account. Please refer to this <u>"+"<a href='"+page_url_val+"'  target='_blank'>"+
-        page_url_val+"</a>"+
-        "</u> for the article.",
-      subject: page_url_val,
+      content:page_url_val,
+      subject: subjectTxt,
       mail_body: page_url_val,
       attachments: [],
       activity_reference: [{ activity_title: "", activity_id: "" }],
@@ -235,7 +281,7 @@ function DiffbotService(objectCollection) {
       activity_type_category_id: activity_type_category_id_val,
       activity_type_id: activity_type_id_val,
       activity_id: activity_id_val,
-      activity_stream_type_id: 325,
+      activity_stream_type_id: streamTypeId,
       activity_timeline_collection: JSON.stringify(collectionObj),
       asset_id: 100,
       data_entity_inline: JSON.stringify(collectionObj),
@@ -244,7 +290,7 @@ function DiffbotService(objectCollection) {
       track_gps_datetime: currentDateInDateTimeFormat,
       device_os_id: 7,
       message_unique_id: epoch,
-      timeline_stream_type_id: 325
+      timeline_stream_type_id: streamTypeId
     };
 
     var result = await activityTimelineService.addTimelineTransactionAsync(
@@ -329,7 +375,7 @@ function DiffbotService(objectCollection) {
           }
         }
           for (var k = 0; k < tenders.length; k++) {
-            // tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
+            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
              accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
              for( var j=0;j<accountsList.length;j++)
@@ -358,7 +404,9 @@ function DiffbotService(objectCollection) {
                     accountsList[j].activity_id,
                     tenderTigerUrl + tenders[k].detailurl,
                     accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id
+                    accountsList[j].activity_type_category_id,
+                    tenderType,
+                    tenders[k].tid
                   );
                 }
               }
