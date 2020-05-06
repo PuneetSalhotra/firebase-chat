@@ -832,7 +832,7 @@ function ActivityController(objCollection) {
 
 
     app.post('/' + global.config.version + '/activity/asset/mention/count/update', async (req, res) =>{
-        const [err, responseData] = await activityService.updateMentionsCnt(req.body);
+        const [err, responseData] = await activityService.updateMentionsCntArr(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
