@@ -17,6 +17,7 @@ const AdminListingService = require("../../Administrator/services/adminListingSe
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
 function BotService(objectCollection) {
 
@@ -49,6 +50,7 @@ function BotService(objectCollection) {
     const adminOpsService = new AdminOpsService(objectCollection);
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
+    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -954,7 +956,7 @@ function BotService(objectCollection) {
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
                 "form_id": request.form_id,
-                "field_id": request.altered_field_id,
+                "field_id": 0,
                 "bot_id": 0, // request.bot_id,
                 "page_start": 0,
                 "page_limit": 50
@@ -1080,13 +1082,13 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', 'STATUS ALTER', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
                     try {
-                        let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
-                        if (result[0]) {
-                            i.bot_operation_status_id = 2;
-                            i.bot_operation_inline_data = JSON.stringify({
-                                "err": result[1]
-                            });
-                        }
+                        // let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        // if (result[0]) {
+                        //     i.bot_operation_status_id = 2;
+                        //     i.bot_operation_inline_data = JSON.stringify({
+                        //         "err": result[1]
+                        //     });
+                        // }
                     } catch (err) {
                         logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -1338,9 +1340,15 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     try {
-                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        if (
+                            Number(request.organization_id) === 912
+                        ) {
+                            await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        } else {
+                            await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        }
                     } catch (error) {
                         logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
