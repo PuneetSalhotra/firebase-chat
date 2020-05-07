@@ -11,6 +11,8 @@ const XLSX = require('@sheet/core');
 const S5SCalc = require("@sheet/formula");
 S5SCalc.set_XLSX(XLSX);
 
+const tempy = require('tempy');
+
 const ActivityService = require('../../services/activityService.js');
 
 function WorkbookOpsService(objectCollection) {
@@ -52,14 +54,28 @@ function WorkbookOpsService(objectCollection) {
 
     // Bot Operation Logic
     this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData) {
-        const workflowActivityID = request.workflow_activity_id,
-            excelSheetFilePath = `/Users/Bensooraj/Desktop/NodeJS/testAPIOne/Workbook_mapping_bot_test_v1.xlsx`;
+        const workflowActivityID = request.workflow_activity_id;
 
-        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, botOperationInlineData.workbook_url);
+        let excelSheetFilePath = botOperationInlineData.workbook_url;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (
+                Number(workflowActivityData.length) > 0 &&
+                Number(workflowActivityData[0].activity_flag_workbook_mapped) &&
+                workflowActivityData[0].activity_workbook_url
+            ) {
+                excelSheetFilePath = workflowActivityData[0].activity_workbook_url;
+            }
+        } catch (error) {
+            throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
+        }
+
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
         }
-        
+
         // Get the single selection value for selecting the sheet
         let sheetIndex = 0;
         try {
@@ -234,6 +250,129 @@ function WorkbookOpsService(objectCollection) {
             }
         }
 
+        let updatedWorkbookS3URL = "";
+        try {
+            updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURL(workbook, {
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                asset_id: request.asset_id,
+                workflow_activity_id: workflowActivityID
+            });
+            logger.silly("updatedWorkbookS3URL: %j", updatedWorkbookS3URL, { type: "bot_engine" });
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        try {
+            if (updatedWorkbookS3URL) {
+                // Activity List Table
+                await activityListUpdateWorkbookURL({
+                    organization_id: request.organization_id,
+                    activity_id: request.activity_id,
+                    workbook_url: updatedWorkbookS3URL,
+                    workbook_mapped: 1,
+                    asset_id: request.asset_id
+                });
+                // Activity Asset Mapping Table
+                await activityAssetMappingUpdateWorkbookURL({
+                    organization_id: request.organization_id,
+                    activity_id: request.activity_id,
+                    workbook_url: updatedWorkbookS3URL,
+                    workbook_mapped: 1,
+                    asset_id: request.asset_id
+                });
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
+        const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });
+        XLSX.writeFile(workbook, tempXlsxFilePath);
+
+        const bucketName = await util.getS3BucketName(),
+            prefixPath = await util.getS3PrefixPath(options);
+
+        logger.silly("tempXlsxFilePath: %j", tempXlsxFilePath, { type: "bot_engine" });
+        logger.silly("bucketName: %j", bucketName, { type: "bot_engine" });
+        logger.silly("prefixPath: %j", prefixPath, { type: "bot_engine" });
+
+        const uploadDetails = await util.uploadReadableStreamToS3(options, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/${options.workflow_activity_id}_${moment().utcOffset("+05:30").format("YYYY-MM-DD_hh-mm-A")}_workbook.xlsx`,
+            Body: fs.createReadStream(tempXlsxFilePath),
+            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ACL: 'public-read'
+        }, undefined);
+
+        // Delete the file
+        fs.unlinkSync(tempXlsxFilePath);
+        
+        return uploadDetails.Location;
+    }
+
+    async function activityListUpdateWorkbookURL(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.workbook_url,
+            request.workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_workbook_bot', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
+    }
+
+    async function activityAssetMappingUpdateWorkbookURL(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.workbook_url,
+            request.workbook_mapped,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_workbook_bot', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
     }
 
     // DB Calls
