@@ -877,7 +877,36 @@ function ActivityConfigService(db, util, objCollection) {
                 })
         }
         return [error, responseData];
-    }    
+    }  
+
+   this.getActivityConfigs = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.flag,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_configs', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = ActivityConfigService;
