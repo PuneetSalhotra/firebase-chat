@@ -192,7 +192,6 @@ function WorkbookOpsService(objectCollection) {
                 logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
             }
         }
-        throw new Error("HelloWorld!")
 
         // Fetch the updated values
         for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
@@ -430,20 +429,26 @@ function WorkbookOpsService(objectCollection) {
         //     account_id: request.account_id
         // }, workflowActivityID, formID);
 
-        const formData = await getMultipleSubmissionsFormData({
+        const [_, formData] = await getMultipleSubmissionsFormData({
             organization_id: request.organization_id,
             account_id: request.account_id
         }, workflowActivityID, formID);
 
         let formTransactionID = Number(request.form_transaction_id),
             formActivityID = 0,
-            customFsiToCellMappingIndex = -9999;
+            customFsiToCellMappingIndex = Number.NEGATIVE_INFINITY;
 
         if (Number(formData.length) > 0) {
-            // formTransactionID = Number(formData[0].data_form_transaction_id);
-            // formActivityID = Number(formData[0].data_activity_id);
             for (let i = 0; i < formData.length; i++) {
+                if (Number(formData[i].data_form_transaction_id) === Number(formTransactionID)) {
+                    logger.silly(`[Match Found | ${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
 
+                    customFsiToCellMappingIndex = i;
+                    formActivityID = Number(formData[0].data_activity_id);
+                    break;
+                } else {
+                    logger.silly(`[${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
+                }
             }
         } else {
             throw new Error("[ActivityTimelineTransaction] No form data found for fetching the input form field values");
@@ -451,6 +456,15 @@ function WorkbookOpsService(objectCollection) {
 
         let inputCellToValueMap = new Map();
         for (const inputMapping of inputMappings) {
+            // Vodafone Custom Logic
+            if (
+                customFsiToCellMappingIndex > Number.NEGATIVE_INFINITY &&
+                inputMapping.hasOwnProperty("custom_fsi_to_cell_mapping")
+            ) {
+                inputMapping.cell_x = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_x;
+                inputMapping.cell_y = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_y;
+            }
+            // Vodafone Custom Logic
             const fieldID = Number(inputMapping.field_id);
 
             // Fetch the field value
