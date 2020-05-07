@@ -2803,15 +2803,16 @@ function FormConfigService(objCollection) {
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
-        workflowFile713Request.activity_id = workflowActivityId;
-        workflowFile713Request.data_activity_id = Number(request.activity_id);
-        workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
-        workflowFile713Request.activity_type_category_id = 48;
-        workflowFile713Request.activity_stream_type_id = 713;
-        workflowFile713Request.flag_timeline_entry = 1;
-        workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
-        workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        workflowFile713Request.device_os_id = 8;
+            workflowFile713Request.activity_id = workflowActivityId;
+            workflowFile713Request.data_activity_id = Number(request.activity_id);
+            workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+            workflowFile713Request.activity_type_category_id = 48;
+            workflowFile713Request.activity_stream_type_id = 713;
+            workflowFile713Request.flag_timeline_entry = 1;
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile713Request.device_os_id = 8;
+            workflowFile713Request.is_from_field_alter = 1;
 
         if (Number(formConfigData.length) > 0) {
 
@@ -2824,8 +2825,9 @@ function FormConfigService(objCollection) {
             if (Number(formWorkflowActivityTypeId) !== 0) {
                 // 713 timeline entry on the workflow file
                 try {
-                    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-                    await addTimelineTransactionAsync(workflowFile713Request);
+                    //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+                    await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
+                    //await addTimelineTransactionAsync(workflowFile713Request);
                 } catch (error) {
                     console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
                 }
