@@ -166,6 +166,25 @@ var AwsSss = function () {
             });
         });
     }
+
+    this.uploadObject = async (request) => {
+        var params = {
+            Bucket: request.bucket_name, 
+            Key: request.key_name
+           };
+
+        s3.createMultipartUpload(params, function(err, data) {
+             if (err) console.log(err, err.stack); // an error occurred
+             else     console.log(data);           // successful response
+             /*
+             data = {
+              Bucket: "examplebucket", 
+              Key: "largeobject", 
+              UploadId: "ibZBv_75gd9r8lH_gqXatLdxMVpAlj6ZQjEs.OwyF3953YdwbcQnMA2BLGn8Lx12fQNICtMw5KyteFeHw.Sjng--"
+             }
+             */
+           });
+    };
      
     
   };

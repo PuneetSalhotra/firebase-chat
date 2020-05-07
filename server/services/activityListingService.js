@@ -3047,7 +3047,13 @@ async function processFormInlineDataV1(request, data){
 			request.search_string,
 			request.is_status,
 			request.is_sort,
-            request.next_datetime,
+			request.next_datetime,
+			request.is_process,
+			request.activity_type_id,
+			request.is_tag,
+			request.tag_id,
+			request.is_tag_type,
+			request.tag_type_id,
 			request.page_start || 0,
 			request.page_limit
         );        

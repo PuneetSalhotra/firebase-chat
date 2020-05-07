@@ -950,15 +950,25 @@ function BotService(objectCollection) {
             });
         }*/
 
-        wfSteps = await this.getBotworkflowStepsByForm({
-            "organization_id": 0,
-            "form_id": request.form_id,
-            "field_id": 0,
-            "bot_id": 0, // request.bot_id,
-            "page_start": 0,
-            "page_limit": 50
-        });
-
+        if(Number(request.is_from_field_alter) === 1) {        
+            wfSteps = await this.getBotworkflowStepsByForm({
+                "organization_id": 0,
+                "form_id": request.form_id,
+                "field_id": request.altered_field_id,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+        } else {
+            wfSteps = await this.getBotworkflowStepsByForm({
+                "organization_id": 0,
+                "form_id": request.form_id,
+                "field_id": 0,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+        }
 
         let botOperationsJson,
             botSteps;
@@ -981,7 +991,7 @@ function BotService(objectCollection) {
         } catch (error) {
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
-        // console.log("formInlineDataMap: ", formInlineDataMap);
+        console.log("formInlineDataMap: ", formInlineDataMap);
 
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
@@ -989,6 +999,7 @@ function BotService(objectCollection) {
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
                 bot_operation_sequence_id: i.bot_operation_sequence_id,
+                bot_operation_type_id: i.bot_operation_type_id,
                 bot_operation_type_name: i.bot_operation_type_name,
                 form_id: i.form_id,
                 field_id: i.field_id,

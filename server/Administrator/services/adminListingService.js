@@ -1604,6 +1604,43 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    
+    this.getLovDatatypeList = async (request) => {
+        //2001 VIL - Account Type
+        //2002 VIL - Corporate Class
+        //2003 VIL - Circle
+        //2004 VIL - State
+        //2005 VIL - City
+        //2006 VIL - Pincode
+        //2007 VIL - Industry Type
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.type_id,
+            request.entity_id,
+            request.search_string,
+            request.flag,
+            request.sort_flag,
+            request.page_start || 0,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_lov_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminListingService;

@@ -242,7 +242,9 @@ function ActivityTimelineService(objectCollection) {
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
-        if(activityTypeCategoryId === 48 && activityStreamTypeId === 705) {
+        if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
+           (activityTypeCategoryId === 48 && activityStreamTypeId === 713)
+           ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
         console.log(' ');
@@ -1121,6 +1123,7 @@ function ActivityTimelineService(objectCollection) {
             let botEngineRequest = Object.assign({}, request);
             botEngineRequest.form_id = request.activity_form_id || request.form_id;
             botEngineRequest.field_id = 0;
+            botEngineRequest.altered_field_id = request.field_id;
             botEngineRequest.flag = 3;
             botEngineRequest.workflow_activity_id = request.activity_id;
 

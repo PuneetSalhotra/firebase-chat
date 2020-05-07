@@ -6482,6 +6482,40 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.tagEntityMappingDeleteV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_id,
+            request.tag_type_category_id,
+            request.activity_type_id || 0,
+            request.tag_workforce_id || 0,
+            request.tag_asset_id || 0,
+            request.activity_status_id || 0,
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_tag_entity_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    //History Insert
+                    tagEntityMappingHistoryInsert(request, 2201);
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log('error :: ' + error);
+                })
+        }
+        return [error, responseData];
+    }
 
     async function tagEntityMappingHistoryInsert(request, updateTypeID) {
         let responseData = [],
@@ -7191,15 +7225,24 @@ function AdminOpsService(objectCollection) {
                                                     error = false;
                                                     responseData.push({"message": "dependent form conditions passed!"});
                                                     console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                                } else {                                                    
-                                                    responseData.push({"message": "dependent form conditions failed!"});
-                                                    console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+
+                                                    breakFlag = 1;
+                                                    break;
+                                                } else {  
+                                                    if(conditions[k].join_condition == 'OR') {
+                                                        responseData.push({"message": "dependent form conditions failed!"});
+                                                        console.log('As the condition is OR proceeding to check the next form');                                                        
+                                                    } else {
+                                                        responseData.push({"message": "dependent form conditions failed!"});
+                                                        console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+
+                                                        breakFlag = 1;
+                                                        break;
+                                                    }                                                    
                                                 }
-                                                breakFlag = 1;
-                                                break;
                                             }        
                                         } else {
-                                            responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
+                                            //responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
                                         }
                                     } //End of for Loop - retrieved dependent Form data
                                 }                                    
@@ -7338,17 +7381,17 @@ function AdminOpsService(objectCollection) {
                 case 5: let operation = formData.field_value_condition_operator;
                         let ifStatement;
                         switch(operation) {
-                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
+                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? false : true;
                                         break;
-                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
+                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? false : true;
                                         break;
-                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
+                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? false : true;
                                         break;
-                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
+                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? false : true;
                                         break;
-                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? false : true;
                                         break;
-                            case '!=': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
+                            case '!=': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? false : true;
                                         break;
                         }                    
     
