@@ -552,6 +552,17 @@ function ActivityTimelineController(objCollection) {
         }
     });
 
+
+    app.post('/' + global.config.version + '/activity/timeline/status/list', async (req, res) => {
+        const [err, orgData] = await activityTimelineService.activityTimelineTxnSelectActivityStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/activity/timeline/status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityTimelineController;

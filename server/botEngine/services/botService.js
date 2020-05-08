@@ -17,6 +17,7 @@ const AdminListingService = require("../../Administrator/services/adminListingSe
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
 function BotService(objectCollection) {
 
@@ -49,6 +50,7 @@ function BotService(objectCollection) {
     const adminOpsService = new AdminOpsService(objectCollection);
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
+    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -991,7 +993,7 @@ function BotService(objectCollection) {
         } catch (error) {
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
-        console.log("formInlineDataMap: ", formInlineDataMap);
+        //console.log("formInlineDataMap: ", formInlineDataMap);
 
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
@@ -999,7 +1001,7 @@ function BotService(objectCollection) {
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
                 bot_operation_sequence_id: i.bot_operation_sequence_id,
-                bot_operation_type_id: i.bot_operation_type_id,
+                //bot_operation_type_id: i.bot_operation_type_id,
                 bot_operation_type_name: i.bot_operation_type_name,
                 form_id: i.form_id,
                 field_id: i.field_id,
@@ -1338,9 +1340,16 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     try {
-                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        if (
+                            Number(request.organization_id) === 868 ||
+                            Number(request.organization_id) === 912
+                        ) {
+                            await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        } else {
+                            await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        }
                     } catch (error) {
                         logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
@@ -2866,6 +2875,7 @@ function BotService(objectCollection) {
             activityInlineDataMap = new Map(),
             REQUEST_FIELD_ID = 0;
 
+        console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
                 sourceFormTransactionData = [],
@@ -2906,28 +2916,35 @@ function BotService(objectCollection) {
                 organization_id: request.organization_id
             });
 
-            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
-            console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
-            console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
-            const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
-            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
-
-            activityInlineDataMap.set(sourceFieldID, {
-                // "form_name": Number(sourceFieldData[0].form_name),
-                "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
-                "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
-                "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
-                "field_data_type_id": Number(sourceFieldData[0].data_type_id),
-                "field_id": targetFieldID,
-                "field_name": String(sourceFieldData[0].field_name),
-                "field_value": sourceFieldValue,
-                "form_id": targetFormID,
-                "message_unique_id": 123123123123123123
-            });
+            try {
+                console.log('sourceFieldData[0] : ', sourceFieldData[0]);
+                const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
+                console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
+                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
+                const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+                
+                activityInlineDataMap.set(sourceFieldID, {
+                    // "form_name": Number(sourceFieldData[0].form_name),
+                    "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
+                    "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
+                    "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
+                    "field_data_type_id": Number(sourceFieldData[0].data_type_id),
+                    "field_id": targetFieldID,
+                    "field_name": String(sourceFieldData[0].field_name),
+                    "field_value": sourceFieldValue,
+                    "form_id": targetFormID,
+                    "message_unique_id": 123123123123123123
+                });
+            } catch(err) {
+                console.log(`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`);
+            }
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
+        
+        console.log("targetFormTransactionID: ", targetFormTransactionID);
+        console.log("targetFormActivityID: ", targetFormActivityID);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
@@ -5100,6 +5117,8 @@ function BotService(objectCollection) {
             workflowFile713Request.message_unique_id = util.getMessageUniqueId(Number(request.asset_id));
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
+            workflowFile713Request.is_from_field_alter = 1;
+
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile713Request);

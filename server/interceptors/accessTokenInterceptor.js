@@ -55,6 +55,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     next();
                     break;
                 case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
+                case '/' + global.config.version + '/phone_number/verify/invite':
                     req.body['module'] = 'asset';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();

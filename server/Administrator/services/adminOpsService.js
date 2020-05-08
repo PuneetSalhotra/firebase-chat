@@ -7376,60 +7376,60 @@ function AdminOpsService(objectCollection) {
 
         console.log(formData);        
         
-        if(formData.hasOwnProperty('field_value')) {
-            switch(Number(conditionData.data_type_id)) {
-                case 5: let operation = formData.field_value_condition_operator;
-                        let ifStatement;
-                        switch(operation) {
-                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? false : true;
-                                        break;
-                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? false : true;
-                                        break;
-                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? false : true;
-                                        break;
-                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? false : true;
-                                        break;
-                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? false : true;
-                                        break;
-                            case '!=': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? false : true;
-                                        break;
-                        }                    
-    
-                        if(ifStatement) {
-                            //Condition Passed
-                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                            //response: 0 EOJ
-                            //response: 1 OR
-                            //response: 2 AND
-    
-                            (response === 2)? proceed = 1:proceed = 0;
-                            conditionStatus = 1;
-                          } else {
-                            //condition failed
-                            proceed = 0;
-                            conditionStatus = 0;
-                          }
-    
-                        break;
-    
-                case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
-                            //Condition Passed                        
-                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                            //response: 0 EOJ
-                            //response: 1 OR
-                            //response: 2 AND
+        switch(Number(conditionData.data_type_id)) {
+            case 5: let operation = conditionData.field_value_condition_operator;
+                    let ifStatement;
                     
-                            (response === 2)? proceed = 1:proceed = 0;
-                            conditionStatus = 1;
-                          } else {
-                            //condition failed                        
-                            proceed = 0;
-                            conditionStatus = 0;
-                          }
+                    switch(operation) {
+                        case '<=': ifStatement = Number(formData.field_value) <= (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '>=': ifStatement = Number(formData.field_value) >= (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '<' : ifStatement = Number(formData.field_value) > (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '>' : ifStatement = Number(formData.field_value) > (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '==': ifStatement = Number(formData.field_value) == (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '!=': ifStatement = Number(formData.field_value) != (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                    }                    
     
-                         break;
+                    if(ifStatement) {
+                        //Condition Passed
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+    
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+    
+                    break;
+    
+            case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
+                        //Condition Passed                        
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+                    
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed                        
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+    
+                    break;
             }
-        } //IF field_value exists
+        //} //IF field_value exists
         /*else {
             //If field id is not there obvously data_type_id also wont be there then
             //Check whether the given form is submitted or not
