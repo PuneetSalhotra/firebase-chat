@@ -1710,7 +1710,7 @@ function Util(objectCollection) {
 
         await s3GetObjectPromise
             .then(function (data) {
-                console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
+                // console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
                 
                 dataBody = data.Body;
 

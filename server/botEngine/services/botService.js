@@ -17,6 +17,7 @@ const AdminListingService = require("../../Administrator/services/adminListingSe
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
 function BotService(objectCollection) {
 
@@ -49,6 +50,7 @@ function BotService(objectCollection) {
     const adminOpsService = new AdminOpsService(objectCollection);
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
+    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -1338,9 +1340,16 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     try {
-                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        if (
+                            Number(request.organization_id) === 868 ||
+                            Number(request.organization_id) === 912
+                        ) {
+                            await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        } else {
+                            await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        }
                     } catch (error) {
                         logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
