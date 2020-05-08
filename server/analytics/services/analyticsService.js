@@ -1472,7 +1472,7 @@ function AnalyticsService(objectCollection)
                         results[iterator] =
                         (
                             {
-                                "tag_type_id": 111,
+                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
                                 "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
                                 "result": tempResult,
                             }
