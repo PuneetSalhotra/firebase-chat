@@ -4936,7 +4936,7 @@ function ActivityService(objectCollection) {
         let errFlag = 0;
 
         try{
-            parsedFieldValue = JSON.parse(fieldValue);
+            parsedFieldValue = fieldValue;
             console.log('parsedFieldValue : ', parsedFieldValue);
             console.log('parsedFieldValue.length : ', parsedFieldValue.length);
         } catch(err) {
@@ -4947,11 +4947,11 @@ function ActivityService(objectCollection) {
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
         
-        if(parsedFieldValue.length > 0) {
-            for(let i = 0; i < parsedFieldValue.length; i++) {
-                newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+        if(parsedFieldValue.includes('|')) {
+            //for(let i = 0; i < parsedFieldValue.length; i++) {
+                newReq.parent_activity_id = parsedFieldValue.split('|')[1]; //parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
                 await activityCommonService.activityActivityMappingInsert(newReq);
-            }
+            //}
         }
 
         return "success";
