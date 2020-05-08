@@ -3817,6 +3817,33 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     }
 
+    this.activityTimelineTxnSelectActivityStatus = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+                    request.organization_id,
+                    request.activity_id,
+                    request.activity_status_id,
+                    request.flag || 0,
+                    request.page_start || 0, // start_from
+                    request.page_limit || 1 // limit_value
+                );
+
+        const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_status', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = ActivityTimelineService;
