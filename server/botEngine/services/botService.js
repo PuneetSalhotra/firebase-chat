@@ -999,7 +999,7 @@ function BotService(objectCollection) {
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
                 bot_operation_sequence_id: i.bot_operation_sequence_id,
-                bot_operation_type_id: i.bot_operation_type_id,
+                //bot_operation_type_id: i.bot_operation_type_id,
                 bot_operation_type_name: i.bot_operation_type_name,
                 form_id: i.form_id,
                 field_id: i.field_id,
@@ -2906,12 +2906,12 @@ function BotService(objectCollection) {
                 organization_id: request.organization_id
             });
 
+            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
             const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
             console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
             console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
             const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
-            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
-
+            
             activityInlineDataMap.set(sourceFieldID, {
                 // "form_name": Number(sourceFieldData[0].form_name),
                 "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
