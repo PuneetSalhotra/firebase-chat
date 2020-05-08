@@ -625,7 +625,8 @@ function FormConfigService(objCollection) {
 
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
-                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                                workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                                workflowRequest.is_from_field_alter = 1;
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
@@ -2811,8 +2812,7 @@ function FormConfigService(objCollection) {
             workflowFile713Request.flag_timeline_entry = 1;
             workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            workflowFile713Request.device_os_id = 8;
-            workflowFile713Request.is_from_field_alter = 1;
+            workflowFile713Request.device_os_id = 8;            
 
         if (Number(formConfigData.length) > 0) {
 
