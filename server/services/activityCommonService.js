@@ -5393,10 +5393,44 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
+
+
+    this.getStatusesOfaWorkflow = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //flag = 1 - Only parent statuses
+        //flag = 2 - Both parent and substatus        
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || request.workflow_activity_type_id,
+            request.flag || 1,
+            request.datetime_log || util.getCurrentUTCTime(),
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 }
 
 

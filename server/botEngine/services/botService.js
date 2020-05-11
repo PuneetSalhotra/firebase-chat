@@ -3576,9 +3576,9 @@ function BotService(objectCollection) {
                 let formToFill = {};
                 // formToFill[formAction.form_id] = {
                 //     "name": formConfigData[0].form_name || ""
-                // };
+                // };                
                 formToFill["id"] = formAction.form_id;
-                formToFill["value"] = formConfigData[0].form_name || "";
+                formToFill["value"] = (formConfigData.length > 0) ? formConfigData[0].form_name : "";
                 formsToFill.push(formToFill);
             }
         }
