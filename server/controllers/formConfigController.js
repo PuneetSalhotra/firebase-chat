@@ -744,6 +744,17 @@ function FormConfigController(objCollection) {
         }
     });
 
+
+    app.post('/' + global.config.version + '/form/alter/status-rollback/check', async (req, res) => {
+        const [err, formData] = await formConfigService.fieldAlterCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/workflow/asset_level/forms/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

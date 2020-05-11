@@ -503,7 +503,7 @@ function WorkbookOpsService(objectCollection) {
             request.page_start || 0,
             util.replaceQueryLimit(request.page_limit) || 50
         );
-        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_activity_form', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_activity_timeline_transaction_select_activity_form', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

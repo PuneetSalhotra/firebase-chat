@@ -391,6 +391,8 @@ function ActivityConfigService(db, util, objCollection) {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
         // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), IN p_flag TINYINT(4), 
         // IN p_log_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        //flag = 1 - Only parent statuses
+        //flag = 2 - Both parent and substatus
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
