@@ -941,6 +941,8 @@ function BotService(objectCollection) {
         // console.log("initBotEngine | request: ", request);
 
         let wfSteps;
+        let formLevelWFSteps = [];
+        let fieldLevelWFSteps = [];
 
         /*if(request.hasOwnProperty(bot_operation_id)) {
             wfSteps = request.inline_data;
@@ -952,8 +954,27 @@ function BotService(objectCollection) {
             });
         }*/
 
-        if(Number(request.is_from_field_alter) === 1) {        
-            wfSteps = await this.getBotworkflowStepsByForm({
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter
+            if(Number(request.field_flag_form_level_bot_execution_enabled) === 1) { //Trigger form level bots            
+                //flag = 0 = ALL bots
+                //flag = 1 = Only Field based bots
+                //flag = 2 = ONly Form Based bots
+                let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                    organization_id: 0,
+                    bot_id: 0,
+                    form_id: request.form_id,
+                    field_id: request.altered_field_id,
+                    start_from: 0,
+                    limit_value: 50
+                }, 2);
+
+                formLevelWFSteps = botResponse;
+            }
+            
+            //console.log('formLevelWFSteps : ', formLevelWFSteps);
+
+            //To trigger only field level Bots
+            fieldLevelWFSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
                 "form_id": request.form_id,
                 "field_id": request.altered_field_id,
@@ -961,7 +982,14 @@ function BotService(objectCollection) {
                 "page_start": 0,
                 "page_limit": 50
             });
-        } else {
+
+            if(formLevelWFSteps.length > 0) {
+                wfSteps = fieldLevelWFSteps.concat(formLevelWFSteps);
+            } else {
+                wfSteps = fieldLevelWFSteps;
+            }            
+
+        } else { //trigger both the form level bots & field level - Normally happends for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
                 "form_id": request.form_id,

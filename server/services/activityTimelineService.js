@@ -3844,6 +3844,34 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
+
+    this.getNooftimeFormSubmitted = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.activity_id,
+                    request.form_id,
+                    request.page_start || 0, // start_from
+                    request.page_limit || 1 // limit_value
+                );
+
+        const queryString = util.getQueryString('ds_v1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = ActivityTimelineService;

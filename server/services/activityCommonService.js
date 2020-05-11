@@ -5364,6 +5364,39 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             
         return [error, responseData];
     };
+
+
+    this.getMappedBotSteps = async (request, flag) => {
+        //flag = 0 = ALL bots
+        //flag = 1 = Only Field based bots
+        //flag = 2 = ONly Form Based bots
+        
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.bot_id,
+            flag,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 
