@@ -2896,7 +2896,7 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	}
 
-	this.getActivitySubStatuses =  async function (request) {
+	this.getActivitySubStatuses =  async (request) => {
 		let responseData = [],
             error = true, finalResponse = [];
 
@@ -2965,6 +2965,7 @@ async function processFormInlineDataV1(request, data){
 			dataJson[data[j].sub_status_id] = {"sub_status_name":data[j].sub_status_name, "triggered_datetime":data[j].sub_status_trigger_time, "achieved_datetime":data[j].sub_status_achieved_time};
 		}
 		console.log('dataJson ::: '+JSON.stringify(dataJson));
+		
 		configData.forEach(function (rowData, index) {
 			let statusId = rowData['activity_status_id'];
 			console.log('dataJson.statusId.triggered_datetime :: '+util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00'));
@@ -2977,9 +2978,11 @@ async function processFormInlineDataV1(request, data){
 				"parent_status_name": util.replaceDefaultString(rowData['parent_status_name']),
 				"triggered_datetime": triggerDatetime,
 				"achieved_datetime": achievedDatetime,
+				"trigger_flag": dataJson[statusId] ? 1 : 0
 			};
 			responseData.push(rowDataArr);
 		}, this);
+
 		console.log('responseData :::2 '+JSON.stringify(responseData));
 		return responseData;
 	};
