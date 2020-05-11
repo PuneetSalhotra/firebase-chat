@@ -2670,35 +2670,43 @@ function ActivityTimelineService(objectCollection) {
                     params[11] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference                    
-                        //workflowReference = row.field_value.split('|');
-                        //params[13] = workflowReference[0]; //ID
-                        //params[18] = workflowReference[1]; //Name
-                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                    console.log('typeof row.field_value : ', typeof row.field_value);
-                    console.log('row.field_value : ', row.field_value);
-                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                    if(typeof row.field_value === 'object') {
-                        params[27] = JSON.stringify(row.field_value);
-                    } else {
-                        params[27] = row.field_value;
-                    }
+                    try{
+                        workflowReference = row.field_value.split('|'); 
+                            params[13] = workflowReference[0]; //ID
+                            params[18] = workflowReference[1]; //Name
+                    } catch(err) {
+                        console.log(err);
+                        console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                        console.log('typeof row.field_value : ', typeof row.field_value);
+                        console.log('row.field_value : ', row.field_value);
+                        console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                        if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                        } else {
+                            params[27] = row.field_value;
+                        }
+                    }                    
                     break;
                 case 58://Document reference
                     // documentReference = row.field_value.split('|');
                     params[18] = row.field_value;
                     break;
                 case 59: //Asset reference                    
-                    //assetReference = row.field_value.split('|');
-                    //        params[13] = assetReference[0]; //ID
-                    //        params[18] = assetReference[1]; //Name                    
-                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                    console.log('typeof row.field_value : ', typeof row.field_value);
-                    console.log('row.field_value : ', row.field_value);
-                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                    if(typeof row.field_value === 'object') {
-                        params[27] = JSON.stringify(row.field_value);
-                    } else {
-                        params[27] = row.field_value;
+                    try{
+                        assetReference = row.field_value.split('|');
+                            params[13] = assetReference[0]; //ID
+                            params[18] = assetReference[1]; //Name                    
+                    } catch(err) {
+                        console.log(err);
+                        console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                        console.log('typeof row.field_value : ', typeof row.field_value);
+                        console.log('row.field_value : ', row.field_value);
+                        console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                        if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                        } else {
+                            params[27] = row.field_value;
+                        }
                     }
                     break;
                 case 61: //Time Datatype
@@ -3361,17 +3369,21 @@ async function addFormEntriesAsync(request) {
                 break;
             case 57: //Workflow(/Activity) reference                    
                     //params[27] = row.field_value;
-                    //workflowReference = row.field_value.split('|');                    
-                    //    params[13] = workflowReference[0]; //ID
-                    //    params[18] = workflowReference[1]; //Name
-                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                console.log('typeof row.field_value : ', typeof row.field_value);
-                console.log('row.field_value : ', row.field_value);
-                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                if(typeof row.field_value === 'object') {
-                        params[27] = JSON.stringify(row.field_value);
-                } else {
-                        params[27] = row.field_value;
+                try{
+                    workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                } catch(err) {
+                    console.log(err);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('row.field_value : ', row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                    } else {
+                            params[27] = row.field_value;
+                    }
                 }
                 break;
             case 58://Document reference
@@ -3379,17 +3391,21 @@ async function addFormEntriesAsync(request) {
                 params[18] = row.field_value;
                 break;
             case 59: //Asset reference                
-                //assetReference = row.field_value.split('|');
-                //    params[13] = assetReference[0]; //ID
-                //    params[18] = assetReference[1]; //Name
-                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                console.log('typeof row.field_value : ', typeof row.field_value);
-                console.log('row.field_value : ', row.field_value);
-                console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
-                if(typeof row.field_value === 'object') {
-                        params[27] = JSON.stringify(row.field_value);
-                } else {
-                        params[27] = row.field_value;
+                try{
+                    assetReference = row.field_value.split('|');
+                        params[13] = assetReference[0]; //ID
+                        params[18] = assetReference[1]; //Name
+                } catch(err) {
+                    console.log(err);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    console.log('typeof row.field_value : ', typeof row.field_value);
+                    console.log('row.field_value : ', row.field_value);
+                    console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
+                    if(typeof row.field_value === 'object') {
+                            params[27] = JSON.stringify(row.field_value);
+                    } else {
+                            params[27] = row.field_value;
+                    }
                 }
                 break;
             case 61: //Time Datatype
