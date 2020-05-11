@@ -535,8 +535,11 @@ function ActivityService(objectCollection) {
                                 await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
 
-                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
-                            if(request.activity_type_category_id == 48 && request.activity_form_id == 2753){
+                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                            if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                                || request.activity_type_id == 150229 || request.activity_type_id == 150192
+                                || request.activity_type_id == 149818 || request.activity_type_id == 149752
+                                || request.activity_type_id == 149058)){
                                     console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
 
                                     let opportunityRequest = Object.assign({}, request);
