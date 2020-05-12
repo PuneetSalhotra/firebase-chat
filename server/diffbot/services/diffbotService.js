@@ -11,7 +11,28 @@ function DiffbotService(objectCollection) {
 
   this.queryDiffbot = async diffbotrequest => {
     try {  
-       accountsList =  await getAccountsList(diffbotrequest,"");
+      var start_from = 0;
+      var limit_value=1000
+      while (true) {
+      var accounts = await getAccountsList(
+        diffbotrequest,
+        "",
+        start_from,
+        limit_value 
+      );
+      if (accounts.length > 0) {
+        if (start_from == 0) {
+          accountsList = [];
+        }
+        for (var i = 0; i < accounts.length; i++) {
+          accountsList.push(accounts[i]);
+        }
+        start_from = start_from + 1000
+      } else {
+        start_from = 0;
+        break;
+      }
+    }
        let channel = Channel(accountsList);
        for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
        {
@@ -213,12 +234,12 @@ function DiffbotService(objectCollection) {
     return result;
   }
 
-  async function getAccountsList(request,searchStr) {
+  async function getAccountsList(request,searchStr,start_from,limit_value) {
     let result;
     let paramsArray;
-    paramsArray = new Array(906, 0, 0, 0,150450,searchStr, 0, 0, 0, 50);
+    paramsArray = new Array(searchStr,start_from,limit_value);
     const queryString = util.getQueryString(
-      "ds_p1_activity_list_search_workflow_reference",
+      "ds_p1_1_activity_list_select_web_crawling",
       paramsArray,
       1
     );
@@ -377,7 +398,7 @@ function DiffbotService(objectCollection) {
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
-             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
+             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"],0,50);
              for( var j=0;j<accountsList.length;j++)
              {
               if (
