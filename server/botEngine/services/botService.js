@@ -1022,6 +1022,7 @@ function BotService(objectCollection) {
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
         //console.log("formInlineDataMap: ", formInlineDataMap);
+        //console.log('wfSteps : ', wfSteps);
 
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
@@ -1068,7 +1069,7 @@ function BotService(objectCollection) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
             }
 
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            botOperationsJson = JSON.parse(i.bot_operation_inline_data);            
             botSteps = Object.keys(botOperationsJson.bot_operations);
             logger.silly("botSteps: %j", botSteps);
 
@@ -1390,6 +1391,16 @@ function BotService(objectCollection) {
                         await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                    break;
+
+                case 24: // Due date edit Bot - ESMS
+                    logger.silly("Due date edit Bot - ESMS");
+                    logger.silly("Due date edit Bot - ESMS: %j", request);
+                    try {
+                        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
+                    } catch (error) {
+                        logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
                     break;
             }
@@ -5587,10 +5598,49 @@ function BotService(objectCollection) {
         return [error, responseData];
     }
 
-    this.generateOppurtunity = async function (request){
+    this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
-            generatedOpportunityID = "OPP-"; 
+            generatedOpportunityID = "OPP-";        
+
+        let activityInlineData = JSON.parse(request.activity_inline_data);
+        let parentActivityID;
+
+        for(let i_iterator of activityInlineData) {
+            if(Number(i_iterator.field_data_type_id) === 57) {
+                let fieldValue = i_iterator.field_value;
+                if(fieldValue.includes('|')) {                    
+                    parentActivityID = fieldValue.split('|')[1];
+                }
+            }
+        }
+
+        //Call activity_activity_mapping retrieval service to get the segment
+        let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+                                        activity_id: request.activity_id, //Workflow activity id 
+                                        parent_activity_id: parentActivityID, //reference account workflow activity_id
+                                        organization_id: request.organization_id,            
+                                        start_from: 0,
+                                        limit_value: 50
+                                    });
+
+        let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
+        console.log('segmentData : ', segmentName);
+        switch(segmentName) {            
+            case 'la': generatedOpportunityID+='C-';
+                        break;
+            case 'ge': generatedOpportunityID+='V-';
+                        break;
+            case 'soho': generatedOpportunityID+='D-';
+                         break;
+            case 'sme': generatedOpportunityID+='S-';
+                        break;
+            case 'govt': generatedOpportunityID+='G-'; 
+                        break;
+            case 'vics': generatedOpportunityID+='W-';
+                         break;
+        }
+
         try{
 
             let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
@@ -5646,6 +5696,153 @@ function BotService(objectCollection) {
     }
 
 
+    this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit) => {
+        let responseData = [],
+            error = false,
+            oldDate,
+            newDate;
+
+        let fieldData;
+
+        let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+
+        oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
+        console.log('formInlineDataMap : ', formInlineDataMap);
+        console.log('dueDateEdit : ', dueDateEdit);
+
+        if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
+            fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
+            console.log('fieldData : ', fieldData);
+
+            newDate = fieldData.field_value;
+        }
+
+        //Alter the workflow due date
+        //activity/cover/alter
+            /*account_id: 1100
+            activity_access_role_id: 26
+            activity_cover_data: "{"title":{"old":"APR 28 0001","new":"APR 28 0001"},"description":{"old":"","new":""},"duedate":{"old":"2020-05-03 08:47:22","new":"2020-05-13T12:31:18.000Z"}}"
+            activity_id: 2893222
+            activity_parent_id: 0
+            activity_type_category_id: 48
+            activity_type_id: 150441
+            app_version: 0
+            asset_id: 40443
+            asset_message_counter: 0
+            asset_token_auth: "643be4e0-892a-11ea-8416-733b3e360f4a"
+            device_os_id: 5
+            flag_offline: 0
+            flag_pin: 0
+            flag_priority: 0
+            flag_retry: 0
+            message_unique_id: 1589287086577
+            organization_id: 962
+            service_version: 1
+            track_altitude: 0
+            track_gps_accuracy: 0
+            track_gps_datetime: "2020-05-12 12:31:32"
+            track_gps_status: 0
+            track_latitude: 0
+            track_longitude: 0
+            workforce_id: 5912*/
+        let newReq = Object.assign({}, request);        
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = request.activity_title;
+                activityCoverData.title.new = request.activity_title;
+
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.old = oldDate;
+                activityCoverData.duedate.new = newDate;
+        
+        console.log('activityCoverData : ', activityCoverData);
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            console.log(err);
+        }
+        
+        newReq.asset_id = 100;
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+        await queueWrapper.raiseActivityEventPromise(event, request.activity_id);
+
+        //Timeline /activity/timeline/entry/add
+            /*account_id: 1100
+            activity_channel_category_id: 0
+            activity_channel_id: 0
+            activity_id: 2893222
+            activity_parent_id: 0
+            activity_stream_type_id: 711
+            activity_sub_type_id: -1
+            activity_timeline_collection: "{"content":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","subject":"Note - 12th May ","mail_body":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","attachments":[],"activity_reference":[{"activity_title":"","activity_id":""}],"asset_reference":[{}],"form_approval_field_reference":[]}"
+            activity_timeline_text: ""
+            activity_timeline_url: ""
+            activity_type_category_id: 48
+            activity_type_id: 150441
+            app_version: 1
+            asset_id: 40443
+            asset_message_counter: 0
+            asset_token_auth: "643be4e0-892a-11ea-8416-733b3e360f4a"
+            auth_asset_id: 40443
+            data_entity_inline: "{"content":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","subject":"Note - 12th May ","mail_body":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","attachments":[],"activity_reference":[{"activity_title":"","activity_id":""}],"asset_reference":[{}],"form_approval_field_reference":[]}"
+            datetime_log: "2020-05-12 12:31:32"
+            device_os_id: 5
+            flag_offline: 0
+            flag_pin: 0
+            flag_priority: 0
+            flag_retry: 0
+            message_unique_id: 1589287764829
+            operating_asset_first_name: "Nani Kalyan"
+            organization_id: 962
+            service_version: 1
+            timeline_stream_type_id: 711
+            timeline_transaction_id: 1589287504481
+            track_altitude: 0
+            track_gps_accuracy: "0"
+            track_gps_datetime: "2020-05-12 12:31:32"
+            track_gps_status: 0
+            track_latitude: "0.0"
+            track_longitude: "0.0"
+            workforce_id: 5912*/
+
+            let content = `Due date changed from ${oldDate} to ${newDate} by Bot`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 711;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            await queueWrapper.raiseActivityEventPromise(event1, request.activity_id);
+
+        return [error, responseData];
+    }
 
 }
 
