@@ -5431,6 +5431,34 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     };
+
+
+    this.activityActivityMappingSelect = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,
+                        request.flag || 1,
+                        request.start_from || 0,
+                        request.limit_value || 5
+                        
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
+    };
 }
 
 

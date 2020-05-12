@@ -3075,6 +3075,30 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	};
 
+	this.getActivityDetails =  async (request) => {	
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.activity_id,
+			request.activity_type_id,
+			request.organization_id			
+        );        
+        const queryString = util.getQueryString('ds_v1_1_activity_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
 }
 
 module.exports = ActivityListingService;
