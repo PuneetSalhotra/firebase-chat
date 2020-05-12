@@ -732,6 +732,8 @@ function ActivityConfigService(db, util, objCollection) {
 
             request.pan_number_field = panNumberField;
 
+            console.log("panNumberField :: "+request.pan_number_field);
+
             panNumber = await self.getFieldValueUsingFieldId(request);
 
             console.log("panNumber :: "+panNumber);
@@ -747,13 +749,13 @@ function ActivityConfigService(db, util, objCollection) {
                 request.search_string = panNumber.trim();
                 request.flag = 0;
                 [error, responseData] = await self.searchDuplicateWorkflow(request);
-            }else{
+            }/*else{
                 //check on title
                 finalResponse.check_with = "customer_title";
                 request.search_string = customerTitle;
                 request.flag = 4;
                 [error, responseData] = await self.searchDuplicateWorkflow(request);
-            }
+            }*/
             if(responseData.length > 0){
                 finalResponse.account_exists = true; 
             }else{
