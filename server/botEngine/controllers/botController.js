@@ -326,7 +326,17 @@ function BotController(objCollection) {
             console.log("/activity/opportunity/set | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
-    });  
+    });
+
+    app.post('/' + global.config.version + '/bot_step/datetime/set', async (req, res) =>{
+        const [err, responseData] = await botService.setDueDateOfWorkflow(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/bot_step/datetime/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });
 }
 
 module.exports = BotController;
