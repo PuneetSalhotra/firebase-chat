@@ -5745,7 +5745,11 @@ function BotService(objectCollection) {
             track_latitude: 0
             track_longitude: 0
             workforce_id: 5912*/
-        let newReq = Object.assign({}, request);        
+        let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = 
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);     
         let activityCoverData = {};
             activityCoverData.title = {};
                 activityCoverData.title.old = request.activity_title;
@@ -5826,12 +5830,17 @@ function BotService(objectCollection) {
             };
 
             let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
                 timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
                 timelineReq.timeline_stream_type_id= 711;
+                timelineReq.activity_stream_type_id= 711;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
 
             const event1 = {
                 name: "addTimelineTransaction",
