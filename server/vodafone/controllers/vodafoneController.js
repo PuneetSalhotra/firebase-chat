@@ -441,7 +441,7 @@ function VodafoneController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
-            console.log("/activity-activity/mapping/child-activities/list | Error: ", err);
+            console.log("/workflow_reference/activity_type/search/v1 | Error: ", err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

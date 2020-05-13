@@ -309,7 +309,7 @@ function WorkbookOpsService(objectCollection) {
 
         // Delete the file
         fs.unlinkSync(tempXlsxFilePath);
-        
+
         return uploadDetails.Location;
     }
 
@@ -424,23 +424,47 @@ function WorkbookOpsService(objectCollection) {
 
     async function getInputFormFieldValues(request, workflowActivityID, inputMappings) {
         const formID = inputMappings[0].form_id;
-        const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        // const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        //     organization_id: request.organization_id,
+        //     account_id: request.account_id
+        // }, workflowActivityID, formID);
+
+        const [_, formData] = await getMultipleSubmissionsFormData({
             organization_id: request.organization_id,
             account_id: request.account_id
         }, workflowActivityID, formID);
 
-        let formTransactionID = 0,
-            formActivityID = 0;
+        let formTransactionID = Number(request.form_transaction_id),
+            formActivityID = 0,
+            customFsiToCellMappingIndex = Number.NEGATIVE_INFINITY;
 
         if (Number(formData.length) > 0) {
-            formTransactionID = Number(formData[0].data_form_transaction_id);
-            formActivityID = Number(formData[0].data_activity_id);
+            for (let i = 0; i < formData.length; i++) {
+                if (Number(formData[i].data_form_transaction_id) === Number(formTransactionID)) {
+                    logger.silly(`[Match Found | ${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
+
+                    customFsiToCellMappingIndex = i;
+                    formActivityID = Number(formData[0].data_activity_id);
+                    break;
+                } else {
+                    logger.silly(`[${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
+                }
+            }
         } else {
             throw new Error("[ActivityTimelineTransaction] No form data found for fetching the input form field values");
         }
 
         let inputCellToValueMap = new Map();
         for (const inputMapping of inputMappings) {
+            // Vodafone Custom Logic
+            if (
+                customFsiToCellMappingIndex > Number.NEGATIVE_INFINITY &&
+                inputMapping.hasOwnProperty("custom_fsi_to_cell_mapping")
+            ) {
+                inputMapping.cell_x = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_x;
+                inputMapping.cell_y = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_y;
+            }
+            // Vodafone Custom Logic
             const fieldID = Number(inputMapping.field_id);
 
             // Fetch the field value
@@ -465,6 +489,33 @@ function WorkbookOpsService(objectCollection) {
         }
 
         return inputCellToValueMap;
+    }
+
+    async function getMultipleSubmissionsFormData(request, workflowActivityID, formID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            workflowActivityID,
+            formID,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit) || 50
+        );
+        const queryString = util.getQueryString('ds_v1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function getWorkforceFormFieldMappingForOutputForm(request, organizationID, formID, fieldIDArray = [], outFormIsSubmitted) {

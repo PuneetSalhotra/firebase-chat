@@ -411,6 +411,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/lov-datatype/list', async (req, res) => {
+        const [err, data] = await adminListingService.getLovDatatypeList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/lov-datatype/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

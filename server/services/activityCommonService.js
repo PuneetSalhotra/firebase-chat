@@ -5364,6 +5364,101 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             
         return [error, responseData];
     };
+
+
+    this.getMappedBotSteps = async (request, flag) => {
+        //flag = 0 = ALL bots
+        //flag = 1 = Only Field based bots
+        //flag = 2 = ONly Form Based bots
+        
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.bot_id,
+            flag,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+
+    this.getStatusesOfaWorkflow = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //flag = 1 - Only parent statuses
+        //flag = 2 - Both parent and substatus        
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || request.workflow_activity_type_id,
+            request.flag || 1,
+            request.datetime_log || util.getCurrentUTCTime(),
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+
+    this.activityActivityMappingSelect = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,
+                        request.flag || 1,
+                        request.start_from || 0,
+                        request.limit_value || 5
+                        
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
+    };
 }
 
 

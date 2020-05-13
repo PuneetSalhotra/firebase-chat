@@ -625,7 +625,8 @@ function FormConfigService(objCollection) {
 
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
-                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                                workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                                workflowRequest.is_from_field_alter = 1;
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
@@ -2803,15 +2804,15 @@ function FormConfigService(objCollection) {
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
-        workflowFile713Request.activity_id = workflowActivityId;
-        workflowFile713Request.data_activity_id = Number(request.activity_id);
-        workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
-        workflowFile713Request.activity_type_category_id = 48;
-        workflowFile713Request.activity_stream_type_id = 713;
-        workflowFile713Request.flag_timeline_entry = 1;
-        workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
-        workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        workflowFile713Request.device_os_id = 8;
+            workflowFile713Request.activity_id = workflowActivityId;
+            workflowFile713Request.data_activity_id = Number(request.activity_id);
+            workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+            workflowFile713Request.activity_type_category_id = 48;
+            workflowFile713Request.activity_stream_type_id = 713;
+            workflowFile713Request.flag_timeline_entry = 1;
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile713Request.device_os_id = 8;            
 
         if (Number(formConfigData.length) > 0) {
 
@@ -2824,8 +2825,9 @@ function FormConfigService(objCollection) {
             if (Number(formWorkflowActivityTypeId) !== 0) {
                 // 713 timeline entry on the workflow file
                 try {
-                    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-                    await addTimelineTransactionAsync(workflowFile713Request);
+                    //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+                    await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
+                    //await addTimelineTransactionAsync(workflowFile713Request);
                 } catch (error) {
                     console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
                 }
@@ -5289,6 +5291,107 @@ function FormConfigService(objCollection) {
                     error = err;
                 })
         }
+        return [error, responseData];
+    }
+
+    
+    this.fieldAlterCheck = async (request) => {
+        //Show prompt = 1
+        let responseData = [],
+            error = false,
+            show_prompt = false,
+            currentStatusSeqID,
+            targetStatusSeqID;
+
+        const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+        if (workflowError !== false || workflowData.length === 0) {
+            return [workflowError, workflowData];
+        }
+        
+        const workflowActivityId = Number(workflowData[0].activity_id);
+        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
+        
+        console.log("workflowActivityId: ", workflowActivityId);
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+
+        //Get the workflow details of the form - especially the current status
+        let activityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityId);
+        let currentStatusID = activityData[0].activity_status_id;
+        
+
+        request.workflow_activity_type_id = activityData[0].activity_type_id;
+        let [err, statuses] = await activityCommonService.getStatusesOfaWorkflow(request);
+        console.log('statuses : ', statuses);
+
+           
+        for(let i_iterator of statuses) {
+            if(Number(currentStatusID) === i_iterator.activity_status_id) {
+                currentStatusSeqID = i_iterator.activity_status_sequence_id;
+                break;
+            }            
+        }
+
+        console.log('Current Activity Status ID : ', currentStatusID);
+        console.log('currentStatusSeqID : ',currentStatusSeqID);        
+        
+        try {
+            let [err, fieldLevelBots] = await activityCommonService.getMappedBotSteps({
+                organization_id: 0,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: request.field_id,
+                start_from: 0,
+                limit_value: 50
+            }, 1); 
+
+            //console.log(fieldLevelBots);
+            if (fieldLevelBots.length > 0) {
+                let temp_variable;
+                for(let j_iterator of fieldLevelBots) {
+                    
+                    console.table([{
+                        bot_operation_sequence_id: j_iterator.bot_operation_sequence_id,                        
+                        bot_operation_type_name: j_iterator.bot_operation_type_name,
+                        form_id: j_iterator.form_id,
+                        field_id: j_iterator.field_id,
+                        data_type_combo_id: j_iterator.data_type_combo_id,
+                        data_type_combo_name: j_iterator.data_type_combo_name
+                    }]);
+
+                    if(j_iterator.bot_operation_type_id === 2) { //alter status
+                        //Check the status - Will it trigger status roll back
+                        temp_variable = j_iterator.bot_operation_inline_data;
+                        console.log('temp_variable : ', temp_variable);
+                        console.log('typeof temp_variable : ', typeof temp_variable);
+                        temp_variable = JSON.parse(temp_variable);
+
+                        console.log(temp_variable.bot_operations.status_alter.activity_status_id);
+
+                        for(let k_iterator of statuses) {
+                            if(Number(temp_variable.bot_operations.status_alter.activity_status_id) === k_iterator.activity_status_id) {
+                                targetStatusSeqID = k_iterator.activity_status_sequence_id;
+                                break;
+                            }            
+                        }
+
+                        console.log('targetStatusSeqID : ', targetStatusSeqID);
+                        if(currentStatusSeqID > targetStatusSeqID) { //Means Status rollback
+                            show_prompt = 1;
+                        }
+                    }
+                }                    
+            } else {
+                //Bot is not defined
+                console.log('Bot is not defined');                
+            }
+            
+        } catch(err) {
+            error = true;
+            console.log(err);
+            responseData.push({'error': err});
+        }
+
+        responseData.push({"show_prompt": show_prompt});
         return [error, responseData];
     }
 }
