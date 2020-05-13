@@ -14,6 +14,7 @@ function DiffbotService(objectCollection) {
   var currentNumberOfAccounts
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
+  hasMoreData = true
 
   this.queryDiffbot = async diffbotrequest => {
     try {
@@ -22,18 +23,15 @@ function DiffbotService(objectCollection) {
         for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
         {
          Worker()(channel);
-        }  
-      
-      //  processAccountsDiffbot(start_from,limit_value,diffbotrequest)
+        }        
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
     }
   };
 
-  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest,cb)
+  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest)
   {
-    // accountsList = []
      accountsListTmp = await getAccountsList(
       diffbotrequest,
       "",
@@ -41,9 +39,7 @@ function DiffbotService(objectCollection) {
       limit_value 
     );
     accountsList.push(...accountsListTmp)
-    console.log('length +++++++++++'+accountsList.length)
     currentNumberOfAccounts = accountsList.length
-    cb()
   }
 
   function getKnowledgeGraphUrl() {
@@ -123,31 +119,10 @@ function DiffbotService(objectCollection) {
   const Worker = () => (channel) => {
     const next = async () => {
       const account =  await channel.getWork();
-      // console.log(account)
       if (!account) {
         return;
       }
      await processDiffbotRequest(account)
-      // noOfAccountsProccesed++
-      // console.log('---------------no of accounts proccessed-----------'+noOfAccountsProccesed)
-      // if(noOfAccountsProccesed == currentNumberOfAccounts)
-      // {
-      //   noOfAccountsProccesed = 0
-      //   start_from = start_from + limit_value
-      //  await processAccountsDiffbot(start_from,limit_value,{})
-      // }
-    //   lock.acquire("key1", async function(done) {
-    //      noOfAccountsProccesed++
-    //   console.log('---------------no of accounts proccessed-----------'+noOfAccountsProccesed)
-    //   if(noOfAccountsProccesed == currentNumberOfAccounts)
-    //   {
-    //     noOfAccountsProccesed = 0
-    //     start_from = start_from + limit_value
-    //    await processAccountsDiffbot(start_from,limit_value,{})
-    //   }
-    // }, function(err, ret) {
-    //     console.log("lock1 release")
-    // }, {});
       next();
 
     };
@@ -158,23 +133,26 @@ function DiffbotService(objectCollection) {
     return { getWork:  async() => {
       if(queue.length == 0 )
       {
-        await lock.acquire('key',   function(cb) {
-          console.log("-- queue length--"+queue.length)
-         if(queue.length == 0)
+        var x =await lock.acquire('key',   async function() {
+         if(queue.length == 0 && hasMoreData)
          {
            console.log('--------------------------------  Batch Finished --------------------------------')
-           start_from = start_from + limit_value
-            processAccountsDiffbot(start_from,limit_value,{},cb)
+            await processAccountsDiffbot(start_from,limit_value,{})
+            start_from = start_from + limit_value
+            if(queue.length<limit_value)
+            {
+              hasMoreData = false
+            }
          }
-         else
-         {
-          cb() 
-        }
-     }, function(err, ret) {
-       console.log('******lock released***')
-     });
+     },{}).then(function(){
+       return queue.pop();
+      })
+     return x
       }
-    return queue.pop();
+      else
+      {
+        return queue.pop()
+      }
     }};
   };
 
