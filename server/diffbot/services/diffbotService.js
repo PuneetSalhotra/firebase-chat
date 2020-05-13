@@ -8,41 +8,43 @@ function DiffbotService(objectCollection) {
   accountsList = []
   articleType = 'article'
   tenderType = 'tender'
+  noOfAccountsProccesed = 0
+  var start_from = 0
+  var limit_value = 10
+  var currentNumberOfAccounts
+  var AsyncLock = require('async-lock');
+  var lock = new AsyncLock();
 
   this.queryDiffbot = async diffbotrequest => {
-    try {  
-      var start_from = 0;
-      var limit_value=1000
-      while (true) {
-      var accounts = await getAccountsList(
-        diffbotrequest,
-        "",
-        start_from,
-        limit_value 
-      );
-      if (accounts.length > 0) {
-        if (start_from == 0) {
-          accountsList = [];
-        }
-        for (var i = 0; i < accounts.length; i++) {
-          accountsList.push(accounts[i]);
-        }
-        start_from = start_from + 1000
-      } else {
-        start_from = 0;
-        break;
-      }
-    }
-       let channel = Channel(accountsList);
-       for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
-       {
-        Worker()(channel);
-       }
+    try {
+    
+        let channel = Channel(accountsList);
+        for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
+        {
+         Worker()(channel);
+        }  
+      
+      //  processAccountsDiffbot(start_from,limit_value,diffbotrequest)
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
     }
   };
+
+  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest,cb)
+  {
+    // accountsList = []
+     accountsListTmp = await getAccountsList(
+      diffbotrequest,
+      "",
+      start_from,
+      limit_value 
+    );
+    accountsList.push(...accountsListTmp)
+    console.log('length +++++++++++'+accountsList.length)
+    currentNumberOfAccounts = accountsList.length
+    cb()
+  }
 
   function getKnowledgeGraphUrl() {
     return global.config.knowledgeGraphUrl;
@@ -120,11 +122,32 @@ function DiffbotService(objectCollection) {
 
   const Worker = () => (channel) => {
     const next = async () => {
-      const account = channel.getWork();
+      const account =  await channel.getWork();
+      // console.log(account)
       if (!account) {
         return;
       }
      await processDiffbotRequest(account)
+      // noOfAccountsProccesed++
+      // console.log('---------------no of accounts proccessed-----------'+noOfAccountsProccesed)
+      // if(noOfAccountsProccesed == currentNumberOfAccounts)
+      // {
+      //   noOfAccountsProccesed = 0
+      //   start_from = start_from + limit_value
+      //  await processAccountsDiffbot(start_from,limit_value,{})
+      // }
+    //   lock.acquire("key1", async function(done) {
+    //      noOfAccountsProccesed++
+    //   console.log('---------------no of accounts proccessed-----------'+noOfAccountsProccesed)
+    //   if(noOfAccountsProccesed == currentNumberOfAccounts)
+    //   {
+    //     noOfAccountsProccesed = 0
+    //     start_from = start_from + limit_value
+    //    await processAccountsDiffbot(start_from,limit_value,{})
+    //   }
+    // }, function(err, ret) {
+    //     console.log("lock1 release")
+    // }, {});
       next();
 
     };
@@ -132,8 +155,26 @@ function DiffbotService(objectCollection) {
   }
 
   const Channel = (queue) => {
-    return { getWork: () => {
-      return queue.pop();
+    return { getWork:  async() => {
+      if(queue.length == 0 )
+      {
+        await lock.acquire('key',   function(cb) {
+          console.log("-- queue length--"+queue.length)
+         if(queue.length == 0)
+         {
+           console.log('--------------------------------  Batch Finished --------------------------------')
+           start_from = start_from + limit_value
+            processAccountsDiffbot(start_from,limit_value,{},cb)
+         }
+         else
+         {
+          cb() 
+        }
+     }, function(err, ret) {
+       console.log('******lock released***')
+     });
+      }
+    return queue.pop();
     }};
   };
 
