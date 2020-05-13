@@ -2863,7 +2863,8 @@ function BotService(objectCollection) {
             console.log('##################################');
             console.log('originFlagSet : ', originFlagSet);
             console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            
+            console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
+            console.log('workflowActivityTypeId : ', workflowActivityTypeId);            
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
                 console.log('Target Form Process is different from the Source form');
@@ -2959,8 +2960,8 @@ function BotService(objectCollection) {
                 console.log('sourceFieldData[0] : ', sourceFieldData[0]);
                 const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
                 console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
-                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
-                const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
                 
                 activityInlineDataMap.set(sourceFieldID, {
                     // "form_name": Number(sourceFieldData[0].form_name),
@@ -3197,6 +3198,30 @@ function BotService(objectCollection) {
             default: console.log('In default Case : getFielDataValueColumnName');
         }
     }
+
+    function getFielDataValueColumnNameNew(fieldDataTypeID) {
+        switch (fieldDataTypeID) {
+            case 1: // Date
+                return 'data_entity_datetime_2';
+            case 5: // Number
+                return 'data_entity_bigint_1';
+            case 6: // Decimal
+                return 'data_entity_double_1';
+            case 19: // Short Text
+            case 21: // Label
+            case 22: // Email ID
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+            case 57: // workflow reference            
+            case 59: // asset reference            
+                return 'data_entity_text_1';
+            case 20: // Long Text
+                return 'data_entity_text_2';
+            case 64: //JSON                
+                return 'data_entity_inline';
+            default: console.log('In default Case : getFielDataValueColumnName');
+        }
+    }    
 
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
