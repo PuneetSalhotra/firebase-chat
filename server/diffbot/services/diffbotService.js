@@ -136,7 +136,6 @@ function DiffbotService(objectCollection) {
         var x =await lock.acquire('key',   async function() {
          if(queue.length == 0 && hasMoreData)
          {
-           console.log('--------------------------------  Batch Finished --------------------------------')
             await processAccountsDiffbot(start_from,limit_value,{})
             start_from = start_from + limit_value
             if(queue.length<limit_value)
