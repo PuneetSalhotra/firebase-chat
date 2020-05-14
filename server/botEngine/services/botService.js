@@ -5732,7 +5732,7 @@ function BotService(objectCollection) {
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
-        //oldDate = Util.formatDate(oldDate);
+        oldDate = util.replaceDefaultDatetime(oldDate);
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit : ', dueDateEdit);
 
@@ -5742,6 +5742,9 @@ function BotService(objectCollection) {
 
             newDate = fieldData.field_value;
         }
+
+        console.log('OLD DATE : ', oldDate);
+        console.log('NEW DATE : ', newDate);
 
         //Alter the workflow due date
         //activity/cover/alter
