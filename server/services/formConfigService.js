@@ -382,7 +382,8 @@ function FormConfigService(objCollection) {
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin']),
                 "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
-                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name'])
+                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
+                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -5394,6 +5395,38 @@ function FormConfigService(objCollection) {
         responseData.push({"show_prompt": show_prompt});
         return [error, responseData];
     }
+
+    this.formEntityAccessWithStatus = async function (request) {
+
+        let formData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.target_asset_id,
+            request.flag || 0,
+            request.activity_status_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check_status', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
+    };
 }
 
 module.exports = FormConfigService;
