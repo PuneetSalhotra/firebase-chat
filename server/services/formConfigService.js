@@ -382,7 +382,8 @@ function FormConfigService(objCollection) {
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin']),
                 "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
-                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name'])
+                "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
+                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
