@@ -55,6 +55,7 @@ function WorkbookOpsService(objectCollection) {
     // Bot Operation Logic
     this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData) {
         const workflowActivityID = request.workflow_activity_id;
+        let workbookMappedStreamTypeID = 718; // For initial mapping
 
         let excelSheetFilePath = botOperationInlineData.workbook_url;
 
@@ -66,6 +67,7 @@ function WorkbookOpsService(objectCollection) {
                 workflowActivityData[0].activity_workbook_url
             ) {
                 excelSheetFilePath = workflowActivityData[0].activity_workbook_url;
+                workbookMappedStreamTypeID = 719; // If workbook is being updated
             }
         } catch (error) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
@@ -282,6 +284,12 @@ function WorkbookOpsService(objectCollection) {
                     workbook_mapped: 1,
                     asset_id: request.asset_id
                 });
+
+                // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
+                await updateWorkbookURLOnWorkflowTimeline(
+                    request, workflowActivityID, 
+                    updatedWorkbookS3URL, workbookMappedStreamTypeID
+                );
             }
         } catch (error) {
             throw new Error(error);
@@ -779,6 +787,34 @@ function WorkbookOpsService(objectCollection) {
         }
 
         return [error, formData];
+    }
+
+    function updateWorkbookURLOnWorkflowTimeline(request, workflowActivityID, updatedWorkbookS3URL, workbookMappedStreamTypeID) {
+        const workbookURLTimelineRequest = Object.assign({}, request);
+
+        let workbookTimelineActionName = Number(workbookMappedStreamTypeID) === 718? `mapped`: `updated`;
+        workbookURLTimelineRequest.activity_timeline_collection = JSON.stringify({
+            "mail_body": `Workbook ${workbookTimelineActionName} at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "subject": `Workbook ${workbookTimelineActionName}`,
+            "content": `Workbook ${workbookTimelineActionName}`,
+            "asset_reference": [],
+            "activity_reference": [],
+            "attachments": [
+                updatedWorkbookS3URL,
+            ]
+        });
+        workbookURLTimelineRequest.workbook_s3_url = updatedWorkbookS3URL;
+        workbookURLTimelineRequest.device_os_id = 8;
+        workbookURLTimelineRequest.asset_id = 100;
+        workbookURLTimelineRequest.log_asset_id = 100;
+        workbookURLTimelineRequest.activity_id = workflowActivityID;
+        workbookURLTimelineRequest.activity_type_category_id = 48;
+        workbookURLTimelineRequest.activity_stream_type_id = 705;
+        workbookURLTimelineRequest.flag_timeline_entry = 1;
+        workbookURLTimelineRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        workbookURLTimelineRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+
+        activityCommonService.activityTimelineTransactionInsertAsync(workbookURLTimelineRequest, {}, workbookMappedStreamTypeID);
     }
 }
 
