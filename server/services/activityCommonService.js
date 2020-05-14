@@ -4300,6 +4300,14 @@ this.getAllParticipantsAsync = async (request) => {
                 //entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
+            case 718: // Workbook mapped
+            case 719: // Workbook updated
+                entityText1 = request.workbook_s3_url;
+                entityText2 = "";
+                activityTimelineCollection = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
             case 709: // cloud based document -- Form
