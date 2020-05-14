@@ -8,7 +8,6 @@ function DiffbotService(objectCollection) {
   accountsList = []
   articleType = 'article'
   tenderType = 'tender'
-  noOfAccountsProccesed = 0
   var start_from = 0
   var limit_value = 10
   var currentNumberOfAccounts
@@ -133,7 +132,7 @@ function DiffbotService(objectCollection) {
     return { getWork:  async() => {
       if(queue.length == 0 )
       {
-        var x =await lock.acquire('key',   async function() {
+        var lockResult =await lock.acquire('key',   async function() {
          if(queue.length == 0 && hasMoreData)
          {
             await processAccountsDiffbot(start_from,limit_value,{})
@@ -146,7 +145,7 @@ function DiffbotService(objectCollection) {
      },{}).then(function(){
        return queue.pop();
       })
-     return x
+     return lockResult
       }
       else
       {
