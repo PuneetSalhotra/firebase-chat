@@ -81,11 +81,18 @@ function WorkbookOpsService(objectCollection) {
         // Get the single selection value for selecting the sheet
         let sheetIndex = 0;
         try {
-            sheetIndex = await getSheetIndexValue(
-                request, workflowActivityID,
-                botOperationInlineData.worksheet_index_form_id,
-                botOperationInlineData.worksheet_index_field_id
-            );
+            if (
+                botOperationInlineData.hasOwnProperty("worksheet_index_fixed_value") &&
+                Number(botOperationInlineData.worksheet_index_fixed_value) >= 0
+            ) {
+                sheetIndex = Number(botOperationInlineData.worksheet_index_fixed_value);
+            } else {
+                sheetIndex = await getSheetIndexValue(
+                    request, workflowActivityID,
+                    botOperationInlineData.worksheet_index_form_id,
+                    botOperationInlineData.worksheet_index_field_id
+                );
+            }
         } catch (error) {
             logger.error("Error fetching sheet index from single selection", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
