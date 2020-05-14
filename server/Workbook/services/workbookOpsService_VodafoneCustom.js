@@ -180,7 +180,7 @@ function WorkbookOpsService(objectCollection) {
 
         // Parse and process the excel file
         // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
-        const workbook = XLSX.read(xlsxDataBody, { type: "buffer" });
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: true });
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
@@ -290,7 +290,10 @@ function WorkbookOpsService(objectCollection) {
 
     async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
         const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });
-        XLSX.writeFile(workbook, tempXlsxFilePath);
+        XLSX.writeFile(workbook, tempXlsxFilePath, {
+            cellStyles: true,
+            compression: true,
+        });
 
         const bucketName = await util.getS3BucketName(),
             prefixPath = await util.getS3PrefixPath(options);
@@ -725,6 +728,8 @@ function WorkbookOpsService(objectCollection) {
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
+            workflowFile705Request.asset_id = 100;
+            workflowFile705Request.log_asset_id = 100;
             // This will be captured in the push-string message-forming switch-case logic
             workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
 

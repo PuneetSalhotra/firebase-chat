@@ -755,6 +755,18 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/access/status/list', async function (req, res) {
+
+        const [err, formAccessList] = await formConfigService.formEntityAccessWithStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formAccessList, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formAccessList, -9999, req.body));
+        }
+
+    });    
+
 }
 
 module.exports = FormConfigController;
