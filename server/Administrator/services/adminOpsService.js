@@ -7489,6 +7489,33 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+
+    this.dependencyFormsCheck = async (request) => {
+        let error = false, finalResponse = [];
+
+        try{
+            let formList = JSON.parse(request.form_id_list);
+            console.log(request.form_id_list);
+            for(let counter = 0; counter < formList.length; counter++){
+                let formJson = {};
+                request.form_id = formList[counter];
+                formJson.form_id = request.form_id;
+                let [err, responseData] = await self.dependedFormCheck(request);
+                if(!err){
+                    formJson.isActive = true;
+                }else{               
+                    formJson.isActive = false;
+                }
+                finalResponse.push(formJson);
+            }
+        }catch(e){
+            error = e;
+            console.log(e)
+        }
+
+        return [error, finalResponse];
+    }
+
 }
 
 module.exports = AdminOpsService;

@@ -53,10 +53,27 @@ function WorkbookOpsService(objectCollection) {
     }
 
     // Bot Operation Logic
-    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData) {
+    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
 
+        console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
+        console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
+        try {
+            const [_, botOperationData] = await botOperationMappingSelectID({
+                bot_id: request.bot_id,
+                bot_operation_id: request.bot_operation_id
+            });
+            if (botOperationData.length > 0) {
+                botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                botOperationInlineData = botOperationInlineData.bot_operations.map_workbook;
+
+            } else {
+                throw new Error(`No bot operation data found for bot_operation_id ${request.bot_operation_id}`);
+            }
+        } catch (error) {
+            throw new Error(error)
+        }
         let excelSheetFilePath = botOperationInlineData.workbook_url;
 
         try {
@@ -301,7 +318,34 @@ function WorkbookOpsService(objectCollection) {
         } catch (error) {
             throw new Error(error);
         }
+
+        return [{}, {}];
     }
+
+    async function botOperationMappingSelectID(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.bot_id,
+            request.bot_operation_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
         const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });

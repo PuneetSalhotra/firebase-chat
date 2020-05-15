@@ -3054,23 +3054,31 @@ function ActivityTimelineService(objectCollection) {
     async function initiateTargetFormGenerationPromise(request) {
         // Process/Workflow ROMS Target Form Generation Trigger        
         if (
+            (Number(request.device_os_id) === 1 || Number(request.device_os_id) === 2) &&
+            Number(request.activity_type_category_id) === 48 &&
+            Number(request.activity_stream_type_id) === 705 &&
+            Number(request.organization_id) === 868
+        ) {
+            request.workflow_activity_id = request.activity_id;
+        }
+
+        if (
             Number(request.activity_stream_type_id) === 705 &&
             request.hasOwnProperty("workflow_activity_id") &&
             Number(request.workflow_activity_id) !== 0 &&
-            Number(request.organization_id === 868)
-            ) {            
-                console.log(' ');
-                console.log("CALLING buildAndSubmitCafFormV1 from the function 'initiateTargetFormGenerationPromise'");
-                const romsTargetFormGenerationEvent = {
-                    name: "vodafoneService",
-                    service: "vodafoneService",
-                    method: "buildAndSubmitCafFormV1Async",
-                    payload: request
-                };               
-                                  
-                await queueWrapper.raiseActivityEventPromise(romsTargetFormGenerationEvent, request.activity_id);                
-            }
-            
+            Number(request.organization_id) === 868
+        ) {
+            console.log("CALLING buildAndSubmitCafFormV1 from the function 'initiateTargetFormGenerationPromise'");
+            const romsTargetFormGenerationEvent = {
+                name: "vodafoneService",
+                service: "vodafoneService",
+                method: "buildAndSubmitCafFormV1Async",
+                payload: request
+            };
+
+            await queueWrapper.raiseActivityEventPromise(romsTargetFormGenerationEvent, request.activity_id);
+        }
+
         return "success";
     }
 
