@@ -521,6 +521,9 @@ function ActivityService(objectCollection) {
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
+                                                if(fieldData.field_reference_id > 0){
+                                                    await activityActivityMappingInsert(request, fieldData);
+                                                }
                                                 break;
                                         case 68: await activityActivityMappingInsert(request, fieldData);
                                                  break;
@@ -4955,6 +4958,9 @@ function ActivityService(objectCollection) {
                 newReq.parent_activity_id = parsedFieldValue.split('|')[1]; //parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
                 await activityCommonService.activityActivityMappingInsert(newReq);
             //}
+        }else if(fieldData.field_reference_id > 0){
+                newReq.parent_activity_id = fieldData.field_reference_id; //parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+                await activityCommonService.activityActivityMappingInsert(newReq);
         }
 
         return "success";
