@@ -5,6 +5,7 @@
 
 var BotService = require("../services/botService");
 var RMBotService = require("../services/rmbotService");
+const WorkbookOpsService_VodafoneCustom = require("../../Workbook/services/workbookOpsService_VodafoneCustom");
 
 function BotController(objCollection) {
 
@@ -16,6 +17,7 @@ function BotController(objCollection) {
     //const activityCommonService = objCollection.activityCommonService;
     let botService = new BotService(objCollection);
     let rmbotService = new RMBotService(objCollection);
+    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objCollection);
     
     //Retrieve the supported trigger types for defining a new bot
     //Bharat Masimukku
@@ -335,6 +337,21 @@ function BotController(objCollection) {
         } else {
             console.log("/bot_step/datetime/set | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/bot/bot_step/trigger/vodafone_workbook_bot', async (req, res) => {
+
+        const [err, responseData] = await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(
+            req.body,
+            // new Map(JSON.parse(req.body.formInlineDataMap)),
+            // req.body.bot_operations_map_workbook
+        );
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/bot/bot_step/trigger/vodafone_workbook_bot | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err }, -1234, req.body));
         }
     });
 }
