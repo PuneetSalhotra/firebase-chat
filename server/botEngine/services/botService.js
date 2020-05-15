@@ -954,22 +954,23 @@ function BotService(objectCollection) {
             });
         }*/
 
-        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter
-            if(Number(request.field_flag_form_level_bot_execution_enabled) === 1) { //Trigger form level bots            
-                //flag = 0 = ALL bots
-                //flag = 1 = Only Field based bots
-                //flag = 2 = ONly Form Based bots
-                let [err, botResponse] = await activityCommonService.getMappedBotSteps({
-                    organization_id: 0,
-                    bot_id: 0,
-                    form_id: request.form_id,
-                    field_id: request.altered_field_id,
-                    start_from: 0,
-                    limit_value: 50
-                }, 2);
+        //bot_flag_trigger_on_field_edit
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter            
+            //flag = 0 = ALL bots
+            //flag = 1 = Only Field based bots
+            //flag = 2 = ONly Form Based bots
+            //flag = 3 = ONly specific Form Based bots to be triggered in field edit
+            
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: 0,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: request.altered_field_id,
+                start_from: 0,
+                limit_value: 50
+            }, 3);
 
-                formLevelWFSteps = botResponse;
-            }
+            formLevelWFSteps = botResponse;
             
             //console.log('formLevelWFSteps : ', formLevelWFSteps);
 
