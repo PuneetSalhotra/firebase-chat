@@ -717,10 +717,13 @@ function ActivityConfigService(db, util, objCollection) {
 
      this.checkDuplicate = async function(request){
         let error = true,
-        responseData = [], finalResponse = {"account_exists": true, "expression": "", "check_with": ""},
-        botError, botData = [],
-        panNumberField = 0,
-        panNumber = "";
+            responseData = [], 
+            finalResponse = {"account_exists": true, "expression": "", "check_with": ""},
+            botError, 
+            botData = [],
+            panNumberField = 0,
+            panNumber = "";
+
         try{
             // get the bot
             request.bot_operation_type_id = 22;
@@ -734,17 +737,19 @@ function ActivityConfigService(db, util, objCollection) {
 
             request.pan_number_field = panNumberField;
 
-            console.log("panNumberField :: "+request.pan_number_field);
+            console.log("panNumberField :: " , request.pan_number_field);
 
             panNumber = await self.getFieldValueUsingFieldId(request);
 
-            console.log("panNumber :: "+panNumber);
+            console.log("panNumber :: ", panNumber);
 
             let customerTitle = request.customer_title;
-            customerTitle = customerTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
-            customerTitle = customerTitle.split(' ').join('')
-            console.log("customerTitle :: "+customerTitle);
+                customerTitle = customerTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+                customerTitle = customerTitle.split(' ').join('')
+                console.log("customerTitle :: "+customerTitle);
+            
             finalResponse.expression =  customerTitle;
+
             if(panNumber.trim() != ""){
                 //check on pan number
                 finalResponse.check_with = "pan_number";
