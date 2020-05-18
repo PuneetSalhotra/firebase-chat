@@ -1378,12 +1378,19 @@ function BotService(objectCollection) {
                         ) {
                             request.bot_id = i.bot_id;
                             request.bot_operation_id = i.bot_operation_id;
-                            // makeRequest.post(`http://localhost:7000/${global.config.version}/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                            //     form: request,
-                            // }, function (error, response, body) {
-                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
-                            // });
+                            let baseURL = `http://localhost:7000`;
+                            if (global.mode === "sprint" || global.mode === "staging") {
+                                baseURL = `http://10.0.2.49:4000`;
+
+                            } else if (global.mode === "preprod" || global.mode === "prod") {
+                                baseURL = null;
+                            }
+                            makeRequest.post(`${baseURL}/r0/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                                form: request,
+                            }, function (error, response, body) {
+                                logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                                logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            });
 
                             // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
