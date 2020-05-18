@@ -5427,6 +5427,38 @@ function FormConfigService(objCollection) {
 
         return [error, formData];
     };
+
+    this.formEntityAccessList = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.target_asset_id,
+            request.flag,
+            '1970-01-01 00:00:00',
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_workflow_forms_level', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldData];
+    };    
 }
 
 module.exports = FormConfigService;
