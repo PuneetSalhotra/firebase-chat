@@ -2294,7 +2294,7 @@ function ActivityService(objectCollection) {
                 }
 
                 //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
-                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
+                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
