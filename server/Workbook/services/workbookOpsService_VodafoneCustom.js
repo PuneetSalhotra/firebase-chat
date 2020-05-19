@@ -219,8 +219,8 @@ function WorkbookOpsService(objectCollection) {
         for (const [cellKey, cellValue] of inputCellToValueMap) {
             // Check if the cell has the up-to-date value
             const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-            if (existingCellValue != cellValue) {
-                logger.silly(`${cellKey} is up-to-date. No update needed.`);
+            if (existingCellValue == cellValue) {
+                logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
                 continue;
             }
             try {
