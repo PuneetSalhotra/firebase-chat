@@ -2419,12 +2419,12 @@ function RMBotService(objectCollection) {
                                 objR.message = "Tony has assigned you as lead"; 
                                 util.sendCustomPushNotification(objR,data); 
 
-                                
+                                /*
                                 if(Number(request.asset_id) === 100){
                                     objR.message = "Tony has assigned you as lead"; 
                                     util.sendCustomPushNotification(objR,data); 
                                 }
-                               /* if(Number(request.asset_id) !== 100){
+                                if(Number(request.asset_id) !== 100){
                                     objR.message = " has assigned you as lead";  
                                     util.sendCustomPushNotification(objR,data); 
                                 }
