@@ -16,7 +16,8 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
 
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
-config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=50&from=0&query=type"
+config.knowledgeGraphArticleMaxSize = 2
+config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size="+config.knowledgeGraphArticleMaxSize+"&from=0&query=type"
 config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
 ,"Internet leased line (ILL)", "MPLS", "NPLC", "IPLC", "SDWAN",
 "Data Centre", "DC", "DR", "Infra as a service (IAAS)", "Platform as a service (PAAS)", "software as a service (SAAS)","Colocation, Hosting",

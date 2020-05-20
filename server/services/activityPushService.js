@@ -324,23 +324,48 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 16:   // Telephone module: Chat
                         switch (request.url) {
-                            case '/' + global.config.version + '/activity/timeline/entry/add':
-                                // Added an update to the chat
-                                if (Number(request.activity_stream_type_id) === 23003) {
-                                    // Push Notification
-                                    pushString.title = senderName;
-                                    pushString.description = JSON.parse(request.activity_timeline_collection).message;
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 16;
+                                msg.type = 'activity_unread';
 
-                                    // PubNub
-                                    msg.activity_type_category_id = 16;
-                                    msg.type = 'activity_unread';
-
-                                }
-
+                                pushString.title = senderName;
+                                pushString.description = 'has started a conversation with you';
                                 break;
 
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
+                                // Added an update to the chat
+                                // Push Notification
+                                pushString.title = senderName;
+                                pushString.description = 'has sent u a message';
+
+                                // PubNub
+                                msg.activity_type_category_id = 16;
+                                msg.type = 'activity_unread';
+                                break;
                         }
                         break;
+                    case 27:   // Group: Conversation
+                        switch (request.url) {
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 27;
+                                msg.type = 'activity_unread';
+
+                                pushString.title = senderName;
+                                pushString.description = 'has added you into a group conversation';
+                                break;
+
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
+                                // Added an update to the chat
+                                // Push Notification
+                                pushString.title = senderName;
+                                pushString.description = 'has sent a message';
+
+                                // PubNub
+                                msg.activity_type_category_id = 27;
+                                msg.type = 'activity_unread';
+                                break;
+                        }
+                        break;                        
                     case 28: // Remainder
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
