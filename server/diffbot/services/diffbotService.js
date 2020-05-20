@@ -9,7 +9,7 @@ function DiffbotService(objectCollection) {
   articleType = 'article'
   tenderType = 'tender'
   var start_from = 0
-  var limit_value = 10
+  var limit_value = 500
   var currentNumberOfAccounts
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
