@@ -7167,9 +7167,14 @@ function AdminOpsService(objectCollection) {
                 inlineData = JSON.parse(botsData[i].bot_operation_inline_data);                
                 //console.log(inlineData.form_enable);
 
-                tempFormsArr = inlineData.form_enable;
+                tempFormsArr = inlineData.form_enable?inlineData.form_enable:[];
                 console.log('tempFormsArr : ', tempFormsArr);
 
+                if(tempFormsArr.length > 0){
+                    error = false;
+                    responseData.push({"message": "No Dependent Forms defined for this Form!"});
+                }
+                
                 for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
                     console.log(tempFormsArr[j].form_id);
                     conditions = tempFormsArr[j].conditions;
@@ -7510,6 +7515,7 @@ function AdminOpsService(objectCollection) {
             }
         }catch(e){
             error = e;
+            let formJson = {};
             console.log(e)
         }
 
