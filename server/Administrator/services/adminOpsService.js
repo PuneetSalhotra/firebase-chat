@@ -7170,7 +7170,7 @@ function AdminOpsService(objectCollection) {
                 tempFormsArr = inlineData.form_enable?inlineData.form_enable:[];
                 console.log('tempFormsArr : ', tempFormsArr);
 
-                if(tempFormsArr.length > 0){
+                if(tempFormsArr.length == 0){
                     error = false;
                     responseData.push({"message": "No Dependent Forms defined for this Form!"});
                 }
