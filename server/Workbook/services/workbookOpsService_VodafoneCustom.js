@@ -117,7 +117,7 @@ function WorkbookOpsService(objectCollection) {
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
 
         const inputMappings = botOperationInlineData.mappings[sheetIndex].input,
-            outputMappings = botOperationInlineData.mappings[sheetIndex].output;
+            outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
 
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
@@ -137,12 +137,16 @@ function WorkbookOpsService(objectCollection) {
 
         // Check if the output form exists
         let outFormIsSubmitted = false,
-            outputFormID = outputMappings[0].form_id,
+            outputFormID = outputMappings.length > 0 ? outputMappings[0].form_id : 0,
             outputFormName = '',
             outputFormTransactionID = 0,
             outputFormActivityID = 0,
             outputFormFieldInlineTemplateMap = new Map();
         try {
+            // Check if the output mappings are defined
+            if (Number(outputMappings.length) === 0 && Number(outputFormID) === 0) {
+                throw new Error("NoOutputMappingsDefined");
+            }
             const formID = outputMappings[0].form_id;
             let formFieldInlineTemplate = [];
             const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -200,7 +204,9 @@ function WorkbookOpsService(objectCollection) {
             outputFormFieldInlineTemplateMap = new Map(formFieldInlineTemplate.map(e => [Number(e.field_id), e]));
         } catch (error) {
             logger.error("Error fethcing output form.", { type: 'bot_engine', request_body: request, error: serializeError(error) });
-            return;
+            if (error.message !== "NoOutputMappingsDefined") {
+                return;
+            }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
 
@@ -211,8 +217,14 @@ function WorkbookOpsService(objectCollection) {
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
         for (const [cellKey, cellValue] of inputCellToValueMap) {
-            logger.silly(`Updating ${cellKey} to ${cellValue}`)
+            // Check if the cell has the up-to-date value
+            const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+            if (existingCellValue == cellValue) {
+                logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
+                continue;
+            }
             try {
+                logger.silly(`Updating ${cellKey} to ${cellValue}`);
                 S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
             } catch (error) {
                 logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
@@ -259,7 +271,7 @@ function WorkbookOpsService(objectCollection) {
                 logger.error(`Error firing fieldsAlterRequest kafka event for ${outputFormActivityID} and workflow ${workflowActivityID}.`, { type: 'bot_engine', request_body: fieldsAlterRequest, error: serializeError(error) });
             }
 
-        } else {
+        } else if (Number(outputMappings.length) > 0 && Number(outputFormID) > 0) {
             // If the form does not exist, fire add activity
             try {
                 await createAndSubmitTheOutputForm(
