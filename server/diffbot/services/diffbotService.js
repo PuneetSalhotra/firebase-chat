@@ -46,7 +46,12 @@ function DiffbotService(objectCollection) {
   }
 
   function getKnowledgeGraphTypeParams() {
-    return ":Article ";
+    return ":Article";
+  }
+
+  function getknowledgeGraphPublishedCountry()
+  {
+    return 'publisherCountry:"India" '
   }
 
   function getKnowledgeTypeDateParams() {
@@ -61,19 +66,18 @@ function DiffbotService(objectCollection) {
   {
     var knowlegdeGraphUrl = getKnowledgeGraphUrl();
     var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
+    var knowledgeGraphPublishedCountry = getknowledgeGraphPublishedCountry()
     var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
     var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
     var diffbotrequest = {}
     let results = new Array();
     let paramsArray;
-    var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
+    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
       account["activity_title"],
       knowlegeGraphKeywordsOrParams,
       KnowledgeGraphTypeParams,
-      knowlegeGrapDateParams
-    );
-    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
-      knowledgeGraphAllParams
+      knowlegeGrapDateParams,
+      knowledgeGraphPublishedCountry
     );
     var knowledgeGraphApiUrl =
       knowlegdeGraphUrl + encodedKnowledgeGraphParams;
@@ -175,28 +179,21 @@ function DiffbotService(objectCollection) {
     return knowlegeGraphKeywordsOrParams;
   }
 
-  function getKnowledgeGraphAllParams(
-    account_name,
+
+  function getEncodedKnowledgeGraphParams(account_name,
     knowlegeGraphKeywordsOrParams,
     KnowledgeGraphTypeParams,
-    knowlegeGrapDateParams
-  ) {
-    var knowledgeGraphAllParams =
-      KnowledgeGraphTypeParams +
-      knowlegeGrapDateParams +
-      "text:'" +
-      account_name +
-      "' " +
-      knowlegeGraphKeywordsOrParams;
-    console.log(knowledgeGraphAllParams);
-    return knowledgeGraphAllParams;
-  }
+    knowlegeGrapDateParams,
+    knowledgeGraphPublishedCountry) {
 
-  function getEncodedKnowledgeGraphParams(knowledgeGraphAllParams) {
-    var encodedKnowledgeGraphParams = encodeURIComponent(
-      knowledgeGraphAllParams
-    );
-    return encodedKnowledgeGraphParams;
+      var encodededKnowledgeGraphTypeParams = encodeURIComponent(KnowledgeGraphTypeParams)
+      var encodedKnowledgeGraphPublishedCountry = encodeURIComponent(knowledgeGraphPublishedCountry)
+      var encodedKnowledgeGraphDateParams = encodeURIComponent(knowlegeGrapDateParams)
+      var accountText= "text:'" +account_name +"' "
+      var encodedAccountName = encodeURIComponent(accountText)
+      var encodedKnowledgeGraphOrParams = encodeURIComponent(knowlegeGraphKeywordsOrParams)
+      var encodedKnowledgeGraphParams =  encodededKnowledgeGraphTypeParams + "+"+encodedKnowledgeGraphPublishedCountry+encodedKnowledgeGraphDateParams+encodedAccountName+encodedKnowledgeGraphOrParams
+      return encodedKnowledgeGraphParams;
   }
 
   async function checkIfAccountIDArticleIdExist(
