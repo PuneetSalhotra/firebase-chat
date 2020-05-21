@@ -207,6 +207,10 @@ if (mode === 'masimukku') {
 }
 
 if (mode === 'local') {
+    
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_0ujzdpVrI';
 
     //Ports Config
     config.version = 'r1';
@@ -405,6 +409,10 @@ if (mode === 'dev') {
 
 if (mode === 'sprint') {
 
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_U5xHOaPMS';
+
     //Ports Config
     config.version = 'r0';
     config.servicePort = 6000;
@@ -507,6 +515,10 @@ if (mode === 'sprint') {
 }
 
 if (mode === 'staging') {
+
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_0ujzdpVrI';
 
     //Ports Config
     config.version = 'r0';
@@ -625,6 +637,10 @@ if (mode === 'staging') {
 
 if (mode === 'preprod') {
 
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
+
     //Ports Config
     config.version = 'r1';
     config.servicePort = 6000;
@@ -724,6 +740,10 @@ if (mode === 'preprod') {
 }
 
 if (mode === 'prod') {
+
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_ne6W2ZavD';
 
     //Ports config
     config.version = 'r1';
@@ -886,7 +906,3 @@ config.cassandraCredentialsProd = {
 //OPENTOK
 config.opentok_apiKey = "46050712";
 config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
-
-//Cognito
-config.cognito_region = 'us-east-1';
-config.user_pool_id = 'us-east-1_sFNwE7bj1';

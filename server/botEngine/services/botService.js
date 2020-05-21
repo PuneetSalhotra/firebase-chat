@@ -19,6 +19,17 @@ const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
+
+const uuidv4 = require('uuid/v4');
+
+const AWS = require('aws-sdk');
+AWS.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs = new AWS.SQS();
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -1025,6 +1036,21 @@ function BotService(objectCollection) {
         //console.log("formInlineDataMap: ", formInlineDataMap);
         //console.log('wfSteps : ', wfSteps);
 
+        //Print what are all the bots are there
+        for(const temp_iterator of wfSteps) {
+            console.log('bot_operation_type_id : ', temp_iterator.bot_operation_type_id);
+            console.table([{
+                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,                
+                bot_operation_type_name: temp_iterator.bot_operation_type_name,
+                form_id: temp_iterator.form_id,
+                field_id: temp_iterator.field_id,
+                data_type_combo_id: temp_iterator.data_type_combo_id,
+                data_type_combo_name: temp_iterator.data_type_combo_name
+            }]);
+        }
+
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
@@ -1378,19 +1404,40 @@ function BotService(objectCollection) {
                         ) {
                             request.bot_id = i.bot_id;
                             request.bot_operation_id = i.bot_operation_id;
-                            let baseURL = `http://localhost:7000`;
+                            let baseURL = `http://localhost:7000`,
+                            sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
                             if (global.mode === "sprint" || global.mode === "staging") {
                                 baseURL = `http://10.0.2.49:4000`;
+                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
 
                             } else if (global.mode === "preprod" || global.mode === "prod") {
                                 baseURL = null;
                             }
-                            makeRequest.post(`${baseURL}/r0/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                                form: request,
-                            }, function (error, response, body) {
-                                logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                                logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            sqs.sendMessage({
+                                // DelaySeconds: 5,
+                                MessageBody: JSON.stringify(request),
+                                QueueUrl: sqsQueueUrl,
+                                MessageGroupId: `excel-processing-job-queue-v1`,
+                                MessageDeduplicationId: uuidv4(),
+                                MessageAttributes: {
+                                    "Environment": {
+                                        DataType: "String",
+                                        StringValue: global.mode
+                                    },
+                                }
+                            }, (error, data) => {
+                                if (error) {
+                                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                } else {
+                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                }
                             });
+                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                            //     form: request,
+                            // }, function (error, response, body) {
+                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            // });
 
                             // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
@@ -5472,7 +5519,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
-    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {
+    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {        
+        //console.log('formInlineDataMap : ', formInlineDataMap);
+        console.log('cuidInlineData : ', cuidInlineData);
+
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
             let cuidUpdateFlag = 0,
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
