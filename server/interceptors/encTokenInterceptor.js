@@ -16,6 +16,11 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
             //} else {                
                 //global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
                 //req.body.service_id = result;
+
+                if(req.body.hasOwnProperty('access_token_verified') && Number(req.body.access_token_verified) === 1) {
+                    console.log('Access token Verified');
+                    next();
+                }
                 
                 req.body.service_id = "";
                 var bundleTransactionId = TimeUuid.now();

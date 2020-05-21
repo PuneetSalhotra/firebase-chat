@@ -25,6 +25,12 @@ function ActivityService(objectCollection) {
     const RMBotService = require('../botEngine/services/rmbotService');
     const rmbotService = new RMBotService(objectCollection);
 
+    //const DoaService = require('../Doa/services/doaService');
+    //const doaService = new DoaService(objectCollection);
+    //const doaForms = require('../Doa/utils/doaFormConfig.json');
+    //const daoFields = require('../Doa/utils/doaFieldsConfig.json');
+    //console.log('doaForms : ', doaForms);
+
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
@@ -720,6 +726,19 @@ function ActivityService(objectCollection) {
 
                     }); //End of Asset List Insert Add
 
+
+                    //DOA Logic
+                    /*for(const activityTypeIds of doaForms) {
+                            Object.keys(activityTypeIds).map((value)=>{
+                                //console.log('VALUE : ', value);
+                                if(Number(value) === Number(request.activity_type_id)) {
+                                    //Trigger the DOA Logic
+                                    console.log('Triggering the DOA Logic');
+                                    doaService.getProductSelection(request);
+                                }
+                            });
+                    }*/
+
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
                     // 
@@ -790,7 +809,7 @@ function ActivityService(objectCollection) {
                             }
                         });
                         callback(false, responseactivityData, 200);
-                    }
+                    } //activityTypeCategroyId === 9
 
                     // Tirggering BOT 1
                     /*if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
