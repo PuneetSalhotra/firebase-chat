@@ -45,9 +45,23 @@ function doaService(objectCollection) {
     };*/
 
 
-    this.getProductSelection = async(request) => {
-    //Step: 1 - Identify the product selection of the opportunity
-        activityCommonService.activityActivityMappingSelect();
+this.getProductSelection = async(request) => {
+
+    let formInlineData = JSON.parse(request.activity_inline_data);
+    for(const fieldData  of formInlineData) {
+        if(Number(fieldData.field_data_type_id) === 57) { // Or 33 //workflow reference 57 - single selection
+            
+        //Step: 1 - Identify the product selection of the opportunity
+        let [err, productData] = activityCommonService.activityActivityMappingSelect({
+                                        activity_id: request.activity_id, 
+                                        parent_activity_id: request.parent_activity_id, 
+                                        organization_id: request.organization_id
+                                    });
+
+        console.log('Product Data : ', productData);
+
+        }
+    }
 
     //Step 2 - Identify the product tag based on the Product Selection
         //Need to ask DB Sai
@@ -75,7 +89,10 @@ function doaService(objectCollection) {
         //Monthly Rental - f3
         //Connection Type - f4
 
-        let field_1, field_2, field_3, field_4;
+        let ebitda, 
+            deployment_evenue,
+            monthly_rental,
+            connection_type;
 
         //Add Appropriate Desk to the Opportunity Workflow
         if(field_2 == 'Single' && field_4 == 'COCP') {
@@ -89,12 +106,35 @@ function doaService(objectCollection) {
 
     };
 
-    async function getAppropriateDesk() {
+    async function getAppropriateDesk(request) {
         //Get the appropriate desk for the respective opportunity
         //Circle L1, L2, L3
         //Corporate Commercial L1, L2
         //Corporate Finance L1, L2, L3
         //CLT L1, L2, L3
+
+        let error = true,
+        responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.tag_type_id,            
+            request.start_from || 0,
+            request.page_limit || 5
+        );
+        const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData.push(data);
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
 
     }
 
