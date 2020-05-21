@@ -1702,6 +1702,15 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
+					if (Array.isArray(data)) {
+						data = data.map((assetData) => {
+							delete assetData.asset_phone_passcode;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_push_notification_id;
+							return assetData;
+						})
+					}
 					callback(false, data, 200);
 				} else {
 					callback(err, false, -9999);

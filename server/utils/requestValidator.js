@@ -99,6 +99,7 @@ requestValidator.requestContentTypeValidator = async function (req, res, next) {
 
 requestValidator.setResponseContentType = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.cookie('grene', '1', { httpOnly: true, secure: true });
     next();
 }
 
