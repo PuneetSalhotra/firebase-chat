@@ -1025,6 +1025,21 @@ function BotService(objectCollection) {
         //console.log("formInlineDataMap: ", formInlineDataMap);
         //console.log('wfSteps : ', wfSteps);
 
+        //Print what are all the bots are there
+        for(const temp_iterator of wfSteps) {
+            console.log('bot_operation_type_id : ', temp_iterator.bot_operation_type_id);
+            console.table([{
+                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,                
+                bot_operation_type_name: temp_iterator.bot_operation_type_name,
+                form_id: temp_iterator.form_id,
+                field_id: temp_iterator.field_id,
+                data_type_combo_id: temp_iterator.data_type_combo_id,
+                data_type_combo_name: temp_iterator.data_type_combo_name
+            }]);
+        }
+
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
@@ -5472,7 +5487,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
-    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {
+    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {        
+        //console.log('formInlineDataMap : ', formInlineDataMap);
+        console.log('cuidInlineData : ', cuidInlineData);
+
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
             let cuidUpdateFlag = 0,
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',

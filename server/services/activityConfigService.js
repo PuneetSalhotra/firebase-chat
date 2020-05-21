@@ -839,7 +839,7 @@ function ActivityConfigService(db, util, objCollection) {
 
         let inlineData = JSON.parse(request.activity_inline_data);
         for(let i=0; i<inlineData.length;i++) {
-            console.log(inlineData[i].field_id+" : "+request.pan_number_field);
+            //console.log(inlineData[i].field_id+" : "+request.pan_number_field);
             if(inlineData[i].field_id == request.pan_number_field){
                 fieldValue = inlineData[i].field_value;
             }
