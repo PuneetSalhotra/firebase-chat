@@ -11,6 +11,15 @@ function ResponseWrapper(util) {
             response: data
         };
 
+        if (
+            request.url === `/${global.config.version}/asset/passcode/check` ||
+            request.url === `/${global.config.version}/asset/passcode/alter/v1`
+        ) {
+            console.log("responseWrapper: ", request.url);
+            response.asset_phone_country_code = request.asset_phone_country_code;
+            response.asset_phone_number = request.asset_phone_number;
+        }
+
         try {
             global.logger.write('response', 'response', response, request);
             logger.info(`service_id ${request.bundle_transaction_id || 0}`, { type: 'server_response', request_body: request, response });
