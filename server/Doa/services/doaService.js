@@ -95,14 +95,14 @@ this.getProductSelection = async(request) => {
             connection_type;
 
         //Add Appropriate Desk to the Opportunity Workflow
-        if(field_2 == 'Single' && field_4 == 'COCP') {
+        /*if(field_2 == 'Single' && field_4 == 'COCP') {
             //Irrespective of percentage
             //It starts from Circle L1
 
         } else if(field_2 == 'Multi' && field_3 <= 199 && field_4 == 'COCP/IOIP') {
             //Irrespective of percentage
             // It starts from CC L1 & CF L1
-        }
+        }*/
 
     };
 
