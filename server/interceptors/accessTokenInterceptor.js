@@ -178,6 +178,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             jwt.verify(token, pem, { algorithms: ['RS256'] }, function(err, decodedToken) {
                             if(err === null) {
                                 console.log('token verified successfully!');
+                                req.body.access_token_verified = 1;                                
                                 next();
                             } else {
                                 console.log('Some error in the token Verification');
