@@ -335,8 +335,13 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                                 // Added an update to the chat
                                 // Push Notification
+                                //pushString.title = senderName;
+                                //pushString.description = 'has sent u a message';
+
                                 pushString.title = senderName;
-                                pushString.description = 'has sent u a message';
+                                pushString.subtitle = 'has sent u a message';
+                                pushString.description = 'has sent a message';
+                                pushString.body = activityTitle;
 
                                 // PubNub
                                 msg.activity_type_category_id = 16;
@@ -357,8 +362,12 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                                 // Added an update to the chat
                                 // Push Notification
+                                //pushString.title = senderName;
+                                //pushString.description = 'has sent a message';
                                 pushString.title = senderName;
+                                pushString.subtitle = 'has sent a message';
                                 pushString.description = 'has sent a message';
+                                pushString.body = activityTitle;
 
                                 // PubNub
                                 msg.activity_type_category_id = 27;
@@ -857,11 +866,13 @@ function ActivityPushService(objectCollection) {
                                             default:
                                                 //SNS
                                                 try {
-                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                    console.log('@@@@@@ - var proceedSendPush - Before SNS publish : ', assetMap);
+                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                                 } catch (error) {
                                                     console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
                                                     try {
-                                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                        console.log('@@@@@@ In Catch - var proceedSendPush - Before SNS publish : ', assetMap);
+                                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0 , assetMap);
                                                     } catch (snsError) {
                                                         console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
                                                         
@@ -1209,11 +1220,13 @@ function ActivityPushService(objectCollection) {
                             default:
                                 //SNS
                                 try {
-                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                    console.log('@@@@@@ proceedSendPushAsync - Before SNS publish : ', assetMap);
+                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                 } catch (error) {
                                     console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
                                     try {
-                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        console.log('@@@@@@ In Catch - proceedSendPushAsync - Before SNS publish : ', assetMap);
+                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                     } catch (snsError) {
                                         console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
                                         

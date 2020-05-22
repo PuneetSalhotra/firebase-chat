@@ -17,24 +17,22 @@ function AccessTokenInterceptor(app, responseWrapper) {
         //Check for flag - Cognito or Redis Auth
         //flag = 1 - Redis
         //flag = 2 - Cognito
-        if(!req.headers.hasOwnProperty('authenticationflag')) {
-            
-            if(req.headers.hasOwnProperty('x-grene-auth-flag') && Number(req.headers['x-grene-auth-flag']) === 1) {
-                console.log('Proceeding to Redis Auth');
-                next();
-            } else {
-                console.log('Proceeding to Redis Auth');
-                next();
-            }
-
-        } else if( 
-                (req.headers.hasOwnProperty('authenticationflag') && Number(req.headers.authenticationflag) === 1) ||
-                (req.headers.hasOwnProperty('x-grene-auth-flag') && Number(req.headers['x-grene-auth-flag']) === 1) 
-            )
-        {
-            console.log('Proceeding to Redis Auth');
+        //if(!req.headers.hasOwnProperty('x-grene-auth-flag')) {
+        //    console.log('Proceeding to Redis Auth coz x-grene-auth-flag is not there');
+        //    next();
+        //} else if(
+        //        //(req.headers.hasOwnProperty('authenticationflag') && Number(req.headers.authenticationflag) === 1) ||
+        //        (req.headers.hasOwnProperty('x-grene-auth-flag') && Number(req.headers['x-grene-auth-flag']) === 1)
+        //    )
+        //{
+        //    console.log('Proceeding to Redis Auth - x-grene-auth-flag : ', Number(req.headers['x-grene-auth-flag']));
+        //    next();
+        //} else 
+        if(!req.headers.hasOwnProperty('accesstoken')) {
+            console.log('Proceeding to Redis');
             next();
-        } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+        }
+        else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
             req.body['module'] = 'asset';
