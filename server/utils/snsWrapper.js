@@ -10,7 +10,7 @@ var AwsSns = function () {
     aws.config.loadFromPath(`${__dirname}/config.json`);
     var sns = new aws.SNS();
 
-    this.publish = function (message, badgeCount, targetArn, isSilentPush = 0) {
+    this.publish = function (message, badgeCount, targetArn, isSilentPush = 0, assetMap = {}) {
         var GCMjson = {
             data: {
                 title: "",
@@ -22,6 +22,15 @@ var AwsSns = function () {
                 body: ""
             }
         };
+      
+        if(message.subtitle == 'undefined' || message.subtitle == null) {
+            message.subtitle = message.description;
+        }
+
+        if(message.body == 'undefined' || message.body == null) {
+            message.body = '';
+        }
+
         GCMjson.data.title = "'" + message.title + "'";
         GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
@@ -113,8 +122,13 @@ var AwsSns = function () {
         };
 
         sns.publish(params, function (err, data) {
+            console.log('       ');
+            console.log('^^^^^^^^^^^^^^^^^^^^^^^');
+            console.log('assetMap : ', assetMap);
             console.log("sns.publish: ", err);
             console.log("sns.publish: ", data);
+            console.log('^^^^^^^^^^^^^^^^^^^^^^^');
+            console.log('       ');
             if (err)
                 // console.log(err); // an error occurred
                 // global.logger.write('debug', err, {}, {});
