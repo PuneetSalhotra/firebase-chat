@@ -411,7 +411,7 @@ if (mode === 'sprint') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_U5xHOaPMS';
+    config.user_pool_id = 'ap-south-1_24nBlFK07';
 
     //Ports Config
     config.version = 'r0';
