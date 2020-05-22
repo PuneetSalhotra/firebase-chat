@@ -1467,6 +1467,19 @@ function BotService(objectCollection) {
                         logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
                     break;
+
+                case 25: // participant_remove
+                    logger.silly("[participant_remove] Params received from Request: %j", request);
+                    try {
+                        await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
+                    } catch (error) {
+                        logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -1605,6 +1618,175 @@ function BotService(objectCollection) {
                 // Let the operation just pass through
                 return true;
         }
+    }
+
+    async function removeParticipant(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
+        console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
+        if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
+            throw new Error("FlagFormSubmitter flag not set to 1");
+        }
+        const workflowActivityID = Number(request.workflow_activity_id) || 0;
+        // const assetID = Number(request.auth_asset_id) || Number(request.asset_id); // Actual
+        const assetID = Number(request.asset_id) || Number(request.auth_asset_id); // Test
+
+        // Status alter or substatus completion bot incorporating arithmetic condition
+        inlineData = removeParticipantBotOperationData;
+        if (
+            // Check if the new condition array exists
+            inlineData.hasOwnProperty("condition") &&
+            Array.isArray(inlineData.condition) &&
+            inlineData.condition.length > 0 // &&
+            // Check if the pass and fail status objects exist
+            // inlineData.hasOwnProperty("pass") &&
+            // inlineData.hasOwnProperty("fail")
+        ) {
+            let conditionChain = [];
+            for (const condition of inlineData.condition) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                // Check if the field is already present in the formInlineDataMap
+                if (formInlineDataMap.has(fieldID)) {
+                    const field = formInlineDataMap.get(fieldID);
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(field.field_value, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+                    continue;
+                }
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                // PROCEED
+                // Placeholder block
+            } else if (!finalCondition.value) {
+                // DO NOT PROCEED
+                return;
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+                throw new Error("Error processing the condition chain");
+            }
+        }
+
+        let removeParticipantRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            activity_id: workflowActivityID,
+            asset_id: request.asset_id,
+            asset_token_auth: request.asset_token_auth,
+            activity_participant_collection: JSON.stringify([]), // Placeholder
+            api_version: request.api_version,
+            app_version: request.app_version,
+            asset_message_counter: request.asset_message_counter,
+            device_os_id: request.device_os_id,
+            flag_offline: request.flag_offline,
+            flag_retry: request.flag_retry,
+            message_unique_id: request.message_unique_id,
+            service_version: request.service_version,
+            track_gps_accuracy: request.track_gps_accuracy,
+            track_gps_datetime: request.track_gps_datetime,
+            track_gps_location: request.track_gps_location,
+            track_gps_status: request.track_gps_status,
+            track_latitude: request.track_latitude,
+            track_longitude: request.track_longitude
+        };
+
+        try {
+            const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: assetID
+            });
+            console.log("removeParticipant | error: ", error);
+            if (assetData.length > 0) {
+                removeParticipantRequest.activity_participant_collection = JSON.stringify([
+                    {
+                        "organization_id": assetData[0].organization_id,
+                        "account_id": assetData[0].account_id,
+                        "workforce_id": assetData[0].workforce_id,
+                        "asset_type_id": assetData[0].asset_type_id,
+                        "asset_category_id": assetData[0].asset_type_category_id,
+                        "asset_id": assetID,
+                        "access_role_id": 0,
+                        "message_unique_id": 98989898989898
+                    }
+                ]);
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        try {
+            await activityParticipantService.unassignParticicpant(removeParticipantRequest);
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return;
     }
 
     async function addPdfFromHtmlTemplate(request, templateData) {
