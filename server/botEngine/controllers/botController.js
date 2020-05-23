@@ -354,6 +354,17 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err }, -1234, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/bot/form_field_copy/target_form/prefill', async (req, res) => {
+
+        const [err, responseData] = await botService.prefillTargetFormValuesForFormFieldCopyBotOperation(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/bot/bot_step/trigger/vodafone_workbook_bot | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+        }
+    });
 }
 
 module.exports = BotController;
