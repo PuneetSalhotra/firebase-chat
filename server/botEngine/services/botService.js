@@ -444,6 +444,30 @@ function BotService(objectCollection) {
                     });
                 }
                 break;
+
+            case 3: // Form Field Copy Bot
+                if (
+                    Array.isArray(botOperations.form_field_copy) &&
+                    botOperations.form_field_copy.length > 0
+                ) {
+                    for (const sourceTargetPair of botOperations.form_field_copy) {
+                        if (
+                            // Source
+                            Number(sourceTargetPair.source_field_id) > 0 &&
+                            Number(sourceTargetPair.source_form_id) > 0 &&
+                            // Target
+                            Number(sourceTargetPair.target_field_id) > 0 &&
+                            Number(sourceTargetPair.target_form_id) > 0
+                        ) {
+                            rpaFormFieldList.push({
+                                form_id: Number(sourceTargetPair.target_form_id),
+                                field_id: Number(sourceTargetPair.target_field_id),
+                                data_type_combo_id: 0
+                            });
+                        }
+                    }
+                }
+                break;
             
             case 6: // Fire text
                 if (
@@ -3066,28 +3090,29 @@ function BotService(objectCollection) {
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, DO NOT DO ANYTHING
             // If the target form has not been submitted yet, create one
-            let createTargetFormRequest = Object.assign({}, request);
-                createTargetFormRequest.activity_form_id = targetFormID;
-                createTargetFormRequest.form_id = targetFormID;
-                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-                if(Number(esmsFlag) === 0) {
-                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
-                }
+            // let createTargetFormRequest = Object.assign({}, request);
+            //     createTargetFormRequest.activity_form_id = targetFormID;
+            //     createTargetFormRequest.form_id = targetFormID;
+            //     createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            //     if(Number(esmsFlag) === 0) {
+            //         createTargetFormRequest.workflow_activity_id = workflowActivityID;
+            //     }
                 
-                if(Number(esmsFlag) === 1) {
-                    //Internally in activityService File. Workflow will be created
-                    createTargetFormRequest.isESMS = 1;
-                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+            //     if(Number(esmsFlag) === 1) {
+            //         //Internally in activityService File. Workflow will be created
+            //         createTargetFormRequest.isESMS = 1;
+            //         createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
-                    //flag to know that this form and workflow is submitted by a Bot
-                    createTargetFormRequest.activity_flag_created_by_bot = 1;
-                }
-            try {
-                await createTargetFormActivity(createTargetFormRequest);
-            } catch (error) {
-                console.log("copyFields | createTargetFormActivity | Error: ", error);
-            }
+            //         //flag to know that this form and workflow is submitted by a Bot
+            //         createTargetFormRequest.activity_flag_created_by_bot = 1;
+            //     }
+            // try {
+            //     await createTargetFormActivity(createTargetFormRequest);
+            // } catch (error) {
+            //     console.log("copyFields | createTargetFormActivity | Error: ", error);
+            // }
         }
         return;
     }
