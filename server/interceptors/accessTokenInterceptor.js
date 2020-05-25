@@ -15,24 +15,12 @@ function AccessTokenInterceptor(app, responseWrapper) {
         req.body.url = req.url;
                 
         //Check for flag - Cognito or Redis Auth
-        //flag = 1 - Redis
-        //flag = 2 - Cognito
-        //if(!req.headers.hasOwnProperty('x-grene-auth-flag')) {
-        //    console.log('Proceeding to Redis Auth coz x-grene-auth-flag is not there');
-        //    next();
-        //} else if(
-        //        //(req.headers.hasOwnProperty('authenticationflag') && Number(req.headers.authenticationflag) === 1) ||
-        //        (req.headers.hasOwnProperty('x-grene-auth-flag') && Number(req.headers['x-grene-auth-flag']) === 1)
-        //    )
-        //{
-        //    console.log('Proceeding to Redis Auth - x-grene-auth-flag : ', Number(req.headers['x-grene-auth-flag']));
-        //    next();
-        //} else 
-        if(!req.headers.hasOwnProperty('accesstoken')) {
-            console.log('Proceeding to Redis');
+        //x-grene-auth-flag = 1 - Redis
+        //x-grene-auth-flag = 2 - Cognito
+        if(Number(req.headers['x-grene-auth-flag']) === 1) {
+            console.log('Proceeding to Redis Auth coz x-grene-auth-flag is 1');
             next();
-        }
-        else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+        } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
             req.body['module'] = 'asset';

@@ -24,7 +24,10 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 
-                if(req.body.hasOwnProperty('access_token_verified') && Number(req.body.access_token_verified) === 1) {
+                if(Number(req.headers['x-grene-auth-flag']) === 2) {
+                    console.log('Skipping Redis Auth coz x-grene-auth-flag is 2');
+                    next();
+                }else if(req.body.hasOwnProperty('access_token_verified') && Number(req.body.access_token_verified) === 1) {
                     console.log('Access token Verified');
                     next();
                 }
