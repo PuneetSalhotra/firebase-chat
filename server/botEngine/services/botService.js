@@ -6132,8 +6132,189 @@ function BotService(objectCollection) {
     }
 
     this.checkForParticipantRemoveBotOperationSuccess = async function (request) {
-        
+        const formID = Number(request.form_id);
+        let botOperationInlineData = {},
+            botID = 0, botOperationID = 0;
+
+        // Prepare the map equivalent for the form's inline data,
+        // for easy checks and comparisons
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            formInlineData = JSON.parse(request.activity_inline_data);
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+            return [error, null];
+        }
+        // console.log("formInlineDataMap: ", formInlineDataMap);
+
+        // Get the participant remove bot for the form
+        try {
+            const [error, botOperationData] = await botOperationMappingSelectOperationType({
+                organization_id: request.organization_id,
+                form_id: formID,
+                bot_operation_type_id: 25
+            });
+            if (botOperationData.length > 0) {
+                botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                botID = botOperationData[0].bot_id;
+                botOperationID = botOperationData[0].bot_operation_id;
+            }
+        } catch (error) {
+            return [error, null]
+        }
+
+        let conditionsArray = [];
+        if (
+            botOperationInlineData.hasOwnProperty("bot_operations") &&
+            botOperationInlineData.bot_operations.hasOwnProperty("participant_remove")
+        ) {
+            if (
+                botOperationInlineData.bot_operations.participant_remove.hasOwnProperty("condition") &&
+                Array.isArray(botOperationInlineData.bot_operations.participant_remove.condition) &&
+                botOperationInlineData.bot_operations.participant_remove.condition.length > 0
+            ) {
+                conditionsArray = botOperationInlineData.bot_operations.participant_remove.condition;
+            } else {
+                return [null, {
+                    is_success: true,
+                    message: `The participant will be removed if the form is submitted.`
+                }];
+            }
+        } else {
+            return [new Error(`'bot_operation_inline_data' is incomplete for Bot ID: ${botID} and Bot Operation ID: ${botOperationID}`), null];
+        }
+
+        if (conditionsArray.length > 0) {
+
+            let conditionChain = [];
+            for (const condition of conditionsArray) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                // Check if the field is already present in the formInlineDataMap
+                if (formInlineDataMap.has(fieldID)) {
+                    const field = formInlineDataMap.get(fieldID);
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(field.field_value, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+                    continue;
+                }
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                return [null, {
+                    is_success: true,
+                    message: `The participant will be removed if the form is submitted.`
+                }];
+            } else if (!finalCondition.value) {
+                return [null, {
+                    is_success: false,
+                    message: `The participant won't be removed if the form is submitted.`
+                }];
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+            }
+        }
+
+        return [null, null];
     }
+
+    async function botOperationMappingSelectOperationType(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id || 0,
+            request.bot_id || 0,
+            request.bot_operation_type_id || 0,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
 }
 

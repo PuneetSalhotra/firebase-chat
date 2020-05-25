@@ -342,12 +342,12 @@ function BotController(objCollection) {
 
     app.post('/' + global.config.version + '/bot/bot_step/participant_remove/success_check', async (req, res) => {
 
-        const [err, responseData] = await botService.checkForParticipantRemoveBotOperationSuccess(req.body);
-        if (!err) {
+        const [error, responseData] = await botService.checkForParticipantRemoveBotOperationSuccess(req.body);
+        if (!error) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
-            console.log("/bot/bot_step/participant_remove/success_check | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            console.log("/bot/bot_step/participant_remove/success_check | Error: ", error);
+            res.send(responseWrapper.getResponse(error, { message: error.message }, -9998, req.body));
         }
     });
 
