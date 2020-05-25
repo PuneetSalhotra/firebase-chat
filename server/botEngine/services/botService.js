@@ -444,6 +444,30 @@ function BotService(objectCollection) {
                     });
                 }
                 break;
+
+            case 3: // Form Field Copy Bot
+                if (
+                    Array.isArray(botOperations.form_field_copy) &&
+                    botOperations.form_field_copy.length > 0
+                ) {
+                    for (const sourceTargetPair of botOperations.form_field_copy) {
+                        if (
+                            // Source
+                            Number(sourceTargetPair.source_field_id) > 0 &&
+                            Number(sourceTargetPair.source_form_id) > 0 &&
+                            // Target
+                            Number(sourceTargetPair.target_field_id) > 0 &&
+                            Number(sourceTargetPair.target_form_id) > 0
+                        ) {
+                            rpaFormFieldList.push({
+                                form_id: Number(sourceTargetPair.target_form_id),
+                                field_id: Number(sourceTargetPair.target_field_id),
+                                data_type_combo_id: 0
+                            });
+                        }
+                    }
+                }
+                break;
             
             case 6: // Fire text
                 if (
@@ -3066,28 +3090,29 @@ function BotService(objectCollection) {
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, DO NOT DO ANYTHING
             // If the target form has not been submitted yet, create one
-            let createTargetFormRequest = Object.assign({}, request);
-                createTargetFormRequest.activity_form_id = targetFormID;
-                createTargetFormRequest.form_id = targetFormID;
-                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-                if(Number(esmsFlag) === 0) {
-                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
-                }
+            // let createTargetFormRequest = Object.assign({}, request);
+            //     createTargetFormRequest.activity_form_id = targetFormID;
+            //     createTargetFormRequest.form_id = targetFormID;
+            //     createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            //     if(Number(esmsFlag) === 0) {
+            //         createTargetFormRequest.workflow_activity_id = workflowActivityID;
+            //     }
                 
-                if(Number(esmsFlag) === 1) {
-                    //Internally in activityService File. Workflow will be created
-                    createTargetFormRequest.isESMS = 1;
-                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+            //     if(Number(esmsFlag) === 1) {
+            //         //Internally in activityService File. Workflow will be created
+            //         createTargetFormRequest.isESMS = 1;
+            //         createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
-                    //flag to know that this form and workflow is submitted by a Bot
-                    createTargetFormRequest.activity_flag_created_by_bot = 1;
-                }
-            try {
-                await createTargetFormActivity(createTargetFormRequest);
-            } catch (error) {
-                console.log("copyFields | createTargetFormActivity | Error: ", error);
-            }
+            //         //flag to know that this form and workflow is submitted by a Bot
+            //         createTargetFormRequest.activity_flag_created_by_bot = 1;
+            //     }
+            // try {
+            //     await createTargetFormActivity(createTargetFormRequest);
+            // } catch (error) {
+            //     console.log("copyFields | createTargetFormActivity | Error: ", error);
+            // }
         }
         return;
     }
@@ -5947,6 +5972,106 @@ function BotService(objectCollection) {
             await queueWrapper.raiseActivityEventPromise(event1, request.activity_id);
 
         return [error, responseData];
+    }
+
+    this.prefillTargetFormValuesForFormFieldCopyBotOperation = async function (request) {
+        let workflowActivityID = Number(request.workflow_activity_id) || 0;
+        if (!workflowActivityID) {
+            return [new Error("workflow_activity_id is missing"), null];
+        }
+
+        let prefillFieldsArray = [];
+        try {
+            prefillFieldsArray = JSON.parse(request.prefill_fields_array);
+        } catch (error) {
+            return [error, null];
+        }
+
+        if (!(prefillFieldsArray.length > 0)) {
+            return [new Error("Empty prefill_fields_array"), null];
+        }
+
+        const botOperationInlineDataMap = new Map();
+        const prefillFieldToSourceMap = new Map();
+        try {
+
+            for (const prefillField of prefillFieldsArray) {
+                let filteredPair = [];
+                if (botOperationInlineDataMap.has(Number(prefillField.bot_operation_id))) {
+                    // DO!
+                    const formFieldCopyArray = botOperationInlineDataMap.get(Number(prefillField.bot_operation_id));
+                    // console.log("[EXISTING] botOperationInlineData.form_field_copy: ", formFieldCopyArray);
+
+                    filteredPair = formFieldCopyArray.filter(mapping =>  Number(mapping.target_field_id) === Number(prefillField.field_id));
+
+                } else {
+                    // Fetch the bot_operation's inline data
+                    const [_, botOperationData] = await adminListingService.botOperationMappingSelectID({
+                        bot_id: prefillField.bot_id,
+                        bot_operation_id: prefillField.bot_operation_id
+                    });
+                    if (!(botOperationData.length > 0)) { continue; }
+
+                    const botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                    botOperationInlineDataMap.set(Number(prefillField.bot_operation_id), botOperationInlineData.bot_operations.form_field_copy);
+                    
+                    // console.log("[NEW] botOperationInlineData.form_field_copy: ", botOperationInlineData.bot_operations.form_field_copy);
+                    filteredPair = botOperationInlineData.bot_operations.form_field_copy.filter(mapping =>  Number(mapping.target_field_id) === Number(prefillField.field_id));
+                }
+                prefillFieldToSourceMap.set(Number(prefillField.field_id), filteredPair[0]);
+            }
+
+        } catch (error) {
+            return [error, null];
+        }
+        // console.log("botOperationInlineDataMap: ", botOperationInlineDataMap);
+        // console.log("prefillFieldToSourceMap: ", prefillFieldToSourceMap);
+
+        // 
+        const fieldIDToValueJSON = {};
+        try {
+            for (const [prefillFieldID, sourceMap] of prefillFieldToSourceMap) {
+                const sourceFormID = Number(sourceMap.source_form_id),
+                    sourceFieldID = Number(sourceMap.source_field_id);
+
+                const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, sourceFormID);
+
+                let sourceFormActivityID = 0, sourceFormTransactionID = 0;
+                if (Number(formTimelineData.length) > 0) {
+                    sourceFormActivityID = Number(formTimelineData[0].data_activity_id);
+                    sourceFormTransactionID = Number(formTimelineData[0].data_form_transaction_id);
+                }
+                if (
+                    Number(sourceFormActivityID) > 0 &&
+                    Number(sourceFormTransactionID) > 0
+                ) {
+                    // Get the field value
+                    let fieldData = await getFieldValue({
+                        form_transaction_id: sourceFormTransactionID,
+                        form_id: sourceFormID,
+                        field_id: sourceFieldID,
+                        organization_id: request.organization_id
+                    });
+                    let fieldDataTypeID = 0;
+                    let fieldValue = '';
+                    if (fieldData.length > 0) {
+                        fieldDataTypeID = Number(fieldData[0].data_type_id);
+                        fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)];
+
+                        fieldIDToValueJSON[prefillFieldID] = fieldValue;
+                    }
+                }
+            }
+        } catch (error) {
+            return [error, null];
+        }
+
+        // console.log("fieldIDToValueJSON: ", fieldIDToValueJSON);
+
+        return [null, fieldIDToValueJSON];
     }
 
 }
