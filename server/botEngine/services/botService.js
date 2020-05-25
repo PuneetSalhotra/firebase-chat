@@ -6131,6 +6131,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     }
 
+    this.checkForParticipantRemoveBotOperationSuccess = async function (request) {
+        
+    }
+
 }
 
 module.exports = BotService;
