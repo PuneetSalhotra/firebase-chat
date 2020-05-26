@@ -6,8 +6,8 @@ const TimeUuid = require('cassandra-driver').types.TimeUuid;
 function AccessTokenInterceptor(app, responseWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
-        //console.log('REQ : ', req.headers);
-        //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');    
+        console.log('REQ : ', req.headers);
+        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
                 
         let bundleTransactionId = TimeUuid.now();
         req.body.service_id = "";
@@ -15,12 +15,10 @@ function AccessTokenInterceptor(app, responseWrapper) {
         req.body.url = req.url;
                 
         //Check for flag - Cognito or Redis Auth
-        //flag = 1 - Redis
-        //flag = 2 - Cognito
-        if(!req.headers.hasOwnProperty('authenticationflag')){
-            next();
-        } else if(req.headers.hasOwnProperty('authenticationflag') && Number(req.headers.authenticationflag) === 1) {
-            console.log('Proceeding to Redis Auth');
+        //x-grene-auth-flag = 1 - Redis
+        //x-grene-auth-flag = 2 - Cognito
+        if(Number(req.headers['x-grene-auth-flag']) === 1) {
+            console.log('Proceeding to Redis Auth coz x-grene-auth-flag is 1');
             next();
         } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
@@ -147,7 +145,8 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     //console.log(' ');                        
                             
                     url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
-                    //console.log(url);
+                    //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/ap-south-1_U5xHOaPMS/.well-known/jwks.json`;
+                    console.log(url);
                             
                     https.get(url, (resp) => {
                         let data = '';
@@ -177,6 +176,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             jwt.verify(token, pem, { algorithms: ['RS256'] }, function(err, decodedToken) {
                             if(err === null) {
                                 console.log('token verified successfully!');
+                                req.body.access_token_verified = 1;                                
                                 next();
                             } else {
                                 console.log('Some error in the token Verification');

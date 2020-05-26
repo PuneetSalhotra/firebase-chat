@@ -8,27 +8,50 @@ function DiffbotService(objectCollection) {
   accountsList = []
   articleType = 'article'
   tenderType = 'tender'
+  var start_from = 0
+  var limit_value = 500
+  var currentNumberOfAccounts
+  var AsyncLock = require('async-lock');
+  var lock = new AsyncLock();
+  hasMoreData = true
 
   this.queryDiffbot = async diffbotrequest => {
-    try {  
-       accountsList =  await getAccountsList(diffbotrequest,"");
-       let channel = Channel(accountsList);
-       for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
-       {
-        Worker()(channel);
-       }
+    try {
+    
+        let channel = Channel(accountsList);
+        for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
+        {
+         Worker()(channel);
+        }        
       return "succesfull";
     } catch (error) {
       return Promise.reject(error);
     }
   };
 
+  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest)
+  {
+     accountsListTmp = await getAccountsList(
+      diffbotrequest,
+      "",
+      start_from,
+      limit_value 
+    );
+    accountsList.push(...accountsListTmp)
+    currentNumberOfAccounts = accountsList.length
+  }
+
   function getKnowledgeGraphUrl() {
     return global.config.knowledgeGraphUrl;
   }
 
   function getKnowledgeGraphTypeParams() {
-    return ":Article ";
+    return ":Article";
+  }
+
+  function getknowledgeGraphPublishedCountry()
+  {
+    return 'publisherCountry:"India" '
   }
 
   function getKnowledgeTypeDateParams() {
@@ -43,19 +66,18 @@ function DiffbotService(objectCollection) {
   {
     var knowlegdeGraphUrl = getKnowledgeGraphUrl();
     var KnowledgeGraphTypeParams = getKnowledgeGraphTypeParams();
+    var knowledgeGraphPublishedCountry = getknowledgeGraphPublishedCountry()
     var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
     var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
     var diffbotrequest = {}
     let results = new Array();
     let paramsArray;
-    var knowledgeGraphAllParams = getKnowledgeGraphAllParams(
+    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
       account["activity_title"],
       knowlegeGraphKeywordsOrParams,
       KnowledgeGraphTypeParams,
-      knowlegeGrapDateParams
-    );
-    var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
-      knowledgeGraphAllParams
+      knowlegeGrapDateParams,
+      knowledgeGraphPublishedCountry
     );
     var knowledgeGraphApiUrl =
       knowlegdeGraphUrl + encodedKnowledgeGraphParams;
@@ -99,7 +121,7 @@ function DiffbotService(objectCollection) {
 
   const Worker = () => (channel) => {
     const next = async () => {
-      const account = channel.getWork();
+      const account =  await channel.getWork();
       if (!account) {
         return;
       }
@@ -111,8 +133,28 @@ function DiffbotService(objectCollection) {
   }
 
   const Channel = (queue) => {
-    return { getWork: () => {
-      return queue.pop();
+    return { getWork:  async() => {
+      if(queue.length == 0 )
+      {
+        var lockResult =await lock.acquire('key',   async function() {
+         if(queue.length == 0 && hasMoreData)
+         {
+            await processAccountsDiffbot(start_from,limit_value,{})
+            start_from = start_from + limit_value
+            if(queue.length<limit_value)
+            {
+              hasMoreData = false
+            }
+         }
+     },{}).then(function(){
+       return queue.pop();
+      })
+     return lockResult
+      }
+      else
+      {
+        return queue.pop()
+      }
     }};
   };
 
@@ -137,28 +179,21 @@ function DiffbotService(objectCollection) {
     return knowlegeGraphKeywordsOrParams;
   }
 
-  function getKnowledgeGraphAllParams(
-    account_name,
+
+  function getEncodedKnowledgeGraphParams(account_name,
     knowlegeGraphKeywordsOrParams,
     KnowledgeGraphTypeParams,
-    knowlegeGrapDateParams
-  ) {
-    var knowledgeGraphAllParams =
-      KnowledgeGraphTypeParams +
-      knowlegeGrapDateParams +
-      "text:'" +
-      account_name +
-      "' " +
-      knowlegeGraphKeywordsOrParams;
-    console.log(knowledgeGraphAllParams);
-    return knowledgeGraphAllParams;
-  }
+    knowlegeGrapDateParams,
+    knowledgeGraphPublishedCountry) {
 
-  function getEncodedKnowledgeGraphParams(knowledgeGraphAllParams) {
-    var encodedKnowledgeGraphParams = encodeURIComponent(
-      knowledgeGraphAllParams
-    );
-    return encodedKnowledgeGraphParams;
+      var encodededKnowledgeGraphTypeParams = encodeURIComponent(KnowledgeGraphTypeParams)
+      var encodedKnowledgeGraphPublishedCountry = encodeURIComponent(knowledgeGraphPublishedCountry)
+      var encodedKnowledgeGraphDateParams = encodeURIComponent(knowlegeGrapDateParams)
+      var accountText= "text:'" +account_name +"' "
+      var encodedAccountName = encodeURIComponent(accountText)
+      var encodedKnowledgeGraphOrParams = encodeURIComponent(knowlegeGraphKeywordsOrParams)
+      var encodedKnowledgeGraphParams =  encodededKnowledgeGraphTypeParams + "+"+encodedKnowledgeGraphPublishedCountry+encodedKnowledgeGraphDateParams+encodedAccountName+encodedKnowledgeGraphOrParams
+      return encodedKnowledgeGraphParams;
   }
 
   async function checkIfAccountIDArticleIdExist(
@@ -213,12 +248,12 @@ function DiffbotService(objectCollection) {
     return result;
   }
 
-  async function getAccountsList(request,searchStr) {
+  async function getAccountsList(request,searchStr,start_from,limit_value) {
     let result;
     let paramsArray;
-    paramsArray = new Array(906, 0, 0, 0,150450,searchStr, 0, 0, 0, 50);
+    paramsArray = new Array(searchStr,start_from,limit_value);
     const queryString = util.getQueryString(
-      "ds_p1_activity_list_search_workflow_reference",
+      "ds_p1_1_activity_list_select_web_crawling",
       paramsArray,
       1
     );
@@ -377,7 +412,7 @@ function DiffbotService(objectCollection) {
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
-             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"]);
+             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"],0,50);
              for( var j=0;j<accountsList.length;j++)
              {
               if (

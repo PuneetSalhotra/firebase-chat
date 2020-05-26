@@ -42,6 +42,9 @@ var DiffbotController = require('../diffbot/controllers/diffbotController')
 const AdminListingController = require('../Administrator/controllers/adminListingController');
 const AdminOpsController = require('../Administrator/controllers/adminOpsController');
 
+// DOA Services
+const doaController = require('../Doa/controllers/doaController');
+
 // URL Services
 const UrlListingController = require('../UrlShortner/controllers/urlListingController');
 const UrlOpsController = require('../UrlShortner/controllers/urlOpsController');
@@ -52,6 +55,9 @@ const LedgerOpsController = require('../Ledgers/controllers/ledgerOpsController'
 
 // Stats
 var StatsController = require('../controllers/statsController');
+
+// Ledger Services
+const WorkbookOpsController_VodafoneCustom = require('../Workbook/controllers/workbookOpsController_VodafoneCustom');
 
 function ControlInterceptor(objCollection) {
 
@@ -88,23 +94,31 @@ function ControlInterceptor(objCollection) {
     new BotController(objCollection);
     new WorkflowQueueController(objCollection);
     new CommnTemplateController(objCollection);
-    new elasticSearchController(objCollection)
+    new elasticSearchController(objCollection);
     ////////////////////////////////
 
     // diffbot
 
-    new DiffbotController(objCollection)
+    new DiffbotController(objCollection);
 
     // Administrator Services UI
     new AdminListingController(objCollection);
     new AdminOpsController(objCollection);
 
     // URL Services
-    new UrlListingController(objCollection)
-    new UrlOpsController(objCollection)
+    new UrlListingController(objCollection);
+    new UrlOpsController(objCollection);
 
     // Ledger Services
     new LedgerListingController(objCollection);
     new LedgerOpsController(objCollection);
-};
+
+    //DOA services
+    new doaController(objCollection);
+    
+    if (process.env.ENABLE_CUSTOM_EXCEL_BOT) {
+        new WorkbookOpsController_VodafoneCustom(objCollection);
+    }
+
+}
 module.exports = ControlInterceptor;

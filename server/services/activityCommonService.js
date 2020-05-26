@@ -791,7 +791,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.app_version,
             request.service_version,
             request.log_asset_id || request.asset_id,
-            messageUniqueId,
+            messageUniqueId || 0,
             retryFlag,
             request.flag_offline || 0,
             request.track_gps_datetime,
@@ -4300,6 +4300,14 @@ this.getAllParticipantsAsync = async (request) => {
                 //entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
+            case 718: // Workbook mapped
+            case 719: // Workbook updated
+                entityText1 = request.workbook_s3_url;
+                entityText2 = "";
+                activityTimelineCollection = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
             case 709: // cloud based document -- Form
@@ -4436,7 +4444,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.app_version,
             request.service_version,
             request.log_asset_id || request.asset_id,
-            messageUniqueId,
+            messageUniqueId || 0,
             retryFlag,
             request.flag_offline || 0,
             request.track_gps_datetime,
@@ -5370,6 +5378,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         //flag = 0 = ALL bots
         //flag = 1 = Only Field based bots
         //flag = 2 = ONly Form Based bots
+        //flag = 3 = ONly sepecific Form Based bots to be triggered in field edit
         
         let responseData = [],
             error = true;

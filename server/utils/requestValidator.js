@@ -29,7 +29,7 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
         // Activity
         workflow_activity_id: Joi.number(),
         activity_id: Joi.number(),
-        activity_status_id: Joi.number(),
+        // activity_status_id: Joi.number(),
         // activity_type_category_id: Joi.number(),
         activity_type_id: Joi.number(),
         workflow_activity_type_id: Joi.number(),
@@ -99,6 +99,7 @@ requestValidator.requestContentTypeValidator = async function (req, res, next) {
 
 requestValidator.setResponseContentType = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.cookie('grene', '1', { httpOnly: true, secure: true });
     next();
 }
 

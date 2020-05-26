@@ -1590,7 +1590,11 @@ function ActivityListingService(objCollection) {
 				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3']),
 				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count']),
 				"parent_status_id":util.replaceDefaultNumber(rowData['parent_status_id']),
-				"parent_status_name":util.replaceDefaultNumber(rowData['parent_status_name'])
+				"parent_status_name":util.replaceDefaultString(rowData['parent_status_name']),
+				"activity_type_tag_id": util.replaceDefaultNumber(rowData['activity_type_tag_id']),
+				"activity_type_tag_name": util.replaceDefaultString(rowData['activity_type_tag_name']),
+				"tag_type_id": util.replaceDefaultNumber(rowData['tag_type_id']),
+				"tag_type_name": util.replaceDefaultString(rowData['tag_type_name'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
@@ -1702,6 +1706,15 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
+					if (Array.isArray(data)) {
+						data = data.map((assetData) => {
+							delete assetData.asset_phone_passcode;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_push_notification_id;
+							return assetData;
+						})
+					}
 					callback(false, data, 200);
 				} else {
 					callback(err, false, -9999);
