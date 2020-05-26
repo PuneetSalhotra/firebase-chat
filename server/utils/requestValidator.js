@@ -12,9 +12,9 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
     }
 
     const validationSchema = Joi.object({
-        organization_id: Joi.number(),
-        account_id: Joi.number(),
-        workforce_id: Joi.number(),
+        // organization_id: Joi.number(),
+        // account_id: Joi.number(),
+        // workforce_id: Joi.number(),
 
         asset_id: Joi.number(),
         target_asset_id: Joi.number(),
