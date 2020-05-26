@@ -3,7 +3,15 @@ const logger = require('../../logger/winstonLogger');
 const XLSX = require('xlsx');
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
-const { serializeError } = require('serialize-error')
+const { serializeError } = require('serialize-error');
+
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
 function AdminOpsService(objectCollection) {
 
@@ -821,7 +829,6 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewEmployeeToExistingDesk = async function (request) {
-
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
@@ -1057,6 +1064,9 @@ function AdminOpsService(objectCollection) {
                 console.log("addNewEmployeeToExistingDesk | activityAssetMappingUpdateOperationAssetData | activityListHistoryInsert | Error: ", error);
             }
         }
+
+        //Add the number to Cognito
+        await addUser('+' + request.country_code +''+request.phone_number);
 
         // Send SMS to the newly added employee
         try {
@@ -1983,6 +1993,9 @@ function AdminOpsService(objectCollection) {
                 console.log("removeEmployeeMappedToDesk | Co-Worker | activityTimelineTransactionInsert | Error: ", error);
             }
         }
+
+        //Remove User from Cognito
+        await removeUser('+' + request.country_code +''+request.phone_number);
 
         // Update Desk Asset Status to Employee Not Assigned
         try {
@@ -7520,6 +7533,51 @@ function AdminOpsService(objectCollection) {
         }
 
         return [error, finalResponse];
+    }
+
+    async function addUser(username) {
+        console.log('                   ');
+        console.log('*******************');
+        console.log('Adding : ', username);
+        let params = {
+            UserPoolId: global.config.user_pool_id,
+            Username: username,
+            
+            //TemporaryPassword: 'STRING_VALUE',
+            UserAttributes: [
+              {
+                Name: 'phone_number', /* required */
+                Value: username
+              },            
+            ],            
+          };
+      
+        await new Promise((resolve, reject)=>{
+            cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                } else {
+                console.log(data);           // successful response
+                }
+    
+                resolve();
+            });
+        });
+    
+        return "success";	  
+    }
+
+    async function removeUser(username) {
+        var params = {
+            UserPoolId: global.config.user_pool_id,
+            Username: username /* required */
+          };
+          cognitoidentityserviceprovider.adminDeleteUser(params, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else     console.log(data);           // successful response
+          });
+    
+        return "success";	  
     }
 
 }
