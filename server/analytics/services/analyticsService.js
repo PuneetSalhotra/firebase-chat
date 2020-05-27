@@ -1168,7 +1168,7 @@ function AnalyticsService(objectCollection)
 
                                     tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values_hierarchy', paramsArray, 1);
                                     console.log(tempResult);
-                                    if(request.widget_type_id == 23 || request.widget_type_id == 24){
+                                    if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38){
                                         results[iterator] =
                                         (
                                             {
@@ -1176,6 +1176,7 @@ function AnalyticsService(objectCollection)
                                                 "result": tempResult,
                                             }
                                         );
+
                                     }else{
                                         let totalValue = 0;
                                          //console.log("request.widget_type_id :: "+request.widget_type_id);
