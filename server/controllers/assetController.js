@@ -739,5 +739,19 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });      
+
+    app.post('/' + global.config.version + '/asset/link/set/v1', (req, res) => {
+        assetService.linkAsset(req.body, (err, data, statusCode) => {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                return;
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 module.exports = AssetController;

@@ -898,6 +898,17 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list/v1', (req, res) => {
+        activityListingService.getOrganizationsOfANumber(req.body, (err, data, statusCode) => {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 
 module.exports = ActivityListingController;
