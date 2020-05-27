@@ -17,7 +17,8 @@ function AccessTokenInterceptor(app, responseWrapper) {
         //Check for flag - Cognito or Redis Auth
         //x-grene-auth-flag = 1 - Redis
         //x-grene-auth-flag = 2 - Cognito
-        if(Number(req.headers['x-grene-auth-flag']) === 1 || !(req.headers['x-grene-auth-flag'])) {
+        //if(Number(req.headers['x-grene-auth-flag']) === 1 || !(req.headers['x-grene-auth-flag'])) {
+        if(Number(req.headers['x-grene-auth-flag']) === 1) {
             console.log('Proceeding to Redis Auth coz x-grene-auth-flag is 1');
             next();
         } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
