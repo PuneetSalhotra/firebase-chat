@@ -1140,7 +1140,7 @@ function AnalyticsService(objectCollection)
                                     new Array
                                     (
                                         parseInt(request.widget_type_id),
-                                        1,
+                                        parseInt(request.filter_date_type_id),
                                         parseInt(request.filter_timeline_id),
                                         timezoneID,
                                         timezoneOffset,
