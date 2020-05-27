@@ -5909,7 +5909,8 @@ function BotService(objectCollection) {
             if(Number(i_iterator.field_data_type_id) === 57) {
                 let fieldValue = i_iterator.field_value;
                 if(fieldValue.includes('|')) {                    
-                    parentActivityID = fieldValue.split('|')[1];
+                    //parentActivityID = fieldValue.split('|')[1];                    
+                    parentActivityID = fieldValue.split('|')[0];
                 }
             }
         }
@@ -5923,6 +5924,7 @@ function BotService(objectCollection) {
                                         limit_value: 50
                                     });
 
+        console.log('segmentData : ', segmentData);
         let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
         console.log('segmentData : ', segmentName);
         switch(segmentName) {            
