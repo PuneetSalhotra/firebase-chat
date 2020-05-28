@@ -49,6 +49,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     switch (req.url) {                        
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
+                        case '/' + global.config.version + '/asset/passcode/alter/v2':
                             //case '/' + global.config.version + '/sms-dlvry/sinfini':
                             //case '/' + global.config.version + '/sms-dlvry/nexmo':
                             //case '/' + global.config.version + '/sms-dlvry/twilio':
@@ -159,15 +160,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
                                     return;
                                 } else {                                    
-                                    global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
-                                    global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
-                                    
-                                    if(req.body.asset_token_auth === 'undefined') {
-                                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
-                                        res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
-                                        return;
-                                    } else if (encToken === req.body.asset_token_auth) {
+                                    global.logger.write('conLog', encToken, {}, req.body);
+                                    if (encToken === req.body.asset_token_auth) {                                        
                                         global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
                                         next();
                                     } else {                                        
