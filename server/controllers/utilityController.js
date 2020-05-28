@@ -337,5 +337,38 @@ function UtilityController(objCollection) {
         }
     });
 
+    // send/email/v3 -- /send/email/v5 - need auth token or accesstoken
+    app.post('/' + global.config.version + '/send/email/v5', (req, res) => {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template;
+        let emailReceiver = req.body.email_receiver;
+
+        util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+            }
+        });
+    });
+
+
+    // send/email/v4 -- /send/email/v6 - need auth token or accesstoken
+    app.post('/' + global.config.version + '/send/email/v6', (req, res) => {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template;
+        let emailReceiver = req.body.email_receiver;
+
+        util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, err, -100, req.body));
+            }
+        });
+    });
+
 }
 module.exports = UtilityController;
