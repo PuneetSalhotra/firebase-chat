@@ -1688,13 +1688,23 @@ function ActivityListingService(objCollection) {
 
 	};
 
-	this.getOrganizationsOfANumber = function (request, callback) {
+	this.getOrganizationsOfANumber = function (requestHeaders, request, callback) {
 		var queryString = '';
+		let phoneNumber;
+		let countryCode;		
 
-		var paramsArr = new Array(
+		if((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
+			phoneNumber = request.phone_number;
+			countryCode = request.country_code;
+		} else {			
+			phoneNumber = requestHeaders['x-grene-p-code'];
+			countryCode = requestHeaders['x-grene-c-code'];
+		}
+		
+		const paramsArr = new Array(
 			request.organization_id || 0,
-			request.phone_number,
-			request.country_code
+			phoneNumber, //request.phone_number,
+			countryCode  //request.country_code
 		);
 
 		if(request.hasOwnProperty("allow_temp_organization")){
@@ -1713,7 +1723,7 @@ function ActivityListingService(objCollection) {
 							delete assetData.asset_passcode_expiry_datetime;
 							delete assetData.asset_push_notification_id;
 							return assetData;
-						})
+						});
 					}
 					callback(false, data, 200);
 				} else {
