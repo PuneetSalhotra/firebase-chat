@@ -3,6 +3,14 @@ const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
+
 function AccessTokenInterceptor(app, responseWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
@@ -137,7 +145,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             
                     // get the decoded payload and header
                     decoded = jwt.decode(token, {complete: true});
-                    //console.log(decoded);
+                    //console.log('decoded : ', decoded);
                     if(decoded === null) {
                         console.log('Invalid token');
                         res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
@@ -159,7 +167,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             
                         // The whole response has been received. Print out the result.
                         resp.on('end', () => {  	
-                            //console.log(data);
+                            //console.log('DATA : ', data);
                             data = JSON.parse(data);
                             keys = data.keys;
                             //console.log(keys);
@@ -170,15 +178,45 @@ function AccessTokenInterceptor(app, responseWrapper) {
                                     break;
                                 }
                             }
-                            //console.log(jwk);                                
+                            //console.log(jwk);
                             pem = jwkToPem(jwk);
-                            //console.log(pem);
+                            //console.log('PEM : ', pem);                            
                             
-                            jwt.verify(token, pem, { algorithms: ['RS256'] }, function(err, decodedToken) {
+                            jwt.verify(token, pem, { algorithms: ['RS256'] }, async(err, decodedToken) => {
                             if(err === null) {
-                                console.log('token verified successfully!');
-                                req.body.access_token_verified = 1;                                
-                                next();
+                                console.log('UserName : ', decoded.payload.username);                                
+
+                                //get the username based on the given phonenumber
+                                let params = {
+                                        UserPoolId: global.config.user_pool_id,
+                                        Username: '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code']
+                                    };
+                                
+                                console.log('PARAMS : ', params);
+                                //await new Promise(()=>{
+                                cognitoidentityserviceprovider.adminGetUser(params, (err, data) => {
+                                    if (err) {
+                                        console.log(err, err.stack);
+                                        console.log('Invalid token');
+                                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                        return;
+                                    } else {
+                                        console.log('User Data : ', data);                                       
+
+                                        if(data.Username == decoded.payload.username) {
+                                            console.log('token verified successfully!');
+                                            req.body.access_token_verified = 1;                                
+                                            next();
+                                        } else {
+                                            console.log('Invalid token - UserName does not match');
+                                            res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                            return;
+                                        }
+                                    }
+                                });
+                                //});                                    
+                                
+                                
                             } else {
                                 console.log('Some error in the token Verification');
                                 global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
