@@ -3,15 +3,72 @@ const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
-const AWS_Cognito = require('aws-sdk');
-AWS_Cognito.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
-    "secretAccessKey": "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",
-    "region": "ap-south-1"
-});
-const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
+//const AWS_Cognito = require('aws-sdk');
+//AWS_Cognito.config.update({
+//    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
+//    "secretAccessKey": "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",
+//    "region": "ap-south-1"
+//});
+//const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
-function AccessTokenInterceptor(app, responseWrapper) {
+//var map = new Map();
+
+/*async function listUsers(paginationToken = null) {
+	var params = {
+		UserPoolId: global.config.user_pool_id,
+		Limit: 60
+	};
+
+	//console.log('paginationToken : ', paginationToken);
+	if(paginationToken != null) {
+		params = {
+            UserPoolId: global.config.user_pool_id,
+            Limit: 60,
+            PaginationToken: paginationToken
+        };
+	}
+
+	await new Promise((resolve, reject)=>{
+		cognitoidentityserviceprovider.listUsers(params, async (err, data)=>{
+		if(err) {
+			console.log(err);
+		} else {
+			//console.log(data);
+			let users = data.Users;
+			//console.log(users[0])
+			console.log(users.length);
+			
+			//console.log(users[0].Username);
+			//console.log(users[0].Attributes[1].Value);
+
+			for(const i of users) {
+				for(const j of i.Attributes) {
+					if(j.Name === 'phone_number') {
+						map.set(i.Username, j.Value);
+					}
+				}
+			}
+			
+			if(data.PaginationToken != "" && Number(users.length) === 60) {
+				await listUsers(data.PaginationToken);
+			}
+
+			resolve();			
+		}
+		});	
+	});
+	
+}*/
+
+/*async function nani() {
+	await listUsers();
+	console.log('In functino Nani : ', map.size);
+	console.log(map);
+}
+nani();
+console.log('Hello');*/
+
+function AccessTokenInterceptor(app, responseWrapper, map) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
         console.log('REQ : ', req.headers);
@@ -151,6 +208,9 @@ function AccessTokenInterceptor(app, responseWrapper) {
                         res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                         return;
                     }
+
+                    let userNameFromAccessToken = decoded.payload.username;
+
                     //console.log(' ');                        
                             
                     url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
@@ -182,38 +242,113 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             pem = jwkToPem(jwk);
                             //console.log('PEM : ', pem);                            
                             
-                            jwt.verify(token, pem, { algorithms: ['RS256'] }, async(err, decodedToken) => {
+                            jwt.verify(token, pem, { algorithms: ['RS256'] }, async (err, decodedToken) => {
                             if(err === null) {
-                                console.log('UserName : ', decoded.payload.username);                                
-
                                 //get the username based on the given phonenumber
                                 let params = {
                                         UserPoolId: global.config.user_pool_id,
                                         Username: '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code']
                                     };
+                                let phoneNumber = '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code'];
+
+                                //console.log('decodedToken : ', decodedToken);
+                                console.log('UserName and phoneNumber from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
+                                //console.log('PARAMS : ', params);
+
+                                if(map.has(userNameFromAccessToken)) {
+                                    
+                                    if(map.get(userNameFromAccessToken) === phoneNumber) {
+                                        console.log('token verified successfully!');
+                                        req.body.access_token_verified = 1;                                
+                                        next();
+                                    } else { 
+                                        console.log('#########################################');
+                                        console.log('Phone Number from the Mapped Username in Map: ', map.get(userNameFromAccessToken));
+                                        console.log('Phone Number from Request Headers: ', phoneNumber);
+                                        console.log('');
+                                        console.log('User Name for Access Token : ', userNameFromAccessToken);
+                                        console.log('');
+                                        console.log('Invalid token - UserName does not match');
+                                        console.log('#########################################');
+                                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                        return;
+                                    }
+                                } else {
+                                    console.log('UserName from the accessToken is not present in the Map');
+                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    return;
+                                }
                                 
-                                console.log('PARAMS : ', params);
                                 //await new Promise(()=>{
-                                cognitoidentityserviceprovider.adminGetUser(params, (err, data) => {
+                                /*let phoneNumber = '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code'];
+                                var params1 = {
+                                    UserPoolId: global.config.user_pool_id,
+                                    //AttributesToGet: [
+                                    //	'phone_number',
+                                    //	//'Username'
+                                    //],
+                                    //Filter: "username = \"07c477f9-f6e5-4b96-b9cd-24eb535ff533\" AND phone_number = \"+919502266634\"" ,
+                                    //Filter: "phone_number = \"+919502266633\" AND username = \"07c477f9-f6e5-4b96-b9cd-24eb535ff533\"" ,
+                                    Filter: "phone_number = \"" +  phoneNumber + "\"",
+                                    Limit: 1
+                                };
+                                let userNameFromCognito = await cognitoidentityserviceprovider.listUsers(params1).promise();
+                                //let userNameFromCognito = await cognitoidentityserviceprovider.adminGetUser(params).promise();
+                                console.log('userNameFromCognito : ', userNameFromCognito);
+
+                                let user = userNameFromCognito.Users;
+                                if(user.length === 0) {
+                                    console.log('No User Found');
+                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    return;
+                                }
+			                    console.log(user[0]);
+
+                                if(user[0].Username === decoded.payload.username) {
+                                    console.log('token verified successfully!');
+                                    req.body.access_token_verified = 1;                                
+                                    next();
+                                } else {
+                                    console.log('#########################################');
+                                    console.log('From cognito User Name : ', user[0].Username);
+                                    console.log('typeof From cognito User Name : ', typeof user[0].Username);
+
+                                    console.log('From Access token : ', decoded.payload.username);
+                                    console.log('typeof From Access token : ', typeof decoded.payload.username);
+
+                                    console.log('Invalid token - UserName does not match');
+                                    console.log('#########################################');
+                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    return;
+                                }
+
+                                /*cognitoidentityserviceprovider.adminGetUser(params, (err, data) => {
                                     if (err) {
                                         console.log(err, err.stack);
                                         console.log('Invalid token');
                                         res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                                         return;
                                     } else {
-                                        console.log('User Data : ', data);                                       
+                                        console.log('User Data : ', data);
+                                        let userNameFromCognito = data.Username;
 
-                                        if(data.Username == decoded.payload.username) {
+                                        if(userNameFromCognito === userNameFormAccesstoken) {
                                             console.log('token verified successfully!');
                                             req.body.access_token_verified = 1;                                
                                             next();
                                         } else {
+                                            console.log('From cognito User Name : ', data.Username);
+                                            console.log('typeof From cognito User Name : ', typeof data.Username);
+
+                                            console.log('From Access token : ', decoded.payload.username);
+                                            console.log('typeof From Access token : ', typeof decoded.payload.username);
+
                                             console.log('Invalid token - UserName does not match');
                                             res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                                             return;
                                         }
                                     }
-                                });
+                                });*/
                                 //});                                    
                                 
                                 
