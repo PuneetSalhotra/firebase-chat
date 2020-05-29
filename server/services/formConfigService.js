@@ -843,7 +843,8 @@ function FormConfigService(objCollection) {
                     request.form_transaction_id, //0
                     request.form_id, //1
                     request.field_id, //2
-                    request.data_type_combo_id || row.data_type_combo_id, //3
+                    request.data_type_combo_id || 0, //3
+                    //request.data_type_combo_id || row.data_type_combo_id, //3
                     request.activity_id, //4
                     request.asset_id, //5
                     request.workforce_id, //6
