@@ -166,12 +166,13 @@ function AssetService(objectCollection) {
                     phoneNumber,
                     msgString: smsMessage,
                     failOver: true,
-                    appName
+                    appName: ''
                 });
 
                 return;
             }
         } catch (error) {
+            let responseCode = 200;
             console.log("checkIfOTPRateLimitExceeded | Error: ", error);
             // if (request.url.includes('v2')) { responseCode = 429; }
             callback(true, {
