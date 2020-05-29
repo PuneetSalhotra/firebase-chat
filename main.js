@@ -314,7 +314,12 @@ async function listUsers(paginationToken = null) {
 			}
 			
 			if(data.PaginationToken != "" && Number(users.length) === 60) {
-				await listUsers(data.PaginationToken);
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{
+                        resolve();
+                    }, 500);
+                });
+                await listUsers(data.PaginationToken);
 			}
 
 			resolve();			
