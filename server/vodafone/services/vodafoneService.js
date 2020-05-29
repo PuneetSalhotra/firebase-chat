@@ -6130,7 +6130,8 @@ function VodafoneService(objectCollection) {
 			request.page_start || 0,
 			request.page_limit
         );        
-        const queryString = util.getQueryString('ds_p1_1_activity_list_search_workflow_reference', paramsArr);
+        //const queryString = util.getQueryString('ds_p1_1_activity_list_search_workflow_reference', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_activity_list_search_workflow_reference', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

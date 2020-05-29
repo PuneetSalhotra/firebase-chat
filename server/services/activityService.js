@@ -511,7 +511,7 @@ function ActivityService(objectCollection) {
                                 // Do nothing
                             }*/
 
-                            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 9) { 
+                            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 9 || activityTypeCategroyId === 54) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');
@@ -531,7 +531,8 @@ function ActivityService(objectCollection) {
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
                                                 break;
-                                        case 68: await activityActivityMappingInsert(request, fieldData);
+                                        case 68: //await activityActivityMappingInsert(request, fieldData);
+                                                 await activityActivityMappingInsertV1(request, fieldData);
                                                  break;
                                         default: break;
                                     }
@@ -2230,6 +2231,14 @@ function ActivityService(objectCollection) {
 
                 //callback(false, {}, 200);
                 //return;
+            }else if(
+                Number(workforceActivityStatusData.length) > 0 &&
+                Number(workforceActivityStatusData[0].activity_status_type_category_id) === 2
+                ){
+                await activitySubStatusMappingInsert({
+                    ...request,
+                    sub_status_trigger_time: util.getCurrentUTCTime()
+                }, activityStatusId)
             }
         } catch (error) {
             logger.error(`Error checking sub-status data`, { type: "alter_status", error: serializeError(error), request_body: request });
@@ -5010,6 +5019,35 @@ function ActivityService(objectCollection) {
             })
         }
         return [error, responseData];
+    }
+
+    //Handling Arrya of Objects wala input
+    async function activityActivityMappingInsertV1(request, fieldData) {
+        let currentWorkflowActivityId = request.activity_id; //workflow activity id
+        if(Number(request.activity_type_category_id) === 9) {            
+            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+            if (workflowError !== false || workflowData.length === 0) {
+                console.log('workflowError : ', workflowError);
+                console.log('workflowData : ', workflowData);
+                return [workflowError, workflowData];
+            }
+            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+        }
+
+        console.log('fieldData V1: ', fieldData);
+        console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
+        
+        try{
+            let fieldValue = JSON.parse(fieldData.field_value);
+            for(const i of fieldValue) {
+                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+            }
+        } catch(err) {
+            console.log('Error in parsing workflow reference datatype V1: ', parsedFieldValue);
+            return "Failure";
+        }
+
+        return "success";
     }
 
 }
