@@ -2230,6 +2230,14 @@ function ActivityService(objectCollection) {
 
                 //callback(false, {}, 200);
                 //return;
+            }else if(
+                Number(workforceActivityStatusData.length) > 0 &&
+                Number(workforceActivityStatusData[0].activity_status_type_category_id) === 2
+                ){
+                await activitySubStatusMappingInsert({
+                    ...request,
+                    sub_status_trigger_time: util.getCurrentUTCTime()
+                }, activityStatusId)
             }
         } catch (error) {
             logger.error(`Error checking sub-status data`, { type: "alter_status", error: serializeError(error), request_body: request });
