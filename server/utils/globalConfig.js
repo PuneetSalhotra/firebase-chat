@@ -906,3 +906,8 @@ config.cassandraCredentialsProd = {
 //OPENTOK
 config.opentok_apiKey = "46050712";
 config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
+
+//Cognito CLI Access
+config.access_key_id = "AKIAWIPBVOFRSA6UUSRC";
+config.secret_access_key = "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";
+config.cognito_region = "ap-south-1";
