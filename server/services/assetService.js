@@ -4875,6 +4875,10 @@ this.getQrBarcodeFeeback = async(request) => {
         }
         return [error, assetData];
     };
+
+    this.getAssetMessageCounter = async(request)=> {
+        return await cacheWrapper.getAssetParityPromise(Number(request.asset_id));
+    };
 }
 
 module.exports = AssetService;
