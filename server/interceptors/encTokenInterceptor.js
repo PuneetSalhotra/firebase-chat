@@ -4,9 +4,50 @@
 //var uuid = require('uuid');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
-function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
+function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {   
+    
+    async function checkThisService(req, res, next) {
+        //let proceed = false;
+        console.log('In checkThisService');
+        let asset_id = req.body.auth_asset_id || req.body.asset_id;
+        switch (req.url) {
+            case '/' + global.config.version + '/activity/access/asset/list/v1': 
+            cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
+                if (err) {                               
+                    global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
+                    res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
+                    return;
+                } else {                                    
+                    global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
+                    global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
+                    
+                    if(req.body.asset_token_auth === 'undefined') {
+                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
+                        return;
+                    } else if (encToken === req.body.asset_token_auth) {
+                        global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
+                        //proceed = true;
+                        next();
+                    } else {                                        
+                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
+                        return;
+                    }
+                }
 
-    app.use(function (req, res, next) {
+            });
+            break;
+            
+            default: next();
+        }
+
+        //return proceed;
+    }
+
+    app.use(async (req, res, next) => {
         //cacheWrapper.getServiceId(req.url, function (err, result) {
 
             //if (err) {
@@ -26,10 +67,18 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 
                 if(Number(req.headers['x-grene-auth-flag']) === 2) {
                     console.log('Skipping Redis Auth coz x-grene-auth-flag is 2');
-                    next();
+                    
+                    (req.body.hasOwnProperty('asset_token_auth')) ?
+                        await checkThisService(req, res, next):
+                        next();
+
                 }else if(req.body.hasOwnProperty('access_token_verified') && Number(req.body.access_token_verified) === 1) {
                     console.log('Access token Verified');
-                    next();
+                    
+                    (req.body.hasOwnProperty('asset_token_auth')) ?
+                        await checkThisService(req, res, next):
+                        next();
+
                 }
                 else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
                     next();
@@ -46,7 +95,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     next();
                 } else {
 
-                    switch (req.url) {                        
+                    switch (req.url) {
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
                         case '/' + global.config.version + '/asset/passcode/alter/v2':
