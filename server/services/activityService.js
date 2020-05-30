@@ -511,7 +511,11 @@ function ActivityService(objectCollection) {
                                 // Do nothing
                             }*/
 
-                            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 9 || activityTypeCategroyId === 54) { 
+                            if(activityTypeCategroyId === 48 || 
+                               activityTypeCategroyId === 9  || 
+                               activityTypeCategroyId === 53 ||
+                               activityTypeCategroyId === 54 ||
+                               activityTypeCategroyId === 55) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');

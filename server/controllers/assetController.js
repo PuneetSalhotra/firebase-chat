@@ -767,5 +767,15 @@ function AssetController(objCollection) {
             }
         });
     });
+
+    app.post('/' + global.config.version + '/asset/message-counter/list', async (req, res) => {
+        const [err, responseData] = await assetService.getAssetMessageCounter(req.body);        
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/message-counter/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
 }
 module.exports = AssetController;

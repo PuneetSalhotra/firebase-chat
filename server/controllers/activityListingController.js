@@ -909,6 +909,20 @@ function ActivityListingController(objCollection) {
             }
         });
     });
+
+    app.post('/' + global.config.version + '/activity/access/asset/list/v1', function (req, res) {
+        activityListingService.getActivityListDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 
 module.exports = ActivityListingController;

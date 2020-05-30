@@ -572,6 +572,27 @@ function CacheWrapper(client) {
         });        
     };
 
+    this.getAssetParityPromise = async (assetId) => {
+        let error = true,
+            responseData = [];
+
+        await new Promise((resolve, reject)=>{
+            client.hget('asset_message_counter', assetId, function (err, reply) {
+                if (err) {
+                    logger.error(`HGET asset_message_counter ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve();                    
+                } else {
+                    logger.verbose(`HGET asset_message_counter ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                    error = false;
+                    responseData.push({'asset_message_counter': Number(reply)});
+                    resolve();
+                }
+            });
+        });
+        
+        return [error, responseData];
+    };
+
 }
 
 module.exports = CacheWrapper;
