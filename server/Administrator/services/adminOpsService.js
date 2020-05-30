@@ -7205,10 +7205,12 @@ function AdminOpsService(objectCollection) {
                                     account_id: request.account_id
                                 }, Number(request.workflow_activity_id), conditions[k].form_id);
                     
+                                //console.log(`Dependent form  - ${conditions[k].form_id} length : ${Number(dependentFormTransactionData.length)}`);
                             if (Number(dependentFormTransactionData.length) > 0) {                                
                                 dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
                                 //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
                                 let formData = dependentFormTransactionInlineData.form_submitted;
+                                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
                                 let breakFlag = 0; //to break the outer loop
     
                                 //Iterate on form data                                
@@ -7229,7 +7231,9 @@ function AdminOpsService(objectCollection) {
                                         break;
                                     }
                                 } else {
-                                    for(l=0;l<formData.length;l++){ //Iterate on the retrieved dependent Form Data
+                                    for(l=0;l<formData.length;l++){ //Iterate on the retrieved dependent Form Data                                                                                
+                                        //console.log(Number(conditions[k].field_id), ' - ', Number(formData[l].field_id), ' - ', formData[l].field_id);
+                                        
                                         if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
                                         
                                             let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
@@ -7392,7 +7396,7 @@ function AdminOpsService(objectCollection) {
             conditionStatus,
             error = false;
 
-        console.log(formData);        
+        console.log('formData in evaluateJoinCondition: ', formData);
         
         switch(Number(conditionData.data_type_id)) {
             case 5: let operation = conditionData.field_value_condition_operator;

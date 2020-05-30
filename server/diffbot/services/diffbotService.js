@@ -382,7 +382,9 @@ function DiffbotService(objectCollection) {
         W_Industry: "",
         W_WordSearch: "",
         TenderValue_Condition: "",
-        BifarcationSearch: ""
+        BifarcationSearch: "",
+        W_Location: "",
+        SubIndustryName: ""
       };
       tenderTigerApiUrl =
         "https://www.tendertiger.com/Contentnd/WebMethod/AdvanceTenderSearchWebMethod.aspx/GetAdvaceSearchData";
