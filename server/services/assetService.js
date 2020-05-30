@@ -149,15 +149,32 @@ function AssetService(objectCollection) {
             let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
             if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 5) {
-                if (request.url.includes('v2')) { responseCode = 429; }
+                // if (request.url.includes('v2')) { responseCode = 429; }
                 callback(false, {
                     message: `OTP rate limit exceeded!`
                 }, responseCode);
+                
+                const smsMessage = `Sorry, you have exceeded the number of times you can generate a fresh OTP. Please try again after one hour.`;
+                // util.sendSmsSinfiniV1(smsMessage, countryCode || 91, phoneNumber || 0, 'MYTONY', function (err, response) {
+                //     console.log('[getPhoneNumberAssetsV1] Sinfini Response: ', response);
+                //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
+                // });
+
+                smsEngine.emit('send-sinfini-sms', {
+                    type: 'NOTFCTN',
+                    countryCode,
+                    phoneNumber,
+                    msgString: smsMessage,
+                    failOver: true,
+                    appName: ''
+                });
+
                 return;
             }
         } catch (error) {
+            let responseCode = 200;
             console.log("checkIfOTPRateLimitExceeded | Error: ", error);
-            if (request.url.includes('v2')) { responseCode = 429; }
+            // if (request.url.includes('v2')) { responseCode = 429; }
             callback(true, {
                 message: `OTP rate limit check failed!`
             }, responseCode);
@@ -4857,6 +4874,10 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
         }
         return [error, assetData];
+    };
+
+    this.getAssetMessageCounter = async(request)=> {
+        return await cacheWrapper.getAssetParityPromise(Number(request.asset_id));
     };
 }
 
