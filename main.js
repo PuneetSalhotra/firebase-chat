@@ -317,7 +317,7 @@ async function listUsers(paginationToken = null) {
                 await new Promise((resolve, reject)=>{
                     setTimeout(()=>{
                         resolve();
-                    }, 500);
+                    }, 2000);
                 });
                 await listUsers(data.PaginationToken);
 			}
