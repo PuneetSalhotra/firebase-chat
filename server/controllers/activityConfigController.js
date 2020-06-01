@@ -151,14 +151,24 @@ function ActivityConfigController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/activity/check/duplicity', async function (req, res) {
+    app.post('/' + global.config.version + '/activity/check/duplicity', async (req, res) => {
         const [err, data] = await activityConfigService.checkDuplicate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/check/duplicity : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/asset/configs', async function (req, res) {
+        const [err, data] = await activityConfigService.getActivityConfigs(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-    });
+    });    
 }
 
 

@@ -1588,7 +1588,13 @@ function ActivityListingService(objCollection) {
 				"activity_cuid_1": util.replaceDefaultString(rowData['activity_cuid_1']),
 				"activity_cuid_2": util.replaceDefaultString(rowData['activity_cuid_2']),
 				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3']),
-				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count'])
+				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count']),
+				"parent_status_id":util.replaceDefaultNumber(rowData['parent_status_id']),
+				"parent_status_name":util.replaceDefaultString(rowData['parent_status_name']),
+				"activity_type_tag_id": util.replaceDefaultNumber(rowData['activity_type_tag_id']),
+				"activity_type_tag_name": util.replaceDefaultString(rowData['activity_type_tag_name']),
+				"tag_type_id": util.replaceDefaultNumber(rowData['tag_type_id']),
+				"tag_type_name": util.replaceDefaultString(rowData['tag_type_name'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
@@ -1700,6 +1706,15 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
+					if (Array.isArray(data)) {
+						data = data.map((assetData) => {
+							delete assetData.asset_phone_passcode;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_passcode_expiry_datetime;
+							delete assetData.asset_push_notification_id;
+							return assetData;
+						})
+					}
 					callback(false, data, 200);
 				} else {
 					callback(err, false, -9999);
@@ -2894,7 +2909,7 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	}
 
-	this.getActivitySubStatuses =  async function (request) {
+	this.getActivitySubStatuses =  async (request) => {
 		let responseData = [],
             error = true, finalResponse = [];
 
@@ -2963,6 +2978,7 @@ async function processFormInlineDataV1(request, data){
 			dataJson[data[j].sub_status_id] = {"sub_status_name":data[j].sub_status_name, "triggered_datetime":data[j].sub_status_trigger_time, "achieved_datetime":data[j].sub_status_achieved_time};
 		}
 		console.log('dataJson ::: '+JSON.stringify(dataJson));
+		
 		configData.forEach(function (rowData, index) {
 			let statusId = rowData['activity_status_id'];
 			console.log('dataJson.statusId.triggered_datetime :: '+util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00'));
@@ -2975,9 +2991,11 @@ async function processFormInlineDataV1(request, data){
 				"parent_status_name": util.replaceDefaultString(rowData['parent_status_name']),
 				"triggered_datetime": triggerDatetime,
 				"achieved_datetime": achievedDatetime,
+				"trigger_flag": dataJson[statusId] ? 1 : 0
 			};
 			responseData.push(rowDataArr);
 		}, this);
+
 		console.log('responseData :::2 '+JSON.stringify(responseData));
 		return responseData;
 	};
@@ -2997,6 +3015,89 @@ async function processFormInlineDataV1(request, data){
 			request.page_limit
         );        
         const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
+	
+	this.actAssetMappingNewFiltersList =  async (request) => {
+		//p_flag = 1 -- MY FOCUS
+		//p_flag = 2 -- MY UPDATES
+		//p_flag = 3 -- MY WORKFLOWS
+		//p_flag = 4 -- MY TASKS
+		//p_flag = 5 -- MY CONVERSATIONS
+		//p_flag = 6 -- MY DASHBOARD
+
+		//p_is_all = 0 -- ALL
+		//p_is_all = 1 -- created by me
+		//p_is_all = 2 -- lead byme
+
+		//p_is_sort = 1 -- due datetime
+		//p_is_sort = 2 -- created datetime
+		//p_is_sort = 3 -- last updated datetime
+		//p_is_sort = 4 -- log_datetime
+
+		//p_next_datetime = current_datetime + 2 days (used only in flag = 1)
+		
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.asset_id,
+			request.flag,
+			request.is_all_flag,
+			request.is_search,
+			request.search_string,
+			request.is_status,
+			request.is_sort,
+			request.next_datetime,
+			request.is_process,
+			request.activity_type_id,
+			request.is_tag,
+			request.tag_id,
+			request.is_tag_type,
+			request.tag_type_id,
+			request.page_start || 0,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_new_filters', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
+	this.getActivityDetails =  async (request) => {	
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.activity_id,
+			request.activity_type_id,
+			request.organization_id			
+        );        
+        const queryString = util.getQueryString('ds_v1_1_activity_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

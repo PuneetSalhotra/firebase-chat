@@ -425,6 +425,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -676,6 +678,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -787,7 +791,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.app_version,
             request.service_version,
             request.log_asset_id || request.asset_id,
-            messageUniqueId,
+            messageUniqueId || 0,
             retryFlag,
             request.flag_offline || 0,
             request.track_gps_datetime,
@@ -4296,6 +4300,14 @@ this.getAllParticipantsAsync = async (request) => {
                 //entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
+            case 718: // Workbook mapped
+            case 719: // Workbook updated
+                entityText1 = request.workbook_s3_url;
+                entityText2 = "";
+                activityTimelineCollection = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
             case 709: // cloud based document -- Form
@@ -4333,6 +4345,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
             case 2605: // [Product] Add Comment
+            case 723:
+            case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
                 try {
@@ -4430,7 +4444,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.app_version,
             request.service_version,
             request.log_asset_id || request.asset_id,
-            messageUniqueId,
+            messageUniqueId || 0,
             retryFlag,
             request.flag_offline || 0,
             request.track_gps_datetime,
@@ -4609,6 +4623,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 723:
+            case 724:
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -5306,6 +5322,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];   
     };
 
+
     this.makeGenericRequest = async function(request){
 
         const genericAsync = nodeUtil.promisify(makingRequest.post);
@@ -5329,7 +5346,128 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             console.log("makeGenericRequest "+request.generic_url+" | Error: ", error);
             return [true, {}];
         } 
-    }  
+    };
+    
+    this.updateMentionsCnt = async (request, assetID) => {
+        let responseData = [],
+            error = true;
+    
+        const paramsArr = new Array(
+            request.activity_id,
+            assetID,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_mention_count', paramsArr);
+    
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+            
+        return [error, responseData];
+    };
+
+
+    this.getMappedBotSteps = async (request, flag) => {
+        //flag = 0 = ALL bots
+        //flag = 1 = Only Field based bots
+        //flag = 2 = ONly Form Based bots
+        //flag = 3 = ONly sepecific Form Based bots to be triggered in field edit
+        
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.bot_id,
+            flag,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+
+    this.getStatusesOfaWorkflow = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //flag = 1 - Only parent statuses
+        //flag = 2 - Both parent and substatus        
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || request.workflow_activity_type_id,
+            request.flag || 1,
+            request.datetime_log || util.getCurrentUTCTime(),
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+
+    this.activityActivityMappingSelect = async (request) => {
+        let error = true,
+        responseData = [];
+        
+        const paramsArr = new Array(                
+                        request.activity_id, 
+                        request.parent_activity_id, 
+                        request.organization_id,
+                        request.flag || 1,
+                        request.start_from || 0,
+                        request.limit_value || 5
+                        
+                    );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData];   
+    };
 }
 
 

@@ -53,9 +53,27 @@ function WorkbookOpsService(objectCollection) {
     }
 
     // Bot Operation Logic
-    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData) {
+    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
         const workflowActivityID = request.workflow_activity_id;
+        let workbookMappedStreamTypeID = 718; // For initial mapping
 
+        console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
+        console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
+        try {
+            const [_, botOperationData] = await botOperationMappingSelectID({
+                bot_id: request.bot_id,
+                bot_operation_id: request.bot_operation_id
+            });
+            if (botOperationData.length > 0) {
+                botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                botOperationInlineData = botOperationInlineData.bot_operations.map_workbook;
+
+            } else {
+                throw new Error(`No bot operation data found for bot_operation_id ${request.bot_operation_id}`);
+            }
+        } catch (error) {
+            throw new Error(error)
+        }
         let excelSheetFilePath = botOperationInlineData.workbook_url;
 
         try {
@@ -66,6 +84,7 @@ function WorkbookOpsService(objectCollection) {
                 workflowActivityData[0].activity_workbook_url
             ) {
                 excelSheetFilePath = workflowActivityData[0].activity_workbook_url;
+                workbookMappedStreamTypeID = 719; // If workbook is being updated
             }
         } catch (error) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
@@ -79,11 +98,18 @@ function WorkbookOpsService(objectCollection) {
         // Get the single selection value for selecting the sheet
         let sheetIndex = 0;
         try {
-            sheetIndex = await getSheetIndexValue(
-                request, workflowActivityID,
-                botOperationInlineData.worksheet_index_form_id,
-                botOperationInlineData.worksheet_index_field_id
-            );
+            if (
+                botOperationInlineData.hasOwnProperty("worksheet_index_fixed_value") &&
+                Number(botOperationInlineData.worksheet_index_fixed_value) >= 0
+            ) {
+                sheetIndex = Number(botOperationInlineData.worksheet_index_fixed_value);
+            } else {
+                sheetIndex = await getSheetIndexValue(
+                    request, workflowActivityID,
+                    botOperationInlineData.worksheet_index_form_id,
+                    botOperationInlineData.worksheet_index_field_id
+                );
+            }
         } catch (error) {
             logger.error("Error fetching sheet index from single selection", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
@@ -91,7 +117,7 @@ function WorkbookOpsService(objectCollection) {
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
 
         const inputMappings = botOperationInlineData.mappings[sheetIndex].input,
-            outputMappings = botOperationInlineData.mappings[sheetIndex].output;
+            outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
 
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
@@ -111,12 +137,16 @@ function WorkbookOpsService(objectCollection) {
 
         // Check if the output form exists
         let outFormIsSubmitted = false,
-            outputFormID = outputMappings[0].form_id,
+            outputFormID = outputMappings.length > 0 ? outputMappings[0].form_id : 0,
             outputFormName = '',
             outputFormTransactionID = 0,
             outputFormActivityID = 0,
             outputFormFieldInlineTemplateMap = new Map();
         try {
+            // Check if the output mappings are defined
+            if (Number(outputMappings.length) === 0 && Number(outputFormID) === 0) {
+                throw new Error("NoOutputMappingsDefined");
+            }
             const formID = outputMappings[0].form_id;
             let formFieldInlineTemplate = [];
             const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -174,19 +204,27 @@ function WorkbookOpsService(objectCollection) {
             outputFormFieldInlineTemplateMap = new Map(formFieldInlineTemplate.map(e => [Number(e.field_id), e]));
         } catch (error) {
             logger.error("Error fethcing output form.", { type: 'bot_engine', request_body: request, error: serializeError(error) });
-            return;
+            if (error.message !== "NoOutputMappingsDefined") {
+                return;
+            }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
 
         // Parse and process the excel file
         // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
-        const workbook = XLSX.read(xlsxDataBody, { type: "buffer" });
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: true });
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
         for (const [cellKey, cellValue] of inputCellToValueMap) {
-            logger.silly(`Updating ${cellKey} to ${cellValue}`)
+            // Check if the cell has the up-to-date value
+            const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+            if (existingCellValue == cellValue) {
+                logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
+                continue;
+            }
             try {
+                logger.silly(`Updating ${cellKey} to ${cellValue}`);
                 S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
             } catch (error) {
                 logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
@@ -233,7 +271,7 @@ function WorkbookOpsService(objectCollection) {
                 logger.error(`Error firing fieldsAlterRequest kafka event for ${outputFormActivityID} and workflow ${workflowActivityID}.`, { type: 'bot_engine', request_body: fieldsAlterRequest, error: serializeError(error) });
             }
 
-        } else {
+        } else if (Number(outputMappings.length) > 0 && Number(outputFormID) > 0) {
             // If the form does not exist, fire add activity
             try {
                 await createAndSubmitTheOutputForm(
@@ -282,15 +320,51 @@ function WorkbookOpsService(objectCollection) {
                     workbook_mapped: 1,
                     asset_id: request.asset_id
                 });
+
+                // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
+                await updateWorkbookURLOnWorkflowTimeline(
+                    request, workflowActivityID, 
+                    updatedWorkbookS3URL, workbookMappedStreamTypeID
+                );
             }
         } catch (error) {
             throw new Error(error);
         }
+
+        return [{}, {}];
     }
+
+    async function botOperationMappingSelectID(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.bot_id,
+            request.bot_operation_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
         const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });
-        XLSX.writeFile(workbook, tempXlsxFilePath);
+        XLSX.writeFile(workbook, tempXlsxFilePath, {
+            cellStyles: true,
+            compression: true,
+        });
 
         const bucketName = await util.getS3BucketName(),
             prefixPath = await util.getS3PrefixPath(options);
@@ -309,7 +383,7 @@ function WorkbookOpsService(objectCollection) {
 
         // Delete the file
         fs.unlinkSync(tempXlsxFilePath);
-        
+
         return uploadDetails.Location;
     }
 
@@ -424,23 +498,47 @@ function WorkbookOpsService(objectCollection) {
 
     async function getInputFormFieldValues(request, workflowActivityID, inputMappings) {
         const formID = inputMappings[0].form_id;
-        const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        // const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        //     organization_id: request.organization_id,
+        //     account_id: request.account_id
+        // }, workflowActivityID, formID);
+
+        const [_, formData] = await getMultipleSubmissionsFormData({
             organization_id: request.organization_id,
             account_id: request.account_id
         }, workflowActivityID, formID);
 
-        let formTransactionID = 0,
-            formActivityID = 0;
+        let formTransactionID = Number(request.form_transaction_id),
+            formActivityID = 0,
+            customFsiToCellMappingIndex = Number.NEGATIVE_INFINITY;
 
         if (Number(formData.length) > 0) {
-            formTransactionID = Number(formData[0].data_form_transaction_id);
-            formActivityID = Number(formData[0].data_activity_id);
+            for (let i = 0; i < formData.length; i++) {
+                if (Number(formData[i].data_form_transaction_id) === Number(formTransactionID)) {
+                    logger.silly(`[Match Found | ${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
+
+                    customFsiToCellMappingIndex = i;
+                    formActivityID = Number(formData[0].data_activity_id);
+                    break;
+                } else {
+                    logger.silly(`[${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
+                }
+            }
         } else {
             throw new Error("[ActivityTimelineTransaction] No form data found for fetching the input form field values");
         }
 
         let inputCellToValueMap = new Map();
         for (const inputMapping of inputMappings) {
+            // Vodafone Custom Logic
+            if (
+                customFsiToCellMappingIndex > Number.NEGATIVE_INFINITY &&
+                inputMapping.hasOwnProperty("custom_fsi_to_cell_mapping")
+            ) {
+                inputMapping.cell_x = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_x;
+                inputMapping.cell_y = inputMapping.custom_fsi_to_cell_mapping[customFsiToCellMappingIndex].cell_y;
+            }
+            // Vodafone Custom Logic
             const fieldID = Number(inputMapping.field_id);
 
             // Fetch the field value
@@ -465,6 +563,33 @@ function WorkbookOpsService(objectCollection) {
         }
 
         return inputCellToValueMap;
+    }
+
+    async function getMultipleSubmissionsFormData(request, workflowActivityID, formID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            workflowActivityID,
+            formID,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit) || 50
+        );
+        const queryString = util.getQueryString('ds_v1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function getWorkforceFormFieldMappingForOutputForm(request, organizationID, formID, fieldIDArray = [], outFormIsSubmitted) {
@@ -674,6 +799,8 @@ function WorkbookOpsService(objectCollection) {
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
+            workflowFile705Request.asset_id = 100;
+            workflowFile705Request.log_asset_id = 100;
             // This will be captured in the push-string message-forming switch-case logic
             workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
 
@@ -723,6 +850,34 @@ function WorkbookOpsService(objectCollection) {
         }
 
         return [error, formData];
+    }
+
+    function updateWorkbookURLOnWorkflowTimeline(request, workflowActivityID, updatedWorkbookS3URL, workbookMappedStreamTypeID) {
+        const workbookURLTimelineRequest = Object.assign({}, request);
+
+        let workbookTimelineActionName = Number(workbookMappedStreamTypeID) === 718? `mapped`: `updated`;
+        workbookURLTimelineRequest.activity_timeline_collection = JSON.stringify({
+            "mail_body": `Workbook ${workbookTimelineActionName} at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "subject": `Workbook ${workbookTimelineActionName}`,
+            "content": `Workbook ${workbookTimelineActionName}`,
+            "asset_reference": [],
+            "activity_reference": [],
+            "attachments": [
+                updatedWorkbookS3URL,
+            ]
+        });
+        workbookURLTimelineRequest.workbook_s3_url = updatedWorkbookS3URL;
+        workbookURLTimelineRequest.device_os_id = 8;
+        workbookURLTimelineRequest.asset_id = 100;
+        workbookURLTimelineRequest.log_asset_id = 100;
+        workbookURLTimelineRequest.activity_id = workflowActivityID;
+        workbookURLTimelineRequest.activity_type_category_id = 48;
+        workbookURLTimelineRequest.activity_stream_type_id = 705;
+        workbookURLTimelineRequest.flag_timeline_entry = 1;
+        workbookURLTimelineRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        workbookURLTimelineRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+
+        activityCommonService.activityTimelineTransactionInsertAsync(workbookURLTimelineRequest, {}, workbookMappedStreamTypeID);
     }
 }
 

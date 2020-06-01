@@ -324,23 +324,57 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 16:   // Telephone module: Chat
                         switch (request.url) {
-                            case '/' + global.config.version + '/activity/timeline/entry/add':
-                                // Added an update to the chat
-                                if (Number(request.activity_stream_type_id) === 23003) {
-                                    // Push Notification
-                                    pushString.title = senderName;
-                                    pushString.description = JSON.parse(request.activity_timeline_collection).message;
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 16;
+                                msg.type = 'activity_unread';
 
-                                    // PubNub
-                                    msg.activity_type_category_id = 16;
-                                    msg.type = 'activity_unread';
-
-                                }
-
+                                pushString.title = senderName;
+                                pushString.description = 'has started a conversation with you';
                                 break;
 
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
+                                // Added an update to the chat
+                                // Push Notification
+                                //pushString.title = senderName;
+                                //pushString.description = 'has sent u a message';
+
+                                pushString.title = senderName;
+                                pushString.subtitle = 'has sent u a message';
+                                pushString.description = 'has sent a message';
+                                pushString.body = activityTitle;
+
+                                // PubNub
+                                msg.activity_type_category_id = 16;
+                                msg.type = 'activity_unread';
+                                break;
                         }
                         break;
+                    case 27:   // Group: Conversation
+                        switch (request.url) {
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 27;
+                                msg.type = 'activity_unread';
+
+                                pushString.title = senderName;
+                                pushString.description = 'has added you into a group conversation';
+                                break;
+
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
+                                // Added an update to the chat
+                                // Push Notification
+                                //pushString.title = senderName;
+                                //pushString.description = 'has sent a message';
+                                pushString.title = senderName;
+                                pushString.subtitle = 'has sent a message';
+                                pushString.description = 'has sent a message';
+                                pushString.body = activityTitle;
+
+                                // PubNub
+                                msg.activity_type_category_id = 27;
+                                msg.type = 'activity_unread';
+                                break;
+                        }
+                        break;                        
                     case 28: // Remainder
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -832,11 +866,13 @@ function ActivityPushService(objectCollection) {
                                             default:
                                                 //SNS
                                                 try {
-                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                    console.log('@@@@@@ - var proceedSendPush - Before SNS publish : ', assetMap);
+                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                                 } catch (error) {
                                                     console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
                                                     try {
-                                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                        console.log('@@@@@@ In Catch - var proceedSendPush - Before SNS publish : ', assetMap);
+                                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0 , assetMap);
                                                     } catch (snsError) {
                                                         console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
                                                         
@@ -1184,11 +1220,13 @@ function ActivityPushService(objectCollection) {
                             default:
                                 //SNS
                                 try {
-                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                    console.log('@@@@@@ proceedSendPushAsync - Before SNS publish : ', assetMap);
+                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                 } catch (error) {
                                     console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
                                     try {
-                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        console.log('@@@@@@ In Catch - proceedSendPushAsync - Before SNS publish : ', assetMap);
+                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn, 0, assetMap);
                                     } catch (snsError) {
                                         console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
                                         

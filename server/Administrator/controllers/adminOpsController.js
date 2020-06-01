@@ -661,7 +661,18 @@ function AdminOpsController(objCollection) {
             console.log("/admin/get/asset/access | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    }); 
+    });
+
+    app.post('/' + global.config.version + '/admin/workflow/dependent_form/check/v1', async (req, res) => {
+        //const err = false, responseData = [];
+        const [err, responseData] = await adminOpsService.dependencyFormsCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/dependent_form/check/v1 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });     
 }
 
 module.exports = AdminOpsController;

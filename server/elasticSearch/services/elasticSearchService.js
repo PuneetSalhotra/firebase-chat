@@ -4,6 +4,7 @@ var extract = require('pdf-text-extract')
 function CommnElasticService(objectCollection) {
   const util = objectCollection.util;
   const db = objectCollection.db;
+  var responseWrapper = objectCollection.responseWrapper;
   const { Client } = require('@elastic/elasticsearch');
   const { AmazonConnection } = require('aws-elasticsearch-connector');
   const client = new Client({
@@ -60,7 +61,9 @@ function CommnElasticService(objectCollection) {
     let results = new Array();
     var resultObj = {}
     var document_version = 1;
+    let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
+    var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
     let paramsArray;
     paramsArray =
       new Array(
@@ -68,29 +71,34 @@ function CommnElasticService(objectCollection) {
         request.document_desc,
         document_version,
         url,
-        request.activity_id ,
-        request.asset_id,
-        request.organization_id,
-        request.log_asset_id,
-        request.log_datetime,
+        parseInt(request.activity_id) ,
+        parseInt(request.asset_id),
+        parseInt(request.organization_id),
+        parseInt(request.asset_id),
+        date,
       )
     results[0] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_insert', paramsArray, 0);
 
     paramsArray =
       new Array(
-        request.organization_id,
+        parseInt(request.organization_id),
         results[0][0]['activity_document_id'],
-        request.p_update_type_id,
-        request.log_datetime,
+        0,
+        date,
       )
+      try{
         results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
+      }catch(error){
+        console.error(error)
 
+      }
     const result = await client.index({
       index: 'documentrepository',
       type: "_doc",
       body: {
         "id": results[0][0]['activity_document_id'],
         "orgid": request.organization_id,
+        "filename": filename,
         "product": request.product,
         "content": documentcontent,
         "documentdesc": request.document_desc,
@@ -101,11 +109,8 @@ function CommnElasticService(objectCollection) {
         "assetid": request.asset_id
       }
     })
-    resultObj['id'] = results[0][0]['id']
-    resultObj['version_id'] = document_version
-    return res.status(200).json({
-      response : resultObj
-  })
+    resultObj['document_id'] = results[0][0]['activity_document_id']
+     return res.send(responseWrapper.getResponse(false, resultObj, 200, request));
   }
 
   async function updateDocumetInformation(request, documentcontent, url, client, res) {
@@ -113,29 +118,45 @@ function CommnElasticService(objectCollection) {
     var resultObj = {}
     let paramsArray;
     let version_id = 1;
+    var filename = url.substring(url.lastIndexOf("/") + 1, url.length );
+    let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    paramsArray= new Array(
+      parseInt(request.organization_id),
+      parseInt(request.activity_id),
+      parseInt(request.id)
+    )
+
+  const queryString = util.getQueryString(
+    "ds_p1_activity_document_mapping_select",
+    paramsArray,
+    1
+    );
+    if (queryString !== "") {
+    await db
+    .executeQueryPromise(1, queryString, request)
+    .then(data => {
+    responseData = data;
+    error = false;
+    })
+    .catch(err => {
+    error = err;
+    });
+    }
+     if(responseData.length>0){
+
     paramsArray =
       new Array(
-        request.organization_id,
-        request.activity_id,
-        request.id,
+        parseInt(request.organization_id),
+        parseInt(request.activity_id),
+        parseInt(request.id),
         request.document_title,
         request.document_desc,
         url,
         version_id,
-        request.asset_id,
-        Date.now()
+        parseInt(request.asset_id),
+        date
       )
     results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_update', paramsArray, 0);
-
-    paramsArray =
-    new Array(
-      request.organization_id,
-      request.id,
-      request.p_update_type_id,
-      request.log_datetime,
-    )
-      results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-
 
     const result = await client.updateByQuery({
       index: 'documentrepository',
@@ -159,20 +180,64 @@ function CommnElasticService(objectCollection) {
             "filetitle": request.file_title,
             "productid": request.activity_id,
              "s3url": url,
-             "assetid": request.asset_id
+             "assetid": request.asset_id,
+             "filename":filename
           }
         }
       }
     })
-      return res.status(200).json({
-        response : version_id
-    })
+
+    paramsArray =
+    new Array(
+      parseInt(request.organization_id),
+      parseInt(request.id),
+      2301,
+      date,
+    )
+    try{
+       results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
+    }catch(error){
+      console.error(error)
+
+    }
+    resultObj['document_id']= request.id
+    res.send(responseWrapper.getResponse(false, resultObj, 200, request));
+  }else{
+      var err ='data not found'
+      res.send(responseWrapper.getResponse(err, {}, -9998, request));
+    }
   }
 
 
   this.deleteFile =
     async (request) => {
       try {
+        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        var resultObj = {}
+        paramsArray= new Array(
+          parseInt(request.organization_id),
+          parseInt(request.activity_id),
+          parseInt(request.id)
+        )
+        const queryString = util.getQueryString(
+          "ds_p1_activity_document_mapping_select",
+          paramsArray,
+          1
+          );
+          if (queryString !== "") {
+          await db
+          .executeQueryPromise(1, queryString, request)
+          .then(data => {
+          responseData = data;
+          error = false;
+          })
+          .catch(err => {
+          error = err;
+          });
+          }
+        if(responseData.length>0){
+
+
         const result = await client.deleteByQuery({
           index: 'documentrepository',
           body: {
@@ -188,23 +253,33 @@ function CommnElasticService(objectCollection) {
         let paramsArray;
         paramsArray =
           new Array(
-            request.organization_id,
-            request.activity_id,
-            request.id,
-            request.asset_id,
-            request.log_datetime
+            parseInt(request.organization_id),
+            parseInt(request.activity_id),
+            parseInt(request.id),
+            parseInt(request.asset_id),
+            date
           );
-        results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 1);
-      //   paramsArray =
-      // new Array(
-      //   request.organization_id,
-      //   request.id,
-      //   request.p_update_type_id,
-      //   request.log_datetime,
-      // )
-      // results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
 
-        return result
+        results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 0);
+
+        paramsArray =
+        new Array(
+        parseInt(request.organization_id),
+        parseInt(request.id),
+        2302,
+        date,
+      )
+      try{
+      results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
+      }catch(error){
+        console.error(error)
+      }
+        return resultObj
+    }else{
+      var err={}
+      err ='data not found'
+      res.send(responseWrapper.getResponse(err, {}, -9998, request));
+    }
       } catch (error) {
         return Promise.reject(error);
       }
@@ -215,108 +290,123 @@ function CommnElasticService(objectCollection) {
     async (request) => {
       try {
         var flag = true;
-        var responseObj ={}
+        var responseObj = {}
         var responseArray = []
+        var dynamicQuery ={}
+        var dynamicQueryArray = []
         var queryType = "cross_fields"
-        const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
+        const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
         var operator = 'and';
         var page_size = 50;
         var page_no = 0;
-        if(request.hasOwnProperty('page_size')){
+        if (request.hasOwnProperty('page_size')) {
           page_size = request.page_size;
         }
-        if(request.hasOwnProperty('page_no')){
+        if (request.hasOwnProperty('page_no')) {
           page_no = request.page_no;
         }
-        if(request.search_text == null ||  request.search_text.length<3){
-          flag = false
-          return 'minimum 3 char required for search'
-        }
+        var pagination ={}
+        pagination['size']= page_size,
+        pagination['from']= page_no
         var searchFields = []
-        if(request.hasOwnProperty('fields') && request.fields.length>0){
-          for(var i=0;i<request.fields.length;i++){
-            if(validSearchFields.includes(request.fields[i])){
+        if (request.hasOwnProperty('fields') && request.fields.length > 0) {
+          for (var i = 0; i < request.fields.length; i++) {
+            if (validSearchFields.includes(request.fields[i])) {
               searchFields.push(request.fields[i]);
-            }else{
+            } else {
               flag = false
-              return request.fields[i]+' fields is not valid'
+              return request.fields[i] + ' fields is not valid'
               break;
             }
           }
-        }else{
-          searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle"];
+        } else {
+          searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
         }
-        if(request.hasOwnProperty('search_option') && request.search_option.length>0){
-          if(request.search_option == 'EXACT_SEARCH'){
+        if (request.hasOwnProperty('search_option') && request.search_option.length > 0) {
+          if (request.search_option == 'EXACT_SEARCH') {
             queryType = "phrase"
-          }else{
+          } else {
             operator = request.search_option;
           }
         }
-      if(flag){
-        const search_text = request.search_text
-        const orgid = request.organization_id
-        const result = await client.search({
-          index: 'documentrepository',
-          type: "_doc",
-          body: {
-            "query": {
-              "bool": {
-                "must": [{
-                    "match": {
-                      "orgid": orgid
-                    }
-                  },
-                  {
-                    "bool": {
-                      "should": {
-                        "multi_match": {
-                          "query": search_text,
-                          "type": queryType,
-                          "fields": searchFields ,
-                          "operator": operator
-                        }
-                      }
+        if (flag) {
+          const orgid = request.organization_id
+          var orgFilter = {
+            "match": {
+              "orgid": orgid
+            }
+          }
+          dynamicQueryArray.push(orgFilter)
+          var idFilter = ''
+          if (request.hasOwnProperty('id') && request.id != null && request.id != '') {
+            idFilter = {
+              "match": {
+                "id": request.id
+              }
+            }
+            dynamicQueryArray.push(idFilter)
+          }
+          if (request.hasOwnProperty('search_text') && request.search_text != null &&
+            request.search_text != '') {
+            if (request.search_text == null || request.search_text.length < 3) {
+              flag = false
+              var error_msg ='minimum 3 char required for search';
+              return res.send(responseWrapper.getResponse(false, {"error_msg":error_msg}, -9998, request));
+
+            } else {
+              const search_text = request.search_text
+              dynamicQueryArray.push({
+                "bool": {
+                  "should": {
+                    "multi_match": {
+                      "query": search_text,
+                      "type": queryType,
+                      "fields": searchFields,
+                      "operator": operator
                     }
                   }
-                ]
-              }
-            },
-            "size": page_size,
-            "from": page_no
+                }
+              });
+            }
           }
-        })
-        // var ids = []
+          var query={}
+          var mainQueryObj ={}
+          var quertObjArray={}
+          quertObjArray['must']=dynamicQueryArray
+          mainQueryObj['bool']=quertObjArray
+          query['query']=mainQueryObj
+          if (!request.hasOwnProperty('id') ) {
+              query= Object.assign(query, pagination)
+          }
 
-        for (var i = 0; i < result.body.hits['hits'].length; i++) {
-          var obj= {}
-          obj['id'] = result.body.hits['hits'][i]['_source']['id']
-          obj['orgid'] = result.body.hits['hits'][i]['_source']['orgid']
-          obj['product'] = result.body.hits['hits'][i]['_source']['product']
-          obj['documentdesc'] = result.body.hits['hits'][i]['_source']['documentdesc']
-          obj['documenttitle'] = result.body.hits['hits'][i]['_source']['documenttitle']
-          obj['assetid'] = result.body.hits['hits'][i]['_source']['assetid']
-          obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
-          obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
-          responseArray.push(obj)
+          const result = await client.search({
+            index: 'documentrepository',
+            type: "_doc",
+            body: query
+          })
+
+          for (var i = 0; i < result.body.hits['hits'].length; i++) {
+            var obj = {}
+            obj['id'] = result.body.hits['hits'][i]['_source']['id']
+            obj['orgid'] = result.body.hits['hits'][i]['_source']['orgid']
+            obj['product'] = result.body.hits['hits'][i]['_source']['product']
+            obj['documentdesc'] = result.body.hits['hits'][i]['_source']['documentdesc']
+            obj['documenttitle'] = result.body.hits['hits'][i]['_source']['documenttitle']
+            obj['assetid'] = result.body.hits['hits'][i]['_source']['assetid']
+            obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
+            obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
+            obj['filename'] = result.body.hits['hits'][i]['_source']['filename']
+            obj['activity_id'] = result.body.hits['hits'][i]['_source']['productid']
+            responseArray.push(obj)
           }
           responseObj['response'] = responseArray
-        // let results = new Array();
-        // let paramsArray;
-        // paramsArray =
-        //   new Array(
-        //     request.organization_id,
-        //     request.activity_id,
-        //     ids
-        //   );
-        // results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_select', paramsArray, 1);
-        return responseObj;
-      }
+          return responseObj;
+        }
       } catch (error) {
         return Promise.reject(error);
       }
     };
-}
+  }
 
 
 

@@ -25,6 +25,12 @@ function ActivityService(objectCollection) {
     const RMBotService = require('../botEngine/services/rmbotService');
     const rmbotService = new RMBotService(objectCollection);
 
+    //const DoaService = require('../Doa/services/doaService');
+    //const doaService = new DoaService(objectCollection);
+    //const doaForms = require('../Doa/utils/doaFormConfig.json');
+    //const daoFields = require('../Doa/utils/doaFieldsConfig.json');
+    //console.log('doaForms : ', doaForms);
+
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
@@ -515,13 +521,18 @@ function ActivityService(objectCollection) {
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i];
                                     switch(Number(fieldData.field_data_type_id)) {
-                                        case 57: //Fire the Bot                                                 
+                                        case 57: //Fire the Bot
                                                 await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
+                                                if(fieldData.field_reference_id > 0){
+                                                    await activityActivityMappingInsert(request, fieldData);
+                                                }
                                                 break;
+                                        case 68: await activityActivityMappingInsert(request, fieldData);
+                                                 break;
                                         default: break;
                                     }
                                 }
@@ -532,17 +543,20 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 48) { 
                                 await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
-                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
-                            if(request.activity_type_category_id == 48 && request.activity_form_id == 2753){
-                                    console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_form_id);
+
+                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                            if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                                || request.activity_type_id == 150229 || request.activity_type_id == 150192
+                                || request.activity_type_id == 149818 || request.activity_type_id == 149752
+                                || request.activity_type_id == 149058)){
+                                    console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
 
                                     let opportunityRequest = Object.assign({}, request);
                                     opportunityRequest.workflow_activity_id = request.activity_id;
-                                   // rmbotService.generateOppurtunity(opportunityRequest);
                                     opportunityRequest.generic_url = '/activity/opportunity/set';
                                     activityCommonService.makeGenericRequest(opportunityRequest);
                             }
-                            
+                                                        
                             //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
                             //activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, (err, restult)=>{});
 
@@ -712,6 +726,19 @@ function ActivityService(objectCollection) {
 
                     }); //End of Asset List Insert Add
 
+
+                    //DOA Logic
+                    /*for(const activityTypeIds of doaForms) {
+                            Object.keys(activityTypeIds).map((value)=>{
+                                //console.log('VALUE : ', value);
+                                if(Number(value) === Number(request.activity_type_id)) {
+                                    //Trigger the DOA Logic
+                                    console.log('Triggering the DOA Logic');
+                                    doaService.getProductSelection(request);
+                                }
+                            });
+                    }*/
+
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
                     // 
@@ -782,7 +809,7 @@ function ActivityService(objectCollection) {
                             }
                         });
                         callback(false, responseactivityData, 200);
-                    }
+                    } //activityTypeCategroyId === 9
 
                     // Tirggering BOT 1
                     /*if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
@@ -2286,7 +2313,7 @@ function ActivityService(objectCollection) {
                 }
 
                 //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
-                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
+                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -4811,14 +4838,29 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
+    this.updateMentionsCntArr = async(request) => {
+        let responseData = [],
+            error = false,
+            i;
 
-    this.updateMentionsCnt = async (request) => {        
+        let assetsData = (typeof request.assets_referenced === 'string') ? JSON.parse(request.assets_referenced) : request.assets_referenced;
+        
+        console.log('assetsData : ', assetsData);
+
+        for(i=0;i<assetsData.length;i++){
+            await updateMentionsCnt(request, assetsData[i]);
+        }
+
+        return [error, responseData];
+    }
+
+    async function updateMentionsCnt(request, assetID) {
         let responseData = [],
             error = true;
     
         const paramsArr = new Array(
             request.activity_id,
-            request.asset_id,
+            assetID,
             request.organization_id
         );
         const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_mention_count', paramsArr);
@@ -4919,7 +4961,7 @@ function ActivityService(objectCollection) {
         let errFlag = 0;
 
         try{
-            parsedFieldValue = JSON.parse(fieldValue);
+            parsedFieldValue = fieldValue;
             console.log('parsedFieldValue : ', parsedFieldValue);
             console.log('parsedFieldValue.length : ', parsedFieldValue.length);
         } catch(err) {
@@ -4930,11 +4972,14 @@ function ActivityService(objectCollection) {
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
         
-        if(parsedFieldValue.length > 0) {
-            for(let i = 0; i < parsedFieldValue.length; i++) {
-                newReq.parent_activity_id = parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+        if(parsedFieldValue.includes('|')) {
+            //for(let i = 0; i < parsedFieldValue.length; i++) {
+                newReq.parent_activity_id = parsedFieldValue.split('|')[1]; //parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
                 await activityCommonService.activityActivityMappingInsert(newReq);
-            }
+            //}
+        }else if(fieldData.field_reference_id > 0){
+                newReq.parent_activity_id = fieldData.field_reference_id; //parsedFieldValue[i].workflow_activity_id || parsedFieldValue[i].activity_id;
+                await activityCommonService.activityActivityMappingInsert(newReq);
         }
 
         return "success";

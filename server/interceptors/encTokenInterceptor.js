@@ -16,13 +16,22 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
             //} else {                
                 //global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
                 //req.body.service_id = result;
+
+                
                 
                 req.body.service_id = "";
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 
-                if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+                if(Number(req.headers['x-grene-auth-flag']) === 2) {
+                    console.log('Skipping Redis Auth coz x-grene-auth-flag is 2');
+                    next();
+                }else if(req.body.hasOwnProperty('access_token_verified') && Number(req.body.access_token_verified) === 1) {
+                    console.log('Access token Verified');
+                    next();
+                }
+                else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
                     next();
                     //res.end('Success');
                     //res.status(500).send('internal server error');
@@ -58,6 +67,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             next();
                             break;
                         case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
+                        case '/' + global.config.version + '/phone_number/verify/invite':                            
                             req.body['module'] = 'asset';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();

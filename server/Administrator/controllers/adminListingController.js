@@ -411,6 +411,26 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/lov-datatype/list', async (req, res) => {
+        const [err, data] = await adminListingService.getLovDatatypeList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/lov-datatype/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/activity_type/entry', async function (req, res) {
+        const [err, activityTypeData] = await adminListingService.workforceActivityTypeMappingSelectID(req.body, req.body.activity_type_id);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, activityTypeData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/entry | Error: ", err);
+            res.send(responseWrapper.getResponse(err, activityTypeData, -9999, req.body));
+        }
+    });    
 }
 
 module.exports = AdminListingController;

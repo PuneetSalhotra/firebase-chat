@@ -1715,7 +1715,7 @@ function Util(objectCollection) {
 
         await s3GetObjectPromise
             .then(function (data) {
-                console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
+                // console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
                 
                 dataBody = data.Body;
 
@@ -2090,6 +2090,11 @@ function Util(objectCollection) {
         const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
         return now;
     };
+
+    this.getCurrentISTDDMMYY = function () {
+        var now = moment().tz('Asia/Kolkata').format("DDMMYY");
+        return now;
+    };    
 
 }
 

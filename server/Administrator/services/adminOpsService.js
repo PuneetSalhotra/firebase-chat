@@ -3,7 +3,15 @@ const logger = require('../../logger/winstonLogger');
 const XLSX = require('xlsx');
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
-const { serializeError } = require('serialize-error')
+const { serializeError } = require('serialize-error');
+
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
 function AdminOpsService(objectCollection) {
 
@@ -821,7 +829,6 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewEmployeeToExistingDesk = async function (request) {
-
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
@@ -1057,6 +1064,9 @@ function AdminOpsService(objectCollection) {
                 console.log("addNewEmployeeToExistingDesk | activityAssetMappingUpdateOperationAssetData | activityListHistoryInsert | Error: ", error);
             }
         }
+
+        //Add the number to Cognito
+        await addUser('+' + request.country_code +''+request.phone_number);
 
         // Send SMS to the newly added employee
         try {
@@ -1983,6 +1993,9 @@ function AdminOpsService(objectCollection) {
                 console.log("removeEmployeeMappedToDesk | Co-Worker | activityTimelineTransactionInsert | Error: ", error);
             }
         }
+
+        //Remove User from Cognito
+        await removeUser('+' + request.country_code +''+request.phone_number);
 
         // Update Desk Asset Status to Employee Not Assigned
         try {
@@ -6482,6 +6495,40 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.tagEntityMappingDeleteV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_id,
+            request.tag_type_category_id,
+            request.activity_type_id || 0,
+            request.tag_workforce_id || 0,
+            request.tag_asset_id || 0,
+            request.activity_status_id || 0,
+            request.asset_id,
+            request.datetime_log || util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_tag_entity_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+
+                    //History Insert
+                    tagEntityMappingHistoryInsert(request, 2201);
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log('error :: ' + error);
+                })
+        }
+        return [error, responseData];
+    }
 
     async function tagEntityMappingHistoryInsert(request, updateTypeID) {
         let responseData = [],
@@ -7133,9 +7180,14 @@ function AdminOpsService(objectCollection) {
                 inlineData = JSON.parse(botsData[i].bot_operation_inline_data);                
                 //console.log(inlineData.form_enable);
 
-                tempFormsArr = inlineData.form_enable;
+                tempFormsArr = inlineData.form_enable?inlineData.form_enable:[];
                 console.log('tempFormsArr : ', tempFormsArr);
 
+                if(tempFormsArr.length == 0){
+                    error = false;
+                    responseData.push({"message": "No Dependent Forms defined for this Form!"});
+                }
+                
                 for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
                     console.log(tempFormsArr[j].form_id);
                     conditions = tempFormsArr[j].conditions;
@@ -7191,15 +7243,24 @@ function AdminOpsService(objectCollection) {
                                                     error = false;
                                                     responseData.push({"message": "dependent form conditions passed!"});
                                                     console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                                } else {                                                    
-                                                    responseData.push({"message": "dependent form conditions failed!"});
-                                                    console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+
+                                                    breakFlag = 1;
+                                                    break;
+                                                } else {  
+                                                    if(conditions[k].join_condition == 'OR') {
+                                                        responseData.push({"message": "dependent form conditions failed!"});
+                                                        console.log('As the condition is OR proceeding to check the next form');                                                        
+                                                    } else {
+                                                        responseData.push({"message": "dependent form conditions failed!"});
+                                                        console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+
+                                                        breakFlag = 1;
+                                                        break;
+                                                    }                                                    
                                                 }
-                                                breakFlag = 1;
-                                                break;
                                             }        
                                         } else {
-                                            responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
+                                            //responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
                                         }
                                     } //End of for Loop - retrieved dependent Form data
                                 }                                    
@@ -7333,58 +7394,60 @@ function AdminOpsService(objectCollection) {
 
         console.log(formData);        
         
-        if(formData.hasOwnProperty('field_value')) {
-            switch(Number(conditionData.data_type_id)) {
-                case 5: let operation = formData.field_value_condition_operator;
-                        let ifStatement;
-                        switch(operation) {
-                            case '<=': ifStatement = (Number(conditionData.field_value_threshold) <= Number(formData.field_value)) ? true : false;
-                                        break;
-                            case '>=': ifStatement = (Number(conditionData.field_value_threshold) >= Number(formData.field_value)) ? true : false;
-                                        break;
-                            case '<' : ifStatement = (Number(conditionData.field_value_threshold) < Number(formData.field_value)) ? true : false;
-                                        break;
-                            case '>' : ifStatement = (Number(conditionData.field_value_threshold) > Number(formData.field_value)) ? true : false;
-                                        break;
-                            case '==': ifStatement = (Number(conditionData.field_value_threshold) === Number(formData.field_value)) ? true : false;
-                                        break;
-                        }                    
-    
-                        if(ifStatement) {
-                            //Condition Passed
-                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                            //response: 0 EOJ
-                            //response: 1 OR
-                            //response: 2 AND
-    
-                            (response === 2)? proceed = 1:proceed = 0;
-                            conditionStatus = 1;
-                          } else {
-                            //condition failed
-                            proceed = 0;
-                            conditionStatus = 0;
-                          }
-    
-                        break;
-    
-                case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
-                            //Condition Passed                        
-                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
-                            //response: 0 EOJ
-                            //response: 1 OR
-                            //response: 2 AND
+        switch(Number(conditionData.data_type_id)) {
+            case 5: let operation = conditionData.field_value_condition_operator;
+                    let ifStatement;
                     
-                            (response === 2)? proceed = 1:proceed = 0;
-                            conditionStatus = 1;
-                          } else {
-                            //condition failed                        
-                            proceed = 0;
-                            conditionStatus = 0;
-                          }
+                    switch(operation) {
+                        case '<=': ifStatement = Number(formData.field_value) <= (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '>=': ifStatement = Number(formData.field_value) >= (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '<' : ifStatement = Number(formData.field_value) > (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '>' : ifStatement = Number(formData.field_value) > (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '==': ifStatement = Number(formData.field_value) == (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                        case '!=': ifStatement = Number(formData.field_value) != (Number(conditionData.field_value_threshold)) ? true : false;
+                                    break;
+                    }                    
     
-                         break;
+                    if(ifStatement) {
+                        //Condition Passed
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+    
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+    
+                    break;
+    
+            case 33 :if(Number(conditionData.field_selection_index) === Number(formData.data_type_combo_id)) {
+                        //Condition Passed                        
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+                    
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+                      } else {
+                        //condition failed                        
+                        proceed = 0;
+                        conditionStatus = 0;
+                      }
+    
+                    break;
             }
-        } //IF field_value exists
+        //} //IF field_value exists
         /*else {
             //If field id is not there obvously data_type_id also wont be there then
             //Check whether the given form is submitted or not
@@ -7442,6 +7505,79 @@ function AdminOpsService(objectCollection) {
         }
 
         return [error, responseData];
+    }
+
+
+    this.dependencyFormsCheck = async (request) => {
+        let error = false, finalResponse = [];
+
+        try{
+            let formList = JSON.parse(request.form_id_list);
+            console.log(request.form_id_list);
+            for(let counter = 0; counter < formList.length; counter++){
+                let formJson = {};
+                request.form_id = formList[counter];
+                formJson.form_id = request.form_id;
+                let [err, responseData] = await self.dependedFormCheck(request);
+                if(!err){
+                    formJson.isActive = true;
+                }else{               
+                    formJson.isActive = false;
+                }
+                finalResponse.push(formJson);
+            }
+        }catch(e){
+            error = e;
+            let formJson = {};
+            console.log(e)
+        }
+
+        return [error, finalResponse];
+    }
+
+    async function addUser(username) {
+        console.log('                   ');
+        console.log('*******************');
+        console.log('Adding : ', username);
+        let params = {
+            UserPoolId: global.config.user_pool_id,
+            Username: username,
+            
+            //TemporaryPassword: 'STRING_VALUE',
+            UserAttributes: [
+              {
+                Name: 'phone_number', /* required */
+                Value: username
+              },            
+            ],            
+          };
+      
+        await new Promise((resolve, reject)=>{
+            cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                } else {
+                console.log(data);           // successful response
+                }
+    
+                resolve();
+            });
+        });
+    
+        return "success";	  
+    }
+
+    async function removeUser(username) {
+        var params = {
+            UserPoolId: global.config.user_pool_id,
+            Username: username /* required */
+          };
+          cognitoidentityserviceprovider.adminDeleteUser(params, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else     console.log(data);           // successful response
+          });
+    
+        return "success";	  
     }
 
 }

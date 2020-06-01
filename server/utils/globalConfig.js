@@ -16,7 +16,8 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
 
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
-config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=50&from=0&query=type"
+config.knowledgeGraphArticleMaxSize = 2
+config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size="+config.knowledgeGraphArticleMaxSize+"&from=0&query=type"
 config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
 ,"Internet leased line (ILL)", "MPLS", "NPLC", "IPLC", "SDWAN",
 "Data Centre", "DC", "DR", "Infra as a service (IAAS)", "Platform as a service (PAAS)", "software as a service (SAAS)","Colocation, Hosting",
@@ -24,6 +25,7 @@ config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
 "IOT", "M2M", "Tracking system",
 "PRI", "SIP","Toll-free (TFS)"
 ]
+config.numberOfThreadsForDiffbotProcessing=2
 
 if (mode === 'testingprodissueenv') {
 
@@ -205,6 +207,10 @@ if (mode === 'masimukku') {
 }
 
 if (mode === 'local') {
+    
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
 
     //Ports Config
     config.version = 'r1';
@@ -403,6 +409,10 @@ if (mode === 'dev') {
 
 if (mode === 'sprint') {
 
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_24nBlFK07';
+
     //Ports Config
     config.version = 'r0';
     config.servicePort = 6000;
@@ -420,8 +430,10 @@ if (mode === 'sprint') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
     // config.database = 'desker_staging';
@@ -503,6 +515,10 @@ if (mode === 'sprint') {
 }
 
 if (mode === 'staging') {
+
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
 
     //Ports Config
     config.version = 'r0';
@@ -621,6 +637,10 @@ if (mode === 'staging') {
 
 if (mode === 'preprod') {
 
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
+
     //Ports Config
     config.version = 'r1';
     config.servicePort = 6000;
@@ -720,6 +740,10 @@ if (mode === 'preprod') {
 }
 
 if (mode === 'prod') {
+
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_ne6W2ZavD';
 
     //Ports config
     config.version = 'r1';
@@ -882,7 +906,3 @@ config.cassandraCredentialsProd = {
 //OPENTOK
 config.opentok_apiKey = "46050712";
 config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
-
-//Cognito
-config.cognito_region = 'us-east-1';
-config.user_pool_id = 'us-east-1_sFNwE7bj1';

@@ -17,6 +17,18 @@ const AdminListingService = require("../../Administrator/services/adminListingSe
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
+
+
+const uuidv4 = require('uuid/v4');
+
+const AWS = require('aws-sdk');
+AWS.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs = new AWS.SQS();
 
 function BotService(objectCollection) {
 
@@ -49,6 +61,7 @@ function BotService(objectCollection) {
     const adminOpsService = new AdminOpsService(objectCollection);
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
+    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -429,6 +442,30 @@ function BotService(objectCollection) {
                         field_id: Number(botOperations.participant_add.dynamic.field_id),
                         data_type_combo_id: 0
                     });
+                }
+                break;
+
+            case 3: // Form Field Copy Bot
+                if (
+                    Array.isArray(botOperations.form_field_copy) &&
+                    botOperations.form_field_copy.length > 0
+                ) {
+                    for (const sourceTargetPair of botOperations.form_field_copy) {
+                        if (
+                            // Source
+                            Number(sourceTargetPair.source_field_id) > 0 &&
+                            Number(sourceTargetPair.source_form_id) > 0 &&
+                            // Target
+                            Number(sourceTargetPair.target_field_id) > 0 &&
+                            Number(sourceTargetPair.target_form_id) > 0
+                        ) {
+                            rpaFormFieldList.push({
+                                form_id: Number(sourceTargetPair.target_form_id),
+                                field_id: Number(sourceTargetPair.target_field_id),
+                                data_type_combo_id: 0
+                            });
+                        }
+                    }
                 }
                 break;
             
@@ -939,6 +976,8 @@ function BotService(objectCollection) {
         // console.log("initBotEngine | request: ", request);
 
         let wfSteps;
+        let formLevelWFSteps = [];
+        let fieldLevelWFSteps = [];
 
         /*if(request.hasOwnProperty(bot_operation_id)) {
             wfSteps = request.inline_data;
@@ -950,15 +989,52 @@ function BotService(objectCollection) {
             });
         }*/
 
-        wfSteps = await this.getBotworkflowStepsByForm({
-            "organization_id": 0,
-            "form_id": request.form_id,
-            "field_id": 0,
-            "bot_id": 0, // request.bot_id,
-            "page_start": 0,
-            "page_limit": 50
-        });
+        //bot_flag_trigger_on_field_edit
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter            
+            //flag = 0 = ALL bots
+            //flag = 1 = Only Field based bots
+            //flag = 2 = ONly Form Based bots
+            //flag = 3 = ONly specific Form Based bots to be triggered in field edit
+            
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: 0,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: request.altered_field_id,
+                start_from: 0,
+                limit_value: 50
+            }, 3);
 
+            formLevelWFSteps = botResponse;
+            
+            //console.log('formLevelWFSteps : ', formLevelWFSteps);
+
+            //To trigger only field level Bots
+            fieldLevelWFSteps = await this.getBotworkflowStepsByForm({
+                "organization_id": 0,
+                "form_id": request.form_id,
+                "field_id": request.altered_field_id,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+
+            if(formLevelWFSteps.length > 0) {
+                wfSteps = fieldLevelWFSteps.concat(formLevelWFSteps);
+            } else {
+                wfSteps = fieldLevelWFSteps;
+            }            
+
+        } else { //trigger both the form level bots & field level - Normally happends for the first time form submission
+            wfSteps = await this.getBotworkflowStepsByForm({
+                "organization_id": 0,
+                "form_id": request.form_id,
+                "field_id": 0,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+        }
 
         let botOperationsJson,
             botSteps;
@@ -981,7 +1057,23 @@ function BotService(objectCollection) {
         } catch (error) {
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
-        // console.log("formInlineDataMap: ", formInlineDataMap);
+        //console.log("formInlineDataMap: ", formInlineDataMap);
+        //console.log('wfSteps : ', wfSteps);
+
+        //Print what are all the bots are there
+        for(const temp_iterator of wfSteps) {
+            console.log('bot_operation_type_id : ', temp_iterator.bot_operation_type_id);
+            console.table([{
+                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,                
+                bot_operation_type_name: temp_iterator.bot_operation_type_name,
+                form_id: temp_iterator.form_id,
+                field_id: temp_iterator.field_id,
+                data_type_combo_id: temp_iterator.data_type_combo_id,
+                data_type_combo_name: temp_iterator.data_type_combo_name
+            }]);
+        }
+
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
 
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
@@ -989,6 +1081,7 @@ function BotService(objectCollection) {
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
                 bot_operation_sequence_id: i.bot_operation_sequence_id,
+                //bot_operation_type_id: i.bot_operation_type_id,
                 bot_operation_type_name: i.bot_operation_type_name,
                 form_id: i.form_id,
                 field_id: i.field_id,
@@ -1027,7 +1120,7 @@ function BotService(objectCollection) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
             }
 
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            botOperationsJson = JSON.parse(i.bot_operation_inline_data);            
             botSteps = Object.keys(botOperationsJson.bot_operations);
             logger.silly("botSteps: %j", botSteps);
 
@@ -1327,9 +1420,53 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Not Yet Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     try {
-                        await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        if (
+                            Number(request.organization_id) === 868 ||
+                            Number(request.organization_id) === 912
+                        ) {
+                            request.bot_id = i.bot_id;
+                            request.bot_operation_id = i.bot_operation_id;
+                            let baseURL = `http://localhost:7000`,
+                            sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                            if (global.mode === "sprint" || global.mode === "staging") {
+                                baseURL = `http://10.0.2.49:4000`;
+                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+
+                            } else if (global.mode === "preprod" || global.mode === "prod") {
+                                baseURL = null;
+                            }
+                            sqs.sendMessage({
+                                // DelaySeconds: 5,
+                                MessageBody: JSON.stringify(request),
+                                QueueUrl: sqsQueueUrl,
+                                MessageGroupId: `excel-processing-job-queue-v1`,
+                                MessageDeduplicationId: uuidv4(),
+                                MessageAttributes: {
+                                    "Environment": {
+                                        DataType: "String",
+                                        StringValue: global.mode
+                                    },
+                                }
+                            }, (error, data) => {
+                                if (error) {
+                                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                } else {
+                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                }
+                            });
+                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                            //     form: request,
+                            // }, function (error, response, body) {
+                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            // });
+
+                            // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        } else {
+                            // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                        }
                     } catch (error) {
                         logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
@@ -1342,6 +1479,29 @@ function BotService(objectCollection) {
                         await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                    break;
+
+                case 24: // Due date edit Bot - ESMS
+                    logger.silly("Due date edit Bot - ESMS");
+                    logger.silly("Due date edit Bot - ESMS: %j", request);
+                    try {
+                        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
+                    } catch (error) {
+                        logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                    break;
+
+                case 25: // participant_remove
+                    logger.silly("[participant_remove] Params received from Request: %j", request);
+                    try {
+                        await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
+                    } catch (error) {
+                        logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
                     }
                     break;
             }
@@ -1482,6 +1642,175 @@ function BotService(objectCollection) {
                 // Let the operation just pass through
                 return true;
         }
+    }
+
+    async function removeParticipant(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
+        console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
+        if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
+            throw new Error("FlagFormSubmitter flag not set to 1");
+        }
+        const workflowActivityID = Number(request.workflow_activity_id) || 0;
+        // const assetID = Number(request.auth_asset_id) || Number(request.asset_id); // Actual
+        const assetID = Number(request.asset_id) || Number(request.auth_asset_id); // Test
+
+        // Status alter or substatus completion bot incorporating arithmetic condition
+        inlineData = removeParticipantBotOperationData;
+        if (
+            // Check if the new condition array exists
+            inlineData.hasOwnProperty("condition") &&
+            Array.isArray(inlineData.condition) &&
+            inlineData.condition.length > 0 // &&
+            // Check if the pass and fail status objects exist
+            // inlineData.hasOwnProperty("pass") &&
+            // inlineData.hasOwnProperty("fail")
+        ) {
+            let conditionChain = [];
+            for (const condition of inlineData.condition) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                // Check if the field is already present in the formInlineDataMap
+                if (formInlineDataMap.has(fieldID)) {
+                    const field = formInlineDataMap.get(fieldID);
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(field.field_value, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+                    continue;
+                }
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                // PROCEED
+                // Placeholder block
+            } else if (!finalCondition.value) {
+                // DO NOT PROCEED
+                return;
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+                throw new Error("Error processing the condition chain");
+            }
+        }
+
+        let removeParticipantRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            activity_id: workflowActivityID,
+            asset_id: request.asset_id,
+            asset_token_auth: request.asset_token_auth,
+            activity_participant_collection: JSON.stringify([]), // Placeholder
+            api_version: request.api_version,
+            app_version: request.app_version,
+            asset_message_counter: request.asset_message_counter,
+            device_os_id: request.device_os_id,
+            flag_offline: request.flag_offline,
+            flag_retry: request.flag_retry,
+            message_unique_id: request.message_unique_id,
+            service_version: request.service_version,
+            track_gps_accuracy: request.track_gps_accuracy,
+            track_gps_datetime: request.track_gps_datetime,
+            track_gps_location: request.track_gps_location,
+            track_gps_status: request.track_gps_status,
+            track_latitude: request.track_latitude,
+            track_longitude: request.track_longitude
+        };
+
+        try {
+            const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: assetID
+            });
+            console.log("removeParticipant | error: ", error);
+            if (assetData.length > 0) {
+                removeParticipantRequest.activity_participant_collection = JSON.stringify([
+                    {
+                        "organization_id": assetData[0].organization_id,
+                        "account_id": assetData[0].account_id,
+                        "workforce_id": assetData[0].workforce_id,
+                        "asset_type_id": assetData[0].asset_type_id,
+                        "asset_category_id": assetData[0].asset_type_category_id,
+                        "asset_id": assetID,
+                        "access_role_id": 0,
+                        "message_unique_id": 98989898989898
+                    }
+                ]);
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        try {
+            await activityParticipantService.unassignParticicpant(removeParticipantRequest);
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return;
     }
 
     async function addPdfFromHtmlTemplate(request, templateData) {
@@ -2804,7 +3133,8 @@ function BotService(objectCollection) {
             console.log('##################################');
             console.log('originFlagSet : ', originFlagSet);
             console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            
+            console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
+            console.log('workflowActivityTypeId : ', workflowActivityTypeId);            
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
                 console.log('Target Form Process is different from the Source form');
@@ -2855,6 +3185,7 @@ function BotService(objectCollection) {
             activityInlineDataMap = new Map(),
             REQUEST_FIELD_ID = 0;
 
+        console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
                 sourceFormTransactionData = [],
@@ -2895,28 +3226,35 @@ function BotService(objectCollection) {
                 organization_id: request.organization_id
             });
 
-            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
-            console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
-            console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnName(sourceFieldDataTypeID));
-            const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
-            console.log('sourceFieldData[0] : ', sourceFieldData[0]);
-
-            activityInlineDataMap.set(sourceFieldID, {
-                // "form_name": Number(sourceFieldData[0].form_name),
-                "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
-                "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
-                "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
-                "field_data_type_id": Number(sourceFieldData[0].data_type_id),
-                "field_id": targetFieldID,
-                "field_name": String(sourceFieldData[0].field_name),
-                "field_value": sourceFieldValue,
-                "form_id": targetFormID,
-                "message_unique_id": 123123123123123123
-            });
+            try {
+                console.log('sourceFieldData[0] : ', sourceFieldData[0]);
+                const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
+                console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
+                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
+                
+                activityInlineDataMap.set(sourceFieldID, {
+                    // "form_name": Number(sourceFieldData[0].form_name),
+                    "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
+                    "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
+                    "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
+                    "field_data_type_id": Number(sourceFieldData[0].data_type_id),
+                    "field_id": targetFieldID,
+                    "field_name": String(sourceFieldData[0].field_name),
+                    "field_value": sourceFieldValue,
+                    "form_id": targetFormID,
+                    "message_unique_id": 123123123123123123
+                });
+            } catch(err) {
+                console.log(`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`);
+            }
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
+        
+        console.log("targetFormTransactionID: ", targetFormTransactionID);
+        console.log("targetFormActivityID: ", targetFormActivityID);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
@@ -2934,28 +3272,29 @@ function BotService(objectCollection) {
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, DO NOT DO ANYTHING
             // If the target form has not been submitted yet, create one
-            let createTargetFormRequest = Object.assign({}, request);
-                createTargetFormRequest.activity_form_id = targetFormID;
-                createTargetFormRequest.form_id = targetFormID;
-                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-                if(Number(esmsFlag) === 0) {
-                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
-                }
+            // let createTargetFormRequest = Object.assign({}, request);
+            //     createTargetFormRequest.activity_form_id = targetFormID;
+            //     createTargetFormRequest.form_id = targetFormID;
+            //     createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            //     if(Number(esmsFlag) === 0) {
+            //         createTargetFormRequest.workflow_activity_id = workflowActivityID;
+            //     }
                 
-                if(Number(esmsFlag) === 1) {
-                    //Internally in activityService File. Workflow will be created
-                    createTargetFormRequest.isESMS = 1;
-                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+            //     if(Number(esmsFlag) === 1) {
+            //         //Internally in activityService File. Workflow will be created
+            //         createTargetFormRequest.isESMS = 1;
+            //         createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
-                    //flag to know that this form and workflow is submitted by a Bot
-                    createTargetFormRequest.activity_flag_created_by_bot = 1;
-                }
-            try {
-                await createTargetFormActivity(createTargetFormRequest);
-            } catch (error) {
-                console.log("copyFields | createTargetFormActivity | Error: ", error);
-            }
+            //         //flag to know that this form and workflow is submitted by a Bot
+            //         createTargetFormRequest.activity_flag_created_by_bot = 1;
+            //     }
+            // try {
+            //     await createTargetFormActivity(createTargetFormRequest);
+            // } catch (error) {
+            //     console.log("copyFields | createTargetFormActivity | Error: ", error);
+            // }
         }
         return;
     }
@@ -3130,6 +3469,30 @@ function BotService(objectCollection) {
             default: console.log('In default Case : getFielDataValueColumnName');
         }
     }
+
+    function getFielDataValueColumnNameNew(fieldDataTypeID) {
+        switch (fieldDataTypeID) {
+            case 1: // Date
+                return 'data_entity_datetime_2';
+            case 5: // Number
+                return 'data_entity_bigint_1';
+            case 6: // Decimal
+                return 'data_entity_double_1';
+            case 19: // Short Text
+            case 21: // Label
+            case 22: // Email ID
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+            case 57: // workflow reference            
+            case 59: // asset reference            
+                return 'data_entity_text_1';
+            case 20: // Long Text
+                return 'data_entity_text_2';
+            case 64: //JSON                
+                return 'data_entity_inline';
+            default: console.log('In default Case : getFielDataValueColumnName');
+        }
+    }    
 
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
@@ -3520,9 +3883,9 @@ function BotService(objectCollection) {
                 let formToFill = {};
                 // formToFill[formAction.form_id] = {
                 //     "name": formConfigData[0].form_name || ""
-                // };
+                // };                
                 formToFill["id"] = formAction.form_id;
-                formToFill["value"] = formConfigData[0].form_name || "";
+                formToFill["value"] = (formConfigData.length > 0) ? formConfigData[0].form_name : "";
                 formsToFill.push(formToFill);
             }
         }
@@ -5089,6 +5452,8 @@ function BotService(objectCollection) {
             workflowFile713Request.message_unique_id = util.getMessageUniqueId(Number(request.asset_id));
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
+            workflowFile713Request.is_from_field_alter = 1;
+
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile713Request);
@@ -5361,7 +5726,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
-    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {
+    async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {        
+        //console.log('formInlineDataMap : ', formInlineDataMap);
+        console.log('cuidInlineData : ', cuidInlineData);
+
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
             let cuidUpdateFlag = 0,
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
@@ -5529,10 +5897,49 @@ function BotService(objectCollection) {
         return [error, responseData];
     }
 
-    this.generateOppurtunity = async function (request){
+    this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
-            generatedOpportunityID = "OPP-"; 
+            generatedOpportunityID = "OPP-";        
+
+        let activityInlineData = JSON.parse(request.activity_inline_data);
+        let parentActivityID;
+
+        for(let i_iterator of activityInlineData) {
+            if(Number(i_iterator.field_data_type_id) === 57) {
+                let fieldValue = i_iterator.field_value;
+                if(fieldValue.includes('|')) {                    
+                    parentActivityID = fieldValue.split('|')[1];
+                }
+            }
+        }
+
+        //Call activity_activity_mapping retrieval service to get the segment
+        let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+                                        activity_id: request.activity_id, //Workflow activity id 
+                                        parent_activity_id: parentActivityID, //reference account workflow activity_id
+                                        organization_id: request.organization_id,            
+                                        start_from: 0,
+                                        limit_value: 50
+                                    });
+
+        let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
+        console.log('segmentData : ', segmentName);
+        switch(segmentName) {            
+            case 'la': generatedOpportunityID+='C-';
+                        break;
+            case 'ge': generatedOpportunityID+='V-';
+                        break;
+            case 'soho': generatedOpportunityID+='D-';
+                         break;
+            case 'sme': generatedOpportunityID+='S-';
+                        break;
+            case 'govt': generatedOpportunityID+='G-'; 
+                        break;
+            case 'vics': generatedOpportunityID+='W-';
+                         break;
+        }
+
         try{
 
             let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
@@ -5588,6 +5995,451 @@ function BotService(objectCollection) {
     }
 
 
+    this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit) => {
+        let responseData = [],
+            error = false,
+            oldDate,
+            newDate;
+
+        let fieldData;
+
+        let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+
+        oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
+        oldDate = util.replaceDefaultDatetime(oldDate);
+        console.log('formInlineDataMap : ', formInlineDataMap);
+        console.log('dueDateEdit : ', dueDateEdit);
+
+        if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
+            fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
+            console.log('fieldData : ', fieldData);
+
+            newDate = fieldData.field_value;
+        }
+
+        console.log('OLD DATE : ', oldDate);
+        console.log('NEW DATE : ', newDate);
+
+        //Alter the workflow due date
+        //activity/cover/alter
+            /*account_id: 1100
+            activity_access_role_id: 26
+            activity_cover_data: "{"title":{"old":"APR 28 0001","new":"APR 28 0001"},"description":{"old":"","new":""},"duedate":{"old":"2020-05-03 08:47:22","new":"2020-05-13T12:31:18.000Z"}}"
+            activity_id: 2893222
+            activity_parent_id: 0
+            activity_type_category_id: 48
+            activity_type_id: 150441
+            app_version: 0
+            asset_id: 40443
+            asset_message_counter: 0
+            asset_token_auth: "643be4e0-892a-11ea-8416-733b3e360f4a"
+            device_os_id: 5
+            flag_offline: 0
+            flag_pin: 0
+            flag_priority: 0
+            flag_retry: 0
+            message_unique_id: 1589287086577
+            organization_id: 962
+            service_version: 1
+            track_altitude: 0
+            track_gps_accuracy: 0
+            track_gps_datetime: "2020-05-12 12:31:32"
+            track_gps_status: 0
+            track_latitude: 0
+            track_longitude: 0
+            workforce_id: 5912*/
+        let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = 
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);     
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = request.activity_title;
+                activityCoverData.title.new = request.activity_title;
+
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.old = oldDate;
+                activityCoverData.duedate.new = newDate;
+        
+        console.log('activityCoverData : ', activityCoverData);
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            console.log(err);
+        }
+        
+        newReq.asset_id = 100;
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+        await queueWrapper.raiseActivityEventPromise(event, request.activity_id);
+
+        //Timeline /activity/timeline/entry/add
+            /*account_id: 1100
+            activity_channel_category_id: 0
+            activity_channel_id: 0
+            activity_id: 2893222
+            activity_parent_id: 0
+            activity_stream_type_id: 711
+            activity_sub_type_id: -1
+            activity_timeline_collection: "{"content":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","subject":"Note - 12th May ","mail_body":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","attachments":[],"activity_reference":[{"activity_title":"","activity_id":""}],"asset_reference":[{}],"form_approval_field_reference":[]}"
+            activity_timeline_text: ""
+            activity_timeline_url: ""
+            activity_type_category_id: 48
+            activity_type_id: 150441
+            app_version: 1
+            asset_id: 40443
+            asset_message_counter: 0
+            asset_token_auth: "643be4e0-892a-11ea-8416-733b3e360f4a"
+            auth_asset_id: 40443
+            data_entity_inline: "{"content":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","subject":"Note - 12th May ","mail_body":"Due date changed from \"3rd May 2020\" to \"13th May 2020\" by Nani Kalyan","attachments":[],"activity_reference":[{"activity_title":"","activity_id":""}],"asset_reference":[{}],"form_approval_field_reference":[]}"
+            datetime_log: "2020-05-12 12:31:32"
+            device_os_id: 5
+            flag_offline: 0
+            flag_pin: 0
+            flag_priority: 0
+            flag_retry: 0
+            message_unique_id: 1589287764829
+            operating_asset_first_name: "Nani Kalyan"
+            organization_id: 962
+            service_version: 1
+            timeline_stream_type_id: 711
+            timeline_transaction_id: 1589287504481
+            track_altitude: 0
+            track_gps_accuracy: "0"
+            track_gps_datetime: "2020-05-12 12:31:32"
+            track_gps_status: 0
+            track_latitude: "0.0"
+            track_longitude: "0.0"
+            workforce_id: 5912*/
+
+            let content = `Due date changed from ${oldDate} to ${newDate} by Bot`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 711;
+                timelineReq.activity_stream_type_id= 711;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
+
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            await queueWrapper.raiseActivityEventPromise(event1, request.activity_id);
+
+        return [error, responseData];
+    }
+
+    this.prefillTargetFormValuesForFormFieldCopyBotOperation = async function (request) {
+        let workflowActivityID = Number(request.workflow_activity_id) || 0;
+        if (!workflowActivityID) {
+            return [new Error("workflow_activity_id is missing"), null];
+        }
+
+        let prefillFieldsArray = [];
+        try {
+            prefillFieldsArray = JSON.parse(request.prefill_fields_array);
+        } catch (error) {
+            return [error, null];
+        }
+
+        if (!(prefillFieldsArray.length > 0)) {
+            return [new Error("Empty prefill_fields_array"), null];
+        }
+
+        const botOperationInlineDataMap = new Map();
+        const prefillFieldToSourceMap = new Map();
+        try {
+
+            for (const prefillField of prefillFieldsArray) {
+                let filteredPair = [];
+                if (botOperationInlineDataMap.has(Number(prefillField.bot_operation_id))) {
+                    // DO!
+                    const formFieldCopyArray = botOperationInlineDataMap.get(Number(prefillField.bot_operation_id));
+                    // console.log("[EXISTING] botOperationInlineData.form_field_copy: ", formFieldCopyArray);
+
+                    filteredPair = formFieldCopyArray.filter(mapping =>  Number(mapping.target_field_id) === Number(prefillField.field_id));
+
+                } else {
+                    // Fetch the bot_operation's inline data
+                    const [_, botOperationData] = await adminListingService.botOperationMappingSelectID({
+                        bot_id: prefillField.bot_id,
+                        bot_operation_id: prefillField.bot_operation_id
+                    });
+                    if (!(botOperationData.length > 0)) { continue; }
+
+                    const botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                    botOperationInlineDataMap.set(Number(prefillField.bot_operation_id), botOperationInlineData.bot_operations.form_field_copy);
+                    
+                    // console.log("[NEW] botOperationInlineData.form_field_copy: ", botOperationInlineData.bot_operations.form_field_copy);
+                    filteredPair = botOperationInlineData.bot_operations.form_field_copy.filter(mapping =>  Number(mapping.target_field_id) === Number(prefillField.field_id));
+                }
+                prefillFieldToSourceMap.set(Number(prefillField.field_id), filteredPair[0]);
+            }
+
+        } catch (error) {
+            return [error, null];
+        }
+        // console.log("botOperationInlineDataMap: ", botOperationInlineDataMap);
+        // console.log("prefillFieldToSourceMap: ", prefillFieldToSourceMap);
+
+        // 
+        const fieldIDToValueJSON = {};
+        try {
+            for (const [prefillFieldID, sourceMap] of prefillFieldToSourceMap) {
+                const sourceFormID = Number(sourceMap.source_form_id),
+                    sourceFieldID = Number(sourceMap.source_field_id);
+
+                const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, sourceFormID);
+
+                let sourceFormActivityID = 0, sourceFormTransactionID = 0;
+                if (Number(formTimelineData.length) > 0) {
+                    sourceFormActivityID = Number(formTimelineData[0].data_activity_id);
+                    sourceFormTransactionID = Number(formTimelineData[0].data_form_transaction_id);
+                }
+                if (
+                    Number(sourceFormActivityID) > 0 &&
+                    Number(sourceFormTransactionID) > 0
+                ) {
+                    // Get the field value
+                    let fieldData = await getFieldValue({
+                        form_transaction_id: sourceFormTransactionID,
+                        form_id: sourceFormID,
+                        field_id: sourceFieldID,
+                        organization_id: request.organization_id
+                    });
+                    let fieldDataTypeID = 0;
+                    let fieldValue = '';
+                    if (fieldData.length > 0) {
+                        fieldDataTypeID = Number(fieldData[0].data_type_id);
+                        fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)];
+
+                        fieldIDToValueJSON[prefillFieldID] = fieldValue;
+                    }
+                }
+            }
+        } catch (error) {
+            return [error, null];
+        }
+
+        // console.log("fieldIDToValueJSON: ", fieldIDToValueJSON);
+
+        return [null, fieldIDToValueJSON];
+    }
+
+    this.checkForParticipantRemoveBotOperationSuccess = async function (request) {
+        const formID = Number(request.form_id);
+        let botOperationInlineData = {},
+            botID = 0, botOperationID = 0;
+
+        // Prepare the map equivalent for the form's inline data,
+        // for easy checks and comparisons
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            formInlineData = JSON.parse(request.activity_inline_data);
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+            return [error, null];
+        }
+        // console.log("formInlineDataMap: ", formInlineDataMap);
+
+        // Get the participant remove bot for the form
+        try {
+            const [error, botOperationData] = await botOperationMappingSelectOperationType({
+                organization_id: request.organization_id,
+                form_id: formID,
+                bot_operation_type_id: 25
+            });
+            if (botOperationData.length > 0) {
+                botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
+                botID = botOperationData[0].bot_id;
+                botOperationID = botOperationData[0].bot_operation_id;
+            }
+        } catch (error) {
+            return [error, null]
+        }
+
+        let conditionsArray = [];
+        if (
+            botOperationInlineData.hasOwnProperty("bot_operations") &&
+            botOperationInlineData.bot_operations.hasOwnProperty("participant_remove")
+        ) {
+            if (
+                botOperationInlineData.bot_operations.participant_remove.hasOwnProperty("condition") &&
+                Array.isArray(botOperationInlineData.bot_operations.participant_remove.condition) &&
+                botOperationInlineData.bot_operations.participant_remove.condition.length > 0
+            ) {
+                conditionsArray = botOperationInlineData.bot_operations.participant_remove.condition;
+            } else {
+                return [null, {
+                    is_success: true,
+                    message: `The participant will be removed if the form is submitted.`
+                }];
+            }
+        } else {
+            return [new Error(`'bot_operation_inline_data' is incomplete for Bot ID: ${botID} and Bot Operation ID: ${botOperationID}`), null];
+        }
+
+        if (conditionsArray.length > 0) {
+
+            let conditionChain = [];
+            for (const condition of conditionsArray) {
+                const formID = Number(condition.form_id),
+                    fieldID = Number(condition.field_id);
+
+                // Check if the field is already present in the formInlineDataMap
+                if (formInlineDataMap.has(fieldID)) {
+                    const field = formInlineDataMap.get(fieldID);
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(field.field_value, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+                    continue;
+                }
+
+                let formTransactionID = 0,
+                    formActivityID = 0;
+
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, condition.form_id);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 // &&
+                    // Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
+                    const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+
+                    conditionChain.push({
+                        value: await checkForThresholdCondition(fieldValue, condition.threshold, condition.operation),
+                        join_condition: condition.join_condition
+                    });
+
+                } else {
+                    conditionChain.push({
+                        value: false,
+                        join_condition: condition.join_condition
+                    });
+                }
+            }
+
+            logger.silly("conditionChain: %j", conditionChain);
+
+            // Process the condition chain
+            const conditionReducer = (accumulator, currentValue) => {
+                let value = 0;
+                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                // AND
+                if (accumulator.join_condition === "AND") {
+                    value = accumulator.value && currentValue.value;
+                }
+                // OR
+                if (accumulator.join_condition === "OR") {
+                    value = accumulator.value || currentValue.value;
+                }
+                // EOJ
+                // Not needed
+                return {
+                    value,
+                    join_condition: currentValue.join_condition
+                }
+            };
+
+            const finalCondition = conditionChain.reduce(conditionReducer);
+            logger.silly("finalCondition: %j", finalCondition);
+
+            // Select the status based on the condition arrived
+            if (finalCondition.value) {
+                return [null, {
+                    is_success: true,
+                    message: `The participant will be removed if the form is submitted.`
+                }];
+            } else if (!finalCondition.value) {
+                return [null, {
+                    is_success: false,
+                    message: `The participant won't be removed if the form is submitted.`
+                }];
+            } else {
+                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+            }
+        }
+
+        return [null, null];
+    }
+
+    async function botOperationMappingSelectOperationType(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id || 0,
+            request.bot_id || 0,
+            request.bot_operation_type_id || 0,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
 }
 

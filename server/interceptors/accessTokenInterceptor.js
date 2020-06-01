@@ -7,14 +7,20 @@ function AccessTokenInterceptor(app, responseWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
         console.log('REQ : ', req.headers);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
                 
         let bundleTransactionId = TimeUuid.now();
         req.body.service_id = "";
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
                 
-        if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+        //Check for flag - Cognito or Redis Auth
+        //x-grene-auth-flag = 1 - Redis
+        //x-grene-auth-flag = 2 - Cognito
+        if(Number(req.headers['x-grene-auth-flag']) === 1) {
+            console.log('Proceeding to Redis Auth coz x-grene-auth-flag is 1');
+            next();
+        } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
             req.body['module'] = 'asset';
@@ -47,6 +53,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     next();
                     break;
                 case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
+                case '/' + global.config.version + '/phone_number/verify/invite':
                     req.body['module'] = 'asset';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
@@ -130,10 +137,16 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     // get the decoded payload and header
                     decoded = jwt.decode(token, {complete: true});
                     //console.log(decoded);
+                    if(decoded === null) {
+                        console.log('Invalid token');
+                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                        return;
+                    }
                     //console.log(' ');                        
                             
                     url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
-                    //console.log(url);
+                    //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/ap-south-1_U5xHOaPMS/.well-known/jwks.json`;
+                    console.log(url);
                             
                     https.get(url, (resp) => {
                         let data = '';
@@ -163,6 +176,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                             jwt.verify(token, pem, { algorithms: ['RS256'] }, function(err, decodedToken) {
                             if(err === null) {
                                 console.log('token verified successfully!');
+                                req.body.access_token_verified = 1;                                
                                 next();
                             } else {
                                 console.log('Some error in the token Verification');
@@ -177,7 +191,7 @@ function AccessTokenInterceptor(app, responseWrapper) {
                     }).on("error", (err) => {
                         console.log("Error: " + err.message);
                         global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});
-                                res.send(responseWrapper.getResponse(null, {}, -3205, req.body));        
+                                res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                         });
                     break;
                     } //switch
