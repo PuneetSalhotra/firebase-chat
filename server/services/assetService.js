@@ -128,19 +128,56 @@ function AssetService(objectCollection) {
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
+        if (
+            request.url.includes('v2') &&
+            (
+                String(request.asset_phone_number).includes('+91') ||
+                String(request.asset_phone_number).includes('+61')
+            )
+        ) {
+            countryCode = Number(String(request.asset_phone_number).slice(0, 3));
+            request.asset_phone_country_code = countryCode;
+
+            phoneNumber = Number(String(request.asset_phone_number).slice(3));
+            request.asset_phone_number = request.asset_phone_number;
+
+            console.log("countryCode: ", countryCode);
+            console.log("phoneNumber: ", phoneNumber);
+        }
+
         try {
+            let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
             if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 5) {
+                // if (request.url.includes('v2')) { responseCode = 429; }
                 callback(false, {
                     message: `OTP rate limit exceeded!`
-                }, 200);
+                }, responseCode);
+                
+                const smsMessage = `Sorry, you have exceeded the number of times you can generate a fresh OTP. Please try again after one hour.`;
+                // util.sendSmsSinfiniV1(smsMessage, countryCode || 91, phoneNumber || 0, 'MYTONY', function (err, response) {
+                //     console.log('[getPhoneNumberAssetsV1] Sinfini Response: ', response);
+                //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
+                // });
+
+                smsEngine.emit('send-sinfini-sms', {
+                    type: 'NOTFCTN',
+                    countryCode,
+                    phoneNumber,
+                    msgString: smsMessage,
+                    failOver: true,
+                    appName: ''
+                });
+
                 return;
             }
         } catch (error) {
+            let responseCode = 200;
             console.log("checkIfOTPRateLimitExceeded | Error: ", error);
+            // if (request.url.includes('v2')) { responseCode = 429; }
             callback(true, {
                 message: `OTP rate limit check failed!`
-            }, 200);
+            }, responseCode);
             return;
         }
 
@@ -159,11 +196,16 @@ function AssetService(objectCollection) {
                         var verificationCode;
                         (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
+                        let response = {};
+                        if (request.url.includes('v2')) {
+                            response.verification_code = verificationCode;
+                        }
+
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0 && verificationMethod === 1) {
 
-                                callback(false, {}, 200);
+                                callback(false, response, 200);
                                 forEachAsync(selectData, function (next, rowData) {
                                     paramsArr = new Array(
                                         rowData.asset_id,
@@ -189,7 +231,7 @@ function AssetService(objectCollection) {
                             } else if (verificationMethod === 2) {
                                 request.passcode = selectData[0].asset_phone_passcode;
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
-                                callback(false, {}, 200);
+                                callback(false, { response }, 200);
                                 return;
                             }
                         } else {
@@ -198,7 +240,7 @@ function AssetService(objectCollection) {
                                     .then(function () {
                                         // Passcode set in the DB
                                         sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
-                                        callback(false, {}, 200);
+                                        callback(false, { response }, 200);
                                     }, function (err) {
                                         // There was an error setting the passcode in the DB
                                         callback(true, err, -9998);
@@ -209,7 +251,7 @@ function AssetService(objectCollection) {
                                     .then(function (data) {
                                         request.passcode = data[0].phone_passcode;
                                         sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
-                                        callback(false, {}, 200);
+                                        callback(false, { response }, 200);
                                     }, function (err) {
                                         // Operation error
                                         callback(false, {}, -9998);
@@ -4832,6 +4874,10 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
         }
         return [error, assetData];
+    };
+
+    this.getAssetMessageCounter = async(request)=> {
+        return await cacheWrapper.getAssetParityPromise(Number(request.asset_id));
     };
 }
 

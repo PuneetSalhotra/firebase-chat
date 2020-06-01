@@ -428,7 +428,7 @@ function ActivityListingController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list', function (req, res) {
-        activityListingService.getOrganizationsOfANumber(req.body, function (err, data, statusCode) {        
+        activityListingService.getOrganizationsOfANumber(req.headers, req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
@@ -897,6 +897,31 @@ function ActivityListingController(objCollection) {
             console.log("/activity/details/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
+    });
+
+    app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list/v1', (req, res) => {
+        activityListingService.getOrganizationsOfANumber(req.headers, req.body, (err, data, statusCode) => {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/activity/access/asset/list/v1', function (req, res) {
+        activityListingService.getActivityListDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
     });
 }
 

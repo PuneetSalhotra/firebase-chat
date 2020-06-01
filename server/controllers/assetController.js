@@ -39,6 +39,20 @@ function AssetController(objCollection) {
         });
     });
 
+    app.post('/' + global.config.version + '/asset/passcode/alter/v2', function (req, res) {
+
+        assetService.getPhoneNumberAssetsV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // Positive response
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // Error
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
     app.post('/' + global.config.version + '/asset/passcode/check', function (req, res) {
 
         assetService.checkAssetPasscode(req.body, function (err, data, statusCode) {
@@ -739,5 +753,29 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });      
+
+    app.post('/' + global.config.version + '/asset/link/set/v1', (req, res) => {
+        assetService.linkAsset(req.body, (err, data, statusCode) => {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                return;
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/asset/message-counter/list', async (req, res) => {
+        const [err, responseData] = await assetService.getAssetMessageCounter(req.body);        
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/message-counter/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
 }
 module.exports = AssetController;

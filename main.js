@@ -3,6 +3,14 @@
  */
 var globalConfig = require('./server/utils/globalConfig');
 
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
+
 // This line must come before importing any instrumented module.
 const tracer = require('dd-trace').init({
     service: `${process.env.mode}_desker_api`,
@@ -46,6 +54,8 @@ var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
+
+var map = new Map();
 
 redisClient.on('connect', function (response) {
     logger.info('Redis Client Connected', { type: 'redis', response });
@@ -188,8 +198,13 @@ function connectToKafkaBroker(){
         if (kafkaProducer.ready)
             return resolve();
         kafkaProducer.on('ready', resolve);
-    }).then(() => {  
-             
+    }).then(async () => {  
+
+        //Load the userData from the Cognito
+        await listUsers()
+        console.log('Cognito Users loaded successfully : ', map.size);
+	    //console.log(map);
+
         var queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
         //global.logger = new Logger();
         global.logger = new Logger(queueWrapper);
@@ -213,7 +228,7 @@ function connectToKafkaBroker(){
             activityCommonService: activityCommonService,
             forEachAsync: forEachAsync
         };
-        new AccessTokenInterceptor(app, responseWrapper);
+        new AccessTokenInterceptor(app, responseWrapper, map);
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);        
         new ControlInterceptor(objCollection);
         server.listen(global.config.servicePort);        
@@ -261,3 +276,55 @@ process.on('warning', (warning) => {
 process.on('unhandledRejection', (reason, promise) => {
     logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
 });
+
+async function listUsers(paginationToken = null) {
+	var params = {
+		UserPoolId: global.config.user_pool_id,
+		Limit: 60
+	};
+
+	//console.log('paginationToken : ', paginationToken);
+	if(paginationToken != null) {
+		params = {
+            UserPoolId: global.config.user_pool_id,
+            Limit: 60,
+            PaginationToken: paginationToken
+        };
+	}
+
+	await new Promise((resolve, reject)=>{
+		cognitoidentityserviceprovider.listUsers(params, async (err, data)=>{
+		if(err) {
+			console.log(err);
+		} else {
+			//console.log(data);
+			let users = data.Users;
+			//console.log(users[0])
+			//console.log(users.length);
+			
+			//console.log(users[0].Username);
+			//console.log(users[0].Attributes[1].Value);
+
+			for(const i of users) {
+				for(const j of i.Attributes) {
+					if(j.Name === 'phone_number') {
+						map.set(i.Username, j.Value);
+					}
+				}
+			}
+			
+			if(data.PaginationToken != "" && Number(users.length) === 60) {
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{
+                        resolve();
+                    }, 2000);
+                });
+                await listUsers(data.PaginationToken);
+			}
+
+			resolve();			
+		}
+		});	
+	});
+	
+}
