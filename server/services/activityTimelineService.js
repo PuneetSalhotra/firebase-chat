@@ -416,7 +416,7 @@ function ActivityTimelineService(objectCollection) {
         
         }///////////////////////// 
         else { //ELSE PART
-            request.form_id = 0;
+            request.form_id = (request.hasOwnProperty('form_id')) ? request.form_id: 0;
             let [err, data] = await timelineStandardCallsAsync(request);
             (err) ?
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
@@ -3773,8 +3773,9 @@ async function addFormEntriesAsync(request) {
                         operating_asset_name: assetData[0].operating_asset_first_name,
                         asset_email_id: assetData[0].operating_asset_email_id,
                         email_receiver_name: assetData[0].operating_asset_first_name,
-                        email_sender_name: senderAssetData[0].operating_asset_first_name,
-                        email_sender: senderAssetData[0].operating_asset_email_id
+                        email_sender_name: senderAssetData[0].operating_asset_first_name,                        
+                        //email_sender: senderAssetData[0].operating_asset_email_id
+                        email_sender: 'ESMSMails@vodafoneidea.com'
                     });
                 }
             } else {

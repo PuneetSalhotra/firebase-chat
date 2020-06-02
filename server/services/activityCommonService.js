@@ -553,9 +553,9 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
-        global.logger.write('conLog', 'lead_reject_reason: ' + request.lead_reject_reason, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - lead_reject_reason: ' + request.lead_reject_reason, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -4227,8 +4227,8 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -4407,6 +4407,8 @@ this.getAllParticipantsAsync = async (request) => {
             return;
         }
 
+        console.log('formID : ', formId);
+        console.log('formID : ', request.form_id);
         const paramsArr = new Array(
             request.activity_id,
             assetId,
