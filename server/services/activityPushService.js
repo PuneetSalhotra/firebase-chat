@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* 
 * author: Sri Sai Venkatesh
 */
@@ -338,9 +339,19 @@ function ActivityPushService(objectCollection) {
                                 //pushString.title = senderName;
                                 //pushString.description = 'has sent u a message';
 
+                                let message = 'has sent u a message';
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
+                                    message = activityTimelineCollection.content;
+                                } catch (error) { 
+                                    console.log('Error in case 27 activityPushService : ', error);
+                                }
+
                                 pushString.title = senderName;
-                                pushString.subtitle = 'has sent u a message';
-                                pushString.description = 'has sent a message';
+                                //pushString.subtitle = 'has sent u a message';
+                                //pushString.description = 'has sent a message';
+                                pushString.subtitle = message;
+                                pushString.description = message;
                                 pushString.body = activityTitle;
 
                                 // PubNub
@@ -364,9 +375,19 @@ function ActivityPushService(objectCollection) {
                                 // Push Notification
                                 //pushString.title = senderName;
                                 //pushString.description = 'has sent a message';
+                                let message = 'has sent u a message';
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
+                                    message = activityTimelineCollection.content;
+                                } catch (error) { 
+                                    console.log('Error in case 27 activityPushService : ', error);
+                                }
+
                                 pushString.title = senderName;
-                                pushString.subtitle = 'has sent a message';
-                                pushString.description = 'has sent a message';
+                                //pushString.subtitle = 'has sent a message';
+                                //pushString.description = 'has sent a message';
+                                pushString.subtitle = message;
+                                pushString.description = message;
                                 pushString.body = activityTitle;
 
                                 // PubNub
