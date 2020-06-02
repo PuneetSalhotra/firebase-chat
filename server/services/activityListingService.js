@@ -1699,8 +1699,14 @@ function ActivityListingService(objCollection) {
 		} else {			
 			phoneNumber = requestHeaders['x-grene-p-code'];
 			countryCode = requestHeaders['x-grene-c-code'];
+
+			if(requestHeaders.hasOwnProperty('x-grene-p-code-flag') && Number(requestHeaders['x-grene-p-code-flag']) === 1) { 
+				// If 1 it is from add Asset - hence consider request body not the headers
+				phoneNumber = request.phone_number;
+				countryCode = request.country_code;
+			}
 		}
-		
+
 		const paramsArr = new Array(
 			request.organization_id || 0,
 			phoneNumber, //request.phone_number,
