@@ -777,6 +777,17 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
         }
     });
+
+
+    app.post('/' + global.config.version + '/form/entity-mapping/access/list', async (req, res) => {
+        const [err, formFieldData] = await formConfigService.formEntityWorkflowFormsAccessList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = FormConfigController;
