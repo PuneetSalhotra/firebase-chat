@@ -148,7 +148,7 @@ function AssetService(objectCollection) {
         try {
             let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
-            if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 5) {
+            if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 10) {
                 // if (request.url.includes('v2')) { responseCode = 429; }
                 callback(false, {
                     message: `OTP rate limit exceeded!`
