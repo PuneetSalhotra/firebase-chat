@@ -923,7 +923,7 @@ function AssetService(objectCollection) {
         var domesticSmsMode = global.config.domestic_sms_mode;
         var internationalSmsMode = global.config.international_sms_mode;
         var phoneCall = global.config.phone_call;
-        let appID = Number(request.app_id) || 0;
+        let appID = Number(request.app_id) || 3;
 
         // SMS heart-beat logic
         if (`${countryCode}${phoneNumber}` === '919100112970') {
@@ -933,7 +933,8 @@ function AssetService(objectCollection) {
         //Get the appID
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
-            appName = 'TONY';
+            //appName = 'TONY';
+            appName = 'GRNEOS';
         } else {
             appName = appData[0].app_name;
         }
