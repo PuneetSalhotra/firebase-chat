@@ -236,7 +236,8 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_unread';
 
                                 pushString.title = senderName;
-                                pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
+                                //pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
+                                pushString.description = activityTitle + ' has been shared to collaborate';
                                 if (Number(request.activity_sub_type_id) === 1) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 }
@@ -331,6 +332,9 @@ function ActivityPushService(objectCollection) {
 
                                 pushString.title = senderName;
                                 pushString.description = 'has started a conversation with you';
+
+                                pushString.subtitle = 'has started a conversation with you';
+                                pushString.body = 'has started a conversation with you';
                                 break;
 
                             case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -368,6 +372,9 @@ function ActivityPushService(objectCollection) {
 
                                 pushString.title = senderName;
                                 pushString.description = 'has added you into a group conversation';
+
+                                pushString.subtitle = 'has added you into a group conversation';
+                                pushString.body = 'has added you into a group conversation';
                                 break;
 
                             case '/' + global.config.version + '/activity/timeline/entry/add':
