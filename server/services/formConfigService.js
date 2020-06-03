@@ -2004,6 +2004,10 @@ function FormConfigService(objCollection) {
         return [error, workflowFormsData];
     }
 
+    this.formEntityWorkflowFormsAccessList = async(request) => {
+        return await formEntityMappingSelectWorkflowForms(request);
+    }
+    
     async function formEntityMappingSelectWorkflowForms(request) {
         let workflowFormsData = [],
             error = true;
