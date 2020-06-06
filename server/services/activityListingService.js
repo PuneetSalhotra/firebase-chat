@@ -75,6 +75,71 @@ function ActivityListingService(objCollection) {
 
 	};
 
+	this.getActivityListDifferentialV2 = function (request, callback) {
+		var paramsArr = new Array();
+		var queryString = '';
+		if (request.hasOwnProperty('activity_type_category_id') && Number(request.device_os_id) === 5) {
+			switch (Number(request.activity_type_category_id)) {
+				case 15: //Video Conference BETA
+					paramsArr = new Array(
+						request.asset_id,
+						request.organization_id,
+						request.account_id,
+						request.workforce_id,
+						request.activity_type_category_id,
+						request.activity_sub_type_id,
+						request.page_start,
+						util.replaceQueryLimit(request.page_limit)
+					);
+					queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_sub_type', paramsArr);
+					break;
+				default:
+					paramsArr = new Array(
+						request.asset_id,
+						request.organization_id,
+						request.account_id,
+						request.workforce_id,
+						request.activity_type_category_id,
+						request.datetime_differential,
+						request.page_start,
+						util.replaceQueryLimit(request.page_limit)
+					);
+					queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_category', paramsArr);
+					break;
+			}
+		} else {
+			paramsArr = new Array(
+				request.organization_id,
+				request.asset_id,
+				request.datetime_differential,
+				request.page_start,
+				util.replaceQueryLimit(request.page_limit)
+			);
+			//queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_differential', paramsArr);
+			queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_asset_signup_differential', paramsArr);
+		}
+		if (queryString != '') {
+			db.executeQuery(1, queryString, request, function (err, data) {
+				//console.log(data);
+				if (err === false) {
+					formatActivityListing(data, function (err, finalData) {
+						if (err === false) {
+							callback(false, {
+								data: finalData
+							}, 200);
+						}
+					});
+					return;
+				} else {
+					// some thing is wrong and have to be dealt
+					callback(err, false, -9999);
+					return;
+				}
+			});
+		}
+
+	};
+
 	//PAM
 	this.getActivityAssetAccountLevelDifferential = function (request, callback) {
 		var paramsArr = new Array();
@@ -1699,14 +1764,8 @@ function ActivityListingService(objCollection) {
 		} else {			
 			phoneNumber = requestHeaders['x-grene-p-code'];
 			countryCode = requestHeaders['x-grene-c-code'];
-
-			if(requestHeaders.hasOwnProperty('x-grene-p-code-flag') && Number(requestHeaders['x-grene-p-code-flag']) === 1) { 
-				// If 1 it is from add Asset - hence consider request body not the headers
-				phoneNumber = request.phone_number;
-				countryCode = request.country_code;
-			}
 		}
-
+		
 		const paramsArr = new Array(
 			request.organization_id || 0,
 			phoneNumber, //request.phone_number,
