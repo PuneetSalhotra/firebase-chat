@@ -1084,10 +1084,10 @@ function AdminOpsService(objectCollection) {
         
             https://download.greneos.com`;
 
-            util.sendSmsSinfiniV1(smsMessage, request.country_code || 91, request.phone_number || 0, senderID, function (err, response) {
+            /*util.sendSmsSinfiniV1(smsMessage, request.country_code || 91, request.phone_number || 0, senderID, function (err, response) {
                 console.log('[addNewEmployeeToExistingDesk] Sinfini Response: ', response);
                 console.log('[addNewEmployeeToExistingDesk] Sinfini Error: ', err);
-            });
+            });*/
         } catch (error) {
             console.log('[addNewEmployeeToExistingDesk] SMS Block Error: ', error);
         }
