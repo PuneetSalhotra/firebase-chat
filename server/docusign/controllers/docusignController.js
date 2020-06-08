@@ -10,6 +10,7 @@ function docusignController(objCollection) {
     async (req, res) => {
       try {
         let result = await commonDocusignService.addFile(req.body, res);
+        res.send(responseWrapper.getResponse(false, result, 200, req.body));
       } catch (err) {
         res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
       }

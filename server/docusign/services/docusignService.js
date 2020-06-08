@@ -31,10 +31,6 @@ this.addFile = async  (request, res) => {
   // Start with the request object
   const envDef = new docusign.EnvelopeDefinition();
   //Set the Email Subject line and email message
-  console.log(global.config.documentTypes.customerApplicationForm.emailSubject)
-  console.log(global.config.documentTypes.customerApplicationForm.emailBlurb)
-  console.log(global.config.documentTypes.customerApplicationForm.signHereTabs)
-  
   envDef.emailSubject = global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
   envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
   // Read the file from the document and convert it to a Base64String
@@ -83,13 +79,26 @@ this.addFile = async  (request, res) => {
       throw e;
     }
   }
-  console.log(results)
+  let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  let paramsArray;
+  paramsArray =
+    new Array(
+      request.url_path,
+      parseInt(request.activity_id) ,
+      parseInt(request.asset_id),
+      parseInt(request.organization_id),
+      parseInt(request.asset_id),
+      date,
+    )
+    if (results) {
+        results[0] = await db.callDBProcedure(request, 'ds_v1_activity_docusign_mapping_insert', paramsArray, 0);
+        var response = {'activity_document_id':results[0][0]['activity_document_id']}
+            return response
   // Envelope has been created:
-  if (results) {
-    res.send (`<html lang="en"><body>
-                <h3>Envelope Created!</h3>
-                <p>Signer: ${signerName} &lt;${signerEmail}&gt;</p>
-                <p>Results</p><p><pre><code>${JSON.stringify(results, null, 4)}</code></pre></p>`);
+//     res.send (`<html lang="en"><body>
+//                 <h3>Envelope Created!</h3>
+//                 <p>Signer: ${signerName} &lt;${signerEmail}&gt;</p>
+//                 <p>Results</p><p><pre><code>${JSON.stringify(results, null, 4)}</code></pre></p>`);
   }
 }
 

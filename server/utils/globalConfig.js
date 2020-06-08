@@ -27,6 +27,19 @@ config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
 ]
 config.numberOfThreadsForDiffbotProcessing=2
 
+// Docusign Config
+
+config.accountId = '10725652';
+config.documentTypes = {
+    customerApplicationForm:{
+        emailSubject:'Please sign this document sent vodafone',
+        emailBlurb:'Please sign this document sent vodafone',
+        signHereTabs:{documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '195', yPosition: '147'}
+    }
+}
+
 if (mode === 'testingprodissueenv') {
 
     //Ports Config

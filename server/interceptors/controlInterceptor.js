@@ -33,6 +33,7 @@ var BotController = require('../botEngine/controllers/botController');
 const WorkflowQueueController = require('../workflowQueue/controllers/workflowQueueController.js');
 const CommnTemplateController = require('../commnTemplate/controllers/commnTemplateController.js');
 const elasticSearchController = require('../elasticSearch/controllers/elasticSearchController')
+const docusignController = require('../docusign/controllers/docusignController')
 ///////////////////////////////////////////////////////////////////////
 
 //  diffbot
@@ -95,6 +96,7 @@ function ControlInterceptor(objCollection) {
     new WorkflowQueueController(objCollection);
     new CommnTemplateController(objCollection);
     new elasticSearchController(objCollection);
+    new docusignController(objCollection);
     ////////////////////////////////
 
     // diffbot
