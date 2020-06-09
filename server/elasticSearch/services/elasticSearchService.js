@@ -8,7 +8,7 @@ function CommnElasticService(objectCollection) {
   const { Client } = require('@elastic/elasticsearch');
   const { AmazonConnection } = require('aws-elasticsearch-connector');
   const client = new Client({
-  node: 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com',
+  node: global.config.elastiSearchNode,
   Connection: AmazonConnection,
 });
 
