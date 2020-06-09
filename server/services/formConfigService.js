@@ -616,7 +616,7 @@ function FormConfigService(objCollection) {
                         });
 
                         //Analytics for Widget
-                        addValueToWidgetForAnalytics(request);
+                        //addValueToWidgetForAnalytics(request);
 
                         // Workflow trigger on form edit
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
@@ -1170,6 +1170,17 @@ function FormConfigService(objCollection) {
     
                             let idWorkflow = 0;
                             let idWorkflowType = 0;
+
+                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                            if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
+                                Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
+                                Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
+                                Number(workflowData[0].activity_type_id) !== 134575) { //FLV CRF                                                                           
+                                        logger.info("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
+                                        addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
+                                    }
+                        });
+
     
                             if(Object.keys(orderValueFields).includes(String(row.field_id))){
     
@@ -1181,7 +1192,7 @@ function FormConfigService(objCollection) {
                                         if(idWorkflowType == 0){ 
                                             if(Number(row.field_value) >= 0)  {
                                                 widgetAggrFieldValueUpdateWorkflow(request);
-                                                await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
+                                                //await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
                                             } else {
                                                 console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
                                             }                                            
@@ -2574,7 +2585,7 @@ function FormConfigService(objCollection) {
                 
                 await addTimelineTransactionAsync(workflowFile713Request);
 
-                addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
+                //addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
             }
         }
 
@@ -2736,7 +2747,7 @@ function FormConfigService(objCollection) {
                     workflowFile713Request.device_os_id = 8;                
 
                 await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
-                await addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
+                //await addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
             }
         }
 
@@ -4450,6 +4461,7 @@ function FormConfigService(objCollection) {
 
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if (err || inlineData.length === 0) {
+            logger.info("addValueToWidgetForAnalyticsWF :: error in getting Inline Data");
             return err;
         }
 
@@ -4457,21 +4469,22 @@ function FormConfigService(objCollection) {
         console.log('inlineData[0].activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
         
         if(inlineData[0].activity_type_inline_data === null) {
+            logger.info("addValueToWidgetForAnalyticsWF :: inline data is null");
             return "";
         }
 
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
-        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+        logger.info('addValueToWidgetForAnalyticsWF :: finalInlineData.hasOwnProperty(workflow_fields) : '+ finalInlineData.hasOwnProperty('workflow_fields'));
 
         if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
 
-            console.log('workflowFields : ', workflowFields);
-            console.log('activityInlineData : ', activityInlineData);
-            console.log('activityInlineData.length : ', activityInlineData.length);
+            logger.info('workflowFields : '+ workflowFields);
+            logger.info('activityInlineData : '+request.activity_inline_data);
+            logger.info('activityInlineData.length : '+ activityInlineData.length);
 
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
@@ -4482,6 +4495,7 @@ function FormConfigService(objCollection) {
                             Number(activityInlineData[i].field_data_type_id),
                             activityInlineData[i].field_value
                         );
+                        logger.info('addValueToWidgetForAnalyticsWF :: workflowFields[fieldId].sequence_id :: fieldValue :: '+fieldValue);
                         await activityCommonService.analyticsUpdateWidgetValue(request,
                             workflowActivityId,
                             workflowFields[fieldId].sequence_id,
@@ -4497,7 +4511,7 @@ function FormConfigService(objCollection) {
             if (flag === 1 && flagExecuteFinalValue === 1) {
                 await activityCommonService.analyticsUpdateWidgetValue(request,
                     workflowActivityId,
-                    0,
+                    6,
                     finalValue);
             }
         }

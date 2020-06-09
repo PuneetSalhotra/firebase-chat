@@ -348,7 +348,7 @@ function ActivityPushService(objectCollection) {
                                     let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
                                     message = activityTimelineCollection.content;
                                 } catch (error) { 
-                                    console.log('Error in case 27 activityPushService : ', error);
+                                    console.log('Error in case 16 activityPushService : ', error);
                                 }
 
                                 pushString.title = senderName;
