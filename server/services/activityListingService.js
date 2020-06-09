@@ -1761,9 +1761,14 @@ function ActivityListingService(objCollection) {
 		if((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
 			phoneNumber = request.phone_number;
 			countryCode = request.country_code;
-		} else {			
-			phoneNumber = requestHeaders['x-grene-p-code'];
-			countryCode = requestHeaders['x-grene-c-code'];
+		} else {
+			if(requestHeaders.hasOwnProperty('x-grene-p-code-flag') && (Number(requestHeaders['x-grene-p-code-flag']) === 1)) {
+				phoneNumber = request.phone_number;
+				countryCode = request.country_code;
+			} else {
+				phoneNumber = requestHeaders['x-grene-p-code'];
+				countryCode = requestHeaders['x-grene-c-code'];
+			}
 		}
 		
 		const paramsArr = new Array(
