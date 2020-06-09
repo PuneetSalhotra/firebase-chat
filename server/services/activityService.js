@@ -284,7 +284,7 @@ function ActivityService(objectCollection) {
                                 };
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
-                                await addValueToWidgetForAnalytics(request);
+                                //await addValueToWidgetForAnalytics(request);
 
                                 //Grene Account - update FRID Timeline
                                 /*let i;
@@ -415,9 +415,9 @@ function ActivityService(objectCollection) {
                                                  request['field_id'] = -1;
                                                  widgetActivityFieldTransactionInsert(request);                                                 
                                             }
-                                        } else {
-                                                await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
-                                                
+                                    } else {
+                                            //await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
+                                               /* 
                                                 forEachAsync(requestFormData, function (next, fieldObj) {
                                                     console.log('LOOP ELSE ::' + request.activity_type_id + ' ' + fieldObj.field_id);
                                                     if(Object.keys(creditDebitFields).includes(String(fieldObj.field_id))){
@@ -445,9 +445,9 @@ function ActivityService(objectCollection) {
                                                         next();
                                                     }
 
-                                                });
+                                                }); */
                                             
-                                        }                                    
+                                    }                                    
                             }
 
                             // Workflow Trigger
@@ -546,7 +546,9 @@ function ActivityService(objectCollection) {
                             }
 
                             if(activityTypeCategroyId === 48) { 
-                                await addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
+                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //0 - Non-Widget
+                            }else if(activityTypeCategroyId === 9){
+                                addValueToWidgetForAnalytics(request);
                             }
 
                             console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
@@ -4484,8 +4486,9 @@ function ActivityService(objectCollection) {
                 return "success";
             }
         }
+        
+        let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
 
-        let [err, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);        
         console.log('workflowData : ', workflowData);
 
         if(err || workflowData.length === 0) {
@@ -4517,17 +4520,31 @@ function ActivityService(objectCollection) {
                 console.log('workflowFields : ', workflowFields);
                 console.log('activityInlineData : ', activityInlineData);
                 console.log('activityInlineData.length : ', activityInlineData.length);
-    
+                let finalValue = 0;
                 for(i=0; i<activityInlineData.length; i++) {
                     for(fieldId in workflowFields){
                         if(fieldId === activityInlineData[i].field_id) {
+                            const fieldValue = await getFieldValueByDataTypeID(
+                                Number(activityInlineData[i].field_data_type_id),
+                                activityInlineData[i].field_value
+                            );
                             await activityCommonService.analyticsUpdateWidgetValue(request, 
                                                                                    workflowActivityId, 
                                                                                    workflowFields[fieldId].sequence_id, 
-                                                                                   activityInlineData[i].field_value);
-                            break;
+                                                                                   fieldValue);
+                            flagExecuteFinalValue = 1;
+                            finalValue += Number(fieldValue);
+                            break; 
                         }
-                    }   
+                    }
+
+                }
+
+                if (flagExecuteFinalValue === 1) {
+                    await activityCommonService.analyticsUpdateWidgetValue(request,
+                        workflowActivityId,
+                        6,
+                        finalValue);
                 }
             }
     
@@ -5053,6 +5070,7 @@ function ActivityService(objectCollection) {
 
         return "success";
     }
+
 
 }
 

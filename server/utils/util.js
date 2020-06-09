@@ -237,7 +237,7 @@ function Util(objectCollection) {
         var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
         global.logger.write('conLog', 'URL: ' + url, {}, {});
         request(url, function (error, response, body) {
-        	global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
+            global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
             var res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
@@ -1518,7 +1518,7 @@ function Util(objectCollection) {
         var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
         global.logger.write('conLog', 'URL: ' + url, {}, {});
         request(url, function (error, response, body) {
-        	global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
+            global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
             var res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
