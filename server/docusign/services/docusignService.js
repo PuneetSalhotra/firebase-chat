@@ -19,7 +19,7 @@ function CommonDocusignService(objectCollection) {
 
 this.addFile = async  (request, res) => {
         // const qp =request.query;
-  const accessToken =  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjY4MTg1ZmYxLTRlNTEtNGNlOS1hZjFjLTY4OTgxMjIwMzMxNyJ9.eyJUb2tlblR5cGUiOjUsIklzc3VlSW5zdGFudCI6MTU5MTY4Mzc2NSwiZXhwIjoxNTkxNzEyNTY1LCJVc2VySWQiOiIxNzkxNTk5Yy0xOTQ4LTQ1Y2YtODhjYy01ZTI2NjY1ZWI5YWEiLCJzaXRlaWQiOjEsInNjcCI6WyJzaWduYXR1cmUiLCJjbGljay5tYW5hZ2UiLCJvcmdhbml6YXRpb25fcmVhZCIsInJvb21fZm9ybXMiLCJncm91cF9yZWFkIiwicGVybWlzc2lvbl9yZWFkIiwidXNlcl9yZWFkIiwidXNlcl93cml0ZSIsImFjY291bnRfcmVhZCIsImRvbWFpbl9yZWFkIiwiaWRlbnRpdHlfcHJvdmlkZXJfcmVhZCIsImR0ci5yb29tcy5yZWFkIiwiZHRyLnJvb21zLndyaXRlIiwiZHRyLmRvY3VtZW50cy5yZWFkIiwiZHRyLmRvY3VtZW50cy53cml0ZSIsImR0ci5wcm9maWxlLnJlYWQiLCJkdHIucHJvZmlsZS53cml0ZSIsImR0ci5jb21wYW55LnJlYWQiLCJkdHIuY29tcGFueS53cml0ZSJdLCJhdWQiOiJmMGYyN2YwZS04NTdkLTRhNzEtYTRkYS0zMmNlY2FlM2E5NzgiLCJhenAiOiJmMGYyN2YwZS04NTdkLTRhNzEtYTRkYS0zMmNlY2FlM2E5NzgiLCJpc3MiOiJodHRwczovL2FjY291bnQtZC5kb2N1c2lnbi5jb20vIiwic3ViIjoiMTc5MTU5OWMtMTk0OC00NWNmLTg4Y2MtNWUyNjY2NWViOWFhIiwiYW1yIjpbImludGVyYWN0aXZlIl0sImF1dGhfdGltZSI6MTU5MTY4Mzc2MSwicHdpZCI6IjRlNmYxMTVmLTNkMzAtNGJjMy04OTE0LTkzMjk5NTJhYmZkYiJ9.PQmdRKOfRdVH9hyozQDC07LSz8VcrjjdAsHnvCkfK7FF9eMyh2NP_cHQiMT_TpLeeUg5KD6_F6EqJXAbg_UZKT1JfvS3rGLTSFy_CXHdscYOgIBsEY3Y0TWn4L28FSqp2Ya6pxXIyGwXUOY6GuRVqGjQ9Y5dh_xrTrMvRmd7Fw5tQxbnvTZvfGKeJPlF4WlruJU0Gn7Wxh-XR23SR8EZ3rzL_FLiENnnJ4KIdA7tMCXYODiozYGqWcPHaLqBtMtyAzVsT-bvKXDWPXdj8IDBmQiOctxNn0sXAHOR4wAYQQauXQxW5TeGQD9eBJ_i6OnHASH2hCuolwGXEQRfoS01pw';
+  const accessToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAA0VBjCg3YSAgAABF0cU0N2EgCADpXF5O9cGROpO4gGSmfY5UVAAEAAAAYAAEAAAAFAAAADQAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1IgAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1MACA20DPkAnYSDcAvzcuPDOkJk2_9oYHzAKKxQ.kxk3qt1iSKepvgdLjvznkVsee_uyImlsiHRgKoa5AjxXM3uocGP4NbaEJIbMzcrPgj6GuUMnZ2WRZ0OFYFtB6qZyR3SwLPB7wj38Z25j6CSBlr_dXoT65Dmeb9N9BdxGpgyOTYTnT-hWVNYJMpHu7WcV_JXz6B8whvARcZb2fTJGj9yWwBMKGSVtvAYb2ETC20EH0tJPWe_MKCq0oMgQpgNr2nFSXYWTyrSvJ6awIkxwyGWJpRp5z2ckaZmb1W82hpTVL-AQGxCeNMqZ4WFj_kGmQDQE4ZkOwdiOZi4nPKxt0U74RIq035oXrKznoCBeito6nh3unVr0MiCcrNCWIQ';
   const accountId =  global.config.accountId; 
   const signerName =  request.receiver_name || 'ajay' ;
   const signerEmail = request.receiver_email || 'ajayp@athmin.com' ;
@@ -73,8 +73,59 @@ this.addFile = async  (request, res) => {
   let envelopesApi = new docusign.EnvelopesApi()
     , results
     ;
-
+    var eventNotification={
+      "url": "https://vinnoba.com/perfarm/api/entity/docusign/webhook",
+      "loggingEnabled": "true",
+      "requireAcknowledgment": "true",
+      "useSoapInterface": "false",
+      "includeCertificateWithSoap": "false",
+      "signMessageWithX509Cert": "false",
+      "includeDocuments": "true",
+      "includeEnvelopeVoidReason": "true",
+      "includeTimeZone": "true",
+      "includeSenderAccountAsCustomField": "true",
+      "includeDocumentFields": "true",
+      "includeCertificateOfCompletion": "true",
+      "envelopeEvents": [{
+      "envelopeEventStatusCode": "sent"
+      },
+      {
+      "envelopeEventStatusCode": "delivered"
+      },
+      {
+      "envelopeEventStatusCode": "completed"
+      },
+      {
+      "envelopeEventStatusCode": "declined"
+      },
+      {
+      "envelopeEventStatusCode": "voided"
+      }
+      ],
+      "recipientEvents": [{
+      "recipientEventStatusCode": "Sent"
+      },
+      {
+      "recipientEventStatusCode": "Delivered"
+      },
+      {
+      "recipientEventStatusCode": "Completed"
+      },
+      {
+      "recipientEventStatusCode": "Declined"
+      },
+      {
+      "recipientEventStatusCode": "AuthenticationFailed"
+      },
+      {
+      "recipientEventStatusCode": "AutoResponded"
+      }
+      ]
+      }
+      envDef.eventNotification = eventNotification
+      envDef.envelopeIdStamping = true
   try {
+    // envDef = Object.assign(envDef,eventNotification)
     results = await envelopesApi.createEnvelope(accountId, {'envelopeDefinition': envDef})
   } catch  (e) {
     let body = e.response && e.response.body;
