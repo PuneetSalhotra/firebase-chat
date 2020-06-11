@@ -1504,6 +1504,24 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+                    
+                case 26: // ESMS Integrations- Consume Part - Bot
+                    logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
+                    try {
+                        await queueWrapper.raiseActivityEventToTopicPromise({
+                            type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                            trigger_form_id: Number(request.trigger_form_id),
+                            form_transaction_id: Number(request.form_transaction_id),
+                            payload: request
+                        }, "staging-vil-esms-ibmmq-v1", request.workflow_activity_id || request.activity_id);
+                    } catch (error) {
+                        logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -5726,6 +5744,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
+    this.updateCUIDBotOperationMethod = async(request, formInlineDataMap, cuidInlineData) => {
+        return await updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData);
+    }
+    
     async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {        
         //console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('cuidInlineData : ', cuidInlineData);
@@ -6442,6 +6464,15 @@ function BotService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    this.esmsIntegrationsConsumeMethod = async (request) => {
+        await queueWrapper.raiseActivityEventToTopicPromise({
+            type: "VIL_ESMS_IBMMQ_INTEGRATION",
+            trigger_form_id: Number(request.trigger_form_id),
+            payload: request
+        }, "staging-vil-esms-ibmmq-v1", request.workflow_activity_id || request.activity_id);
+        return [false, []];
+    }
 
 }
 
