@@ -51,18 +51,18 @@ function CommonDocusignService(objectCollection) {
       recipientId: '1'
     });
     // Create the signHere tab to be placed on the envelope
-    const signHere = docusign.SignHere.constructFromObject(global.config.documentTypes.customerApplicationForm.signHereTabs || {
+    const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs || [{
       documentId: '1',
       pageNumber: '1',
       recipientId: '1',
       tabLabel: 'SignHereTab',
       xPosition: '195',
       yPosition: '147'
-    });
+    }];
     // Create the overall tabs object for the signer and add the signHere tabs array
     // Note that tabs are relative to receipients/signers.
     signer.tabs = docusign.Tabs.constructFromObject({
-      signHereTabs: [signHere]
+      signHereTabs: signHere
     });
 
     // Add the recipients object to the envelope definition.
