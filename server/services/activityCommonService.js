@@ -5489,6 +5489,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     .then((data) => {
                         responseData = data;
                         error = false;
+                        request.parent_activity_id = referredActivityID;
                         this.activityActivityMappingHistoryInsert(request);
                     })
                     .catch((err) => {
