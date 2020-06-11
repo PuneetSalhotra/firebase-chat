@@ -935,7 +935,7 @@ function AssetService(objectCollection) {
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
             //appName = 'TONY';
-            appName = 'GRNEOS';
+            appName = 'Grene Go app.';
         } else {
             appName = appData[0].app_name;
         }
