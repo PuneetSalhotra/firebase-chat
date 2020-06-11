@@ -1,3 +1,4 @@
+var parser = require('xml2json');
 const pdf2base64 = require('pdf-to-base64');
 const docusign = require('docusign-esign'),
   process = require('process'),
@@ -195,9 +196,22 @@ function CommonDocusignService(objectCollection) {
 
 
   this.updateStatus = async (request, res) => {
-    //  var envStatus = request.DocuSignEnvelopeInformation.EnvelopeStatus
-    //  var status = envStatus.Status
-
+    var xml = '<?xml version="1.0" encoding="utf-8"?><DocuSignEnvelopeInformation xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.docusign.net/API/3.0"><EnvelopeStatus><RecipientStatuses><RecipientStatus><Type>Signer</Type><Email>ajaypalbhagel@gmail.com</Email><UserName>ajay</UserName><RoutingOrder>1</RoutingOrder><Sent>2020-06-10T00:34:00.303</Sent><Delivered>2020-06-10T00:34:34.117</Delivered><Signed>2020-06-10T00:34:40.6</Signed><DeclineReason xsi:nil="true" /><Status>Completed</Status><RecipientIPAddress>103.211.55.175</RecipientIPAddress><CustomFields /><TabStatuses><TabStatus><TabType>SignHere</TabType><Status>Signed</Status><XPosition>406</XPosition><YPosition>263</YPosition><TabLabel>SignHereTab</TabLabel><TabName>SignHere</TabName><TabValue /><DocumentID>1</DocumentID><PageNumber>1</PageNumber></TabStatus></TabStatuses><AccountStatus>Active</AccountStatus><RecipientId>d6a6f9dc-1f18-4856-9c1a-70cc02d5566d</RecipientId></RecipientStatus></RecipientStatuses><TimeGenerated>2020-06-10T00:34:54.4835479</TimeGenerated><EnvelopeID>9973b51a-784d-41bf-8eef-8ef7f4888f75</EnvelopeID><Subject>hello ajay</Subject><UserName>ajay pal</UserName><Email>ajaypalbhagel@gmail.com</Email><Status>Completed</Status><Created>2020-06-10T00:33:59.507</Created><Sent>2020-06-10T00:34:00.337</Sent><Delivered>2020-06-10T00:34:34.24</Delivered><Signed>2020-06-10T00:34:40.6</Signed><Completed>2020-06-10T00:34:40.6</Completed><ACStatus>Original</ACStatus><ACStatusDate>2020-06-10T00:33:59.507</ACStatusDate><ACHolder>ajay pal</ACHolder><ACHolderEmail>ajaypalbhagel@gmail.com</ACHolderEmail><ACHolderLocation>DocuSign</ACHolderLocation><SigningLocation>Online</SigningLocation><SenderIPAddress>103.211.55.175 </SenderIPAddress><EnvelopePDFHash /><CustomFields><CustomField><Name>AccountId</Name><Show>false</Show><Required>false</Required><Value>10725652</Value><CustomFieldType>Text</CustomFieldType></CustomField><CustomField><Name>AccountName</Name><Show>false</Show><Required>false</Required><Value>athmin</Value><CustomFieldType>Text</CustomFieldType></CustomField><CustomField><Name>AccountSite</Name><Show>false</Show><Required>false</Required><Value>demo</Value><CustomFieldType>Text</CustomFieldType></CustomField></CustomFields><AutoNavigation>true</AutoNavigation><EnvelopeIdStamping>true</EnvelopeIdStamping><AuthoritativeCopy>false</AuthoritativeCopy><DocumentStatuses><DocumentStatus><ID>1</ID><Name>test.pdf</Name><TemplateName /><Sequence>1</Sequence></DocumentStatus></DocumentStatuses></EnvelopeStatus></DocuSignEnvelopeInformation>';
+        var json = parser.toJson(xml);
+        console.log("to json -> %s", json);
+        var envelopeStatus = json.DocuSignEnvelopeInformation.EnvelopeStatus
+        var envelopeId = envelopeStatus.EnvelopeID
+        var status = envelopeStatus.Status
+        var time = envelopeStatus.Completed
+    paramsArray =
+        new Array(
+          envelopeId,
+          '',
+          time,
+          status
+        )
+      results[0] = await db.callDBProcedure(request, 'docusign_update', paramsArray, 0)
+      return(results[0])
   }
 };
 
