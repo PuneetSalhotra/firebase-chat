@@ -536,7 +536,7 @@ function ActivityService(objectCollection) {
                                                 }
                                                 break;
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
-                                                 await activityActivityMappingInsertV1(request, fieldData);
+                                                 await activityActivityMappingInsertV1(request, fieldData, 0);
                                                  break;
                                         default: break;
                                     }
@@ -5043,28 +5043,44 @@ function ActivityService(objectCollection) {
     }
 
     //Handling Arrya of Objects wala input
-    async function activityActivityMappingInsertV1(request, fieldData) {
+    async function activityActivityMappingInsertV1(request, fieldData, cnt) {
+        console.log('In activityActivityMappingInsertV1');
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
+        
         if(Number(request.activity_type_category_id) === 9) {            
             const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
             if (workflowError !== false || workflowData.length === 0) {
                 console.log('workflowError : ', workflowError);
                 console.log('workflowData : ', workflowData);
-                return [workflowError, workflowData];
+                
+                if(cnt <= 2) {
+                    await sleep(2000);
+                    cnt++;
+                    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                } else {
+                    return [workflowError, workflowData];
+                }
+
             }
             currentWorkflowActivityId = Number(workflowData[0].activity_id);
         }
 
         console.log('fieldData V1: ', fieldData);
+        console.log('typeof fieldData.field_value', typeof fieldData.field_value);
+        console.log('fieldData.field_value', fieldData.field_value);
         console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
         
+        let fieldValue;
+        let newReq = Object.assign({}, request);
+            newReq.activity_id = currentWorkflowActivityId;
         try{
-            let fieldValue = JSON.parse(fieldData.field_value);
+            fieldValue = JSON.parse(fieldData.field_value);
             for(const i of fieldValue) {
                 await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
             }
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype V1: ', parsedFieldValue);
+            console.log('Error in parsing workflow reference datatype V1: ', fieldValue);
+            console.log(err);
             return "Failure";
         }
 
