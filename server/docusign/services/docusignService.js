@@ -19,7 +19,7 @@ function CommonDocusignService(objectCollection) {
 
 this.addFile = async  (request, res) => {
         // const qp =request.query;
-  const accessToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAA0VBjCg3YSAgAABF0cU0N2EgCADpXF5O9cGROpO4gGSmfY5UVAAEAAAAYAAEAAAAFAAAADQAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1IgAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1MACA20DPkAnYSDcAvzcuPDOkJk2_9oYHzAKKxQ.kxk3qt1iSKepvgdLjvznkVsee_uyImlsiHRgKoa5AjxXM3uocGP4NbaEJIbMzcrPgj6GuUMnZ2WRZ0OFYFtB6qZyR3SwLPB7wj38Z25j6CSBlr_dXoT65Dmeb9N9BdxGpgyOTYTnT-hWVNYJMpHu7WcV_JXz6B8whvARcZb2fTJGj9yWwBMKGSVtvAYb2ETC20EH0tJPWe_MKCq0oMgQpgNr2nFSXYWTyrSvJ6awIkxwyGWJpRp5z2ckaZmb1W82hpTVL-AQGxCeNMqZ4WFj_kGmQDQE4ZkOwdiOZi4nPKxt0U74RIq035oXrKznoCBeito6nh3unVr0MiCcrNCWIQ';
+  const accessToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwCAX58BKA3YSAgAgJ_CD2sN2EgCADpXF5O9cGROpO4gGSmfY5UVAAEAAAAYAAEAAAAFAAAADQAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1IgAkAAAANjM0NDkyNWUtM2E5Zi00MTUzLWJhNGUtZWJiYTI2MGI3NmQ1MACA20DPkAnYSDcAvzcuPDOkJk2_9oYHzAKKxQ.b_MMdI3KJE4eqTkVBRnu4kgYkNpMI32BJgnLOgVVSlioYoBezLDUrDF8jtbDwCwPn9_5pn-2aw2gJeXlEJT8y5LEpxtr4jmghUOSDF9QeKEZmhPC-bto9yzuAreSyVozrWTJzrHHADnXbnQWymGghFcgeJEVSEJD28aRbFPKqJ1R7P6sF_VaFoRsfWblJN8BYzorJi_ONvyZByCLurt0hyqW5Or1PjQ80bwUMMZj1ddGeyIWBhtRWQNsb_t1P6SCFdLdSDG4Rl_dEHSIJCXTScs-oYPH5zPRs6v-zfONTXZ9EkX38Bbs_XA9RmUOFSTmr3eWXY37cxP96t_pbXI18w';
   const accountId =  global.config.accountId; 
   const signerName =  request.receiver_name || 'ajay' ;
   const signerEmail = request.receiver_email || 'ajayp@athmin.com' ;
@@ -141,22 +141,24 @@ this.addFile = async  (request, res) => {
   }
   let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   let paramsArray;
+  console.log('status',results.status)
   paramsArray =
     new Array(
       request.url_path,
-      parseInt(request.activity_id) ,
-      parseInt(request.asset_id),
-      parseInt(request.organization_id),
-      parseInt(request.asset_id),
-      date,
+      '',
+     results.envelopeId,
+     '',
+     request.asset_id,
+     date,
+     date,
+     results.status
     )
     if (results) {
-        results[0] = await db.callDBProcedure(request, 'ds_v1_activity_docusign_mapping_insert', paramsArray, 0);
-        var response = {'activity_document_id':results[0][0]['activity_document_id']}
+        results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
+        var response = {'document_id':results[0][0]['document_id']}
             return response
   }
 }
-
 
 async function getPdftoBase64(request,S3Url){
 var pdfBase64 = ''
@@ -173,7 +175,25 @@ await pdf2base64(S3Url)
     )
     return pdfBase64
 }
-};
 
+this.query = async  (request, res) => {
+  try{
+    let results=[]
+    paramsArray =
+    new Array()
+      results[0]= await db.callDBProcedure(request, 'docusign_select', paramsArray,1)
+      return(results[0])
+  }catch(error){
+    console.log(error)
+  }
+}
+
+
+this.updateStatus = async  (request, res) => {
+//  var envStatus = request.DocuSignEnvelopeInformation.EnvelopeStatus
+//  var status = envStatus.Status
+
+}
+};
 
 module.exports = CommonDocusignService;
