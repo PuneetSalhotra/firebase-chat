@@ -180,6 +180,48 @@ function QueueWrapper(producer, cacheWrapper) {
         }, 2000);
     }
     
+    this.raiseActivityEventToTopicPromise = function (event, topicName = "", activityID = 0) {
+        try {
+            // Get current SpanContext
+            let kafkaProduceEventSpan = tracer.scope().active().context();
+            const traceHeaders = {};
+            let span = tracer.startSpan('kafka_producer', {
+                childOf: kafkaProduceEventSpan
+            });
+            tracer.inject(span, tracerFormats.LOG, traceHeaders)
+            logger.silly('trace headers sent from kafka producer: %j', traceHeaders, { type: 'trace_span' });
+            event.log_trace_headers = traceHeaders;
+        } catch (error) {
+            console.log(error);
+        }
+
+        return new Promise((resolve, reject) => {
+            if (topicName === "") {
+                return reject(new Error("EmptyTopicNameFound"))
+            }            
+
+            event.payload.pubnub_push = 1;
+
+            global.logger.write('conLog', 'producing to key: ' + activityID.toString(), {}, event.payload);
+            var payloads = [{
+                topic: topicName,
+                messages: JSON.stringify((event)),
+                key: activityID.toString()
+            }];
+
+            producer.send(payloads, async (err, data) => {
+                if (err) {
+                    logger.error(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
+                    reject(err);
+                } else {
+                    logger.info(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });
+                    resolve(data);
+                }
+            });
+        });
+
+    };
+    
 }
 
 module.exports = QueueWrapper;
