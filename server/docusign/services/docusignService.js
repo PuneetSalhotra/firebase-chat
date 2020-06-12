@@ -1,5 +1,6 @@
 var parser = require('xml2json');
 const pdf2base64 = require('pdf-to-base64');
+const superagent = require('superagent')
 const docusign = require('docusign-esign'),
   process = require('process'),
   basePath = 'https://demo.docusign.net/restapi',
@@ -12,7 +13,14 @@ function CommonDocusignService(objectCollection) {
   var responseWrapper = objectCollection.responseWrapper;
 
   this.addFile = async (request, res) => {
-    const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAA-TyaaA7YSAgAADlgqKsO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.jYmHx7h0l92CHhUJcVzGocTBjbPC2FFM0AHEtT0M67l6IJZApIs5iFgDslA4syMg_RluppFKlWJwm2Nl8xA7MRAGVbCoKdNtINRqip0Llgq23o8bMN9TSffS0B-mxvxFpgvp58rkCL-Io4CKdTWlPc-nE1Ev1M0NrmbzIXJpSsdI_cpHM9oAc9uIsOzbO2hrBaFf1pB-KOrTk5hDQncgGqqLVN7ROExd2-y5nf1a3KJnGIjqZumr1R_Et1e6oHIKmJ9royPFIfyrIivSGve2kVhSIJYbcK1xB6x1kP8cu6lToT9dCU4n6m8RKii5RQQpBiEfnFQ8JgdurfV7HIwDgg';
+     await getAccessTokenUsingRefreshToken()
+    //  (resp=>{
+    //    console.log('aaaa',resp)
+    //   const accessToken = resp
+    //  })
+    
+    console.log('step -7')
+    // const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwCAqW1slA7YSAgAgOmQetcO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.22hUdbUksOONf-DPqFgu2FB8-aoewYigDUsyFxU4dTf7mMLvNHrvgZD0-s684FQSBS8KPgJcXGLJH-dH6oqbHgh58gynA8CrUoGNUgWvQ3U2esKh721VV5G-WDi2Z09nCpoUvnpNWkF4_AhlMbzOonX33XjkJ88owcmxK-zcJCB3ytN9kVDYVyf2Bu9ewcvI_Mj2IefR4j8HEAft4M_ZAgSxDPRCVtazrIG_rsnpQ4UTYVBr_wtkV7oEXBoAUDT4qVjs5ISHeStN-N0bzUT5LlSMTtob0C7P7aQoP7uPengq3DeTTkaTrjXgFSzZ97Hk4T_-rtPZtqS90pzcLXkcMA';
     const accountId = global.config.accountId;
     const signerName = request.receiver_name || 'ajay';
     const signerEmail = request.receiver_email || 'ajayp@athmin.com';
@@ -137,7 +145,7 @@ function CommonDocusignService(objectCollection) {
       if (body) {
         // DocuSign API exception
         res.send(`<html lang="en"><body>
-                  <h3>API problem</h3><p>Status code ${e.response.status}</p>
+                  <h3>API problem ajay</h3><p>Status code ${e.response.status}</p>
                   <p>Error message:</p><p><pre><code>${JSON.stringify(body, null, 4)}</code></pre></p>`);
       } else {
         // Not a DocuSign exception
@@ -255,6 +263,43 @@ function CommonDocusignService(objectCollection) {
       results[0] = await db.callDBProcedure(request, 'docusign_update', paramsArray, 0)
       return(results[0])
   }
+
+  function getAccessTokenUsingRefreshToken(callback) {
+    const clientId = global.config.ClientId;
+    const clientSecret = global.config.ClientSecret;
+    //read and decrypt the refresh token
+    // const refreshToken = new Encrypt(dsConfig.refreshTokenFile).decrypt();
+    console.log('step-1')
+    const refreshToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAgABwAAk5vxgQ7YSAgAABMA6hQm2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.aDwiofmPFF4UFdnwCDXl4GC98J4pL4cAbgUkNKIM27lYtZZA0vlxmKTXZp9t0I6lRscI9aTYy9N9TBcZccwN8R9ecSsDmtrq8fXHCr81m0qZoeYPdx9pr_t4oqjTiZ_fPMK3X1mRlJPdOISSFpSU8MfPNuj0B4bnsAgJstEnh6LMYdOrJ35cFoygJsygbcyWighXHihM2CEQOEhMMujZrIrZk23SAH1Gh9sG_vxwHkYTO9O5jlZ9gbSLEa-X6w5I42vk8LFQ2JcK6c78qwMjnniZp_pMnMILQ_VEkHGidCsSNXI6ZpjyX0r9NvHJoj8BZvurwJFEuM9a-oLZnd51Zw';
+    const clientString = clientId + ":" + clientSecret,
+    postData = {
+        "grant_type": "refresh_token",
+        "refresh_token": refreshToken,
+      },
+    headers = {
+        "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
+      },
+    authReq = superagent.post( 'https://account-d.docusign.com' + "/oauth/token")
+        .send(postData)
+        .set(headers)
+        .type("application/x-www-form-urlencoded");
+        console.log('step-2')
+    authReq.end(function (err, authRes) {
+      console.log('step-3')
+        if (err) {
+            console.log("ERROR getting access token using refresh token:");
+            console.log(err);
+          return callback(err, authRes);
+        } else {
+          console.log('step-4')
+            const accessToken = authRes.body.access_token;
+            const refreshToken = authRes.body.refresh_token;
+            const expiresIn = authRes.body.expires_in;
+            console.log('step 4.0',accessToken)
+            return callback(accessToken )
+        }
+      })
+    }
 };
 
 module.exports = CommonDocusignService;
