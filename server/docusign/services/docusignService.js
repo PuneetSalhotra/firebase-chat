@@ -12,15 +12,14 @@ function CommonDocusignService(objectCollection) {
   const db = objectCollection.db;
   var responseWrapper = objectCollection.responseWrapper;
 
+ 
   this.addFile = async (request, res) => {
-     await getAccessTokenUsingRefreshToken()
-    //  (resp=>{
+     //generate refresh token
+    //   getAccessTokenUsingRefreshToken(resp=>{
     //    console.log('aaaa',resp)
-    //   const accessToken = resp
     //  })
-    
-    console.log('step -7')
-    // const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwCAqW1slA7YSAgAgOmQetcO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.22hUdbUksOONf-DPqFgu2FB8-aoewYigDUsyFxU4dTf7mMLvNHrvgZD0-s684FQSBS8KPgJcXGLJH-dH6oqbHgh58gynA8CrUoGNUgWvQ3U2esKh721VV5G-WDi2Z09nCpoUvnpNWkF4_AhlMbzOonX33XjkJ88owcmxK-zcJCB3ytN9kVDYVyf2Bu9ewcvI_Mj2IefR4j8HEAft4M_ZAgSxDPRCVtazrIG_rsnpQ4UTYVBr_wtkV7oEXBoAUDT4qVjs5ISHeStN-N0bzUT5LlSMTtob0C7P7aQoP7uPengq3DeTTkaTrjXgFSzZ97Hk4T_-rtPZtqS90pzcLXkcMA';
+
+    const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwCAqW1slA7YSAgAgOmQetcO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.22hUdbUksOONf-DPqFgu2FB8-aoewYigDUsyFxU4dTf7mMLvNHrvgZD0-s684FQSBS8KPgJcXGLJH-dH6oqbHgh58gynA8CrUoGNUgWvQ3U2esKh721VV5G-WDi2Z09nCpoUvnpNWkF4_AhlMbzOonX33XjkJ88owcmxK-zcJCB3ytN9kVDYVyf2Bu9ewcvI_Mj2IefR4j8HEAft4M_ZAgSxDPRCVtazrIG_rsnpQ4UTYVBr_wtkV7oEXBoAUDT4qVjs5ISHeStN-N0bzUT5LlSMTtob0C7P7aQoP7uPengq3DeTTkaTrjXgFSzZ97Hk4T_-rtPZtqS90pzcLXkcMA';
     const accountId = global.config.accountId;
     const signerName = request.receiver_name || 'ajay';
     const signerEmail = request.receiver_email || 'ajayp@athmin.com';
@@ -201,7 +200,9 @@ function CommonDocusignService(objectCollection) {
     try {
       let results = []
       paramsArray =
-        new Array()
+        new Array(
+          request.document_id
+        )
       results[0] = await db.callDBProcedure(request, 'docusign_select', paramsArray, 1)
       results[1]=  await db.callDBProcedure(request, 'docusign_user_details_select', paramsArray, 1)
       var responseArray = []
