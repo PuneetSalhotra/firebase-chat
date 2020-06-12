@@ -12,7 +12,7 @@ function CommonDocusignService(objectCollection) {
   var responseWrapper = objectCollection.responseWrapper;
 
   this.addFile = async (request, res) => {
-    const accessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjY4MTg1ZmYxLTRlNTEtNGNlOS1hZjFjLTY4OTgxMjIwMzMxNyJ9.eyJUb2tlblR5cGUiOjUsIklzc3VlSW5zdGFudCI6MTU5MTg0NTg3MiwiZXhwIjoxNTkxODc0NjcyLCJVc2VySWQiOiIxNzkxNTk5Yy0xOTQ4LTQ1Y2YtODhjYy01ZTI2NjY1ZWI5YWEiLCJzaXRlaWQiOjEsInNjcCI6WyJzaWduYXR1cmUiLCJjbGljay5tYW5hZ2UiLCJvcmdhbml6YXRpb25fcmVhZCIsInJvb21fZm9ybXMiLCJncm91cF9yZWFkIiwicGVybWlzc2lvbl9yZWFkIiwidXNlcl9yZWFkIiwidXNlcl93cml0ZSIsImFjY291bnRfcmVhZCIsImRvbWFpbl9yZWFkIiwiaWRlbnRpdHlfcHJvdmlkZXJfcmVhZCIsImR0ci5yb29tcy5yZWFkIiwiZHRyLnJvb21zLndyaXRlIiwiZHRyLmRvY3VtZW50cy5yZWFkIiwiZHRyLmRvY3VtZW50cy53cml0ZSIsImR0ci5wcm9maWxlLnJlYWQiLCJkdHIucHJvZmlsZS53cml0ZSIsImR0ci5jb21wYW55LnJlYWQiLCJkdHIuY29tcGFueS53cml0ZSJdLCJhdWQiOiJmMGYyN2YwZS04NTdkLTRhNzEtYTRkYS0zMmNlY2FlM2E5NzgiLCJhenAiOiJmMGYyN2YwZS04NTdkLTRhNzEtYTRkYS0zMmNlY2FlM2E5NzgiLCJpc3MiOiJodHRwczovL2FjY291bnQtZC5kb2N1c2lnbi5jb20vIiwic3ViIjoiMTc5MTU5OWMtMTk0OC00NWNmLTg4Y2MtNWUyNjY2NWViOWFhIiwiYXV0aF90aW1lIjoxNTkxODQ0OTMzLCJwd2lkIjoiNGU2ZjExNWYtM2QzMC00YmMzLTg5MTQtOTMyOTk1MmFiZmRiIn0.HRvueOWqiwbYCRuUOh1_jFveLxn2AxBT60Ibo9gbg5OHi26IyUUsdSpiZSA4pRdQWjRtSU-W1_QnyU7IdwC4o1H5-Io31iromQFmmuMh2O2q-sRzCb7GsrAfsekpyVnWiS6O1u3yFf8wnVn2UpvzUEwppYldlyv0T8EbLn2RZUagYm7jIzJrY9L7OkK-8JPAFk3OplrtV6wuGPy1-ptsqna__54jpyJx0Qi1CCrTn5OC91OQw1ZI-2v6I5usfMs077fZISat6qUcebJanis4Xs5t_JSky5BfIFXuvP3qxCy62vKp-B6kvA3ZNsftU76HHn2r_hikpQuWgNPHM3iE3g';
+    const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAA-TyaaA7YSAgAADlgqKsO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.jYmHx7h0l92CHhUJcVzGocTBjbPC2FFM0AHEtT0M67l6IJZApIs5iFgDslA4syMg_RluppFKlWJwm2Nl8xA7MRAGVbCoKdNtINRqip0Llgq23o8bMN9TSffS0B-mxvxFpgvp58rkCL-Io4CKdTWlPc-nE1Ev1M0NrmbzIXJpSsdI_cpHM9oAc9uIsOzbO2hrBaFf1pB-KOrTk5hDQncgGqqLVN7ROExd2-y5nf1a3KJnGIjqZumr1R_Et1e6oHIKmJ9royPFIfyrIivSGve2kVhSIJYbcK1xB6x1kP8cu6lToT9dCU4n6m8RKii5RQQpBiEfnFQ8JgdurfV7HIwDgg';
     const accountId = global.config.accountId;
     const signerName = request.receiver_name || 'ajay';
     const signerEmail = request.receiver_email || 'ajayp@athmin.com';
@@ -21,6 +21,7 @@ function CommonDocusignService(objectCollection) {
     apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
     // Set the DocuSign SDK components to use the apiClient object
     docusign.Configuration.default.setDefaultApiClient(apiClient);
+
 
     // Create the envelope request
     const envDef = new docusign.EnvelopeDefinition();
@@ -143,22 +144,28 @@ function CommonDocusignService(objectCollection) {
         throw e;
       }
     }
-
     let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     let paramsArray;
     paramsArray =
       new Array(
+        '',
         request.url_path,
-        '',
         results.envelopeId,
-        '',
         request.asset_id,
         date,
-        date,
+        0,
+        envDef.emailSubject,
         results.status
       )
     if (results) {
       results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
+      paramsArray =
+      new Array(
+        signerName,
+        signerEmail,
+        results[0][0]['doc_id']
+      )
+      results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
       var response = {
         'document_id': results[0][0]['doc_id']
       }
@@ -188,7 +195,42 @@ function CommonDocusignService(objectCollection) {
       paramsArray =
         new Array()
       results[0] = await db.callDBProcedure(request, 'docusign_select', paramsArray, 1)
-      return (results[0])
+      results[1]=  await db.callDBProcedure(request, 'docusign_user_details_select', paramsArray, 1)
+      var responseArray = []
+      var obj = {}
+      var receiverDetails = {}
+      for(var i=0;i<results[0].length;i++){
+        for(var j=0;j<results[1].length;j++){
+          if(results[0][i]['doc_id']==results[1][j]['doc_id']){
+           receiverDetails= {
+              "receiver_name": results[1][j]['receiver_name'] || '',
+              "receiver_email": results[1][j]['email' || '']
+            }
+          }
+        }
+
+        obj = {
+          "document_id":results[0][i]['doc_id'],
+          "unsigned_s3_url": results[0][i]['unsigned_doc_url'],
+          "signed_s3_url": results[0][i]['signed_doc_url'],
+          "document_type": results[0][i]['document_type'] || 'pdf',
+          "receiver_details": [receiverDetails],
+          "subject": results[0][i]['email_subject'],
+          "email_sent_time": results[0][i]['doc_sending_time'],
+          "document_signed_time": results[0][i]['signed_doc_receiving_time'],
+          "uploaded_by": {
+            "asset_id": results[0][i]['asset_id'],
+            "name": results[0][i]['name'] || ''
+          }
+        }
+        responseArray.push(obj)
+        receiverDetails = {}
+        obj = {}
+      }
+      var response ={
+        "documents": responseArray
+      }
+      return (response)
     } catch (error) {
       console.log(error)
     }
