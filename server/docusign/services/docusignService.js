@@ -161,7 +161,8 @@ function CommonDocusignService(objectCollection) {
             date,
             0,
             envDef.emailSubject,
-            results.status
+            results.status,
+            request.activity_id
           )
         if (results) {
           results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
@@ -221,6 +222,7 @@ function CommonDocusignService(objectCollection) {
 
         obj = {
           "document_id":results[0][i]['doc_id'],
+          "activity_id":results[0][i]['activity_id'],
           "unsigned_s3_url": results[0][i]['unsigned_doc_url'],
           "signed_s3_url": results[0][i]['signed_doc_url'],
           "document_type": results[0][i]['document_type'] || 'pdf',
