@@ -17,174 +17,167 @@ function CommonDocusignService(objectCollection) {
 
   this.addFile = async (request, res) => {
     // generate refresh token
-    // let result = await getAccessTokenUsingRefreshToken();
-    // console.log('ajay---->',result)
-    //   getAccessTokenUsingRefreshToken().then(resp=>{
-    //     console.log('hi ajay...')
-    //     console.log('aaaa',resp)
-    //  })
+    await getAccessTokenUsingRefreshToken(accessToken => {
+      const accountId = global.config.accountId;
+      const signerName = request.receiver_name || 'ajay';
+      const signerEmail = request.receiver_email || 'ajayp@athmin.com';
+      const apiClient = new docusign.ApiClient();
+      apiClient.setBasePath(basePath);
+      apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+      // Set the DocuSign SDK components to use the apiClient object
+      docusign.Configuration.default.setDefaultApiClient(apiClient);
 
-    const accessToken = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwCAqW1slA7YSAgAgOmQetcO2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.22hUdbUksOONf-DPqFgu2FB8-aoewYigDUsyFxU4dTf7mMLvNHrvgZD0-s684FQSBS8KPgJcXGLJH-dH6oqbHgh58gynA8CrUoGNUgWvQ3U2esKh721VV5G-WDi2Z09nCpoUvnpNWkF4_AhlMbzOonX33XjkJ88owcmxK-zcJCB3ytN9kVDYVyf2Bu9ewcvI_Mj2IefR4j8HEAft4M_ZAgSxDPRCVtazrIG_rsnpQ4UTYVBr_wtkV7oEXBoAUDT4qVjs5ISHeStN-N0bzUT5LlSMTtob0C7P7aQoP7uPengq3DeTTkaTrjXgFSzZ97Hk4T_-rtPZtqS90pzcLXkcMA';
-    const accountId = global.config.accountId;
-    const signerName = request.receiver_name || 'ajay';
-    const signerEmail = request.receiver_email || 'ajayp@athmin.com';
-    const apiClient = new docusign.ApiClient();
-    apiClient.setBasePath(basePath);
-    apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
-    // Set the DocuSign SDK components to use the apiClient object
-    docusign.Configuration.default.setDefaultApiClient(apiClient);
+      // Create the envelope request
+      const envDef = new docusign.EnvelopeDefinition();
+      //Set the Email Subject line and email message
+      envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
+      envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
+      // Read the file from the document and convert it to a Base64String
 
-    // Create the envelope request
-    const envDef = new docusign.EnvelopeDefinition();
-    //Set the Email Subject line and email message
-    envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
-    envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
-    // Read the file from the document and convert it to a Base64String
+      // try {
+      //   var pdfBase64 = await getPdftoBase64(request, request.url_path)
+      // } catch (e) {
+      //   console.log(e)
+      // }
+      getHtmlToBase64().then(async pdfBase64 => {
+        // Create the document request object
+        const doc = docusign.Document.constructFromObject({
+          documentBase64: pdfBase64,
+          fileExtension: 'pdf', // You can send other types of documents too.
+          name: 'test.pdf',
+          documentId: '1'
+        });
+        // Create a documents object array for the envelope definition and add the doc object
+        envDef.documents = [doc];
 
-    // try {
-    //   var pdfBase64 = await getPdftoBase64(request, request.url_path)
-    // } catch (e) {
-    //   console.log(e)
-    // }
+        // Create the signer object with the previously provided name / email address
+        const signer = docusign.Signer.constructFromObject({
+          name: signerName,
+          email: signerEmail,
+          routingOrder: '1',
+          recipientId: '1'
+        });
+        // Create the signHere tab to be placed on the envelope
+        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs || [{
+          documentId: '1',
+          pageNumber: '1',
+          recipientId: '1',
+          tabLabel: 'SignHereTab',
+          xPosition: '195',
+          yPosition: '147'
+        }];
+        // Create the overall tabs object for the signer and add the signHere tabs array
+        // Note that tabs are relative to receipients/signers.
+        signer.tabs = docusign.Tabs.constructFromObject({
+          signHereTabs: signHere
+        });
 
-    getHtmlToBase64().then(async pdfBase64 => {
-      // Create the document request object
-      const doc = docusign.Document.constructFromObject({
-        documentBase64: pdfBase64,
-        fileExtension: 'pdf', // You can send other types of documents too.
-        name: 'test.pdf',
-        documentId: '1'
-      });
-      // Create a documents object array for the envelope definition and add the doc object
-      envDef.documents = [doc];
+        // Add the recipients object to the envelope definition.
+        // It includes an array of the signer objects. 
+        envDef.recipients = docusign.Recipients.constructFromObject({
+          signers: [signer]
+        });
+        // Set the Envelope status. For drafts, use 'created' To send the envelope right away, use 'sent'
+        envDef.status = 'sent';
 
-      // Create the signer object with the previously provided name / email address
-      const signer = docusign.Signer.constructFromObject({
-        name: signerName,
-        email: signerEmail,
-        routingOrder: '1',
-        recipientId: '1'
-      });
-      // Create the signHere tab to be placed on the envelope
-      const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs || [{
-        documentId: '1',
-        pageNumber: '1',
-        recipientId: '1',
-        tabLabel: 'SignHereTab',
-        xPosition: '195',
-        yPosition: '147'
-      }];
-      // Create the overall tabs object for the signer and add the signHere tabs array
-      // Note that tabs are relative to receipients/signers.
-      signer.tabs = docusign.Tabs.constructFromObject({
-        signHereTabs: signHere
-      });
-
-      // Add the recipients object to the envelope definition.
-      // It includes an array of the signer objects. 
-      envDef.recipients = docusign.Recipients.constructFromObject({
-        signers: [signer]
-      });
-      // Set the Envelope status. For drafts, use 'created' To send the envelope right away, use 'sent'
-      envDef.status = 'sent';
-
-      // Send the envelope
-      let envelopesApi = new docusign.EnvelopesApi(),
-        results;
-      var eventNotification = {
-        "url": "https://vinnoba.com/perfarm/api/entity/docusign/webhook",
-        "loggingEnabled": "true",
-        "requireAcknowledgment": "true",
-        "useSoapInterface": "false",
-        "includeCertificateWithSoap": "false",
-        "signMessageWithX509Cert": "false",
-        "includeDocuments": "true",
-        "includeEnvelopeVoidReason": "true",
-        "includeTimeZone": "true",
-        "includeSenderAccountAsCustomField": "true",
-        "includeDocumentFields": "true",
-        "includeCertificateOfCompletion": "true",
-        "envelopeEvents": [{
-            "envelopeEventStatusCode": "sent"
-          },
-          {
-            "envelopeEventStatusCode": "delivered"
-          },
-          {
-            "envelopeEventStatusCode": "completed"
-          },
-          {
-            "envelopeEventStatusCode": "declined"
-          },
-          {
-            "envelopeEventStatusCode": "voided"
-          }
-        ],
-        "recipientEvents": [{
-            "recipientEventStatusCode": "Sent"
-          },
-          {
-            "recipientEventStatusCode": "Delivered"
-          },
-          {
-            "recipientEventStatusCode": "Completed"
-          },
-          {
-            "recipientEventStatusCode": "Declined"
-          },
-          {
-            "recipientEventStatusCode": "AuthenticationFailed"
-          },
-          {
-            "recipientEventStatusCode": "AutoResponded"
-          }
-        ]
-      }
-      envDef.eventNotification = eventNotification
-      envDef.envelopeIdStamping = true
-      try {
-        results = await envelopesApi.createEnvelope(accountId, {
-          'envelopeDefinition': envDef
-        })
-      } catch (e) {
-        let body = e.response && e.response.body;
-        if (body) {
-          // DocuSign API exception
-          res.send(`<html lang="en"><body>
+        // Send the envelope
+        let envelopesApi = new docusign.EnvelopesApi(),
+          results;
+        var eventNotification = {
+          "url": "https://vinnoba.com/perfarm/api/entity/docusign/webhook",
+          "loggingEnabled": "true",
+          "requireAcknowledgment": "true",
+          "useSoapInterface": "false",
+          "includeCertificateWithSoap": "false",
+          "signMessageWithX509Cert": "false",
+          "includeDocuments": "true",
+          "includeEnvelopeVoidReason": "true",
+          "includeTimeZone": "true",
+          "includeSenderAccountAsCustomField": "true",
+          "includeDocumentFields": "true",
+          "includeCertificateOfCompletion": "true",
+          "envelopeEvents": [{
+              "envelopeEventStatusCode": "sent"
+            },
+            {
+              "envelopeEventStatusCode": "delivered"
+            },
+            {
+              "envelopeEventStatusCode": "completed"
+            },
+            {
+              "envelopeEventStatusCode": "declined"
+            },
+            {
+              "envelopeEventStatusCode": "voided"
+            }
+          ],
+          "recipientEvents": [{
+              "recipientEventStatusCode": "Sent"
+            },
+            {
+              "recipientEventStatusCode": "Delivered"
+            },
+            {
+              "recipientEventStatusCode": "Completed"
+            },
+            {
+              "recipientEventStatusCode": "Declined"
+            },
+            {
+              "recipientEventStatusCode": "AuthenticationFailed"
+            },
+            {
+              "recipientEventStatusCode": "AutoResponded"
+            }
+          ]
+        }
+        envDef.eventNotification = eventNotification
+        envDef.envelopeIdStamping = true
+        try {
+          results = await envelopesApi.createEnvelope(accountId, {
+            'envelopeDefinition': envDef
+          })
+        } catch (e) {
+          let body = e.response && e.response.body;
+          if (body) {
+            // DocuSign API exception
+            res.send(`<html lang="en"><body>
                   <h3>API problem ajay</h3><p>Status code ${e.response.status}</p>
                   <p>Error message:</p><p><pre><code>${JSON.stringify(body, null, 4)}</code></pre></p>`);
-        } else {
-          // Not a DocuSign exception
-          throw e;
+          } else {
+            // Not a DocuSign exception
+            throw e;
+          }
         }
-      }
-      let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      let paramsArray;
-      paramsArray =
-        new Array(
-          '',
-          request.url_path,
-          results.envelopeId,
-          request.asset_id,
-          date,
-          0,
-          envDef.emailSubject,
-          results.status
-        )
-      if (results) {
-        results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
+        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let paramsArray;
         paramsArray =
           new Array(
-            signerName,
-            signerEmail,
-            results[0][0]['doc_id']
+            '',
+            request.url_path,
+            results.envelopeId,
+            request.asset_id,
+            date,
+            0,
+            envDef.emailSubject,
+            results.status
           )
-        results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
-        var response = {
-          'document_id': results[0][0]['doc_id']
+        if (results) {
+          results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
+          paramsArray =
+            new Array(
+              signerName,
+              signerEmail,
+              results[0][0]['doc_id']
+            )
+          results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
+          var response = {
+            'document_id': results[0][0]['doc_id']
+          }
+          return res.send(responseWrapper.getResponse(false, response, 200, request));
         }
-        return response
-      }
+      })
     })
   }
 
@@ -273,10 +266,10 @@ function CommonDocusignService(objectCollection) {
       return(results[0])
   }
 
-  function getAccessTokenUsingRefreshToken() {
+  function getAccessTokenUsingRefreshToken(callback) {
     const clientId = global.config.ClientId;
     const clientSecret = global.config.ClientSecret;
-    //read and decrypt the refresh token
+    // read and decrypt the refresh token
     // const refreshToken = new Encrypt(dsConfig.refreshTokenFile).decrypt();
     const refreshToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAgABwAAk5vxgQ7YSAgAABMA6hQm2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.aDwiofmPFF4UFdnwCDXl4GC98J4pL4cAbgUkNKIM27lYtZZA0vlxmKTXZp9t0I6lRscI9aTYy9N9TBcZccwN8R9ecSsDmtrq8fXHCr81m0qZoeYPdx9pr_t4oqjTiZ_fPMK3X1mRlJPdOISSFpSU8MfPNuj0B4bnsAgJstEnh6LMYdOrJ35cFoygJsygbcyWighXHihM2CEQOEhMMujZrIrZk23SAH1Gh9sG_vxwHkYTO9O5jlZ9gbSLEa-X6w5I42vk8LFQ2JcK6c78qwMjnniZp_pMnMILQ_VEkHGidCsSNXI6ZpjyX0r9NvHJoj8BZvurwJFEuM9a-oLZnd51Zw';
     const clientString = clientId + ":" + clientSecret,
@@ -300,11 +293,10 @@ function CommonDocusignService(objectCollection) {
             const accessToken = authRes.body.access_token;
             const refreshToken = authRes.body.refresh_token;
             const expiresIn = authRes.body.expires_in;
-            console.log('done!...')
-            return accessToken 
+            return callback(accessToken)
         }
       })
-    }
+  }
 
   async function getHtmlToBase64() {
     const browser = await puppeteer.launch();
