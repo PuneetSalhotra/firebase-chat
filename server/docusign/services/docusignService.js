@@ -33,13 +33,7 @@ function CommonDocusignService(objectCollection) {
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
       // Read the file from the document and convert it to a Base64String
-
-      // try {
-      //   var pdfBase64 = await getPdftoBase64(request, request.url_path)
-      // } catch (e) {
-      //   console.log(e)
-      // }
-      getHtmlToBase64().then(async pdfBase64 => {
+      getHtmlToBase64(request).then(async pdfBase64 => {
         // Create the document request object
         const doc = docusign.Document.constructFromObject({
           documentBase64: pdfBase64,
@@ -139,16 +133,7 @@ function CommonDocusignService(objectCollection) {
             'envelopeDefinition': envDef
           })
         } catch (e) {
-          let body = e.response && e.response.body;
-          if (body) {
-            // DocuSign API exception
-            res.send(`<html lang="en"><body>
-                  <h3>API problem ajay</h3><p>Status code ${e.response.status}</p>
-                  <p>Error message:</p><p><pre><code>${JSON.stringify(body, null, 4)}</code></pre></p>`);
-          } else {
-            // Not a DocuSign exception
-            throw e;
-          }
+          return Promise.reject(e);
         }
         let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let paramsArray;
@@ -180,22 +165,6 @@ function CommonDocusignService(objectCollection) {
         }
       })
     })
-  }
-
-  async function getPdftoBase64(request, S3Url) {
-    var pdfBase64 = ''
-    await pdf2base64(S3Url)
-      .then(
-        (response) => {
-          pdfBase64 = response
-        }
-      )
-      .catch(
-        (error) => {
-          console.log(error); //Exepection error....
-        }
-      )
-    return pdfBase64
   }
 
   this.query = async (request, res) => {
@@ -288,8 +257,6 @@ function CommonDocusignService(objectCollection) {
         .type("application/x-www-form-urlencoded");
     authReq.end(function (err, authRes) {
         if (err) {
-            console.log("ERROR getting access token using refresh token:");
-            console.log(err);
           return callback(err, authRes);
         } else {
             const accessToken = authRes.body.access_token;
@@ -300,10 +267,10 @@ function CommonDocusignService(objectCollection) {
       })
   }
 
-  async function getHtmlToBase64() {
+  async function getHtmlToBase64(request) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.goto("https://preprodweb.officedesk.app/#/forms/view/eyJvcmdhbml6YXRpb25faWQiOjg2OCwiYWNjb3VudF9pZCI6OTg0LCJ3b3JrZm9yY2VfaWQiOjU0MDMsImFzc2V0X2lkIjozMTk4MSwiYXV0aF9hc3NldF9pZCI6MzEzNDcsImFzc2V0X3Rva2VuX2F1dGgiOiIwNTk4NmJiMC1lMzY0LTExZTgtYTFjMC0wYjY4MzE4MzM3NTQiLCJhY3Rpdml0eV9pZCI6MjcyNzIwLCJhY3Rpdml0eV90eXBlX2NhdGVnb3J5X2lkIjo5LCJhY3Rpdml0eV9zdHJlYW1fdHlwZV9pZCI6NzA1LCJmb3JtX3RyYW5zYWN0aW9uX2lkIjoxMDQzMDAsIm9yZGVyX2Zvcm1fdHJhbnNhY3Rpb25faWQiOjAsImZvcm1faWQiOjEwNTgsImFjdGl2aXR5X3R5cGVfaWQiOjEzNDU2MiwidHlwZSI6ImFwcHJvdmFsIiwiYXNzZXRfZmlyc3RfbmFtZSI6IkFkbWluaXN0cmF0b3IiLCJhc3NldF9waG9uZV9udW1iZXIiOjk1MDIwMDIyNjUsIm9wZXJhdGluZ19hc3NldF9maXJzdF9uYW1lIjoiRGV2aSBPTVQiLCJzaG93X2hlYWRlcnMiOjAsImF1dGhUb2tlbiI6IjFlNGQ1NDQwLWFiMjctMTFlYS05ZDE4LWM3Yjg3MTI1MDM5YSJ9", {
+    await page.goto(request.url_path, {
       waitUntil: "networkidle2"
     });
     await page.setViewport({ width: 1680, height: 1050 });
