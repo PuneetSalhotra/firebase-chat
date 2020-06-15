@@ -169,6 +169,26 @@ function ActivityConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });    
+
+    app.post('/' + global.config.version + '/account-activity/check/duplicity', async (req, res) => {
+        const [err, data] = await activityConfigService.checkAcctDuplicity(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /account/check/duplicity : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/account-code/bot', async (req, res) => {
+        const [err, data] = await activityConfigService.generateAcctCode(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /account/check/duplicity : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 
