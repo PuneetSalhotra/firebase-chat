@@ -39,6 +39,21 @@ function CommonDocusignService(objectCollection) {
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
       // Read the file from the document and convert it to a Base64String
       getHtmlToBase64(request).then(async pdfBase64 => {
+        const readableStream = pdf2base64;
+                const bucketName = await util.getS3BucketName();
+                const prefixPath = await util.getS3PrefixPath(request);
+                console.log("bucketName: ", bucketName);
+                console.log("prefixPath: ", prefixPath);
+
+        const uploadDetails = await util.uploadReadableStreamToS3(request, {
+          Bucket: bucketName || "demotelcoinc",
+          Key: `${prefixPath}/${formActivityID}` + '_form_data.pdf',
+          Body: readableStream,
+          ContentType: 'application/pdf',
+          // ACL: 'public-read'
+      }, readableStream);
+      console.log(uploadDetails)
+
         // Create the document request object
         const doc = docusign.Document.constructFromObject({
           documentBase64: pdfBase64,
@@ -152,17 +167,18 @@ function CommonDocusignService(objectCollection) {
             0,
             envDef.emailSubject,
             results.status,
-            request.activity_id
+            request.activity_id,
+            signerName,
+            signerEmail
           )
         if (results) {
           results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
-          paramsArray =
-            new Array(
-              signerName,
-              signerEmail,
-              results[0][0]['doc_id']
-            )
-          results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
+          // paramsArray =
+          //   new Array(
+             
+          //     results[0][0]['doc_id']
+          //   )
+          // results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
           var response = {
             'document_id': results[0][0]['doc_id']
           }
@@ -180,20 +196,15 @@ function CommonDocusignService(objectCollection) {
           request.document_id
         )
       results[0] = await db.callDBProcedure(request, 'docusign_select', paramsArray, 1)
-      results[1]=  await db.callDBProcedure(request, 'docusign_user_details_select', paramsArray, 1)
+      // results[1]=  await db.callDBProcedure(request, 'docusign_user_details_select', paramsArray, 1)
       var responseArray = []
       var obj = {}
       var receiverDetails = {}
       for(var i=0;i<results[0].length;i++){
-        for(var j=0;j<results[1].length;j++){
-          if(results[0][i]['doc_id']==results[1][j]['doc_id']){
            receiverDetails= {
-              "receiver_name": results[1][j]['receiver_name'] || '',
-              "receiver_email": results[1][j]['email' || '']
+              "receiver_name": results[0][i]['receiver_name'] || '',
+              "receiver_email": results[0][i]['email' || '']
             }
-          }
-        }
-
         obj = {
           "document_id":results[0][i]['doc_id'],
           "activity_id":results[0][i]['activity_id'],
@@ -277,15 +288,9 @@ function CommonDocusignService(objectCollection) {
       waitUntil: "networkidle2"
     });
     await page.setViewport({ width: 1680, height: 1050 });
-    const todays_date = new Date();
-    var filename =  todays_date.getTime() + '.pdf';
-    await page.pdf({
-      path: `${path.join(__dirname, '../files', filename)}`,
-      format: "A4"
-    });
+    const pdf = await page.pdf();
     await browser.close();
-    const pdfBytes = fs.readFileSync(path.resolve(__dirname, '../files', filename))
-    , pdfBase64 = pdfBytes.toString('base64');
+    const pdfBase64 = pdf.toString('base64');
     return pdfBase64
   }
 
