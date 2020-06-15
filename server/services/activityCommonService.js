@@ -553,9 +553,9 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
-        global.logger.write('conLog', 'lead_reject_reason: ' + request.lead_reject_reason, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsert - lead_reject_reason: ' + request.lead_reject_reason, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -4227,8 +4227,8 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -4407,6 +4407,8 @@ this.getAllParticipantsAsync = async (request) => {
             return;
         }
 
+        console.log('formID : ', formId);
+        console.log('formID : ', request.form_id);
         const paramsArr = new Array(
             request.activity_id,
             assetId,
@@ -5487,6 +5489,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     .then((data) => {
                         responseData = data;
                         error = false;
+                        request.parent_activity_id = referredActivityID;
                         this.activityActivityMappingHistoryInsert(request);
                     })
                     .catch((err) => {
@@ -5512,6 +5515,33 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         responseData = data;
                         error = false;
                       
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
+    };
+
+
+    this.activityActivityMappingArchive = async (request, referrencedActivityID) => {
+        let error = true,
+        responseData = [];        
+        
+        var paramsArr = new Array(
+            request.activity_id,
+            referrencedActivityID,
+            request.organization_id,
+            request.log_state || 3,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_update_log_state', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
                     })
                     .catch((err) => {
                         error = err;

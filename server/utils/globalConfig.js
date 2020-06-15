@@ -318,7 +318,9 @@ if (mode === 'local') {
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
     
-    config.esmsmentionsemail = "https://stagingweb.officedesk.app";
+    config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
 if (mode === 'dev') {
@@ -512,6 +514,8 @@ if (mode === 'sprint') {
     config.emailbaseUrlApprove = "https://sprint.officedesk.app"; 
     config.emailbaseUrlUpload = "https://sprint.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
 if (mode === 'staging') {
@@ -632,7 +636,9 @@ if (mode === 'staging') {
         config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
     }
 
-    config.esmsmentionsemail = "https://stagingweb.officedesk.app";
+    config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
 if (mode === 'preprod') {
@@ -736,7 +742,9 @@ if (mode === 'preprod') {
     config.emailbaseUrlApprove = "https://preprodweb.officedesk.app"; 
     config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
 
-    config.esmsmentionsemail = "https://preprodweb.officedesk.app";
+    config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
 if (mode === 'prod') {
@@ -842,7 +850,9 @@ if (mode === 'prod') {
     config.emailbaseUrlApprove =  "https://web.officedesk.app"; //"https://officedesk.app"; 
     config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
 
-    config.esmsmentionsemail = "https://web.officedesk.app";    
+    config.esmsMentionsEmail = "https://web.officedesk.app";    
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
 }
 
 

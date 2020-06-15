@@ -148,7 +148,7 @@ function AssetService(objectCollection) {
         try {
             let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
-            if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 5) {
+            if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 10) {
                 // if (request.url.includes('v2')) { responseCode = 429; }
                 callback(false, {
                     message: `OTP rate limit exceeded!`
@@ -772,7 +772,8 @@ function AssetService(objectCollection) {
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
             'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
             'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
-            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id'])
+            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
+            'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path'])
         };
 
         callback(false, rowData);
@@ -923,7 +924,7 @@ function AssetService(objectCollection) {
         var domesticSmsMode = global.config.domestic_sms_mode;
         var internationalSmsMode = global.config.international_sms_mode;
         var phoneCall = global.config.phone_call;
-        let appID = Number(request.app_id) || 0;
+        let appID = Number(request.app_id) || 3;
 
         // SMS heart-beat logic
         if (`${countryCode}${phoneNumber}` === '919100112970') {
@@ -933,7 +934,8 @@ function AssetService(objectCollection) {
         //Get the appID
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
-            appName = 'TONY';
+            //appName = 'TONY';
+            appName = 'Grene Go app.';
         } else {
             appName = appData[0].app_name;
         }

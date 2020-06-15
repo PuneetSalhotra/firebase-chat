@@ -277,6 +277,7 @@ process.on('unhandledRejection', (reason, promise) => {
     logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
 });
 
+let cnt = 0;
 async function listUsers(paginationToken = null) {
 	var params = {
 		UserPoolId: global.config.user_pool_id,
@@ -300,7 +301,7 @@ async function listUsers(paginationToken = null) {
 			//console.log(data);
 			let users = data.Users;
 			//console.log(users[0])
-			//console.log(users.length);
+			console.log(users.length,' - ',cnt++);
 			
 			//console.log(users[0].Username);
 			//console.log(users[0].Attributes[1].Value);
@@ -313,7 +314,7 @@ async function listUsers(paginationToken = null) {
 				}
 			}
 			
-			if(data.PaginationToken != "" && Number(users.length) === 60) {
+			if(data.PaginationToken != "" && Number(users.length) === 60 && cnt < 25) {
                 await new Promise((resolve, reject)=>{
                     setTimeout(()=>{
                         resolve();

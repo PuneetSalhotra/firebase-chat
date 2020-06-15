@@ -486,6 +486,8 @@ function FormConfigService(objCollection) {
                      break;
             case 33: fireBotUpdateIntTables(request, newData);
                      break;
+            //case 68: activityActivityMappingInsertV1(request, newData, 0);
+            //         break;
             default: break;
         }
 
@@ -532,7 +534,11 @@ function FormConfigService(objCollection) {
                             } catch (err) {
                                 console.log(err);
                             }
-                        }                        
+                        }
+                        
+                        if(dataTypeId === 68) { 
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue);
+                        }
                         cnt++;
                     }
                     next();
@@ -2015,6 +2021,10 @@ function FormConfigService(objCollection) {
         return [error, workflowFormsData];
     }
 
+    this.formEntityWorkflowFormsAccessList = async(request) => {
+        return await formEntityMappingSelectWorkflowForms(request);
+    }
+    
     async function formEntityMappingSelectWorkflowForms(request) {
         let workflowFormsData = [],
             error = true;
@@ -5477,6 +5487,70 @@ function FormConfigService(objCollection) {
 
         return [error, fieldData];
     };    
+
+
+    //Handling Arrya of Objects wala input
+    async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue) {
+        console.log('In formConfigService activityActivityMappingInsertV1');
+        let currentWorkflowActivityId = request.activity_id; //workflow activity id
+        
+        if(Number(request.activity_type_category_id) === 9) {            
+            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+            if (workflowError !== false || workflowData.length === 0) {
+                console.log('workflowError : ', workflowError);
+                console.log('workflowData : ', workflowData);
+                
+                //if(cnt <= 2) {
+                //    await sleep(2000);
+                //    cnt++;
+                //    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                //} else {
+                //    return [workflowError, workflowData];
+                //}
+
+                return [workflowError, workflowData];
+            }
+            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+        }
+
+        console.log('fieldData V1: ', fieldData);
+        console.log('typeof fieldData.field_value', typeof fieldData.field_value);
+        console.log('fieldData.field_value', fieldData.field_value);
+        console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
+        
+        //Unmap the existing one
+        let processedOldFieldValue;
+        let oldReq = Object.assign({}, request);
+            oldReq.activity_id = currentWorkflowActivityId;
+        try{
+            processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
+            for(const i_iterator of processedOldFieldValue) {
+                await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.activity_id);
+            }
+        } catch(err) {
+            console.log('Error in parsing workflow reference datatype old V1: ', processedOldFieldValue);
+            console.log(err);
+            //return "Failure";
+        }
+
+        //Update with the newData
+        let fieldValue;
+        let newReq = Object.assign({}, request);
+            newReq.activity_id = currentWorkflowActivityId;
+        try{
+            fieldValue = JSON.parse(fieldData.field_value);
+            for(const i of fieldValue) {
+                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+            }
+        } catch(err) {
+            console.log('Error in parsing workflow reference datatype new  V1: ', fieldValue);
+            console.log(err);
+            return "Failure";
+        }
+
+        return "success";
+    }
+
 }
 
 module.exports = FormConfigService;
