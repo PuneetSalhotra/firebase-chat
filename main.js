@@ -26,9 +26,14 @@ var server = require('http').createServer(app);//.listen(global.config.servicePo
 
 var cors = require('cors');
 var corsOptions = {
-    origin: function (origin, callback) {
-        var originIsWhitelisted = global.config.whitelist.indexOf(origin) !== -1;
-        callback(originIsWhitelisted ? null : 'Bad Request', originIsWhitelisted);
+    origin: function (origin,callback) {
+        if(global.config.whitelist.indexOf(origin) !== -1) {
+            callback(null,true);
+        } else {
+            callback(null,true);
+            // TODO: just to avoid the CORS origin 
+            // callback(new Error('Not allowed by CORS'))
+        }
     }
 };
 app.use(cors());

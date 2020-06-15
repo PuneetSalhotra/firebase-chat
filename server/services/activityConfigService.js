@@ -791,7 +791,7 @@ function ActivityConfigService(db, util, objCollection) {
         const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -915,6 +915,153 @@ function ActivityConfigService(db, util, objCollection) {
         }
         return [error, responseData];
     };
+
+    
+    this.checkAcctDuplicity = async (request) => {
+        //DB CALL
+        //IF p_flag = 0 THEN search all CUID 1/2/3
+        //IF p_flag = 1 THEN search only CUID 1 - Has pan number in this context
+        //IF p_flag = 2 THEN search only CUID 2 - GST Number
+        //IF p_flag = 3 THEN search only CUID 3 - Account Code
+        //IF p_flag = 4 THEN search only expression - Account Name
+        request.activity_type_category_id = 48;
+
+        let error = false,
+            finalResponse = {
+                account_title_exists: "",
+                account_pan_exists: "",
+                account_gst_exists: "",
+                message: "",
+                account_title_expression: ""
+            },
+            panNumber = request.pan_number || null;
+            gstNumber = request.gst_number || null;
+
+        let workflowTitle;
+
+        if(Number(request.flag_check) === 1) { //Check Workflow Title
+            workflowTitle = request.workflow_title;
+            workflowTitle = workflowTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+            workflowTitle = workflowTitle.split(' ').join('')
+            console.log("workflowTitle : " , workflowTitle);               
+            
+            request.search_string = workflowTitle;
+            request.flag = 4;
+
+            let [err, response] = await self.searchDuplicateWorkflow(request);
+            if(err) {
+                error = true;
+            }
+
+            (response.length > 0) ?
+                finalResponse.account_title_exists = true:
+                finalResponse.account_title_exists = false
+        } 
+        //else if(Number(flag) === 2) { //Check for PAN
+        //    request.search_string = gstNumber.trim();
+        //    request.flag = 1;
+//
+        //} else if(Number(flag) === 2) { //Check for GST
+        //    request.search_string = panNumber.trim();
+        //    request.flag = 2;
+        //} 
+        else {                        
+            if(panNumber !== null && gstNumber !== null) {
+                //If both are given Check for 
+                let extractedPanNumber = gstNumber.substring(2,12);
+                console.log('extractedPanNumber : ', extractedPanNumber);
+                
+                if(extractedPanNumber !== panNumber) {
+                    finalResponse.message = "Extracted Pan Number from GST is different from the given PAN Number";
+                    error = true;
+                } else {
+                    //Check for the PAN Number uniqueness                    
+                    let panExists = await checkForPanNumberExistence(request, panNumber);                    
+                    (panExists)?
+                            finalResponse.account_pan_exists = true:
+                            finalResponse.account_pan_exists = false;
+                }
+            } else if(panNumber !== null) {                
+                let panExists = await checkForPanNumberExistence(request, panNumber);
+                (panExists)?
+                    finalResponse.account_pan_exists = true:
+                    finalResponse.account_pan_exists = false;
+
+            } else if(gstNumber !== null) {                
+                let panExists = await checkForPanNumberExistence(request, gstNumber.substring(2,12));
+                (panExists)?
+                    finalResponse.account_gst_exists = true:
+                    finalResponse.account_gst_exists = false;
+            }
+
+        }
+
+        finalResponse.account_title_expression = workflowTitle;        
+        return [error, finalResponse];
+    }
+
+    async function checkForPanNumberExistence(request, panNumber) {
+        let error = true,
+            dataExists = false;
+
+        request.search_string = panNumber.trim();
+        request.flag = 1;
+
+        let [err, response] = await self.searchDuplicateWorkflow(request);
+        if(response.length > 0) {
+            dataExists = true;
+        }
+
+        return dataExists;
+    }
+
+    this.generateAcctCode = async(request) => {
+        let activityTypeID = Number(request.activity_type_id);
+        let accountCode = "";
+
+        switch(activityTypeID) {
+            case 149277: //LA
+                         accountCode += 'C-';
+                         accountCode += nameofthecompany.padStart(11, '0');
+                         accountCode += '-'
+                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         break;
+
+            case 150442: //GE
+                         accountCode += 'V-';
+                         accountCode += nameofthecompany.padStart(11, '0');
+                         accountCode += '-'
+                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         break;
+
+            case 149809: //SME - Thoda Complicated
+                         accountCode += 'S-';
+                         accountCode += nameofthecompany.padStart(7, '0');
+                         
+                         accountCode += '-'
+                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         break;
+
+            case 150254: //VICS
+                         accountCode += 'W-';
+                         accountCode += nameofthecompany.padStart(11, '0');
+                         accountCode += '-'
+                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         break;
+
+            case 150443: //GOVT -- Thoda Complicated center/state/circle info
+                        //Govt SI Segment
+                         accountCode += 'G-';
+                         accountCode += nameofthecompany.padStart(10, '0');
+                         accountCode += '-'
+                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         break;
+
+            case 150444: //SOHO -- Thoda Complicated
+                        accountCode += 'D-';
+                         break;
+        }
+    }
 
 }
 
