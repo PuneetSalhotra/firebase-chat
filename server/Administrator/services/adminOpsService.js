@@ -1080,9 +1080,9 @@ function AdminOpsService(objectCollection) {
             }
             (orgData.length > 0) ? senderID = orgData[0].organization_text_sender_name : senderID = 'MYTONY';
 
-            const smsMessage = `Dear ${request.asset_first_name || ''} ${request.asset_last_name || ''}, you have been added as an '${deskAssetDataFromDB[0].asset_first_name}' by '${request.organization_name || ''}' to join their '${request.workforce_name || ''}' workforce. Please click on the link below to download the Tony App and get started.
+            const smsMessage = `Dear ${request.asset_first_name || ''} ${request.asset_last_name || ''}, you have been added as an '${deskAssetDataFromDB[0].asset_first_name}' by '${request.organization_name || ''}' to join their '${request.workforce_name || ''}' workforce. Please click on the link below to download the Grene Go App and get started.
         
-            https://download.mytony.app`;
+            https://download.greneos.com`;
 
             util.sendSmsSinfiniV1(smsMessage, request.country_code || 91, request.phone_number || 0, senderID, function (err, response) {
                 console.log('[addNewEmployeeToExistingDesk] Sinfini Response: ', response);
@@ -7148,9 +7148,9 @@ function AdminOpsService(objectCollection) {
             }
             (orgData.length > 0) ? senderID = orgData[0].organization_text_sender_name : senderID = 'MYTONY';
 
-            const smsMessage = `Dear ${responseDataOne[0].operating_asset_first_name || ''} ${responseDataOne[0].operating_asset_last_name || ''}, you have been added as an '${responseDataOne[0].asset_first_name}' by '${responseDataOne[0].organization_name || ''}' to join their '${responseDataOne[0].workforce_name || ''}' workforce. Please click on the link below to download the Tony App and get started.
+            const smsMessage = `Dear ${responseDataOne[0].operating_asset_first_name || ''} ${responseDataOne[0].operating_asset_last_name || ''}, you have been added as an '${responseDataOne[0].asset_first_name}' by '${responseDataOne[0].organization_name || ''}' to join their '${responseDataOne[0].workforce_name || ''}' workforce. Please click on the link below to download the Grene Go and get started.
         
-            https://download.mytony.app`;
+            https://download.greneos.com`;
 
             util.sendSmsSinfiniV1(smsMessage, responseDataOne[0].operating_asset_phone_country_code || 91, responseDataOne[0].operating_asset_phone_number || 0, senderID, function (err, response) {
                 console.log('[sendInviteText] Sinfini Response: ', response);
