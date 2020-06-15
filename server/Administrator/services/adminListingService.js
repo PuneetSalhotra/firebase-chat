@@ -1665,6 +1665,64 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+        // Get workforce based on workforce_type_id
+    this.workforceListSelectWorkforceTypeAll = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id || 0,
+            request.workforce_type_id || 0,
+            request.page_start || 0,
+            request.page_limit || 250
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_select_workforce_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
+
+    this.workforceFormMappingSelectWorkflowForms = async (request) => {
+
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag || 0,
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.activity_type_id || 0,
+            0, // request.access_level_id || 0,
+            request.log_datetime || '1970-01-01 00:00:00',
+            request.page_start || 0,
+            request.page_limit || 250
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, workflowFormsData];
+    }  
 }
 
 module.exports = AdminListingService;
