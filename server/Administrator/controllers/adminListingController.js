@@ -431,6 +431,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, activityTypeData, -9999, req.body));
         }
     });    
+
+    app.post('/' + global.config.version + '/admin/workforce_type/list', async function (req, res) {
+        const [err, workforceTypeData] = await adminListingService.workforceTypeMasterSelectOrganization(req.body, req.body.activity_type_id);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceTypeData, 200, req.body));
+        } else {
+            console.log("/admin/workforce_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceTypeData, -9999, req.body));
+        }
+    });        
 }
 
 module.exports = AdminListingController;
