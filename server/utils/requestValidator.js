@@ -5,9 +5,9 @@ const typeis = require('type-is')
 
 const requestValidator = {};
 
-requestValidator.requestParamsValidator = async function (req, res, next) {
+requestValidator.requestParamsValidator = async function (req,res,next) {
 
-    if (exclusionList.includes(req.url)) {
+    if(exclusionList.includes(req.url)) {
         return next();
     }
 
@@ -53,7 +53,7 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
 
         // Device specific and track GPS details
         device_os_id: Joi.number(), // .required(),
-        track_gps_datetime: Joi.date().iso().allow(0, '0'),
+        track_gps_datetime: Joi.date().iso().allow(0,'0'),
         datetime_log: Joi.date().iso(),
         log_datetime: Joi.date().iso(),
 
@@ -62,9 +62,9 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
         .unknown(true);
 
     try {
-        const value = await validationSchema.validateAsync(req.body, { convert: true });
-    } catch (error) {
-        if (error) {
+        const value = await validationSchema.validateAsync(req.body,{convert: true});
+    } catch(error) {
+        if(error) {
             // return error.details[0].message;
             return res.status(400).json({
                 status: 400,
@@ -75,31 +75,31 @@ requestValidator.requestParamsValidator = async function (req, res, next) {
     return next();
 }
 
-requestValidator.requestMethodValidator = (req, res, next) => {
+requestValidator.requestMethodValidator = (req,res,next) => {
     const healthcheckURL = `/${global.config.version}/healthcheck`;
-    if (
+    if(
         req.url !== healthcheckURL &&
         req.method !== 'POST'
     ) {
-        return res.status(405).json({ error: "Oops! That's not allowed" });
+        return res.status(405).json({error: "Oops! That's not allowed"});
     }
     next();
 }
 
-requestValidator.requestContentTypeValidator = async function (req, res, next) {
+requestValidator.requestContentTypeValidator = async function (req,res,next) {
     const healthcheckURL = `/${global.config.version}/healthcheck`;
-    if (
+    if(
         req.url !== healthcheckURL &&
-        !typeis(req, ['application/x-www-form-urlencoded', 'multipart/form-data', 'application/json']) // 
+        !typeis(req,['application/x-www-form-urlencoded','multipart/form-data','application/json']) // 
     ) {
-        return res.status(415).json({ error: "Oops! Content Type not supported" });
+        return res.status(415).json({error: "Oops! Content Type not supported"});
     }
     next();
 }
 
-requestValidator.setResponseContentType = (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.cookie('grene', '1', { httpOnly: true, secure: true });
+requestValidator.setResponseContentType = (req,res,next) => {
+    res.setHeader('Content-Type','application/json; charset=utf-8');
+    res.cookie('grene','1',{httpOnly: true,path: '/grene',secure: true});
     next();
 }
 
