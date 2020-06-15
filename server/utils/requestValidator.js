@@ -90,7 +90,7 @@ requestValidator.requestContentTypeValidator = async function (req, res, next) {
     const healthcheckURL = `/${global.config.version}/healthcheck`;
     if (
         req.url !== healthcheckURL &&
-        !typeis(req, ['application/x-www-form-urlencoded', 'multipart/form-data', 'application/json']) // 
+        !typeis(req, ['application/x-www-form-urlencoded', 'multipart/form-data', 'application/json','text/xml']) // 
     ) {
         return res.status(415).json({ error: "Oops! Content Type not supported" });
     }

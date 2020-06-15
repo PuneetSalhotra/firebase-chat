@@ -38,25 +38,23 @@ function CommonDocusignService(objectCollection) {
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
       // Read the file from the document and convert it to a Base64String
-      getHtmlToBase64(request).then(async pdfBase64 => {
-        const readableStream = pdf2base64;
-                const bucketName = await util.getS3BucketName();
-                const prefixPath = await util.getS3PrefixPath(request);
-                console.log("bucketName: ", bucketName);
-                console.log("prefixPath: ", prefixPath);
-
-        const uploadDetails = await util.uploadReadableStreamToS3(request, {
-          Bucket: bucketName || "demotelcoinc",
-          Key: `${prefixPath}/${formActivityID}` + '_form_data.pdf',
-          Body: readableStream,
-          ContentType: 'application/pdf',
-          // ACL: 'public-read'
-      }, readableStream);
-      console.log(uploadDetails)
-
-        // Create the document request object
+      getHtmlToBase64(request).then(async pdfResult => {
+        // uploadReadableStreamOnS3(request,pdfResult['pdf'])
+      const readableStream = pdfResult['pdf']
+      const bucketName = await util.getS3BucketName();
+      const prefixPath = await util.getS3PrefixPath(request);
+          const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
+            Bucket: bucketName || "demotelcoinc",
+            Key: `${prefixPath}/0` + '_form_data.pdf',
+            Body: readableStream,
+            ContentType: 'application/pdf',
+            ACL: 'public-read'
+        }, readableStream);
+        console.log(s3UploadUrlObj.Location)
+        const s3UploadUrl = s3UploadUrlObj.Location
+       // Create the document request object
         const doc = docusign.Document.constructFromObject({
-          documentBase64: pdfBase64,
+          documentBase64: pdfResult['pdfBase64'],
           fileExtension: 'pdf', // You can send other types of documents too.
           name: 'test.pdf',
           documentId: '1'
@@ -160,7 +158,7 @@ function CommonDocusignService(objectCollection) {
         paramsArray =
           new Array(
             '',
-            request.url_path,
+            s3UploadUrl,
             results.envelopeId,
             request.asset_id,
             date,
@@ -282,6 +280,7 @@ function CommonDocusignService(objectCollection) {
   }
 
   async function getHtmlToBase64(request) {
+    const pdfObj ={}
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(request.url_path, {
@@ -289,9 +288,11 @@ function CommonDocusignService(objectCollection) {
     });
     await page.setViewport({ width: 1680, height: 1050 });
     const pdf = await page.pdf();
+    pdfObj['pdf'] = pdf
     await browser.close();
     const pdfBase64 = pdf.toString('base64');
-    return pdfBase64
+    pdfObj['pdfBase64'] = pdfBase64
+    return pdfObj
   }
 
 };

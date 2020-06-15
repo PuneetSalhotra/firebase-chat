@@ -89,6 +89,11 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                     global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);
                     next();
+                } else if (req.body.url.includes('/' + global.config.version + '/docusign/webhook')) {
+                    console.log('bypass is working...')
+                    // global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    // global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
+                    next();
                 } else if (req.body.url.includes('/' + global.config.version + '/zoho/')) {
                     global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                     global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
