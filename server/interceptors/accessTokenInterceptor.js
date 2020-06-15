@@ -107,6 +107,7 @@ function AccessTokenInterceptor(app, responseWrapper, map) {
                 case '/' + global.config.version + '/stats/signup/list':
                 case '/' + global.config.version + '/stats/timeline/list':
                 case '/' + global.config.version + '/vodafone/manual_trigger/excel_upload/child_workflows_create':
+                case '/' + global.config.version + '/bot/esms/test_service':
                     req.body['module'] = 'asset';
                     next();
                     break;

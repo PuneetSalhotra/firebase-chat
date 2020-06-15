@@ -1155,7 +1155,7 @@ function AnalyticsService(objectCollection)
                                         parseInt(request.filter_activity_type_id),
                                         global.analyticsConfig.activity_id_all, //Activity ID,
                                         parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
-                                        0,
+                                        request.filter_activity_status_tag_id,
                                         parseInt(arrayStatuses[iteratorZ].activity_status_id),
                                         //parseInt(filter_activity_status_id),
                                         request.datetime_start,
@@ -1166,9 +1166,30 @@ function AnalyticsService(objectCollection)
                                         parseInt(request.page_limit) || 50
                                     );
 
+                                    let counter = 1; 
+                                    let responseArray = [];
+                                    if(request.widget_type_id == 45 || request.widget_type_id == 46){
+                                        counter = 5
+                                   
+                                        for(let iteratorM = 0; iteratorM < counter; iteratorM++){
+                                             paramsArray.push(iteratorM)
+                                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_2_activity_list_select_widget_values_hierarchy', paramsArray, 1);
+                                            paramsArray.pop();
+                                            responseArray.push(tempResult[0])
+                                        }
+                                        results[iterator] =
+                                            (
+                                                {
+                                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                                    "result": responseArray,
+                                                }
+                                            );
+                                        iterator++
+                                    }else{
                                     tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values_hierarchy', paramsArray, 1);
                                     console.log(tempResult);
-                                    if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38){
+                                    if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
+                                     || request.widget_type_id == 48 || request.widget_type_id == 49){
                                         results[iterator] =
                                         (
                                             {
@@ -1199,6 +1220,7 @@ function AnalyticsService(objectCollection)
                                             }
                                         );
                                     }
+                                }
                                 iterator++;
                                 }
                             }
@@ -1482,7 +1504,7 @@ function AnalyticsService(objectCollection)
                                 parseInt(request.filter_activity_type_id),
                                 global.analyticsConfig.activity_id_all, //Activity ID,
                                 parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
-                                0,
+                                request.filter_activity_status_tag_id,
                                 parseInt(arrayStatuses[iteratorZ].activity_status_id),                        
                                 request.bot_id || 0,
                                 request.bot_operation_id || 0,
@@ -1497,8 +1519,10 @@ function AnalyticsService(objectCollection)
                                 //parseInt(util.replaceQueryLimit(request.page_limit))
                             );
 
-                            tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_1_activity_list_select_widget_drilldown_hierarchy', paramsArray, []);
-                            //console.log(tempResult);
+
+
+                            tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_p1_1_activity_list_select_widget_drilldown_hierarchy', paramsArray, []);
+                            console.log(tempResult);
 
                             results[iterator] =
                             (

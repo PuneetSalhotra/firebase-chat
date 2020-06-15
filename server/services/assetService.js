@@ -772,7 +772,8 @@ function AssetService(objectCollection) {
             'asset_datetime_available_till': util.replaceDefaultDatetime(rowArray[0]['asset_datetime_available_till']),
             'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
             'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
-            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id'])
+            'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
+            'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path'])
         };
 
         callback(false, rowData);
@@ -934,7 +935,7 @@ function AssetService(objectCollection) {
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
             //appName = 'TONY';
-            appName = 'GRNEOS';
+            appName = 'Grene Go app.';
         } else {
             appName = appData[0].app_name;
         }
