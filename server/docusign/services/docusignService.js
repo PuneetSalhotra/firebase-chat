@@ -85,7 +85,7 @@ function commonDocusignService(objectCollection) {
         let envelopesApi = new docusign.EnvelopesApi(),
           results;
         var eventNotification = {
-          "url": "https://vinnoba.com/perfarm/api/entity/docusign/webhook",
+          "url": global.config.webhookUrl,
           "loggingEnabled": "true",
           "requireAcknowledgment": "true",
           "useSoapInterface": "false",
