@@ -5444,9 +5444,15 @@ function FormConfigService(objCollection) {
         if (queryString !== '') {
 
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    formData = data;
-                    error = false;
+                .then(async (data) => {
+
+                    if(data.length > 0){
+                        formData = data;
+                        error = false;
+                    }else{
+                      [error, formData] = await self.formEntityAccessList(request);
+                    }
+                    
                 })
                 .catch((err) => {
                     error = err;
@@ -5469,8 +5475,8 @@ function FormConfigService(objCollection) {
             request.target_asset_id,
             request.flag,
             '1970-01-01 00:00:00',
-            request.start_from,
-            request.limit_value
+            request.start_from || 0,
+            request.limit_value || 250
         );
         const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_workflow_forms_level', paramsArr);
         if (queryString !== '') {
