@@ -25,8 +25,8 @@ function CommonDocusignService(objectCollection) {
     // generate refresh token
     await getAccessTokenUsingRefreshToken(accessToken => {
       const accountId = global.config.accountId;
-      const signerName = request.receiver_name || 'ajay';
-      const signerEmail = request.receiver_email || 'ajayp@athmin.com';
+      const signerName = request.receiver_name ;
+      const signerEmail = request.receiver_email ;
       const apiClient = new docusign.ApiClient();
       apiClient.setBasePath(basePath);
       apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
@@ -36,8 +36,8 @@ function CommonDocusignService(objectCollection) {
       // Create the envelope request
       const envDef = new docusign.EnvelopeDefinition();
       //Set the Email Subject line and email message
-      envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
-      envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
+      envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
+      envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb ;
       // Read the file from the document and convert it to a Base64String
       getHtmlToBase64(request,host,res).then(async pdfResult => {
         const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
