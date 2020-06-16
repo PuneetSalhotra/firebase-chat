@@ -11,11 +11,11 @@ const fs = require('fs');
 const { json } = require('express');
 const request = require('request');
 const process = require('process'),
-  basePath = 'https://demo.docusign.net/restapi',
+  basePath = config.docusignBasePath,
   express = require('express'),
   envir = process.env;
 
-function CommonDocusignService(objectCollection) {
+function commonDocusignService(objectCollection) {
   const util = objectCollection.util;
   const db = objectCollection.db;
   var responseWrapper = objectCollection.responseWrapper;
@@ -238,7 +238,6 @@ function CommonDocusignService(objectCollection) {
         asset_id,
         clientIPAddress;
       await getAuditEventsDetails(envelopeId).then(async eventObj => {
-        console.log('after return',eventObj)
         clientIPAddress = eventObj['clientIPAddress']
       if(status=='Completed'){
         let paramsArray =
@@ -301,8 +300,6 @@ function CommonDocusignService(objectCollection) {
   function getAccessTokenUsingRefreshToken(callback) {
     const clientId = global.config.ClientId;
     const clientSecret = global.config.ClientSecret;
-    // read and decrypt the refresh token
-    // const refreshToken = new Encrypt(dsConfig.refreshTokenFile).decrypt();
     const refreshToken =  global.config.refreshToken;
     const clientString = clientId + ":" + clientSecret,
     postData = {
@@ -321,8 +318,6 @@ function CommonDocusignService(objectCollection) {
           return callback(err, authRes);
         } else {
             const accessToken = authRes.body.access_token;
-            const refreshToken = authRes.body.refresh_token;
-            const expiresIn = authRes.body.expires_in;
             return callback(accessToken)
         }
       })
@@ -337,17 +332,11 @@ async function getAuditEventsDetails(envelopeId) {
     authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
         .send().set(headers)
         .type("Beare Token");
-    // authReq.end(await function (err, authRes) {
       authReq.end(authRes=>{
-        // if (err) {
-        //   // return callback(err, authRes);
-        // } else {
           var lastIndex = authRes.body.auditEvents.length-1
           eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
           eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          console.log('return response',eventObj)
           return eventObj
-        // }
       })
     })
   }
@@ -356,7 +345,6 @@ async function getAuditEventsDetails(envelopeId) {
     try{
       host='preprodweb.officedesk.app'
     var formDataUrl = 'https://' + host +'/#/forms/view/'+ request.form_data
-    console.log('url',formDataUrl)
     const pdfObj ={}
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -381,7 +369,7 @@ async function getAuditEventsDetails(envelopeId) {
   const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
         Bucket: bucketName,
-        Key: `${prefixPath}/0` + '_form_data.pdf',
+        Key: `${prefixPath}/`+date.now() + '.pdf',
         Body: readableStream,
         ContentType: 'application/pdf',
         ACL: 'public-read'
@@ -447,4 +435,4 @@ function getTimeInDateTimeFormat(date) {
 };
 
 
-module.exports = CommonDocusignService;
+module.exports = commonDocusignService;

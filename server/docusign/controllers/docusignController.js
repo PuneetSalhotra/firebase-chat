@@ -12,7 +12,6 @@ app.use(xmlparser());
     async (req, res) => {
       try {
          let result = await commonDocusignService.addFile(req.body,req.headers.host, res);
-        // res.send(responseWrapper.getResponse(false, result, 200, req.body));
       } catch (err) {
         res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
       }
@@ -24,17 +23,15 @@ app.use(xmlparser());
       async (req, res) => {
         try {
           let result = await commonDocusignService.query(req.body, res);
-          // res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
           res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
       })
-  
+
     app.post(
       '/' + global.config.version + '/docusign/webhook',
       async (req, res) => {
         try {
-          
           let result = await commonDocusignService.updateStatus(req.body, res);
           res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
