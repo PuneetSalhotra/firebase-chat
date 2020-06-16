@@ -238,7 +238,6 @@ function commonDocusignService(objectCollection) {
         asset_id,
         clientIPAddress;
       await getAuditEventsDetails(envelopeId).then(async eventObj => {
-        console.log('b',eventObj)
         clientIPAddress = eventObj['clientIPAddress']
       if(status=='Completed'){
         let paramsArray =
@@ -338,7 +337,6 @@ async function getAuditEventsDetails(envelopeId) {
           var lastIndex = authRes.body.auditEvents.length-1
           eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
           eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          console.log('a',eventObj)
           return eventObj
       })
     })
