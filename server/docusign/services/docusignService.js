@@ -1,15 +1,15 @@
 var xml2js       = require('xml2js');
 var parser  = new xml2js.Parser();
 const base64url = require('base64url');
-
-// var parser = require('xml2json');
 const pdf2base64 = require('pdf-to-base64');
+const moment = require("moment");
 const superagent = require('superagent')
 const docusign = require('docusign-esign');
 const puppeteer = require("puppeteer");
 const path = require('path');
 const fs = require('fs');
 const { json } = require('express');
+const request = require('request');
 const process = require('process'),
   basePath = 'https://demo.docusign.net/restapi',
   express = require('express'),
@@ -19,8 +19,9 @@ function CommonDocusignService(objectCollection) {
   const util = objectCollection.util;
   const db = objectCollection.db;
   var responseWrapper = objectCollection.responseWrapper;
-
-  this.addFile = async (request, res) => {
+  var ActivityTimelineService = require("../../services/activityTimelineService.js");
+  const activityTimelineService = new ActivityTimelineService(objectCollection);
+  this.addFile = async (request, host, res) => {
     // generate refresh token
     await getAccessTokenUsingRefreshToken(accessToken => {
       const accountId = global.config.accountId;
@@ -38,7 +39,7 @@ function CommonDocusignService(objectCollection) {
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject || 'Please sign this document sent from the Node example';
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
       // Read the file from the document and convert it to a Base64String
-      getHtmlToBase64(request).then(async pdfResult => {
+      getHtmlToBase64(request,host,res).then(async pdfResult => {
         const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
@@ -155,8 +156,11 @@ function CommonDocusignService(objectCollection) {
           '',
           date,
           results.status,
+          '',
           request.asset_id,
-          date
+          date,
+          0,
+          0
         )
 
         if (results) {
@@ -182,7 +186,6 @@ function CommonDocusignService(objectCollection) {
         await db
         .executeQueryPromise(1, queryString, request)
         .then(results => {
-          console.log(results)
         var obj = {}
         var responseArray = []
         var receiverDetails = {}
@@ -223,49 +226,84 @@ function CommonDocusignService(objectCollection) {
       var envelopeId = envelopeStatus.envelopeid[0]
       var status = envelopeStatus.status[0]
       var time = envelopeStatus.completed[0]
-      getAuditEventsDetails()
-      var  s3UploadUrl = ''
+      var organization_id,
+        account_id,
+        workforce_id,
+        activity_id,
+        s3UploadUrl,
+        activity_type_id,
+        activity_type_category_id,
+        articleType,
+        title,
+        asset_id,
+        clientIPAddress;
+      await getAuditEventsDetails(envelopeId).then(async eventObj => {
+        console.log('after return',eventObj)
+        clientIPAddress = eventObj['clientIPAddress']
       if(status=='Completed'){
+        let paramsArray =
+        new Array(
+          envelopeId
+        )
+      const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select_envlope_id",paramsArray,1);
+        if (queryString !== "") {
+        await db.executeQueryPromise(1, queryString, request)
+        .then(results => {
+          organization_id = results[0]['organization_id']
+          account_id = results[0]['account_id']
+          workforce_id = results[0]['workforce_id']
+          activity_id = results[0]['activity_id']
+          activity_type_id = results[0]['activity_type_id']
+          activity_type_category_id = results[0]['activity_type_category_id']
+          articleType = results[0]['activity_type_name']
+          title = results[0]['docusign_email_subject']
+          asset_id = results[0]['asset_id']
+        })
+      }
         var base64 = ''
         var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
         for(var i=0;i<pdfContents.length;i++){
           base64 = base64+pdfContents[i].pdfbytes[0]
         }
           var stringBuffer = base64url.toBuffer(base64)
-           s3UploadUrl = await uploadReadableStreamOnS3(request,stringBuffer)
-
-           // await updateWorkflowTimelineCorrespondingAccountId(
-          //   account.organization_id,
-          //   account.account_id,
-          //   account.workforce_id,
-          //   account.activity_id,
-          //   parsedResponse.data[k].pageUrl,
-          //   account.activity_type_id,
-          //   account.activity_type_category_id,
-          //   articleType,
-          //   parsedResponse.data[k].title
-          // );
+          var requestData = {'organization_id':organization_id ,'account_id': account_id,'workforce_id':workforce_id,'asset_id':asset_id}
+           s3UploadUrl = await uploadReadableStreamOnS3(requestData,stringBuffer)
+           await updateWorkflowTimelineCorrespondingAccountId(
+            organization_id,
+            account_id,
+            workforce_id,
+            activity_id,
+            s3UploadUrl,
+            activity_type_id,
+            activity_type_category_id,
+            articleType,
+            title,
+            asset_id
+          );
       }
       var results =[]
-     let  paramsArray =
+     paramsArray =
       new Array(
         envelopeId,
         s3UploadUrl,
         time,
         status,
-        time
+        time,
+        clientIPAddress,
+        0,
+        0
       )
-        console.log(paramsArray)
     results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_update', paramsArray, 0)
     return(results[0])
-  }
+  })
+}
 
   function getAccessTokenUsingRefreshToken(callback) {
     const clientId = global.config.ClientId;
     const clientSecret = global.config.ClientSecret;
     // read and decrypt the refresh token
     // const refreshToken = new Encrypt(dsConfig.refreshTokenFile).decrypt();
-    const refreshToken =  'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAgABwAAk5vxgQ7YSAgAABMA6hQm2EgCAJxZkRdIGc9FiMxeJmZeuaoVAAEAAAAYAAEAAAAFAAAADQAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0IgAkAAAAOTE1MTMwMDItMmZhZC00Y2IzLWFhMWYtNGRlMjRhYWVhNWE0MACAEGbFtA3YSDcAXxFvTjA9w0uJFJMplSq_2w.aDwiofmPFF4UFdnwCDXl4GC98J4pL4cAbgUkNKIM27lYtZZA0vlxmKTXZp9t0I6lRscI9aTYy9N9TBcZccwN8R9ecSsDmtrq8fXHCr81m0qZoeYPdx9pr_t4oqjTiZ_fPMK3X1mRlJPdOISSFpSU8MfPNuj0B4bnsAgJstEnh6LMYdOrJ35cFoygJsygbcyWighXHihM2CEQOEhMMujZrIrZk23SAH1Gh9sG_vxwHkYTO9O5jlZ9gbSLEa-X6w5I42vk8LFQ2JcK6c78qwMjnniZp_pMnMILQ_VEkHGidCsSNXI6ZpjyX0r9NvHJoj8BZvurwJFEuM9a-oLZnd51Zw';
+    const refreshToken =  global.config.refreshToken;
     const clientString = clientId + ":" + clientSecret,
     postData = {
         "grant_type": "refresh_token",
@@ -274,7 +312,7 @@ function CommonDocusignService(objectCollection) {
     headers = {
         "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
       },
-    authReq = superagent.post( 'https://account-d.docusign.com' + "/oauth/token")
+    authReq = superagent.post( global.config.refreshTokenUrl)
         .send(postData)
         .set(headers)
         .type("application/x-www-form-urlencoded");
@@ -289,34 +327,40 @@ function CommonDocusignService(objectCollection) {
         }
       })
   }
-  async function getAuditEventsDetails(callback) {
-    console.log('step-1')
-    await getAccessTokenUsingRefreshToken(accessToken => {
-    var  auth = {
-        "Token": accessToken,
+
+async function getAuditEventsDetails(envelopeId) {
+  var eventObj = {}
+  await getAccessTokenUsingRefreshToken(async accessToken => {
+     const headers = {
+        "Authorization": "Bearer " +  accessToken,
       },
-    authReq = superagent.post( 'https://demo.docusign.net/restapi/v2.1/accounts/'+global.config.accountId + "/"+"envelopes/e9bee8a5-7c1b-4d34-8949-f6686061327d/"+"audit_events")
-        .send()
-        .set(auth)
+    authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
+        .send().set(headers)
         .type("Beare Token");
-    authReq.end(function (err, authRes) {
-        if (err) {
-          return callback(err, authRes);
-        } else {
-            // const accessToken = authRes.body.access_token;
-            console.log('step-2')
-            console.log(authRes)
-            return callback(authRes)
-        }
+    // authReq.end(await function (err, authRes) {
+      authReq.end(authRes=>{
+        // if (err) {
+        //   // return callback(err, authRes);
+        // } else {
+          var lastIndex = authRes.body.auditEvents.length-1
+          eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
+          eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
+          console.log('return response',eventObj)
+          return eventObj
+        // }
       })
     })
   }
 
-  async function getHtmlToBase64(request) {
+  async function getHtmlToBase64(request,host,res) {
+    try{
+      host='preprodweb.officedesk.app'
+    var formDataUrl = 'https://' + host +'/#/forms/view/'+ request.form_data
+    console.log('url',formDataUrl)
     const pdfObj ={}
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.goto(request.url_path, {
+    await page.goto(formDataUrl, {
       waitUntil: "networkidle2"
     });
     await page.setViewport({ width: 1680, height: 1050 });
@@ -326,13 +370,17 @@ function CommonDocusignService(objectCollection) {
     const pdfBase64 = pdf.toString('base64');
     pdfObj['pdfBase64'] = pdfBase64
     return pdfObj
+  }catch(err){
+    console.log(err)
+    return res.send(responseWrapper.getResponse(err, {}, -9998, request));
+  }
   }
 
  async function uploadReadableStreamOnS3(request,readableStream){
   const bucketName = await util.getS3BucketName();
   const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
-        Bucket: bucketName || "demotelcoinc",
+        Bucket: bucketName,
         Key: `${prefixPath}/0` + '_form_data.pdf',
         Body: readableStream,
         ContentType: 'application/pdf',
@@ -350,21 +398,13 @@ function CommonDocusignService(objectCollection) {
   activity_type_id_val,
   activity_type_category_id_val,
   type,
-  title
+  title,
+  asset_id
 ) {
-
   var subjectTxt
   var streamTypeId
-  if(type == articleType)
-  {
-    subjectTxt=" A new article with title ' "+title+" ' has been identified for your account."
+    subjectTxt=" Docusign document with title ' "+title+" ' has been identified for your account."
     streamTypeId = 723 
-  }else
-  {
-    subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. "
-    streamTypeId = 724 
-
-  } 
   var collectionObj = {
     content:page_url_val,
     subject: subjectTxt,
@@ -388,7 +428,7 @@ function CommonDocusignService(objectCollection) {
     activity_id: activity_id_val,
     activity_stream_type_id: streamTypeId,
     activity_timeline_collection: JSON.stringify(collectionObj),
-    asset_id: 100,
+    asset_id: asset_id,
     data_entity_inline: JSON.stringify(collectionObj),
     datetime_log: currentDateInDateTimeFormat,
     timeline_transaction_datetime: currentDateInDateTimeFormat,
@@ -397,10 +437,12 @@ function CommonDocusignService(objectCollection) {
     message_unique_id: epoch,
     timeline_stream_type_id: streamTypeId
   };
-
   var result = await activityTimelineService.addTimelineTransactionAsync(
     requestParams
   );
+}
+function getTimeInDateTimeFormat(date) {
+  return moment(date).format("YYYY-MM-DD HH:mm:ss");
 }
 };
 
