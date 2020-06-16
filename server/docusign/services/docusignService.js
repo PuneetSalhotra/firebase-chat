@@ -85,7 +85,7 @@ function commonDocusignService(objectCollection) {
         let envelopesApi = new docusign.EnvelopesApi(),
           results;
         var eventNotification = {
-          "url": global.config.webhookUrl,
+          "url": global.config.docusignHookBaseUrl +'/'+ global.config.version +'/docusign/webhook',
           "loggingEnabled": "true",
           "requireAcknowledgment": "true",
           "useSoapInterface": "false",
@@ -238,6 +238,7 @@ function commonDocusignService(objectCollection) {
         asset_id,
         clientIPAddress;
       await getAuditEventsDetails(envelopeId).then(async eventObj => {
+        console.log('b',eventObj)
         clientIPAddress = eventObj['clientIPAddress']
       if(status=='Completed'){
         let paramsArray =
@@ -325,17 +326,19 @@ function commonDocusignService(objectCollection) {
 
 async function getAuditEventsDetails(envelopeId) {
   var eventObj = {}
-  await getAccessTokenUsingRefreshToken(async accessToken => {
+  await getAccessTokenUsingRefreshToken(accessToken => {
      const headers = {
         "Authorization": "Bearer " +  accessToken,
       },
-    authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
+
+      authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
         .send().set(headers)
         .type("Beare Token");
-      authReq.end(authRes=>{
+        authReq.end(function (err, authRes) {
           var lastIndex = authRes.body.auditEvents.length-1
           eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
           eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
+          console.log('a',eventObj)
           return eventObj
       })
     })
@@ -343,8 +346,8 @@ async function getAuditEventsDetails(envelopeId) {
 
   async function getHtmlToBase64(request,host,res) {
     try{
-      host='preprodweb.officedesk.app'
-    var formDataUrl = 'https://' + host +'/#/forms/view/'+ request.form_data
+    var  docusignWebApp = global.config.docusignWebApp
+    var formDataUrl =  docusignWebApp +'/#/forms/view/'+ request.form_data
     const pdfObj ={}
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -369,7 +372,7 @@ async function getAuditEventsDetails(envelopeId) {
   const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
         Bucket: bucketName,
-        Key: `${prefixPath}/`+date.now() + '.pdf',
+        Key: `${prefixPath}/`+Date.now() + '.pdf',
         Body: readableStream,
         ContentType: 'application/pdf',
         ACL: 'public-read'
