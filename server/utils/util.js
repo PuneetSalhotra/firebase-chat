@@ -67,6 +67,18 @@ const sns = new AwsSns();
 const PubnubWrapper = require('./pubnubWrapper');
 const pubnubWrapper = new PubnubWrapper();
 
+const EWS = require('node-ews');
+
+// exchange server connection info
+const ewsConfig = {
+    username: 'ESMSMails@vodafoneidea.com',
+    password: 'June@2020',
+    host: 'https://webmail.vodafoneidea.com'    
+  };
+
+// initialize node-ews
+const ews = new EWS(ewsConfig);
+
 function Util(objectCollection) {
     let cacheWrapper = {};
     if (
@@ -2089,7 +2101,53 @@ function Util(objectCollection) {
     this.getCurrentISTDDMMYY = function () {
         var now = moment().tz('Asia/Kolkata').format("DDMMYY");
         return now;
-    };    
+    };  
+    
+    this.sendEmailEWS = async(request, receiverEmailID, emailSubject, Template) => {
+        // define ews api function
+        const ewsFunction = 'CreateItem';
+
+        // define ews api function args
+        const ewsArgs = {
+        "attributes" : {
+            "MessageDisposition" : "SendAndSaveCopy"
+        },
+        "SavedItemFolderId": {
+            "DistinguishedFolderId": {
+            "attributes": {
+                "Id": "sentitems"
+            }
+            }
+        },
+        "Items" : {
+            "Message" : {
+            "ItemClass": "IPM.Note",
+            "Subject" : emailSubject,
+            "Body" : {
+                "attributes": {
+                "BodyType" : "Text"
+                },
+                "$value": Template
+            },
+            "ToRecipients" : {
+                "Mailbox" : {
+                "EmailAddress" : receiverEmailID
+                }
+            },
+            "IsRead": "false"
+            }
+        }
+        };
+
+        // query ews, print resulting JSON to console
+        ews.run(ewsFunction, ewsArgs)
+        .then(result => {
+            console.log('EWS Email - Result : ', JSON.stringify(result));
+        })
+        .catch(err => {
+            console.log('EWS Email - error : ', err.stack);
+        });
+    };
 
 }
 
