@@ -3825,19 +3825,21 @@ async function addFormEntriesAsync(request) {
                             </tbody>
                             </table>`;
 
-        util.sendEmailV3(request,
-                         request.asset_email_id,
-                         emailSubject,
-                         "IGNORE",
-                         Template,
-                         (err, data) => {
-                                    if (err) {
-                                        console.log("[Send Email - Mention | Error]: ", data);
-                                    } else {
-                                        console.log("[Send Email - Mention | Response]: ", "Email Sent");
-                                    }                
-                                }
-                         );
+        //util.sendEmailV3(request,
+        //                 request.asset_email_id,
+        //                 emailSubject,
+        //                 "IGNORE",
+        //                 Template,
+        //                 (err, data) => {
+        //                            if (err) {
+        //                                console.log("[Send Email - Mention | Error]: ", data);
+        //                            } else {
+        //                                console.log("[Send Email - Mention | Response]: ", "Email Sent");
+        //                            }                
+        //                        }
+        //                 );
+
+        util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
         
         return [error, responseData];
     }
