@@ -13,22 +13,55 @@ config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
 //config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
-config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
+// config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
+config.whitelist = [
+    'http://officedesk.app',
+    "https://management.officedesk.app",
+    "https://web.officedesk.app",
+    "https://dashboard2.officedesk.app",
+    "https://dashboard.officedesk.app",
+    "https://preprod.officedesk.app",
+    "https://preprodmanagement.officedesk.app",
+    "https://preprodweb.officedesk.app",
+    "https://preproddashboard2.officedesk.app",
+    "https://preproddashboard.officedesk.app",
+    "https://staging.officedesk.app",
+    "https://stagingmanagement.officedesk.app",
+    "https://stagingweb.officedesk.app",
+    "https://stagingdashboard2.officedesk.app",
+    "https://stagingdashboard.officedesk.app",
+    "https://sprintoffice.greneos.com",
+    "https://sprintweb.greneos.com",
+    "https://sprintdashboard.greneos.com",
+    "https://sprintdashboard2.greneos.com",
+    "https://stagingoffice.greneos.com",
+    "https://stagingweb.greneos.com",
+    "https://stagingdashboard.greneos.com",
+    "https://stagingdashboard2.greneos.com",
+    "https://preprodoffice.greneos.com",
+    "https://preprodweb.greneos.com",
+    "https://preproddashboard.greneos.com",
+    "https://preproddashboard2.greneos.com",
+    'https://office.greneos.com/',
+    'https://web.greneos.com/',
+    'https://dashboard.greneos.com',
+    'http://127.0.0.1',
+    'http://localhost',
+];
 
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
 config.knowledgeGraphArticleMaxSize = 2
-config.knowledgeGraphUrl  = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size="+config.knowledgeGraphArticleMaxSize+"&from=0&query=type"
-config.knowledgeGraphKeywords = ["Mobile connection", "GSM", "Mobility"
-,"Internet leased line (ILL)", "MPLS", "NPLC", "IPLC", "SDWAN",
-"Data Centre", "DC", "DR", "Infra as a service (IAAS)", "Platform as a service (PAAS)", "software as a service (SAAS)","Colocation, Hosting",
-"Cloud","WFME","office 360","Mobile device management (MDM)","cloud telephony",
-"IOT", "M2M", "Tracking system",
-"PRI", "SIP","Toll-free (TFS)"
+config.knowledgeGraphUrl = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=" + config.knowledgeGraphArticleMaxSize + "&from=0&query=type"
+config.knowledgeGraphKeywords = ["Mobile connection","GSM","Mobility"
+    ,"Internet leased line (ILL)","MPLS","NPLC","IPLC","SDWAN",
+    "Data Centre","DC","DR","Infra as a service (IAAS)","Platform as a service (PAAS)","software as a service (SAAS)","Colocation, Hosting",
+    "Cloud","WFME","office 360","Mobile device management (MDM)","cloud telephony",
+    "IOT","M2M","Tracking system",
+    "PRI","SIP","Toll-free (TFS)"
 ]
-config.numberOfThreadsForDiffbotProcessing=2
+config.numberOfThreadsForDiffbotProcessing = 2
 
-// Docusign Config
-
+//docusign config
 config.accountId = '10725652';
 config.ClientId = "91513002-2fad-4cb3-aa1f-4de24aaea5a4";
 config.ClientSecret = "4d75e63d-6cf2-4ada-bbf3-42a7c85cb35b";
@@ -46,25 +79,25 @@ config.documentTypes = {
     }
 }
 
-if (mode === 'testingprodissueenv') {
+if(mode === 'testingprodissueenv') {
 
     //Ports Config
     config.version = 'r0';
-    config.servicePort = 4000;    
+    config.servicePort = 4000;
 
     //Mysql Config    
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';    
+    config.dbUser = 'apiuser';
     config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
-    
+
     //Log Mysql Config
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logMasterIp = '10.0.0.169';    
+    config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log_staging';
     config.logDbPassword = 'Apidbuser_123';
 
@@ -84,7 +117,7 @@ if (mode === 'testingprodissueenv') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/data/";
-    
+
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -110,16 +143,16 @@ if (mode === 'testingprodissueenv') {
     config.TOPIC_ID = 21;
     config.TOPIC_NAME = 'testingprodissueenv'; //v1 is only one partition
     config.CONSUMER_GROUP_ID = 'testingprodissueenv-cg';
-    
+
     //testingprodissueenv - 1 partition
-    config.WIDGET_TOPIC_NAME = 'testingprodissueenv-widget';    
+    config.WIDGET_TOPIC_NAME = 'testingprodissueenv-widget';
     config.WIDGET_CONSUMER_GROUP_ID = 'testingprodissueenv-widget-cg';
-    
+
     //LOGS
     //testingprodissueenv-logs 1 partition
     config.LOGS_TOPIC_NAME = 'testingprodissueenv-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'testingprodissueenv-cg';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -128,13 +161,13 @@ if (mode === 'testingprodissueenv') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    config.emailbaseUrlApprove = "https://staging.officedesk.app"; 
+
+    config.emailbaseUrlApprove = "https://staging.officedesk.app";
     config.emailbaseUrlUpload = "https://staging.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
 }
 
-if (mode === 'masimukku') {
+if(mode === 'masimukku') {
 
     //Ports Config
     config.version = 'r0';
@@ -152,7 +185,7 @@ if (mode === 'masimukku') {
 
     //Mysql Config
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
     config.database = 'worlddesk_staging';
@@ -175,7 +208,7 @@ if (mode === 'masimukku') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/Users/masimukku/Downloads/worlddesk/";
-    
+
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -201,12 +234,12 @@ if (mode === 'masimukku') {
     //Desker
     config.TOPIC_ID = 14; //Take from Sai
     config.TOPIC_NAME = 'masimukku-worlddesk-activities';
-    config.CONSUMER_GROUP_ID = 'masimukku-worlddesk-activities-cg';    
-    
+    config.CONSUMER_GROUP_ID = 'masimukku-worlddesk-activities-cg';
+
     //Widget
-    config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';    
+    config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';
     config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-widgets-cg';
-    
+
     //LOGS
     config.LOGS_TOPIC_NAME = 'masimukku-desker-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
@@ -219,14 +252,14 @@ if (mode === 'masimukku') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
-    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
-    
+
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+
 }
 
-if (mode === 'local') {
-    
+if(mode === 'local') {
+
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
@@ -241,7 +274,7 @@ if (mode === 'local') {
     config.consumerTwo = 7202;
     config.consumerThree = 7203;
     config.consumerFour = 7204;
-    config.consumerFive = 7205;    
+    config.consumerFive = 7205;
 
     config.sqsConsumer = 7300;
 
@@ -250,27 +283,27 @@ if (mode === 'local') {
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    
+
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
     // config.database = 'desker_staging';
     config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
-    
+
     //Log Mysql Config
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logMasterIp = '10.0.0.169';    
+    config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log_staging';
     config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config
     //config.redisIp = '127.0.0.1';
     //config.redisPort = 6379;  
-    
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';    
+
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
-    
+
     //IOS Push
     config.iosPushMode = 'dev';
 
@@ -283,7 +316,7 @@ if (mode === 'local') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
-    
+
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -310,21 +343,21 @@ if (mode === 'local') {
     //config.TOPIC_ID = 8;
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
-    
+
     config.TOPIC_ID = 23;
     // config.TOPIC_ID = 26;
     config.TOPIC_NAME = "desker-activities-test-topic";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
-    
+
     //Widget
-    config.WIDGET_TOPIC_NAME = 'desker-form-widgets';    
+    config.WIDGET_TOPIC_NAME = 'desker-form-widgets';
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-activities-widget-cg';
-    
+
     //LOGS
     config.LOGS_TOPIC_NAME = 'desker-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'desker-logs-cg';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -333,14 +366,16 @@ if (mode === 'local') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////  
-    
-    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
-    
+
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
-if (mode === 'dev') {
+if(mode === 'dev') {
 
     //Ports Config
     config.version = 'rd';
@@ -352,14 +387,14 @@ if (mode === 'dev') {
     config.consumerTwo = 3202;
     config.consumerThree = 3203;
     config.consumerFour = 3204;
-    config.consumerFive = 3205;    
+    config.consumerFive = 3205;
 
     config.sqsConsumer = 3300;
 
     //Mysql Config
     config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-        
+
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
@@ -371,8 +406,8 @@ if (mode === 'dev') {
 
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisPort = 6379;    
-    
+    config.redisPort = 6379;
+
     //IOS Push
     config.iosPushMode = 'dev';
 
@@ -385,7 +420,7 @@ if (mode === 'dev') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
-    
+
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -420,13 +455,13 @@ if (mode === 'dev') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-       
-    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
-    
+
 }
 
-if (mode === 'sprint') {
+if(mode === 'sprint') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -460,10 +495,10 @@ if (mode === 'sprint') {
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
-    
+
     //Log Mysql Config
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logMasterIp = '10.0.0.169';    
+    config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log_staging';
     config.logDbPassword = 'Apidbuser_123';
 
@@ -483,7 +518,7 @@ if (mode === 'sprint') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
-    
+
     //Kafka Configuration
     ////config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -509,16 +544,16 @@ if (mode === 'sprint') {
     config.TOPIC_ID = 24;
     config.TOPIC_NAME = 'sprint-desker-activities-msk'; //v1 is only one partition
     config.CONSUMER_GROUP_ID = 'sprint-desker-activities-msk-cg';
-    
+
     //staging-desker-form-widgets-v2 - 1 partition
-    config.WIDGET_TOPIC_NAME = 'sprint-desker-form-widgets';    
+    config.WIDGET_TOPIC_NAME = 'sprint-desker-form-widgets';
     config.WIDGET_CONSUMER_GROUP_ID = 'sprint-desker-form-widgets-cg';
-    
+
     //LOGS
     //staging-desker-logs-v2 1 partition
     config.LOGS_TOPIC_NAME = 'sprint-desker-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'sprint-desker-logs-cg';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -527,13 +562,15 @@ if (mode === 'sprint') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    config.emailbaseUrlApprove = "https://sprint.officedesk.app"; 
+
+    config.emailbaseUrlApprove = "https://sprint.officedesk.app";
     config.emailbaseUrlUpload = "https://sprint.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
-if (mode === 'staging') {
+if(mode === 'staging') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -565,10 +602,10 @@ if (mode === 'staging') {
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
-    
+
     //Log Mysql Config
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logMasterIp = '10.0.0.169';    
+    config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log_staging';
     config.logDbPassword = 'Apidbuser_123';
 
@@ -588,7 +625,7 @@ if (mode === 'staging') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
-    
+
     //Kafka Configuration
     //config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -618,16 +655,16 @@ if (mode === 'staging') {
     config.TOPIC_ID = 25;
     config.TOPIC_NAME = 'staging-desker-activities-msk';
     config.CONSUMER_GROUP_ID = 'staging-desker-activities-msk-cg';
-    
+
     //staging-desker-form-widgets-v2 - 1 partition
-    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v2';    
+    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v2';
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-form-widgets-v2-cg-new';
-    
+
     //LOGS
     //staging-desker-logs-v2 1 partition
     config.LOGS_TOPIC_NAME = 'staging-desker-logs-v3';
     config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v3-cg';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -636,13 +673,13 @@ if (mode === 'staging') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    config.emailbaseUrlApprove = "https://stagingweb.officedesk.app"; 
+
+    config.emailbaseUrlApprove = "https://stagingweb.officedesk.app";
     config.emailbaseUrlUpload = "https://stagingweb.officedesk.app";
     //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
 
     // ECS microservices update
-    if (
+    if(
         Number(process.env.ms_mode) === 1
     ) {
         config.TOPIC_ID = 26;
@@ -652,9 +689,11 @@ if (mode === 'staging') {
     }
 
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
-if (mode === 'preprod') {
+if(mode === 'preprod') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -752,13 +791,15 @@ if (mode === 'preprod') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
 
-    config.emailbaseUrlApprove = "https://preprodweb.officedesk.app"; 
+    config.emailbaseUrlApprove = "https://preprodweb.officedesk.app";
     config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
 
     config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
 
-if (mode === 'prod') {
+if(mode === 'prod') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -780,17 +821,17 @@ if (mode === 'prod') {
 
     //Mysql Config   
     config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
-    
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+
     config.dbUser = 'apiuser';
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
-    
+
     //Log Mysql Config
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logMasterIp = '10.0.0.169';    
+    config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log';
     config.logDbPassword = 'Apidbuser_123';
 
@@ -827,7 +868,7 @@ if (mode === 'prod') {
     config.TOPIC_ID = 28;
     config.TOPIC_NAME = 'prod-desker-activities-msk'; //Only one partition
     config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-msk';
-    
+
     // Widget
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets-v1'; //Only one partition
     config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-form-widgets-cg-v1';
@@ -835,7 +876,7 @@ if (mode === 'prod') {
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs-v1'; //Only one partition
     config.LOGS_CONSUMER_GROUP_ID = 'prod-desker-logs-cg-v1';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -852,16 +893,18 @@ if (mode === 'prod') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
     //Portal Service URL & Mobile Service URL
-    config.portalBaseUrl = "https://portal.worlddesk.cloud/";    
+    config.portalBaseUrl = "https://portal.worlddesk.cloud/";
     config.mobileBaseUrl = "https://api.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-data/";
-    
-    config.emailbaseUrlApprove =  "https://web.officedesk.app"; //"https://officedesk.app"; 
+
+    config.emailbaseUrlApprove = "https://web.officedesk.app"; //"https://officedesk.app"; 
     config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
 
-    config.esmsMentionsEmail = "https://web.officedesk.app";    
+    config.esmsMentionsEmail = "https://web.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
 }
 
 

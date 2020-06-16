@@ -5489,6 +5489,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     .then((data) => {
                         responseData = data;
                         error = false;
+                        request.parent_activity_id = referredActivityID;
                         this.activityActivityMappingHistoryInsert(request);
                     })
                     .catch((err) => {
@@ -5496,6 +5497,57 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     });                 
             }
         return [error, responseData];   
+    };
+
+
+    this.getFormWorkflowDetailsAsync = async (request) => {
+        let error = true,
+        responseData = [];        
+        var paramsArr;
+        paramsArr = new Array(
+            request.activity_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_select_form_workflow', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                      
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
+    };
+
+
+    this.activityActivityMappingArchive = async (request, referrencedActivityID) => {
+        let error = true,
+        responseData = [];        
+        
+        var paramsArr = new Array(
+            request.activity_id,
+            referrencedActivityID,
+            request.organization_id,
+            request.log_state || 3,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_update_log_state', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
     };
 }
 
