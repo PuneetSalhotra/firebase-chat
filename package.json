@@ -21,6 +21,8 @@
     "async-lock": "^1.2.4",
     "aws-elasticsearch-connector": "^8.2.0",
     "aws-sdk": "~2.283.1",
+    "base64-stream": "^1.0.0",
+    "base64url": "^3.0.1",
     "body-parser": "^1.19.0",
     "bunyan": "~1.8.12",
     "cassandra-driver": "^3.6.0",
@@ -29,7 +31,9 @@
     "cors": "^2.8.5",
     "crypto-js": "^3.3.0",
     "dd-trace": "^0.14.1",
+    "docusign-esign": "^5.4.0",
     "express": "^4.17.1",
+    "express-xml-bodyparser": "^0.3.0",
     "forEachAsync": "^3.0.0",
     "helmet": "^3.22.0",
     "html-pdf": "^2.2.0",
@@ -46,10 +50,12 @@
     "mysql": "^2.18.1",
     "nexmo": "~2.3.2",
     "node-cron": "^2.0.3",
+    "nodejs-base64": "^1.0.3",
     "node-ews": "^3.4.2",
     "nodemailer": "~4.6.8",
     "opentok": "^2.9.2",
     "pdf-text-extract": "^1.5.0",
+    "pdf-to-base64": "^1.0.2",
     "pdfmake": "^0.1.63",
     "pubnub": "~4.21.7",
     "pusher": "^3.0.0",
@@ -66,6 +72,7 @@
     "uuid": "^3.4.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^4.4.2",
-    "xlsx": "^0.14.5"
+    "xlsx": "^0.14.5",
+    "xml-formatter": "^2.1.0"
   }
 }
