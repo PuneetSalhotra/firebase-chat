@@ -7584,6 +7584,64 @@ function AdminOpsService(objectCollection) {
         return "success";	  
     }
 
+    this.formAccessSegmentOrgLevel =  async (request)=>{
+        let workforceErr = true, workforceData = [],
+            formErr = true, workflowFormsData = [];
+
+        // get all th forms under the process
+       [formErr, workflowFormsData] = await adminListingService.workforceFormMappingSelectWorkflowForms(request);
+
+        // get all the workforces under the given account
+       [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
+
+       if(!(formErr && workforceErr)){
+            if(workflowFormsData.length > 0 && workforceData.length > 0){
+                workforceData.forEach(workforceEle => {
+                    workflowFormsData.forEach(formEle => {
+                        // execute form entity mapping
+                        request.target_form_id = formEle.form_id;
+                        request.sharing_workforce_id = workforceEle.workforce_id;
+                        request.sharing_account_id = workforceEle.account_id;
+                        self.formEntityMappingInsert(request);
+                    })
+                })
+            }else{
+                return "formData or workforceData Length = 0"
+            }
+       }else{
+            return "error in retrieving form data or workforce data"
+       }
+        return "success";
+    }
+
+    this.formEntityMappingInsert = async (request)=> {
+        let formEntityData = [],
+            error = true;
+
+            let paramsArr = new Array(
+                request.target_form_id,
+                request.level_id || 3,
+                request.target_asset_id || 0,
+                request.sharing_workforce_id,
+                request.sharing_account_id,
+                request.organization_id,
+                request.log_asset_id || request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+        const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    formEntityData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return formEntityData;
+    };  
 }
 
 module.exports = AdminOpsService;
