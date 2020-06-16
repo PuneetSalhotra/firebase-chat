@@ -1,6 +1,6 @@
 var xml2js       = require('xml2js');
 var parser  = new xml2js.Parser();
-
+const base64url = require('base64url');
 
 // var parser = require('xml2json');
 const pdf2base64 = require('pdf-to-base64');
@@ -39,19 +39,7 @@ function CommonDocusignService(objectCollection) {
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb || 'Please sign this document sent from the Node example.'
       // Read the file from the document and convert it to a Base64String
       getHtmlToBase64(request).then(async pdfResult => {
-        // uploadReadableStreamOnS3(request,pdfResult['pdf'])
-      const readableStream = pdfResult['pdf']
-      const bucketName = await util.getS3BucketName();
-      const prefixPath = await util.getS3PrefixPath(request);
-          const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
-            Bucket: bucketName || "demotelcoinc",
-            Key: `${prefixPath}/0` + '_form_data.pdf',
-            Body: readableStream,
-            ContentType: 'application/pdf',
-            ACL: 'public-read'
-        }, readableStream);
-        console.log(s3UploadUrlObj.Location)
-        const s3UploadUrl = s3UploadUrlObj.Location
+        const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
           documentBase64: pdfResult['pdfBase64'],
@@ -171,12 +159,6 @@ function CommonDocusignService(objectCollection) {
           )
         if (results) {
           results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
-          // paramsArray =
-          //   new Array(
-             
-          //     results[0][0]['doc_id']
-          //   )
-          // results[1] = await db.callDBProcedure(request, 'docusign_user_details_insert', paramsArray, 0);
           var response = {
             'document_id': results[0][0]['doc_id']
           }
@@ -234,14 +216,29 @@ function CommonDocusignService(objectCollection) {
 
   this.updateStatus = async (request, res) => {
       var envelopeStatus =  request.docusignenvelopeinformation.envelopestatus[0]
+      console.log(request.docusignenvelopeinformation.documentpdfs[0].documentpdf[0].pdfbytes[0])
       var envelopeId = envelopeStatus.envelopeid[0]
       var status = envelopeStatus.status[0]
       var time = envelopeStatus.completed[0]
+      if(status=='Completed'){
+        var base64 = ''
+        var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
+        console.log(pdfContents.length)
+        for(var i=0;i<pdfContents.length;i++){
+          console.log(pdfContents[i].pdfbytes.length)
+          base64 = base64+pdfContents[i].pdfbytes[0]
+        }
+          // var base64 = request.docusignenvelopeinformation.documentpdfs[0].documentpdf[0].pdfbytes[0];
+          var stringBuffer = base64url.toBuffer(base64)
+          const s3UploadUrl = await uploadReadableStreamOnS3(request,stringBuffer)
+          console.log(s3UploadUrl)
+      }
+
       var results =[]
      let  paramsArray =
       new Array(
         envelopeId,
-        '',
+        s3UploadUrl,
         time,
         status
       )
@@ -295,6 +292,19 @@ function CommonDocusignService(objectCollection) {
     return pdfObj
   }
 
+ async function uploadReadableStreamOnS3(request,readableStream){
+  const bucketName = await util.getS3BucketName();
+  const prefixPath = await util.getS3PrefixPath(request);
+      const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
+        Bucket: bucketName || "demotelcoinc",
+        Key: `${prefixPath}/0` + '_form_data.pdf',
+        Body: readableStream,
+        ContentType: 'application/pdf',
+        ACL: 'public-read'
+    }, readableStream);
+    return s3UploadUrlObj.Location
+ }
 };
+
 
 module.exports = CommonDocusignService;
