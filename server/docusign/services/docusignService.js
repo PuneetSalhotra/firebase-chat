@@ -143,24 +143,26 @@ function CommonDocusignService(objectCollection) {
         }
         let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let paramsArray;
-        paramsArray =
-          new Array(
-            '',
-            s3UploadUrl,
-            results.envelopeId,
-            request.asset_id,
-            date,
-            0,
-            envDef.emailSubject,
-            results.status,
-            request.activity_id,
-            signerName,
-            signerEmail
-          )
+        paramsArray = new Array(
+          request.activity_id,
+          request.organization_id,
+          results.envelopeId,
+          signerEmail,
+          signerName,
+          envDef.emailSubject,
+          envDef.emailBlurb,
+          s3UploadUrl,
+          '',
+          date,
+          results.status,
+          request.asset_id,
+          date
+        )
+
         if (results) {
-          results[0] = await db.callDBProcedure(request, 'docusign_insert', paramsArray, 0);
+          results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_insert', paramsArray, 0);
           var response = {
-            'document_id': results[0][0]['doc_id']
+            'document_id': results[0][0]['activity_docusign_id']
           }
           return res.send(responseWrapper.getResponse(false, response, 200, request));
         }
@@ -169,80 +171,92 @@ function CommonDocusignService(objectCollection) {
   }
 
   this.query = async (request, res) => {
-    try {
+      var response={}
       let results = []
       paramsArray =
         new Array(
           request.document_id
         )
-      results[0] = await db.callDBProcedure(request, 'docusign_select', paramsArray, 1)
-      // results[1]=  await db.callDBProcedure(request, 'docusign_user_details_select', paramsArray, 1)
-      var responseArray = []
-      var obj = {}
-      var receiverDetails = {}
-      for(var i=0;i<results[0].length;i++){
+      const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select",paramsArray,1);
+        if (queryString !== "") {
+        await db
+        .executeQueryPromise(1, queryString, request)
+        .then(results => {
+          console.log(results)
+        var obj = {}
+        var responseArray = []
+        var receiverDetails = {}
            receiverDetails= {
-              "receiver_name": results[0][i]['receiver_name'] || '',
-              "receiver_email": results[0][i]['email' || '']
+              "docusign_receiver_name": results[0]['docusign_receiver_name'] || '',
+              "docusign_receiver_email": results[0]['docusign_receiver_email' || '']
             }
         obj = {
-          "document_id":results[0][i]['doc_id'],
-          "activity_id":results[0][i]['activity_id'],
-          "unsigned_s3_url": results[0][i]['unsigned_doc_url'],
-          "signed_s3_url": results[0][i]['signed_doc_url'],
-          "document_type": results[0][i]['document_type'] || 'pdf',
+          "activity_docusign_id":results[0]['activity_docusign_id'],
+          "activity_id":results[0]['activity_id'],
+          "docusign_unsigned_url": results[0]['docusign_unsigned_url'],
+          "docusign_signed_url": results[0]['docusign_signed_url'],
+          "document_type": results[0]['document_type'] || 'pdf',
           "receiver_details": [receiverDetails],
-          "subject": results[0][i]['email_subject'],
-          "email_sent_time": results[0][i]['doc_sending_time'],
-          "document_signed_time": results[0][i]['signed_doc_receiving_time'],
+          "docusign_email_subject": results[0]['docusign_email_subject'],
+          "docusign_sent_datetime": results[0]['docusign_sent_datetime'],
+          "docusign_received_datetime": results[0]['docusign_received_datetime'],
           "uploaded_by": {
-            "asset_id": results[0][i]['asset_id'],
-            "name": results[0][i]['name'] || ''
+            "log_asset_id": results[0]['log_asset_id'],
           }
         }
         responseArray.push(obj)
         receiverDetails = {}
         obj = {}
-      }
-      var response ={
+       response ={
         "documents": responseArray
       }
-      return (response)
-    } catch (error) {
-      console.log(error)
-    }
+      })
+        .catch(err => {
+        error = err;
+        });
+        }
+        return res.send(responseWrapper.getResponse(false, response, 200, request));
   }
-
 
   this.updateStatus = async (request, res) => {
       var envelopeStatus =  request.docusignenvelopeinformation.envelopestatus[0]
-      console.log(request.docusignenvelopeinformation.documentpdfs[0].documentpdf[0].pdfbytes[0])
       var envelopeId = envelopeStatus.envelopeid[0]
       var status = envelopeStatus.status[0]
       var time = envelopeStatus.completed[0]
+      getAuditEventsDetails()
+      var  s3UploadUrl = ''
       if(status=='Completed'){
         var base64 = ''
         var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
-        console.log(pdfContents.length)
         for(var i=0;i<pdfContents.length;i++){
-          console.log(pdfContents[i].pdfbytes.length)
           base64 = base64+pdfContents[i].pdfbytes[0]
         }
-          // var base64 = request.docusignenvelopeinformation.documentpdfs[0].documentpdf[0].pdfbytes[0];
           var stringBuffer = base64url.toBuffer(base64)
-          const s3UploadUrl = await uploadReadableStreamOnS3(request,stringBuffer)
-          console.log(s3UploadUrl)
-      }
+           s3UploadUrl = await uploadReadableStreamOnS3(request,stringBuffer)
 
+           // await updateWorkflowTimelineCorrespondingAccountId(
+          //   account.organization_id,
+          //   account.account_id,
+          //   account.workforce_id,
+          //   account.activity_id,
+          //   parsedResponse.data[k].pageUrl,
+          //   account.activity_type_id,
+          //   account.activity_type_category_id,
+          //   articleType,
+          //   parsedResponse.data[k].title
+          // );
+      }
       var results =[]
      let  paramsArray =
       new Array(
         envelopeId,
         s3UploadUrl,
         time,
-        status
+        status,
+        time
       )
-    results[0] = await db.callDBProcedure(request, 'docusign_update', paramsArray, 0)
+        console.log(paramsArray)
+    results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_update', paramsArray, 0)
     return(results[0])
   }
 
@@ -275,6 +289,28 @@ function CommonDocusignService(objectCollection) {
         }
       })
   }
+  async function getAuditEventsDetails(callback) {
+    console.log('step-1')
+    await getAccessTokenUsingRefreshToken(accessToken => {
+    var  auth = {
+        "Token": accessToken,
+      },
+    authReq = superagent.post( 'https://demo.docusign.net/restapi/v2.1/accounts/'+global.config.accountId + "/"+"envelopes/e9bee8a5-7c1b-4d34-8949-f6686061327d/"+"audit_events")
+        .send()
+        .set(auth)
+        .type("Beare Token");
+    authReq.end(function (err, authRes) {
+        if (err) {
+          return callback(err, authRes);
+        } else {
+            // const accessToken = authRes.body.access_token;
+            console.log('step-2')
+            console.log(authRes)
+            return callback(authRes)
+        }
+      })
+    })
+  }
 
   async function getHtmlToBase64(request) {
     const pdfObj ={}
@@ -304,6 +340,68 @@ function CommonDocusignService(objectCollection) {
     }, readableStream);
     return s3UploadUrlObj.Location
  }
+
+ async function updateWorkflowTimelineCorrespondingAccountId(
+  org_id_val,
+  account_id_val,
+  workforce_id_val,
+  activity_id_val,
+  page_url_val,
+  activity_type_id_val,
+  activity_type_category_id_val,
+  type,
+  title
+) {
+
+  var subjectTxt
+  var streamTypeId
+  if(type == articleType)
+  {
+    subjectTxt=" A new article with title ' "+title+" ' has been identified for your account."
+    streamTypeId = 723 
+  }else
+  {
+    subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. "
+    streamTypeId = 724 
+
+  } 
+  var collectionObj = {
+    content:page_url_val,
+    subject: subjectTxt,
+    mail_body: page_url_val,
+    attachments: [],
+    activity_reference: [{ activity_title: "", activity_id: "" }],
+    asset_reference: [{}],
+    form_approval_field_reference: []
+  };
+
+  var currentDate = new Date();
+  var currentDateInDateTimeFormat = getTimeInDateTimeFormat(currentDate);
+  var epoch = moment().valueOf();
+
+  var requestParams = {
+    organization_id: org_id_val,
+    account_id: account_id_val,
+    workforce_id: workforce_id_val,
+    activity_type_category_id: activity_type_category_id_val,
+    activity_type_id: activity_type_id_val,
+    activity_id: activity_id_val,
+    activity_stream_type_id: streamTypeId,
+    activity_timeline_collection: JSON.stringify(collectionObj),
+    asset_id: 100,
+    data_entity_inline: JSON.stringify(collectionObj),
+    datetime_log: currentDateInDateTimeFormat,
+    timeline_transaction_datetime: currentDateInDateTimeFormat,
+    track_gps_datetime: currentDateInDateTimeFormat,
+    device_os_id: 7,
+    message_unique_id: epoch,
+    timeline_stream_type_id: streamTypeId
+  };
+
+  var result = await activityTimelineService.addTimelineTransactionAsync(
+    requestParams
+  );
+}
 };
 
 

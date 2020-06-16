@@ -30,13 +30,19 @@ config.numberOfThreadsForDiffbotProcessing=2
 // Docusign Config
 
 config.accountId = '10725652';
+config.ClientId = "91513002-2fad-4cb3-aa1f-4de24aaea5a4";
+config.ClientSecret = "4d75e63d-6cf2-4ada-bbf3-42a7c85cb35b";
 config.documentTypes = {
     customerApplicationForm:{
         emailSubject:'Please sign this document sent vodafone',
         emailBlurb:'Please sign this document sent vodafone',
-        signHereTabs:{documentId: '1',
+        signHereTabs:[{
+        stampType:"signature",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '195', yPosition: '147'}
+        xPosition: '195', yPosition: '147'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '135', yPosition: '147'}]
     }
 }
 
