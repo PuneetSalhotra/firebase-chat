@@ -1678,7 +1678,7 @@ function AdminListingService(objectCollection) {
             request.page_start || 0,
             request.page_limit || 250
         );
-        const queryString = util.getQueryString('ds_p1_workforce_list_select_workforce_type', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_list_select_workforce_type_strict', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1708,7 +1708,7 @@ function AdminListingService(objectCollection) {
             request.page_start || 0,
             request.page_limit || 250
         );
-        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms_strict', paramsArr);
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
