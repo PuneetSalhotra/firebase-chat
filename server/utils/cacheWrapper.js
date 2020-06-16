@@ -593,6 +593,99 @@ function CacheWrapper(client) {
         return [error, responseData];
     };
 
+    //get Account SME Sequential number
+    this.getSmeSeqNumber = () => {
+        return new Promise((resolve, reject) => {
+
+            //To handle the first time reading case - Key will be missing then we are sending 0
+            client.get('sme_acccount_seqno', (err, reply) => {
+                if(err) {
+                    reject(err);
+                }
+                console.log('REPLY - get sme_acccount_seqno : ', reply);
+                if(reply === null) {
+                    this.setSmeSeqNumber(0);
+                    resolve(0);                    
+                } else {
+                    
+                    client.incr('sme_acccount_seqno', function (err, id) {
+                        if (err) {
+                            logger.error(`INCR sme_acccount_seqno`, { type: 'redis', cache_response: id, error: err });    
+                            reject(err);
+                        }
+                        logger.verbose(`INCR sme_acccount_seqno`, { type: 'redis', cache_response: id, error: err });                
+                        resolve(id);
+                    });
+
+                }
+            });
+
+        });
+    };
+
+
+    //Set Account SME Sequential number
+    this.setSmeSeqNumber = (setValue) => {
+        return new Promise((resolve, reject) => {
+            client.set('sme_acccount_seqno', setValue, function (err, reply) {
+                if (err) {
+                    logger.error(`SET sme_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    reject(err);
+                } else {
+                    logger.verbose(`SET sme_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
+
+    //get Account VICS Sequential number
+    this.getVICSSeqNumber = () => {
+        return new Promise((resolve, reject) => {
+
+            //To handle the first time reading case - Key will be missing then we are sending 0
+            client.get('vics_acccount_seqno', (err, reply) => {
+                if(err) {
+                    reject(err);
+                }
+                console.log('REPLY - get vics_acccount_seqno : ', reply);
+                if(reply === null) {
+                    this.setSmeSeqNumber(0);
+                    resolve(0);                    
+                } else {
+                    
+                    client.incr('vics_acccount_seqno', function (err, id) {
+                        if (err) {
+                            logger.error(`INCR vics_acccount_seqno`, { type: 'redis', cache_response: id, error: err });    
+                            reject(err);
+                        }
+                        logger.verbose(`INCR vics_acccount_seqno`, { type: 'redis', cache_response: id, error: err });                
+                        resolve(id);
+                    });
+                    
+                }
+            });
+
+        });
+    };
+
+
+    //Set Account VICS Sequential number
+    this.setVICSSeqNumber = (setValue) => {
+        return new Promise((resolve, reject) => {
+            client.set('vics_acccount_seqno', setValue, function (err, reply) {
+                if (err) {
+                    logger.error(`SET vics_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    reject(err);
+                } else {
+                    logger.verbose(`SET vics_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;

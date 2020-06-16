@@ -51,6 +51,7 @@
     "nexmo": "~2.3.2",
     "node-cron": "^2.0.3",
     "nodejs-base64": "^1.0.3",
+    "node-ews": "^3.4.2",
     "nodemailer": "~4.6.8",
     "opentok": "^2.9.2",
     "pdf-text-extract": "^1.5.0",
