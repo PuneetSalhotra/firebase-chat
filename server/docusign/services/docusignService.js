@@ -366,6 +366,7 @@ function commonDocusignService(objectCollection) {
     await page.goto(formDataUrl, {
       waitUntil: "networkidle2", timeout: 0
     });
+    await page.waitFor(20000);
     await page.setViewport({ width: 1680, height: 1050 });
     const pdf = await page.pdf();
     pdfObj['pdf'] = pdf
