@@ -697,7 +697,7 @@ if(mode === 'staging') {
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
-    config.docusignWebApp = "https://stagingweb.officedesk.app";
+    config.docusignWebApp = "https://stagingweb.greneos.com";
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 }
 
