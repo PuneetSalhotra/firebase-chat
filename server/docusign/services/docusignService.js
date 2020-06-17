@@ -37,10 +37,12 @@ function commonDocusignService(objectCollection) {
       const envDef = new docusign.EnvelopeDefinition();
       //Set the Email Subject line and email message
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
-      envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb ;
+      if(request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type)){
+        envDef.emailBlurb = global.config.documentTypes[request.document_type]['emailBlurb'];
+      }
       // Read the file from the document and convert it to a Base64String
       getHtmlToBase64(request,res).then(async pdfResult => {
-        const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
+        const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'],res)
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
           documentBase64: pdfResult['pdfBase64'],
@@ -59,13 +61,21 @@ function commonDocusignService(objectCollection) {
           recipientId: '1'
         });
         // Create the signHere tab to be placed on the envelope
-        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs;
+        var signHere ;
+        if(request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
+          signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
+        else
+          signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
         // Create the overall tabs object for the signer and add the signHere tabs array
         // Note that tabs are relative to receipients/signers.
-        signer.tabs = docusign.Tabs.constructFromObject({
-          signHereTabs: signHere
-        });
-
+        try{
+          signer.tabs = docusign.Tabs.constructFromObject({
+            signHereTabs: signHere
+          });
+        } catch (e) {
+          console.log(e)
+          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
+        }
         // Add the recipients object to the envelope definition.
         // It includes an array of the signer objects. 
         envDef.recipients = docusign.Recipients.constructFromObject({
@@ -133,7 +143,8 @@ function commonDocusignService(objectCollection) {
             'envelopeDefinition': envDef
           })
         } catch (e) {
-          return Promise.reject(e);
+          console.log(e)
+          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
         }
         let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let paramsArray;
@@ -231,7 +242,9 @@ function commonDocusignService(objectCollection) {
         asset_id,
         clientIPAddress,
         longitude,
-        latitude;
+        latitude,
+        receiverName,
+        receiverEmail;
       await getAuditEventsDetails(async eventObj => {
         clientIPAddress = eventObj['clientIPAddress']
         longitude=  eventObj['lg']
@@ -254,6 +267,8 @@ function commonDocusignService(objectCollection) {
             articleType = results[0]['activity_type_name']
             title = results[0]['docusign_email_subject']
             asset_id = results[0]['asset_id']
+            receiverName = results[0]['docusign_receiver_name']
+            receiverEmail = results[0]['docusign_receiver_email']
           })
         }
         var base64 = ''
@@ -263,7 +278,7 @@ function commonDocusignService(objectCollection) {
         }
           var stringBuffer = base64url.toBuffer(base64)
           var requestData = {'organization_id':organization_id ,'account_id': account_id,'workforce_id':workforce_id,'asset_id':asset_id}
-           s3UploadUrl = await uploadReadableStreamOnS3(requestData,stringBuffer)
+           s3UploadUrl = await uploadReadableStreamOnS3(requestData,stringBuffer,res)
            await updateWorkflowTimelineCorrespondingAccountId(
             organization_id,
             account_id,
@@ -274,7 +289,9 @@ function commonDocusignService(objectCollection) {
             activity_type_category_id,
             articleType,
             title,
-            asset_id
+            asset_id,
+            receiverName,
+            receiverEmail
           );
       }
       var results =[]
@@ -366,6 +383,7 @@ function commonDocusignService(objectCollection) {
     await page.goto(formDataUrl, {
       waitUntil: "networkidle2", timeout: 0
     });
+    await page.waitFor(20000);
     await page.setViewport({ width: 1680, height: 1050 });
     const pdf = await page.pdf();
     pdfObj['pdf'] = pdf
@@ -379,7 +397,8 @@ function commonDocusignService(objectCollection) {
   }
   }
 
- async function uploadReadableStreamOnS3(request,readableStream){
+ async function uploadReadableStreamOnS3(request,readableStream,res){
+   try{
   const bucketName = await util.getS3BucketName();
   const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
@@ -390,6 +409,10 @@ function commonDocusignService(objectCollection) {
         ACL: 'public-read'
     }, readableStream);
     return s3UploadUrlObj.Location
+  }catch(err){
+    console.log(err)
+    res.send(responseWrapper.getResponse(err, {}, -9998, request));
+  }
  }
 
  async function updateWorkflowTimelineCorrespondingAccountId(
@@ -402,12 +425,13 @@ function commonDocusignService(objectCollection) {
   activity_type_category_id_val,
   type,
   title,
-  asset_id
+  asset_id,
+  receiverName,
+  receiverEmail
 ) {
-  var subjectTxt
   var streamTypeId
-    subjectTxt=" Docusign document with title ' "+title+" ' has been identified for your account."
-    streamTypeId = 723 
+  var subjectTxt =" Received signed document from "+ receiverName + "(" + receiverEmail + ")"
+    streamTypeId = 723
   var collectionObj = {
     content:page_url_val,
     subject: subjectTxt,

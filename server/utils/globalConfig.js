@@ -79,7 +79,24 @@ config.documentTypes = {
         xPosition: '195', yPosition: '147'},
         {stampType:"stamp",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '135', yPosition: '147'}]
+        xPosition: '355', yPosition: '247'}]
+    },
+    vodafone:{
+        emailSubject:'Please sign this  vodafone document',
+        emailBlurb:'Please sign this vodafone document',
+        signHereTabs:[{
+        stampType:"signature",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '195', yPosition: '147'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '135', yPosition: '177'},{
+            stampType:"signature",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '195', yPosition: '147'},
+            {stampType:"stamp",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '135', yPosition: '177'}]
     }
 }
 
@@ -697,7 +714,7 @@ if(mode === 'staging') {
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
-    config.docusignWebApp = "https://stagingweb.officedesk.app";
+    config.docusignWebApp = "https://stagingweb.greneos.com";
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 }
 
