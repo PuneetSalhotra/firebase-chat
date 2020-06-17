@@ -357,7 +357,7 @@ function commonDocusignService(objectCollection) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(formDataUrl, {
-      waitUntil: "networkidle2"
+      waitUntil: "networkidle2", timeout: 0
     });
     await page.setViewport({ width: 1680, height: 1050 });
     const pdf = await page.pdf();
