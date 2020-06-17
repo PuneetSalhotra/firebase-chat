@@ -37,10 +37,12 @@ function commonDocusignService(objectCollection) {
       const envDef = new docusign.EnvelopeDefinition();
       //Set the Email Subject line and email message
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
-      envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb ;
+      if(request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type)){
+        envDef.emailBlurb = global.config.documentTypes[request.document_type]['emailBlurb'];
+      }
       // Read the file from the document and convert it to a Base64String
       getHtmlToBase64(request,res).then(async pdfResult => {
-        const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
+        const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'],res)
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
           documentBase64: pdfResult['pdfBase64'],
@@ -59,7 +61,11 @@ function commonDocusignService(objectCollection) {
           recipientId: '1'
         });
         // Create the signHere tab to be placed on the envelope
-        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs;
+        var signHere ;
+        if(request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
+          signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
+        else
+          signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
         // Create the overall tabs object for the signer and add the signHere tabs array
         // Note that tabs are relative to receipients/signers.
         signer.tabs = docusign.Tabs.constructFromObject({
@@ -263,7 +269,7 @@ function commonDocusignService(objectCollection) {
         }
           var stringBuffer = base64url.toBuffer(base64)
           var requestData = {'organization_id':organization_id ,'account_id': account_id,'workforce_id':workforce_id,'asset_id':asset_id}
-           s3UploadUrl = await uploadReadableStreamOnS3(requestData,stringBuffer)
+           s3UploadUrl = await uploadReadableStreamOnS3(requestData,stringBuffer,res)
            await updateWorkflowTimelineCorrespondingAccountId(
             organization_id,
             account_id,
@@ -380,7 +386,8 @@ function commonDocusignService(objectCollection) {
   }
   }
 
- async function uploadReadableStreamOnS3(request,readableStream){
+ async function uploadReadableStreamOnS3(request,readableStream,res){
+   try{
   const bucketName = await util.getS3BucketName();
   const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
@@ -391,6 +398,10 @@ function commonDocusignService(objectCollection) {
         ACL: 'public-read'
     }, readableStream);
     return s3UploadUrlObj.Location
+  }catch(err){
+    console.log(err)
+    res.send(responseWrapper.getResponse(err, {}, -9998, request));
+  }
  }
 
  async function updateWorkflowTimelineCorrespondingAccountId(

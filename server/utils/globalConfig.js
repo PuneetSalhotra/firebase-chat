@@ -78,8 +78,25 @@ config.documentTypes = {
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
         xPosition: '195', yPosition: '147'},
         {stampType:"stamp",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
         xPosition: '135', yPosition: '147'}]
+    },
+    vodafone:{
+        emailSubject:'Please sign this  vodafone document',
+        emailBlurb:'Please sign this vodafone document',
+        signHereTabs:[{
+        stampType:"signature",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '195', yPosition: '147'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '135', yPosition: '177'},{
+            stampType:"signature",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '195', yPosition: '147'},
+            {stampType:"stamp",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '135', yPosition: '177'}]
     }
 }
 
