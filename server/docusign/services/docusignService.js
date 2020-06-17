@@ -39,7 +39,7 @@ function commonDocusignService(objectCollection) {
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb ;
       // Read the file from the document and convert it to a Base64String
-      getHtmlToBase64(request,host,res).then(async pdfResult => {
+      getHtmlToBase64(request,res).then(async pdfResult => {
         const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
@@ -236,9 +236,14 @@ function commonDocusignService(objectCollection) {
         articleType,
         title,
         asset_id,
-        clientIPAddress;
-      await getAuditEventsDetails(envelopeId).then(async eventObj => {
+        clientIPAddress,
+        longitude,
+        latitude;
+        var abc = "10"
+      await getAuditEventsDetails(async eventObj => {
         clientIPAddress = eventObj['clientIPAddress']
+        longitude=  eventObj['lg']
+        latitude= eventObj['lt']
       if(status=='Completed'){
         let paramsArray =
         new Array(
@@ -289,12 +294,12 @@ function commonDocusignService(objectCollection) {
         status,
         time,
         clientIPAddress,
-        0,
-        0
+        latitude,
+        longitude
       )
     results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_update', paramsArray, 0)
     return(results[0])
-  })
+  },envelopeId)
 }
 
   function getAccessTokenUsingRefreshToken(callback) {
@@ -323,26 +328,36 @@ function commonDocusignService(objectCollection) {
       })
   }
 
-async function getAuditEventsDetails(envelopeId) {
+ function getAuditEventsDetails(callback,envelopeId){
   var eventObj = {}
-  await getAccessTokenUsingRefreshToken(accessToken => {
+   getAccessTokenUsingRefreshToken(accessToken => {
      const headers = {
         "Authorization": "Bearer " +  accessToken,
       },
-
       authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
         .send().set(headers)
         .type("Beare Token");
-        authReq.end(function (err, authRes) {
-          var lastIndex = authRes.body.auditEvents.length-1
-          eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          return eventObj
+         authReq.end(function (err, authRes) {
+          if (err) {
+            return callback(err, authRes);
+          } else {
+           var auditEvents = authRes.body.auditEvents
+           for(var i=0;i<auditEvents.length;i++){
+             if(auditEvents[i].eventFields[4]['value']=='Signed'){
+              eventObj['clientIPAddress'] = auditEvents[i].eventFields[7]['value']
+              var geoLocation = auditEvents[i].eventFields[10]['value']
+              var location = geoLocation.split('=').join().split('&').join().split(',');
+              eventObj['lt'] = location[1] || 0
+              eventObj['lg'] =  location[3] || 0
+             }
+           }
+          return callback(eventObj)
+          }
       })
     })
   }
 
-  async function getHtmlToBase64(request,host,res) {
+  async function getHtmlToBase64(request,res) {
     try{
     var  docusignWebApp = global.config.docusignWebApp
     var formDataUrl =  docusignWebApp +'/#/forms/view/'+ request.form_data
