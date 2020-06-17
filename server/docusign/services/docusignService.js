@@ -239,7 +239,6 @@ function commonDocusignService(objectCollection) {
         clientIPAddress,
         longitude,
         latitude;
-        var abc = "10"
       await getAuditEventsDetails(async eventObj => {
         clientIPAddress = eventObj['clientIPAddress']
         longitude=  eventObj['lg']
@@ -249,21 +248,21 @@ function commonDocusignService(objectCollection) {
         new Array(
           envelopeId
         )
-      const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select_envlope_id",paramsArray,1);
+        const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select_envlope_id",paramsArray,1);
         if (queryString !== "") {
-        await db.executeQueryPromise(1, queryString, request)
-        .then(results => {
-          organization_id = results[0]['organization_id']
-          account_id = results[0]['account_id']
-          workforce_id = results[0]['workforce_id']
-          activity_id = results[0]['activity_id']
-          activity_type_id = results[0]['activity_type_id']
-          activity_type_category_id = results[0]['activity_type_category_id']
-          articleType = results[0]['activity_type_name']
-          title = results[0]['docusign_email_subject']
-          asset_id = results[0]['asset_id']
-        })
-      }
+          await db.executeQueryPromise(1, queryString, request)
+          .then(results => {
+            organization_id = results[0]['organization_id']
+            account_id = results[0]['account_id']
+            workforce_id = results[0]['workforce_id']
+            activity_id = results[0]['activity_id']
+            activity_type_id = results[0]['activity_type_id']
+            activity_type_category_id = results[0]['activity_type_category_id']
+            articleType = results[0]['activity_type_name']
+            title = results[0]['docusign_email_subject']
+            asset_id = results[0]['asset_id']
+          })
+        }
         var base64 = ''
         var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
         for(var i=0;i<pdfContents.length;i++){
