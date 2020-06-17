@@ -68,10 +68,14 @@ function commonDocusignService(objectCollection) {
           signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
         // Create the overall tabs object for the signer and add the signHere tabs array
         // Note that tabs are relative to receipients/signers.
-        signer.tabs = docusign.Tabs.constructFromObject({
-          signHereTabs: signHere
-        });
-
+        try{
+          signer.tabs = docusign.Tabs.constructFromObject({
+            signHereTabs: signHere
+          });
+        } catch (e) {
+          console.log(e)
+          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
+        }
         // Add the recipients object to the envelope definition.
         // It includes an array of the signer objects. 
         envDef.recipients = docusign.Recipients.constructFromObject({
@@ -139,7 +143,8 @@ function commonDocusignService(objectCollection) {
             'envelopeDefinition': envDef
           })
         } catch (e) {
-          return Promise.reject(e);
+          console.log(e)
+          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
         }
         let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let paramsArray;
