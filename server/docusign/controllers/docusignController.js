@@ -11,7 +11,7 @@ app.use(xmlparser());
     '/' + global.config.version + '/docusign/document/add',
     async (req, res) => {
       try {
-         let result = await commonDocusignService.addFile(req.body,req.headers.host, res);
+         let result = await commonDocusignService.addFile(req.body, res);
       } catch (err) {
         res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
       }
