@@ -3798,7 +3798,7 @@ async function addFormEntriesAsync(request) {
 
         const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
         const Template = "";*/
-        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${util.mentionsDateFormat()} By ${request.email_sender_name}`;
+        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${await util.mentionsDateFormat()} By ${request.email_sender_name}`;
 
         const Template = `<table><tbody>
                             <tr>
@@ -3840,8 +3840,7 @@ async function addFormEntriesAsync(request) {
         //                 );
 
         console.log('Sending mentions email to : ', request.asset_email_id);
-        util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
-        
+        util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);        
         return [error, responseData];
     }
 
