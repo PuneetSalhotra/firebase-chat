@@ -1080,9 +1080,16 @@ function FormConfigService(objCollection) {
                         if(typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
-                            params[27] = row.field_value;
+                            params[18] = row.field_value;
+                            try {
+                                let tempVar = (row.field_value).split('|');
+                                let tempObj = {};
+                                    tempObj[tempVar[0]] = tempVar[1];
+                                params[27] = tempObj;
+                            } catch(err) {
+                                console.log('ERROR in field edit - 57 : ', err);
+                            }                            
                         }
-                        
                         break;
                     case 58://Document reference
                         // documentReference = row.field_value.split('|');
@@ -1095,7 +1102,15 @@ function FormConfigService(objCollection) {
                         if(typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
-                            params[27] = row.field_value;
+                            params[18] = row.field_value;
+                            try {
+                                let tempVar = (row.field_value).split('|');
+                                let tempObj = {};
+                                    tempObj[tempVar[0]] = tempVar[1];
+                                params[27] = tempObj;
+                            } catch(err) {
+                                console.log('ERROR in field edit - 57 : ', err);
+                            }
                         }
                         break;
                     case 61: //Time Datatype
