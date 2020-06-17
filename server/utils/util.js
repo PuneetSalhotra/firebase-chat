@@ -2125,7 +2125,8 @@ function Util(objectCollection) {
             "Subject" : emailSubject,
             "Body" : {
                 "attributes": {
-                "BodyType" : "Text"
+                //"BodyType" : "Text"
+                "BodyType" : "HTML"
                 },
                 "$value": Template
             },

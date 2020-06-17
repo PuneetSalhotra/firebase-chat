@@ -3839,6 +3839,7 @@ async function addFormEntriesAsync(request) {
         //                        }
         //                 );
 
+        console.log('Sending mentions email to : ', request.asset_email_id);
         util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
         
         return [error, responseData];
