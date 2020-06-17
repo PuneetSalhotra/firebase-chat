@@ -21,7 +21,7 @@ function commonDocusignService(objectCollection) {
   var responseWrapper = objectCollection.responseWrapper;
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
-  this.addFile = async (request, host, res) => {
+  this.addFile = async (request, res) => {
     // generate refresh token
     await getAccessTokenUsingRefreshToken(accessToken => {
       const accountId = global.config.accountId;
@@ -39,7 +39,7 @@ function commonDocusignService(objectCollection) {
       envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
       envDef.emailBlurb = global.config.documentTypes.customerApplicationForm.emailBlurb ;
       // Read the file from the document and convert it to a Base64String
-      getHtmlToBase64(request,host,res).then(async pdfResult => {
+      getHtmlToBase64(request,res).then(async pdfResult => {
         const s3UploadUrl = await uploadReadableStreamOnS3(request,pdfResult['pdf'])
        // Create the document request object
         const doc = docusign.Document.constructFromObject({
@@ -59,14 +59,7 @@ function commonDocusignService(objectCollection) {
           recipientId: '1'
         });
         // Create the signHere tab to be placed on the envelope
-        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs || [{
-          documentId: '1',
-          pageNumber: '1',
-          recipientId: '1',
-          tabLabel: 'SignHereTab',
-          xPosition: '195',
-          yPosition: '147'
-        }];
+        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs;
         // Create the overall tabs object for the signer and add the signHere tabs array
         // Note that tabs are relative to receipients/signers.
         signer.tabs = docusign.Tabs.constructFromObject({
@@ -236,29 +229,33 @@ function commonDocusignService(objectCollection) {
         articleType,
         title,
         asset_id,
-        clientIPAddress;
-      await getAuditEventsDetails(envelopeId).then(async eventObj => {
+        clientIPAddress,
+        longitude,
+        latitude;
+      await getAuditEventsDetails(async eventObj => {
         clientIPAddress = eventObj['clientIPAddress']
+        longitude=  eventObj['lg']
+        latitude= eventObj['lt']
       if(status=='Completed'){
         let paramsArray =
         new Array(
           envelopeId
         )
-      const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select_envlope_id",paramsArray,1);
+        const queryString = util.getQueryString("ds_p1_activity_docusign_mapping_select_envlope_id",paramsArray,1);
         if (queryString !== "") {
-        await db.executeQueryPromise(1, queryString, request)
-        .then(results => {
-          organization_id = results[0]['organization_id']
-          account_id = results[0]['account_id']
-          workforce_id = results[0]['workforce_id']
-          activity_id = results[0]['activity_id']
-          activity_type_id = results[0]['activity_type_id']
-          activity_type_category_id = results[0]['activity_type_category_id']
-          articleType = results[0]['activity_type_name']
-          title = results[0]['docusign_email_subject']
-          asset_id = results[0]['asset_id']
-        })
-      }
+          await db.executeQueryPromise(1, queryString, request)
+          .then(results => {
+            organization_id = results[0]['organization_id']
+            account_id = results[0]['account_id']
+            workforce_id = results[0]['workforce_id']
+            activity_id = results[0]['activity_id']
+            activity_type_id = results[0]['activity_type_id']
+            activity_type_category_id = results[0]['activity_type_category_id']
+            articleType = results[0]['activity_type_name']
+            title = results[0]['docusign_email_subject']
+            asset_id = results[0]['asset_id']
+          })
+        }
         var base64 = ''
         var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
         for(var i=0;i<pdfContents.length;i++){
@@ -289,12 +286,12 @@ function commonDocusignService(objectCollection) {
         status,
         time,
         clientIPAddress,
-        0,
-        0
+        latitude,
+        longitude
       )
     results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_update', paramsArray, 0)
     return(results[0])
-  })
+  },envelopeId)
 }
 
   function getAccessTokenUsingRefreshToken(callback) {
@@ -323,26 +320,43 @@ function commonDocusignService(objectCollection) {
       })
   }
 
-async function getAuditEventsDetails(envelopeId) {
+ function getAuditEventsDetails(callback,envelopeId){
   var eventObj = {}
-  await getAccessTokenUsingRefreshToken(accessToken => {
+   getAccessTokenUsingRefreshToken(accessToken => {
      const headers = {
         "Authorization": "Bearer " +  accessToken,
       },
-
       authReq = superagent.get( global.config.auditEventsUrl + global.config.accountId + "/envelopes/"+ envelopeId + "/audit_events")
         .send().set(headers)
         .type("Beare Token");
-        authReq.end(function (err, authRes) {
-          var lastIndex = authRes.body.auditEvents.length-1
-          eventObj['clientIPAddress'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          eventObj['GeoLocation'] = authRes.body.auditEvents[lastIndex].eventFields[7]['value']
-          return eventObj
+         authReq.end(function (err, authRes) {
+          if (err) {
+            return callback(err, authRes);
+          } else {
+           var auditEvents = authRes.body.auditEvents
+          for (var i = 0; i < auditEvents.length; i++) {
+            for (var j = 0; j < auditEvents[i].eventFields.length; j++) {
+              if (auditEvents[i].eventFields[j]['name'] == 'Action' && auditEvents[i].eventFields[j]['value'] == 'Signed') {
+                for (var k = 0; k < auditEvents[i].eventFields.length; k++) {
+                  if (auditEvents[i].eventFields[k]['name'] == 'ClientIPAddress')
+                    eventObj['clientIPAddress'] = auditEvents[i].eventFields[k]['value']
+                  if (auditEvents[i].eventFields[k]['name'] == 'GeoLocation') {
+                    var geoLocation = auditEvents[i].eventFields[k]['value']
+                    var location = geoLocation.split('=').join().split('&').join().split(',');
+                    eventObj['lt'] = location[1] || 0
+                    eventObj['lg'] = location[3] || 0
+                  }
+                }
+              }
+            }
+          }
+          return callback(eventObj)
+          }
       })
     })
   }
 
-  async function getHtmlToBase64(request,host,res) {
+  async function getHtmlToBase64(request,res) {
     try{
     var  docusignWebApp = global.config.docusignWebApp
     var formDataUrl =  docusignWebApp +'/#/forms/view/'+ request.form_data
@@ -350,7 +364,7 @@ async function getAuditEventsDetails(envelopeId) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(formDataUrl, {
-      waitUntil: "networkidle2"
+      waitUntil: "networkidle2", timeout: 0
     });
     await page.setViewport({ width: 1680, height: 1050 });
     const pdf = await page.pdf();
