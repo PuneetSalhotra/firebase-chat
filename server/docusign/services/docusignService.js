@@ -430,7 +430,7 @@ function commonDocusignService(objectCollection) {
   receiverEmail
 ) {
   var streamTypeId
-  var subjectTxt =" Received signed document from "+ receiverName +'('+ receiverEmail +')'
+  var subjectTxt =" Received signed document from "+ receiverName + "(" + receiverEmail + ")"
     streamTypeId = 723
   var collectionObj = {
     content:page_url_val,
