@@ -242,7 +242,9 @@ function commonDocusignService(objectCollection) {
         asset_id,
         clientIPAddress,
         longitude,
-        latitude;
+        latitude,
+        receiverName,
+        receiverEmail;
       await getAuditEventsDetails(async eventObj => {
         clientIPAddress = eventObj['clientIPAddress']
         longitude=  eventObj['lg']
@@ -265,6 +267,8 @@ function commonDocusignService(objectCollection) {
             articleType = results[0]['activity_type_name']
             title = results[0]['docusign_email_subject']
             asset_id = results[0]['asset_id']
+            receiverName = results[0]['docusign_receiver_name']
+            receiverEmail = results[0]['docusign_receiver_email']
           })
         }
         var base64 = ''
@@ -285,7 +289,9 @@ function commonDocusignService(objectCollection) {
             activity_type_category_id,
             articleType,
             title,
-            asset_id
+            asset_id,
+            receiverName,
+            receiverEmail
           );
       }
       var results =[]
@@ -419,12 +425,13 @@ function commonDocusignService(objectCollection) {
   activity_type_category_id_val,
   type,
   title,
-  asset_id
+  asset_id,
+  receiverName,
+  receiverEmail
 ) {
-  var subjectTxt
   var streamTypeId
-    subjectTxt=" Docusign document with title ' "+title+" ' has been identified for your account."
-    streamTypeId = 723 
+  var subjectTxt =" Received signed document from "+ receiverName +'('+ receiverEmail +')'
+    streamTypeId = 723
   var collectionObj = {
     content:page_url_val,
     subject: subjectTxt,
