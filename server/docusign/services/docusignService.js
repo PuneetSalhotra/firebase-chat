@@ -21,7 +21,7 @@ function commonDocusignService(objectCollection) {
   var responseWrapper = objectCollection.responseWrapper;
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
-  this.addFile = async (request, host, res) => {
+  this.addFile = async (request, res) => {
     // generate refresh token
     await getAccessTokenUsingRefreshToken(accessToken => {
       const accountId = global.config.accountId;
@@ -59,14 +59,7 @@ function commonDocusignService(objectCollection) {
           recipientId: '1'
         });
         // Create the signHere tab to be placed on the envelope
-        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs || [{
-          documentId: '1',
-          pageNumber: '1',
-          recipientId: '1',
-          tabLabel: 'SignHereTab',
-          xPosition: '195',
-          yPosition: '147'
-        }];
+        const signHere = global.config.documentTypes.customerApplicationForm.signHereTabs;
         // Create the overall tabs object for the signer and add the signHere tabs array
         // Note that tabs are relative to receipients/signers.
         signer.tabs = docusign.Tabs.constructFromObject({
