@@ -334,15 +334,22 @@ function commonDocusignService(objectCollection) {
             return callback(err, authRes);
           } else {
            var auditEvents = authRes.body.auditEvents
-           for(var i=0;i<auditEvents.length;i++){
-             if(auditEvents[i].eventFields[4]['value']=='Signed'){
-              eventObj['clientIPAddress'] = auditEvents[i].eventFields[7]['value']
-              var geoLocation = auditEvents[i].eventFields[10]['value']
-              var location = geoLocation.split('=').join().split('&').join().split(',');
-              eventObj['lt'] = location[1] || 0
-              eventObj['lg'] =  location[3] || 0
-             }
-           }
+          for (var i = 0; i < auditEvents.length; i++) {
+            for (var j = 0; j < auditEvents[i].eventFields.length; j++) {
+              if (auditEvents[i].eventFields[j]['name'] == 'Action' && auditEvents[i].eventFields[j]['value'] == 'Signed') {
+                for (var k = 0; k < auditEvents[i].eventFields.length; k++) {
+                  if (auditEvents[i].eventFields[k]['name'] == 'ClientIPAddress')
+                    eventObj['clientIPAddress'] = auditEvents[i].eventFields[k]['value']
+                  if (auditEvents[i].eventFields[k]['name'] == 'GeoLocation') {
+                    var geoLocation = auditEvents[i].eventFields[k]['value']
+                    var location = geoLocation.split('=').join().split('&').join().split(',');
+                    eventObj['lt'] = location[1] || 0
+                    eventObj['lg'] = location[3] || 0
+                  }
+                }
+              }
+            }
+          }
           return callback(eventObj)
           }
       })
