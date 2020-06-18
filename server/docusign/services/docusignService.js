@@ -370,7 +370,7 @@ function commonDocusignService(objectCollection) {
       var docusignWebApp = global.config.docusignWebApp
       var formDataUrl = docusignWebApp + '/#/forms/view/' + request.form_data
       const pdfObj = {}
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
       const page = await browser.newPage();
       await page.goto(formDataUrl, {
         waitUntil: "networkidle2",
