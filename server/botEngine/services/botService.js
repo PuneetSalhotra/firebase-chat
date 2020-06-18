@@ -5761,8 +5761,8 @@ function BotService(objectCollection) {
     };
 
     this.updateCUIDBotOperationMethod = async(request, formInlineDataMap = {}, cuidInlineData) => {
-        let formInlineDataMap = request.form_inline_data_map || {};
-        let cuidInlineData = request.cuid_inline_data;
+        //let formInlineDataMap = request.form_inline_data_map || {};
+        //let cuidInlineData = request.cuid_inline_data;
 
         return await updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData);
     }
