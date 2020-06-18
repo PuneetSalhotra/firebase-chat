@@ -990,7 +990,11 @@ function BotService(objectCollection) {
         }*/
 
         //bot_flag_trigger_on_field_edit
-        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter            
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+            /*In case of Refill 
+                1) trigger all form level bots 
+                2) trigger bots on the respective field i.e. altered*/
+
             //flag = 0 = ALL bots
             //flag = 1 = Only Field based bots
             //flag = 2 = ONly Form Based bots
@@ -1187,7 +1191,7 @@ function BotService(objectCollection) {
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('form_field_copy | Request Params received by BOT ENGINE', request);
-                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
+                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -3112,7 +3116,14 @@ function BotService(objectCollection) {
     }
     
     //Bot Step Copying the fields
-    async function copyFields(request, fieldCopyInlineData) {        
+    async function copyFields(request, fieldCopyInlineData, condition = {}) {
+
+        //enable_target_form_submission = 1 then submit the target form
+        //enable_target_form_submission = 0 then do not submit the target form
+        let shouldSubmitTargetForm;
+        (condition.hasOwnProperty('enable_target_form_submission')) ?
+            shouldSubmitTargetForm = Number(condition.enable_target_form_submission):
+            shouldSubmitTargetForm = 0;
 
         const workflowActivityID = Number(request.workflow_activity_id),
             // sourceFormActivityID = Number(request.activity_id),
@@ -3291,28 +3302,33 @@ function BotService(objectCollection) {
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            // If the target form has not been submitted yet, create one
-            // let createTargetFormRequest = Object.assign({}, request);
-            //     createTargetFormRequest.activity_form_id = targetFormID;
-            //     createTargetFormRequest.form_id = targetFormID;
-            //     createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            //     if(Number(esmsFlag) === 0) {
-            //         createTargetFormRequest.workflow_activity_id = workflowActivityID;
-            //     }
+            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            if(shouldSubmitTargetForm === 1) {
+                // If the target form has not been submitted yet, create one
+                let createTargetFormRequest = Object.assign({}, request);
+                createTargetFormRequest.activity_form_id = targetFormID;
+                createTargetFormRequest.form_id = targetFormID;
+                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
                 
-            //     if(Number(esmsFlag) === 1) {
-            //         //Internally in activityService File. Workflow will be created
-            //         createTargetFormRequest.isESMS = 1;
-            //         createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;
+                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
-            //         //flag to know that this form and workflow is submitted by a Bot
-            //         createTargetFormRequest.activity_flag_created_by_bot = 1;
-            //     }
-            // try {
-            //     await createTargetFormActivity(createTargetFormRequest);
-            // } catch (error) {
-            //     console.log("copyFields | createTargetFormActivity | Error: ", error);
-            // }
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;
+                }
+                
+                try {
+                    await createTargetFormActivity(createTargetFormRequest);
+                } catch (error) {
+                    console.log("copyFields | createTargetFormActivity | Error: ", error);
+                }
+            }
+            
         }
         return;
     }
@@ -5744,7 +5760,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
-    this.updateCUIDBotOperationMethod = async(request, formInlineDataMap, cuidInlineData) => {
+    this.updateCUIDBotOperationMethod = async(request, formInlineDataMap = {}, cuidInlineData) => {
+        //let formInlineDataMap = request.form_inline_data_map || {};
+        //let cuidInlineData = request.cuid_inline_data;
+
         return await updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData);
     }
     
