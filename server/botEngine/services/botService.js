@@ -990,7 +990,11 @@ function BotService(objectCollection) {
         }*/
 
         //bot_flag_trigger_on_field_edit
-        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter            
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+            /*In case of Refill 
+                1) trigger all form level bots 
+                2) trigger bots on the respective field i.e. altered*/
+
             //flag = 0 = ALL bots
             //flag = 1 = Only Field based bots
             //flag = 2 = ONly Form Based bots
@@ -3298,6 +3302,7 @@ function BotService(objectCollection) {
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
+            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
                 let createTargetFormRequest = Object.assign({}, request);
