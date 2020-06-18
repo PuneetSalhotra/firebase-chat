@@ -1,19 +1,9 @@
-var xml2js = require('xml2js');
-var parser = new xml2js.Parser();
 const base64url = require('base64url');
-const pdf2base64 = require('pdf-to-base64');
 const moment = require("moment");
 const superagent = require('superagent')
 const docusign = require('docusign-esign');
 const puppeteer = require("puppeteer");
-const path = require('path');
-const fs = require('fs');
-const {json} = require('express');
-const request = require('request');
-const process = require('process'),
-  basePath = config.docusignBasePath,
-  express = require('express'),
-  envir = process.env;
+const basePath = config.docusignBasePath
 
 function commonDocusignService(objectCollection) {
   const util = objectCollection.util;
@@ -21,151 +11,150 @@ function commonDocusignService(objectCollection) {
   var responseWrapper = objectCollection.responseWrapper;
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
+
   this.addFile = async (request, res) => {
+    try {
+      await getAccessTokenUsingRefreshToken(accessToken => {
+        const accountId = global.config.accountId;
+        const signerName = request.receiver_name;
+        const signerEmail = request.receiver_email;
+        const apiClient = new docusign.ApiClient();
+        apiClient.setBasePath(basePath);
+        apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+        docusign.Configuration.default.setDefaultApiClient(apiClient);
 
-    await getAccessTokenUsingRefreshToken(accessToken => {
-      const accountId = global.config.accountId;
-      const signerName = request.receiver_name;
-      const signerEmail = request.receiver_email;
-      const apiClient = new docusign.ApiClient();
-      apiClient.setBasePath(basePath);
-      apiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
-      docusign.Configuration.default.setDefaultApiClient(apiClient);
+        const envDef = new docusign.EnvelopeDefinition();
+        envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
+        if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type)) {
+          envDef.emailBlurb = global.config.documentTypes[request.document_type]['emailBlurb'];
+        }
 
-      const envDef = new docusign.EnvelopeDefinition();
-      envDef.emailSubject = request.subject || global.config.documentTypes.customerApplicationForm.emailSubject;
-      if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type)) {
-        envDef.emailBlurb = global.config.documentTypes[request.document_type]['emailBlurb'];
-      }
+        getHtmlToBase64(request, res).then(async pdfResult => {
+          const s3UploadUrl = await uploadReadableStreamOnS3(request, pdfResult['pdf'], res)
+          const doc = docusign.Document.constructFromObject({
+            documentBase64: pdfResult['pdfBase64'],
+            fileExtension: 'pdf',
+            name: Date.now() + '.pdf',
+            documentId: '1'
+          });
+          envDef.documents = [doc];
 
-      getHtmlToBase64(request, res).then(async pdfResult => {
-        const s3UploadUrl = await uploadReadableStreamOnS3(request, pdfResult['pdf'], res)
-        const doc = docusign.Document.constructFromObject({
-          documentBase64: pdfResult['pdfBase64'],
-          fileExtension: 'pdf',
-          name: Date.now()+'.pdf',
-          documentId: '1'
-        });
-        envDef.documents = [doc];
+          const signer = docusign.Signer.constructFromObject({
+            name: signerName,
+            email: signerEmail,
+            routingOrder: '1',
+            recipientId: '1'
+          });
 
-        const signer = docusign.Signer.constructFromObject({
-          name: signerName,
-          email: signerEmail,
-          routingOrder: '1',
-          recipientId: '1'
-        });
-
-        var signHere;
-        if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
-          signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
-        else
-          signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
-
-          try {
+          var signHere;
+          if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
+            signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
+          else
+            signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
           signer.tabs = docusign.Tabs.constructFromObject({
             signHereTabs: signHere
           });
-        } catch (e) {
-          console.log(e)
-          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
-        }
 
-        envDef.recipients = docusign.Recipients.constructFromObject({
-          signers: [signer]
-        });
+          envDef.recipients = docusign.Recipients.constructFromObject({
+            signers: [signer]
+          });
 
-        envDef.status = 'sent';
-        let envelopesApi = new docusign.EnvelopesApi(),
-          results;
-        var eventNotification = {
-          "url": global.config.docusignHookBaseUrl + '/' + global.config.version + '/docusign/webhook',
-          "loggingEnabled": "true",
-          "requireAcknowledgment": "true",
-          "useSoapInterface": "false",
-          "includeCertificateWithSoap": "false",
-          "signMessageWithX509Cert": "false",
-          "includeDocuments": "true",
-          "includeEnvelopeVoidReason": "true",
-          "includeTimeZone": "true",
-          "includeSenderAccountAsCustomField": "true",
-          "includeDocumentFields": "true",
-          "includeCertificateOfCompletion": "true",
-          "envelopeEvents": [{
-              "envelopeEventStatusCode": "sent"
-            },
-            {
-              "envelopeEventStatusCode": "delivered"
-            },
-            {
-              "envelopeEventStatusCode": "completed"
-            },
-            {
-              "envelopeEventStatusCode": "declined"
-            },
-            {
-              "envelopeEventStatusCode": "voided"
-            }
-          ],
-          "recipientEvents": [{
-              "recipientEventStatusCode": "Sent"
-            },
-            {
-              "recipientEventStatusCode": "Delivered"
-            },
-            {
-              "recipientEventStatusCode": "Completed"
-            },
-            {
-              "recipientEventStatusCode": "Declined"
-            },
-            {
-              "recipientEventStatusCode": "AuthenticationFailed"
-            },
-            {
-              "recipientEventStatusCode": "AutoResponded"
-            }
-          ]
-        }
-        envDef.eventNotification = eventNotification
-        envDef.envelopeIdStamping = true
-        try {
+          envDef.status = 'sent';
+          let envelopesApi = new docusign.EnvelopesApi(),
+            results;
+          var eventNotification = {
+            "url": global.config.docusignHookBaseUrl + '/' + global.config.version + '/docusign/webhook',
+            "loggingEnabled": "true",
+            "requireAcknowledgment": "true",
+            "useSoapInterface": "false",
+            "includeCertificateWithSoap": "false",
+            "signMessageWithX509Cert": "false",
+            "includeDocuments": "true",
+            "includeEnvelopeVoidReason": "true",
+            "includeTimeZone": "true",
+            "includeSenderAccountAsCustomField": "true",
+            "includeDocumentFields": "true",
+            "includeCertificateOfCompletion": "true",
+            "envelopeEvents": [{
+                "envelopeEventStatusCode": "sent"
+              },
+              {
+                "envelopeEventStatusCode": "delivered"
+              },
+              {
+                "envelopeEventStatusCode": "completed"
+              },
+              {
+                "envelopeEventStatusCode": "declined"
+              },
+              {
+                "envelopeEventStatusCode": "voided"
+              }
+            ],
+            "recipientEvents": [{
+                "recipientEventStatusCode": "Sent"
+              },
+              {
+                "recipientEventStatusCode": "Delivered"
+              },
+              {
+                "recipientEventStatusCode": "Completed"
+              },
+              {
+                "recipientEventStatusCode": "Declined"
+              },
+              {
+                "recipientEventStatusCode": "AuthenticationFailed"
+              },
+              {
+                "recipientEventStatusCode": "AutoResponded"
+              }
+            ]
+          }
+          envDef.eventNotification = eventNotification
+          envDef.envelopeIdStamping = true
           results = await envelopesApi.createEnvelope(accountId, {
             'envelopeDefinition': envDef
           })
-        } catch (e) {
-          console.log(e)
-          return res.send(responseWrapper.getResponse(e, {}, -9998, request));
-        }
-        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        let paramsArray;
-        paramsArray = new Array(
-          request.activity_id,
-          request.organization_id,
-          results.envelopeId,
-          signerEmail,
-          signerName,
-          envDef.emailSubject,
-          envDef.emailBlurb,
-          s3UploadUrl,
-          '',
-          date,
-          results.status,
-          '',
-          request.asset_id,
-          date,
-          0,
-          0
-        )
+          let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+          let paramsArray;
+          paramsArray = new Array(
+            request.activity_id,
+            request.organization_id,
+            results.envelopeId,
+            signerEmail,
+            signerName,
+            envDef.emailSubject,
+            envDef.emailBlurb,
+            s3UploadUrl,
+            '',
+            date,
+            results.status,
+            '',
+            request.asset_id,
+            date,
+            0,
+            0
+          )
 
-        if (results) {
-          results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_insert', paramsArray, 0);
-          var response = {
-            'document_id': results[0][0]['activity_docusign_id']
+          if (results) {
+            results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_insert', paramsArray, 0);
+            paramsArray = new Array(
+              results[0][0]['activity_docusign_id'],
+              2401,
+              date
+            )
+            results[1] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_history_insert', paramsArray, 0);
+            var response = {
+              'document_id': results[0][0]['activity_docusign_id']
+            }
+            return res.send(responseWrapper.getResponse(false, response, 200, request));
           }
-          return res.send(responseWrapper.getResponse(false, response, 200, request));
-        }
+        })
       })
-    })
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   this.query = async (request, res) => {
@@ -219,7 +208,7 @@ function commonDocusignService(objectCollection) {
     var envelopeStatus = request.docusignenvelopeinformation.envelopestatus[0]
     var envelopeId = envelopeStatus.envelopeid[0]
     var status = envelopeStatus.status[0]
-    var time = envelopeStatus.completed[0]
+    var date = envelopeStatus.completed[0]
     var organization_id,
       account_id,
       workforce_id,
@@ -234,7 +223,8 @@ function commonDocusignService(objectCollection) {
       longitude,
       latitude,
       receiverName,
-      receiverEmail;
+      receiverEmail,
+      activity_docusign_id;
     await getAuditEventsDetails(async eventObj => {
       clientIPAddress = eventObj['clientIPAddress']
       longitude = eventObj['lg']
@@ -259,6 +249,7 @@ function commonDocusignService(objectCollection) {
               asset_id = results[0]['asset_id']
               receiverName = results[0]['docusign_receiver_name']
               receiverEmail = results[0]['docusign_receiver_email']
+              activity_docusign_id = results[0]['activity_docusign_id']
             })
         }
         var base64 = ''
@@ -294,14 +285,20 @@ function commonDocusignService(objectCollection) {
         new Array(
           envelopeId,
           s3UploadUrl,
-          time,
+          date,
           status,
-          time,
+          date,
           clientIPAddress,
           latitude,
           longitude
         )
       results[0] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_update', paramsArray, 0)
+      paramsArray = new Array(
+        activity_docusign_id,
+        2402,
+        date
+      )
+      results[1] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_history_insert', paramsArray, 0);
       return (results[0])
     }, envelopeId)
   }
