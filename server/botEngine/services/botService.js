@@ -3289,6 +3289,7 @@ function BotService(objectCollection) {
             let fieldsAlterRequest = Object.assign({}, request);
                 fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
                 fieldsAlterRequest.form_id = targetFormID;
+                fieldsAlterRequest.activity_form_id = targetFormID;
                 fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
                 fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
                 fieldsAlterRequest.activity_id = targetFormActivityID;
