@@ -3767,6 +3767,8 @@ async function addFormEntriesAsync(request) {
                     (assetData[0].operating_asset_first_name).length === 0) {
                     console.log('Either Operating asset name or email id not available for : ', mentionedAssets[i]);
                 } else {
+                    console.log(assetData[0].asset_encryption_token_id);
+                    
                     sendEmail({
                         workflow_title: request.workflow_title,
                         workflow_update: request.workflow_update,
@@ -3775,8 +3777,11 @@ async function addFormEntriesAsync(request) {
                         email_receiver_name: assetData[0].operating_asset_first_name,
                         email_sender_name: senderAssetData[0].operating_asset_first_name,                        
                         //email_sender: senderAssetData[0].operating_asset_email_id
-                        email_sender: 'ESMSMails@vodafoneidea.com'
-                    });
+                        email_sender: 'ESMSMails@vodafoneidea.com',
+                        sender_asset_id: request.asset_id,
+                        receiver_asset_id: mentionedAssets[i],
+                        receiver_asset_token_auth: assetData[0].asset_encryption_token_id
+                    }, request);
                 }
             } else {
                 console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
@@ -3786,11 +3791,31 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
-    async function sendEmail(request) {
+    async function sendEmail(request, requestObj) {
         let responseData = [],
             error = false;
 
-        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
+        const paramsJSON = {
+            "organization_id": requestObj.organization_id,
+            "account_id": requestObj.account_id,
+            "workforce_id": requestObj.workforce_id,
+            "asset_id": request.sender_asset_id,
+            "auth_asset_id": request.receiver_asset_id,
+            "asset_token_auth": request.receiver_asset_token_auth,
+            "message_unique_id": util.getMessageUniqueId(request.sender_asset_id),
+            "activity_type_category_id": requestObj.activity_type_category_id,
+            "activity_type_id": requestObj.activity_type_id,
+            "activity_id": requestObj.workflow_activity_id,
+            "activity_parent_id": 0,
+            "operating_asset_name": request.operating_asset_name,
+            "us": true
+        };
+    
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
+
+        //const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
+        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/${base64Json}`;
+        //console.log(urlStr);
 
         /*if (String(customerCollection.contactEmailId).includes('%40')) {
             customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
@@ -3804,7 +3829,7 @@ async function addFormEntriesAsync(request) {
                             <tr>
                             <p>
                             Hello <strong>${request.operating_asset_name},</strong><br/>
-                            You have been mentioned by ${request.operating_asset_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
+                            You have been mentioned by ${request.email_sender_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
                             </p>
                             <p>
                                 Following is the copy of the exact update... <br/>
