@@ -365,9 +365,9 @@ if(mode === 'local') {
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
 
-    config.TOPIC_ID = 23;
+    config.TOPIC_ID = 38;
     // config.TOPIC_ID = 26;
-    config.TOPIC_NAME = "desker-activities-test-topic";
+    config.TOPIC_NAME = "desker-activities-sravan-test-topic";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
 
