@@ -3780,7 +3780,8 @@ async function addFormEntriesAsync(request) {
                         email_sender: 'ESMSMails@vodafoneidea.com',
                         sender_asset_id: request.asset_id,
                         receiver_asset_id: mentionedAssets[i],
-                        receiver_asset_token_auth: assetData[0].asset_encryption_token_id
+                        receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
+                        sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
                     }, request);
                 }
             } else {
