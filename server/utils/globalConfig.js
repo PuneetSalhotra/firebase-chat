@@ -711,7 +711,8 @@ if(mode === 'staging') {
         config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
     }
 
-    config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+    //config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+    config.esmsMentionsEmail = "https://stagingweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
     config.docusignWebApp = "https://stagingweb.greneos.com";
@@ -819,7 +820,8 @@ if(mode === 'preprod') {
     config.emailbaseUrlApprove = "https://preprodweb.officedesk.app";
     config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
 
-    config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+    //config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+    config.esmsMentionsEmail = "https://preprodweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
@@ -927,7 +929,8 @@ if(mode === 'prod') {
     config.emailbaseUrlApprove = "https://web.officedesk.app"; //"https://officedesk.app"; 
     config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
 
-    config.esmsMentionsEmail = "https://web.officedesk.app";
+    //config.esmsMentionsEmail = "https://web.officedesk.app";
+    config.esmsMentionsEmail = "https://web.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
 }
