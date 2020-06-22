@@ -852,7 +852,7 @@ function ActivityPushService(objectCollection) {
                     global.logger.write('conLog', pubnubMsg, {}, {});
                     global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
                     global.logger.write('conLog', pushStringObj, {}, {});
-                    if (Object.keys(pushStringObj).length > 0) {
+                    if (Object.keys(pushStringObj).length > 0 && Object.keys(pushStringObj).find(key => key === 'title')) {
                         let cnt = 0;
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {

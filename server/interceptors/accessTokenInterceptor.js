@@ -3,7 +3,7 @@ const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
-function AccessTokenInterceptor(app, responseWrapper, map) {
+function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
         console.log('REQ : ', req.headers);
@@ -191,18 +191,44 @@ function AccessTokenInterceptor(app, responseWrapper, map) {
                                 console.log('UserName and phoneNumber from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
                                 //console.log('PARAMS : ', params);
 
-                                if(map.has(userNameFromAccessToken)) {
-                                    
-                                    if(map.get(userNameFromAccessToken) === phoneNumber) {
+                                //if(map.has(userNameFromAccessToken)) {
+                                //    
+                                //    if(map.get(userNameFromAccessToken) === phoneNumber) {
+                                //        console.log('token verified successfully!');
+                                //        req.body.access_token_verified = 1;                                
+                                //        next();
+                                //    } else { 
+                                //        console.log('#########################################');
+                                //        console.log('Phone Number from the Mapped Username in Map: ', map.get(userNameFromAccessToken));
+                                //        console.log('Phone Number from Request Headers: ', phoneNumber);
+                                //        console.log('');
+                                //        console.log('User Name for Access Token : ', userNameFromAccessToken);
+                                //        console.log('');
+                                //        console.log('Invalid token - UserName does not match');
+                                //        console.log('#########################################');
+                                //        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                //        return;
+                                //    }
+                                //} else {
+                                //    console.log('UserName from the accessToken is not present in the Map');
+                                //    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                //    return;
+                                //}
+
+                                let tempVar = await cacheWrapper.getUserNameFromAccessToken(userNameFromAccessToken);
+                                console.log('UserNameFromAccessToken - ', tempVar);
+
+                                if(tempVar !== 'undefined') {
+                                    if(tempVar === phoneNumber) {
                                         console.log('token verified successfully!');
                                         req.body.access_token_verified = 1;                                
                                         next();
                                     } else { 
                                         console.log('#########################################');
-                                        console.log('Phone Number from the Mapped Username in Map: ', map.get(userNameFromAccessToken));
+                                        console.log('Phone Number from the Mapped Username in Redis: ', tempVar);
                                         console.log('Phone Number from Request Headers: ', phoneNumber);
                                         console.log('');
-                                        console.log('User Name for Access Token : ', userNameFromAccessToken);
+                                        console.log('User Name from Access Token : ', userNameFromAccessToken);                                        
                                         console.log('');
                                         console.log('Invalid token - UserName does not match');
                                         console.log('#########################################');
@@ -210,7 +236,7 @@ function AccessTokenInterceptor(app, responseWrapper, map) {
                                         return;
                                     }
                                 } else {
-                                    console.log('UserName from the accessToken is not present in the Map');
+                                    console.log('UserName from the accessToken is not present in the Redis');
                                     res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
                                     return;
                                 }
