@@ -1052,6 +1052,12 @@ function BotService(objectCollection) {
                 // the "/activity/timeline/entry/add" call
                 const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
                 formInlineData = activityTimelineCollection.form_submitted;
+                if (
+                    Number(request.device_os_id) === 1 &&
+                    typeof activityTimelineCollection.form_submitted === "string"
+                ) {
+                    formInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                }
             } else {
                 formInlineData = JSON.parse(request.activity_inline_data);
             }
@@ -2179,6 +2185,12 @@ function BotService(objectCollection) {
             // the "/activity/timeline/entry/add" call
             const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
             reqActivityInlineData = activityTimelineCollection.form_submitted;
+            if (
+                Number(request.device_os_id) === 1 &&
+                typeof activityTimelineCollection.form_submitted === "string"
+            ) {
+                reqActivityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+            }
         } else {
             reqActivityInlineData = JSON.parse(request.activity_inline_data);
         }
