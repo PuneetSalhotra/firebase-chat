@@ -686,6 +686,48 @@ function CacheWrapper(client) {
         });        
     };
 
+    this.setUserNameFromAccessToken = (userName, setValue) => {
+        return new Promise((resolve, reject) => {
+            client.set(userName, setValue, function (err, reply) {
+                if (err) {
+                    logger.error(`SET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    //logger.verbose(`SET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
+    this.getUserNameFromAccessToken = (userName) => {
+        return new Promise((resolve, reject) => {
+            client.get(userName, function (err, reply) {
+                if (err) {
+                    logger.error(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
+    this.delUserNameCognito = (userName) => {
+        return new Promise((resolve, reject) => {
+            client.del(userName, function (err, reply) {
+                if (err) {
+                    logger.error(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;

@@ -121,23 +121,33 @@ var AwsSns = function () {
             TargetArn: targetArn
         };
 
-        sns.publish(params, function (err, data) {
-            console.log('       ');
-            console.log('^^^^^^^^^^^^^^^^^^^^^^^');
-            console.log('assetMap : ', assetMap);
-            console.log("sns.publish: ", err);
-            console.log("sns.publish: ", data);
-            console.log('^^^^^^^^^^^^^^^^^^^^^^^');
-            console.log('       ');
-            if (err)
-                // console.log(err); // an error occurred
-                // global.logger.write('debug', err, {}, {});
-                logger.error('AwsSns.publish.sns.publish: Error Sending Push Notification', { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
-            else
-                // console.log(data);           // successful response
-                // global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
-                logger.verbose('AwsSns.publish.sns.publish: %j', data, { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
-        });
+        console.log('Message.title : ', message.title);
+        console.log('Message.description : ', message.description);
+
+        console.log('Message.subtitle : ', message.subtitle);
+        console.log('Message.body : ', message.body);
+
+        //if(message.title !== 'undefined' || message.description !== 'undefined' ||
+        //   message.subtitle !== 'undefined') {
+            sns.publish(params, function (err, data) {
+                console.log('       ');
+                console.log('^^^^^^^^^^^^^^^^^^^^^^^');
+                console.log('assetMap : ', assetMap);
+                console.log("sns.publish: ", err);
+                console.log("sns.publish: ", data);
+                console.log('^^^^^^^^^^^^^^^^^^^^^^^');
+                console.log('       ');
+                if (err)
+                    // console.log(err); // an error occurred
+                    // global.logger.write('debug', err, {}, {});
+                    logger.error('AwsSns.publish.sns.publish: Error Sending Push Notification', { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
+                else
+                    // console.log(data);           // successful response
+                    // global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
+                    logger.verbose('AwsSns.publish.sns.publish: %j', data, { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
+            });
+        //}
+        
     };
 
     this.pamPublish = function (message, badgeCount, targetArn) {
