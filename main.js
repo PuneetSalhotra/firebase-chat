@@ -233,7 +233,7 @@ function connectToKafkaBroker(){
             activityCommonService: activityCommonService,
             forEachAsync: forEachAsync
         };
-        new AccessTokenInterceptor(app, responseWrapper, map);
+        new AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper);
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);        
         new ControlInterceptor(objCollection);
         server.listen(global.config.servicePort);        
@@ -314,12 +314,13 @@ async function listUsers(paginationToken = null) {
 			for(const i of users) {
 				for(const j of i.Attributes) {
 					if(j.Name === 'phone_number') {
-						map.set(i.Username, j.Value);
+                        cacheWrapper.setUserNameFromAccessToken(i.Username, j.Value);
+						//map.set(i.Username, j.Value);
 					}
 				}
 			}
 			
-			if(data.PaginationToken != "" && Number(users.length) === 60 && cnt < 25) {
+			if(data.PaginationToken != "" && Number(users.length) === 60 && cnt < 30) {
                 await new Promise((resolve, reject)=>{
                     setTimeout(()=>{
                         resolve();

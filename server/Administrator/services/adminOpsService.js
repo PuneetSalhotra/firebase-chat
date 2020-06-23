@@ -7562,6 +7562,9 @@ function AdminOpsService(objectCollection) {
                     console.log(err, err.stack); // an error occurred
                 } else {
                 console.log(data);           // successful response
+                
+                //After 5 seconds get the added user from cognito and add it to the redis layer
+                setTimeOut(()=>{ getUser(username) }, 5000);                
                 }
     
                 resolve();
@@ -7578,7 +7581,12 @@ function AdminOpsService(objectCollection) {
           };
           cognitoidentityserviceprovider.adminDeleteUser(params, function(err, data) {
             if (err) console.log(err, err.stack); // an error occurred
-            else     console.log(data);           // successful response
+            else {
+                console.log(data);
+
+                //Delete the user from Redis as well
+                cacheWrapper.delUserNameCognito(username);
+            } 
           });
     
         return "success";	  
@@ -7642,6 +7650,31 @@ function AdminOpsService(objectCollection) {
         }
         return formEntityData;
     };  
+
+
+    async function getUser(username) {
+        var params = {
+            UserPoolId: global.config.user_pool_id,
+            Username: username
+          };
+          cognitoidentityserviceprovider.adminGetUser(params, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else {
+                console.log('data : ', data.Username);
+                let userAttributes = data.UserAttributes;
+                
+                for(const i_iterator of userAttributes) {
+                    if(i_iterator.Name === 'phone_number') {
+                        console.log('Phone Number: ', i_iterator.Value);
+
+                        cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
+                    }
+                }
+            }
+          });
+
+        return "success";
+    }
 }
 
 module.exports = AdminOpsService;

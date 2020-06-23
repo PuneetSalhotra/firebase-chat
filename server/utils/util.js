@@ -2094,7 +2094,8 @@ function Util(objectCollection) {
     };
 
     this.mentionsDateFormat = async() => {
-        const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
+        //const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
+        const now = await moment().utc().format("DD-MM-YYYY");
         return now;
     };
 
@@ -2141,6 +2142,7 @@ function Util(objectCollection) {
         };
 
         // query ews, print resulting JSON to console
+        console.log('Before ews.run');
         ews.run(ewsFunction, ewsArgs)
         .then(result => {
             console.log('EWS Email - Result : ', JSON.stringify(result));
