@@ -302,7 +302,10 @@ function commonDocusignService(objectCollection) {
           title,
           asset_id,
           receiverName,
-          receiverEmail
+          receiverEmail,
+          clientIPAddress,
+          longitude,
+          latitude
         );
       }
       var results = []
@@ -422,10 +425,13 @@ function commonDocusignService(objectCollection) {
     title,
     asset_id,
     receiverName,
-    receiverEmail
+    receiverEmail,
+    clientIPAddress,
+    longitude,
+    latitude
   ) {
     var streamTypeId
-    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ")"
+    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + "User has signed from IP: " + clientIPAddress + "and location (lat=" + latitude + ",long=" + longitude + ")"
     streamTypeId = 723
     var collectionObj = {
       content: page_url_val,
