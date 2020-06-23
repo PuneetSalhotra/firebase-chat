@@ -3,7 +3,32 @@ const moment = require("moment");
 const superagent = require('superagent')
 const docusign = require('docusign-esign');
 const puppeteer = require("puppeteer");
-const basePath = config.docusignBasePath
+const basePath = config.docusignBasePath,
+      fs = require('fs')
+      ,tokenReplaceMinGet = 60,
+      refreshTokenFile =  require('path').resolve(__dirname,'./refreshTokenFile'),
+      DocusignStrategy = require('passport-docusign'); 
+
+let docusignStrategy = new DocusignStrategy({
+  production: global.config.production,
+  clientID: global.config.ClientId,
+  clientSecret: global.config.ClientSecret,
+  callbackURL:  '/dashboard/callback',
+  state: true
+},
+function _processDsResult(accessToken, refreshToken, params, profile, done) {
+  let user = profile;
+  user.accessToken = accessToken;
+  user.refreshToken = refreshToken;
+  user.expiresIn = params.expires_in;
+  user.tokenExpirationTimestamp = moment().add(user.expiresIn, 's'); 
+  new Encrypt(refreshTokenFile).encrypt(refreshToken);
+  return done(null, user);
+}
+);
+
+
+const Encrypt = require('./Encrypt').Encrypt
 
 function commonDocusignService(objectCollection) {
   const util = objectCollection.util;
@@ -12,9 +37,9 @@ function commonDocusignService(objectCollection) {
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
 
-  this.addFile = async (request, res) => {
+  this.addFile = async (request, res,req) => {
     try {
-      await getAccessTokenUsingRefreshToken(accessToken => {
+      await getAccessToken(async accessToken => {
         const accountId = global.config.accountId;
         const signerName = request.receiver_name;
         const signerEmail = request.receiver_email;
@@ -151,7 +176,7 @@ function commonDocusignService(objectCollection) {
             return res.send(responseWrapper.getResponse(false, response, 200, request));
           }
         })
-      })
+      },req,res)
     } catch (error) {
       return Promise.reject(error);
     }
@@ -303,32 +328,6 @@ function commonDocusignService(objectCollection) {
     }, envelopeId)
   }
 
-  function getAccessTokenUsingRefreshToken(callback) {
-    const clientId = global.config.ClientId;
-    const clientSecret = global.config.ClientSecret;
-    const refreshToken = global.config.refreshToken;
-    const clientString = clientId + ":" + clientSecret,
-      postData = {
-        "grant_type": "refresh_token",
-        "refresh_token": refreshToken,
-      },
-      headers = {
-        "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
-      },
-      authReq = superagent.post(global.config.refreshTokenUrl)
-      .send(postData)
-      .set(headers)
-      .type("application/x-www-form-urlencoded");
-    authReq.end(function (err, authRes) {
-      if (err) {
-        return callback(err, authRes);
-      } else {
-        const accessToken = authRes.body.access_token;
-        return callback(accessToken)
-      }
-    })
-  }
-
   function getAuditEventsDetails(callback, envelopeId) {
     var eventObj = {}
     getAccessTokenUsingRefreshToken(accessToken => {
@@ -471,6 +470,95 @@ function commonDocusignService(objectCollection) {
   function getTimeInDateTimeFormat(date) {
     return moment(date).format("YYYY-MM-DD HH:mm:ss");
   }
+
+  async function  getAccessToken(callback,req, res){
+    if(await hasToken(req))
+    {
+         callback(req.user.accessToken)
+    }
+    else if(fs.existsSync(refreshTokenFile))
+    {
+        await getAccessTokenUsingRefreshToken(req, res,(err)=>{
+            if(err)
+            {
+                console.log("Error getting access token from refresh token");
+                res.redirect(mustAuthenticate);
+            }else
+            {
+                 callback(req.user.accessToken)
+            }
+        });
+    }else
+    {
+        console.log("No valid access token found. Saved refresh token not available either ");
+        res.send("<h1>You are not authenticated with Docusign.</h1>Click <a href='/r1/ds/login'>here</a> to autheticate");
+    }
+  };
+
+  function getAccessTokenUsingRefreshToken(req, res,callback) {  
+    const clientId = global.config.ClientId;
+    const clientSecret = global.config.ClientSecret;
+    const refreshToken = new Encrypt(refreshTokenFile).decrypt();
+    const clientString = clientId + ":" + clientSecret,
+    postData = {
+        "grant_type": "refresh_token",
+        "refresh_token": refreshToken,
+      },
+    headers = {
+        "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
+      },
+    authReq = superagent.post( global.config.refreshTokenUrl)
+        .send(postData)
+        .set(headers)
+        .type("application/x-www-form-urlencoded");
+    const _this = this;
+    authReq.end(function (err, authRes) {
+        if (err) {
+            console.log("ERROR getting access token using refresh token:");
+            console.log(err);
+          return callback(err, authRes);
+        } else {
+            const accessToken = authRes.body.access_token;
+            const refreshToken = authRes.body.refresh_token;
+            const expiresIn = authRes.body.expires_in;
+            docusignStrategy.userProfile(accessToken, function(err,profile)
+            {
+                if (err) {
+                    console.log("ERROR getting user profile:");
+                    console.log(err);
+                    return callback(err, authRes);
+                }else{
+                    let user = profile;
+                    user.accessToken = accessToken;
+                    user.refreshToken = refreshToken;
+                    user.expiresIn = expiresIn;
+                    user.tokenExpirationTimestamp = moment().add(user.expiresIn, 's'); // The dateTime when the access token will expire
+                    req.login(user,(err)=>{
+                            callback();
+                        })
+                  }
+            })
+        }
+      });
+    }
+
+  function hasToken(req, bufferMin = tokenReplaceMinGet) {
+    let noToken = !req.user || !req.user.accessToken || !req.user.tokenExpirationTimestamp,
+      now = moment(),
+      needToken = noToken || moment(req.user.tokenExpirationTimestamp).subtract(
+        bufferMin, 'm').isBefore(now);
+    if (noToken) {
+      console.log('hasToken: Starting up--need a token')
+    }
+    if (needToken && !noToken) {
+      console.log('checkToken: Replacing old token')
+    }
+    if (!needToken) {
+      console.log('checkToken: Using current token')
+    }
+    return (!needToken)
+  }
+
 };
 
 
