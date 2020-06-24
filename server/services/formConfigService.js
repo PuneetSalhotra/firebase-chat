@@ -383,7 +383,11 @@ function FormConfigService(objCollection) {
                 "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
                 "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
-                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id'])
+                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id']),
+                //0 - Nothing - field_value_number_representation
+                //1 - Millions
+                //2 - Crores
+                "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
