@@ -79,10 +79,10 @@ config.documentTypes = {
         signHereTabs:[{
         stampType:"signature",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '195', yPosition: '147'},
+        xPosition: '206', yPosition: '508'},
         {stampType:"stamp",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '355', yPosition: '247'}]
+        xPosition: '206', yPosition: '565'}]
     },
     vodafone:{
         emailSubject:'Please sign this  vodafone document',
