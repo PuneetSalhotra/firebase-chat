@@ -3563,6 +3563,7 @@ function BotService(objectCollection) {
             case 57: // JSON
             case 59: // JSON
             case 64: //JSON                
+            case 71: //JSON
                 return 'data_entity_inline';
             default: console.log('In default Case : getFielDataValueColumnName');
         }

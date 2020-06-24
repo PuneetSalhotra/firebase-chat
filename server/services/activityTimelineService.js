@@ -2740,6 +2740,17 @@ function ActivityTimelineService(objectCollection) {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 71: //Cart Datatype
+                    params[27] = row.field_value;
+                    try {
+                        let fieldValue = row.field_value;
+                        (typeof fieldValue === 'string') ?
+                            params[13] = JSON.parse(row.field_value).total_value:
+                            params[13] = Number(fieldValue.total_value);
+                    } catch(err) {
+                        console.log('data type 71 : ', err);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
