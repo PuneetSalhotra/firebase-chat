@@ -229,7 +229,7 @@ function commonDocusignService(objectCollection) {
     return res.send(responseWrapper.getResponse(false, response, 200, request));
   }
 
-  this.updateStatus = async (request, res) => {
+  this.updateStatus = async (request, res,req) => {
     var envelopeStatus = request.docusignenvelopeinformation.envelopestatus[0]
     var envelopeId = envelopeStatus.envelopeid[0]
     var status = envelopeStatus.status[0]
@@ -328,12 +328,13 @@ function commonDocusignService(objectCollection) {
       )
       results[1] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_history_insert', paramsArray, 0);
       return (results[0])
-    }, envelopeId)
+    }, envelopeId,req,res)
   }
 
-  function getAuditEventsDetails(callback, envelopeId) {
+  function getAuditEventsDetails(callback, envelopeId,req,res) {
     var eventObj = {}
-    getAccessTokenUsingRefreshToken(accessToken => {
+
+     getAccessToken(async accessToken => {
       const headers = {
           "Authorization": "Bearer " + accessToken,
         },
@@ -364,7 +365,7 @@ function commonDocusignService(objectCollection) {
           return callback(eventObj)
         }
       })
-    })
+    },req,res)
   }
 
   async function getHtmlToBase64(request, res) {
@@ -488,7 +489,7 @@ function commonDocusignService(objectCollection) {
             if(err)
             {
                 console.log("Error getting access token from refresh token");
-                res.redirect(mustAuthenticate);
+                return Promise.reject(err);
             }else
             {
                  callback(req.user.accessToken)
