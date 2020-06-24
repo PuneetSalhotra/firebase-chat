@@ -548,6 +548,10 @@ function FormConfigService(objCollection) {
                             activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'single');
                         }
 
+                        if(dataTypeId === 71) {
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
+                        }
+
                         cnt++;
                     }
                     next();
@@ -1166,6 +1170,17 @@ function FormConfigService(objCollection) {
                         break;
                     case 67: // Reminder DataType
                         params[27] = row.field_value;
+                        break;
+                    case 71: //Cart Datatype
+                        params[27] = row.field_value;
+                        try {
+                            let fieldValue = row.field_value;
+                            (typeof fieldValue === 'string') ?
+                                params[13] = JSON.parse(row.field_value).total_value:
+                                params[13] = Number(fieldValue.total_value);
+                        } catch(err) {
+                            console.log('field alter data type 71 : ', err);
+                        }
                         break;
                 }
 
@@ -5577,9 +5592,18 @@ function FormConfigService(objCollection) {
         try{
             if(flag === 'multi') {
                 fieldValue = JSON.parse(fieldData.field_value);
-                for(const i of fieldValue) {
-                    await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    case 68: for(const i of fieldValue) {
+                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                             }
+                             break;
+                    case 71: let childActivities = fieldValue.child_activities;
+                            for(const i of childActivities) {
+                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                            }
+                            break;                    
                 }
+                
             } else { //'Single'
                 fieldValue = (fieldData.field_value).split('|');
                 await activityCommonService.activityActivityMappingInsertV1(newReq, fieldValue[0]);
