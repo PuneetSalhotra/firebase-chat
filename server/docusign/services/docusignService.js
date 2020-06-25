@@ -13,7 +13,7 @@ let docusignStrategy = new DocusignStrategy({
   production: global.config.production,
   clientID: global.config.ClientId,
   clientSecret: global.config.ClientSecret,
-  callbackURL:  '/dashboard/callback',
+  callbackURL:  '/callback',
   state: true
 },
 function _processDsResult(accessToken, refreshToken, params, profile, done) {
@@ -73,13 +73,10 @@ function commonDocusignService(objectCollection) {
 
           var signHere;
           if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
-            signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
+            signHere = global.config.documentTypes[request.document_type]['tabs'];
           else
-            signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
-          signer.tabs = docusign.Tabs.constructFromObject({
-            signHereTabs: signHere
-          });
-
+            signHere = global.config.documentTypes['customerApplicationForm']['tabs'];
+          signer.tabs = signHere
           envDef.recipients = docusign.Recipients.constructFromObject({
             signers: [signer]
           });

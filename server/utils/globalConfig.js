@@ -76,17 +76,28 @@ config.documentTypes = {
     customerApplicationForm:{
         emailSubject:'Please sign this document sent vodafone',
         emailBlurb:'Please sign this document sent vodafone',
-        signHereTabs:[{
+        "tabs": {
+            signHereTabs:[{
         stampType:"signature",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '206', yPosition: '508'},
+        xPosition: '500', yPosition: '508'},
         {stampType:"stamp",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '206', yPosition: '565'}]
-    },
+        xPosition: '500', yPosition: '565'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '500', yPosition: '200'}
+    ],
+        textTabs: [{
+            tabLabel: "Photo",value: "Affix Photograph",locked: "true",
+            xPosition: "470",yPosition: "270",
+            documentId: "1",pageNumber: "1"
+        }]
+    }},
     vodafone:{
         emailSubject:'Please sign this  vodafone document',
         emailBlurb:'Please sign this vodafone document',
+        "tabs": {
         signHereTabs:[{
         stampType:"signature",documentId: '1',
         pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
@@ -100,7 +111,7 @@ config.documentTypes = {
             {stampType:"stamp",documentId: '1',
             pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
             xPosition: '135', yPosition: '177'}]
-    }
+    }}
 }
 
 if(mode === 'testingprodissueenv') {
