@@ -538,6 +538,9 @@ function ActivityService(objectCollection) {
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
                                                  await activityActivityMappingInsertV1(request, fieldData, 0);
                                                  break;
+                                        case 71: await businessCaseTimelineEntry(request, fieldData);
+                                                 await activityActivityMappingInsertV1(request, fieldData, 0);
+                                                 break;
                                         default: break;
                                     }
                                 }
@@ -5075,8 +5078,17 @@ function ActivityService(objectCollection) {
             newReq.activity_id = currentWorkflowActivityId;
         try{
             fieldValue = JSON.parse(fieldData.field_value);
-            for(const i of fieldValue) {
-                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+            switch(Number(fieldData.field_data_type_id)) {
+                case 68: for(const i of fieldValue) {
+                            await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                         }
+                         break;
+
+                case 71: let childActivities = fieldValue.child_activities;
+                         for(const i of childActivities) {
+                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                         }
+                         break;
             }
         } catch(err) {
             console.log('Error in parsing workflow reference datatype V1: ', fieldValue);
@@ -5087,6 +5099,60 @@ function ActivityService(objectCollection) {
         return "success";
     }
 
+    async function businessCaseTimelineEntry(request, fieldData) {
+        let newRequest = Object.assign({}, request);
+        let fieldValue = [];
+
+        try{
+            fieldValue = JSON.parse(fieldData.field_value);            
+        } catch(err) {
+            console.log('Error in parsing businessCaseTimelineEntry: ', fieldValue);
+            console.log(err);
+            return "Failure";
+        }
+        if(Object.keys(fieldValue) > 0) {
+            let childActivities = fieldValue.child_activities;
+            
+            for(i_iterator of childActivities) {
+                let activityDetails = await activityCommonService.getActivityDetailsPromise(request, i_iterator.activity_id);
+                
+                if(activityDetails.length > 0) {
+                    let content = 'Business case added - ' + activityDetails[0].activity_workbook_url;
+
+                    // Fire a 325 request for this activity
+                    let activityTimelineCollectionFor325 = {            
+                        "content": content,
+                        "subject": content,
+                        "mail_body": content,
+                        "attachments": [],            
+                        "activity_reference": [],
+                        "asset_reference": [],
+                        "form_approval_field_reference": []
+                    };
+
+                    newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
+                    newRequest.data_entity_inline = newRequest.activity_timeline_collection;
+                    newRequest.activity_stream_type_id = 325;
+                    newRequest.timeline_stream_type_id = 325;
+                    newRequest.flag_timeline_entry = 1;
+                    newRequest.device_os_id = 7;
+                    newRequest.form_id = request.activity_form_id;
+
+                    let displayFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",            
+                        method: "addTimelineTransactionAsync",
+                        payload: newRequest
+                    };
+
+                    await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
+
+                }
+            }
+        }
+        
+        return "success";
+    }
 
 }
 

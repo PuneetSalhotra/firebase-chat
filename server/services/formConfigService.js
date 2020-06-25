@@ -383,7 +383,11 @@ function FormConfigService(objCollection) {
                 "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
                 "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
-                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id'])
+                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id']),
+                //0 - Nothing - field_value_number_representation
+                //1 - Millions
+                //2 - Crores
+                "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -542,6 +546,10 @@ function FormConfigService(objCollection) {
 
                         if(dataTypeId === 57) { 
                             activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'single');
+                        }
+
+                        if(dataTypeId === 71) {
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
                         }
 
                         cnt++;
@@ -1162,6 +1170,17 @@ function FormConfigService(objCollection) {
                         break;
                     case 67: // Reminder DataType
                         params[27] = row.field_value;
+                        break;
+                    case 71: //Cart Datatype
+                        params[27] = row.field_value;
+                        try {
+                            let fieldValue = row.field_value;
+                            (typeof fieldValue === 'string') ?
+                                params[13] = JSON.parse(row.field_value).total_value:
+                                params[13] = Number(fieldValue.total_value);
+                        } catch(err) {
+                            console.log('field alter data type 71 : ', err);
+                        }
                         break;
                 }
 
@@ -5573,9 +5592,18 @@ function FormConfigService(objCollection) {
         try{
             if(flag === 'multi') {
                 fieldValue = JSON.parse(fieldData.field_value);
-                for(const i of fieldValue) {
-                    await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    case 68: for(const i of fieldValue) {
+                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                             }
+                             break;
+                    case 71: let childActivities = fieldValue.child_activities;
+                            for(const i of childActivities) {
+                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                            }
+                            break;                    
                 }
+                
             } else { //'Single'
                 fieldValue = (fieldData.field_value).split('|');
                 await activityCommonService.activityActivityMappingInsertV1(newReq, fieldValue[0]);
