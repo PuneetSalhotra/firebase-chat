@@ -277,9 +277,8 @@ function commonDocusignService(objectCollection) {
         }
         var base64 = ''
         var pdfContents = envelopeObj.documentpdfs[0].documentpdf
-        var signedDocumentName = envelopeObj.envelopestatus[0].documentstatuses[0].documentstatus[0].name[0]
         for (var i = 0; i < pdfContents.length; i++) {
-          if(pdfContents[i].name[0]== signedDocumentName)
+          if(pdfContents[i].documenttype[0]== 'CONTENT')
             base64 = pdfContents[i].pdfbytes[0]
         }
         var stringBuffer = base64url.toBuffer(base64)
