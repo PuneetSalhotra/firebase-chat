@@ -975,6 +975,31 @@ function BotService(objectCollection) {
         request['datetime_log'] = util.getCurrentUTCTime();
         // console.log("initBotEngine | request: ", request);
 
+        // Prepare the map equivalent for the form's inline data,
+        // for easy checks and comparisons
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            if (!request.hasOwnProperty('activity_inline_data')) {
+                // Usually mobile apps send only activity_timeline_collection parameter in
+                // the "/activity/timeline/entry/add" call
+                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                formInlineData = activityTimelineCollection.form_submitted;
+                if (
+                    Number(request.device_os_id) === 1 &&
+                    typeof activityTimelineCollection.form_submitted === "string"
+                ) {
+                    formInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                }
+            } else {
+                formInlineData = JSON.parse(request.activity_inline_data);
+            }
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+        }
+
         let wfSteps;
         let formLevelWFSteps = [];
         let fieldLevelWFSteps = [];
@@ -990,7 +1015,11 @@ function BotService(objectCollection) {
         }*/
 
         //bot_flag_trigger_on_field_edit
-        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter            
+        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+            /*In case of Refill 
+                1) trigger all form level bots 
+                2) trigger bots on the respective field i.e. altered*/
+
             //flag = 0 = ALL bots
             //flag = 1 = Only Field based bots
             //flag = 2 = ONly Form Based bots
@@ -1025,7 +1054,57 @@ function BotService(objectCollection) {
                 wfSteps = fieldLevelWFSteps;
             }            
 
-        } else { //trigger both the form level bots & field level - Normally happends for the first time form submission
+        } else if(Number(request.is_refill) === 1) { 
+            //This is Form refill SMART FORM 
+            //1) Retrigger all form level bots
+            //2) Retrigger all the impacted field level
+            
+            //1) Retrigger all form level bots
+                let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                    organization_id: 0,
+                    bot_id: 0,
+                    form_id: request.form_id,
+                    field_id: request.altered_field_id,
+                    start_from: 0,
+                    limit_value: 50
+                }, 2);
+
+            let totalBots = botResponse; //Assigning form based bots
+
+            //2) Retrigger all the impacted field level
+            let fieldLevelWFSteps = [];
+            for(const i_iterator of formInlineData) {
+                let tempResponse = await this.getBotworkflowStepsByForm({
+                    "organization_id": 0,
+                    "form_id": request.form_id,
+                    "field_id": i_iterator.field_id,
+                    "bot_id": 0, // request.bot_id,
+                    "page_start": 0,
+                    "page_limit": 50
+                });
+
+                if(tempResponse.length > 0) {
+                    totalBots.concat(tempResponse); //Assigning field level bots
+                }                
+            }
+
+            wfSteps = totalBots;            
+
+        } else if(Number(request.is_resubmit) === 1) {
+            //This is Form resubmit NON-SMART FORM 
+            //Retrigger all form level bots
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: 0,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: request.altered_field_id,
+                start_from: 0,
+                limit_value: 50
+            }, 2);
+
+            wfSteps = botResponse; //Assigning form based bots
+        } else {             
+            //trigger both the form level bots & field level - Normally happens for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
                 "form_id": request.form_id,
@@ -1038,25 +1117,7 @@ function BotService(objectCollection) {
 
         let botOperationsJson,
             botSteps;
-
-        // Prepare the map equivalent for the form's inline data,
-        // for easy checks and comparisons
-        let formInlineData = [], formInlineDataMap = new Map();
-        try {
-            if (!request.hasOwnProperty('activity_inline_data')) {
-                // Usually mobile apps send only activity_timeline_collection parameter in
-                // the "/activity/timeline/entry/add" call
-                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
-                formInlineData = activityTimelineCollection.form_submitted;
-            } else {
-                formInlineData = JSON.parse(request.activity_inline_data);
-            }
-            for (const field of formInlineData) {
-                formInlineDataMap.set(Number(field.field_id), field);
-            }
-        } catch (error) {
-            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
-        }
+        
         //console.log("formInlineDataMap: ", formInlineDataMap);
         //console.log('wfSteps : ', wfSteps);
 
@@ -1187,7 +1248,7 @@ function BotService(objectCollection) {
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('form_field_copy | Request Params received by BOT ENGINE', request);
-                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
+                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2175,6 +2236,12 @@ function BotService(objectCollection) {
             // the "/activity/timeline/entry/add" call
             const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
             reqActivityInlineData = activityTimelineCollection.form_submitted;
+            if (
+                Number(request.device_os_id) === 1 &&
+                typeof activityTimelineCollection.form_submitted === "string"
+            ) {
+                reqActivityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+            }
         } else {
             reqActivityInlineData = JSON.parse(request.activity_inline_data);
         }
@@ -3112,7 +3179,14 @@ function BotService(objectCollection) {
     }
     
     //Bot Step Copying the fields
-    async function copyFields(request, fieldCopyInlineData) {        
+    async function copyFields(request, fieldCopyInlineData, condition = {}) {
+
+        //enable_target_form_submission = 1 then submit the target form
+        //enable_target_form_submission = 0 then do not submit the target form
+        let shouldSubmitTargetForm;
+        (condition.hasOwnProperty('enable_target_form_submission')) ?
+            shouldSubmitTargetForm = Number(condition.enable_target_form_submission):
+            shouldSubmitTargetForm = 0;
 
         const workflowActivityID = Number(request.workflow_activity_id),
             // sourceFormActivityID = Number(request.activity_id),
@@ -3278,6 +3352,7 @@ function BotService(objectCollection) {
             let fieldsAlterRequest = Object.assign({}, request);
                 fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
                 fieldsAlterRequest.form_id = targetFormID;
+                fieldsAlterRequest.activity_form_id = targetFormID;
                 fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
                 fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
                 fieldsAlterRequest.activity_id = targetFormActivityID;
@@ -3291,28 +3366,33 @@ function BotService(objectCollection) {
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            // If the target form has not been submitted yet, create one
-            // let createTargetFormRequest = Object.assign({}, request);
-            //     createTargetFormRequest.activity_form_id = targetFormID;
-            //     createTargetFormRequest.form_id = targetFormID;
-            //     createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
-            //     if(Number(esmsFlag) === 0) {
-            //         createTargetFormRequest.workflow_activity_id = workflowActivityID;
-            //     }
+            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            if(shouldSubmitTargetForm === 1) {
+                // If the target form has not been submitted yet, create one
+                let createTargetFormRequest = Object.assign({}, request);
+                createTargetFormRequest.activity_form_id = targetFormID;
+                createTargetFormRequest.form_id = targetFormID;
+                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
                 
-            //     if(Number(esmsFlag) === 1) {
-            //         //Internally in activityService File. Workflow will be created
-            //         createTargetFormRequest.isESMS = 1;
-            //         createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;
+                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
 
-            //         //flag to know that this form and workflow is submitted by a Bot
-            //         createTargetFormRequest.activity_flag_created_by_bot = 1;
-            //     }
-            // try {
-            //     await createTargetFormActivity(createTargetFormRequest);
-            // } catch (error) {
-            //     console.log("copyFields | createTargetFormActivity | Error: ", error);
-            // }
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;
+                }
+                
+                try {
+                    await createTargetFormActivity(createTargetFormRequest);
+                } catch (error) {
+                    console.log("copyFields | createTargetFormActivity | Error: ", error);
+                }
+            }
+            
         }
         return;
     }
@@ -3483,6 +3563,7 @@ function BotService(objectCollection) {
             case 57: // JSON
             case 59: // JSON
             case 64: //JSON                
+            case 71: //JSON
                 return 'data_entity_inline';
             default: console.log('In default Case : getFielDataValueColumnName');
         }
@@ -5744,7 +5825,10 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
-    this.updateCUIDBotOperationMethod = async(request, formInlineDataMap, cuidInlineData) => {
+    this.updateCUIDBotOperationMethod = async(request, formInlineDataMap = {}, cuidInlineData) => {
+        //let formInlineDataMap = request.form_inline_data_map || {};
+        //let cuidInlineData = request.cuid_inline_data;
+
         return await updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData);
     }
     

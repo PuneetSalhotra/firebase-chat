@@ -227,7 +227,7 @@ function ActivityTimelineService(objectCollection) {
     this.addTimelineTransactionAsync = async (request) => {
         //IF      | 9 & 705
         //ELSE IF | 9 & 713
-        //ELSE IF | 48,50,51 & 705,713,715,716
+        //ELSE IF | 48,50,51,54 & 705,713,715,716
         //ELSE
 
         let responseData = [],
@@ -243,7 +243,8 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
-           (activityTypeCategoryId === 48 && activityStreamTypeId === 713)
+           (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
+           (activityTypeCategoryId === 54 && activityStreamTypeId === 705)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -360,12 +361,13 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false;
 
-        } else if ( //ELSE IF | 48,50,51 & 705,713,715,716
+        } else if ( //ELSE IF | 48,50,51,53,54 & 705,713,715,716
             (
                 activityTypeCategoryId === 48 ||
                 activityTypeCategoryId === 50 ||
                 activityTypeCategoryId === 51 ||
-                activityTypeCategoryId === 53
+                activityTypeCategoryId === 53 ||
+                activityTypeCategoryId === 54
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -406,7 +408,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 48 ||
                     activityTypeCategoryId === 50 ||
                     activityTypeCategoryId === 51 ||
-                    activityTypeCategoryId === 53
+                    activityTypeCategoryId === 53 ||
+                    activityTypeCategoryId === 54
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }
@@ -2737,6 +2740,17 @@ function ActivityTimelineService(objectCollection) {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 71: //Cart Datatype
+                    params[27] = row.field_value;
+                    try {
+                        let fieldValue = row.field_value;
+                        (typeof fieldValue === 'string') ?
+                            params[13] = JSON.parse(row.field_value).total_value:
+                            params[13] = Number(fieldValue.total_value);
+                    } catch(err) {
+                        console.log('data type 71 : ', err);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3767,6 +3781,8 @@ async function addFormEntriesAsync(request) {
                     (assetData[0].operating_asset_first_name).length === 0) {
                     console.log('Either Operating asset name or email id not available for : ', mentionedAssets[i]);
                 } else {
+                    console.log(assetData[0].asset_encryption_token_id);
+                    
                     sendEmail({
                         workflow_title: request.workflow_title,
                         workflow_update: request.workflow_update,
@@ -3775,8 +3791,12 @@ async function addFormEntriesAsync(request) {
                         email_receiver_name: assetData[0].operating_asset_first_name,
                         email_sender_name: senderAssetData[0].operating_asset_first_name,                        
                         //email_sender: senderAssetData[0].operating_asset_email_id
-                        email_sender: 'ESMSMails@vodafoneidea.com'
-                    });
+                        email_sender: 'ESMSMails@vodafoneidea.com',
+                        sender_asset_id: request.asset_id,
+                        receiver_asset_id: mentionedAssets[i],
+                        receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
+                        sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
+                    }, request);
                 }
             } else {
                 console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
@@ -3786,11 +3806,31 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
-    async function sendEmail(request) {
+    async function sendEmail(request, requestObj) {
         let responseData = [],
             error = false;
 
-        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
+        const paramsJSON = {
+            "organization_id": requestObj.organization_id,
+            "account_id": requestObj.account_id,
+            "workforce_id": requestObj.workforce_id,
+            "asset_id": request.sender_asset_id,
+            "auth_asset_id": request.receiver_asset_id,
+            "asset_token_auth": request.receiver_asset_token_auth,
+            "message_unique_id": util.getMessageUniqueId(request.sender_asset_id),
+            "activity_type_category_id": requestObj.activity_type_category_id,
+            "activity_type_id": requestObj.activity_type_id,
+            "activity_id": requestObj.workflow_activity_id,
+            "activity_parent_id": 0,
+            "operating_asset_name": request.operating_asset_name,
+            "us": true
+        };
+    
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
+
+        //const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/eyJvcmdhbml6YXRpb25faWQiOjkwNiwiYWNjb3VudF9pZCI6MTAyMywid29ya2ZvcmNlX2lkIjo1NjYwLCJhc3NldF9pZCI6NDAzOTcsImF1dGhfYXNzZXRfaWQiOjQwMzk3LCJhc3NldF90b2tlbl9hdXRoIjoiMDU5ODZiYjAtZTM2NC0xMWU4LWExYzAtMGI2ODMxODMzNzU0IiwibWVzc2FnZV91bmlxdWVfaWQiOjE1ODc5ODUyMTExMDYsImFjdGl2aXR5X3R5cGVfY2F0ZWdvcnlfaWQiOjQ4LCJhY3Rpdml0eV90eXBlX2lkIjoxNDMzMTcsImFjdGl2aXR5X2lkIjoyODkxMzU1LCJhY3Rpdml0eV9wYXJlbnRfaWQiOjAsIm9wZXJhdGluZ19hc3NldF9uYW1lIjoiU2FoaWwgS2FzaGV0d2FyIn0=`;
+        const urlStr = `${global.config.esmsMentionsEmail}/#/email_link/${base64Json}`;
+        //console.log(urlStr);
 
         /*if (String(customerCollection.contactEmailId).includes('%40')) {
             customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
@@ -3798,13 +3838,13 @@ async function addFormEntriesAsync(request) {
 
         const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
         const Template = "";*/
-        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${util.mentionsDateFormat()} By ${request.email_sender_name}`;
+        let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${await util.mentionsDateFormat()} By ${request.email_sender_name}`;
 
         const Template = `<table><tbody>
                             <tr>
                             <p>
                             Hello <strong>${request.operating_asset_name},</strong><br/>
-                            You have been mentioned by ${request.operating_asset_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
+                            You have been mentioned by ${request.email_sender_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
                             </p>
                             <p>
                                 Following is the copy of the exact update... <br/>
@@ -3825,20 +3865,23 @@ async function addFormEntriesAsync(request) {
                             </tbody>
                             </table>`;
 
-        util.sendEmailV3(request,
-                         request.asset_email_id,
-                         emailSubject,
-                         "IGNORE",
-                         Template,
-                         (err, data) => {
-                                    if (err) {
-                                        console.log("[Send Email - Mention | Error]: ", data);
-                                    } else {
-                                        console.log("[Send Email - Mention | Response]: ", "Email Sent");
-                                    }                
-                                }
-                         );
-        
+        //util.sendEmailV3(request,
+        //                 request.asset_email_id,
+        //                 emailSubject,
+        //                 "IGNORE",
+        //                 Template,
+        //                 (err, data) => {
+        //                            if (err) {
+        //                                console.log("[Send Email - Mention | Error]: ", data);
+        //                            } else {
+        //                                console.log("[Send Email - Mention | Response]: ", "Email Sent");
+        //                            }                
+        //                        }
+        //                 );
+
+        console.log('Sending mentions email to : ', request.asset_email_id);
+        //console.log('Template : ', Template);
+        util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);        
         return [error, responseData];
     }
 

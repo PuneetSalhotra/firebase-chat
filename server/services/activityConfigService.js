@@ -1016,37 +1016,93 @@ function ActivityConfigService(db, util, objCollection) {
     }
 
     this.generateAcctCode = async(request) => {
+        let error = false,
+            responseData = [];
+
         let activityTypeID = Number(request.activity_type_id);
         let accountCode = "";
 
+        request.bot_operation_type_id = 22;
+        request.start_from = 0;
+        request.limit_value = 1;
+        [botError, botData] = await self.botOperationMappingSelectOperationType(request);
+
+        let botInlineData;
+
+        if(botData.length > 0){            
+            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).account_code_dependent_fields;
+        } else {
+            error = true;
+            responseData.push({'Message': 'Bot not defined on the field ID'});
+            return [error, responseData];
+        }        
+
         switch(activityTypeID) {
-            case 149277: //LA
-                         accountCode += 'C-';
-                         accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
-                         break;
+            case 149277://LA                         
+                        const laCompanyNameFID = Number(botInlineData.name_of_the_company);
+                        const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-            case 150442: //GE
-                         accountCode += 'V-';
-                         accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
-                         break;
+                        const laCompanyName = await getFieldValueUsingFieldIdV1(request, laCompanyNameFID);
+                        const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, laGroupCompanyNameFID);
 
-            case 149809: //SME - Thoda Complicated
+                        accountCode += 'C-';
+                        accountCode += laCompanyName.padStart(11, '0');
+                        accountCode += '-'
+                        accountCode += laGroupCompanyName.padStart(6, '0');
+                        
+                        break;
+                        
+            case 150442://GE
+                        const geCompanyNameFID = Number(botInlineData.name_of_the_company);
+                        const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
+
+                        const geCompanyName = await getFieldValueUsingFieldIdV1(request, geCompanyNameFID);
+                        const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, geGroupCompanyNameFID);
+                        
+                        accountCode += 'V-';
+                        accountCode += geCompanyName.padStart(11, '0');
+                        accountCode += '-'
+                        accountCode += geGroupCompanyName.padStart(6, '0');
+
+                        break;
+
+            case 149809: //SME
+                         // Need 
+                         //    - turnover single selection field
+                         //    - Sub industry selection
                          accountCode += 'S-';
                          accountCode += nameofthecompany.padStart(7, '0');
                          
+                         //4 digit sequential number, gets reset to 0000 after 9999
+                         let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
+                         
+                         if(Number(smeSeqNumber) === 9999) {
+                            await cacheWrapper.setSmeSeqNumber(0);
+                            accountCode += '0000';
+                         } else {                            
+                            accountCode += smeSeqNumber.padStart(4, '0');
+                         }                         
+
                          accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         accountCode += '1/2/3' // turnover
+                         accountCode += nameofthecompany.padEnd(5, '0'); //subindustry
                          break;
 
-            case 150254: //VICS
+            case 150254: //VICS: Need - nameofthecompany
                          accountCode += 'W-';
                          accountCode += nameofthecompany.padStart(11, '0');
                          accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
+
+                         //6 digit sequential number, gets reset to 000000 after 999999
+                         let vicsSeqNumber = await cacheWrapper.getVICSSeqNumber();
+                         
+                         if(Number(smeSeqNumber) === 999999) {
+                            await cacheWrapper.setVICSSeqNumber(0);
+                            accountCode += '000000';
+                         } else {                            
+                            accountCode += vicsSeqNumber.padStart(6, '0');
+                         }
+                         
                          break;
 
             case 150443: //GOVT -- Thoda Complicated center/state/circle info
@@ -1057,10 +1113,28 @@ function ActivityConfigService(db, util, objCollection) {
                          accountCode += nameofgrouppcompany.padStart(6, '0');
                          break;
 
-            case 150444: //SOHO -- Thoda Complicated
-                        accountCode += 'D-';
+            case 150444: //SOHO -- Need - Name of the company
+                         accountCode += 'D-';
+                         accountCode += nameofthecompany.padStart(11, '0');
+                         accountCode += '-'
                          break;
         }
+    }
+
+    async function getFieldValueUsingFieldIdV1(request, fieldID) {
+        let fieldValue = "";
+        let inlineData = JSON.parse(request.activity_inline_data);
+
+        for(const fieldData of inlineData) {                        
+            if(Number(fieldData.field_id) === fieldID){
+                switch(Number(field_data_type_id)) {
+                    //case 68: break;
+                    default: fieldValue = fieldData.field_value;
+                }
+            }
+        }
+
+        return fieldValue;
     }
 
 }

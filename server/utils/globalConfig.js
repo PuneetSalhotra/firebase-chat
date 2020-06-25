@@ -61,6 +61,59 @@ config.knowledgeGraphKeywords = ["Mobile connection","GSM","Mobility"
 ]
 config.numberOfThreadsForDiffbotProcessing = 2
 
+//docusign config
+config.accountId = '10725652';
+config.ClientId = "91513002-2fad-4cb3-aa1f-4de24aaea5a4";
+config.ClientSecret = "4d75e63d-6cf2-4ada-bbf3-42a7c85cb35b";
+config.docusignBasePath = 'https://demo.docusign.net/restapi';
+config.auditEventsUrl = 'https://demo.docusign.net/restapi/v2.1/accounts/';
+config.refreshTokenUrl ='https://account-d.docusign.com/oauth/token';
+config.sessionSecret = '12345';
+config.production = false;
+config.tokenSecret = 'LJHDJAS67567%7677SDKLKJSL';
+config.allowSilentAuthentication= true 
+config.documentTypes = {
+    customerApplicationForm:{
+        emailSubject:'Please sign this document sent vodafone',
+        emailBlurb:'Please sign this document sent vodafone',
+        "tabs": {
+            signHereTabs:[{
+        stampType:"signature",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '500', yPosition: '508'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '500', yPosition: '565'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '500', yPosition: '200'}
+    ],
+        textTabs: [{
+            tabLabel: "Photo",value: "Affix Photograph",locked: "true",
+            xPosition: "470",yPosition: "270",
+            documentId: "1",pageNumber: "1"
+        }]
+    }},
+    vodafone:{
+        emailSubject:'Please sign this  vodafone document',
+        emailBlurb:'Please sign this vodafone document',
+        "tabs": {
+        signHereTabs:[{
+        stampType:"signature",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '195', yPosition: '147'},
+        {stampType:"stamp",documentId: '1',
+        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
+        xPosition: '135', yPosition: '177'},{
+            stampType:"signature",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '195', yPosition: '147'},
+            {stampType:"stamp",documentId: '1',
+            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
+            xPosition: '135', yPosition: '177'}]
+    }}
+}
+
 if(mode === 'testingprodissueenv') {
 
     //Ports Config
@@ -326,9 +379,9 @@ if(mode === 'local') {
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
 
-    config.TOPIC_ID = 23;
+    config.TOPIC_ID = 38;
     // config.TOPIC_ID = 26;
-    config.TOPIC_NAME = "desker-activities-test-topic";
+    config.TOPIC_NAME = "desker-activities-sravan-test-topic";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
 
@@ -355,6 +408,8 @@ if(mode === 'local') {
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
+    config.docusignWebApp = "https://preprodweb.officedesk.app";
+    config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 }
 
 if(mode === 'dev') {
@@ -670,9 +725,12 @@ if(mode === 'staging') {
         config.vodafoneServiceEndpoint = "http://staging-vodafone-service.local:3000"
     }
 
-    config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+    //config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
+    config.esmsMentionsEmail = "https://stagingweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
+    config.docusignWebApp = "https://stagingweb.greneos.com";
+    config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 }
 
 if(mode === 'preprod') {
@@ -776,7 +834,8 @@ if(mode === 'preprod') {
     config.emailbaseUrlApprove = "https://preprodweb.officedesk.app";
     config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
 
-    config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+    //config.esmsMentionsEmail = "https://preprodweb.officedesk.app";
+    config.esmsMentionsEmail = "https://preprodweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 }
@@ -884,7 +943,8 @@ if(mode === 'prod') {
     config.emailbaseUrlApprove = "https://web.officedesk.app"; //"https://officedesk.app"; 
     config.emailbaseUrlUpload = "https://web.officedesk.app";   //"https://officedesk.app";
 
-    config.esmsMentionsEmail = "https://web.officedesk.app";
+    //config.esmsMentionsEmail = "https://web.officedesk.app";
+    config.esmsMentionsEmail = "https://web.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
 }

@@ -383,7 +383,11 @@ function FormConfigService(objCollection) {
                 "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled']),
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
                 "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
-                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id'])
+                "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id']),
+                //0 - Nothing - field_value_number_representation
+                //1 - Millions
+                //2 - Crores
+                "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -537,8 +541,17 @@ function FormConfigService(objCollection) {
                         }
                         
                         if(dataTypeId === 68) { 
-                            activityActivityMappingUpdateV1(request, newData, oldFieldValue);
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
                         }
+
+                        if(dataTypeId === 57) { 
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'single');
+                        }
+
+                        if(dataTypeId === 71) {
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
+                        }
+
                         cnt++;
                     }
                     next();
@@ -1080,9 +1093,16 @@ function FormConfigService(objCollection) {
                         if(typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
-                            params[27] = row.field_value;
+                            params[18] = row.field_value;
+                            try {
+                                let tempVar = (row.field_value).split('|');
+                                let tempObj = {};
+                                    tempObj[tempVar[0]] = tempVar[1];
+                                params[27] = JSON.stringify(tempObj);
+                            } catch(err) {
+                                console.log('ERROR in field edit - 57 : ', err);
+                            }                            
                         }
-                        
                         break;
                     case 58://Document reference
                         // documentReference = row.field_value.split('|');
@@ -1095,7 +1115,15 @@ function FormConfigService(objCollection) {
                         if(typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
-                            params[27] = row.field_value;
+                            params[18] = row.field_value;
+                            try {
+                                let tempVar = (row.field_value).split('|');
+                                let tempObj = {};
+                                    tempObj[tempVar[0]] = tempVar[1];
+                                params[27] = JSON.stringify(tempObj);
+                            } catch(err) {
+                                console.log('ERROR in field edit - 57 : ', err);
+                            }
                         }
                         break;
                     case 61: //Time Datatype
@@ -1142,6 +1170,17 @@ function FormConfigService(objCollection) {
                         break;
                     case 67: // Reminder DataType
                         params[27] = row.field_value;
+                        break;
+                    case 71: //Cart Datatype
+                        params[27] = row.field_value;
+                        try {
+                            let fieldValue = row.field_value;
+                            (typeof fieldValue === 'string') ?
+                                params[13] = JSON.parse(row.field_value).total_value:
+                                params[13] = Number(fieldValue.total_value);
+                        } catch(err) {
+                            console.log('field alter data type 71 : ', err);
+                        }
                         break;
                 }
 
@@ -5496,7 +5535,7 @@ function FormConfigService(objCollection) {
 
 
     //Handling Arrya of Objects wala input
-    async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue) {
+    async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue, flag) {
         console.log('In formConfigService activityActivityMappingInsertV1');
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
@@ -5523,18 +5562,25 @@ function FormConfigService(objCollection) {
         console.log('typeof fieldData.field_value', typeof fieldData.field_value);
         console.log('fieldData.field_value', fieldData.field_value);
         console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
+        console.log('oldFieldValue: ', oldFieldValue);
         
         //Unmap the existing one
         let processedOldFieldValue;
         let oldReq = Object.assign({}, request);
             oldReq.activity_id = currentWorkflowActivityId;
         try{
-            processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
-            for(const i_iterator of processedOldFieldValue) {
-                await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.activity_id);
+            if(flag === 'multi') {
+                processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;    
+                for(const i_iterator of processedOldFieldValue) {
+                    await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.activity_id);
+                }
+            } else { //'Single'
+                processedOldFieldValue = oldFieldValue.split('|');
+                await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue[0]);
             }
+            
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype old V1: ', processedOldFieldValue);
+            console.log('Error in parsing workflow reference datatype old V1 field edit: ', processedOldFieldValue);
             console.log(err);
             //return "Failure";
         }
@@ -5544,12 +5590,27 @@ function FormConfigService(objCollection) {
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
         try{
-            fieldValue = JSON.parse(fieldData.field_value);
-            for(const i of fieldValue) {
-                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+            if(flag === 'multi') {
+                fieldValue = JSON.parse(fieldData.field_value);
+                switch(Number(fieldData.field_data_type_id)) {
+                    case 68: for(const i of fieldValue) {
+                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                             }
+                             break;
+                    case 71: let childActivities = fieldValue.child_activities;
+                            for(const i of childActivities) {
+                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                            }
+                            break;                    
+                }
+                
+            } else { //'Single'
+                fieldValue = (fieldData.field_value).split('|');
+                await activityCommonService.activityActivityMappingInsertV1(newReq, fieldValue[0]);
             }
+            
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype new  V1: ', fieldValue);
+            console.log('Error in parsing workflow reference datatype new  V1 field edit: ', fieldValue);
             console.log(err);
             return "Failure";
         }
