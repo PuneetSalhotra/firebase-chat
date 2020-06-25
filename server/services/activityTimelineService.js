@@ -227,7 +227,7 @@ function ActivityTimelineService(objectCollection) {
     this.addTimelineTransactionAsync = async (request) => {
         //IF      | 9 & 705
         //ELSE IF | 9 & 713
-        //ELSE IF | 48,50,51 & 705,713,715,716
+        //ELSE IF | 48,50,51,54 & 705,713,715,716
         //ELSE
 
         let responseData = [],
@@ -243,7 +243,8 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
-           (activityTypeCategoryId === 48 && activityStreamTypeId === 713)
+           (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
+           (activityTypeCategoryId === 54 && activityStreamTypeId === 705)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -360,12 +361,13 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false;
 
-        } else if ( //ELSE IF | 48,50,51 & 705,713,715,716
+        } else if ( //ELSE IF | 48,50,51,53,54 & 705,713,715,716
             (
                 activityTypeCategoryId === 48 ||
                 activityTypeCategoryId === 50 ||
                 activityTypeCategoryId === 51 ||
-                activityTypeCategoryId === 53
+                activityTypeCategoryId === 53 ||
+                activityTypeCategoryId === 54
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -406,7 +408,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 48 ||
                     activityTypeCategoryId === 50 ||
                     activityTypeCategoryId === 51 ||
-                    activityTypeCategoryId === 53
+                    activityTypeCategoryId === 53 ||
+                    activityTypeCategoryId === 54
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }
@@ -2736,6 +2739,17 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
+                    break;
+                case 71: //Cart Datatype
+                    params[27] = row.field_value;
+                    try {
+                        let fieldValue = row.field_value;
+                        (typeof fieldValue === 'string') ?
+                            params[13] = JSON.parse(row.field_value).total_value:
+                            params[13] = Number(fieldValue.total_value);
+                    } catch(err) {
+                        console.log('data type 71 : ', err);
+                    }
                     break;
             }
 
