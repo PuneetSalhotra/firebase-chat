@@ -3,7 +3,32 @@ const moment = require("moment");
 const superagent = require('superagent')
 const docusign = require('docusign-esign');
 const puppeteer = require("puppeteer");
-const basePath = config.docusignBasePath
+const basePath = config.docusignBasePath,
+      fs = require('fs')
+      ,tokenReplaceMinGet = 60,
+      refreshTokenFile =  require('path').resolve(__dirname,'./refreshTokenFile'),
+      DocusignStrategy = require('passport-docusign'); 
+
+let docusignStrategy = new DocusignStrategy({
+  production: global.config.production,
+  clientID: global.config.ClientId,
+  clientSecret: global.config.ClientSecret,
+  callbackURL:  '/callback',
+  state: true
+},
+function _processDsResult(accessToken, refreshToken, params, profile, done) {
+  let user = profile;
+  user.accessToken = accessToken;
+  user.refreshToken = refreshToken;
+  user.expiresIn = params.expires_in;
+  user.tokenExpirationTimestamp = moment().add(user.expiresIn, 's'); 
+  new Encrypt(refreshTokenFile).encrypt(refreshToken);
+  return done(null, user);
+}
+);
+
+
+const Encrypt = require('./Encrypt').Encrypt
 
 function commonDocusignService(objectCollection) {
   const util = objectCollection.util;
@@ -12,9 +37,9 @@ function commonDocusignService(objectCollection) {
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
 
-  this.addFile = async (request, res) => {
+  this.addFile = async (request, res,req) => {
     try {
-      await getAccessTokenUsingRefreshToken(accessToken => {
+      await getAccessToken(async accessToken => {
         const accountId = global.config.accountId;
         const signerName = request.receiver_name;
         const signerEmail = request.receiver_email;
@@ -48,13 +73,10 @@ function commonDocusignService(objectCollection) {
 
           var signHere;
           if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
-            signHere = global.config.documentTypes[request.document_type]['signHereTabs'];
+            signHere = global.config.documentTypes[request.document_type]['tabs'];
           else
-            signHere = global.config.documentTypes['customerApplicationForm']['signHereTabs'];
-          signer.tabs = docusign.Tabs.constructFromObject({
-            signHereTabs: signHere
-          });
-
+            signHere = global.config.documentTypes['customerApplicationForm']['tabs'];
+          signer.tabs = signHere
           envDef.recipients = docusign.Recipients.constructFromObject({
             signers: [signer]
           });
@@ -151,7 +173,7 @@ function commonDocusignService(objectCollection) {
             return res.send(responseWrapper.getResponse(false, response, 200, request));
           }
         })
-      })
+      },req,res)
     } catch (error) {
       return Promise.reject(error);
     }
@@ -204,7 +226,7 @@ function commonDocusignService(objectCollection) {
     return res.send(responseWrapper.getResponse(false, response, 200, request));
   }
 
-  this.updateStatus = async (request, res) => {
+  this.updateStatus = async (request, res,req) => {
     var envelopeStatus = request.docusignenvelopeinformation.envelopestatus[0]
     var envelopeId = envelopeStatus.envelopeid[0]
     var status = envelopeStatus.status[0]
@@ -277,7 +299,10 @@ function commonDocusignService(objectCollection) {
           title,
           asset_id,
           receiverName,
-          receiverEmail
+          receiverEmail,
+          clientIPAddress,
+          longitude,
+          latitude
         );
       }
       var results = []
@@ -300,38 +325,13 @@ function commonDocusignService(objectCollection) {
       )
       results[1] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_history_insert', paramsArray, 0);
       return (results[0])
-    }, envelopeId)
+    }, envelopeId,req,res)
   }
 
-  function getAccessTokenUsingRefreshToken(callback) {
-    const clientId = global.config.ClientId;
-    const clientSecret = global.config.ClientSecret;
-    const refreshToken = global.config.refreshToken;
-    const clientString = clientId + ":" + clientSecret,
-      postData = {
-        "grant_type": "refresh_token",
-        "refresh_token": refreshToken,
-      },
-      headers = {
-        "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
-      },
-      authReq = superagent.post(global.config.refreshTokenUrl)
-      .send(postData)
-      .set(headers)
-      .type("application/x-www-form-urlencoded");
-    authReq.end(function (err, authRes) {
-      if (err) {
-        return callback(err, authRes);
-      } else {
-        const accessToken = authRes.body.access_token;
-        return callback(accessToken)
-      }
-    })
-  }
-
-  function getAuditEventsDetails(callback, envelopeId) {
+  function getAuditEventsDetails(callback, envelopeId,req,res) {
     var eventObj = {}
-    getAccessTokenUsingRefreshToken(accessToken => {
+
+     getAccessToken(async accessToken => {
       const headers = {
           "Authorization": "Bearer " + accessToken,
         },
@@ -362,7 +362,7 @@ function commonDocusignService(objectCollection) {
           return callback(eventObj)
         }
       })
-    })
+    },req,res)
   }
 
   async function getHtmlToBase64(request, res) {
@@ -423,10 +423,13 @@ function commonDocusignService(objectCollection) {
     title,
     asset_id,
     receiverName,
-    receiverEmail
+    receiverEmail,
+    clientIPAddress,
+    longitude,
+    latitude
   ) {
     var streamTypeId
-    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ")"
+    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + "User has signed from IP: " + clientIPAddress + "and location (lat=" + latitude + ",long=" + longitude + ")"
     streamTypeId = 723
     var collectionObj = {
       content: page_url_val,
@@ -471,6 +474,95 @@ function commonDocusignService(objectCollection) {
   function getTimeInDateTimeFormat(date) {
     return moment(date).format("YYYY-MM-DD HH:mm:ss");
   }
+
+  async function  getAccessToken(callback,req, res){
+    if(await hasToken(req))
+    {
+         callback(req.user.accessToken)
+    }
+    else if(fs.existsSync(refreshTokenFile))
+    {
+        await getAccessTokenUsingRefreshToken(req, res,(err)=>{
+            if(err)
+            {
+                console.log("Error getting access token from refresh token");
+                return Promise.reject(err);
+            }else
+            {
+                 callback(req.user.accessToken)
+            }
+        });
+    }else
+    {
+        console.log("No valid access token found. Saved refresh token not available either ");
+        res.send("<h1>You are not authenticated with Docusign.</h1>Click <a href='/r1/ds/login'>here</a> to autheticate");
+    }
+  };
+
+  function getAccessTokenUsingRefreshToken(req, res,callback) {  
+    const clientId = global.config.ClientId;
+    const clientSecret = global.config.ClientSecret;
+    const refreshToken = new Encrypt(refreshTokenFile).decrypt();
+    const clientString = clientId + ":" + clientSecret,
+    postData = {
+        "grant_type": "refresh_token",
+        "refresh_token": refreshToken,
+      },
+    headers = {
+        "Authorization": "Basic " + (new Buffer(clientString).toString('base64')),
+      },
+    authReq = superagent.post( global.config.refreshTokenUrl)
+        .send(postData)
+        .set(headers)
+        .type("application/x-www-form-urlencoded");
+    const _this = this;
+    authReq.end(function (err, authRes) {
+        if (err) {
+            console.log("ERROR getting access token using refresh token:");
+            console.log(err);
+          return callback(err, authRes);
+        } else {
+            const accessToken = authRes.body.access_token;
+            const refreshToken = authRes.body.refresh_token;
+            const expiresIn = authRes.body.expires_in;
+            docusignStrategy.userProfile(accessToken, function(err,profile)
+            {
+                if (err) {
+                    console.log("ERROR getting user profile:");
+                    console.log(err);
+                    return callback(err, authRes);
+                }else{
+                    let user = profile;
+                    user.accessToken = accessToken;
+                    user.refreshToken = refreshToken;
+                    user.expiresIn = expiresIn;
+                    user.tokenExpirationTimestamp = moment().add(user.expiresIn, 's'); // The dateTime when the access token will expire
+                    req.login(user,(err)=>{
+                            callback();
+                        })
+                  }
+            })
+        }
+      });
+    }
+
+  function hasToken(req, bufferMin = tokenReplaceMinGet) {
+    let noToken = !req.user || !req.user.accessToken || !req.user.tokenExpirationTimestamp,
+      now = moment(),
+      needToken = noToken || moment(req.user.tokenExpirationTimestamp).subtract(
+        bufferMin, 'm').isBefore(now);
+    if (noToken) {
+      console.log('hasToken: Starting up--need a token')
+    }
+    if (needToken && !noToken) {
+      console.log('checkToken: Replacing old token')
+    }
+    if (!needToken) {
+      console.log('checkToken: Using current token')
+    }
+    return (!needToken)
+  }
+
 };
 
 
