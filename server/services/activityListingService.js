@@ -3192,6 +3192,72 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	};
 
+	this.getActReferenceList = async(request) => {
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.asset_id,
+			request.activity_type_id,
+			request.activity_type_category_id, 
+			request.tag_id,
+			request.tag_type_id,
+			request.search_string,
+			request.flag_status,
+			request.flag_participating,
+			request.start_from,
+			request.limit_value
+        );        
+        const queryString = util.getQueryString('ds_p1_activity_list_select_product_reference', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];		
+    };
+    
+    this.getChildProductsList = async(request) => {
+		//flag = 0 - Count
+		//flag = 1 - Data
+		
+		let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(    
+            request.organization_id,
+            request.parent_activity_id,
+            request.flag,
+            request.sort_flag,
+            request.datetime_start || '1970-01-01 00:00:00',
+            request.datetime_end || util.getCurrentUTCTime(),
+            request.start_from,
+            request.limit_value
+        );        
+        const queryString = util.getQueryString('ds_p1_activity_list_select_child_products', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];	
+    }
+
 }
 
 module.exports = ActivityListingService;
