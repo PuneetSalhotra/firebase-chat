@@ -5084,9 +5084,9 @@ function ActivityService(objectCollection) {
                          }
                          break;
 
-                case 71: let childActivities = fieldValue.child_activities;
+                case 71: let childActivities = fieldValue.cart_items;
                          for(const i of childActivities) {
-                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                                await activityCommonService.activityActivityMappingInsertV1(newReq, i.product_variant_activity_id);
                          }
                          break;
             }

@@ -244,7 +244,8 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
            (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
-           (activityTypeCategoryId === 54 && activityStreamTypeId === 705)
+           (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
+           (activityTypeCategoryId === 55 && activityStreamTypeId === 705)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -361,13 +362,14 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false;
 
-        } else if ( //ELSE IF | 48,50,51,53,54 & 705,713,715,716
+        } else if ( //ELSE IF | 48,50,51,53,54,55 & 705,713,715,716
             (
                 activityTypeCategoryId === 48 ||
                 activityTypeCategoryId === 50 ||
                 activityTypeCategoryId === 51 ||
                 activityTypeCategoryId === 53 ||
-                activityTypeCategoryId === 54
+                activityTypeCategoryId === 54 ||
+                activityTypeCategoryId === 55
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -2745,8 +2747,8 @@ function ActivityTimelineService(objectCollection) {
                     try {
                         let fieldValue = row.field_value;
                         (typeof fieldValue === 'string') ?
-                            params[13] = JSON.parse(row.field_value).total_value:
-                            params[13] = Number(fieldValue.total_value);
+                            params[13] = JSON.parse(row.field_value).cart_total_cost:
+                            params[13] = Number(fieldValue.cart_total_cost);
                     } catch(err) {
                         console.log('data type 71 : ', err);
                     }

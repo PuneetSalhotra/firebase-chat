@@ -227,7 +227,8 @@ function commonDocusignService(objectCollection) {
   }
 
   this.updateStatus = async (request, res,req) => {
-    var envelopeStatus = request.docusignenvelopeinformation.envelopestatus[0]
+    var envelopeObj = request.docusignenvelopeinformation
+    var envelopeStatus = envelopeObj.envelopestatus[0]
     var envelopeId = envelopeStatus.envelopeid[0]
     var status = envelopeStatus.status[0]
     var date = envelopeStatus.completed[0]
@@ -275,9 +276,10 @@ function commonDocusignService(objectCollection) {
             })
         }
         var base64 = ''
-        var pdfContents = request.docusignenvelopeinformation.documentpdfs[0].documentpdf
+        var pdfContents = envelopeObj.documentpdfs[0].documentpdf
         for (var i = 0; i < pdfContents.length; i++) {
-          base64 = base64 + pdfContents[i].pdfbytes[0]
+          if(pdfContents[i].documenttype[0]== 'CONTENT')
+            base64 = pdfContents[i].pdfbytes[0]
         }
         var stringBuffer = base64url.toBuffer(base64)
         var requestData = {
