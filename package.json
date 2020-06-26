@@ -11,6 +11,10 @@
   "author": "venkatesh",
   "contributors": [],
   "devDependencies": {},
+  "scripts": {
+    "start:main": "mode=local pm2 start main.js",
+    "start:consumer": "mode=local pm2 start consumer.js"
+  },
   "dependencies": {
     "@elastic/elasticsearch": "^7.8.0",
     "@hapi/joi": "^17.1.1",

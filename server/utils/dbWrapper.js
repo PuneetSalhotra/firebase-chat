@@ -9,7 +9,7 @@ var mysql = require('mysql');
 var clusterConfig = {
     canRetry: true,
     removeNodeErrorCount: 5, // Remove the node immediately when connection fails.
-    restoreNodeTimeout: 500,
+    restoreNodeTimeout: 1000, //Milliseconds
     defaultSelector: 'ORDER'
 };
 
@@ -37,14 +37,14 @@ readCluster.add('SLAVE1', {
 });
 
 //Adding Master
-readCluster.add('MASTER', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
+//readCluster.add('MASTER', {
+//    connectionLimit: global.config.conLimit,
+//    host: global.config.masterIp,
+//    user: global.config.dbUser,
+//    password: global.config.dbPassword,
+//    database: global.config.database,
+//    debug: false
+//});
 
 //Test the connection pool error
 var checkDBInstanceAvailablity = async (flag) => {

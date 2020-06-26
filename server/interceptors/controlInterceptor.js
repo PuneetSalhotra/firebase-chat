@@ -57,6 +57,10 @@ const LedgerOpsController = require('../Ledgers/controllers/ledgerOpsController'
 // Stats
 var StatsController = require('../controllers/statsController');
 
+// data manament export to pdf
+const DataManagementController = require('../controllers/dataManagementController');
+
+
 // Ledger Services
 const WorkbookOpsController_VodafoneCustom = require('../Workbook/controllers/workbookOpsController_VodafoneCustom');
 
@@ -117,8 +121,11 @@ function ControlInterceptor(objCollection) {
 
     //DOA services
     new doaController(objCollection);
-    
-    if (process.env.ENABLE_CUSTOM_EXCEL_BOT) {
+
+    // data management export
+    new DataManagementController(objCollection);
+
+    if(process.env.ENABLE_CUSTOM_EXCEL_BOT) {
         new WorkbookOpsController_VodafoneCustom(objCollection);
     }
 

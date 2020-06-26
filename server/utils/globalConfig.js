@@ -67,54 +67,69 @@ config.ClientId = "91513002-2fad-4cb3-aa1f-4de24aaea5a4";
 config.ClientSecret = "4d75e63d-6cf2-4ada-bbf3-42a7c85cb35b";
 config.docusignBasePath = 'https://demo.docusign.net/restapi';
 config.auditEventsUrl = 'https://demo.docusign.net/restapi/v2.1/accounts/';
-config.refreshTokenUrl ='https://account-d.docusign.com/oauth/token';
+config.refreshTokenUrl = 'https://account-d.docusign.com/oauth/token';
 config.sessionSecret = '12345';
 config.production = false;
 config.tokenSecret = 'LJHDJAS67567%7677SDKLKJSL';
-config.allowSilentAuthentication= true 
+config.allowSilentAuthentication = true
 config.documentTypes = {
-    customerApplicationForm:{
-        emailSubject:'Please sign this document sent vodafone',
-        emailBlurb:'Please sign this document sent vodafone',
+    customerApplicationForm: {
+        emailSubject: 'Please sign this document sent vodafone',
+        emailBlurb: 'Please sign this document sent vodafone',
         "tabs": {
-            signHereTabs:[{
-        stampType:"signature",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '500', yPosition: '508'},
-        {stampType:"signature",documentId: '1',
-            pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-            xPosition: '510', yPosition: '220'},
-        {stampType:"stamp",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '500', yPosition: '565'},
-        {stampType:"stamp",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '500', yPosition: '200'}
-        ],
-        textTabs: [{
-            tabLabel: "Photo",value: "Affix Photograph",locked: "true",
-            xPosition: "470",yPosition: "270",
-            documentId: "1",pageNumber: "1"
-        }]
-    }},
-    vodafone:{
-        emailSubject:'Please sign this  vodafone document',
-        emailBlurb:'Please sign this vodafone document',
+            signHereTabs: [{
+                stampType: "signature",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '500',yPosition: '508'
+            },
+            {
+                stampType: "signature",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '510',yPosition: '220'
+            },
+            {
+                stampType: "stamp",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '500',yPosition: '565'
+            },
+            {
+                stampType: "stamp",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '500',yPosition: '200'
+            }
+            ],
+            textTabs: [{
+                tabLabel: "Photo",value: "Affix Photograph",locked: "true",
+                xPosition: "470",yPosition: "270",
+                documentId: "1",pageNumber: "1"
+            }]
+        }
+    },
+    vodafone: {
+        emailSubject: 'Please sign this  vodafone document',
+        emailBlurb: 'Please sign this vodafone document',
         "tabs": {
-        signHereTabs:[{
-        stampType:"signature",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '195', yPosition: '147'},
-        {stampType:"stamp",documentId: '1',
-        pageNumber: '1', recipientId: '1', tabLabel: 'SignHereTab',
-        xPosition: '135', yPosition: '177'},{
-            stampType:"signature",documentId: '1',
-            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
-            xPosition: '195', yPosition: '147'},
-            {stampType:"stamp",documentId: '1',
-            pageNumber: '2', recipientId: '1', tabLabel: 'SignHereTab',
-            xPosition: '135', yPosition: '177'}]
-    }}
+            signHereTabs: [{
+                stampType: "signature",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '195',yPosition: '147'
+            },
+            {
+                stampType: "stamp",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '135',yPosition: '177'
+            },{
+                stampType: "signature",documentId: '1',
+                pageNumber: '2',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '195',yPosition: '147'
+            },
+            {
+                stampType: "stamp",documentId: '1',
+                pageNumber: '2',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '135',yPosition: '177'
+            }]
+        }
+    }
 }
 
 if(mode === 'testingprodissueenv') {
@@ -411,7 +426,8 @@ if(mode === 'local') {
     config.esmsMentionsEmail = "https://stagingweb.officedesk.app";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
-    config.docusignWebApp = "https://preprodweb.officedesk.app";
+    config.docusignWebApp = "https://sprintweb.greneos.com";
+    // config.docusignWebApp = "https://preprodweb.officedesk.app";
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 }
 
