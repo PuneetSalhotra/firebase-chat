@@ -46,24 +46,37 @@ module.exports = function DataManagementService(params) {
     async function generateFormDataPdf(req,res) {
         try {
             const exportFormUrl = `${global.config.docusignWebApp}/#/forms/exportview/${req.body.form_data}`;
-            console.log('exportFormUrl',exportFormUrl);
-            // const browser = await puppeteer.launch({args: ['--no-sandbox','--disable-setuid-sandbox']});
             const browser = await puppeteer.launch({args: ['--no-sandbox','--disable-setuid-sandbox']});
             console.log('browser launch');
             const page = await browser.newPage();
-            console.log('page created ',page);
+            page.on('console',message => console[message.type()](`👉 ${message.text()}`));
+            page.on('error',error => console.error(`❌ ${error}`));
+            // Emitted when a script within the page has uncaught exception
+            page.on('pageerror',error => console.error(`❌ ${error}`));
+
+            // Emitted when the page produces a request
+            page.on('request',request => console.info(`👉 Request: ${request.url()}`));
+
+            // Emitted when a request, which is produced by the page, fails
+            page.on('requestfailed',request => console.info(`❌ Failed request: ${request.url()}`));
+
+            // Emitted when a request, which is produced by the page, finishes successfully
+            page.on('requestfinished',request => console.info(`👉 Finished request: ${request.url()}`));
+
+            // Emitted when a response is received
+            page.on('response',response => console.info(`👉 Response: ${response.url()}`));
+
             await page.goto(exportFormUrl,{
                 waitUntil: 'networkidle0',
                 timeout: 0
             });
-            console.log('page open');
             await page.waitFor(10000);
             await page.setViewport({
                 width: 1680,
                 height: 1050
             });
             console.log('returning pdf');
-            const pdf = await page.pdf();
+            const pdf = await page.pdf({format: 'A4',printBackground: true});
             await browser.close();
             return pdf;
         }
@@ -108,7 +121,7 @@ module.exports = function DataManagementService(params) {
         const epoch = moment().valueOf();
         var payload = {
             content: pdfUrl,
-            subject: 'Forms data has been exported to pdf',
+            subject: 'Data has been exported to PDF',
             mail_body: pdfUrl,
             attachments: [],
             activity_reference: [{
