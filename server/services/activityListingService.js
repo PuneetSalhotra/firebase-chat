@@ -3264,6 +3264,7 @@ async function processFormInlineDataV1(request, data){
 
         const paramsArr = new Array(    
 			request.organization_id,
+			request.target_asset_id,
 			request.target_account_id,
 			request.segment_id,
 			request.activity_type_category_id,
