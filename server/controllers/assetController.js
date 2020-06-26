@@ -776,6 +776,15 @@ function AssetController(objCollection) {
             console.log("/asset/message-counter/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
-    });  
+    }); 
+
+    app.post('/' + global.config.version + '/asset/access/levels/list/v1', async function (req, res) {
+        const [err, data] = await assetService.assetAccessLevelMappingSelectFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    }); 
 }
 module.exports = AssetController;
