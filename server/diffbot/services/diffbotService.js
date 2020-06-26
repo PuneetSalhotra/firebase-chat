@@ -271,6 +271,29 @@ function DiffbotService(objectCollection) {
     return responseData;
   }
 
+  async function getAccountsListForTenderCrawling(request,searchStr,start_from,limit_value) {
+    let result;
+    let paramsArray;
+    paramsArray = new Array(searchStr,start_from,limit_value);
+    const queryString = util.getQueryString(
+      "ds_p1_1_activity_list_select_tender_crawling",
+      paramsArray,
+      1
+    );
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(data => {
+          responseData = data;
+          error = false;
+        })
+        .catch(err => {
+          error = err;
+        });
+    }
+    return responseData;
+  }
+
   async function updateWorkflowTimelineCorrespondingAccountId(
     org_id_val,
     account_id_val,
@@ -414,7 +437,7 @@ function DiffbotService(objectCollection) {
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
-             accountsList = await getAccountsList(diffbotrequest,tenders[k]["CompanyName"],0,50);
+             accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"],0,50);
              for( var j=0;j<accountsList.length;j++)
              {
               if (
