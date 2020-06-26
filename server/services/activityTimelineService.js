@@ -227,7 +227,7 @@ function ActivityTimelineService(objectCollection) {
     this.addTimelineTransactionAsync = async (request) => {
         //IF      | 9 & 705
         //ELSE IF | 9 & 713
-        //ELSE IF | 48,50,51,54 & 705,713,715,716
+        //ELSE IF | 48,50,51,54 & 705,713,715,716,726
         //ELSE
 
         let responseData = [],
@@ -375,7 +375,8 @@ function ActivityTimelineService(objectCollection) {
                 activityStreamTypeId === 713 ||
                 activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 ||
-                activityStreamTypeId === 716
+                activityStreamTypeId === 716 ||
+                activityStreamTypeId === 726
             )
         ) { 
 
