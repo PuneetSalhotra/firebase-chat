@@ -538,7 +538,7 @@ function ActivityService(objectCollection) {
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
                                                  await activityActivityMappingInsertV1(request, fieldData, 0);
                                                  break;
-                                        case 71: await businessCaseTimelineEntry(request, fieldData);
+                                        case 71: //await businessCaseTimelineEntry(request, fieldData);
                                                  await activityActivityMappingInsertV1(request, fieldData, 0);
                                                  break;
                                         default: break;
