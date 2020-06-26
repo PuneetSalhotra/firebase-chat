@@ -3563,7 +3563,7 @@ function BotService(objectCollection) {
             case 57: // JSON
             case 59: // JSON
             case 64: //JSON                
-            case 71: //JSON
+            //case 71: //JSON
                 return 'data_entity_inline';
             default: console.log('In default Case : getFielDataValueColumnName');
         }
@@ -3573,6 +3573,7 @@ function BotService(objectCollection) {
         switch (fieldDataTypeID) {
             case 1: // Date
                 return 'data_entity_datetime_2';
+            case 71: 
             case 5: // Number
                 return 'data_entity_bigint_1';
             case 6: // Decimal

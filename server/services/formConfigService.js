@@ -1176,8 +1176,8 @@ function FormConfigService(objCollection) {
                         try {
                             let fieldValue = row.field_value;
                             (typeof fieldValue === 'string') ?
-                                params[13] = JSON.parse(row.field_value).total_value:
-                                params[13] = Number(fieldValue.total_value);
+                                params[13] = JSON.parse(row.field_value).cart_total_cost:
+                                params[13] = Number(fieldValue.cart_total_cost);
                         } catch(err) {
                             console.log('field alter data type 71 : ', err);
                         }
@@ -5597,9 +5597,9 @@ function FormConfigService(objCollection) {
                                 await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
                              }
                              break;
-                    case 71: let childActivities = fieldValue.child_activities;
+                    case 71: let childActivities = fieldValue.cart_items;
                             for(const i of childActivities) {
-                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.child_activity_id);
+                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.product_variant_activity_id);
                             }
                             break;                    
                 }
