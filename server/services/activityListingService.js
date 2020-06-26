@@ -3258,6 +3258,36 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];	
     }
 
+    this.getActivityCategorySearch =  async (request) => {	
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(    
+			request.organization_id,
+			request.target_asset_id,
+			request.target_account_id,
+			request.segment_id,
+			request.activity_type_category_id,
+			request.is_search,
+			request.search_string,
+			request.page_start,
+			request.page_limit			
+        );        
+        const queryString = util.getQueryString('ds_v1_activity_list_select_category_search', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
 }
 
 module.exports = ActivityListingService;
