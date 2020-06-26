@@ -85,7 +85,7 @@ config.documentTypes = {
             {
                 stampType: "signature",documentId: '1',
                 pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
-                xPosition: '500',yPosition: '215'
+                xPosition: '510',yPosition: '220'
             },
             {
                 stampType: "stamp",documentId: '1',
