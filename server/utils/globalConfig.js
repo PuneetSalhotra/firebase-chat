@@ -83,6 +83,11 @@ config.documentTypes = {
                 xPosition: '500',yPosition: '508'
             },
             {
+                stampType: "signature",documentId: '1',
+                pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
+                xPosition: '500',yPosition: '215'
+            },
+            {
                 stampType: "stamp",documentId: '1',
                 pageNumber: '1',recipientId: '1',tabLabel: 'SignHereTab',
                 xPosition: '500',yPosition: '565'
