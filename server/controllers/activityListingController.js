@@ -938,6 +938,15 @@ function ActivityListingController(objCollection) {
         });
     });
 
+    app.post('/' + global.config.version + '/activity/category/search/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActivityCategorySearch(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/category/search/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });   
     app.post('/' + global.config.version + '/workflow/activity-reference/list', async (req, res) => {
         const [err, workforceTypeData] = await activityListingService.getActReferenceList(req.body);
         if (!err) {
@@ -957,6 +966,7 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, workforceTypeData, -9999, req.body));
         }
     });
+
 }
 
 module.exports = ActivityListingController;
