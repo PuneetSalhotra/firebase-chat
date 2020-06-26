@@ -431,7 +431,7 @@ function commonDocusignService(objectCollection) {
     latitude
   ) {
     var streamTypeId
-    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + "User has signed from IP: " + clientIPAddress + "and location (lat=" + latitude + ",long=" + longitude + ")"
+    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + " User has signed from IP: " + clientIPAddress + " and location (lat=" + latitude + ",long=" + longitude + ")"
     streamTypeId = 723
     var collectionObj = {
       content: page_url_val,
