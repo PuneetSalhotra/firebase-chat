@@ -688,9 +688,10 @@ function CacheWrapper(client) {
 
     this.setUserNameFromAccessToken = (userName, setValue) => {
         return new Promise((resolve, reject) => {
-            client.set(userName, setValue, function (err, reply) {
+            //client.set(userName, setValue, function (err, reply) {
+            client.hset('cognito_user_map',userName, setValue, function (err, reply) {
                 if (err) {
-                    logger.error(`SET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    logger.error(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(err);
                 } else {
                     //logger.verbose(`SET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
@@ -702,12 +703,13 @@ function CacheWrapper(client) {
 
     this.getUserNameFromAccessToken = (userName) => {
         return new Promise((resolve, reject) => {
-            client.get(userName, function (err, reply) {
+            client.hget('cognito_user_map', userName, function (err, reply) {
+            //client.get(userName, function (err, reply) {
                 if (err) {
-                    logger.error(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    logger.error(`HGET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(err);
                 } else {
-                    logger.verbose(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    logger.verbose(`HGET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(reply);
                 }
             });
@@ -716,17 +718,18 @@ function CacheWrapper(client) {
 
     this.delUserNameCognito = (userName) => {
         return new Promise((resolve, reject) => {
-            client.del(userName, function (err, reply) {
+            client.hdel('cognito_user_map', userName, function (err, reply) {
+            //client.del(userName, function (err, reply) {
                 if (err) {
-                    logger.error(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    logger.error(`HDEL UserNameCognito ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(err);
                 } else {
-                    logger.verbose(`GET UserNameFromAccessToken ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    logger.verbose(`HDEL UserNameCognito ${JSON.stringify(userName)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(reply);
                 }
             });
         });        
-    };
+    };    
 
 }
 

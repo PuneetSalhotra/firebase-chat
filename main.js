@@ -315,6 +315,7 @@ async function listUsers(paginationToken = null) {
 				for(const j of i.Attributes) {
 					if(j.Name === 'phone_number') {
                         cacheWrapper.setUserNameFromAccessToken(i.Username, j.Value);
+                        //cacheWrapper.delUserNameCognito(i.Username);
 						//map.set(i.Username, j.Value);
 					}
 				}
