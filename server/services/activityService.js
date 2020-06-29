@@ -5072,6 +5072,10 @@ function ActivityService(objectCollection) {
         console.log('typeof fieldData.field_value', typeof fieldData.field_value);
         console.log('fieldData.field_value', fieldData.field_value);
         console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
+
+        if(request.hasOwnProperty('is_refill') && Number(request.is_refill) === 1) {
+            await unMapFromActActMapping(request, fieldData);
+        }
         
         let fieldValue;
         let newReq = Object.assign({}, request);
@@ -5151,6 +5155,51 @@ function ActivityService(objectCollection) {
             }
         }
         
+        return "success";
+    }
+
+    async function unMapFromActActMapping(request, fieldData) {
+        let activityData;
+        let oldFieldValue;
+
+        try {
+            activityData = await activityCommonService.getActivityByFormTransaction({
+                activity_id: request.activity_id,
+                form_transaction_id: Number(request.prev_form_transaction_id),
+                organization_id: request.organization_id
+            });        
+                
+            let retrievedInlineData = JSON.parse(activityData[0].activity_inline_data);
+            for(const i_iterator of retrievedInlineData) {
+                if(fieldData.field_id === i_iterator.field_id) {
+                    oldFieldValue = i_iterator.field_value;
+
+                    let processedOldFieldValue;
+                    let oldReq = Object.assign({}, request);
+                        oldReq.activity_id = currentWorkflowActivityId;                    
+                    
+                    //Unmap the existing one                  
+                    switch(Number(newData.field_data_type_id)) {
+                        case 68: //array of objects
+                                 processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
+                                 for(const j_iterator of processedOldFieldValue) {
+                                      await activityCommonService.activityActivityMappingArchive(oldReq, j_iterator.activity_id);
+                                 }                                
+                                 break;
+
+                        case 71: processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
+                                 let childActivities = processedOldFieldValue.cart_items;
+                                 for(const j_iterator of childActivities) {
+                                        await activityCommonService.activityActivityMappingArchive(oldReq, j_iterator.product_variant_activity_id);
+                                 }
+                                 break;                        
+                    }
+                }            
+            } //End of For Loop    
+        } catch(err) {
+            console.log('Error in unMapFromActActMapping : ', err);
+        }
+
         return "success";
     }
 
