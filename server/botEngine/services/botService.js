@@ -1583,6 +1583,22 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+
+                case 28: //Airthmetic Bot
+                        logger.silly("ArithMetic Bot Params received from Request: %j", request);
+                        try {
+                            await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
+                        } catch (error) {
+                            logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                        }
+                        break;
+
+                case 29: //Reminder Bot
+                        break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -6557,6 +6573,36 @@ function BotService(objectCollection) {
             payload: request
         }, "staging-vil-esms-ibmmq-v1", request.workflow_activity_id || request.activity_id);
         return [false, []];
+    }
+
+    async function arithmeticBot(request, formInlineDataMap, arithmeticCalculation) {
+
+        /*"arithmetic_calculation": {
+            "target_form_id": 0,
+            "target_field_id": 0,
+            "operations": [
+            {
+                "form_id": 1529,
+                "field_id": 13890,
+                "sequence_id":1,
+                "join_condition": "+|-|*|/|EOJ"
+            },
+            {
+                "form_id": 1529,
+                "field_id": 13890,
+                "sequence_id":2,
+                "join_condition": "+|-|*|/|EOJ"
+            }]
+        }*/
+
+        let fieldsData = arithmeticCalculation.operations;
+
+        //Before firing check that all the required input fields are available else dont fire.
+        
+
+        for(const i_iterator of fieldsData){
+            
+        }
     }
 
 }
