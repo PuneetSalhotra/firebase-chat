@@ -4939,7 +4939,7 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
-                        } else if (request.flag == 22) {
+                        } else if (request.flag == 21) {
                             if (data.length == 0) {
                                 if (request.account_id > 0) {
                                     let paramsArrInter = new Array(
@@ -4962,12 +4962,12 @@ this.getQrBarcodeFeeback = async(request) => {
                                                 if (IntermediateData.length == 1) {
 
                                                     if (IntermediateData[0].segment_id == 0) {
-
+                                                        
                                                         tagListOfTagTypeSelect(request).then((resData) => {
 
                                                             singleData.query_status = 0;
-                                                            singleData.segment_id = 0;
-                                                            singleData.segment_name = "All";
+                                                            singleData.tag_id = 0;
+                                                            singleData.tag_name = "All";
 
                                                             resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
 
@@ -5002,12 +5002,12 @@ this.getQrBarcodeFeeback = async(request) => {
 
                             } else if (data.length == 1) {
                                 if (data[0].segment_id == 0) {
-
+                                    
                                     tagListOfTagTypeSelect(request).then((resData) => {
 
                                         singleData.query_status = 0;
-                                        singleData.segment_id = 0;
-                                        singleData.segment_name = "All";
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
 
@@ -5104,6 +5104,168 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 8) {
+                            if (data.length == 0) {
+                                tagEntityMappingSelect(request).then((resData) => {
+
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            } else {
+                                if (data[0].activity_type_id == 0) {
+
+                                    tagEntityMappingSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.activity_type_id = 0;
+                                        singleData.activity_type_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            }
+                        } else if (request.flag == 22) {
+                            if (data.length == 0) {
+                                if (request.account_id > 0) {
+                                    let paramsArrInter = new Array(
+                                        request.organization_id,
+                                        0,
+                                        request.workforce_id,
+                                        request.segment_id || 0,
+                                        request.target_asset_id,
+                                        request.tag_type_id || 0,
+                                        request.tag_id || 0,
+                                        request.flag || 1,
+                                        request.page_start || 0,
+                                        request.page_limit || 50
+                                    );
+                                    let queryStringInter = util.getQueryString('ds_p1_asset_access_level_mapping_select_flag', paramsArrInter);
+                                    if (queryStringInter !== '') {
+                                        db.executeQueryPromise(1, queryStringInter, request)
+                                            .then((IntermediateData) => {
+
+                                                if (IntermediateData.length == 1) {
+
+                                                    if (IntermediateData[0].tag_id == 0) {
+                                                        
+                                                        tagListOfTagTypeSelect(request).then((resData) => {
+
+                                                            singleData.query_status = 0;
+                                                            singleData.tag_id = 0;
+                                                            singleData.tag_name = "All";
+
+                                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                                            responseData[0] = "";
+                                                            responseData[1] = resData;
+                                                            //console.log("responseData ", responseData);
+                                                            resolve(responseData);
+
+                                                        });
+                                                    } else {
+                                                        responseData[0] = "";
+                                                        responseData[1] = IntermediateData;
+                                                        resolve(responseData);
+                                                    }
+                                                } else {
+                                                    responseData[0] = "";
+                                                    responseData[1] = IntermediateData;
+                                                    resolve(responseData);
+                                                }
+                                            })
+
+                                    } else {
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+
+                            } else if (data.length == 1) {
+                                if (data[0].tag_id == 0) {
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 23) {
+                            if (data.length == 0) {
+                                tagEntityMappingSelect(request).then((resData) => {
+
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            } else {
+                                if (data[0].product_type_id == 0) {
+
+                                    tagEntityMappingSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.activity_type_id = 0;
+                                        singleData.activity_type_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            }
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -5122,7 +5284,7 @@ this.getQrBarcodeFeeback = async(request) => {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
-                1,
+                request.tag_type_category_id,
                 request.tag_type_id,
                 request.page_start,
                 request.page_limit
@@ -5134,7 +5296,25 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
             }
         });
-    };  
+    };
+
+    async function tagEntityMappingSelect(request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.tag_id,
+                request.page_start || 0,
+                request.page_limit
+            );
+            const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select', paramsArr);
+
+             if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };      
 }
 
 module.exports = AssetService;
