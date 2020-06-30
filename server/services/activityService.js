@@ -5081,7 +5081,8 @@ function ActivityService(objectCollection) {
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
         try{
-            fieldValue = JSON.parse(fieldData.field_value);
+            fieldValue = (typeof fieldData.field_value === 'string')? JSON.parse(fieldData.field_value) : fieldData.field_value;
+            console.log('fieldValue : ', fieldValue);
             switch(Number(fieldData.field_data_type_id)) {
                 case 68: for(const i of fieldValue) {
                             await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);

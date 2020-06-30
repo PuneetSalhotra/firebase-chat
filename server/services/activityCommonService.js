@@ -4286,6 +4286,7 @@ this.getAllParticipantsAsync = async (request) => {
             case 714: //Bot Firing External API
             case 715:
             case 716:
+            case 726:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -4579,6 +4580,7 @@ this.getAllParticipantsAsync = async (request) => {
             case 714:
             case 715:
             case 716:
+            case 726:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 // entityText2 = request.activity_timeline_collection;
