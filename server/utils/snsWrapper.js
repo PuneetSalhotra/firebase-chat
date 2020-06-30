@@ -35,6 +35,7 @@ var AwsSns = function () {
         GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
         GCMjson.data.activity_id = Number(message.activity_id) || 0;
+        //GCMjson.data.activity_type_category_id = Number(message.activity_type_category_id) || 0;
         GCMjson.data.subtitle = `'${message.subtitle}'`;
         GCMjson.data.body = `'${message.body}'`;
 
@@ -46,6 +47,7 @@ var AwsSns = function () {
                 'body': `${message.subtitle}\r\n${message.body}`
             },
             'activity_id': Number(message.activity_id) || 0,
+            'activity_type_category_id': Number(message.activity_type_category_id) || 0,
             'content-available': 1,
         };
 
@@ -55,6 +57,7 @@ var AwsSns = function () {
                 'sound': '',
                 'alert': '',
                 'activity_id': Number(message.activity_id) || 0,
+                'activity_type_category_id': Number(message.activity_type_category_id) || 0,
                 'form_id': Number(message.form_id),
                 'field_id': Number(message.field_id),
                 'content-available': 1,
