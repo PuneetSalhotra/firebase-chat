@@ -3288,6 +3288,37 @@ async function processFormInlineDataV1(request, data){
         return [error, responseData];
 	};
 
+	
+	this.getActActChildActivitiesV1 =  async (request) => {
+		let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(            
+            request.workflow_activity_id,
+            request.activity_type_id,
+			request.activity_type_category_id,
+			request.tag_id,
+			request.tag_type_id,
+			request.organization_id,
+			request.flag,
+			request.page_start || 0,
+			request.page_limit
+        );        
+        const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_select_child_activities', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
 }
 
 module.exports = ActivityListingService;
