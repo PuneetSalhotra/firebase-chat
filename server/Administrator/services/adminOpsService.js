@@ -24,6 +24,8 @@ function AdminOpsService(objectCollection) {
     const nodeUtil = require('util');
     const self = this;
 
+    const cacheWrapper = objectCollection.cacheWrapper;
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -7562,11 +7564,11 @@ function AdminOpsService(objectCollection) {
                     console.log(err, err.stack); // an error occurred
                 } else {
                 console.log(data);           // successful response
-                
-                //After 5 seconds get the added user from cognito and add it to the redis layer
-                setTimeOut(()=>{ getUser(username) }, 5000);                
                 }
     
+                //After 5 seconds get the added user from cognito and add it to the redis layer
+                console.log('Beofre setTimeout 5 Seconds');
+                setTimeout(()=>{ getUser(username) }, 5000);
                 resolve();
             });
         });
