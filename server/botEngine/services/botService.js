@@ -6576,6 +6576,8 @@ function BotService(objectCollection) {
     }
 
     async function arithmeticBot(request, formInlineDataMap, arithmeticCalculation) {
+        let responseData = [],
+            error = false;
 
         /*"arithmetic_calculation": {
             "target_form_id": 0,
@@ -6598,11 +6600,54 @@ function BotService(objectCollection) {
         let fieldsData = arithmeticCalculation.operations;
 
         //Before firing check that all the required input fields are available else dont fire.
-        
-
         for(const i_iterator of fieldsData){
-            
+            let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);
+            if(!formData.length > 0) {
+                responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+                console.log('responseData : ', responseData);
+                return [true, responseData];
+            }
+
+            for(const j_iterator of formData) {
+                if(i_iterator.field_id === j_iterator.field_id) {
+                    if(util.replaceDefaultString(j_iterator.field_value) === '') {
+                        responseData.push({'message': `${j_iterator.field_value} is empty`});
+                        console.log('responseData : ', responseData);
+                        return [true, responseData];
+                    }
+
+                    i_iterator.field_value = j_iterator.field_value;
+                }
+            } //End of checking for non-empty field_value
+        } //End of processing all form fields in the bot operation inline
+
+        let finalResult = fieldsData[0].field_value;
+        for(let i=0; i<fieldsData.length;i++){
+            if(fieldsData[i].join_condition === 'EOJ') {
+                break;
+            }
+
+            finalResult = await performArithmeticOperation(finalResult, fieldsData[i+1].field_value, fieldsData[i].join_condition);
         }
+
+        return [error, responseData];
+    }
+
+    async function performArithmeticOperation(fieldValue1, fieldValue2, operation) {
+        let result;
+
+        switch(operation) {
+            case '+': result = fieldValue1 + fieldValue2;
+                      break;
+            case '-': result = fieldValue1 - fieldValue2;
+                      break;
+            case '*': result = fieldValue1 * fieldValue2;
+                      break;
+            case '/': result = fieldValue1 / fieldValue2;
+                      break;
+        }
+
+        return result;
     }
 
 }
