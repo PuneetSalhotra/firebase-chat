@@ -3268,6 +3268,7 @@ async function processFormInlineDataV1(request, data){
 			request.target_account_id,
 			request.segment_id,
 			request.activity_type_category_id,
+			request.activity_type_id,
 			request.is_search,
 			request.search_string,
 			request.page_start,
