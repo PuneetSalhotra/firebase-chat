@@ -978,6 +978,17 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/asset/focus-list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActivityFocusList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/asset/focus/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+
 }
 
 module.exports = ActivityListingController;
