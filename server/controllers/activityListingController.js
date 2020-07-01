@@ -967,6 +967,17 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    //Contacts Visibility at workflow level - TAG Level
+    app.post('/' + global.config.version + '/activity-activity/mapping/child-activities/list/v1', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActActChildActivitiesV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity-activity/mapping/child-activities/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityListingController;
