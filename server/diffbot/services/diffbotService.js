@@ -22,7 +22,6 @@ function DiffbotService(objectCollection) {
   });
   this.queryDiffbot = async diffbotrequest => {
     try {
-    
         let channel = Channel(accountsList);
         for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
         {
@@ -279,38 +278,41 @@ function DiffbotService(objectCollection) {
 
   async function getAccountsListFromEs(searchStr,start_from,limit_value) {
     try {
-      var pagination = {}
-      pagination['size'] = limit_value,
-      pagination['from'] = start_from
-      var query = {}
-      if(searchStr != ""){
-        query = {
-          "query": {
-            "bool": {
-              "must": [{
-                "bool": {
-                  "should": {
-                    "multi_match": {
-                      "query": searchStr,
-                      "type": "cross_fields",
-                      "fields": ["activity_title"],
-                      "operator": "and"
+      var responseData = []
+      if(searchStr == '0'){
+        return responseData
+      }else{
+        var pagination = {}
+        pagination['size'] = limit_value,
+        pagination['from'] = start_from
+        var query = {}
+        if(searchStr != ""){
+          query = {
+            "query": {
+              "bool": {
+                "must": [{
+                  "bool": {
+                    "should": {
+                      "multi_match": {
+                        "query": searchStr,
+                        "type": "cross_fields",
+                        "fields": ["activity_title"],
+                        "operator": "and"
+                      }
                     }
                   }
-                }
-              }]
+                }]
+              }
             }
           }
         }
+        query = Object.assign(query, pagination)
+         responseData = await client.search({
+          index: 'crawling_accounts',
+          body: query
+        })
+        return responseData.body.hits['hits'];
       }
-      if (!request.hasOwnProperty('id')) {
-          query = Object.assign(query, pagination)
-      }
-      var responseData = await client.search({
-        index: 'crawling_accounts',
-        body: query
-      })
-      return responseData.body.hits['hits'];
     } catch (err) {
       console.log(err)
       return Promise.reject(err);
@@ -482,7 +484,7 @@ function DiffbotService(objectCollection) {
         }
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
-             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || 0,0,50)
+             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || '0',0,50)
             //  accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
              for( var j=0;j<accountsList.length;j++)
              {
