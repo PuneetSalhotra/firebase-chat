@@ -36,12 +36,13 @@ function DiffbotService(objectCollection) {
 
   async function processAccountsDiffbot(start_from,limit_value,diffbotrequest)
   {
-     accountsListTmp = await getAccountsList(
-      diffbotrequest,
-      "",
-      start_from,
-      limit_value 
-    );
+    accountsListTmp = await getAccountsListFromEs("",start_from,limit_value)
+    //  accountsListTmp = await getAccountsList(
+    //   diffbotrequest,
+    //   "",
+    //   start_from,
+    //   limit_value 
+    // );
     accountsList.push(...accountsListTmp)
     currentNumberOfAccounts = accountsList.length
   }
@@ -276,11 +277,14 @@ function DiffbotService(objectCollection) {
     return responseData;
   }
 
-  async function getAccountsListFromEs(searchStr) {
+  async function getAccountsListFromEs(searchStr,start_from,limit_value) {
     try {
-      var responseData = await client.search({
-        index: 'crawling_accounts',
-        body: {
+      var pagination = {}
+      pagination['size'] = limit_value,
+      pagination['from'] = start_from
+      var query = {}
+      if(searchStr != ""){
+        query = {
           "query": {
             "bool": {
               "must": [{
@@ -298,6 +302,13 @@ function DiffbotService(objectCollection) {
             }
           }
         }
+      }
+      if (!request.hasOwnProperty('id')) {
+          query = Object.assign(query, pagination)
+      }
+      var responseData = await client.search({
+        index: 'crawling_accounts',
+        body: query
       })
       return responseData.body.hits['hits'];
     } catch (err) {
@@ -471,8 +482,7 @@ function DiffbotService(objectCollection) {
         }
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
-            var accountsList = []
-             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || 0)
+             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || 0,0,50)
             //  accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
              for( var j=0;j<accountsList.length;j++)
              {
@@ -480,14 +490,14 @@ function DiffbotService(objectCollection) {
                 accountsList[j]['_source']["activity_title"] == tenders[k]["CompanyName"]
               ) {
                 var checkResult = await checkIfAccountIDTenderIdExist(
-                  accountsList[j].activity_id,
+                  accountsList[j]['_source'].activity_id,
                   tenders[k].tid,
                   diffbotrequest
                 );
                 if (checkResult.length == 0) {
                   var result = await insertTenderCorrespondingAccountId(
                     tenders[k].tid,
-                    accountsList[j].activity_id,
+                    accountsList[j]['_source'].activity_id,
                     tenderTigerUrl,
                     tenderTigerUrl + tenders[k].detailurl,
                     tenders[k].closingdate,
