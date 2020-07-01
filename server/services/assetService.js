@@ -5106,7 +5106,7 @@ this.getQrBarcodeFeeback = async(request) => {
                             }
                         } else if (request.flag == 8) {
                             if (data.length == 0) {
-                                tagEntityMappingSelect(request).then((resData) => {
+                                tagEntityMappingTagTypeSelect(request).then((resData) => {
 
                                     singleData.query_status = 0;
                                     singleData.activity_type_id = 0;
@@ -5122,7 +5122,7 @@ this.getQrBarcodeFeeback = async(request) => {
                             } else {
                                 if (data[0].activity_type_id == 0) {
 
-                                    tagEntityMappingSelect(request).then((resData) => {
+                                    tagEntityMappingTagTypeSelect(request).then((resData) => {
 
                                         singleData.query_status = 0;
                                         singleData.activity_type_id = 0;
@@ -5314,7 +5314,26 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
             }
         });
-    };      
+    };    
+
+    async function tagEntityMappingTagTypeSelect(request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_category_id,
+                request.tag_type_id,
+                request.page_start || 0,
+                request.page_limit
+            );
+            const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag_type', paramsArr);
+
+             if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };    
 }
 
 module.exports = AssetService;
