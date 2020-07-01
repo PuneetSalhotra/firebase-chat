@@ -14,7 +14,12 @@ function DiffbotService(objectCollection) {
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
   hasMoreData = true
-
+  const { Client } = require('@elastic/elasticsearch');
+  const { AmazonConnection } = require('aws-elasticsearch-connector');
+  const client = new Client({
+      node: global.config.elastiSearchNode,
+      Connection: AmazonConnection,
+  });
   this.queryDiffbot = async diffbotrequest => {
     try {
     
@@ -271,6 +276,36 @@ function DiffbotService(objectCollection) {
     return responseData;
   }
 
+  async function getAccountsListFromEs(searchStr) {
+    try {
+      var responseData = await client.search({
+        index: 'crawling_accounts',
+        body: {
+          "query": {
+            "bool": {
+              "must": [{
+                "bool": {
+                  "should": {
+                    "multi_match": {
+                      "query": searchStr,
+                      "type": "cross_fields",
+                      "fields": ["activity_title"],
+                      "operator": "and"
+                    }
+                  }
+                }
+              }]
+            }
+          }
+        }
+      })
+      return responseData.body.hits['hits'];
+    } catch (err) {
+      console.log(err)
+      return Promise.reject(err);
+    }
+  }
+
   async function getAccountsListForTenderCrawling(request,searchStr,start_from,limit_value) {
     let result;
     let paramsArray;
@@ -437,11 +472,12 @@ function DiffbotService(objectCollection) {
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
             var accountsList = []
-             accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
+             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || 0)
+            //  accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
              for( var j=0;j<accountsList.length;j++)
              {
               if (
-                accountsList[j]["activity_title"] == tenders[k]["CompanyName"]
+                accountsList[j]['_source']["activity_title"] == tenders[k]["CompanyName"]
               ) {
                 var checkResult = await checkIfAccountIDTenderIdExist(
                   accountsList[j].activity_id,
@@ -458,13 +494,13 @@ function DiffbotService(objectCollection) {
                     diffbotrequest
                   );
                   await updateWorkflowTimelineCorrespondingAccountId(
-                    accountsList[j].organization_id,
-                    accountsList[j].account_id,
-                    accountsList[j].workforce_id,
-                    accountsList[j].activity_id,
+                    868,
+                    accountsList[j]['_source'].account_id,
+                    accountsList[j]['_source'].workforce_id,
+                    accountsList[j]['_source'].activity_id,
                     tenderTigerUrl + tenders[k].detailurl,
-                    accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id,
+                    accountsList[j]['_source'].activity_type_id,
+                    53,
                     tenderType,
                     tenders[k].tid
                   );
