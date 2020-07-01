@@ -1598,6 +1598,16 @@ function BotService(objectCollection) {
                         break;
 
                 case 29: //Reminder Bot
+                        logger.silly("Reminder Bot Params received from Request: %j", request);
+                            try {
+                                await reminderBot(request, formInlineDataMap, botOperationsJson.bot_operations.date_reminder);
+                            } catch (error) {
+                                logger.error("[Reminder Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                i.bot_operation_status_id = 2;
+                                i.bot_operation_inline_data = JSON.stringify({
+                                    "error": error
+                            });
+                        }                
                         break;
             }
 
@@ -6648,6 +6658,23 @@ function BotService(objectCollection) {
         }
 
         return result;
+    }
+
+    async function reminderBot(request, formInlineDataMap, dateReminder) {
+        /*"date_reminder": {
+            "date_form_id": 0,
+            "date_field_id": 0,
+            "asset_reference_form_id": 0,
+            "asset_reference_field_id": 0,
+            "alert_type": "before|after",
+            "24hours_multiplier": 0,
+            "escalation_target": "creator|lead|manager",
+            "escalation_type": "timeline|participant|text|email"
+        }*/
+
+        let fieldsData = dateReminder.operations;
+        
+
     }
 
 }
