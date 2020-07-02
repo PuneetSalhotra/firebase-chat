@@ -544,12 +544,17 @@ function DiffbotService(objectCollection) {
   }
 
   async function getTenderList(headers, body, tenderTigerApiUrl) {
-    let res = await doTenderApiCall(headers, body, tenderTigerApiUrl);
-    var parsedResponse = JSON.parse(res);
-    var tenderList = [];
-    var tenderObj = JSON.parse(parsedResponse["d"]);
-    tenderList = tenderObj[0]["lstTenders"];
-    return tenderList;
+    let res;
+    try{
+      res = await doTenderApiCall(headers, body, tenderTigerApiUrl);
+      var parsedResponse = JSON.parse(res);
+      var tenderList = [];
+      var tenderObj = JSON.parse(parsedResponse["d"]);
+      tenderList = tenderObj[0]["lstTenders"];
+      return tenderList;
+    } catch(err) {
+      console.log('Error : ', err);
+    }
   }
 
   function doTenderApiCall(headers_val, payload, apiurl) {

@@ -7452,6 +7452,45 @@ function AdminOpsService(objectCollection) {
                       }
     
                     break;
+
+            case 71 : fieldValue = (typeof fieldData.field_value === 'string')? JSON.parse(fieldData.field_value) : fieldData.field_value;
+                      console.log('fieldValue case 71: ', fieldValue);
+                      
+                      let childActivities = fieldValue.cart_items;
+                      
+                      //If product_variant_activity_id = 1 and cart_items are empty
+                      if(Number(conditionData.product_variant_activity_id) === -1 && childActivities.length === 0) {
+                      
+                        //Condition Passed                
+                        let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                        //response: 0 EOJ
+                        //response: 1 OR
+                        //response: 2 AND
+                        
+                        (response === 2)? proceed = 1:proceed = 0;
+                        conditionStatus = 1;
+
+                      } else {
+                        
+                        for(const i_iterator of childActivities) {                        
+                            if(Number(conditionData.product_variant_activity_id) === Number(i_iterator.product_variant_activity_id)) {
+                                //Condition Passed                
+                                let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                                //response: 0 EOJ
+                                //response: 1 OR
+                                //response: 2 AND
+                                
+                                (response === 2)? proceed = 1:proceed = 0;
+                                conditionStatus = 1;
+                            } else {
+                                //condition failed
+                                proceed = 0;
+                                conditionStatus = 0;    
+                            }
+                          }
+
+                      }
+                    break;
             }
         //} //IF field_value exists
         /*else {
