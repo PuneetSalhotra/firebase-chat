@@ -6629,7 +6629,8 @@ function BotService(objectCollection) {
 
         //Before firing check that all the required input fields are available else dont fire.
         for(const i_iterator of fieldsData){
-            let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);
+            let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
+            console.log('formData : ', formData);
             if(!formData.length > 0) {
                 responseData.push({'message': `${i_iterator.form_id} is not submitted`});
                 console.log('responseData : ', responseData);
