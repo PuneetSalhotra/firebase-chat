@@ -786,5 +786,23 @@ function AssetController(objCollection) {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
     }); 
+
+    app.post('/' + global.config.version + '/asset/timesheet/add', async function (req, res) {
+        const [err, data] = await assetService.insertResourceTimesheet(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });   
+
+    app.post('/' + global.config.version + '/asset/timesheet', async function (req, res) {
+        const [err, data] = await assetService.getResourceTimesheet(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });        
 }
 module.exports = AssetController;
