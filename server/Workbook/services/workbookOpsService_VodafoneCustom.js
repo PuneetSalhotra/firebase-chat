@@ -6,6 +6,10 @@ const { serializeError } = require('serialize-error');
 // MySQL for generating prepared statements
 const mysql = require('mysql');
 
+// Debug
+const debug_info = require('debug')('workbookOpsService_VodafoneCustom:info');
+const debug_warn = require('debug')('workbookOpsService_VodafoneCustom:warn');
+
 // Excel
 const XLSX = require('@sheet/core');
 const S5SCalc = require("@sheet/formula");
@@ -31,6 +35,14 @@ function WorkbookOpsService(objectCollection) {
     // Helper methods
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function isArray(obj) {
+        return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
+    }
+
+    function isObject(obj) {
+        return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
     }
 
     function getFielDataValueColumnName(fieldDataTypeID) {
@@ -75,9 +87,26 @@ function WorkbookOpsService(objectCollection) {
             throw new Error(error)
         }
         let excelSheetFilePath = botOperationInlineData.workbook_url;
+        // Override the excel base template path
+        if (
+            isObject(botOperationInlineData.workbook_url) &&
 
+            botOperationInlineData.workbook_url.hasOwnProperty("form_id") &&
+            Number(botOperationInlineData.workbook_url.form_id) > 0 &&
+
+            botOperationInlineData.workbook_url.hasOwnProperty("field_id") &&
+            Number(botOperationInlineData.workbook_url.field_id) > 0
+        ) {
+            excelSheetFilePath = await getExcelSheetFilePath(request, botOperationInlineData, {
+                formID: Number(botOperationInlineData.workbook_url.form_id),
+                fieldID: Number(botOperationInlineData.workbook_url.field_id),
+                workflowActivityID
+            });
+        }
+
+        let workflowActivityData = [];
         try {
-            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (
                 Number(workflowActivityData.length) > 0 &&
                 Number(workflowActivityData[0].activity_flag_workbook_mapped) &&
@@ -121,6 +150,8 @@ function WorkbookOpsService(objectCollection) {
 
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
+
+        return;
 
         // Get the input field values
         let inputCellToValueMap = new Map();
@@ -323,7 +354,7 @@ function WorkbookOpsService(objectCollection) {
 
                 // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
                 await updateWorkbookURLOnWorkflowTimeline(
-                    request, workflowActivityID, 
+                    request, workflowActivityID,
                     updatedWorkbookS3URL, workbookMappedStreamTypeID
                 );
             }
@@ -332,6 +363,54 @@ function WorkbookOpsService(objectCollection) {
         }
 
         return [{}, {}];
+    }
+
+    async function getExcelSheetFilePath(request, botOperationInlineData, options) {
+
+        const formID = Number(options.formID);
+        const fieldID = Number(options.fieldID);
+        const workflowActivityID = Number(options.workflowActivityID);
+        let fieldValue = "";
+
+        const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, formID);
+
+        if (formData.length > 0) {
+            let formSubmitted = [], dataEntityInline = {};
+
+            // Parse the timeline entry
+            if (isObject(formData[0].data_entity_inline)) {
+                dataEntityInline = formData[0].data_entity_inline;
+            } else if (typeof formData[0].data_entity_inline === "string") {
+                dataEntityInline = JSON.parse(formData[0].data_entity_inline);
+            }
+
+            // Parse the form_submitted key
+            if (isArray(dataEntityInline.form_submitted)) {
+                formSubmitted = dataEntityInline.form_submitted;
+            } else if (typeof dataEntityInline.form_submitted === "string") {
+                formSubmitted = JSON.parse(dataEntityInline.form_submitted);
+            }
+
+            // Get the specified field_id
+            for (const field of formSubmitted) {
+                if (Number(field.field_id) === Number(fieldID)) {
+                    switch (Number(field.field_data_type_id)) {
+                        case 123:
+                            break;
+                    
+                        default:
+                            fieldValue = field.field_value;
+                            break;
+                    }
+                }
+            }
+        }
+
+        debug_info("[getExcelSheetFilePath] fieldValue: ", fieldValue);
+        return fieldValue;
     }
 
     async function botOperationMappingSelectID(request) {
@@ -855,7 +934,7 @@ function WorkbookOpsService(objectCollection) {
     function updateWorkbookURLOnWorkflowTimeline(request, workflowActivityID, updatedWorkbookS3URL, workbookMappedStreamTypeID) {
         const workbookURLTimelineRequest = Object.assign({}, request);
 
-        let workbookTimelineActionName = Number(workbookMappedStreamTypeID) === 718? `mapped`: `updated`;
+        let workbookTimelineActionName = Number(workbookMappedStreamTypeID) === 718 ? `mapped` : `updated`;
         workbookURLTimelineRequest.activity_timeline_collection = JSON.stringify({
             "mail_body": `Workbook ${workbookTimelineActionName} at ${moment().utcOffset('+05:30').format('LLLL')}`,
             "subject": `Workbook ${workbookTimelineActionName}`,
