@@ -184,6 +184,31 @@ function AnalyticsController(objCollection)
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
+
+    //Get specific widgets value
+    //Sravankumar
+    //2020-07-01
+    app.post('/' + global.config.version + '/analytics/management/widget/value', async (req, res) => {
+            try{
+                let result = await analyticsService.getManagementWidgetValue(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }catch(err){
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+
+    //Get the drill down for a specific widget
+    //Sravankumar
+    //2020-07-01
+    app.post('/' + global.config.version + '/analytics/management/widget/drilldown', async (req, res) =>{             
+            try{
+                let result = await analyticsService.getManagementWidgetDrilldown(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }catch(err){
+                console.log('error :: ',err);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
     
 }
 
