@@ -683,7 +683,18 @@ function AdminOpsController(objCollection) {
             console.log("/admin/form/access/share | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });       
+    });  
+    
+    //to get the status based and prerequisite met Forms List
+    app.post('/' + global.config.version + '/form/access/status/list/v1', async (req, res) => {        
+        const [err, responseData] = await adminOpsService.getStatusBasedPreRequisiteMetFormsList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/form/access/share | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });  
 }
 
 module.exports = AdminOpsController;
