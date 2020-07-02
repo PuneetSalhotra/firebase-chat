@@ -788,6 +788,26 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/form/participant/set', async (req, res) => {
+        const [err, formFieldData] = await formConfigService.formParticipantSet(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/form/participant/reset', async (req, res) => {
+        const [err, formFieldData] = await formConfigService.formParticipantReset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = FormConfigController;

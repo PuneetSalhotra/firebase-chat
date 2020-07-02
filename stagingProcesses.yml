@@ -5,13 +5,15 @@ apps:
     instances: max    
     out_file: '/dev/null'
     exec_mode: cluster
-    
+    node_args: "--max_old_space_size=2048"
+
   - name : "Staging_ConsumerZero"
     env: {mode: staging, partition:0}
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    node_args: "--max_old_space_size=2048"
       
   # - name : "Staging_LogConsumerZero"
   #   env: {mode: staging, partition:0}
