@@ -3359,7 +3359,7 @@ async function processFormInlineDataV1(request, data){
 			request.search_string,
 			request.flag || 1,
 			request.start_from || 0,
-			request.limit_value || 100
+			request.limit_value || 50
 		);
 		const queryString = util.getQueryString('ds_p1_activity_search_list_select', paramsArr);
 		if (queryString !== '') {
