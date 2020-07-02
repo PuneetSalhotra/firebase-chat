@@ -5894,7 +5894,18 @@ function BotService(objectCollection) {
                 formInlineDataMap.has(Number(cuidValue.field_id))
             ) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
-                fieldValue = fieldData.field_value || "";
+                
+                //Supporting workflow reference types
+                if(Number(fieldData.field_data_type_id) === 68) {
+                    let toBeProcessedfieldValue = fieldData.field_value;
+                        toBeProcessedfieldValue = (typeof toBeProcessedfieldValue === 'string')? JSON.parse(toBeProcessedfieldValue): toBeProcessedfieldValue;    
+                    
+                    for(const i_iterator of toBeProcessedfieldValue) {                        
+                        fieldValue = i_iterator.activity_title;
+                    }
+                } else {
+                    fieldValue = fieldData.field_value || "";
+                }
             }
             switch (cuidKey) {
                 case "CUID1":
@@ -6629,12 +6640,18 @@ function BotService(objectCollection) {
 
         //Before firing check that all the required input fields are available else dont fire.
         for(const i_iterator of fieldsData){
-            let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);
-            if(!formData.length > 0) {
+            let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
+            console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+            if(!formDataFrom713Entry.length > 0) {
                 responseData.push({'message': `${i_iterator.form_id} is not submitted`});
                 console.log('responseData : ', responseData);
                 return [true, responseData];
             }
+
+            let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+            console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+            let formData = formTransactionInlineData.form_submitted;
+            formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
 
             for(const j_iterator of formData) {
                 if(i_iterator.field_id === j_iterator.field_id) {
