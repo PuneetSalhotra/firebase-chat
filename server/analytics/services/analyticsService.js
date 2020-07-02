@@ -1610,6 +1610,331 @@ function AnalyticsService(objectCollection)
             return Promise.reject(error);
         }
     };
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////// Management Dashboard Start ///////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+    //Get specific widgets value
+    //Sravankumar
+    //2020-07-01
+    this.getManagementWidgetValue = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            console.log(request,null,2);
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: "+request.activity_status_id);
+            let arrayStatuses = new Array();
+            if(request.hasOwnProperty("activity_status_id")){
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if(request.activity_status_id != 0){
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                }else{
+                    let json = {"activity_status_id": 0};
+                    arrayStatuses.push(json); 
+                    console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+                }
+            }else{
+               
+                let json = {"activity_status_id": 0};
+                arrayStatuses.push(json); 
+                console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+            }
+            console.log("filter_hierarchy "+request.filter_hierarchy);
+
+            if(!request.hasOwnProperty("filter_hierarchy")){
+                request.filter_hierarchy = 0;
+            }
+
+            if(request.filter_hierarchy > 0){
+                try{
+                
+                    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+                    {
+                        console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            parseInt(request.widget_type_id),
+                            parseInt(request.filter_date_type_id),
+                            parseInt(request.filter_timeline_id),
+                            timezoneID,
+                            timezoneOffset,
+                            global.analyticsConfig.parameter_flag_sort, //Sort flag
+                            parseInt(request.organization_id),
+                            parseInt(request.filter_circle_id),
+                            parseInt(request.filter_workforce_type_id),
+                            parseInt(request.filter_workforce_id),
+                            parseInt(request.filter_asset_id),
+                            parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                            parseInt(request.filter_tag_id),
+                            parseInt(request.filter_activity_type_id),
+                            global.analyticsConfig.activity_id_all, //Activity ID,
+                            parseInt(request.filter_activity_status_type_id),
+                            parseInt(request.filter_activity_status_tag_id),
+                            parseInt(request.filter_activity_status_id),
+                            //parseInt(filter_activity_status_id),
+                            request.datetime_start,
+                            request.datetime_end,
+                            parseInt(request.filter_segment_id),
+                            parseInt(request.filter_reporting_manager_id),
+                            parseInt(request.filter_product_category_id),
+                            parseInt(request.filter_product_family_id),
+                            parseInt(request.filter_product_activity_id),
+                            parseInt(request.filter_account_activity_id),
+                            parseInt(request.page_start) || 0,
+                            parseInt(request.page_limit) || 50
+                        );
+
+                        let counter = 1; 
+                        let responseArray = [];
+                        if(request.widget_type_id == 45 || request.widget_type_id == 46){
+                            counter = 5
+                       
+                            for(let iteratorM = 0; iteratorM < counter; iteratorM++){
+                                 paramsArray.push(iteratorM)
+                                tempResult = await db.callDBProcedureR2(request, 'ds_v1_activity_search_list_select_widget_values', paramsArray, 1);
+                                paramsArray.pop();
+                                responseArray.push(tempResult[0])
+                            }
+                            results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "result": responseArray,
+                                    }
+                                );
+                            iterator++
+                        }else{
+                            paramsArray.push(0)
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_activity_search_list_select_widget_values', paramsArray, 1);
+                            console.log(tempResult);
+                            if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
+                             || request.widget_type_id == 48 || request.widget_type_id == 49){
+                                results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "result": tempResult,
+                                    }
+                                );
+
+                            }else{
+                                let totalValue = 0;
+                                 //console.log("request.widget_type_id :: "+request.widget_type_id);
+                                if(parseInt(request.widget_type_id) === 44){
+                                    //console.log("request.widget_type_id :: "+request.widget_type_id);
+                                    for(let i = 0; i < tempResult.length; i++){
+                                        //console.log('value ' +tempResult[i].value)
+                                        totalValue = totalValue + tempResult[i].value
+                                    }
+                                }else{
+                                    totalValue = tempResult[0].value
+                                }          
+
+                                results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "status_type_id": request.filter_activity_status_type_id,
+                                        "result": totalValue,
+                                    }
+                                );
+                            }
+                        }
+                        iterator++;
+                    }
+
+                }catch(e){
+                    console.log('error ::', e);
+                }
+
+            }
+            return results;
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get the drill down for a specific widget
+    //Sravankumar
+    //2020-07-01
+    this.getManagementWidgetDrilldown = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: "+request.activity_status_id);
+
+            let arrayStatuses = new Array();
+            if(request.hasOwnProperty("activity_status_id")){
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if(request.activity_status_id != 0){
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                }else{
+                    let json = {"activity_status_id": 0};
+                    arrayStatuses.push(json); 
+                    console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+                }
+                 //console.log("arrayStatuses1 :: "+JSON.stringify(arrayStatuses))
+            }else{
+               
+                let json = {"activity_status_id": 0};
+                arrayStatuses.push(json); 
+                console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+            }
+
+            // YTD widget's start date should be the Unix epoch
+            // if (parseInt(request.filter_timeline_id) === 8) {
+            //     request.datetime_start = '1970-01-01 00:00:00';
+            // }
+            if(!request.hasOwnProperty("filter_hierarchy")){
+                request.filter_hierarchy = 0;
+            }
+            if(!request.hasOwnProperty("filter_reporting_manager_id")){
+                request.filter_reporting_manager_id = 0;
+            }            
+
+            if(request.filter_hierarchy > 0){
+                for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+                {
+                    console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                     paramsArray = 
+                     new Array(
+                        parseInt(request.widget_type_id),
+                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_timeline_id),
+                        timezoneID,
+                        timezoneOffset,
+                        global.analyticsConfig.parameter_flag_sort, //Sort flag
+                        parseInt(request.organization_id),
+                        parseInt(request.filter_circle_id),
+                        parseInt(request.filter_workforce_type_id),
+                        parseInt(request.filter_workforce_id),
+                        parseInt(request.filter_asset_id),
+                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_activity_type_id),
+                        global.analyticsConfig.activity_id_all, //Activity ID,
+                        parseInt(request.filter_activity_status_type_id),
+                        parseInt(request.filter_activity_status_tag_id),
+                        parseInt(request.filter_activity_status_id),
+                        //parseInt(filter_activity_status_id),
+                        request.datetime_start,
+                        request.datetime_end,
+                        parseInt(request.filter_segment_id),
+                        parseInt(request.filter_reporting_manager_id),
+                        parseInt(request.filter_product_category_id),
+                        parseInt(request.filter_product_family_id),
+                        parseInt(request.filter_product_activity_id),
+                        parseInt(request.filter_account_activity_id),
+                        //parseInt(request.page_start) || 0,
+                        //parseInt(request.page_limit) || 50
+                        );
+                
+                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_v1_activity_search_list_select_widget_drilldown', paramsArray, []);
+                    console.log(tempResult);
+
+                    results[iterator] =
+                    (
+                        {
+                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                            "status_type_id": request.filter_activity_status_type_id,
+                            "result": tempResult,
+                        }
+                    );
+
+                    iterator++; 
+
+                }
+            }
+            return results;
+        }
+        catch(error)
+        {
+            console.log("error :; ",error);
+            return Promise.reject(error);
+        }
+    };
 }
 
 module.exports = AnalyticsService;
