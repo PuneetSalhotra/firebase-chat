@@ -331,6 +331,14 @@ function ActivityService(objectCollection) {
                                 self.activityUpdateExpression(request);
                             }
 
+                            if( activityTypeCategroyId === 48
+                             || activityTypeCategroyId === 53
+                             || activityTypeCategroyId === 54
+                             || activityTypeCategroyId === 55){
+                                
+                                activtySearchListInsert(request);
+                            }
+
                             if (request.activity_type_category_id == 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
@@ -339,6 +347,7 @@ function ActivityService(objectCollection) {
                                 //updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
 //
                                 //});
+
                                 await updateChannelActivity(request, 9, request.activity_id, 48);
 
                                 let totalvalue = 0;
@@ -5202,6 +5211,29 @@ function ActivityService(objectCollection) {
         }
 
         return "success";
+    }
+
+    function activtySearchListInsert(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: activtySearchListInsert  :::', {}, request);
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.activity_type_id,
+                request.activity_type_category_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_search_list_insert', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     }
 
 }
