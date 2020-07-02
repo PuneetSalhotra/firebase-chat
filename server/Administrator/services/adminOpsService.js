@@ -7170,7 +7170,7 @@ function AdminOpsService(objectCollection) {
     this.dependedFormCheck = async (request) => {
         let responseData = [],
             error = true;
-
+        console.log('In dependedFormCheck Function')
         request.bot_operation_type_id = 20;
         const [err, botsData] = await adminListingService.botOperationMappingSelectOperationType(request);
 
@@ -7518,13 +7518,16 @@ function AdminOpsService(objectCollection) {
         let error = false, finalResponse = [];
 
         try{
+            //console.log('Form ID List : ', request.form_id_list);
             let formList = JSON.parse(request.form_id_list);
-            console.log(request.form_id_list);
+            //console.log('formList : ', formList);            
+            //console.log('formList.lenght : ', formList.length);
+
             for(let counter = 0; counter < formList.length; counter++){
                 let formJson = {};
                 request.form_id = formList[counter];
-                formJson.form_id = request.form_id;
-                let [err, responseData] = await self.dependedFormCheck(request);
+                formJson.form_id = request.form_id;                
+                let [err, responseData] = await self.dependedFormCheck(request);                
                 if(!err){
                     formJson.isActive = true;
                 }else{               
@@ -7676,6 +7679,73 @@ function AdminOpsService(objectCollection) {
           });
 
         return "success";
+    }
+
+    this.getStatusBasedPreRequisiteMetFormsList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //Get the forms list based on status
+        let [err, statusBasedFormsList] = await getStatusBasedForms(request);
+
+        if(err) {
+            return [error, responseData];
+        } else {
+            error = false;
+        }
+        
+        let form_id_list = [];
+        console.log('statusBasedFormsList.length : ', statusBasedFormsList.length);
+
+        if(statusBasedFormsList.length > 0) {            
+            for(const i_iterator of statusBasedFormsList){
+                form_id_list.push(i_iterator.form_id);
+            }
+            
+            let newReq = Object.assign({}, request);
+            newReq.form_id_list = JSON.stringify(form_id_list);
+            let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
+            
+            console.log('dependencyFormsList.length : ', dependencyFormsList.length);
+            
+            if(err1) {
+                error = true;
+                return [error, responseData];
+            } else {
+                error = false;
+            }
+
+            responseData = dependencyFormsList;
+        }
+
+        return [error, responseData];
+    }
+
+    async function getStatusBasedForms(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.start_from || 0,
+            request.limit_value || 10
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
