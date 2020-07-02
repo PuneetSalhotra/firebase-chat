@@ -70,14 +70,14 @@ const pubnubWrapper = new PubnubWrapper();
 const EWS = require('node-ews');
 
 // exchange server connection info
-const ewsConfig = {
+/*const ewsConfig = {
     username: 'ESMSMails@vodafoneidea.com',
     password: 'June@2020',
     host: 'https://webmail.vodafoneidea.com'    
   };
 
 // initialize node-ews
-const ews = new EWS(ewsConfig);
+const ews = new EWS(ewsConfig);*/
 
 function Util(objectCollection) {
     let cacheWrapper = {};
@@ -2105,6 +2105,16 @@ function Util(objectCollection) {
     };  
     
     this.sendEmailEWS = async(request, receiverEmailID, emailSubject, Template) => {
+        const pwd = await cacheWrapper.getESMSMailsPwd();
+        const ewsConfig = {
+            username: 'ESMSMails@vodafoneidea.com',
+            password: pwd, //'June@2020',
+            host: 'https://webmail.vodafoneidea.com'    
+        };
+
+        // initialize node-ews
+        const ews = new EWS(ewsConfig);
+
         // define ews api function
         const ewsFunction = 'CreateItem';
 
