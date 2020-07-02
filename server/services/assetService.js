@@ -5394,7 +5394,41 @@ this.getQrBarcodeFeeback = async(request) => {
         }
 
         return [error, responseData];
-    };     
+    };  
+    
+    
+    this.getAssetsReportingToSameManager = async function (request) {
+        let responseData = [],
+            error = true;
+
+        ///flag:3 you will get current lead also
+        ///flag:4 Reporting assets other than current lead will be returned
+        ///manager : manager_asset_id
+        ///asset_id = current_lead_asset_id
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_id,
+            request.current_lead_asset_id, 
+            request.manager_asset_id,
+            request.flag                        
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_manager_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };  
 }
 
 module.exports = AssetService;

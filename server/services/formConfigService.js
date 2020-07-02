@@ -5641,31 +5641,31 @@ function FormConfigService(objCollection) {
         console.log('activityData.length : ', activityData.length);
         console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
 
-        let activityMasterData = [];
+        let processedActivityMasterData = [];
         let flag = 0;
         let finalJson = {};
+
+        for(const i_iterator of participantData) {            
+            processedActivityMasterData.push(i_iterator);
+        }        
 
         if(activityData[0].activity_master_data !== null) {
             flag = 1;            
             activityMasterData = JSON.parse(activityData[0].activity_master_data).form_fill_request;
-        }        
-       
-        for(const i_iterator of participantData) {            
-            activityMasterData.push(i_iterator);
+            console.log('activityMasterData from Activity List table : ', activityMasterData);
+
+            for(const i_iterator of activityMasterData) {
+                processedActivityMasterData.push(i_iterator);
+            }
         }
 
-        if(Number(flag) === 0) {
-            finalJson.form_fill_request = activityMasterData;
-
-            console.log('typeof finalJson : ', typeof finalJson);
-            finalJson = (typeof finalJson === 'object')? finalJson.toString(): finalJson;
-        }
+        console.log('processedActivityMasterData : ', processedActivityMasterData);
 
         await new Promise((resolve, reject)=>{
             activityCommonService.updateActivityMasterData(
                 request, 
                 request.workflow_activity_id, 
-                (Number(flag) === 0) ? JSON.stringify(finalJson) : activityData[0].activity_master_data,
+                processedActivityMasterData,
                 (err, data) =>{
                     if(!err) {
                         error = false;
