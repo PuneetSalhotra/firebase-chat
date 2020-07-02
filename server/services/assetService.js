@@ -4961,7 +4961,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
                                                 if (IntermediateData.length == 1) {
 
-                                                    if (IntermediateData[0].segment_id == 0) {
+                                                    if (IntermediateData[0].tag_id == 0) {
                                                         
                                                         tagListOfTagTypeSelect(request).then((resData) => {
 
@@ -5001,7 +5001,7 @@ this.getQrBarcodeFeeback = async(request) => {
                                 }
 
                             } else if (data.length == 1) {
-                                if (data[0].segment_id == 0) {
+                                if (data[0].tag_id == 0) {
                                     
                                     tagListOfTagTypeSelect(request).then((resData) => {
 
@@ -5333,7 +5333,68 @@ this.getQrBarcodeFeeback = async(request) => {
                 });
             }
         });
-    };    
+    };
+
+    this.insertResourceTimesheet = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.swipe_type_id,
+            request.start_datetime,
+            request.end_datetime,
+            request.work_hours_duration,
+            request.asset_id,
+            request.operating_asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime()            
+        );
+        const queryString = util.getQueryString('ds_p1_asset_timesheet_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };  
+
+    this.getResourceTimesheet = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_account_id,
+            request.target_workforce_id,
+            request.target_asset_id,
+            request.operating_asset_id, 
+            request.start_datetime,
+            request.end_datetime,    
+            request.swipe_type_id || 1,                               
+            request.flag || 0            
+        );
+        const queryString = util.getQueryString('ds_p1_asset_timesheet_transaction_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };     
 }
 
 module.exports = AssetService;
