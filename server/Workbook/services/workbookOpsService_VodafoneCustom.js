@@ -151,17 +151,17 @@ function WorkbookOpsService(objectCollection) {
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
 
-        return;
-
         // Get the input field values
         let inputCellToValueMap = new Map();
         try {
-            inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, inputMappings);
+            // inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, inputMappings);
+            inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings);
         } catch (error) {
             logger.error("Error fetching input form field values", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
         }
         console.log("inputCellToValueMap: ", inputCellToValueMap);
+        // return;
 
         // Create the cellKey => field_id map for output cells
         let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
@@ -575,8 +575,37 @@ function WorkbookOpsService(objectCollection) {
         }
     }
 
+    async function getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings) {
+        let inputCellToValueMasterMap = new Map(),
+            inputFormIDsSet = new Set(),
+            formIDToInputMappingsJSON = {};
+        
+        // Create the segregation by form_ids
+        for (const inputMapping of inputMappings) {
+            const formID = Number(inputMapping.form_id);
+            if (inputFormIDsSet.has(formID)) {
+                formIDToInputMappingsJSON[formID].push(inputMapping);
+            } else {
+                inputFormIDsSet.add(formID);
+                formIDToInputMappingsJSON[formID] = [inputMapping];
+            }
+        }
+        // Fetch input cell value map for each formID
+        for (const formID of inputFormIDsSet) {
+            const inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, formIDToInputMappingsJSON[formID]);
+            inputCellToValueMasterMap = new Map(function* () { yield* inputCellToValueMasterMap; yield* inputCellToValueMap }());
+        }
+
+        debug_info("inputFormIDsSet: ", inputFormIDsSet);
+        debug_info("formIDToInputMappingsJSON: ", formIDToInputMappingsJSON);
+        debug_info("inputCellToValueMasterMap: ", inputCellToValueMasterMap);
+
+        return inputCellToValueMasterMap;
+    }
+
     async function getInputFormFieldValues(request, workflowActivityID, inputMappings) {
         const formID = inputMappings[0].form_id;
+        let inputCellToValueMap = new Map();
         // const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
         //     organization_id: request.organization_id,
         //     account_id: request.account_id
@@ -603,11 +632,18 @@ function WorkbookOpsService(objectCollection) {
                     logger.silly(`[${i}] formData.data_form_transaction_id: ${formData[i].data_form_transaction_id} | formTransactionID: ${formTransactionID}`);
                 }
             }
+
+            // FOR NON-MULTI FORM SUBMISSIONS [ADD ANY FLAGS HERE FOR LATER USE]
+            if (customFsiToCellMappingIndex === Number.NEGATIVE_INFINITY) {
+                formActivityID = Number(formData[0].data_activity_id);
+                formTransactionID = Number(formData[0].data_form_transaction_id);
+            }
         } else {
-            throw new Error("[ActivityTimelineTransaction] No form data found for fetching the input form field values");
+            // throw new Error("[ActivityTimelineTransaction] No form data found for fetching the input form field values");
+            logger.error(`[ActivityTimelineTransaction] No form data found for fetching the input form ${formID}'s field values`, { type: 'bot_engine', request_body: request });
+            return inputCellToValueMap;
         }
 
-        let inputCellToValueMap = new Map();
         for (const inputMapping of inputMappings) {
             // Vodafone Custom Logic
             if (
