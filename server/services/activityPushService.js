@@ -33,6 +33,7 @@ function ActivityPushService(objectCollection) {
 
                 var activityId = activityData[0]['activity_id'];
                 pushString.activity_id = activityId;
+                pushString.activity_type_category_id = activityTypeCategoryId;
                 // pushString.activity_inline_data = activityInlineJson;
 
                 switch (activityTypeCategoryId) {

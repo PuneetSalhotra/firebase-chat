@@ -14,10 +14,14 @@ function DiffbotService(objectCollection) {
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
   hasMoreData = true
-
+  const { Client } = require('@elastic/elasticsearch');
+  const { AmazonConnection } = require('aws-elasticsearch-connector');
+  const client = new Client({
+      node: global.config.elastiSearchNode,
+      Connection: AmazonConnection,
+  });
   this.queryDiffbot = async diffbotrequest => {
     try {
-    
         let channel = Channel(accountsList);
         for(var i=0;i<global.config.numberOfThreadsForDiffbotProcessing;i++)
         {
@@ -31,12 +35,13 @@ function DiffbotService(objectCollection) {
 
   async function processAccountsDiffbot(start_from,limit_value,diffbotrequest)
   {
-     accountsListTmp = await getAccountsList(
-      diffbotrequest,
-      "",
-      start_from,
-      limit_value 
-    );
+    accountsListTmp = await getAccountsListFromEs("",start_from,limit_value)
+    //  accountsListTmp = await getAccountsList(
+    //   diffbotrequest,
+    //   "",
+    //   start_from,
+    //   limit_value 
+    // );
     accountsList.push(...accountsListTmp)
     currentNumberOfAccounts = accountsList.length
   }
@@ -271,6 +276,49 @@ function DiffbotService(objectCollection) {
     return responseData;
   }
 
+  async function getAccountsListFromEs(searchStr,start_from,limit_value) {
+    try {
+      var responseData = []
+      if(searchStr == '0'){
+        return responseData
+      }else{
+        var pagination = {}
+        pagination['size'] = limit_value,
+        pagination['from'] = start_from
+        var query = {}
+        if(searchStr != ""){
+          query = {
+            "query": {
+              "bool": {
+                "must": [{
+                  "bool": {
+                    "should": {
+                      "multi_match": {
+                        "query": searchStr,
+                        "type": "cross_fields",
+                        "fields": ["activity_title"],
+                        "operator": "and"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+        query = Object.assign(query, pagination)
+         responseData = await client.search({
+          index: 'crawling_accounts',
+          body: query
+        })
+        return responseData.body.hits['hits'];
+      }
+    } catch (err) {
+      console.log(err)
+      return Promise.reject(err);
+    }
+  }
+
   async function getAccountsListForTenderCrawling(request,searchStr,start_from,limit_value) {
     let result;
     let paramsArray;
@@ -436,35 +484,35 @@ function DiffbotService(objectCollection) {
         }
           for (var k = 0; k < tenders.length; k++) {
             tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
-            var accountsList = []
-             accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
+             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || '0',0,50)
+            //  accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
              for( var j=0;j<accountsList.length;j++)
              {
               if (
-                accountsList[j]["activity_title"] == tenders[k]["CompanyName"]
+                accountsList[j]['_source']["activity_title"] == tenders[k]["CompanyName"]
               ) {
                 var checkResult = await checkIfAccountIDTenderIdExist(
-                  accountsList[j].activity_id,
+                  accountsList[j]['_source'].activity_id,
                   tenders[k].tid,
                   diffbotrequest
                 );
                 if (checkResult.length == 0) {
                   var result = await insertTenderCorrespondingAccountId(
                     tenders[k].tid,
-                    accountsList[j].activity_id,
+                    accountsList[j]['_source'].activity_id,
                     tenderTigerUrl,
                     tenderTigerUrl + tenders[k].detailurl,
                     tenders[k].closingdate,
                     diffbotrequest
                   );
                   await updateWorkflowTimelineCorrespondingAccountId(
-                    accountsList[j].organization_id,
-                    accountsList[j].account_id,
-                    accountsList[j].workforce_id,
-                    accountsList[j].activity_id,
+                    868,
+                    accountsList[j]['_source'].account_id,
+                    accountsList[j]['_source'].workforce_id,
+                    accountsList[j]['_source'].activity_id,
                     tenderTigerUrl + tenders[k].detailurl,
-                    accountsList[j].activity_type_id,
-                    accountsList[j].activity_type_category_id,
+                    accountsList[j]['_source'].activity_type_id,
+                    53,
                     tenderType,
                     tenders[k].tid
                   );

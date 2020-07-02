@@ -244,6 +244,7 @@ function ActivityTimelineService(objectCollection) {
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒          ' , activityTypeCategoryId, ' & ', activityStreamTypeId, '🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
            (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
+           (activityTypeCategoryId === 48 && activityStreamTypeId === 726) ||
            (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 55 && activityStreamTypeId === 705)
            ){
@@ -1182,7 +1183,7 @@ function ActivityTimelineService(objectCollection) {
                         });
                 } else {
                     //Bot is not defined
-                    console.log('Bot is not defined');
+                    console.log('activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined');
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
