@@ -3357,7 +3357,7 @@ async function processFormInlineDataV1(request, data){
 			request.activity_type_category_id,
 			request.activity_type_id,
 			request.search_string,
-			request.flag,
+			request.flag || 1,
 			request.start_from || 0,
 			request.limit_value || 100
 		);
