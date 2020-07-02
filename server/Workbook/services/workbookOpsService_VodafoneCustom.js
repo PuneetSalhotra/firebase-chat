@@ -398,7 +398,14 @@ function WorkbookOpsService(objectCollection) {
             for (const field of formSubmitted) {
                 if (Number(field.field_id) === Number(fieldID)) {
                     switch (Number(field.field_data_type_id)) {
-                        case 123:
+                        case 71: // Product Cart
+                            const fieldDataJSON = JSON.parse(field.field_value);
+                            if (
+                                fieldDataJSON.hasOwnProperty("product_activity_business_case") &&
+                                fieldDataJSON.product_activity_business_case !== ""
+                            ) {
+                                fieldValue = fieldDataJSON.product_activity_business_case;
+                            }
                             break;
                     
                         default:

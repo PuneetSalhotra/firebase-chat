@@ -1482,6 +1482,7 @@ function BotService(objectCollection) {
 
                 case 18: // Workbook Mapping Bot
                     logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
+                    // break;
                     try {
                         if (
                             Number(request.organization_id) === 868 ||
@@ -1498,25 +1499,25 @@ function BotService(objectCollection) {
                             } else if (global.mode === "preprod" || global.mode === "prod") {
                                 baseURL = null;
                             }
-                            sqs.sendMessage({
-                                // DelaySeconds: 5,
-                                MessageBody: JSON.stringify(request),
-                                QueueUrl: sqsQueueUrl,
-                                MessageGroupId: `excel-processing-job-queue-v1`,
-                                MessageDeduplicationId: uuidv4(),
-                                MessageAttributes: {
-                                    "Environment": {
-                                        DataType: "String",
-                                        StringValue: global.mode
-                                    },
-                                }
-                            }, (error, data) => {
-                                if (error) {
-                                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                } else {
-                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-                                }
-                            });
+                            // sqs.sendMessage({
+                            //     // DelaySeconds: 5,
+                            //     MessageBody: JSON.stringify(request),
+                            //     QueueUrl: sqsQueueUrl,
+                            //     MessageGroupId: `excel-processing-job-queue-v1`,
+                            //     MessageDeduplicationId: uuidv4(),
+                            //     MessageAttributes: {
+                            //         "Environment": {
+                            //             DataType: "String",
+                            //             StringValue: global.mode
+                            //         },
+                            //     }
+                            // }, (error, data) => {
+                            //     if (error) {
+                            //         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            //     } else {
+                            //         logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                            //     }
+                            // });
                             // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
                             //     form: request,
                             // }, function (error, response, body) {
@@ -1524,7 +1525,7 @@ function BotService(objectCollection) {
                             //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
                             // });
 
-                            // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                            await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
                             // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         }
