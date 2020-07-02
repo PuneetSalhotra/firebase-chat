@@ -803,6 +803,15 @@ function AssetController(objCollection) {
         } else {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
-    });        
+    });
+
+    app.post('/' + global.config.version + '/asset/mananger/resources/list', async function (req, res) {
+        const [err, data] = await assetService.getAssetsReportingToSameManager(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
 }
 module.exports = AssetController;
