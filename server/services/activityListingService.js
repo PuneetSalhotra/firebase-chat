@@ -3322,19 +3322,18 @@ async function processFormInlineDataV1(request, data){
 
 	this.getActivityFocusList = async (request) => {
 		let responseData = [],
-			error = true;
+		error = true;
 		const paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.datetime_start || '1970-01-01 00:00:00',
 			request.datetime_end || util.getCurrentUTCTime(),
-			2,
-			request.is_sort,
+			request.flag || 2,
+			request.is_sort || 1,
 			request.page_start || 0,
 			request.page_limit
 		);
 		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_focus_list', paramsArr);
-
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
 				.then(async (data) => {
