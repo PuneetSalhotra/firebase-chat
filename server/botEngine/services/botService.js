@@ -5861,6 +5861,24 @@ function BotService(objectCollection) {
     
     async function updateCUIDBotOperation(request, formInlineDataMap, cuidInlineData) {        
         //console.log('formInlineDataMap : ', formInlineDataMap);
+        /*{
+            "bot_operations": {
+              "condition": {
+                "form_id": 0,
+                "field_id": 0,
+                "is_check": false,
+                "operation": "",
+                "threshold": 0
+              },
+              "update_cuids": {
+                "CUID2": {
+                  "form_id": 2645,
+                  "field_id": 28332
+                }
+              }
+            }
+          }*/
+          
         console.log('cuidInlineData : ', cuidInlineData);
 
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
