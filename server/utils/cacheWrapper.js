@@ -731,6 +731,20 @@ function CacheWrapper(client) {
         });        
     };    
 
+    this.getESMSMailsPwd = () => {
+        return new Promise((resolve, reject) => {            
+            client.get('ESMSMails@vodafoneidea.com', (err, reply) => {
+                if (err) {
+                    logger.error('GET ESMSMails@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose('GET ESMSMails@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };    
+
 }
 
 module.exports = CacheWrapper;
