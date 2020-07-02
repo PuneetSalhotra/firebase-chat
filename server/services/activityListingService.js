@@ -3347,6 +3347,33 @@ async function processFormInlineDataV1(request, data){
 		return [error, responseData];
 	};
 
+	this.getActivitySearchList = async (request) => {
+		let responseData = [],
+		error = true;
+		const paramsArr = new Array(
+			request.organization_id,
+			request.tag_type_id,
+			request.tag_id,
+			request.activity_type_category_id,
+			request.activity_type_id,
+			request.search_string,
+			request.flag,
+			request.start_from || 0,
+			request.limit_value || 100
+		);
+		const queryString = util.getQueryString('ds_p1_activity_search_list_select', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
 }
 
 module.exports = ActivityListingService;
