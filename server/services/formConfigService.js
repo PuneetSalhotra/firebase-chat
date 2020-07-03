@@ -5623,51 +5623,61 @@ function FormConfigService(objCollection) {
     this.formParticipantSet = async(request) => {
         /*{
             "form_fill_request": [{
-                    "form_id": 1025,
-                    "form_name": "Sample Form",
-                    "asset_id": 40210
-                }, {
-                    "form_id": 2045,
-                    "form_name": "Sample Form 1",
-                    "asset_id": 39526
-                }
-            ]
+					"form_id": 1025,
+					"form_name": "Sample Form",
+					"asset_id": 40210,
+					"asset_first_name": "<data>",
+					"asset_last_name": "<data>",
+					"operating_asset_id": "<data>",
+					"operating_asset_first_name": "<data>",
+					"operating_asset_last_name": "<data>"
+				}]
         }*/
 
         let responseData = [],
             error = true;
+            activityMasterData = [];
 
         let participantData = JSON.parse(request.participant_collection);
         let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         console.log('activityData.length : ', activityData.length);
-        console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
-
-        let processedActivityMasterData = [];
-        let flag = 0;
-        let finalJson = {};
-
-        for(const i_iterator of participantData) {            
-            processedActivityMasterData.push(i_iterator);
-        }        
+        console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);              
 
         if(activityData[0].activity_master_data !== null) {
-            flag = 1;            
             activityMasterData = JSON.parse(activityData[0].activity_master_data).form_fill_request;
             console.log('activityMasterData from Activity List table : ', activityMasterData);
 
-            for(const i_iterator of activityMasterData) {
-                processedActivityMasterData.push(i_iterator);
+            for(const i_iterator of participantData.form_fill_request) {
+                activityMasterData.push(i_iterator);
             }
-        }
+            
+            let temp = {
+                form_fill_request: activityMasterData
+                };
+                
+            console.log('In IF TEMP : ', temp);
+            activityMasterData = JSON.stringify(temp);
+            
+        } else {
+            for(const i_iterator of participantData.form_fill_request) {
+                activityMasterData.push(i_iterator);
+            }
 
-        console.log('processedActivityMasterData : ', processedActivityMasterData);
-
+            let temp = {
+                form_fill_request: activityMasterData
+                };
+                
+            console.log('In ELSE TEMP : ', temp);
+            activityMasterData = JSON.stringify(temp);            
+        }   
+        
+        console.log('activityMasterData : ', activityMasterData);
         await new Promise((resolve, reject)=>{
             activityCommonService.updateActivityMasterData(
                 request, 
                 request.workflow_activity_id, 
-                processedActivityMasterData,
+                activityMasterData,        
                 (err, data) =>{
                     if(!err) {
                         error = false;
@@ -5680,55 +5690,55 @@ function FormConfigService(objCollection) {
     }
 
     this.formParticipantReset = async(request) => {
-    /*{
-            "form_fill_request": [{
-                    "form_id": 1025,
-                    "form_name": "Sample Form",
-                    "asset_id": 40210
-                }, {
-                    "form_id": 2045,
-                    "form_name": "Sample Form 1",
-                    "asset_id": 39526
-                }
-            ]
-        }*/
+          /*[{
+                "form_id": 1025,                    
+                "asset_id": 40210
+            }, {
+                "form_id": 2045,              
+                "asset_id": 39526
+            }]*/
 
         let responseData = [],
             error = true;
 
         let participantData = JSON.parse(request.participant_collection);
-        let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+        let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);        
 
-        console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
-
-        let activityMasterData;
-        let processedActivityMasterData;
+        let activityMasterData;        
+        let newActivityMasterData = [];
         try {
-            activityMasterData = JSON.parse(activityData[0].activity_master_data);
-            console.log('activityMasterData : ', activityMasterData);
-            console.log('activityMasterData : ', typeof activityMasterData);
-            processedActivityMasterData = (typeof activityMasterData === 'string')? JSON.parse(activityMasterData.form_fill_request) : activityMasterData.form_fill_request;
-            console.log('processedActivityMasterData : ', processedActivityMasterData);
+            activityMasterData = JSON.parse(activityData[0].activity_master_data).form_fill_request;
+            console.log('activityMasterData from Activity8 List: ', activityMasterData);            
+
+            for(const i_iterator of participantData) {
+                for(const j_iterator of activityMasterData) {
+                    if(i_iterator.form_id === j_iterator.form_id && i_iterator.asset_id === j_iterator.asset_id) {
+                        continue;
+                    } else {
+                        newActivityMasterData.push(j_iterator);
+                    }                                     
+                }
+                activityMasterData = newActivityMasterData;
+            }
+            
         } catch(err) {
             console.log('Error in parsing the activity_master_data', err);
-        }
+        }       
         
-        let newActivityMasterData = [];
-        for(const i_iterator of participantData) {
-            for(const j_iterator of processedActivityMasterData) {
-                (Number(i_iterator) === Number(j_iterator.asset_id))? '' : newActivityMasterData.push(j_iterator);                    
-            }            
-        }
+        let finalJson = {
+            form_fill_request: newActivityMasterData
+        };        
+        finalJson = JSON.stringify(finalJson) ;
 
-        let finalJson = {};
-        finalJson.form_fill_request = newActivityMasterData;
-                      
         await new Promise((resolve, reject)=>{
             activityCommonService.updateActivityMasterData(
                 request, 
-                request.activity_id, 
+                request.workflow_activity_id, 
                 finalJson, 
                 (err, data) =>{
+                    if(!err) {
+                        error = false;
+                    }
                     resolve();
                 });
         });
