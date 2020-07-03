@@ -694,7 +694,7 @@ function CacheWrapper(client) {
                     logger.error(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(err);
                 } else {
-                    logger.verbose(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
+                    //logger.verbose(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
                     resolve(reply);
                 }
             });

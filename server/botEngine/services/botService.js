@@ -6658,7 +6658,7 @@ function BotService(objectCollection) {
                 let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
                 console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
                 let formData = formTransactionInlineData.form_submitted;
-                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
+                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
 
                 for(const j_iterator of formData) {
                     if(i_iterator.field_id === j_iterator.field_id) {
@@ -6719,9 +6719,9 @@ function BotService(objectCollection) {
 
         let escalationType = dateReminder.escalation_type;
         let alterType = dateReminder.alert_type;
-        let multiplier = dateReminder['24hours_multiplier'];
+        let multiplier = dateReminder['24hours_multiplier'];        
 
-        let reminderDatetime;
+        let reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
 
         if(alterType === 'before') {
             //write an util function and call the same
@@ -6735,13 +6735,17 @@ function BotService(objectCollection) {
             case 'timeline': //post a reminder onto the timeline
                             break;
 
-            case 'participant': dateReminder.asset_reference_form_id;
-                                dateReminder.asset_reference_field_id;
+            case 'participant': let newReq = Object.assign({}, request);
+                                    newReq.form_id = dateReminder.asset_reference_form_id;
+                                    newReq.field_id = dateReminder.asset_reference_field_id;
                                 break;
 
-            case 'text': //Send a text(sms) reminder
-                         date_form_id
-                         date_field_id
+            case 'text': //Send a text(sms) reminder                         
+                         let newReq = Object.assign({}, request);
+                            newReq.form_id = dateReminder.date_form_id;
+                            newReq.field_id = dateReminder.date_field_id;
+
+                         await getFormInlineData(newReq);
                          break;
 
             case 'email': //Send an email reminder
@@ -6750,6 +6754,25 @@ function BotService(objectCollection) {
                           break;
         }
 
+    }
+
+
+    async function getFormInlineData(request) {
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
+        console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        return formData;
     }
 
 }
