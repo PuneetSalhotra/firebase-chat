@@ -554,6 +554,7 @@ function DiffbotService(objectCollection) {
       return tenderList;
     } catch(err) {
       console.log('Error : ', err);
+      return [];
     }
   }
 

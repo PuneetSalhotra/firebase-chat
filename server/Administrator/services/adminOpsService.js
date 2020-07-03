@@ -7754,7 +7754,43 @@ function AdminOpsService(objectCollection) {
                 error = false;
             }
 
-            responseData = dependencyFormsList;
+            
+            //Appending which form is delegated to whom?
+            let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+            console.log('activityData.length : ', activityData.length);
+
+            if(activityData.length > 0) {
+                console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
+                let activityMasterData;
+                let delegationData;
+
+                if(activityData[0].activity_master_data !== null) {
+                    activityMasterData = JSON.parse(activityData[0].activity_master_data);
+                    delegationData = activityMasterData.form_fill_request;
+
+                    let tempArr = [];
+
+                    for(const i_iterator of delegationData) {
+                        for(const j_iterator of statusBasedFormsList) {
+                            if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {                                
+                                (j_iterator.delegated_to_assests).push(i_iterator.asset_id);
+                            }
+                        }                        
+                    }
+                }
+            }// End of Appending
+
+            let finalFormsList = [];
+            for(const i_iterator of dependencyFormsList) {
+                for(const j_iterator of statusBasedFormsList) {
+                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                        finalFormsList.push(j_iterator);
+                        break;
+                    }
+                }       
+            }
+
+            responseData = finalFormsList;
         }
 
         return [error, responseData];
@@ -7777,6 +7813,10 @@ function AdminOpsService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    for(const i_iterator of data) {
+                        i_iterator.delegated_to_assests = [];
+                    }
+
                     responseData = data;
                     error = false;
                 })
