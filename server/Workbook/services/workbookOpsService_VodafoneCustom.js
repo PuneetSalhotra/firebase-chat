@@ -58,9 +58,36 @@ function WorkbookOpsService(objectCollection) {
             case 22: // Email ID
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
+            case 57: // Workflow Reference
+            case 59: // Asset Reference
                 return 'data_entity_text_1';
             case 20: // Long Text
                 return 'data_entity_text_2';
+        }
+    }
+
+    function getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID) {
+        // type: b Boolean, e Error, n Number, d Date, s Text, z Stub
+        switch (fieldDataTypeID) {
+            case 1: // Date
+            case 2: // Future Date
+            case 3: // Past Date
+            case 4: // Date and Time
+            case 60: // Slot Availability
+            case 67: // Reminder
+                return 'd';
+            case 5: // Number
+            case 6: // Decimal
+                return 'n';
+            case 19: // Short Text
+            case 20: // Long Text
+            case 21: // Label
+            case 22: // Email ID
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+            case 57: // Workflow Reference
+            case 59: // Asset Reference
+                return 's';
         }
     }
 
@@ -68,6 +95,8 @@ function WorkbookOpsService(objectCollection) {
     this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
+
+        const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
 
         console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
         console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
@@ -247,16 +276,23 @@ function WorkbookOpsService(objectCollection) {
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
-        for (const [cellKey, cellValue] of inputCellToValueMap) {
+        for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
             // Check if the cell has the up-to-date value
             const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
             if (existingCellValue == cellValue) {
                 logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
                 continue;
             }
+            const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
             try {
-                logger.silly(`Updating ${cellKey} to ${cellValue}`);
-                S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+                logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
+                if (isFormulaEngineEnabled) {
+                    S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+
+                } else {
+                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
+                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
+                }
             } catch (error) {
                 logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
             }
@@ -407,7 +443,7 @@ function WorkbookOpsService(objectCollection) {
                                 fieldValue = fieldDataJSON.product_activity_business_case;
                             }
                             break;
-                    
+
                         default:
                             fieldValue = field.field_value;
                             break;
@@ -586,7 +622,7 @@ function WorkbookOpsService(objectCollection) {
         let inputCellToValueMasterMap = new Map(),
             inputFormIDsSet = new Set(),
             formIDToInputMappingsJSON = {};
-        
+
         // Create the segregation by form_ids
         for (const inputMapping of inputMappings) {
             const formID = Number(inputMapping.form_id);
@@ -681,7 +717,10 @@ function WorkbookOpsService(objectCollection) {
             const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
             logger.silly("fieldValue: %j", fieldValue)
 
-            inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, fieldValue);
+            inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                fieldValue,
+                fieldDataTypeID
+            });
         }
 
         return inputCellToValueMap;
