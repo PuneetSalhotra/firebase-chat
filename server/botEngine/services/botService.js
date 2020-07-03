@@ -6733,22 +6733,24 @@ function BotService(objectCollection) {
         //What is reminder_type_id
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
-                            break;
+                             break;
 
-            case 'participant': let newReq = Object.assign({}, request);
-                                    newReq.form_id = dateReminder.asset_reference_form_id;
-                                    newReq.field_id = dateReminder.asset_reference_field_id;
+            case 'participant': let newParticipantReq = Object.assign({}, request);
+                                    newParticipantReq.form_id = dateReminder.asset_reference_form_id;
+                                    newParticipantReq.field_id = dateReminder.asset_reference_field_id;
                                 break;
 
             case 'text': //Send a text(sms) reminder                         
-                         let newReq = Object.assign({}, request);
-                            newReq.form_id = dateReminder.date_form_id;
-                            newReq.field_id = dateReminder.date_field_id;
-
+                         let newSmsReq = Object.assign({}, request);
+                             newSmsReq.form_id = dateReminder.date_form_id;
+                             newSmsReq.field_id = dateReminder.date_field_id;
                          await getFormInlineData(newReq);
                          break;
 
             case 'email': //Send an email reminder
+                        let newEmailReq = Object.assign({}, request);
+                            newEmailReq.form_id = dateReminder.date_form_id;
+                            newEmailReq.field_id = dateReminder.date_field_id;
                           date_form_id
                           date_field_id 
                           break;
