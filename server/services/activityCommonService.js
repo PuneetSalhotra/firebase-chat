@@ -5551,6 +5551,88 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             }
         return [error, responseData]; 
     };
+
+    this.activityReminderTxnInsert = async (request, reminderTypeID, reminderDateTime) => {
+        let error = true,
+            responseData = [];        
+        
+        const paramsArr = new Array(
+                            request.organization_id,
+                            request.activity_id,
+                            request.asset_id,
+                            reminderTypeID,
+                            request.inline_data || '{}',
+                            reminderDateTime,
+                            request.status_id,
+                            util.getCurrentUTCTime()
+                        );
+        const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_insert', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
+    };
+
+
+    this.activityReminderTxnUpdate = async (request) => {
+        let error = true,
+        responseData = [];        
+        
+        const paramsArr = new Array(
+                            request.reminder_id,
+                            request.activity_id,
+                            request.organization_id,                            
+                            request.status_id,
+                            util.getCurrentUTCTime()
+                        );
+        const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_update_reminder_status', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
+    };
+
+    
+    this.activityReminderTxnSelect = async (request) => {
+        let error = true,
+            responseData = [];        
+        
+        const paramsArr = new Array(
+                            request.activity_id,
+                            request.organization_id,
+                            request.start_datetime,
+                            request.end_datetime,
+                            request.flag,
+                            request.start_from || 0,
+                            request.limit_value
+                        );
+        const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_select', paramsArr);
+        if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        return [error, responseData]; 
+    };
 }
 
 

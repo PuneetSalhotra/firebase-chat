@@ -1217,13 +1217,15 @@ function FormConfigService(objCollection) {
                             let idWorkflowType = 0;
 
                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
-                            if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
+                            if(workflowData.length > 0) {
+                                if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
                                 Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575) { //FLV CRF                                                                           
                                         logger.info("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
                                         addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
+                            }
                         });
 
     
