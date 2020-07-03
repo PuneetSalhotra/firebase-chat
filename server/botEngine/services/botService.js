@@ -1519,12 +1519,12 @@ function BotService(objectCollection) {
                                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                 }
                             });
-                            makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                                form: request,
-                            }, function (error, response, body) {
-                                logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                                logger.silly("[Workbook Mapping Bot] Request body: %j", body);
-                            });
+                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                            //     form: request,
+                            // }, function (error, response, body) {
+                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            // });
 
                             // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
