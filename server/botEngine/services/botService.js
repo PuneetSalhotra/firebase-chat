@@ -1519,12 +1519,12 @@ function BotService(objectCollection) {
                                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                 }
                             });
-                            makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                                form: request,
-                            }, function (error, response, body) {
-                                logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                                logger.silly("[Workbook Mapping Bot] Request body: %j", body);
-                            });
+                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                            //     form: request,
+                            // }, function (error, response, body) {
+                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            // });
 
                             // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
@@ -6730,25 +6730,33 @@ function BotService(objectCollection) {
             reminderDatetime++;
         }
 
+        //reminder_type_id
+        //1 Timeline
+        //2 Participant
+        //3 Email
+        //4 Text
+
         //What is reminder_type_id
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
-                            break;
+                             break;
 
-            case 'participant': let newReq = Object.assign({}, request);
-                                    newReq.form_id = dateReminder.asset_reference_form_id;
-                                    newReq.field_id = dateReminder.asset_reference_field_id;
+            case 'participant': let newParticipantReq = Object.assign({}, request);
+                                    newParticipantReq.form_id = dateReminder.asset_reference_form_id;
+                                    newParticipantReq.field_id = dateReminder.asset_reference_field_id;
                                 break;
 
             case 'text': //Send a text(sms) reminder                         
-                         let newReq = Object.assign({}, request);
-                            newReq.form_id = dateReminder.date_form_id;
-                            newReq.field_id = dateReminder.date_field_id;
-
+                         let newSmsReq = Object.assign({}, request);
+                             newSmsReq.form_id = dateReminder.date_form_id;
+                             newSmsReq.field_id = dateReminder.date_field_id;
                          await getFormInlineData(newReq);
                          break;
 
             case 'email': //Send an email reminder
+                        let newEmailReq = Object.assign({}, request);
+                            newEmailReq.form_id = dateReminder.date_form_id;
+                            newEmailReq.field_id = dateReminder.date_field_id;
                           date_form_id
                           date_field_id 
                           break;
