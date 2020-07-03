@@ -7767,15 +7767,13 @@ function AdminOpsService(objectCollection) {
                 if(activityData[0].activity_master_data !== null) {
                     activityMasterData = JSON.parse(activityData[0].activity_master_data);
                     delegationData = activityMasterData.form_fill_request;
-
-                    let tempArr = [];
-
+                    
                     for(const i_iterator of delegationData) {
                         for(const j_iterator of statusBasedFormsList) {
                             if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {                                
-                                (j_iterator.delegated_to_assests).push(i_iterator.asset_id);
+                                (j_iterator.delegated_to_assests).push(i_iterator);
                             }
-                        }                        
+                        }                     
                     }
                 }
             }// End of Appending
