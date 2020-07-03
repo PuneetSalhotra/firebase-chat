@@ -6730,6 +6730,12 @@ function BotService(objectCollection) {
             reminderDatetime++;
         }
 
+        //reminder_type_id
+        //1 Timeline
+        //2 Participant
+        //3 Email
+        //4 Text
+
         //What is reminder_type_id
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
