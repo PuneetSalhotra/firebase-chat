@@ -21,6 +21,7 @@ const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workb
 
 
 const uuidv4 = require('uuid/v4');
+const _ = require('lodash');
 
 const AWS = require('aws-sdk');
 AWS.config.update({
@@ -6637,43 +6638,51 @@ function BotService(objectCollection) {
             }]
         }*/
 
-        let fieldsData = arithmeticCalculation.operations;
+        let fieldsData = arithmeticCalculation.operations;        
+        sortedfieldsData = _.sortBy(fieldsData,"sequence_id");
 
         //Before firing check that all the required input fields are available else dont fire.
-        for(const i_iterator of fieldsData){
-            let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
-            console.log('formDataFrom713Entry : ', formDataFrom713Entry);
-            if(!formDataFrom713Entry.length > 0) {
-                responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-                console.log('responseData : ', responseData);
-                return [true, responseData];
-            }
+        for(const i_iterator of sortedfieldsData){
 
-            let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-            console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
-            let formData = formTransactionInlineData.form_submitted;
-            formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
-
-            for(const j_iterator of formData) {
-                if(i_iterator.field_id === j_iterator.field_id) {
-                    if(util.replaceDefaultString(j_iterator.field_value) === '') {
-                        responseData.push({'message': `${j_iterator.field_value} is empty`});
-                        console.log('responseData : ', responseData);
-                        return [true, responseData];
-                    }
-
-                    i_iterator.field_value = j_iterator.field_value;
+            if(i_iterator.hasOwnProperty('value')) {
+                i_iterator.field_value = value;
+            } else {
+                let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
+                console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+                if(!formDataFrom713Entry.length > 0) {
+                    responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+                    console.log('responseData : ', responseData);
+                    return [true, responseData];
                 }
-            } //End of checking for non-empty field_value
+
+                let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+                console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+                let formData = formTransactionInlineData.form_submitted;
+                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+                for(const j_iterator of formData) {
+                    if(i_iterator.field_id === j_iterator.field_id) {
+                        if(util.replaceDefaultString(j_iterator.field_value) === '') {
+                            responseData.push({'message': `${j_iterator.field_value} is empty`});
+                            console.log('responseData : ', responseData);
+                            return [true, responseData];
+                        }
+
+                        i_iterator.field_value = j_iterator.field_value;
+                    }
+                } //End of checking for non-empty field_value
+
+            } //ELSE       
+            
         } //End of processing all form fields in the bot operation inline
 
-        let finalResult = fieldsData[0].field_value;
-        for(let i=0; i<fieldsData.length;i++){
-            if(fieldsData[i].join_condition === 'EOJ') {
+        let finalResult = sortedfieldsData[0].field_value;
+        for(let i=0; i<sortedfieldsData.length;i++){
+            if(sortedfieldsData[i].join_condition === 'EOJ') {
                 break;
             }
 
-            finalResult = await performArithmeticOperation(finalResult, fieldsData[i+1].field_value, fieldsData[i].join_condition);
+            finalResult = await performArithmeticOperation(finalResult, sortedfieldsData[i+1].field_value, sortedfieldsData[i].join_condition);
         }
 
         return [error, responseData];
@@ -6708,9 +6717,62 @@ function BotService(objectCollection) {
             "escalation_type": "timeline|participant|text|email"
         }*/
 
-        let fieldsData = dateReminder.operations;
-        
+        let escalationType = dateReminder.escalation_type;
+        let alterType = dateReminder.alert_type;
+        let multiplier = dateReminder['24hours_multiplier'];        
 
+        let reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
+
+        if(alterType === 'before') {
+            //write an util function and call the same
+            reminderDatetime--;
+        } else if(alterType === 'after') {
+            reminderDatetime++;
+        }
+
+        //What is reminder_type_id
+        switch(escalationType) {
+            case 'timeline': //post a reminder onto the timeline
+                            break;
+
+            case 'participant': let newReq = Object.assign({}, request);
+                                    newReq.form_id = dateReminder.asset_reference_form_id;
+                                    newReq.field_id = dateReminder.asset_reference_field_id;
+                                break;
+
+            case 'text': //Send a text(sms) reminder                         
+                         let newReq = Object.assign({}, request);
+                            newReq.form_id = dateReminder.date_form_id;
+                            newReq.field_id = dateReminder.date_field_id;
+
+                         await getFormInlineData(newReq);
+                         break;
+
+            case 'email': //Send an email reminder
+                          date_form_id
+                          date_field_id 
+                          break;
+        }
+
+    }
+
+
+    async function getFormInlineData(request) {
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
+        console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        return formData;
     }
 
 }
