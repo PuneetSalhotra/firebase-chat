@@ -6,8 +6,8 @@ const TimeUuid = require('cassandra-driver').types.TimeUuid;
 function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
     app.use((req, res, next) => {
-        console.log('REQ : ', req.headers);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
+        // console.log('REQ : ', req.headers);
+        // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
                 
         let bundleTransactionId = TimeUuid.now();
         req.body.service_id = "";
