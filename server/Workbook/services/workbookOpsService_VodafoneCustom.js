@@ -63,6 +63,7 @@ function WorkbookOpsService(objectCollection) {
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
             case 57: // Workflow Reference
+                return 'data_entity_text_1';
             case 59: // Asset Reference
                 return 'data_entity_text_1';
             case 20: // Long Text
@@ -1052,8 +1053,8 @@ function WorkbookOpsService(objectCollection) {
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
-            outputFormActivityID = await cacheWrapper.getActivityIdPromise(),
-                outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            outputFormActivityID = await cacheWrapper.getActivityIdPromise();
+            outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
             logger.silly(`outputFormActivityID: ${outputFormActivityID} | outputFormTransactionID: ${outputFormTransactionID}`);
 
@@ -1083,8 +1084,8 @@ function WorkbookOpsService(objectCollection) {
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
-            workflowFile705Request.asset_id = 100;
-            workflowFile705Request.log_asset_id = 100;
+            workflowFile705Request.asset_id = workflowActivityCreatorAssetID;
+            workflowFile705Request.log_asset_id = workflowActivityCreatorAssetID;
             // This will be captured in the push-string message-forming switch-case logic
             workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
 
