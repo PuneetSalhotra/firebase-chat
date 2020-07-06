@@ -387,6 +387,18 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
+
+    //app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+    //    const [err, responseData] = await botService.arithmeticBotVNK(req.body);
+    //    console.log(responseData);
+    //    console.log(err);        
+    //    if (!err) {
+    //        res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+    //    } else {
+    //        console.log("/bot/esms/test_service | Error: ", err);
+    //        res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+    //    }
+    //});
 }
 
 module.exports = BotController;

@@ -2153,7 +2153,10 @@ function Util(objectCollection) {
         };
 
         // query ews, print resulting JSON to console
-        console.log('Before ews.run');
+        console.log('Before ews.run : emailSubject -  ', emailSubject);
+        console.log('Before ews.run : Template - ', Template);
+        console.log('Before ews.run : receiverEmailID - ', receiverEmailID);
+        
         ews.run(ewsFunction, ewsArgs)
         .then(result => {
             console.log('EWS Email - Result : ', JSON.stringify(result));
