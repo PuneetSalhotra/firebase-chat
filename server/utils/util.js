@@ -73,6 +73,7 @@ const EWS = require('node-ews');
 /*const ewsConfig = {
     username: 'ESMSMails@vodafoneidea.com',
     password: 'June@2020',
+    password: 'July@2020',
     host: 'https://webmail.vodafoneidea.com'    
   };
 
