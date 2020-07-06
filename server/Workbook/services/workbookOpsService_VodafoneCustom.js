@@ -101,6 +101,11 @@ function WorkbookOpsService(objectCollection) {
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
 
+        let EnterpriseCode = "",
+            BuildingName = "",
+            WorkforceName = "",
+            WorkflowCreatedDateTime = "";
+
         // Flags
         const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
         const isVILCustomOutputMappingEnabled = botOperationInlineData.is_vil_custom_mapping_enabled || false;
@@ -151,6 +156,12 @@ function WorkbookOpsService(objectCollection) {
                 excelSheetFilePath = workflowActivityData[0].activity_workbook_url;
                 workbookMappedStreamTypeID = 719; // If workbook is being updated
             }
+            if (Number(workflowActivityData.length) > 0) {
+                EnterpriseCode = workflowActivityData[0].activity_cuid_1 || "";
+                BuildingName = workflowActivityData[0].account_name || "";
+                WorkforceName = workflowActivityData[0].workforce_name || "";
+                WorkflowCreatedDateTime = moment(workflowActivityData[0].activity_datetime_created).format("YYYY-MM-DD HH:mm:ss") || "";
+            }
         } catch (error) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
@@ -191,7 +202,12 @@ function WorkbookOpsService(objectCollection) {
         let inputCellToValueMap = new Map();
         try {
             // inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, inputMappings);
-            inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings);
+            inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings, {
+                EnterpriseCode,
+                BuildingName,
+                WorkforceName,
+                WorkflowCreatedDateTime
+            });
         } catch (error) {
             logger.error("Error fetching input form field values", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
@@ -696,13 +712,42 @@ function WorkbookOpsService(objectCollection) {
         }
     }
 
-    async function getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings) {
+    async function getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings, options) {
         let inputCellToValueMasterMap = new Map(),
             inputFormIDsSet = new Set(),
             formIDToInputMappingsJSON = {};
 
         // Create the segregation by form_ids
         for (const inputMapping of inputMappings) {
+            if (inputMapping.type === "DYNAMIC") {
+                switch (inputMapping.kind) {
+                    case "EnterpriseCode":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.EnterpriseCode || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "BuildingName":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.BuildingName || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "WorkforceName":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.WorkforceName || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "WorkflowCreatedDateTime":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.WorkflowCreatedDateTime || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                }
+                continue;
+            }
             const formID = Number(inputMapping.form_id);
             if (inputFormIDsSet.has(formID)) {
                 formIDToInputMappingsJSON[formID].push(inputMapping);
