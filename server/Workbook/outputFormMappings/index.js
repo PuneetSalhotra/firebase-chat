@@ -7,7 +7,7 @@ const mobilityJSON = require("./mobility.json");
 module.exports = {
     "Connectivity": {
         "Product - WAN Services": {
-            "International Private Leased Line (IPLC)": fldJSON
+            "International Private Leased Line (IPLC)": fldJSON.bot_operations.map_workbook.mappings["2"].output
         }
     }
 };

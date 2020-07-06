@@ -17,6 +17,10 @@ S5SCalc.set_XLSX(XLSX);
 
 const tempy = require('tempy');
 
+// Load the output form mappings
+const outputFormMappings = require("../outputFormMappings/index");
+const objectPath = require("object-path");
+
 const ActivityService = require('../../services/activityService.js');
 
 function WorkbookOpsService(objectCollection) {
@@ -93,10 +97,13 @@ function WorkbookOpsService(objectCollection) {
 
     // Bot Operation Logic
     this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
+        const organizationID = Number(request.organization_id);
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
 
+        // Flags
         const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
+        const isVILCustomOutputMappingEnabled = botOperationInlineData.is_vil_custom_mapping_enabled || false;
 
         console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
         console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
@@ -174,8 +181,8 @@ function WorkbookOpsService(objectCollection) {
         }
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
 
-        const inputMappings = botOperationInlineData.mappings[sheetIndex].input,
-            outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
+        const inputMappings = botOperationInlineData.mappings[sheetIndex].input;
+        let outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
 
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
@@ -192,6 +199,77 @@ function WorkbookOpsService(objectCollection) {
         console.log("inputCellToValueMap: ", inputCellToValueMap);
         // return;
 
+        // Fetch the relevant output mappings
+        if (organizationID === 868 && isVILCustomOutputMappingEnabled) {
+            // Get the origin form data
+            const originFormID = 4353;
+            const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, originFormID);
+            if (!(originFormData.length > 0)) {
+                throw new Error("No Origin Form Available For Fetching Reference");
+            }
+
+            let dataEntityInline = JSON.parse(originFormData[0].data_entity_inline);
+            let formSubmitted = dataEntityInline.form_submitted;
+            formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
+
+            let OpportunityReferenceJSON = [{ activity_id: 0, activity_title: "" }];
+            for (const field of formSubmitted) {
+                // Field Name: Opportunity Reference
+                if (Number(field.field_id) === 218728) {
+                    const fieldValue = field.field_value;
+                    OpportunityReferenceJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                }
+            }
+
+            if (Number(OpportunityReferenceJSON[0].activity_id) !== 0) {
+                const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
+                const OpportunityUpdateFormID = 2753;
+                // Fetch OpportunityUpdateForm from the referenced opportunity
+                const OpportunityUpdateFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, OpportunityActivityID, OpportunityUpdateFormID);
+                if (!(OpportunityUpdateFormData.length > 0)) {
+                    throw new Error("No Opportunity Update Form Available For Fetching Product Category");
+                }
+                // Get the product cart field value
+                dataEntityInline = JSON.parse(OpportunityUpdateFormData[0].data_entity_inline);
+                formSubmitted = dataEntityInline.form_submitted;
+                formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
+
+                let ProductSelectionJSON = {
+                    product_tag_type_id: 0, product_tag_type_name: '',
+                    product_tag_id: 0, product_tag_name: '',
+                    product_activity_type_id: 0, product_activity_type_name: '',
+                    product_activity_id: 0, product_activity_title: '',
+                    product_activity_business_case: '', cart_items: []
+                };
+                for (const field of formSubmitted) {
+                    // Field Name: Product Selection
+                    if (Number(field.field_id) === 218716) {
+                        const fieldValue = field.field_value;
+                        ProductSelectionJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                    }
+                }
+                if (
+                    ProductSelectionJSON.product_tag_name !== "" &&
+                    ProductSelectionJSON.product_activity_type_name !== "" &&
+                    ProductSelectionJSON.product_activity_title !== ""
+                ) {
+                    outputMappings = objectPath.get(
+                        outputFormMappings,
+                        `${ProductSelectionJSON.product_tag_name}.${ProductSelectionJSON.product_activity_type_name}.${ProductSelectionJSON.product_activity_title}`,
+                        []
+                    );
+                    // console.log("[111111111] outputMappings: ", outputMappings);
+                }
+            } else {
+                throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
+            }
+        }
         // Create the cellKey => field_id map for output cells
         let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
 
@@ -268,7 +346,7 @@ function WorkbookOpsService(objectCollection) {
                 return;
             }
         }
-        console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
+        // return;
 
         // Parse and process the excel file
         // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
