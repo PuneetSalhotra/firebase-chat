@@ -206,7 +206,7 @@ function connectToKafkaBroker(){
     }).then(async () => {  
 
         //Load the userData from the Cognito
-        await listUsers()
+        //await listUsers()
         console.log('Cognito Users loaded successfully : ', map.size);
 	    //console.log(map);
 
