@@ -19,6 +19,7 @@ const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
+const RMBotService = require('./rmbotService');
 
 const uuidv4 = require('uuid/v4');
 const _ = require('lodash');
@@ -63,6 +64,8 @@ function BotService(objectCollection) {
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
     const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
+
+    const rmBotService = new RMBotService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -3636,6 +3639,8 @@ function BotService(objectCollection) {
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
+        let isLead = 0;
+        
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
@@ -3644,6 +3649,8 @@ function BotService(objectCollection) {
 
         if (type[0] === 'static') {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -3672,6 +3679,8 @@ function BotService(objectCollection) {
             newReq.customer_name = '';
             newReq.participant_workforce_id = inlineData[type[0]].workforce_id || 0;
             newReq.participant_account_id = inlineData[type[0]].account_id || 0;
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
 
             let activityInlineData;
 
@@ -3772,6 +3781,8 @@ function BotService(objectCollection) {
                 logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
             }
         }
+
+        newReq.is_lead = isLead;
 
         if (
             (newReq.phone_number !== -1) &&
@@ -4985,8 +4996,29 @@ function BotService(objectCollection) {
         };
 
         return await new Promise((resolve, reject) => {
-            activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
-                (err === false) ? resolve() : reject(err);
+            activityParticipantService.assignCoworker(addParticipantRequest, async (err, resp) => {
+                if(err === false) {                    
+                    
+                    //Check for lead flag                    
+                    console.log('request.is_lead : ',request.is_lead);
+                    if(Number(request.is_lead) === 1) {
+                        let newReq = {};
+                        newReq.organization_id = request.organization_id;
+                        newReq.account_id = request.account_id;
+                        newReq.workforce_id = request.workforce_id;
+                        newReq.asset_id = 100;
+                        newReq.activity_id = Number(request.workflow_activity_id);
+                        newReq.lead_asset_id = Number(assetData.desk_asset_id);
+                        newReq.timeline_stream_type_id = 718;
+                        newReq.datetime_log = util.getCurrentUTCTime();
+
+                        await rmBotService.activityListLeadUpdateV1(newReq, leadAssetID);
+                    }
+                    
+                    resolve()
+                } else {
+                    reject(err);
+                }
             });
         });
 
