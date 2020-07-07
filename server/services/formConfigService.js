@@ -1090,18 +1090,20 @@ function FormConfigService(objCollection) {
                         break;
                     case 57: //Workflow reference                        
                         //params[27] = row.field_value;                        
-                        if(typeof row.field_value === 'object') {
+                        if (typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
                             params[18] = row.field_value;
                             try {
                                 let tempVar = (row.field_value).split('|');
                                 let tempObj = {};
-                                    tempObj[tempVar[0]] = tempVar[1];
+                                tempObj[tempVar[0]] = tempVar[1];
+                                // p_entity_text_2 19
+                                params[19] = tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
-                            } catch(err) {
+                            } catch (err) {
                                 console.log('ERROR in field edit - 57 : ', err);
-                            }                            
+                            }
                         }
                         break;
                     case 58://Document reference
@@ -1112,16 +1114,21 @@ function FormConfigService(objCollection) {
                         //assetReference = row.field_value.split('|');
                         //params[13] = assetReference[0]; //ID
                         //params[18] = assetReference[1]; //Name
-                        if(typeof row.field_value === 'object') {
+                        if (typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
                             params[18] = row.field_value;
                             try {
                                 let tempVar = (row.field_value).split('|');
                                 let tempObj = {};
-                                    tempObj[tempVar[0]] = tempVar[1];
+                                tempObj[tempVar[0]] = tempVar[1];
+                                // p_entity_text_2 19
+                                params[19] = tempVar[1] || "";
+                                // p_entity_text_3 20
+                                params[20] = tempVar[3] || "";
+
                                 params[27] = JSON.stringify(tempObj);
-                            } catch(err) {
+                            } catch (err) {
                                 console.log('ERROR in field edit - 57 : ', err);
                             }
                         }
