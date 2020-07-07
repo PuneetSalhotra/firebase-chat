@@ -49,7 +49,7 @@ function WorkbookOpsService(objectCollection) {
         return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
     }
 
-    function getFielDataValueColumnName(fieldDataTypeID) {
+    function getFielDataValueColumnName(fieldDataTypeID, overrideColumnName = "") {
         switch (fieldDataTypeID) {
             case 1: // Date
                 return 'data_entity_datetime_2';
@@ -62,10 +62,12 @@ function WorkbookOpsService(objectCollection) {
             case 22: // Email ID
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
+                return 'data_entity_text_1';
             case 57: // Workflow Reference
+                if (overrideColumnName !== "" && overrideColumnName === "data_entity_text_2") { return "data_entity_text_2" };
                 return 'data_entity_text_1';
             case 59: // Asset Reference
-                return 'data_entity_text_1';
+                return 'data_entity_text_3';
             case 20: // Long Text
                 return 'data_entity_text_2';
         }
@@ -102,7 +104,7 @@ function WorkbookOpsService(objectCollection) {
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
 
-        let EnterpriseCode = "",
+        let OpportunityID = "",
             BuildingName = "",
             WorkforceName = "",
             WorkflowCreatedDateTime = "";
@@ -158,7 +160,7 @@ function WorkbookOpsService(objectCollection) {
                 workbookMappedStreamTypeID = 719; // If workbook is being updated
             }
             if (Number(workflowActivityData.length) > 0) {
-                EnterpriseCode = workflowActivityData[0].activity_cuid_1 || "";
+                OpportunityID = workflowActivityData[0].activity_cuid_1 || "";
                 BuildingName = workflowActivityData[0].account_name || "";
                 WorkforceName = workflowActivityData[0].workforce_name || "";
                 WorkflowCreatedDateTime = moment(workflowActivityData[0].activity_datetime_created).format("YYYY-MM-DD HH:mm:ss") || "";
@@ -204,7 +206,7 @@ function WorkbookOpsService(objectCollection) {
         try {
             // inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, inputMappings);
             inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings, {
-                EnterpriseCode,
+                OpportunityID,
                 BuildingName,
                 WorkforceName,
                 WorkflowCreatedDateTime
@@ -720,11 +722,12 @@ function WorkbookOpsService(objectCollection) {
 
         // Create the segregation by form_ids
         for (const inputMapping of inputMappings) {
+            // Set the dynamic fields
             if (inputMapping.type === "DYNAMIC") {
                 switch (inputMapping.kind) {
-                    case "EnterpriseCode":
+                    case "OpportunityID":
                         inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
-                            fieldValue: options.EnterpriseCode || "",
+                            fieldValue: options.OpportunityID || "",
                             fieldDataTypeID: 19
                         });
                         break;
@@ -747,6 +750,17 @@ function WorkbookOpsService(objectCollection) {
                         });
                         break;
                 }
+                continue;
+            }
+            // Set default value if no formID or fieldID is found
+            if (
+                !inputMapping.hasOwnProperty("form_id") &&
+                inputMapping.hasOwnProperty("default_value")
+            ) {
+                inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                    fieldValue: inputMapping.default_value,
+                    fieldDataTypeID: 19
+                });
                 continue;
             }
             const formID = Number(inputMapping.form_id);
@@ -838,7 +852,15 @@ function WorkbookOpsService(objectCollection) {
             const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
             logger.silly("fieldDataTypeID: %j", fieldDataTypeID)
 
-            const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+            let overrideColumnName = "";
+            if (inputMapping.hasOwnProperty("override_column_name") && inputMapping.override_column_name) {
+                overrideColumnName = inputMapping.override_column_name;
+            }
+
+            let fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID, overrideColumnName)] || 0;
+            if (fieldDataTypeID === 57 && String(fieldValue).includes("|")) {
+                fieldValue = String(fieldValue).split("|")[1];
+            }
             logger.silly("fieldValue: %j", fieldValue)
 
             inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
