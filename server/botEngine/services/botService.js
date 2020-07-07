@@ -1056,6 +1056,7 @@ function BotService(objectCollection) {
             }            
 
         } else if(Number(request.is_refill) === 1) { 
+            console.log('This is smart form - Refill case');
             //This is Form refill SMART FORM 
             //1) Retrigger all form level bots
             //2) Retrigger all the impacted field level
@@ -1092,6 +1093,7 @@ function BotService(objectCollection) {
             wfSteps = totalBots;            
 
         } else if(Number(request.is_resubmit) === 1) {
+            console.log('This is non-smart - Resubmit case');
             //This is Form resubmit NON-SMART FORM 
             //Retrigger all form level bots
             let [err, botResponse] = await activityCommonService.getMappedBotSteps({
@@ -1104,7 +1106,8 @@ function BotService(objectCollection) {
             }, 2);
 
             wfSteps = botResponse; //Assigning form based bots
-        } else {             
+        } else {   
+            console.log('This is generic case!! - First time form Submission!!');
             //trigger both the form level bots & field level - Normally happens for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
@@ -1182,9 +1185,15 @@ function BotService(objectCollection) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
             }
 
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);            
+            console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
+            console.log('Value of i : ', i)
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            console.log('ONE: ', botOperationsJson);
             botSteps = Object.keys(botOperationsJson.bot_operations);
+            console.log('TWO');
             logger.silly("botSteps: %j", botSteps);
+            console.log('THREE');
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -1586,9 +1595,10 @@ function BotService(objectCollection) {
                     }
                     break;
 
-                case 28: //Airthmetic Bot
+                case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
+                            console.log('botOperationsJson in Arithmetic Bot: ', botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                         } catch (error) {
                             logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -6616,6 +6626,38 @@ function BotService(objectCollection) {
         return [false, []];
     }
 
+    this.arithmeticBotVNK = async (request) => {
+    let x = {
+            "operations": [
+              {
+                "form_id": 4127,
+                "field_id": 219915,
+                "sequence_id": 2,
+                "join_condition": "*"
+              },
+              {
+                "form_id": 4127,
+                "field_id": 219916,
+                "sequence_id": 3,
+                "join_condition": "EOJ"
+              },
+              {
+                "form_id": 4127,
+                "field_id": 218000,
+                "sequence_id": 1,
+                "join_condition": "*"
+              }
+            ],
+            "target_form_id": 4127,
+            "target_field_id": 215613,
+            "target_field_data_type_id":6, 
+            "target_field_data_type_category_id":2,
+            "message_unique_id": 123456789321
+          };
+
+        await arithmeticBot(request, {}, x);
+    }
+    
     async function arithmeticBot(request, formInlineDataMap, arithmeticCalculation) {
         let responseData = [],
             error = false;
@@ -6635,56 +6677,101 @@ function BotService(objectCollection) {
                 "field_id": 13890,
                 "sequence_id":2,
                 "join_condition": "+|-|*|/|EOJ"
-            }]
+            }],
+            "target_form_id": 4127,
+            "target_field_id": 215613,
+            "target_field_data_type_id":6, 
+            "target_field_data_type_category_id":2,
+            "message_unique_id": 123456789321
         }*/
 
         let fieldsData = arithmeticCalculation.operations;        
         sortedfieldsData = _.sortBy(fieldsData,"sequence_id");
 
         //Before firing check that all the required input fields are available else dont fire.
-        for(const i_iterator of sortedfieldsData){
-
+        for(let i_iterator of sortedfieldsData){            
             if(i_iterator.hasOwnProperty('value')) {
                 i_iterator.field_value = value;
             } else {
-                let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
-                console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+                let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);                            
                 if(!formDataFrom713Entry.length > 0) {
                     responseData.push({'message': `${i_iterator.form_id} is not submitted`});
                     console.log('responseData : ', responseData);
                     return [true, responseData];
                 }
 
+                //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
                 let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-                console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+                console.log('formTransactionInlineData form_submitted: ', formTransactionInlineData.form_submitted);
                 let formData = formTransactionInlineData.form_submitted;
                 formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
 
                 for(const j_iterator of formData) {
-                    if(i_iterator.field_id === j_iterator.field_id) {
+                    if(Number(i_iterator.field_id) === Number(j_iterator.field_id)) {
                         if(util.replaceDefaultString(j_iterator.field_value) === '') {
                             responseData.push({'message': `${j_iterator.field_value} is empty`});
                             console.log('responseData : ', responseData);
                             return [true, responseData];
                         }
-
+                        console.log('field_value : ', j_iterator.field_value);
                         i_iterator.field_value = j_iterator.field_value;
                     }
-                } //End of checking for non-empty field_value
-
+                } //End of checking for non-empty field_value                    
             } //ELSE       
             
         } //End of processing all form fields in the bot operation inline
 
+        console.log('sortedfieldsData : ', sortedfieldsData);
+        console.log('sortedfieldsData[0] : ', sortedfieldsData[0]);
         let finalResult = sortedfieldsData[0].field_value;
         for(let i=0; i<sortedfieldsData.length;i++){
+            console.log('sortedfieldsData[i].join_condition : ', sortedfieldsData[i].join_condition);
             if(sortedfieldsData[i].join_condition === 'EOJ') {
                 break;
             }
 
+            console.log('sortedfieldsData[i+1].field_value : ', sortedfieldsData[i+1].field_value);
             finalResult = await performArithmeticOperation(finalResult, sortedfieldsData[i+1].field_value, sortedfieldsData[i].join_condition);
+            console.log('finalResult : ', finalResult);
         }
 
+        //Update in the target form and field Id
+        let newReq = Object.assign({}, request);
+            newReq.form_id = arithmeticCalculation.target_form_id;
+            newReq.field_id = arithmeticCalculation.target_field_id;
+        let formDataFrom713Entry = await getFormInlineData(newReq, 1);
+        let formData = await getFormInlineData(newReq, 2);
+
+        console.log('formDataFrom713Entry: ', formDataFrom713Entry);
+        console.log(' ');
+        console.log('formData: ', formData);
+        
+        let activityInlineData = [{
+            form_id: arithmeticCalculation.target_form_id,
+            field_id: arithmeticCalculation.target_field_id,            
+            field_value: finalResult,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            field_data_type_id: arithmeticCalculation.target_field_data_type_id,
+            field_data_type_category_id: arithmeticCalculation.target_field_data_type_category_id
+        }];
+        
+        //field Alter
+        let fieldsAlterRequest = Object.assign({}, request);
+            fieldsAlterRequest.form_transaction_id = formDataFrom713Entry.data_form_transaction_id;
+            fieldsAlterRequest.form_id = arithmeticCalculation.target_form_id;
+            fieldsAlterRequest.activity_form_id = arithmeticCalculation.target_form_id;
+            fieldsAlterRequest.field_id = arithmeticCalculation.target_field_id;
+            fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            fieldsAlterRequest.activity_id = formDataFrom713Entry.data_activity_id;
+            fieldsAlterRequest.workflow_activity_id = request.workflow_activity_id;
+
+        //console.log('fieldsAlterRequest :', fieldsAlterRequest);
+        try {
+            await alterFormActivityFieldValues(fieldsAlterRequest);
+        } catch (error) {
+            console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+        }
+        
         return [error, responseData];
     }
 
@@ -6765,22 +6852,34 @@ function BotService(objectCollection) {
     }
 
 
-    async function getFormInlineData(request) {
+    async function getFormInlineData(request, flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+         //3. Send both
+
         let formData = [];
-        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
-        console.log('formDataFrom713Entry : ', formDataFrom713Entry);
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
             console.log('responseData : ', responseData);
             return [true, responseData];
         }
 
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
         let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-        console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
         formData = formTransactionInlineData.form_submitted;
         formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
 
-        return formData;
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;            
+            case 3: break;
+            default: return formData;
+
+        }
+        
     }
 
 }

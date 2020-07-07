@@ -1,0 +1,618 @@
+{
+    "bot_operations": {
+        "map_workbook": {
+            "mappings": {
+                "2": {
+                    "input": [],
+                    "output": [
+                        {
+                            "cell_x": "D",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218946
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218947
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218948
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218949
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218950
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218951
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218952
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218954
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218955
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218956
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218957
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218958
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218959
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218960
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218962
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218963
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218964
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218965
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218966
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218967
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218968
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218970
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218971
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218972
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218973
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218974
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218975
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218976
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218978
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218979
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218980
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218981
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218982
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218983
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218984
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218988
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218989
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218990
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218991
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 218992
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 218993
+                        },
+                        {
+                            "cell_x": "L",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 218994
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 218996
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 218997
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 218998
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 218999
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 219000
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 219001
+                        },
+                        {
+                            "cell_x": "M",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 219002
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 219004
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 219005
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 219006
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 219007
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 219008
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 219009
+                        },
+                        {
+                            "cell_x": "N",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 219010
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 219012
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 219013
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 219014
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 219015
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 219016
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 219017
+                        },
+                        {
+                            "cell_x": "O",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 219018
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 25,
+                            "form_id": 4373,
+                            "field_id": 219020
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 26,
+                            "form_id": 4373,
+                            "field_id": 219021
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 27,
+                            "form_id": 4373,
+                            "field_id": 219022
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 28,
+                            "form_id": 4373,
+                            "field_id": 219023
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 29,
+                            "form_id": 4373,
+                            "field_id": 219024
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 30,
+                            "form_id": 4373,
+                            "field_id": 219025
+                        },
+                        {
+                            "cell_x": "P",
+                            "cell_y": 31,
+                            "form_id": 4373,
+                            "field_id": 219026
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 35,
+                            "form_id": 4373,
+                            "field_id": 219030
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 36,
+                            "form_id": 4373,
+                            "field_id": 219031
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 37,
+                            "form_id": 4373,
+                            "field_id": 219032
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 38,
+                            "form_id": 4373,
+                            "field_id": 219033
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 39,
+                            "form_id": 4373,
+                            "field_id": 219034
+                        },
+                        {
+                            "cell_x": "D",
+                            "cell_y": 40,
+                            "form_id": 4373,
+                            "field_id": 219035
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 35,
+                            "form_id": 4373,
+                            "field_id": 219037
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 36,
+                            "form_id": 4373,
+                            "field_id": 219038
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 37,
+                            "form_id": 4373,
+                            "field_id": 219039
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 38,
+                            "form_id": 4373,
+                            "field_id": 219040
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 39,
+                            "form_id": 4373,
+                            "field_id": 219041
+                        },
+                        {
+                            "cell_x": "E",
+                            "cell_y": 40,
+                            "form_id": 4373,
+                            "field_id": 219042
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 35,
+                            "form_id": 4373,
+                            "field_id": 219044
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 36,
+                            "form_id": 4373,
+                            "field_id": 219045
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 37,
+                            "form_id": 4373,
+                            "field_id": 219046
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 38,
+                            "form_id": 4373,
+                            "field_id": 219047
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 39,
+                            "form_id": 4373,
+                            "field_id": 219048
+                        },
+                        {
+                            "cell_x": "F",
+                            "cell_y": 40,
+                            "form_id": 4373,
+                            "field_id": 219049
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 35,
+                            "form_id": 4373,
+                            "field_id": 219051
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 36,
+                            "form_id": 4373,
+                            "field_id": 219052
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 37,
+                            "form_id": 4373,
+                            "field_id": 219053
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 38,
+                            "form_id": 4373,
+                            "field_id": 219054
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 39,
+                            "form_id": 4373,
+                            "field_id": 219055
+                        },
+                        {
+                            "cell_x": "G",
+                            "cell_y": 40,
+                            "form_id": 4373,
+                            "field_id": 219056
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 35,
+                            "form_id": 4373,
+                            "field_id": 219058
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 36,
+                            "form_id": 4373,
+                            "field_id": 219059
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 37,
+                            "form_id": 4373,
+                            "field_id": 219060
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 38,
+                            "form_id": 4373,
+                            "field_id": 219061
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 39,
+                            "form_id": 4373,
+                            "field_id": 219062
+                        },
+                        {
+                            "cell_x": "H",
+                            "cell_y": 40,
+                            "form_id": 4373,
+                            "field_id": 219063
+                        }
+                    ]
+                }
+            },
+            "workbook_url": {
+                "field_id": 218385,
+                "form_id": 4353
+            },
+            "worksheet_index_fixed_value": 2
+        }
+    }
+}
