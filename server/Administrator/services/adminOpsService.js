@@ -7295,6 +7295,7 @@ function AdminOpsService(objectCollection) {
             } //Looping on all the bot_enabled forms
         } else {
             error = false;
+            console.log('No Dependent Forms defined for this Form!');
             responseData.push({"message": "No Dependent Forms defined for this Form!"});
         }        
         return [error, responseData];
@@ -7457,6 +7458,7 @@ function AdminOpsService(objectCollection) {
                       console.log('fieldValue case 71: ', fieldValue);
                       
                       let childActivities = fieldValue.cart_items;
+                      console.log('conditionData.flag_check_product : ', conditionData.flag_check_product);
                       if(Number(conditionData.flag_check_product) === 1) {
                         if(Number(conditionData.product_activity_id) === Number(fieldValue.product_activity_id)) {
                             
@@ -7595,6 +7597,7 @@ function AdminOpsService(objectCollection) {
             console.log(e)
         }
 
+        console.log('finalResponse : ', finalResponse);
         return [error, finalResponse];
     }
 
@@ -7785,7 +7788,8 @@ function AdminOpsService(objectCollection) {
                     
                     for(const i_iterator of delegationData) {
                         for(const j_iterator of statusBasedFormsList) {
-                            if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {                                
+                            //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
+                            if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
                                 (j_iterator.delegated_to_assests).push(i_iterator);
                             }
                         }                     
@@ -7796,7 +7800,7 @@ function AdminOpsService(objectCollection) {
             let finalFormsList = [];
             for(const i_iterator of dependencyFormsList) {
                 for(const j_iterator of statusBasedFormsList) {
-                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id) && (i_iterator.isActive)) {
                         finalFormsList.push(j_iterator);
                         break;
                     }
