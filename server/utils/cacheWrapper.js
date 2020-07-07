@@ -743,7 +743,21 @@ function CacheWrapper(client) {
                 }
             });
         });        
-    };    
+    };
+
+    this.getOmtInMailPwd = () => {
+        return new Promise((resolve, reject) => {            
+            client.get('omt.in1@vodafoneidea.com', (err, reply) => {
+                if (err) {
+                    logger.error('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
 
 }
 
