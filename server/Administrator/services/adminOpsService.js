@@ -7825,7 +7825,8 @@ function AdminOpsService(objectCollection) {
             request.start_from || 0,
             request.limit_value || 10
         );
-        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_status', paramsArr); 
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

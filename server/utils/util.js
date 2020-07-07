@@ -2166,6 +2166,73 @@ function Util(objectCollection) {
         });
     };
 
+    //This is to support ews
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+
+        const pwd = await cacheWrapper.getOmtInMailPwd();
+        const ewsConfig = {
+            username: 'omt.in1@vodafoneidea.com',
+            password: pwd, //'Nov@2019',
+            host: 'https://webmail.vodafoneidea.com'
+        };
+
+        // initialize node-ews
+        const ews = new EWS(ewsConfig);
+
+        // define ews api function
+        const ewsFunction = 'CreateItem';
+
+        // define ews api function args
+        const ewsArgs = {
+        "attributes" : {
+            "MessageDisposition" : "SendAndSaveCopy"
+        },
+        "SavedItemFolderId": {
+            "DistinguishedFolderId": {
+            "attributes": {
+                "Id": "sentitems"
+            }
+            }
+        },
+        "Items" : {
+            "Message" : {
+            "ItemClass": "IPM.Note",
+            "Subject" : subject,
+            "Body" : {
+                "attributes": {
+                //"BodyType" : "Text"
+                "BodyType" : "HTML"
+                },
+                "$value": base64EncodedHtmlTemplate
+            },
+            "ToRecipients" : {
+                "Mailbox" : {
+                "EmailAddress" : email
+                }
+            },
+            "IsRead": "false"
+            }
+        }
+        };
+
+        // query ews, print resulting JSON to console
+        console.log('Before ews.run : emailSubject -  ', subject);
+        console.log('Before ews.run : Template - ', base64EncodedHtmlTemplate);
+        console.log('Before ews.run : receiverEmailID - ', email);
+        
+        ews.run(ewsFunction, ewsArgs)
+        .then(result => {
+            console.log('EWS Email - Result : ', JSON.stringify(result));
+        })
+        .catch(err => {
+            console.log('EWS Email - error : ', err.stack);
+        });
+        
+    };
+
 }
 
 module.exports = Util;
