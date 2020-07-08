@@ -5558,12 +5558,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         
         const paramsArr = new Array(
                             request.organization_id,
-                            request.activity_id,
+                            request.workflow_activity_id,
                             request.asset_id,
                             reminderTypeID,
                             request.inline_data || '{}',
                             reminderDateTime,
-                            request.status_id,
+                            util.replaceDefaultNumber(request.status_id),
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_insert', paramsArr);
@@ -5587,9 +5587,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         
         const paramsArr = new Array(
                             request.reminder_id,
-                            request.activity_id,
+                            request.workflow_activity_id,
                             request.organization_id,                            
-                            request.status_id,
+                            util.replaceDefaultNumber(request.status_id),
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_update_reminder_status', paramsArr);
@@ -5612,7 +5612,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             responseData = [];        
         
         const paramsArr = new Array(
-                            request.activity_id,
+                            request.workflow_activity_id,
                             request.organization_id,
                             request.start_datetime,
                             request.end_datetime,

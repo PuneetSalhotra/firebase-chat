@@ -271,7 +271,7 @@ function BotController(objCollection) {
     
     //SET & RESET Lead - Manual
     app.post('/' + global.config.version + '/activity/lead/update', async function (req, res) {
-        const [err, responseData] = await rmbotService.activityListLeadUpdateV1(req.body, req.body.lead_asset_id);
+        const [err, responseData] = await rmbotService.activityListLeadUpdateV2(req.body, req.body.lead_asset_id);
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
@@ -388,17 +388,18 @@ function BotController(objCollection) {
         }
     });
 
-    //app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
-    //    const [err, responseData] = await botService.arithmeticBotVNK(req.body);
-    //    console.log(responseData);
-    //    console.log(err);        
-    //    if (!err) {
-    //        res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
-    //    } else {
-    //        console.log("/bot/esms/test_service | Error: ", err);
-    //        res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
-    //    }
-    //});
+    app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+        //const [err, responseData] = await botService.arithmeticBotVNK(req.body);
+        const [err, responseData] = await botService.reminderBotVNK(req.body);
+        console.log(responseData);
+        console.log(err);        
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/bot/esms/test_service | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+        }
+    });
 }
 
 module.exports = BotController;
