@@ -3721,6 +3721,8 @@ function BotService(objectCollection) {
 
             let formTransactionID = 0, formActivityID = 0;
 
+            isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
+
             if (!formInlineDataMap.has(fieldID)) {
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
                 // newReq.desk_asset_id = fieldValue[0];
@@ -5012,7 +5014,7 @@ function BotService(objectCollection) {
                         newReq.timeline_stream_type_id = 718;
                         newReq.datetime_log = util.getCurrentUTCTime();
 
-                        await rmBotService.activityListLeadUpdateV1(newReq, leadAssetID);
+                        await rmBotService.activityListLeadUpdateV1(newReq, Number(assetData.desk_asset_id));
                     }
                     
                     resolve()
@@ -6824,6 +6826,25 @@ function BotService(objectCollection) {
         return result;
     }
 
+    this.reminderBotVNK = async (request) => {
+        //EMAIL
+            //workflow_activity_id = 2893115
+            //form_id, field_id = 3494, 53631
+
+        let x = {
+                    "date_form_id": 3494,
+                    "date_field_id": 53631,
+                    "asset_reference_form_id": 0,
+                    "asset_reference_field_id": 0,
+                    "alert_type": "after",
+                    "24hours_multiplier": 2,
+                    "escalation_target": "creator",
+                    "escalation_type": "email"
+                };
+    
+            await reminderBot(request, {}, x);
+        }
+
     async function reminderBot(request, formInlineDataMap, dateReminder) {
         /*"date_reminder": {
             "date_form_id": 0,
@@ -6838,48 +6859,131 @@ function BotService(objectCollection) {
 
         let escalationType = dateReminder.escalation_type;
         let alterType = dateReminder.alert_type;
-        let multiplier = dateReminder['24hours_multiplier'];        
-
-        let reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
+        let multiplier = dateReminder['24hours_multiplier'];
+        let reminderDatetime; 
 
         if(alterType === 'before') {
-            //write an util function and call the same
-            reminderDatetime--;
+            //reminderDatetime--;
+            reminderDatetime = util.subtractUnitsFromDateTime(util.getCurrentUTCTime(),multiplier,'days');
         } else if(alterType === 'after') {
-            reminderDatetime++;
+            //reminderDatetime++;
+            reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
         }
 
         //reminder_type_id
-        //1 Timeline
-        //2 Participant
-        //3 Email
-        //4 Text
+            //1 Timeline
+            //2 Participant
+            //3 Email
+            //4 Text
 
         //What is reminder_type_id
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
-                             break;
+                            try{
+                                let newTimelineReq = Object.assign({}, request);
+                                    newTimelineReq.form_id = dateReminder.asset_reference_form_id;
+                                    newTimelineReq.field_id = dateReminder.asset_reference_field_id;
+                                
+                                let participantFormData = await getFormInlineData(newParticipantReq, 2);
+                                let fieldValue;
 
-            case 'participant': let newParticipantReq = Object.assign({}, request);
-                                    newParticipantReq.form_id = dateReminder.asset_reference_form_id;
-                                    newParticipantReq.field_id = dateReminder.asset_reference_field_id;
+                                //I will get the phone_Number
+                                for(const i_iterator of participantFormData) {
+                                    if(Number(i_iterator.field_id) === Number(dateReminder.asset_reference_field_id)) {
+                                        fieldValue = i_iterator.field_value;
+                                        break;
+                                    }
+                                }
+
+                                let tempVar = { participant: fieldValue };
+                                let newReq = Object.assign({}, request);
+                                    newReq.inline_data = JSON.stringify(tempVar);
+                                await activityCommonService.activityReminderTxnInsert(newReq, 1, reminderDatetime);
+                            } catch(err) {
+                                console.log('Reminder Bot - Error in updating Timeline in TXN Table: ', err);
+                            }                            
+                            break;
+
+            case 'participant': try{
+                                    let newParticipantReq = Object.assign({}, request);
+                                        newParticipantReq.form_id = dateReminder.asset_reference_form_id;
+                                        newParticipantReq.field_id = dateReminder.asset_reference_field_id;
+                                    
+                                    let participantFormData = await getFormInlineData(newParticipantReq, 2);
+                                    let fieldValue;
+
+                                    //I will get the phone_Number
+                                    for(const i_iterator of participantFormData) {
+                                        if(Number(i_iterator.field_id) === Number(dateReminder.asset_reference_field_id)) {
+                                            fieldValue = i_iterator.field_value;
+                                            break;
+                                        }
+                                    }
+
+                                    let tempVar = { participant: fieldValue };
+                                    let newReq = Object.assign({}, request);
+                                        newReq.inline_data = JSON.stringify(tempVar);
+                                    await activityCommonService.activityReminderTxnInsert(newReq, 2, reminderDatetime);
+                                } catch(err) {
+                                    console.log('Reminder Bot - Error in updating Participant in TXN Table: ', err);
+                                }
                                 break;
 
-            case 'text': //Send a text(sms) reminder                         
-                         let newSmsReq = Object.assign({}, request);
-                             newSmsReq.form_id = dateReminder.date_form_id;
-                             newSmsReq.field_id = dateReminder.date_field_id;
-                         await getFormInlineData(newReq);
-                         break;
-
             case 'email': //Send an email reminder
-                        let newEmailReq = Object.assign({}, request);
-                            newEmailReq.form_id = dateReminder.date_form_id;
-                            newEmailReq.field_id = dateReminder.date_field_id;
-                          date_form_id
-                          date_field_id 
-                          break;
-        }
+                                try{
+                                   let newEmailReq = Object.assign({}, request);
+                                       newEmailReq.form_id = dateReminder.date_form_id;
+                                       newEmailReq.field_id = dateReminder.date_field_id;                            
+                                   
+                                   //I will get the phone_Number to which I need to send an email
+                                   let emailFormData = await getFormInlineData(newEmailReq, 2);
+                                   let fieldValue;                            
+                                   for(const i_iterator of emailFormData) {
+                                       if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+                                           fieldValue = i_iterator.field_value;
+                                           break;
+                                       }
+                                   }
+       
+                                   let tempVar = {
+                                       email: fieldValue
+                                   };
+       
+                                   let newReq = Object.assign({}, request);
+                                       newReq.inline_data = JSON.stringify(tempVar);
+       
+                                   await activityCommonService.activityReminderTxnInsert(newReq, 3, reminderDatetime);
+                                } catch(err) {
+                                   console.log('Reminder Bot - Error in updating Email in TXN Table: ', err);
+                                }
+                                 break;
+
+            case 'text': //Send a text(sms) reminder   
+                        try{
+                            let newSmsReq = Object.assign({}, request);
+                                newSmsReq.form_id = dateReminder.date_form_id;
+                                newSmsReq.field_id = dateReminder.date_field_id;
+                             
+                            //I will get the phone_Number to which I need to send a text                            
+                            let textFormData = await getFormInlineData(newSmsReq, 2);
+                            let fieldValue;
+
+                            for(const i_iterator of textFormData) {
+                                if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+                                    fieldValue = i_iterator.field_value;
+                                    break;
+                                }
+                            }
+
+                            let tempVar = { text: fieldValue };
+                            let newReq = Object.assign({}, request);
+                                newReq.inline_data = JSON.stringify(tempVar);
+                            await activityCommonService.activityReminderTxnInsert(newReq, 4, reminderDatetime);
+                        } catch(err) {
+                            console.log('Reminder Bot - Error in updating Text in TXN Table: ', err);
+                        }
+                        break;            
+                }
 
     }
 
