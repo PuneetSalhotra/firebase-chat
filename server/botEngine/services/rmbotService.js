@@ -2800,8 +2800,74 @@ function RMBotService(objectCollection) {
                 }
             }
        }
-    }
+    };
 
-}
+
+    this.activityListLeadUpdateV2 = async function (request, lead_asset_id) {
+        let responseData = [],
+            error = true;       
+        
+        request.datetime_log = util.getCurrentUTCTime();        
+        let paramsArr = new Array(
+                request.activity_id,
+                lead_asset_id,
+                request.organization_id,
+                null,
+                request.flag || 0,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+        let queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        error = false;                        
+                      
+                        self.activityListHistoryInsertAsync(request, 15);
+                        
+                        request.lead_asset_id = lead_asset_id;
+                        await self.activityAssetMappingUpdateLead(request);                       
+                        
+                        request.track_gps_datetime = util.getCurrentUTCTime();                        
+                        request.message_unique_id = util.getMessageUniqueId(request.asset_id);                        
+
+                        await queueActMappingUpdateLead(request);
+                    });
+        }
+        return [error, responseData];  
+        
+    };
+
+        async function queueActMappingUpdateLead(request) {	
+            let responseData = [],
+                error = true;
+    
+            const paramsArr = new Array(    
+                request.activity_id,
+                request.lead_asset_id,
+                request.organization_id,
+                request.activity_inline_data || '{}',
+                request.flag || 0,                
+                request.asset_id,
+                util.getCurrentUTCTime()                
+            );        
+            const queryString = util.getQueryString('ds_v1_1_queue_activity_mapping_update_lead', paramsArr);
+    
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {                    
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        }
+        
+    }
 
 module.exports = RMBotService;
