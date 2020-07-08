@@ -107,11 +107,9 @@ function WorkbookOpsService(objectCollection) {
         let OpportunityID = "",
             BuildingName = "",
             WorkforceName = "",
-            WorkflowCreatedDateTime = "";
+            WorkflowCreatedDateTime = "",
 
-        // Flags
-        const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
-        const isVILCustomOutputMappingEnabled = botOperationInlineData.is_vil_custom_mapping_enabled || false;
+            workflowActivityTypeID = 0;
 
         console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
         console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
@@ -130,6 +128,11 @@ function WorkbookOpsService(objectCollection) {
         } catch (error) {
             throw new Error(error)
         }
+        // Flags
+        const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
+        const isVILCustomOutputMappingEnabled = botOperationInlineData.is_vil_custom_mapping_enabled || false;
+        const isOverrideOutputMappingEnabled = botOperationInlineData.is_override_output_mapping_enabled || false;
+
         let excelSheetFilePath = botOperationInlineData.workbook_url;
         // Override the excel base template path
         if (
@@ -160,6 +163,7 @@ function WorkbookOpsService(objectCollection) {
                 workbookMappedStreamTypeID = 719; // If workbook is being updated
             }
             if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = workflowActivityData[0].activity_type_id || 0;
                 OpportunityID = workflowActivityData[0].activity_cuid_1 || "";
                 BuildingName = workflowActivityData[0].account_name || "";
                 WorkforceName = workflowActivityData[0].workforce_name || "";
@@ -219,9 +223,11 @@ function WorkbookOpsService(objectCollection) {
         // return;
 
         // Fetch the relevant output mappings
-        if (organizationID === 868 && isVILCustomOutputMappingEnabled) {
+        if (organizationID === 868 && isOverrideOutputMappingEnabled) {
             // Get the origin form data
-            const originFormID = 4353;
+            // const originFormID = 4353;
+            console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+            const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
             const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
                 account_id: request.account_id
@@ -237,7 +243,8 @@ function WorkbookOpsService(objectCollection) {
             let OpportunityReferenceJSON = [{ activity_id: 0, activity_title: "" }];
             for (const field of formSubmitted) {
                 // Field Name: Opportunity Reference
-                if (Number(field.field_id) === 218728) {
+                const OpportunityReferenceFieldID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.field_id || 0;
+                if (Number(field.field_id) === Number(OpportunityReferenceFieldID)) {
                     const fieldValue = field.field_value;
                     OpportunityReferenceJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
                 }
@@ -245,7 +252,11 @@ function WorkbookOpsService(objectCollection) {
 
             if (Number(OpportunityReferenceJSON[0].activity_id) !== 0) {
                 const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
-                const OpportunityUpdateFormID = 2753;
+                const OpportunityActivityData = await activityCommonService.getActivityDetailsPromise(request, OpportunityActivityID);
+                let OpportunityActivityTypeID = 0;
+                if (OpportunityActivityData.length > 0) { OpportunityActivityTypeID = OpportunityActivityData[0].activity_type_id || 0; };
+
+                const OpportunityUpdateFormID = outputFormMappings.getActivityTypeIDToFieldMapping(OpportunityActivityTypeID).ProductCartSelectionField.form_id || 0;
                 // Fetch OpportunityUpdateForm from the referenced opportunity
                 const OpportunityUpdateFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
@@ -268,21 +279,18 @@ function WorkbookOpsService(objectCollection) {
                 };
                 for (const field of formSubmitted) {
                     // Field Name: Product Selection
-                    if (Number(field.field_id) === 218716) {
+                    const ProductCartSelectionFieldID = outputFormMappings.getActivityTypeIDToFieldMapping(OpportunityActivityTypeID).ProductCartSelectionField.field_id || 0;
+                    if (Number(field.field_id) === Number(ProductCartSelectionFieldID)) {
                         const fieldValue = field.field_value;
                         ProductSelectionJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
                     }
                 }
+                console.log("ProductSelectionJSON: ", ProductSelectionJSON);
                 if (
-                    ProductSelectionJSON.product_tag_name !== "" &&
-                    ProductSelectionJSON.product_activity_type_name !== "" &&
-                    ProductSelectionJSON.product_activity_title !== ""
+                    ProductSelectionJSON.product_activity_id !== 0 &&
+                    outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
                 ) {
-                    outputMappings = objectPath.get(
-                        outputFormMappings,
-                        `${ProductSelectionJSON.product_tag_name}.${ProductSelectionJSON.product_activity_type_name}.${ProductSelectionJSON.product_activity_title}`,
-                        []
-                    );
+                    // outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
                     // console.log("[111111111] outputMappings: ", outputMappings);
                 }
             } else {
