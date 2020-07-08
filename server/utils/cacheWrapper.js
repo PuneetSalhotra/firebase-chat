@@ -759,6 +759,20 @@ function CacheWrapper(client) {
         });        
     };
 
+    this.getPoonamChavanMailPwd = () => {
+        return new Promise((resolve, reject) => {            
+            client.get('poonam.chavan3@vodafoneidea.com', (err, reply) => {
+                if (err) {
+                    logger.error('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
 }
 
 module.exports = CacheWrapper;

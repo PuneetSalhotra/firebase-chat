@@ -2172,10 +2172,14 @@ function Util(objectCollection) {
         console.log('subject : ', subject);
         console.log('text : ', text);
 
-        const pwd = await cacheWrapper.getOmtInMailPwd();
+        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let htmlTemplate = buff.toString('ascii');
+
+        const pwd = await cacheWrapper.getPoonamChavanMailPwd();
+        console.log('PWD : ', pwd);
         const ewsConfig = {
-            username: 'omt.in1@vodafoneidea.com',
-            password: pwd, //'Nov@2019',
+            username: 'poonam.chavan3@vodafoneidea.com',
+            password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
 
@@ -2206,7 +2210,7 @@ function Util(objectCollection) {
                 //"BodyType" : "Text"
                 "BodyType" : "HTML"
                 },
-                "$value": base64EncodedHtmlTemplate
+                "$value": htmlTemplate
             },
             "ToRecipients" : {
                 "Mailbox" : {
@@ -2220,7 +2224,7 @@ function Util(objectCollection) {
 
         // query ews, print resulting JSON to console
         console.log('Before ews.run : emailSubject -  ', subject);
-        console.log('Before ews.run : Template - ', base64EncodedHtmlTemplate);
+        console.log('Before ews.run : Template - ', htmlTemplate);
         console.log('Before ews.run : receiverEmailID - ', email);
         
         ews.run(ewsFunction, ewsArgs)
