@@ -5556,6 +5556,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let error = true,
             responseData = [];        
         
+        console.log('request.inline_data in activityReminderTxnInsert: ', request.inline_data);
         const paramsArr = new Array(
                             request.organization_id,
                             request.workflow_activity_id,

@@ -6827,15 +6827,19 @@ function BotService(objectCollection) {
     }
 
     this.reminderBotVNK = async (request) => {
+        //EMAIL
+            //workflow_activity_id = 2893115
+            //form_id, field_id = 3494, 53631
+
         let x = {
-                    "date_form_id": 0,
-                    "date_field_id": 0,
+                    "date_form_id": 3494,
+                    "date_field_id": 53631,
                     "asset_reference_form_id": 0,
                     "asset_reference_field_id": 0,
                     "alert_type": "after",
                     "24hours_multiplier": 2,
                     "escalation_target": "creator",
-                    "escalation_type": "text"
+                    "escalation_type": "email"
                 };
     
             await reminderBot(request, {}, x);
@@ -6860,9 +6864,9 @@ function BotService(objectCollection) {
 
         if(alterType === 'before') {
             //reminderDatetime--;
-            reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
+            reminderDatetime = util.subtractUnitsFromDateTime(util.getCurrentUTCTime(),multiplier,'days');
         } else if(alterType === 'after') {
-            reminderDatetime++;
+            //reminderDatetime++;
             reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
         }
 
@@ -6897,8 +6901,7 @@ function BotService(objectCollection) {
                                 await activityCommonService.activityReminderTxnInsert(newReq, 1, reminderDatetime);
                             } catch(err) {
                                 console.log('Reminder Bot - Error in updating Timeline in TXN Table: ', err);
-                            }
-                            
+                            }                            
                             break;
 
             case 'participant': try{
