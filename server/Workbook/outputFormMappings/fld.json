@@ -2,7 +2,7 @@
     "bot_operations": {
         "map_workbook": {
             "mappings": {
-                "2": {
+                "11": {
                     "input": [],
                     "output": [
                         {
@@ -16,162 +16,6 @@
                             "cell_y": 4,
                             "form_id": 4356,
                             "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "D",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218398
-                        },
-                        {
-                            "cell_x": "E",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218399
-                        },
-                        {
-                            "cell_x": "E",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218399
-                        },
-                        {
-                            "cell_x": "E",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218399
-                        },
-                        {
-                            "cell_x": "E",
-                            "cell_y": 4,
-                            "form_id": 4356,
-                            "field_id": 218399
                         },
                         {
                             "cell_x": "E",
@@ -1308,7 +1152,7 @@
                 "field_id": 218385,
                 "form_id": 4353
             },
-            "worksheet_index_fixed_value": 2
+            "worksheet_index_fixed_value": 11
         }
     }
 }

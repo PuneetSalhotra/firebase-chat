@@ -291,7 +291,9 @@ function WorkbookOpsService(objectCollection) {
                     outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
                 ) {
                     outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
+                    sheetIndex = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).SheetIndex || 11;
                     logger.silly(`[Mapping Override] outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
+                    logger.silly(`[Mapping Override] sheetIndex: %j`, sheetIndex, { type: 'workbook_bot' });
                 }
             } else {
                 throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
