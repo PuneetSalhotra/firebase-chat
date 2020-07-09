@@ -406,8 +406,9 @@ function WorkbookOpsService(objectCollection) {
         // Fetch the updated values
         for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
             if (outputFormFieldInlineTemplateMap.has(fieldID)) {
+                let cellValue = "";
                 try {
-                    const cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                    cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
                     let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
                     // Update the field
@@ -417,7 +418,6 @@ function WorkbookOpsService(objectCollection) {
                     logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
                 } catch (error) {
                     logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
-
                 }
             }
         }
