@@ -998,6 +998,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/queue/list/all/v2', async (req, res) => {
+        const [err, responseData] = await activityListingService.getQueueActMappingAssetFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/queue/list/all/v2 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }        
+    });
+
 }
 
 module.exports = ActivityListingController;
