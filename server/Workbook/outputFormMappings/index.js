@@ -5,7 +5,7 @@ const mobilityCloudVsdmJSON = require("./mobilityCloudVsdm.json");
 module.exports = {
     "Connectivity": {
         "Product - WAN Services": {
-            "International Private Leased Line (IPLC)": fldJSON.bot_operations.map_workbook.mappings["7"].output
+            "International Private Leased Line (IPLC)": fldJSON.bot_operations.map_workbook.mappings["11"].output
         }
     },
     getActivityTypeIDToFieldMapping: function (activityTypeID) {
