@@ -290,8 +290,8 @@ function WorkbookOpsService(objectCollection) {
                     ProductSelectionJSON.product_activity_id !== 0 &&
                     outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
                 ) {
-                    // outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
-                    // console.log("[111111111] outputMappings: ", outputMappings);
+                    outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
+                    logger.silly(`[Mapping Override] outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
                 }
             } else {
                 throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
