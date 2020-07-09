@@ -3786,10 +3786,11 @@ function BotService(objectCollection) {
 
         newReq.is_lead = isLead;
 
+        console.log('newReq.phone_number : ', newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
-            newReq.phone_number !== 'null'
+            (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
@@ -5014,7 +5015,7 @@ function BotService(objectCollection) {
                         newReq.timeline_stream_type_id = 718;
                         newReq.datetime_log = util.getCurrentUTCTime();
 
-                        await rmBotService.activityListLeadUpdateV1(newReq, Number(assetData.desk_asset_id));
+                        await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
                     }
                     
                     resolve()
@@ -6828,21 +6829,58 @@ function BotService(objectCollection) {
 
     this.reminderBotVNK = async (request) => {
         //EMAIL
-            //workflow_activity_id = 2893115
+            //workflow_activity_id = 3128897
             //form_id, field_id = 3494, 53631
 
-        let x = {
-                    "date_form_id": 3494,
-                    "date_field_id": 53631,
+        let a = {
+                "date_form_id": 2629,
+                "date_field_id": 64500,
+                "asset_reference_form_id": 0,
+                "asset_reference_field_id": 0,
+                "alert_type": "after",
+                "24hours_multiplier": 8,
+                "escalation_target": "creator",
+                "escalation_type": "timeline"
+            };
+
+            let x = {
+                    "date_form_id": 2629,
+                    "date_field_id": 64500,
                     "asset_reference_form_id": 0,
                     "asset_reference_field_id": 0,
                     "alert_type": "after",
-                    "24hours_multiplier": 2,
-                    "escalation_target": "creator",
+                    "24hours_multiplier": 8,
+                    "escalation_target": "lead",
+                    "escalation_type": "participant"
+                };
+        
+        let y = {
+                    "date_form_id": 2629,
+                    "date_field_id": 64500,
+                    "asset_reference_form_id": 0,
+                    "asset_reference_field_id": 0,
+                    "alert_type": "after",
+                    "24hours_multiplier": 8,
+                    "escalation_target": "manager",
                     "escalation_type": "email"
                 };
+        
+        let z = {
+                    "date_form_id": 2629,
+                    "date_field_id": 64500,
+                    "asset_reference_form_id": 0,
+                    "asset_reference_field_id": 0,
+                    "alert_type": "after",
+                    "24hours_multiplier": 8,
+                    "escalation_target": "manager",
+                    "escalation_type": "text"
+                };
     
-            await reminderBot(request, {}, x);
+            await reminderBot(request, {}, a);
+            //await reminderBot(request, {}, x);
+            //await reminderBot(request, {}, y);
+            //await reminderBot(request, {}, z);
+            return [false, []];
         }
 
     async function reminderBot(request, formInlineDataMap, dateReminder) {
@@ -6857,17 +6895,37 @@ function BotService(objectCollection) {
             "escalation_type": "timeline|participant|text|email"
         }*/
 
+        request.status_id = 1;
         let escalationType = dateReminder.escalation_type;
         let alterType = dateReminder.alert_type;
         let multiplier = dateReminder['24hours_multiplier'];
         let reminderDatetime; 
+        let dateFieldValue;
 
+        try {
+                let dateReq = Object.assign({}, request);
+                    dateReq.form_id = dateReminder.date_form_id;
+                    dateReq.field_id = dateReminder.date_field_id;
+            
+                let dateFormData = await getFormInlineData(dateReq, 2);               
+
+                for(const i_iterator of dateFormData) {
+                    if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+                        dateFieldValue = i_iterator.field_value;
+                        break;
+                    }
+                }
+        } catch(err) {
+            console.log('Unable to get the date field : ', err);
+        }
+        
+        console.log('Retrieved Date field value : ', dateFieldValue);
         if(alterType === 'before') {
             //reminderDatetime--;
-            reminderDatetime = util.subtractUnitsFromDateTime(util.getCurrentUTCTime(),multiplier,'days');
+            reminderDatetime = util.subtractUnitsFromDateTime(dateFieldValue,multiplier,'days');
         } else if(alterType === 'after') {
             //reminderDatetime++;
-            reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
+            reminderDatetime = util.addUnitsToDateTime(dateFieldValue,multiplier,'days');
         }
 
         //reminder_type_id
@@ -6876,28 +6934,19 @@ function BotService(objectCollection) {
             //3 Email
             //4 Text
 
-        //What is reminder_type_id
+        //Status ID
+            //1 Added
+            //2 Updated
+            //3 Sent
+            //4 Archived
+        
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
+                            console.log('---------- TIMELINE ENTRY -----------');
                             try{
-                                let newTimelineReq = Object.assign({}, request);
-                                    newTimelineReq.form_id = dateReminder.asset_reference_form_id;
-                                    newTimelineReq.field_id = dateReminder.asset_reference_field_id;
-                                
-                                let participantFormData = await getFormInlineData(newParticipantReq, 2);
-                                let fieldValue;
-
-                                //I will get the phone_Number
-                                for(const i_iterator of participantFormData) {
-                                    if(Number(i_iterator.field_id) === Number(dateReminder.asset_reference_field_id)) {
-                                        fieldValue = i_iterator.field_value;
-                                        break;
-                                    }
-                                }
-
-                                let tempVar = { participant: fieldValue };
+                                let tempVar = { date_reminder: dateReminder };
                                 let newReq = Object.assign({}, request);
-                                    newReq.inline_data = JSON.stringify(tempVar);
+                                    newReq.inline_data = JSON.stringify(tempVar);                                    
                                 await activityCommonService.activityReminderTxnInsert(newReq, 1, reminderDatetime);
                             } catch(err) {
                                 console.log('Reminder Bot - Error in updating Timeline in TXN Table: ', err);
@@ -6905,12 +6954,12 @@ function BotService(objectCollection) {
                             break;
 
             case 'participant': try{
-                                    let newParticipantReq = Object.assign({}, request);
+                                    /*let newParticipantReq = Object.assign({}, request);
                                         newParticipantReq.form_id = dateReminder.asset_reference_form_id;
                                         newParticipantReq.field_id = dateReminder.asset_reference_field_id;
                                     
                                     let participantFormData = await getFormInlineData(newParticipantReq, 2);
-                                    let fieldValue;
+                                    let fieldValue = 0;
 
                                     //I will get the phone_Number
                                     for(const i_iterator of participantFormData) {
@@ -6920,7 +6969,11 @@ function BotService(objectCollection) {
                                         }
                                     }
 
-                                    let tempVar = { participant: fieldValue };
+                                    let tempVar = { participant: fieldValue,
+                                                    date_reminder:  dateReminder                                                    
+                                                  };*/
+
+                                    let tempVar = { date_reminder:  dateReminder };
                                     let newReq = Object.assign({}, request);
                                         newReq.inline_data = JSON.stringify(tempVar);
                                     await activityCommonService.activityReminderTxnInsert(newReq, 2, reminderDatetime);
@@ -6930,28 +6983,10 @@ function BotService(objectCollection) {
                                 break;
 
             case 'email': //Send an email reminder
-                                try{
-                                   let newEmailReq = Object.assign({}, request);
-                                       newEmailReq.form_id = dateReminder.date_form_id;
-                                       newEmailReq.field_id = dateReminder.date_field_id;                            
-                                   
-                                   //I will get the phone_Number to which I need to send an email
-                                   let emailFormData = await getFormInlineData(newEmailReq, 2);
-                                   let fieldValue;                            
-                                   for(const i_iterator of emailFormData) {
-                                       if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
-                                           fieldValue = i_iterator.field_value;
-                                           break;
-                                       }
-                                   }
-       
-                                   let tempVar = {
-                                       email: fieldValue
-                                   };
-       
+                                try{                                    
+                                   let tempVar = { date_reminder:  dateReminder };       
                                    let newReq = Object.assign({}, request);
-                                       newReq.inline_data = JSON.stringify(tempVar);
-       
+                                       newReq.inline_data = JSON.stringify(tempVar);       
                                    await activityCommonService.activityReminderTxnInsert(newReq, 3, reminderDatetime);
                                 } catch(err) {
                                    console.log('Reminder Bot - Error in updating Email in TXN Table: ', err);
@@ -6959,23 +6994,8 @@ function BotService(objectCollection) {
                                  break;
 
             case 'text': //Send a text(sms) reminder   
-                        try{
-                            let newSmsReq = Object.assign({}, request);
-                                newSmsReq.form_id = dateReminder.date_form_id;
-                                newSmsReq.field_id = dateReminder.date_field_id;
-                             
-                            //I will get the phone_Number to which I need to send a text                            
-                            let textFormData = await getFormInlineData(newSmsReq, 2);
-                            let fieldValue;
-
-                            for(const i_iterator of textFormData) {
-                                if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
-                                    fieldValue = i_iterator.field_value;
-                                    break;
-                                }
-                            }
-
-                            let tempVar = { text: fieldValue };
+                        try{                           
+                            let tempVar = { date_reminder:  dateReminder };
                             let newReq = Object.assign({}, request);
                                 newReq.inline_data = JSON.stringify(tempVar);
                             await activityCommonService.activityReminderTxnInsert(newReq, 4, reminderDatetime);
@@ -6986,7 +7006,6 @@ function BotService(objectCollection) {
                 }
 
     }
-
 
     async function getFormInlineData(request, flag) {
         //flag 
@@ -7013,10 +7032,242 @@ function BotService(objectCollection) {
             case 2: return formData;            
             case 3: break;
             default: return formData;
-
-        }
-        
+        }        
     }
+
+    this.reminderBotExecution = async() => {
+        let responseData = [],
+            error = false;
+        let inlineData;
+
+        let request = {}
+            request.workflow_activity_id = 0;
+            request.organization_id = 906;
+            request.start_datetime = util.getDayStartDatetimeIST(); //util.getDayStartDatetime();
+            request.end_datetime = util.getDayEndDatetimeIST(); //util.getDayEndDatetime();
+            //request.start_datetime = util.getDayStartDatetime();
+            //request.end_datetime = util.getDayEndDatetime();
+            request.flag = 0;
+            request.start_from = 0;
+            request.limit_value = 50;        
+        let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
+
+        console.log('reminderBotData : ', reminderBotData);
+        
+        let activityData;
+        let assetID;
+        let managerAssetID;
+        let assetDetails;
+        let emailID;
+        let emailReceiverName;
+        let textPhCtyCode;
+        let textPhNo;
+        let dateReminder;
+
+        for(const i_iterator of reminderBotData) {
+            //reminder_type_id
+                //1 Timeline
+                //2 Participant
+                //3 Email
+                //4 Text
+
+            //Status ID
+                //1 Added
+                //2 Updated
+                //3 Sent
+                //4 Archived
+
+            inlineData = JSON.parse(i_iterator.reminder_inline_data);
+            dateReminder = inlineData.date_reminder;
+            switch(Number(i_iterator.reminder_type_id)) {
+                case 1: //Add timeline Entry
+                        console.log('---------- TIMELINE ENTRY -----------');
+                        await addTimelineEntry(i_iterator);
+                        break;
+
+                case 2: //Add Participant     
+                        console.log('---------- PARTICIPANT -----------');                   
+                        let participantReq = {
+                                asset_reference: {
+                                    form_id: dateReminder.asset_reference_form_id,
+                                    field_id: dateReminder.asset_reference_field_id
+                                }
+                            }
+                        await addParticipant(i_iterator, participantReq);
+                        break;
+
+                case 3: //Send email                        
+                case 4: //Send Text
+                        if(Number(i_iterator.reminder_type_id) === 3) {
+                            console.log('---------- EMAIL -----------');
+                        } else if(Number(i_iterator.reminder_type_id) === 4) {
+                            console.log('---------- TEXT -----------');
+                        }
+                        activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: i_iterator.organization_id }, 
+                                                                                       i_iterator.activity_id);
+                        
+                        //console.log('activityData : ', activityData);
+                        console.log(inlineData);
+                        console.log('inlineData.escalation_target : ', dateReminder.escalation_target);
+                        //Get the lead email ID
+                        if(dateReminder.escalation_target === 'creator') {
+                            assetID = activityData[0].activity_creator_asset_id;
+
+                            assetDetails = await getAssetDetails({
+                                "organization_id": i_iterator.organization_id,
+                                "asset_id": assetID
+                            });
+
+                            emailID = assetDetails[0].asset_email_id;
+                            emailReceiverName = assetDetails[0].operating_asset_first_name;
+                            textPhCtyCode = assetDetails[0].asset_phone_country_code;
+                            textPhNo = assetDetails[0].asset_phone_number;
+
+                            /*Operating Asset Detais
+                            //activityData[0].activity_creator_operating_asset_id
+                            //operating_asset_phone_country_code
+                            //operating_asset_phone_number
+                            //operating_asset_email_id
+                            /************************** */
+
+                        } else if(dateReminder.escalation_target === 'lead') {
+                            assetID = activityData[0].activity_lead_asset_id;
+
+                            assetDetails = await getAssetDetails({
+                                "organization_id": i_iterator.organization_id,
+                                "asset_id": assetID
+                            });
+
+                            emailID = assetDetails[0].asset_email_id;
+                            emailReceiverName = assetDetails[0].operating_asset_first_name;
+                            textPhCtyCode = assetDetails[0].asset_phone_country_code;
+                            textPhNo = assetDetails[0].asset_phone_number;
+
+                            ///activityData[0].activity_lead_operating_asset_id
+                        } else if(dateReminder.escalation_target === 'manager') {                            
+                            //if the lead is set and send to the lead's manager
+                            if((activityData[0].activity_lead_asset_id !==null) && (Number(activityData[0].activity_lead_asset_id) !==0)) {                                
+                                assetDetails = await getAssetDetails({
+                                                                        "organization_id": i_iterator.organization_id,
+                                                                        "asset_id": Number(activityData[0].activity_lead_asset_id)
+                                                                    });
+
+                                managerAssetID = Number(assetDetails[0].manager_asset_id);
+                                console.log('Manager Asset ID : ', managerAssetID);
+
+                                assetDetails = await getAssetDetails({
+                                    "organization_id": i_iterator.organization_id,
+                                    "asset_id": managerAssetID
+                                });
+                                
+                                //Manager asset Details
+                                emailID = assetDetails[0].asset_email_id;
+                                emailReceiverName = assetDetails[0].operating_asset_first_name;
+                                textPhCtyCode = assetDetails[0].asset_phone_country_code;
+                                textPhNo = assetDetails[0].asset_phone_number;
+                            } //else send to the creator lead's manager 
+                            else {  
+                                assetDetails = await getAssetDetails({
+                                    "organization_id": i_iterator.organization_id,
+                                    "asset_id": Number(activityData[0].activity_creator_asset_id)
+                                });
+
+                                managerAssetID = Number(assetDetails[0].manager_asset_id);
+                                console.log('Manager Asset ID : ', managerAssetID);
+
+                                assetDetails = await getAssetDetails({
+                                    "organization_id": i_iterator.organization_id,
+                                    "asset_id": managerAssetID
+                                });
+                                
+                                //Manager asset Details
+                                emailID = assetDetails[0].asset_email_id;
+                                emailReceiverName = assetDetails[0].operating_asset_first_name;
+                                textPhCtyCode = assetDetails[0].asset_phone_country_code;
+                                textPhNo = assetDetails[0].asset_phone_number;
+                            }                            
+                        }
+                        
+                        if(Number(i_iterator.reminder_type_id) === 3) {
+                            const emailSubject = `Reminder for ${i_iterator.activity_title}!`;
+                            const emailBody = `This is a reminder for ${i_iterator.activity_title}!`;
+                            const htmlTemplate = Buffer.from(JSON.stringify(emailBody)).toString('base64');
+
+                            let req = {};
+                                req.email_sender = 'reminders@grenerobotics.com';
+                                req.email_sender_name = 'GreneOS';
+                                req.email_receiver_name = emailReceiverName;
+
+                            //Send email                            
+                            await new Promise((resolve, reject)=>{
+                                util.sendEmailV4(req, emailID, emailSubject, emailBody, htmlTemplate, ()=>{
+                                    resolve();
+                                });
+                            });                            
+                        } else if(Number(i_iterator.reminder_type_id) === 4) {
+                            const text = `This is a reminder for ${i_iterator.activity_title}!`;
+                            console.log('Phone Number with country code : ', textPhCtyCode, textPhNo);
+                            
+                            //Send text                            
+                            await new Promise((resolve, reject)=>{
+                                util.sendSmsSinfiniV1(text, textPhCtyCode, textPhNo, 'GRNEOS', ()=>{
+                                    resolve();
+                                });
+                            });                            
+                        }                     
+                        break;                
+            }
+
+            //await activityCommonService.activityReminderTxnUpdate({
+            //    reminder_trx_id: i_iterator.reminder_transaction_id,
+            //    workflow_activity_id: i_iterator.activity_id,
+            //    organization_id: i_iterator.organization_id,
+            //    status_id: 3
+            //});
+            console.log(' ');
+            console.log('********************************************************');
+            console.log(' ');
+        } //End of For Loop
+
+        return [error, responseData];
+    }
+
+    async function addTimelineEntry(request) {
+        let addCommentRequest = Object.assign(request, {});
+
+        addCommentRequest.asset_id = 100;
+        addCommentRequest.device_os_id = 7;
+        //addCommentRequest.activity_type_category_id = 48;
+        //addCommentRequest.activity_type_id = workflowActivityTypeID;
+        //addCommentRequest.activity_id = workflowActivityID;
+        addCommentRequest.activity_timeline_collection = JSON.stringify({
+            "content": `This is a reminder for ${request.activity_title}!`,
+            "subject": `This is a reminder for ${request.activity_title}!`,
+            "mail_body": `This is a reminder for ${request.activity_title}!`,
+            "attachments": []
+        });
+        addCommentRequest.activity_stream_type_id = 325;
+        addCommentRequest.timeline_stream_type_id = 325;
+        addCommentRequest.activity_timeline_text = "";
+        addCommentRequest.activity_access_role_id = 27;
+        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.datetime_log = util.getCurrentUTCTime();
+        addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+        addCommentRequest.flag_timeline_entry = 1;
+        addCommentRequest.log_asset_id = 100;
+        addCommentRequest.message_unique_id = util.getMessageUniqueId(100);
+        //addCommentRequest.attachment_type_id = 17;
+        //addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
+
+        try {
+            await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);        
+        } catch (error) {
+            console.log("Reminder Bot trigger - timeline entry failed : ", error);
+            //throw new Error(error);
+        }
+
+        return "success";
+    }    
 
 }
 
