@@ -46,21 +46,21 @@ const ActivityTypeIDToFieldMapping = {
 const ProductToOutputMapping = {
     staging: {
         // Internet Leased Lines (ILL)
-        3126816: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126816: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // MPLS VPN- Domestic - SD WAN
-        3126818: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126818: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // MPLS VPN- Domestic
-        3126820: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126820: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // MPLS VPN- International - Global MPLS VPN
-        3126834: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126834: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // Layer 2 VPN - Managed L2 MPLS VPN
-        3126836: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126836: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // Layer 2 VPN - Un Managed L2 MPLS VPN
-        3126838: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126838: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // National Private Leased Line (NPLC)
-        3126840: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 },
+        3126840: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 },
         // International Private Leased Line (IPLC)
-        3126842: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["7"].output, SheetIndex: 7 }
+        3126842: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 }
     },
     get local() { return this.staging; },
 };

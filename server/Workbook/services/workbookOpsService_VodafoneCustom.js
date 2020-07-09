@@ -291,7 +291,7 @@ function WorkbookOpsService(objectCollection) {
                     outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
                 ) {
                     outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
-                    sheetIndex = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).SheetIndex || 7;
+                    sheetIndex = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).SheetIndex || 11;
                     logger.silly(`[Mapping Override] outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
                     logger.silly(`[Mapping Override] sheetIndex: %j`, sheetIndex, { type: 'workbook_bot' });
                 }
