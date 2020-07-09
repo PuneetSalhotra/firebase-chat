@@ -519,6 +519,15 @@ function ActivityService(objectCollection) {
                                 // Moved to ActivityTimelineService => addTimelineTransaction => fireBotEngineInitWorkflow
                                 // Do nothing
                             }*/
+  
+                            if(activityTypeCategroyId === 48) { 
+                                //let crfIds = [134564, 134566, 134573, 134575];
+                                let crfIds = [134562, 134565, 134569, 134574, 134583, 145268, 134564, 134566, 134573, 133892, 133893, 133894, 133895, 133896, 133897, 133898, 133899, 134576, 142431, 142432, 134575];
+                                if(!crfIds.includes(request.activity_type_id))
+                                    addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1);
+                            }else if(activityTypeCategroyId === 9){
+                                addValueToWidgetForAnalytics(request);
+                            }                             
 
                             if(activityTypeCategroyId === 48 || 
                                activityTypeCategroyId === 9  || 
@@ -555,12 +564,6 @@ function ActivityService(objectCollection) {
                                 }
 
                                 //addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
-                            }
-
-                            if(activityTypeCategroyId === 48) { 
-                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //0 - Non-Widget
-                            }else if(activityTypeCategroyId === 9){
-                                addValueToWidgetForAnalytics(request);
                             }
 
                             console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
