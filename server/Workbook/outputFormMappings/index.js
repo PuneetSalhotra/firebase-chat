@@ -44,7 +44,7 @@ const ActivityTypeIDToFieldMapping = {
 };
 
 const ProductToOutputMapping = {
-    ["local" || "staging"]: {
+    staging: {
         // Internet Leased Lines (ILL)
         3126816: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["2"].output },
         // MPLS VPN- Domestic - SD WAN
@@ -61,5 +61,6 @@ const ProductToOutputMapping = {
         3126840: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["2"].output },
         // International Private Leased Line (IPLC)
         3126842: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["2"].output }
-    }
+    },
+    get local() { return this.staging; },
 };
