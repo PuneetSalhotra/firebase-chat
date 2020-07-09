@@ -4536,6 +4536,7 @@ function ActivityService(objectCollection) {
                 console.log('activityInlineData : ', activityInlineData);
                 console.log('activityInlineData.length : ', activityInlineData.length);
                 let finalValue = 0;
+                let flagExecuteFinalValue = 0;
                 for(i=0; i<activityInlineData.length; i++) {
                     for(fieldId in workflowFields){
                         if(fieldId === activityInlineData[i].field_id) {
