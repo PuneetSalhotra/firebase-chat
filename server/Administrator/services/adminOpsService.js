@@ -7295,6 +7295,7 @@ function AdminOpsService(objectCollection) {
             } //Looping on all the bot_enabled forms
         } else {
             error = false;
+            console.log('No Dependent Forms defined for this Form!');
             responseData.push({"message": "No Dependent Forms defined for this Form!"});
         }        
         return [error, responseData];
@@ -7453,13 +7454,29 @@ function AdminOpsService(objectCollection) {
     
                     break;
 
-            case 71 : fieldValue = (typeof fieldData.field_value === 'string')? JSON.parse(fieldData.field_value) : fieldData.field_value;
+            case 71 : fieldValue = (typeof formData.field_value === 'string')? JSON.parse(formData.field_value) : formData.field_value;
                       console.log('fieldValue case 71: ', fieldValue);
                       
                       let childActivities = fieldValue.cart_items;
-                      
-                      //If product_variant_activity_id = 1 and cart_items are empty
-                      if(Number(conditionData.product_variant_activity_id) === -1 && childActivities.length === 0) {
+                      console.log('conditionData.flag_check_product : ', conditionData.flag_check_product);
+                      if(Number(conditionData.flag_check_product) === 1) {
+                        if(Number(conditionData.product_activity_id) === Number(fieldValue.product_activity_id)) {
+                            
+                            //Condition Passed
+                            let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
+                            //response: 0 EOJ
+                            //response: 1 OR
+                            //response: 2 AND
+                            
+                            (response === 2)? proceed = 1:proceed = 0;
+                            conditionStatus = 1;
+                        } else {
+                            //condition failed
+                            proceed = 0;
+                            conditionStatus = 0;    
+                        }
+                      } //If product_variant_activity_id = 1 and cart_items are empty
+                      else if(Number(conditionData.product_variant_activity_id) === -1 && childActivities.length === 0) {
                       
                         //Condition Passed                
                         let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
@@ -7472,7 +7489,7 @@ function AdminOpsService(objectCollection) {
 
                       } else {
                         
-                        for(const i_iterator of childActivities) {                        
+                        for(const i_iterator of childActivities) {                     
                             if(Number(conditionData.product_variant_activity_id) === Number(i_iterator.product_variant_activity_id)) {
                                 //Condition Passed                
                                 let [err, response] = await evaluationJoinOperation(conditionData.join_condition);
@@ -7580,6 +7597,7 @@ function AdminOpsService(objectCollection) {
             console.log(e)
         }
 
+        console.log('finalResponse : ', finalResponse);
         return [error, finalResponse];
     }
 
@@ -7754,7 +7772,42 @@ function AdminOpsService(objectCollection) {
                 error = false;
             }
 
-            responseData = dependencyFormsList;
+            
+            //Appending which form is delegated to whom?
+            let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+            console.log('activityData.length : ', activityData.length);
+
+            if(activityData.length > 0) {
+                console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
+                let activityMasterData;
+                let delegationData;
+
+                if(activityData[0].activity_master_data !== null) {
+                    activityMasterData = JSON.parse(activityData[0].activity_master_data);
+                    delegationData = activityMasterData.form_fill_request;
+                    
+                    for(const i_iterator of delegationData) {
+                        for(const j_iterator of statusBasedFormsList) {
+                            //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
+                            if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                                (j_iterator.delegated_to_assests).push(i_iterator);
+                            }
+                        }                     
+                    }
+                }
+            }// End of Appending
+
+            let finalFormsList = [];
+            for(const i_iterator of dependencyFormsList) {
+                for(const j_iterator of statusBasedFormsList) {
+                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id) && (i_iterator.isActive)) {
+                        finalFormsList.push(j_iterator);
+                        break;
+                    }
+                }       
+            }
+
+            responseData = finalFormsList;
         }
 
         return [error, responseData];
@@ -7772,11 +7825,16 @@ function AdminOpsService(objectCollection) {
             request.start_from || 0,
             request.limit_value || 10
         );
-        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_status', paramsArr); 
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    for(const i_iterator of data) {
+                        i_iterator.delegated_to_assests = [];
+                    }
+
                     responseData = data;
                     error = false;
                 })

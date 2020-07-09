@@ -17,6 +17,10 @@ S5SCalc.set_XLSX(XLSX);
 
 const tempy = require('tempy');
 
+// Load the output form mappings
+const outputFormMappings = require("../outputFormMappings/index");
+const objectPath = require("object-path");
+
 const ActivityService = require('../../services/activityService.js');
 
 function WorkbookOpsService(objectCollection) {
@@ -45,7 +49,7 @@ function WorkbookOpsService(objectCollection) {
         return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
     }
 
-    function getFielDataValueColumnName(fieldDataTypeID) {
+    function getFielDataValueColumnName(fieldDataTypeID, overrideColumnName = "") {
         switch (fieldDataTypeID) {
             case 1: // Date
                 return 'data_entity_datetime_2';
@@ -59,15 +63,53 @@ function WorkbookOpsService(objectCollection) {
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
                 return 'data_entity_text_1';
+            case 57: // Workflow Reference
+                if (overrideColumnName !== "" && overrideColumnName === "data_entity_text_2") { return "data_entity_text_2" };
+                return 'data_entity_text_1';
+            case 59: // Asset Reference
+                return 'data_entity_text_3';
             case 20: // Long Text
                 return 'data_entity_text_2';
         }
     }
 
+    function getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID) {
+        // type: b Boolean, e Error, n Number, d Date, s Text, z Stub
+        switch (fieldDataTypeID) {
+            case 1: // Date
+            case 2: // Future Date
+            case 3: // Past Date
+            case 4: // Date and Time
+            case 60: // Slot Availability
+            case 67: // Reminder
+                return 'd';
+            case 5: // Number
+            case 6: // Decimal
+                return 'n';
+            case 19: // Short Text
+            case 20: // Long Text
+            case 21: // Label
+            case 22: // Email ID
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+            case 57: // Workflow Reference
+            case 59: // Asset Reference
+                return 's';
+        }
+    }
+
     // Bot Operation Logic
     this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
+        const organizationID = Number(request.organization_id);
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
+
+        let OpportunityID = "",
+            BuildingName = "",
+            WorkforceName = "",
+            WorkflowCreatedDateTime = "",
+
+            workflowActivityTypeID = 0;
 
         console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
         console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
@@ -86,6 +128,11 @@ function WorkbookOpsService(objectCollection) {
         } catch (error) {
             throw new Error(error)
         }
+        // Flags
+        const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
+        const isVILCustomOutputMappingEnabled = botOperationInlineData.is_vil_custom_mapping_enabled || false;
+        const isOverrideOutputMappingEnabled = botOperationInlineData.is_override_output_mapping_enabled || false;
+
         let excelSheetFilePath = botOperationInlineData.workbook_url;
         // Override the excel base template path
         if (
@@ -114,6 +161,13 @@ function WorkbookOpsService(objectCollection) {
             ) {
                 excelSheetFilePath = workflowActivityData[0].activity_workbook_url;
                 workbookMappedStreamTypeID = 719; // If workbook is being updated
+            }
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = workflowActivityData[0].activity_type_id || 0;
+                OpportunityID = workflowActivityData[0].activity_cuid_1 || "";
+                BuildingName = workflowActivityData[0].account_name || "";
+                WorkforceName = workflowActivityData[0].workforce_name || "";
+                WorkflowCreatedDateTime = moment(workflowActivityData[0].activity_datetime_created).format("YYYY-MM-DD HH:mm:ss") || "";
             }
         } catch (error) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
@@ -145,8 +199,8 @@ function WorkbookOpsService(objectCollection) {
         }
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
 
-        const inputMappings = botOperationInlineData.mappings[sheetIndex].input,
-            outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
+        const inputMappings = botOperationInlineData.mappings[sheetIndex].input;
+        let outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
 
         logger.silly(`inputMappings: %j`, inputMappings, { type: 'workbook_bot' });
         logger.silly(`outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
@@ -155,7 +209,12 @@ function WorkbookOpsService(objectCollection) {
         let inputCellToValueMap = new Map();
         try {
             // inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, inputMappings);
-            inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings);
+            inputCellToValueMap = await getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings, {
+                OpportunityID,
+                BuildingName,
+                WorkforceName,
+                WorkflowCreatedDateTime
+            });
         } catch (error) {
             logger.error("Error fetching input form field values", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
@@ -163,6 +222,81 @@ function WorkbookOpsService(objectCollection) {
         console.log("inputCellToValueMap: ", inputCellToValueMap);
         // return;
 
+        // Fetch the relevant output mappings
+        if (organizationID === 868 && isOverrideOutputMappingEnabled) {
+            // Get the origin form data
+            // const originFormID = 4353;
+            console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+            const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
+            const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, originFormID);
+            if (!(originFormData.length > 0)) {
+                throw new Error("No Origin Form Available For Fetching Reference");
+            }
+
+            let dataEntityInline = JSON.parse(originFormData[0].data_entity_inline);
+            let formSubmitted = dataEntityInline.form_submitted;
+            formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
+
+            let OpportunityReferenceJSON = [{ activity_id: 0, activity_title: "" }];
+            for (const field of formSubmitted) {
+                // Field Name: Opportunity Reference
+                const OpportunityReferenceFieldID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.field_id || 0;
+                if (Number(field.field_id) === Number(OpportunityReferenceFieldID)) {
+                    const fieldValue = field.field_value;
+                    OpportunityReferenceJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                }
+            }
+
+            if (Number(OpportunityReferenceJSON[0].activity_id) !== 0) {
+                const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
+                const OpportunityActivityData = await activityCommonService.getActivityDetailsPromise(request, OpportunityActivityID);
+                let OpportunityActivityTypeID = 0;
+                if (OpportunityActivityData.length > 0) { OpportunityActivityTypeID = OpportunityActivityData[0].activity_type_id || 0; };
+
+                const OpportunityUpdateFormID = outputFormMappings.getActivityTypeIDToFieldMapping(OpportunityActivityTypeID).ProductCartSelectionField.form_id || 0;
+                // Fetch OpportunityUpdateForm from the referenced opportunity
+                const OpportunityUpdateFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, OpportunityActivityID, OpportunityUpdateFormID);
+                if (!(OpportunityUpdateFormData.length > 0)) {
+                    throw new Error("No Opportunity Update Form Available For Fetching Product Category");
+                }
+                // Get the product cart field value
+                dataEntityInline = JSON.parse(OpportunityUpdateFormData[0].data_entity_inline);
+                formSubmitted = dataEntityInline.form_submitted;
+                formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
+
+                let ProductSelectionJSON = {
+                    product_tag_type_id: 0, product_tag_type_name: '',
+                    product_tag_id: 0, product_tag_name: '',
+                    product_activity_type_id: 0, product_activity_type_name: '',
+                    product_activity_id: 0, product_activity_title: '',
+                    product_activity_business_case: '', cart_items: []
+                };
+                for (const field of formSubmitted) {
+                    // Field Name: Product Selection
+                    const ProductCartSelectionFieldID = outputFormMappings.getActivityTypeIDToFieldMapping(OpportunityActivityTypeID).ProductCartSelectionField.field_id || 0;
+                    if (Number(field.field_id) === Number(ProductCartSelectionFieldID)) {
+                        const fieldValue = field.field_value;
+                        ProductSelectionJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                    }
+                }
+                console.log("ProductSelectionJSON: ", ProductSelectionJSON);
+                if (
+                    ProductSelectionJSON.product_activity_id !== 0 &&
+                    outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
+                ) {
+                    outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
+                    logger.silly(`[Mapping Override] outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
+                }
+            } else {
+                throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
+            }
+        }
         // Create the cellKey => field_id map for output cells
         let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
 
@@ -239,7 +373,7 @@ function WorkbookOpsService(objectCollection) {
                 return;
             }
         }
-        console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
+        // return;
 
         // Parse and process the excel file
         // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
@@ -247,16 +381,23 @@ function WorkbookOpsService(objectCollection) {
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
-        for (const [cellKey, cellValue] of inputCellToValueMap) {
+        for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
             // Check if the cell has the up-to-date value
             const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
             if (existingCellValue == cellValue) {
                 logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
                 continue;
             }
+            const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
             try {
-                logger.silly(`Updating ${cellKey} to ${cellValue}`);
-                S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+                logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
+                if (isFormulaEngineEnabled) {
+                    S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+
+                } else {
+                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
+                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
+                }
             } catch (error) {
                 logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
             }
@@ -265,14 +406,19 @@ function WorkbookOpsService(objectCollection) {
         // Fetch the updated values
         for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
             if (outputFormFieldInlineTemplateMap.has(fieldID)) {
-                const cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                let field = outputFormFieldInlineTemplateMap.get(fieldID);
+                let cellValue = "";
+                try {
+                    cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                    let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                // Update the field
-                field.field_value = cellValue;
-                outputFormFieldInlineTemplateMap.set(fieldID, field);
+                    // Update the field
+                    field.field_value = cellValue;
+                    outputFormFieldInlineTemplateMap.set(fieldID, field);
 
-                logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue);
+                    logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                } catch (error) {
+                    logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+                }
             }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
@@ -407,7 +553,7 @@ function WorkbookOpsService(objectCollection) {
                                 fieldValue = fieldDataJSON.product_activity_business_case;
                             }
                             break;
-                    
+
                         default:
                             fieldValue = field.field_value;
                             break;
@@ -582,13 +728,54 @@ function WorkbookOpsService(objectCollection) {
         }
     }
 
-    async function getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings) {
+    async function getInputFormFieldValuesFromMultipleForms(request, workflowActivityID, inputMappings, options) {
         let inputCellToValueMasterMap = new Map(),
             inputFormIDsSet = new Set(),
             formIDToInputMappingsJSON = {};
-        
+
         // Create the segregation by form_ids
         for (const inputMapping of inputMappings) {
+            // Set the dynamic fields
+            if (inputMapping.type === "DYNAMIC") {
+                switch (inputMapping.kind) {
+                    case "OpportunityID":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.OpportunityID || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "BuildingName":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.BuildingName || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "WorkforceName":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.WorkforceName || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                    case "WorkflowCreatedDateTime":
+                        inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                            fieldValue: options.WorkflowCreatedDateTime || "",
+                            fieldDataTypeID: 19
+                        });
+                        break;
+                }
+                continue;
+            }
+            // Set default value if no formID or fieldID is found
+            if (
+                !inputMapping.hasOwnProperty("form_id") &&
+                inputMapping.hasOwnProperty("default_value")
+            ) {
+                inputCellToValueMasterMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                    fieldValue: inputMapping.default_value,
+                    fieldDataTypeID: 19
+                });
+                continue;
+            }
             const formID = Number(inputMapping.form_id);
             if (inputFormIDsSet.has(formID)) {
                 formIDToInputMappingsJSON[formID].push(inputMapping);
@@ -678,10 +865,21 @@ function WorkbookOpsService(objectCollection) {
             const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
             logger.silly("fieldDataTypeID: %j", fieldDataTypeID)
 
-            const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
+            let overrideColumnName = "";
+            if (inputMapping.hasOwnProperty("override_column_name") && inputMapping.override_column_name) {
+                overrideColumnName = inputMapping.override_column_name;
+            }
+
+            let fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID, overrideColumnName)] || 0;
+            if (fieldDataTypeID === 57 && String(fieldValue).includes("|")) {
+                fieldValue = String(fieldValue).split("|")[1];
+            }
             logger.silly("fieldValue: %j", fieldValue)
 
-            inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, fieldValue);
+            inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
+                fieldValue,
+                fieldDataTypeID
+            });
         }
 
         return inputCellToValueMap;
@@ -890,8 +1088,8 @@ function WorkbookOpsService(objectCollection) {
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
-            outputFormActivityID = await cacheWrapper.getActivityIdPromise(),
-                outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            outputFormActivityID = await cacheWrapper.getActivityIdPromise();
+            outputFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
             logger.silly(`outputFormActivityID: ${outputFormActivityID} | outputFormTransactionID: ${outputFormTransactionID}`);
 
@@ -921,8 +1119,8 @@ function WorkbookOpsService(objectCollection) {
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
-            workflowFile705Request.asset_id = 100;
-            workflowFile705Request.log_asset_id = 100;
+            workflowFile705Request.asset_id = workflowActivityCreatorAssetID;
+            workflowFile705Request.log_asset_id = workflowActivityCreatorAssetID;
             // This will be captured in the push-string message-forming switch-case logic
             workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
 

@@ -370,5 +370,21 @@ function UtilityController(objCollection) {
         });
     });
 
+
+    //ROMS email using ews web exchange server
+    app.post('/' + global.config.version + '/send/email/v7', async (req, res) => {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template;
+        let emailReceiver = req.body.email_receiver;
+
+        let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
 }
 module.exports = UtilityController;

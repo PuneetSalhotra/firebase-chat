@@ -73,6 +73,7 @@ const EWS = require('node-ews');
 /*const ewsConfig = {
     username: 'ESMSMails@vodafoneidea.com',
     password: 'June@2020',
+    password: 'July@2020',
     host: 'https://webmail.vodafoneidea.com'    
   };
 
@@ -2152,7 +2153,10 @@ function Util(objectCollection) {
         };
 
         // query ews, print resulting JSON to console
-        console.log('Before ews.run');
+        console.log('Before ews.run : emailSubject -  ', emailSubject);
+        console.log('Before ews.run : Template - ', Template);
+        console.log('Before ews.run : receiverEmailID - ', receiverEmailID);
+        
         ews.run(ewsFunction, ewsArgs)
         .then(result => {
             console.log('EWS Email - Result : ', JSON.stringify(result));
@@ -2160,6 +2164,77 @@ function Util(objectCollection) {
         .catch(err => {
             console.log('EWS Email - error : ', err.stack);
         });
+    };
+
+    //This is to support ews
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+
+        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let htmlTemplate = buff.toString('ascii');
+
+        const pwd = await cacheWrapper.getPoonamChavanMailPwd();
+        console.log('PWD : ', pwd);
+        const ewsConfig = {
+            username: 'poonam.chavan3@vodafoneidea.com',
+            password: pwd, //'Jul@2020',
+            host: 'https://webmail.vodafoneidea.com'
+        };
+
+        // initialize node-ews
+        const ews = new EWS(ewsConfig);
+
+        // define ews api function
+        const ewsFunction = 'CreateItem';
+
+        // define ews api function args
+        const ewsArgs = {
+        "attributes" : {
+            "MessageDisposition" : "SendAndSaveCopy"
+        },
+        "SavedItemFolderId": {
+            "DistinguishedFolderId": {
+            "attributes": {
+                "Id": "sentitems"
+            }
+            }
+        },
+        "Items" : {
+            "Message" : {
+            "ItemClass": "IPM.Note",
+            "Subject" : subject,
+            "Body" : {
+                "attributes": {
+                //"BodyType" : "Text"
+                "BodyType" : "HTML"
+                },
+                "$value": htmlTemplate
+            },
+            "ToRecipients" : {
+                "Mailbox" : {
+                "EmailAddress" : email
+                }
+            },
+            "IsRead": "false"
+            }
+        }
+        };
+
+        // query ews, print resulting JSON to console
+        console.log('Before ews.run : emailSubject -  ', subject);
+        console.log('Before ews.run : Template - ', htmlTemplate);
+        console.log('Before ews.run : receiverEmailID - ', email);
+        
+        ews.run(ewsFunction, ewsArgs)
+        .then(result => {
+            console.log('EWS Email - Result : ', JSON.stringify(result));
+        })
+        .catch(err => {
+            console.log('EWS Email - error : ', err.stack);
+        });
+        
     };
 
 }

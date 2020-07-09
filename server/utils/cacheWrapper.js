@@ -694,7 +694,7 @@ function CacheWrapper(client) {
                     logger.error(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(err);
                 } else {
-                    logger.verbose(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
+                    //logger.verbose(`HSET UserNameFromAccessToken ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });
                     resolve(reply);
                 }
             });
@@ -743,7 +743,35 @@ function CacheWrapper(client) {
                 }
             });
         });        
-    };    
+    };
+
+    this.getOmtInMailPwd = () => {
+        return new Promise((resolve, reject) => {            
+            client.get('omt.in1@vodafoneidea.com', (err, reply) => {
+                if (err) {
+                    logger.error('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
+    this.getPoonamChavanMailPwd = () => {
+        return new Promise((resolve, reject) => {            
+            client.get('poonam.chavan3@vodafoneidea.com', (err, reply) => {
+                if (err) {
+                    logger.error('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(err);
+                } else {
+                    logger.verbose('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    resolve(reply);
+                }
+            });
+        });        
+    };
 
 }
 

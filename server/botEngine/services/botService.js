@@ -19,8 +19,10 @@ const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
+const RMBotService = require('./rmbotService');
 
 const uuidv4 = require('uuid/v4');
+const _ = require('lodash');
 
 const AWS = require('aws-sdk');
 AWS.config.update({
@@ -62,6 +64,8 @@ function BotService(objectCollection) {
 
     const workbookOpsService = new WorkbookOpsService(objectCollection);
     const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
+
+    const rmBotService = new RMBotService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -1055,6 +1059,7 @@ function BotService(objectCollection) {
             }            
 
         } else if(Number(request.is_refill) === 1) { 
+            console.log('This is smart form - Refill case');
             //This is Form refill SMART FORM 
             //1) Retrigger all form level bots
             //2) Retrigger all the impacted field level
@@ -1091,6 +1096,7 @@ function BotService(objectCollection) {
             wfSteps = totalBots;            
 
         } else if(Number(request.is_resubmit) === 1) {
+            console.log('This is non-smart - Resubmit case');
             //This is Form resubmit NON-SMART FORM 
             //Retrigger all form level bots
             let [err, botResponse] = await activityCommonService.getMappedBotSteps({
@@ -1103,7 +1109,8 @@ function BotService(objectCollection) {
             }, 2);
 
             wfSteps = botResponse; //Assigning form based bots
-        } else {             
+        } else {   
+            console.log('This is generic case!! - First time form Submission!!');
             //trigger both the form level bots & field level - Normally happens for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
@@ -1181,9 +1188,15 @@ function BotService(objectCollection) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
             }
 
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);            
+            console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
+            console.log('Value of i : ', i)
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            console.log('ONE: ', botOperationsJson);
             botSteps = Object.keys(botOperationsJson.bot_operations);
+            console.log('TWO');
             logger.silly("botSteps: %j", botSteps);
+            console.log('THREE');
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -1499,25 +1512,25 @@ function BotService(objectCollection) {
                             } else if (global.mode === "preprod" || global.mode === "prod") {
                                 baseURL = null;
                             }
-                            // sqs.sendMessage({
-                            //     // DelaySeconds: 5,
-                            //     MessageBody: JSON.stringify(request),
-                            //     QueueUrl: sqsQueueUrl,
-                            //     MessageGroupId: `excel-processing-job-queue-v1`,
-                            //     MessageDeduplicationId: uuidv4(),
-                            //     MessageAttributes: {
-                            //         "Environment": {
-                            //             DataType: "String",
-                            //             StringValue: global.mode
-                            //         },
-                            //     }
-                            // }, (error, data) => {
-                            //     if (error) {
-                            //         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                            //     } else {
-                            //         logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-                            //     }
-                            // });
+                            sqs.sendMessage({
+                                // DelaySeconds: 5,
+                                MessageBody: JSON.stringify(request),
+                                QueueUrl: sqsQueueUrl,
+                                MessageGroupId: `excel-processing-job-queue-v1`,
+                                MessageDeduplicationId: uuidv4(),
+                                MessageAttributes: {
+                                    "Environment": {
+                                        DataType: "String",
+                                        StringValue: global.mode
+                                    },
+                                }
+                            }, (error, data) => {
+                                if (error) {
+                                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                } else {
+                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                }
+                            });
                             // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
                             //     form: request,
                             // }, function (error, response, body) {
@@ -1525,7 +1538,7 @@ function BotService(objectCollection) {
                             //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
                             // });
 
-                            await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                            // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         } else {
                             // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         }
@@ -1585,9 +1598,10 @@ function BotService(objectCollection) {
                     }
                     break;
 
-                case 28: //Airthmetic Bot
+                case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
+                            console.log('botOperationsJson in Arithmetic Bot: ', botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                         } catch (error) {
                             logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -3625,6 +3639,8 @@ function BotService(objectCollection) {
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
+        let isLead = 0;
+        
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
@@ -3633,6 +3649,8 @@ function BotService(objectCollection) {
 
         if (type[0] === 'static') {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -3661,6 +3679,8 @@ function BotService(objectCollection) {
             newReq.customer_name = '';
             newReq.participant_workforce_id = inlineData[type[0]].workforce_id || 0;
             newReq.participant_account_id = inlineData[type[0]].account_id || 0;
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
 
             let activityInlineData;
 
@@ -3700,6 +3720,8 @@ function BotService(objectCollection) {
                 workflowActivityID = Number(request.workflow_activity_id);
 
             let formTransactionID = 0, formActivityID = 0;
+
+            isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
 
             if (!formInlineDataMap.has(fieldID)) {
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
@@ -3761,6 +3783,8 @@ function BotService(objectCollection) {
                 logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
             }
         }
+
+        newReq.is_lead = isLead;
 
         if (
             (newReq.phone_number !== -1) &&
@@ -4974,8 +4998,29 @@ function BotService(objectCollection) {
         };
 
         return await new Promise((resolve, reject) => {
-            activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
-                (err === false) ? resolve() : reject(err);
+            activityParticipantService.assignCoworker(addParticipantRequest, async (err, resp) => {
+                if(err === false) {                    
+                    
+                    //Check for lead flag                    
+                    console.log('request.is_lead : ',request.is_lead);
+                    if(Number(request.is_lead) === 1) {
+                        let newReq = {};
+                        newReq.organization_id = request.organization_id;
+                        newReq.account_id = request.account_id;
+                        newReq.workforce_id = request.workforce_id;
+                        newReq.asset_id = 100;
+                        newReq.activity_id = Number(request.workflow_activity_id);
+                        newReq.lead_asset_id = Number(assetData.desk_asset_id);
+                        newReq.timeline_stream_type_id = 718;
+                        newReq.datetime_log = util.getCurrentUTCTime();
+
+                        await rmBotService.activityListLeadUpdateV1(newReq, Number(assetData.desk_asset_id));
+                    }
+                    
+                    resolve()
+                } else {
+                    reject(err);
+                }
             });
         });
 
@@ -6615,6 +6660,38 @@ function BotService(objectCollection) {
         return [false, []];
     }
 
+    this.arithmeticBotVNK = async (request) => {
+    let x = {
+            "operations": [
+              {
+                "form_id": 4127,
+                "field_id": 219915,
+                "sequence_id": 2,
+                "join_condition": "*"
+              },
+              {
+                "form_id": 4127,
+                "field_id": 219916,
+                "sequence_id": 3,
+                "join_condition": "EOJ"
+              },
+              {
+                "form_id": 4127,
+                "field_id": 218000,
+                "sequence_id": 1,
+                "join_condition": "*"
+              }
+            ],
+            "target_form_id": 4127,
+            "target_field_id": 215613,
+            "target_field_data_type_id":6, 
+            "target_field_data_type_category_id":2,
+            "message_unique_id": 123456789321
+          };
+
+        await arithmeticBot(request, {}, x);
+    }
+    
     async function arithmeticBot(request, formInlineDataMap, arithmeticCalculation) {
         let responseData = [],
             error = false;
@@ -6634,48 +6711,101 @@ function BotService(objectCollection) {
                 "field_id": 13890,
                 "sequence_id":2,
                 "join_condition": "+|-|*|/|EOJ"
-            }]
+            }],
+            "target_form_id": 4127,
+            "target_field_id": 215613,
+            "target_field_data_type_id":6, 
+            "target_field_data_type_category_id":2,
+            "message_unique_id": 123456789321
         }*/
 
-        let fieldsData = arithmeticCalculation.operations;
+        let fieldsData = arithmeticCalculation.operations;        
+        sortedfieldsData = _.sortBy(fieldsData,"sequence_id");
 
         //Before firing check that all the required input fields are available else dont fire.
-        for(const i_iterator of fieldsData){
-            let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);            
-            console.log('formDataFrom713Entry : ', formDataFrom713Entry);
-            if(!formDataFrom713Entry.length > 0) {
-                responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-                console.log('responseData : ', responseData);
-                return [true, responseData];
-            }
-
-            let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-            console.log('formTransactionInlineData : ', formTransactionInlineData.form_submitted);
-            let formData = formTransactionInlineData.form_submitted;
-            formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
-
-            for(const j_iterator of formData) {
-                if(i_iterator.field_id === j_iterator.field_id) {
-                    if(util.replaceDefaultString(j_iterator.field_value) === '') {
-                        responseData.push({'message': `${j_iterator.field_value} is empty`});
-                        console.log('responseData : ', responseData);
-                        return [true, responseData];
-                    }
-
-                    i_iterator.field_value = j_iterator.field_value;
+        for(let i_iterator of sortedfieldsData){            
+            if(i_iterator.hasOwnProperty('value')) {
+                i_iterator.field_value = value;
+            } else {
+                let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);                            
+                if(!formDataFrom713Entry.length > 0) {
+                    responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+                    console.log('responseData : ', responseData);
+                    return [true, responseData];
                 }
-            } //End of checking for non-empty field_value
+
+                //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+                let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+                console.log('formTransactionInlineData form_submitted: ', formTransactionInlineData.form_submitted);
+                let formData = formTransactionInlineData.form_submitted;
+                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+                for(const j_iterator of formData) {
+                    if(Number(i_iterator.field_id) === Number(j_iterator.field_id)) {
+                        if(util.replaceDefaultString(j_iterator.field_value) === '') {
+                            responseData.push({'message': `${j_iterator.field_value} is empty`});
+                            console.log('responseData : ', responseData);
+                            return [true, responseData];
+                        }
+                        console.log('field_value : ', j_iterator.field_value);
+                        i_iterator.field_value = j_iterator.field_value;
+                    }
+                } //End of checking for non-empty field_value                    
+            } //ELSE       
+            
         } //End of processing all form fields in the bot operation inline
 
-        let finalResult = fieldsData[0].field_value;
-        for(let i=0; i<fieldsData.length;i++){
-            if(fieldsData[i].join_condition === 'EOJ') {
+        console.log('sortedfieldsData : ', sortedfieldsData);
+        console.log('sortedfieldsData[0] : ', sortedfieldsData[0]);
+        let finalResult = sortedfieldsData[0].field_value;
+        for(let i=0; i<sortedfieldsData.length;i++){
+            console.log('sortedfieldsData[i].join_condition : ', sortedfieldsData[i].join_condition);
+            if(sortedfieldsData[i].join_condition === 'EOJ') {
                 break;
             }
 
-            finalResult = await performArithmeticOperation(finalResult, fieldsData[i+1].field_value, fieldsData[i].join_condition);
+            console.log('sortedfieldsData[i+1].field_value : ', sortedfieldsData[i+1].field_value);
+            finalResult = await performArithmeticOperation(finalResult, sortedfieldsData[i+1].field_value, sortedfieldsData[i].join_condition);
+            console.log('finalResult : ', finalResult);
         }
 
+        //Update in the target form and field Id
+        let newReq = Object.assign({}, request);
+            newReq.form_id = arithmeticCalculation.target_form_id;
+            newReq.field_id = arithmeticCalculation.target_field_id;
+        let formDataFrom713Entry = await getFormInlineData(newReq, 1);
+        let formData = await getFormInlineData(newReq, 2);
+
+        console.log('formDataFrom713Entry: ', formDataFrom713Entry);
+        console.log(' ');
+        console.log('formData: ', formData);
+        
+        let activityInlineData = [{
+            form_id: arithmeticCalculation.target_form_id,
+            field_id: arithmeticCalculation.target_field_id,            
+            field_value: finalResult,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            field_data_type_id: arithmeticCalculation.target_field_data_type_id,
+            field_data_type_category_id: arithmeticCalculation.target_field_data_type_category_id
+        }];
+        
+        //field Alter
+        let fieldsAlterRequest = Object.assign({}, request);
+            fieldsAlterRequest.form_transaction_id = formDataFrom713Entry.data_form_transaction_id;
+            fieldsAlterRequest.form_id = arithmeticCalculation.target_form_id;
+            fieldsAlterRequest.activity_form_id = arithmeticCalculation.target_form_id;
+            fieldsAlterRequest.field_id = arithmeticCalculation.target_field_id;
+            fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            fieldsAlterRequest.activity_id = formDataFrom713Entry.data_activity_id;
+            fieldsAlterRequest.workflow_activity_id = request.workflow_activity_id;
+
+        //console.log('fieldsAlterRequest :', fieldsAlterRequest);
+        try {
+            await alterFormActivityFieldValues(fieldsAlterRequest);
+        } catch (error) {
+            console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+        }
+        
         return [error, responseData];
     }
 
@@ -6696,6 +6826,25 @@ function BotService(objectCollection) {
         return result;
     }
 
+    this.reminderBotVNK = async (request) => {
+        //EMAIL
+            //workflow_activity_id = 2893115
+            //form_id, field_id = 3494, 53631
+
+        let x = {
+                    "date_form_id": 3494,
+                    "date_field_id": 53631,
+                    "asset_reference_form_id": 0,
+                    "asset_reference_field_id": 0,
+                    "alert_type": "after",
+                    "24hours_multiplier": 2,
+                    "escalation_target": "creator",
+                    "escalation_type": "email"
+                };
+    
+            await reminderBot(request, {}, x);
+        }
+
     async function reminderBot(request, formInlineDataMap, dateReminder) {
         /*"date_reminder": {
             "date_form_id": 0,
@@ -6708,9 +6857,165 @@ function BotService(objectCollection) {
             "escalation_type": "timeline|participant|text|email"
         }*/
 
-        let fieldsData = dateReminder.operations;
-        
+        let escalationType = dateReminder.escalation_type;
+        let alterType = dateReminder.alert_type;
+        let multiplier = dateReminder['24hours_multiplier'];
+        let reminderDatetime; 
 
+        if(alterType === 'before') {
+            //reminderDatetime--;
+            reminderDatetime = util.subtractUnitsFromDateTime(util.getCurrentUTCTime(),multiplier,'days');
+        } else if(alterType === 'after') {
+            //reminderDatetime++;
+            reminderDatetime = util.addUnitsToDateTime(util.getCurrentUTCTime(),multiplier,'days');
+        }
+
+        //reminder_type_id
+            //1 Timeline
+            //2 Participant
+            //3 Email
+            //4 Text
+
+        //What is reminder_type_id
+        switch(escalationType) {
+            case 'timeline': //post a reminder onto the timeline
+                            try{
+                                let newTimelineReq = Object.assign({}, request);
+                                    newTimelineReq.form_id = dateReminder.asset_reference_form_id;
+                                    newTimelineReq.field_id = dateReminder.asset_reference_field_id;
+                                
+                                let participantFormData = await getFormInlineData(newParticipantReq, 2);
+                                let fieldValue;
+
+                                //I will get the phone_Number
+                                for(const i_iterator of participantFormData) {
+                                    if(Number(i_iterator.field_id) === Number(dateReminder.asset_reference_field_id)) {
+                                        fieldValue = i_iterator.field_value;
+                                        break;
+                                    }
+                                }
+
+                                let tempVar = { participant: fieldValue };
+                                let newReq = Object.assign({}, request);
+                                    newReq.inline_data = JSON.stringify(tempVar);
+                                await activityCommonService.activityReminderTxnInsert(newReq, 1, reminderDatetime);
+                            } catch(err) {
+                                console.log('Reminder Bot - Error in updating Timeline in TXN Table: ', err);
+                            }                            
+                            break;
+
+            case 'participant': try{
+                                    let newParticipantReq = Object.assign({}, request);
+                                        newParticipantReq.form_id = dateReminder.asset_reference_form_id;
+                                        newParticipantReq.field_id = dateReminder.asset_reference_field_id;
+                                    
+                                    let participantFormData = await getFormInlineData(newParticipantReq, 2);
+                                    let fieldValue;
+
+                                    //I will get the phone_Number
+                                    for(const i_iterator of participantFormData) {
+                                        if(Number(i_iterator.field_id) === Number(dateReminder.asset_reference_field_id)) {
+                                            fieldValue = i_iterator.field_value;
+                                            break;
+                                        }
+                                    }
+
+                                    let tempVar = { participant: fieldValue };
+                                    let newReq = Object.assign({}, request);
+                                        newReq.inline_data = JSON.stringify(tempVar);
+                                    await activityCommonService.activityReminderTxnInsert(newReq, 2, reminderDatetime);
+                                } catch(err) {
+                                    console.log('Reminder Bot - Error in updating Participant in TXN Table: ', err);
+                                }
+                                break;
+
+            case 'email': //Send an email reminder
+                                try{
+                                   let newEmailReq = Object.assign({}, request);
+                                       newEmailReq.form_id = dateReminder.date_form_id;
+                                       newEmailReq.field_id = dateReminder.date_field_id;                            
+                                   
+                                   //I will get the phone_Number to which I need to send an email
+                                   let emailFormData = await getFormInlineData(newEmailReq, 2);
+                                   let fieldValue;                            
+                                   for(const i_iterator of emailFormData) {
+                                       if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+                                           fieldValue = i_iterator.field_value;
+                                           break;
+                                       }
+                                   }
+       
+                                   let tempVar = {
+                                       email: fieldValue
+                                   };
+       
+                                   let newReq = Object.assign({}, request);
+                                       newReq.inline_data = JSON.stringify(tempVar);
+       
+                                   await activityCommonService.activityReminderTxnInsert(newReq, 3, reminderDatetime);
+                                } catch(err) {
+                                   console.log('Reminder Bot - Error in updating Email in TXN Table: ', err);
+                                }
+                                 break;
+
+            case 'text': //Send a text(sms) reminder   
+                        try{
+                            let newSmsReq = Object.assign({}, request);
+                                newSmsReq.form_id = dateReminder.date_form_id;
+                                newSmsReq.field_id = dateReminder.date_field_id;
+                             
+                            //I will get the phone_Number to which I need to send a text                            
+                            let textFormData = await getFormInlineData(newSmsReq, 2);
+                            let fieldValue;
+
+                            for(const i_iterator of textFormData) {
+                                if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+                                    fieldValue = i_iterator.field_value;
+                                    break;
+                                }
+                            }
+
+                            let tempVar = { text: fieldValue };
+                            let newReq = Object.assign({}, request);
+                                newReq.inline_data = JSON.stringify(tempVar);
+                            await activityCommonService.activityReminderTxnInsert(newReq, 4, reminderDatetime);
+                        } catch(err) {
+                            console.log('Reminder Bot - Error in updating Text in TXN Table: ', err);
+                        }
+                        break;            
+                }
+
+    }
+
+
+    async function getFormInlineData(request, flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+         //3. Send both
+
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;            
+            case 3: break;
+            default: return formData;
+
+        }
+        
     }
 
 }
