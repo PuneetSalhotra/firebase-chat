@@ -290,8 +290,10 @@ function WorkbookOpsService(objectCollection) {
                     ProductSelectionJSON.product_activity_id !== 0 &&
                     outputFormMappings.ifProductToOutputMappingExists(ProductSelectionJSON.product_activity_id)
                 ) {
-                    // outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
-                    // console.log("[111111111] outputMappings: ", outputMappings);
+                    outputMappings = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).OutputMapping || [];
+                    sheetIndex = outputFormMappings.getProductToOutputMapping(ProductSelectionJSON.product_activity_id).SheetIndex || 11;
+                    logger.silly(`[Mapping Override] outputMappings: %j`, outputMappings, { type: 'workbook_bot' });
+                    logger.silly(`[Mapping Override] sheetIndex: %j`, sheetIndex, { type: 'workbook_bot' });
                 }
             } else {
                 throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
@@ -406,14 +408,19 @@ function WorkbookOpsService(objectCollection) {
         // Fetch the updated values
         for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
             if (outputFormFieldInlineTemplateMap.has(fieldID)) {
-                const cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                let field = outputFormFieldInlineTemplateMap.get(fieldID);
+                let cellValue = "";
+                try {
+                    cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                    let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                // Update the field
-                field.field_value = cellValue;
-                outputFormFieldInlineTemplateMap.set(fieldID, field);
+                    // Update the field
+                    field.field_value = cellValue;
+                    outputFormFieldInlineTemplateMap.set(fieldID, field);
 
-                logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue);
+                    logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                } catch (error) {
+                    logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+                }
             }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
