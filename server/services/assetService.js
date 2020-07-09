@@ -4920,7 +4920,7 @@ this.getQrBarcodeFeeback = async(request) => {
                                     accountListSelect(request).then((resData) => {
                                         singleData.query_status = 0;
                                         singleData.account_id = 0;
-                                        singleData.account_name = "All";
+                                        singleData.account_name = "Nationwide";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
