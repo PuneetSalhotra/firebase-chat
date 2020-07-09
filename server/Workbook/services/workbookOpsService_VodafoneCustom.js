@@ -406,14 +406,19 @@ function WorkbookOpsService(objectCollection) {
         // Fetch the updated values
         for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
             if (outputFormFieldInlineTemplateMap.has(fieldID)) {
-                const cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                let field = outputFormFieldInlineTemplateMap.get(fieldID);
+                try {
+                    const cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                    let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                // Update the field
-                field.field_value = cellValue;
-                outputFormFieldInlineTemplateMap.set(fieldID, field);
+                    // Update the field
+                    field.field_value = cellValue;
+                    outputFormFieldInlineTemplateMap.set(fieldID, field);
 
-                logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue);
+                    logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                } catch (error) {
+                    logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+
+                }
             }
         }
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
