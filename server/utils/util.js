@@ -1389,7 +1389,8 @@ function Util(objectCollection) {
             }
         }
 
-        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        //let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
 
         // SendSmtpEmail | Values to send a transactional email

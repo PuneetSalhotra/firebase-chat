@@ -5556,7 +5556,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let error = true,
             responseData = [];        
         
-        console.log('request.inline_data in activityReminderTxnInsert: ', request.inline_data);
+        //console.log('request.inline_data in activityReminderTxnInsert: ', request.inline_data);
         const paramsArr = new Array(
                             request.organization_id,
                             request.workflow_activity_id,
@@ -5564,7 +5564,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             reminderTypeID,
                             request.inline_data || '{}',
                             reminderDateTime,
-                            util.replaceDefaultNumber(request.status_id),
+                            request.status_id,
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_insert', paramsArr);
@@ -5587,10 +5587,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         responseData = [];        
         
         const paramsArr = new Array(
-                            request.reminder_id,
+                            request.reminder_trx_id,
                             request.workflow_activity_id,
                             request.organization_id,                            
-                            util.replaceDefaultNumber(request.status_id),
+                            request.status_id,
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_update_reminder_status', paramsArr);

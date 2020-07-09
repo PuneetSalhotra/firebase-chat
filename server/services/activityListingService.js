@@ -3374,6 +3374,43 @@ async function processFormInlineDataV1(request, data){
 		}
 		return [error, responseData];
 	};
+
+	this.getQueueActMappingAssetFlag = async (request) => {
+		//IF flag = 1 THEN get ALL activities which are currently mapped to a queue
+		//IF flag = 2 THEN get PARTICIPATING activities which are currently mapped to a queue
+		//IF flag = 2 THEN get NON PARTICIPATING activities which are currently mapped to a queue
+
+		//IN sort_flag = 1 THEN due date DESC
+		//IN sort_flag = 2 THEN created date DESC
+
+		let responseData = [],
+			error = true;
+		
+		const paramsArr = new Array(
+			request.organization_id,
+			request.asset_id,
+			request.activity_type_category_id,
+			request.queue_id || 0,
+			request.flag || 0, // 0 => Due date | 1 => Created date
+			request.sort_flag || 0, // 0 => Ascending | 1 => Descending			
+			request.page_start || 0,
+			request.page_limit || 50
+		);
+		
+		const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		
+		return [error, responseData];
+	};
 }
 
 module.exports = ActivityListingService;
