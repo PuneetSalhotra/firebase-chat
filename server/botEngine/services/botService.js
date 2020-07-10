@@ -7190,7 +7190,7 @@ function BotService(objectCollection) {
                         
                         if(Number(i_iterator.reminder_type_id) === 3) {
                             const emailSubject = `Reminder for ${i_iterator.activity_title}!`;
-                            const emailBody = `This is a reminder for ${i_iterator.activity_title}!`;
+                            const emailBody = `This is a scheduled reminder for ${i_iterator.activity_title}!`;
                             const htmlTemplate = Buffer.from(JSON.stringify(emailBody)).toString('base64');
 
                             let req = {};
@@ -7205,7 +7205,7 @@ function BotService(objectCollection) {
                                 });
                             });                            
                         } else if(Number(i_iterator.reminder_type_id) === 4) {
-                            const text = `This is a reminder for ${i_iterator.activity_title}!`;
+                            const text = `This is a scheduled reminder for ${i_iterator.activity_title}!`;
                             console.log('Phone Number with country code : ', textPhCtyCode, textPhNo);
                             
                             //Send text                            
@@ -7241,9 +7241,9 @@ function BotService(objectCollection) {
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `This is a reminder for ${request.activity_title}!`,
-            "subject": `This is a reminder for ${request.activity_title}!`,
-            "mail_body": `This is a reminder for ${request.activity_title}!`,
+            "content": `This is a scheduled reminder for ${request.activity_title}!`,
+            "subject": `This is a scheduled reminder for ${request.activity_title}!`,
+            "mail_body": `This is a scheduled reminder for ${request.activity_title}!`,
             "attachments": []
         });
         addCommentRequest.activity_stream_type_id = 325;
