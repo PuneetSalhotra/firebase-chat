@@ -7743,7 +7743,7 @@ function AdminOpsService(objectCollection) {
             error = true;
 
         //Get the forms list based on status
-        let [err, statusBasedFormsList] = await getStatusBasedForms(request);
+        let [err, statusBasedFormsList] = await getStatusBasedForms(request);        
 
         if(err) {
             return [error, responseData];
@@ -7757,10 +7757,20 @@ function AdminOpsService(objectCollection) {
         if(statusBasedFormsList.length > 0) {            
             for(const i_iterator of statusBasedFormsList){
                 form_id_list.push(i_iterator.form_id);
+
+                let newReq = Object.assign({}, request);
+                    //newReq.organization_id = 0;
+                    newReq.form_id = i_iterator.form_id;
+                    newReq.field_id = 0;
+                    newReq.start_from = 0;
+                    newReq.limit_value = 1;
+                let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                //console.log('DATA : ', data);
+                (data.length> 0 && data[0].next_field_id > 0) ? i_iterator.is_smart = 1 : i_iterator.is_smart = 0;
             }
             
             let newReq = Object.assign({}, request);
-            newReq.form_id_list = JSON.stringify(form_id_list);
+                newReq.form_id_list = JSON.stringify(form_id_list);
             let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
             
             console.log('dependencyFormsList.length : ', dependencyFormsList.length);

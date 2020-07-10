@@ -5630,10 +5630,40 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     })
                     .catch((err) => {
                         error = err;
-                    });                 
+                    });
             }
         return [error, responseData]; 
     };
+
+    this.workforceFormFieldMappingSelect = async (request) => {        
+        let formFieldMappingData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.field_id,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    formFieldMappingData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formFieldMappingData];
+    };
+    
 }
 
 
