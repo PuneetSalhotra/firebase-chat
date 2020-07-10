@@ -7042,7 +7042,7 @@ function BotService(objectCollection) {
 
         let request = {}
             request.workflow_activity_id = 0;
-            request.organization_id = 906;
+            request.organization_id = 0;
             request.start_datetime = util.getDayStartDatetimeIST(); //util.getDayStartDatetime();
             request.end_datetime = util.getDayEndDatetimeIST(); //util.getDayEndDatetime();
             //request.start_datetime = util.getDayStartDatetime();
