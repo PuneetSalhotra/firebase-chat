@@ -37,6 +37,7 @@
     "crypto-js": "^3.3.0",
     "dd-trace": "^0.14.1",
     "docusign-esign": "^5.4.0",
+    "elasticsearch": "^16.7.1",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-xml-bodyparser": "^0.3.0",

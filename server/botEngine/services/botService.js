@@ -1074,6 +1074,7 @@ function BotService(objectCollection) {
                     limit_value: 50
                 }, 2);
 
+            console.log('Number of form Level Bots : ',  botResponse.length);
             let totalBots = botResponse; //Assigning form based bots
 
             //2) Retrigger all the impacted field level
@@ -1088,8 +1089,9 @@ function BotService(objectCollection) {
                     "page_limit": 50
                 });
 
+                console.log('Field Level Bots : ',tempResponse.length);
                 if(tempResponse.length > 0) {
-                    totalBots.concat(tempResponse); //Assigning field level bots
+                    totalBots = totalBots.concat(tempResponse); //Assigning field level bots
                 }                
             }
 
@@ -1192,11 +1194,11 @@ function BotService(objectCollection) {
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
-            console.log('ONE: ', botOperationsJson);
+            //console.log('ONE: ', botOperationsJson);
             botSteps = Object.keys(botOperationsJson.bot_operations);
-            console.log('TWO');
+            //console.log('TWO');
             logger.silly("botSteps: %j", botSteps);
-            console.log('THREE');
+            //console.log('THREE');
 
             // Check for condition, if any
             let canPassthrough = true;

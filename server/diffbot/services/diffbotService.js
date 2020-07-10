@@ -14,12 +14,11 @@ function DiffbotService(objectCollection) {
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
   hasMoreData = true
-  const { Client } = require('@elastic/elasticsearch');
-  const { AmazonConnection } = require('aws-elasticsearch-connector');
-  const client = new Client({
-      node: global.config.elastiSearchNode,
-      Connection: AmazonConnection,
+  var elasticsearch = require('elasticsearch');
+  var client = new elasticsearch.Client({
+     hosts: [  global.config.elastiSearchNode]
   });
+
   this.queryDiffbot = async diffbotrequest => {
     try {
         let channel = Channel(accountsList);
@@ -311,7 +310,7 @@ function DiffbotService(objectCollection) {
           index: 'crawling_accounts',
           body: query
         })
-        return responseData.body.hits['hits'];
+        return responseData.hits['hits'];
       }
     } catch (err) {
       console.log(err)
