@@ -3400,13 +3400,14 @@ async function processFormInlineDataV1(request, data){
 		const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
-					responseData = data;
-					error = false;
-				})
-				.catch((err) => {
-					error = err;
-				});
+                    .then((data) => {
+						//console.log('DATA : ', data);
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
 		}
 		
 		return [error, responseData];

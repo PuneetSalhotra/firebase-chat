@@ -1940,7 +1940,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formFieldMappingData = data;
                     error = false;
