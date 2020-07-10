@@ -2169,9 +2169,12 @@ function Util(objectCollection) {
 
     //This is to support ews
     this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
-        console.log('email : ', email);
-        console.log('subject : ', subject);
-        console.log('text : ', text);
+        let responseData = [],
+            error = false;
+
+        //console.log('email : ', email);
+        //console.log('subject : ', subject);
+        //console.log('text : ', text);
 
         let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
@@ -2235,7 +2238,8 @@ function Util(objectCollection) {
         .catch(err => {
             console.log('EWS Email - error : ', err.stack);
         });
-        
+
+        return [error, responseData];        
     };
 
 }
