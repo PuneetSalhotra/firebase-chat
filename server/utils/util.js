@@ -2110,7 +2110,7 @@ function Util(objectCollection) {
         const pwd = await cacheWrapper.getESMSMailsPwd();
         const ewsConfig = {
             username: 'ESMSMails@vodafoneidea.com',
-            password: pwd, //'June@2020',
+            password: pwd, //'July@2020',
             host: 'https://webmail.vodafoneidea.com'    
         };
 
@@ -2182,7 +2182,7 @@ function Util(objectCollection) {
         const pwd = await cacheWrapper.getPoonamChavanMailPwd();
         console.log('PWD : ', pwd);
         const ewsConfig = {
-            username: 'poonam.chavan3@vodafoneidea.com',
+            username: 'Poonam.Chavan3@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
