@@ -5,11 +5,9 @@ function CommnElasticService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     var responseWrapper = objectCollection.responseWrapper;
-    const { Client } = require('@elastic/elasticsearch');
-    const { AmazonConnection } = require('aws-elasticsearch-connector');
-    const client = new Client({
-        node: global.config.elastiSearchNode,
-        Connection: AmazonConnection,
+    var elasticsearch = require('elasticsearch');
+    var client = new elasticsearch.Client({
+       hosts: [  global.config.elastiSearchNode]
     });
 
     this.updateFile =
@@ -386,18 +384,18 @@ function CommnElasticService(objectCollection) {
                         body: query
                     })
 
-                    for (var i = 0; i < result.body.hits['hits'].length; i++) {
+                    for (var i = 0; i < result.hits['hits'].length; i++) {
                         var obj = {}
-                        obj['id'] = result.body.hits['hits'][i]['_source']['id']
-                        obj['orgid'] = result.body.hits['hits'][i]['_source']['orgid']
-                        obj['product'] = result.body.hits['hits'][i]['_source']['product']
-                        obj['documentdesc'] = result.body.hits['hits'][i]['_source']['documentdesc']
-                        obj['documenttitle'] = result.body.hits['hits'][i]['_source']['documenttitle']
-                        obj['assetid'] = result.body.hits['hits'][i]['_source']['assetid']
-                        obj['s3url'] = result.body.hits['hits'][i]['_source']['s3url']
-                        obj['productid'] = result.body.hits['hits'][i]['_source']['productid']
-                        obj['filename'] = result.body.hits['hits'][i]['_source']['filename']
-                        obj['activity_id'] = result.body.hits['hits'][i]['_source']['productid']
+                        obj['id'] = result.hits['hits'][i]['_source']['id']
+                        obj['orgid'] = result.hits['hits'][i]['_source']['orgid']
+                        obj['product'] = result.hits['hits'][i]['_source']['product']
+                        obj['documentdesc'] = result.hits['hits'][i]['_source']['documentdesc']
+                        obj['documenttitle'] = result.hits['hits'][i]['_source']['documenttitle']
+                        obj['assetid'] = result.hits['hits'][i]['_source']['assetid']
+                        obj['s3url'] = result.hits['hits'][i]['_source']['s3url']
+                        obj['productid'] = result.hits['hits'][i]['_source']['productid']
+                        obj['filename'] = result.hits['hits'][i]['_source']['filename']
+                        obj['activity_id'] = result.hits['hits'][i]['_source']['productid']
                         responseArray.push(obj)
                     }
                     responseObj['response'] = responseArray
