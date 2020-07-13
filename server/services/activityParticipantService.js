@@ -319,7 +319,7 @@ function ActivityParticipantService(objectCollection) {
         var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
         var maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;                
-        iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+        iterateAddParticipant(activityParticipantCollection, index, maxIndex, async(err, data) => {
             if (activityTypeCategroyId == 37) {
                 var newRequest = Object.assign({}, request);
                 activityCommonService.sendSmsCodeParticipant(newRequest, function (err, data) {});
@@ -331,6 +331,28 @@ function ActivityParticipantService(objectCollection) {
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+
+                    console.log('request.is_lead in Participant Add : ',request.is_lead);
+                    if(request.hasOwnProperty('is_lead') && Number(request.is_lead) === 1) {
+                        
+                        //Get Asset Details
+                        //let [err, assetData] = await activityCommonService.getAssetDetailsAsync({
+                        //    organization_id: request.organizationId,
+                        //    asset_id: activityParticipantCollection[0].asset_id
+                        //});
+                        
+                        let newReq = {};
+                            newReq.organization_id = request.organization_id;
+                            newReq.account_id = request.account_id;
+                            newReq.workforce_id = request.workforce_id;      
+                            newReq.activity_id = Number(request.activity_id);
+                            newReq.lead_asset_id = activityParticipantCollection[0].asset_id;
+                            //newReq.asset_id = 100;
+                            //newReq.timeline_stream_type_id = 718;
+                            newReq.datetime_log = util.getCurrentUTCTime();
+
+                        await rmbotService.activityListLeadUpdateV2(newReq, Number(activityParticipantCollection[0].asset_id));
+                    }
                 }
             } else {                
                 //console.log("something is not wright in adding a participant");
