@@ -2182,7 +2182,8 @@ function Util(objectCollection) {
         const pwd = await cacheWrapper.getPoonamChavanMailPwd();
         console.log('PWD : ', pwd);
         const ewsConfig = {
-            username: 'Poonam.Chavan3@vodafoneidea.com',
+            //username: 'Poonam.Chavan3@vodafoneidea.com',
+            username: 'COR420930@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
@@ -2228,7 +2229,7 @@ function Util(objectCollection) {
 
         // query ews, print resulting JSON to console
         console.log('Before ews.run : emailSubject -  ', subject);
-        console.log('Before ews.run : Template - ', htmlTemplate);
+        //console.log('Before ews.run : Template - ', htmlTemplate);
         console.log('Before ews.run : receiverEmailID - ', email);
         
         ews.run(ewsFunction, ewsArgs)
