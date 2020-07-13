@@ -1722,6 +1722,7 @@ function AnalyticsService(objectCollection)
                             parseInt(request.filter_product_family_id),
                             parseInt(request.filter_product_activity_id),
                             parseInt(request.filter_account_activity_id),
+                            parseInt(request.filter_is_value_considered),
                             parseInt(request.page_start) || 0,
                             parseInt(request.page_limit) || 50
                         );
@@ -1733,7 +1734,7 @@ function AnalyticsService(objectCollection)
                        
                             for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                                  paramsArray.push(iteratorM)
-                                tempResult = await db.callDBProcedureR2(request, 'ds_v1_activity_search_list_select_widget_values', paramsArray, 1);
+                                tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_values', paramsArray, 1);
                                 paramsArray.pop();
                                 responseArray.push(tempResult[0])
                             }
@@ -1747,7 +1748,7 @@ function AnalyticsService(objectCollection)
                             iterator++
                         }else{
                             paramsArray.push(0)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
                             if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
                              || request.widget_type_id == 48 || request.widget_type_id == 49){
@@ -1907,11 +1908,12 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_product_family_id),
                         parseInt(request.filter_product_activity_id),
                         parseInt(request.filter_account_activity_id),
+                        parseInt(request.filter_is_value_considered),
                         //parseInt(request.page_start) || 0,
                         //parseInt(request.page_limit) || 50
                         );
                 
-                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_v1_activity_search_list_select_widget_drilldown', paramsArray, []);
+                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray, []);
                     console.log(tempResult);
 
                     results[iterator] =
