@@ -1389,7 +1389,8 @@ function Util(objectCollection) {
             }
         }
 
-        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        //let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
 
         // SendSmtpEmail | Values to send a transactional email
@@ -2109,7 +2110,7 @@ function Util(objectCollection) {
         const pwd = await cacheWrapper.getESMSMailsPwd();
         const ewsConfig = {
             username: 'ESMSMails@vodafoneidea.com',
-            password: pwd, //'June@2020',
+            password: pwd, //'July@2020',
             host: 'https://webmail.vodafoneidea.com'    
         };
 
@@ -2168,9 +2169,12 @@ function Util(objectCollection) {
 
     //This is to support ews
     this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
-        console.log('email : ', email);
-        console.log('subject : ', subject);
-        console.log('text : ', text);
+        let responseData = [],
+            error = false;
+
+        //console.log('email : ', email);
+        //console.log('subject : ', subject);
+        //console.log('text : ', text);
 
         let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
@@ -2178,7 +2182,7 @@ function Util(objectCollection) {
         const pwd = await cacheWrapper.getPoonamChavanMailPwd();
         console.log('PWD : ', pwd);
         const ewsConfig = {
-            username: 'poonam.chavan3@vodafoneidea.com',
+            username: 'Poonam.Chavan3@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
@@ -2234,7 +2238,8 @@ function Util(objectCollection) {
         .catch(err => {
             console.log('EWS Email - error : ', err.stack);
         });
-        
+
+        return [error, responseData];        
     };
 
 }

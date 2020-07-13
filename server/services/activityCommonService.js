@@ -5556,7 +5556,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let error = true,
             responseData = [];        
         
-        console.log('request.inline_data in activityReminderTxnInsert: ', request.inline_data);
+        //console.log('request.inline_data in activityReminderTxnInsert: ', request.inline_data);
         const paramsArr = new Array(
                             request.organization_id,
                             request.workflow_activity_id,
@@ -5564,7 +5564,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             reminderTypeID,
                             request.inline_data || '{}',
                             reminderDateTime,
-                            util.replaceDefaultNumber(request.status_id),
+                            request.status_id,
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_insert', paramsArr);
@@ -5587,10 +5587,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         responseData = [];        
         
         const paramsArr = new Array(
-                            request.reminder_id,
+                            request.reminder_trx_id,
                             request.workflow_activity_id,
                             request.organization_id,                            
-                            util.replaceDefaultNumber(request.status_id),
+                            request.status_id,
                             util.getCurrentUTCTime()
                         );
         const queryString = util.getQueryString('ds_p1_activity_reminder_transaction_update_reminder_status', paramsArr);
@@ -5630,10 +5630,40 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     })
                     .catch((err) => {
                         error = err;
-                    });                 
+                    });
             }
         return [error, responseData]; 
     };
+
+    this.workforceFormFieldMappingSelect = async (request) => {        
+        let formFieldMappingData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.field_id,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    formFieldMappingData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formFieldMappingData];
+    };
+    
 }
 
 
