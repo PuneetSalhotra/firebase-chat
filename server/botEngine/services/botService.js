@@ -7252,12 +7252,13 @@ function BotService(objectCollection) {
                         break;                
             }
 
-            //await activityCommonService.activityReminderTxnUpdate({
-            //    reminder_trx_id: i_iterator.reminder_transaction_id,
-            //    workflow_activity_id: i_iterator.activity_id,
-            //    organization_id: i_iterator.organization_id,
-            //    status_id: 3
-            //});
+            await activityCommonService.activityReminderTxnUpdate({
+                reminder_trx_id: i_iterator.reminder_transaction_id,
+                workflow_activity_id: i_iterator.activity_id,
+                organization_id: i_iterator.organization_id,
+                status_id: 3
+            });
+            
             console.log(' ');
             console.log('********************************************************');
             console.log(' ');
