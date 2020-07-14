@@ -5008,16 +5008,37 @@ function BotService(objectCollection) {
                     console.log('request.is_lead : ',request.is_lead);
                     if(Number(request.is_lead) === 1) {
                         let newReq = {};
-                        newReq.organization_id = request.organization_id;
-                        newReq.account_id = request.account_id;
-                        newReq.workforce_id = request.workforce_id;
-                        newReq.asset_id = 100;
-                        newReq.activity_id = Number(request.workflow_activity_id);
-                        newReq.lead_asset_id = Number(assetData.desk_asset_id);
-                        newReq.timeline_stream_type_id = 718;
-                        newReq.datetime_log = util.getCurrentUTCTime();
+                            newReq.organization_id = request.organization_id;
+                            newReq.account_id = request.account_id;
+                            newReq.workforce_id = request.workforce_id;
+                            newReq.asset_id = 100;
+                            newReq.activity_id = Number(request.workflow_activity_id);
+                            newReq.lead_asset_id = Number(assetData.desk_asset_id);
+                            newReq.timeline_stream_type_id = 718;
+                            newReq.datetime_log = util.getCurrentUTCTime();
 
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
+
+                        //Add a timeline entry
+                        let activityTimelineCollection =  JSON.stringify({                            
+                            "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "subject": `Note - ${util.getCurrentDate()}.`,
+                            "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "activity_reference": [],
+                            "asset_reference": [],
+                            "attachments": [],
+                            "form_approval_field_reference": []
+                        });
+
+                        let timelineReq = Object.assign({}, addParticipantRequest);
+                            timelineReq.activity_type_id = request.activity_type_id;
+                            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                            timelineReq.activity_stream_type_id = 711;
+                            timelineReq.timeline_stream_type_id = 711;
+                            timelineReq.activity_timeline_collection = activityTimelineCollection;
+                            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                        activityTimelineService.addTimelineTransactionAsync(timelineReq);
                     }
                     
                     resolve()
@@ -7038,11 +7059,7 @@ function BotService(objectCollection) {
     }
 
     this.reminderBotExecution = async() => {
-        let responseData = [],
-            error = false;
-        let inlineData;
-
-        let request = {}
+        let request = {};
             request.workflow_activity_id = 0;
             request.organization_id = 0;
             request.start_datetime = util.getDayStartDatetimeIST(); //util.getDayStartDatetime();
@@ -7050,11 +7067,26 @@ function BotService(objectCollection) {
             //request.start_datetime = util.getDayStartDatetime();
             //request.end_datetime = util.getDayEndDatetime();
             request.flag = 0;
-            request.start_from = 0;
-            request.limit_value = 50;        
+            //request.start_from = 0;
+            request.limit_value = 50;
+
+        reminderBotExecutionFn(request, 0);
+        return [false, []];
+    }    
+
+    //async function reminderBotExecutionIntermediateFn() {
+    //    //Get the total Count and process them 50 Each
+    //}
+
+    async function reminderBotExecutionFn(request, startFrom) {
+        let responseData = [],
+            error = false;
+        let inlineData;        
+        
+        request.start_from = startFrom;
         let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
 
-        console.log('reminderBotData : ', reminderBotData);
+        console.log('reminderBotData : ', reminderBotData);        
         
         let activityData;
         let assetID;
@@ -7230,6 +7262,11 @@ function BotService(objectCollection) {
             console.log('********************************************************');
             console.log(' ');
         } //End of For Loop
+
+        if(reminderBotData.length === 50) {
+            startFrom = startFrom + 50; 
+            await reminderBotExecutionFn(request, startFrom);
+        }
 
         return [error, responseData];
     }
