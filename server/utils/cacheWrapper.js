@@ -743,30 +743,16 @@ function CacheWrapper(client) {
                 }
             });
         });        
-    };
+    };    
 
-    this.getOmtInMailPwd = () => {
+    this.getROMSMailsPwd = () => {
         return new Promise((resolve, reject) => {            
-            client.get('omt.in1@vodafoneidea.com', (err, reply) => {
+            client.get('Yasmeen.Sayyed3@vodafoneidea.com', (err, reply) => {
                 if (err) {
-                    logger.error('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    logger.error('GET ROMS - Yasmeen.Sayyed3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });
                     resolve(err);
                 } else {
-                    logger.verbose('GET omt.in1@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
-                    resolve(reply);
-                }
-            });
-        });        
-    };
-
-    this.getPoonamChavanMailPwd = () => {
-        return new Promise((resolve, reject) => {            
-            client.get('poonam.chavan3@vodafoneidea.com', (err, reply) => {
-                if (err) {
-                    logger.error('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
-                    resolve(err);
-                } else {
-                    logger.verbose('GET poonam.chavan3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });                    
+                    logger.verbose('GET ROMS - Yasmeen.Sayyed3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });
                     resolve(reply);
                 }
             });
