@@ -2155,7 +2155,7 @@ function Util(objectCollection) {
 
         // query ews, print resulting JSON to console
         console.log('Before ews.run : emailSubject -  ', emailSubject);
-        console.log('Before ews.run : Template - ', Template);
+        //console.log('Before ews.run : Template - ', Template);
         console.log('Before ews.run : receiverEmailID - ', receiverEmailID);
         
         ews.run(ewsFunction, ewsArgs)
@@ -2176,15 +2176,16 @@ function Util(objectCollection) {
         //console.log('subject : ', subject);
         //console.log('text : ', text);
 
-        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
 
-        const pwd = await cacheWrapper.getPoonamChavanMailPwd();
+        const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('PWD : ', pwd);
         const ewsConfig = {
             //username: 'Poonam.Chavan3@vodafoneidea.com',
-            username: 'COR420930@vodafoneidea.com',
-            password: pwd, //'Jul@2020',
+            //username: 'COR420930@vodafoneidea.com',
+            username: 'Yasmeen.Sayyed3@vodafoneidea.com',
+            password: pwd, //'May@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
 
