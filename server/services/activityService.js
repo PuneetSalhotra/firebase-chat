@@ -5087,7 +5087,8 @@ function ActivityService(objectCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingInsertV1(request, fieldData, cnt) {
-        console.log('In activityActivityMappingInsertV1 - ', fieldData.field_data_type_id);        
+        console.log('In activityActivityMappingInsertV1 - ', fieldData.field_data_type_id);
+        let finalworkflowData;
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
         if(Number(request.activity_type_category_id) === 9) {            
@@ -5107,7 +5108,8 @@ function ActivityService(objectCollection) {
                 return workflowData;
             }            
             
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);            
+            currentWorkflowActivityId = Number(workflowData[0].activity_id);  
+            finalWorkflowData = workflowData;
         }
         
         console.log('fieldData V1: ', fieldData);
@@ -5144,7 +5146,7 @@ function ActivityService(objectCollection) {
             return "Failure";
         }
 
-        return [];
+        return finalWorkflowData;
     }
 
     async function businessCaseTimelineEntry(request, fieldData) {
