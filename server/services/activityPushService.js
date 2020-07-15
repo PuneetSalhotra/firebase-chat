@@ -361,6 +361,7 @@ function ActivityPushService(objectCollection) {
 
                                 // PubNub
                                 msg.activity_type_category_id = 16;
+                                msg.description = message;
                                 msg.type = 'activity_unread';
                                 break;
                         }
