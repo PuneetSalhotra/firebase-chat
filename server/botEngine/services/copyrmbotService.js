@@ -750,52 +750,6 @@ function RMBotService(objectCollection) {
     }
    }
 
-   this.RMAssignWorkflow = async function (request) {
-    let [err, assetData] = await self.getAvailableResourcePoolAssetType(request);
-        let resources_exists = false;
-        request.global_array.push({"RESOURCES_IN_POOL":assetData.length});
-        if(assetData.length == 0){
-            request.global_array.push({"NO_FREE_RESOURCES_AVAILABLE":"NO FREE RESOURCES AVAILABLE IN THE FREE POOL, HENCE FETCHING THE MINIMAL OCCUPIED RESOURCE"});
-            // get the current least occupied resource
-            // update lead
-           let [error,resourcecData] =  await self.getMinimumLoadedResource(request);
-           if(resourcecData.length > 0){
-                request.global_array.push({"MINIMAL_LOADED_RESOURCE_FOUND":resourcecData[0].activity_lead_asset_id});
-                //request.duration_in_minutes = 0;
-                request.target_status_lead_asset_id = resourcecData[0].activity_lead_asset_id;
-                request.target_status_lead_asset_name = resourcecData[0].activity_lead_operating_asset_first_name;
-                
-                request.res_account_id = 0;
-                request.res_workforce_id = 0;
-                request.res_asset_type_id = 0;
-                request.res_asset_category_id = 0;
-                request.res_asset_id = resourcecData[0].activity_lead_asset_id;
-                self.AIEventTransactionInsert(request);
-               self.addParticipantMakeRequest(request);
-           }else{
-            request.global_array.push({"END_OF_FLOW":"NO MINIMAL OCCUPIED RESOURCES AVAILABLE FROM THE OPEN ORDERS, END OF FLOW"});
-            request.ai_trace_insert_location = "RMAssignWorkflow, No Resources Found to allocate task";
-            self.AIEventTransactionInsert(request);
-            return [false,{}];
-           }
-        }else{
-            // get the minimum tasks assigned person 
-            // update as lead
-            request.global_array.push({"FREE_RESOURCES_AVAILABLE":"FREE RESOURCES AVAILABLE IN THE POOL, HENCE ADDING THEN FIRST RESOURCE AS PARTICIPANT"});
-            //request.duration_in_minutes = 0;
-            request.target_status_lead_asset_id = assetData[0].asset_id;
-            request.target_status_lead_asset_name = assetData[0].operating_asset_first_name;
-            request.res_account_id = 0;
-            request.res_workforce_id = 0;
-            request.res_asset_type_id = 0;
-            request.res_asset_category_id = 0;
-            request.res_asset_id = assetData[0].asset_id;
-            self.AIEventTransactionInsert(request);
-           
-           self.addParticipantMakeRequest(request);
-        }
-   }
-
     this.RMLoopInResoources = async function (request) {
 
         let [err, assetData] = await self.getAvailableResourcePool(request);
@@ -1028,15 +982,13 @@ function RMBotService(objectCollection) {
             request.global_array.push({"RESOURCE_ALLOCATED":"RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id});
             await self.unallocatedWorkflowInsert(request);
 
-            /*if(request.activity_type_flag_persist_role == 1){
+            if(request.activity_type_flag_persist_role == 1){
                 self.RMLoopInResoources(request);
                 request.activity_type_flag_persist_role = 0;
             }else{
                 request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
                 self.AIEventTransactionInsert(request);
-            }*/
-            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
-            self.AIEventTransactionInsert(request);
+            }
     }
         return [error, responseData];
     } 
@@ -1576,8 +1528,7 @@ function RMBotService(objectCollection) {
             await self.unallocatedWorkflowInsert(request);
 
             request.global_array.push({"RESOURCE_POOL_TRIGGER":"TRIGGER THE RESOURCE POOL"});
-            //await self.RMLoopInResoources(request);
-            await self.RMAssignWorkflow(request);
+            await self.RMLoopInResoources(request);
 
         }catch(error){
             console.log("error :: "+error);
@@ -2009,83 +1960,75 @@ function RMBotService(objectCollection) {
             //logger.info("triggerAIOnStatusChange :: "+JSON.stringify(request,null,2));
             if(response.length > 0){
                 // request.bot_mapping_inline_data = request.proof;
-                // self.AIEventTransactionInsert(request)   
-                if(response[0].asset_type_id > 0){
+                // self.AIEventTransactionInsert(request)            
+                request.duration_in_minutes = response[0].activity_status_duration;
+                request.global_array.push({"organization_ai_bot_enabled":response[0].organization_ai_bot_enabled});
+                if(response[0].organization_ai_bot_enabled == 1){
+                    request.global_array.push({"flag_trigger_resource_manager":request.flag_trigger_resource_manager});
+                    if(request.flag_trigger_resource_manager == 1){
 
-                    request.asset_type_id = response[0].asset_type_id;         
-                    request.duration_in_minutes = response[0].activity_status_duration;
-                    request.global_array.push({"organization_ai_bot_enabled":response[0].organization_ai_bot_enabled});
-                    if(response[0].organization_ai_bot_enabled == 1){
-                        request.global_array.push({"flag_trigger_resource_manager":request.flag_trigger_resource_manager});
-                        //if(request.flag_trigger_resource_manager == 1){
+                        logger.info("AI TRIGGER FLAG RECEIVED FROM ALTER STATUS BOT");
+                        let [formEditErr, formEditData] = await self.getFormEdidtedTimelineDetails(request);
 
-                            logger.info("NOT REQUIRED: AI TRIGGER FLAG RECEIVED FROM ALTER STATUS BOT");
-                            let [formEditErr, formEditData] = await self.getFormEdidtedTimelineDetails(request);
+                            request.global_array.push({"formEditData_length":formEditData.length});
+                            if(formEditData.length == 0){
+ 
+                                request.global_array.push({"activity_type_flag_persist_role":response[0].activity_type_flag_persist_role});
+                                //request.activity_type_flag_persist_role = response[0].activity_type_flag_persist_role;
+                                if(request.activity_type_flag_persist_role == 1){
+                                    logger.info("PERSIST ROLE FLAG SET FOR THIS STATUS");
+                                    
+                                    let objReq = Object.assign({},request);
+                                    objReq.asset_type_id = response[0].asset_type_id;
+                                    let [err, roleAssetData] = await self.getAssetForAssetTypeID(objReq);
+  
+                                    request.global_array.push({"getAssetForAssetTypeID_roleAssetData_length":roleAssetData.length});
+                                    if(roleAssetData.length > 0){
+                                        request.global_array.push({"PARTICIPANT_EXISTS":"PARTICIPANT EXISTS, HENCE ADDING AS LEAD, HITTING assignResourceAsLead "+roleAssetData[0].asset_id+" : "+roleAssetData[0].operating_asset_first_name});
+    
+                                        logger.info("PARTICIPANT EXISTS, HENCE ADDING AS LEAD ", {type:"rm_bot",request_body:objReq});
+                                        let timelineCollection = {};
+                                        timelineCollection.content="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                        timelineCollection.subject="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                        timelineCollection.mail_body="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                        timelineCollection.attachments=[];
+                                        timelineCollection.asset_reference=[];
+                                        timelineCollection.activity_reference=[];
+                                        timelineCollection.rm_bot_scores={};
+                                        request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
+                                        request.timeline_stream_type_id = 718;
 
-                                request.global_array.push({"formEditData_length":formEditData.length});
-                                if(formEditData.length == 0){
-     
-                                    request.global_array.push({"activity_type_flag_persist_role":response[0].activity_type_flag_persist_role});
-                                    //request.activity_type_flag_persist_role = response[0].activity_type_flag_persist_role;
-                                    if(request.activity_type_flag_persist_role == 1){
-                                        logger.info("PERSIST ROLE FLAG SET FOR THIS STATUS");
-                                        
-                                        let objReq = Object.assign({},request);
-                                        objReq.asset_type_id = response[0].asset_type_id;
-                                        let [err, roleAssetData] = await self.getAssetForAssetTypeID(objReq);
-      
-                                        request.global_array.push({"getAssetForAssetTypeID_roleAssetData_length":roleAssetData.length});
-                                        if(roleAssetData.length > 0){
-                                            request.global_array.push({"PARTICIPANT_EXISTS":"PARTICIPANT EXISTS, HENCE ADDING AS LEAD, HITTING assignResourceAsLead "+roleAssetData[0].asset_id+" : "+roleAssetData[0].operating_asset_first_name});
-        
-                                            logger.info("PARTICIPANT EXISTS, HENCE ADDING AS LEAD ", {type:"rm_bot",request_body:objReq});
-                                            let timelineCollection = {};
-                                            timelineCollection.content="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
-                                            timelineCollection.subject="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
-                                            timelineCollection.mail_body="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
-                                            timelineCollection.attachments=[];
-                                            timelineCollection.asset_reference=[];
-                                            timelineCollection.activity_reference=[];
-                                            timelineCollection.rm_bot_scores={};
-                                            request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
-                                            request.timeline_stream_type_id = 718;
+                                        await self.assignResourceAsLead(request, roleAssetData[0].asset_id);
 
-                                            await self.assignResourceAsLead(request, roleAssetData[0].asset_id);
-
-                                        }else{
-                                            logger.info("NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger");
-                                            request.global_array.push({"NO_PARTICIPANT":"NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger"});
-                                            request.ai_trace_insert_location = "NO_PARTICIPANT WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger";
-                                            await self.RMStatusChangeTrigger(request);
-                                        }
                                     }else{
-                                        logger.info("NO PERSIST ROLE FLAG SET: HENCE EXECUTING RMStatusChangeTrigger");
-                                        request.global_array.push({"NO_PERSIST_ROLE_FLAG_SET": "NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger"});
-                                        request.ai_trace_insert_location = "NO_PERSIST_ROLE_FLAG_SET, NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger";
+                                        logger.info("NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger");
+                                        request.global_array.push({"NO_PARTICIPANT":"NO PARTICIPANT EXISTS WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger"});
+                                        request.ai_trace_insert_location = "NO_PARTICIPANT WITH THIS ROLE ON THE WORKFLOW : HENCE EXECUTING RMStatusChangeTrigger";
                                         await self.RMStatusChangeTrigger(request);
                                     }
                                 }else{
-                                    logger.info("FORM RESUBMISSION, HENCE NO RM BOT TRIGGER");
-                                    request.global_array.push({"FORM_RESUBMISSION": "FORM RESUBMISSION, HENCE NO RM BOT TRIGGER"});
-                                    request.ai_trace_insert_location = "FORM_RESUBMISSION, FORM RESUBMISSION, HENCE NO RM BOT TRIGGER";
-                                    self.AIEventTransactionInsert(request)                            
+                                    logger.info("NO PERSIST ROLE FLAG SET: HENCE EXECUTING RMStatusChangeTrigger");
+                                    request.global_array.push({"NO_PERSIST_ROLE_FLAG_SET": "NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger"});
+                                    request.ai_trace_insert_location = "NO_PERSIST_ROLE_FLAG_SET, NO PERSIST ROLE FLAG SET, HENCE EXECUTING RMStatusChangeTrigger";
+                                    await self.RMStatusChangeTrigger(request);
                                 }
-                        /*}else{
-                            logger.info("AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT ");
-                            request.global_array.push({"AI_TRIGGER_FLAG":"AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT"});
-                            request.ai_trace_insert_location = "AI_TRIGGER_FLAG, AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT";
-                            self.AIEventTransactionInsert(request)                    
-                        }*/
+                            }else{
+                                logger.info("FORM RESUBMISSION, HENCE NO RM BOT TRIGGER");
+                                request.global_array.push({"FORM_RESUBMISSION": "FORM RESUBMISSION, HENCE NO RM BOT TRIGGER"});
+                                request.ai_trace_insert_location = "FORM_RESUBMISSION, FORM RESUBMISSION, HENCE NO RM BOT TRIGGER";
+                                self.AIEventTransactionInsert(request)                            
+                            }
                     }else{
-                        request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW"});
-                        request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
-                        self.AIEventTransactionInsert(request)                
-                        logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW");
+                        logger.info("AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT ");
+                        request.global_array.push({"AI_TRIGGER_FLAG":"AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT"});
+                        request.ai_trace_insert_location = "AI_TRIGGER_FLAG, AI TRIGGER FLAG NOT RECEIVED FROM ALTER STATUS BOT";
+                        self.AIEventTransactionInsert(request)                    
                     }
                 }else{
-                    request.global_array.push({"ASSET_TYPE_DOESNT_EXIST":"STATUS ROLE MAP DOESNT EXIST, HENCE NO AI"});
-                    request.ai_trace_insert_location = "ASSET_TYPE_DOESNT_EXIST, STATUS ROLE MAP DOESNT EXIST, HENCE NO AI";
-                    self.AIEventTransactionInsert(request);
+                    request.global_array.push({"ORGANIZATION_SETTING":"THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW"});
+                    request.ai_trace_insert_location = "ORGANIZATION_SETTING, THIS ORGANIZATION WITH ID";
+                    self.AIEventTransactionInsert(request)                
+                    logger.info("THIS ORGANIZATION WITH ID "+request.organization_id+" IS NOT ENABLED WITH AI "+request.organization_id+" IS NOT ENABLED WITH AI, END OF FLOW");
                 }
             }else{
                 request.global_array.push({"STATUS_DOESNT_EXIST":"STATUS DOESNT EXIST, HENCE NO AI"});
@@ -2155,33 +2098,6 @@ function RMBotService(objectCollection) {
         return [error, assetData];
     };
 
-    this.getAvailableResourcePoolAssetType = async function (request) {
-        let assetData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.asset_type_id || 0,
-            util.getCurrentUTCTime(),
-            request.current_lead_asset_id || 0,
-            0,
-            500
-        );
-        const queryString = util.getQueryString('ds_v1_asset_list_select_resource_asset_type_pool', paramsArr);
-        if (queryString !== '') {
-
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    assetData = data;
-                    error = false;
-                    request.global_array.push({"getAvailableResourcePool":assetData.length+" :: "+queryString});
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, assetData];
-    };
     this.calculateAssetNewSummary = async function(request){
 
         let read_efficiency = 0;
@@ -2515,12 +2431,12 @@ function RMBotService(objectCollection) {
                                */
                             } 
                             self.assetListUpdatePoolEntry(objR);
-                            //self.calculateAssetNewSummary(objR);
+                            self.calculateAssetNewSummary(objR);
 
                             if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
-                                //self.calculateAssetNewSummary(request);
+                                self.calculateAssetNewSummary(request);
                                 await self.assetListUpdatePoolEntry(request);
                             }
 
@@ -2570,7 +2486,7 @@ function RMBotService(objectCollection) {
 
                                 request.global_array.push({"calculateAssetNewSummary":""});
                                 logger.info();
-                                //self.calculateAssetNewSummary(ObjReq);
+                                self.calculateAssetNewSummary(ObjReq);
 
                             }else{
                                 request.global_array.push({"NO_LEAD_UNASSIGNMENT":"Exising Lead Asset Id is not greaterthan zero, hence no unassinment"});
@@ -2886,32 +2802,6 @@ function RMBotService(objectCollection) {
        }
     };
 
-    this.getMinimumLoadedResource = async function(request) { 
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(    
-            request.organization_id,
-            request.activity_type_category_id,
-            request.target_asset_id,
-            0,
-            1                
-        );        
-        const queryString = util.getQueryString('ds_v1_activity_search_list_select_lead_task_count', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
-    }    
-
 
     this.activityListLeadUpdateV2 = async function (request, lead_asset_id) {
         let responseData = [],
@@ -2950,33 +2840,33 @@ function RMBotService(objectCollection) {
         
     };
 
-    async function queueActMappingUpdateLead(request) {	
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(    
-            request.activity_id,
-            request.lead_asset_id,
-            request.organization_id,
-            request.activity_inline_data || '{}',
-            request.flag || 0,                
-            request.asset_id,
-            util.getCurrentUTCTime()                
-        );        
-        const queryString = util.getQueryString('ds_v1_1_queue_activity_mapping_update_lead', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
+        async function queueActMappingUpdateLead(request) {	
+            let responseData = [],
+                error = true;
+    
+            const paramsArr = new Array(    
+                request.activity_id,
+                request.lead_asset_id,
+                request.organization_id,
+                request.activity_inline_data || '{}',
+                request.flag || 0,                
+                request.asset_id,
+                util.getCurrentUTCTime()                
+            );        
+            const queryString = util.getQueryString('ds_v1_1_queue_activity_mapping_update_lead', paramsArr);
+    
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {                    
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
         }
-        return [error, responseData];
-    }
         
     }
 
