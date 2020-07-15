@@ -6856,53 +6856,53 @@ function BotService(objectCollection) {
             //form_id, field_id = 3494, 53631
 
         let a = {
-                "date_form_id": 2629,
-                "date_field_id": 64500,
-                "asset_reference_form_id": 0,
-                "asset_reference_field_id": 0,
-                "alert_type": "after",
-                "24hours_multiplier": 8,
+                "alert_type": "before",
+                "date_form_id": 4467,
+                "date_field_id": 220726,
+                "escalation_type": "timeline",
                 "escalation_target": "creator",
-                "escalation_type": "timeline"
+                "24hours_multiplier": 1,
+                "asset_reference_form_id": 0,
+                "asset_reference_field_id": 0
             };
 
             let x = {
-                    "date_form_id": 2629,
-                    "date_field_id": 64500,
-                    "asset_reference_form_id": 0,
-                    "asset_reference_field_id": 0,
-                    "alert_type": "after",
-                    "24hours_multiplier": 8,
-                    "escalation_target": "lead",
-                    "escalation_type": "participant"
+                "alert_type": "before",
+                "date_form_id": 4467,
+                "date_field_id": 220726,
+                "escalation_type": "timeline",
+                "escalation_target": "creator",
+                "24hours_multiplier": 2,
+                "asset_reference_form_id": 0,
+                "asset_reference_field_id": 0
                 };
         
-        let y = {
-                    "date_form_id": 2629,
-                    "date_field_id": 64500,
+            let y = {
+                    "alert_type": "before",
+                    "date_form_id": 4467,
+                    "date_field_id": 220726,
+                    "escalation_type": "timeline",
+                    "escalation_target": "creator",
+                    "24hours_multiplier": 3,
                     "asset_reference_form_id": 0,
-                    "asset_reference_field_id": 0,
-                    "alert_type": "after",
-                    "24hours_multiplier": 8,
-                    "escalation_target": "manager",
-                    "escalation_type": "email"
+                    "asset_reference_field_id": 0
                 };
         
-        let z = {
-                    "date_form_id": 2629,
-                    "date_field_id": 64500,
+            let z = {
+                    "alert_type": "before",
+                    "date_form_id": 4467,
+                    "date_field_id": 220726,
+                    "escalation_type": "timeline",
+                    "escalation_target": "creator",
+                    "24hours_multiplier": 4,
                     "asset_reference_form_id": 0,
-                    "asset_reference_field_id": 0,
-                    "alert_type": "after",
-                    "24hours_multiplier": 8,
-                    "escalation_target": "manager",
-                    "escalation_type": "text"
+                    "asset_reference_field_id": 0
                 };
     
             await reminderBot(request, {}, a);
-            //await reminderBot(request, {}, x);
-            //await reminderBot(request, {}, y);
-            //await reminderBot(request, {}, z);
+            await reminderBot(request, {}, x);
+            await reminderBot(request, {}, y);
+            await reminderBot(request, {}, z);
             return [false, []];
         }
 
@@ -7281,9 +7281,9 @@ function BotService(objectCollection) {
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `This is a scheduled reminder for ${request.activity_title}!`,
-            "subject": `This is a scheduled reminder for ${request.activity_title}!`,
-            "mail_body": `This is a scheduled reminder for ${request.activity_title}!`,
+            "content": `This is a scheduled reminder for ${request.activity_title} - Documents`,
+            "subject": `This is a scheduled reminder for ${request.activity_title} - Documents`,
+            "mail_body": `This is a scheduled reminder for ${request.activity_title} - Documents`,
             "attachments": []
         });
         addCommentRequest.activity_stream_type_id = 325;
