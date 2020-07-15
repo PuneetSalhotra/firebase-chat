@@ -808,6 +808,17 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
         }
     });
+
+    //To know whether a form is smart or not
+    app.post('/' + global.config.version + '/form/type/list', async (req, res) => {
+        const [err, responseData] = await formConfigService.getSmartNonSmartForm(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/form/type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });  
 }
 
 module.exports = FormConfigController;

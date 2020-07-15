@@ -4889,7 +4889,14 @@ function VodafoneService(objectCollection) {
             return [error, []];
         }
 
-        const TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
+        let TARGET_FORM_ID;
+        try {
+            TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
+        } catch(err) {
+            console.log('ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - ', err);
+            return [err, []];
+        }
+        
         const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
 
         // Check if the target form already exists
