@@ -329,7 +329,7 @@ function RMBotService(objectCollection) {
 
                     if(request.ai_bot_status_id == 3){
                         request.target_activity_status_id = data[0].activity_status_id;
-                        self.sendPushtoSuitableUnAvailableResources(request);
+                        //self.sendPushtoSuitableUnAvailableResources(request);
                     }
                 })
                 .catch((err) => {
@@ -758,6 +758,7 @@ function RMBotService(objectCollection) {
             request.global_array.push({"NO_FREE_RESOURCES_AVAILABLE":"NO FREE RESOURCES AVAILABLE IN THE FREE POOL, HENCE FETCHING THE MINIMAL OCCUPIED RESOURCE"});
             // get the current least occupied resource
             // update lead
+           request.target_asset_id = 0;
            let [error,resourcecData] =  await self.getMinimumLoadedResource(request);
            if(resourcecData.length > 0){
                 request.global_array.push({"MINIMAL_LOADED_RESOURCE_FOUND":resourcecData[0].activity_lead_asset_id});
