@@ -541,7 +541,22 @@ function ActivityService(objectCollection) {
                                 console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
-                                    fieldData = formInlineData[i];
+                                    fieldData = formInlineData[i];                                   
+                                    
+                                    if(
+                                        Number(fieldData.field_data_type_id) === 57 ||
+                                        Number(fieldData.field_data_type_id) === 33 ||
+                                        Number(fieldData.field_data_type_id) === 68 ||
+                                        Number(fieldData.field_data_type_id) === 71
+                                      ) 
+                                    {
+                                            console.table([{
+                                                field_data_type_id: Number(fieldData.field_data_type_id),
+                                                form_id: fieldData.form_id,
+                                                field_id: fieldData.field_id,
+                                            }]);
+                                    }                                    
+                                    
                                     switch(Number(fieldData.field_data_type_id)) {
                                         case 57: //Fire the Bot
                                                 await fireBotInsertIntTables(request, fieldData);                                                
@@ -554,10 +569,20 @@ function ActivityService(objectCollection) {
                                                 }
                                                 break;
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
-                                                 await activityActivityMappingInsertV1(request, fieldData, 0);
+                                                 for(let i_iterator = 0; i_iterator < 2; i_iterator++) {
+                                                    let wf68Data = await activityActivityMappingInsertV1(request, fieldData, 0);
+                                                    if(wf68Data.length > 0) {
+                                                        break;
+                                                    }
+                                                 }
                                                  break;
                                         case 71: //await businessCaseTimelineEntry(request, fieldData);
-                                                 await activityActivityMappingInsertV1(request, fieldData, 0);
+                                                 for(let i_iterator = 0; i_iterator < 2; i_iterator++) {
+                                                     let wf71Data = await activityActivityMappingInsertV1(request, fieldData, 0);
+                                                     if(wf71Data.length > 0) {
+                                                         break;
+                                                     }
+                                                 }                                                 
                                                  break;
                                         default: break;
                                     }
@@ -4988,6 +5013,8 @@ function ActivityService(objectCollection) {
     }
 
     async function activityActivityMappingInsert(request, fieldData) {
+        console.log(' In activityActivityMappingInsert - ', fieldData.field_data_type_id);
+
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         if(Number(request.activity_type_category_id) === 9) {            
             const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
@@ -5060,27 +5087,31 @@ function ActivityService(objectCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingInsertV1(request, fieldData, cnt) {
-        console.log('In activityActivityMappingInsertV1');
+        console.log('In activityActivityMappingInsertV1 - ', fieldData.field_data_type_id);
+        let finalworkflowData;
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
         if(Number(request.activity_type_category_id) === 9) {            
             const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
             if (workflowError !== false || workflowData.length === 0) {
-                console.log('workflowError : ', workflowError);
-                console.log('workflowData : ', workflowData);
+                console.log('workflowError in activityActivityMappingInsertV1: ', workflowError);
+                console.log('workflowData in activityActivityMappingInsertV1: ', workflowData);
                 
-                if(cnt <= 2) {
-                    await sleep(2000);
-                    cnt++;
-                    await activityActivityMappingInsertV1(request, fieldData, cnt);
-                } else {
-                    return [workflowError, workflowData];
-                }
-
-            }
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+                //if(cnt <= 2) {
+                //    await sleep(2000);
+                //    cnt++;
+                //    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                //} else {                    
+                //    return [workflowError, workflowData];
+                //}
+                await sleep(2000);
+                return workflowData;
+            }            
+            
+            currentWorkflowActivityId = Number(workflowData[0].activity_id);  
+            finalWorkflowData = workflowData;
         }
-
+        
         console.log('fieldData V1: ', fieldData);
         console.log('typeof fieldData.field_value', typeof fieldData.field_value);
         console.log('fieldData.field_value', fieldData.field_value);
@@ -5089,32 +5120,33 @@ function ActivityService(objectCollection) {
         if(request.hasOwnProperty('is_refill') && Number(request.is_refill) === 1) {
             await unMapFromActActMapping(request, fieldData);
         }
-        
+            
         let fieldValue;
         let newReq = Object.assign({}, request);
             newReq.activity_id = currentWorkflowActivityId;
+            
         try{
             fieldValue = (typeof fieldData.field_value === 'string')? JSON.parse(fieldData.field_value) : fieldData.field_value;
             console.log('fieldValue : ', fieldValue);
             switch(Number(fieldData.field_data_type_id)) {
                 case 68: for(const i of fieldValue) {
                             await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
-                         }
-                         break;
+                        }
+                        break;
 
                 case 71: let childActivities = fieldValue.cart_items;
-                         for(const i of childActivities) {
+                        for(const i of childActivities) {
                                 await activityCommonService.activityActivityMappingInsertV1(newReq, i.product_variant_activity_id);
-                         }
-                         break;
-            }
+                        }
+                        break;
+                }
         } catch(err) {
             console.log('Error in parsing workflow reference datatype V1: ', fieldValue);
             console.log(err);
             return "Failure";
         }
 
-        return "success";
+        return finalWorkflowData;
     }
 
     async function businessCaseTimelineEntry(request, fieldData) {

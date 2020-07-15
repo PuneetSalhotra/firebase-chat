@@ -2645,7 +2645,7 @@ function RMBotService(objectCollection) {
                 );
 
                 var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
-                request.global_array.push({"activityAssetMappingUpdateLead":queryString});
+                //request.global_array.push({"activityAssetMappingUpdateLead":queryString});
                 if (queryString !== '') {
                     await db.executeQueryPromise(0, queryString, request)
                         .then((data) => {
@@ -2660,7 +2660,7 @@ function RMBotService(objectCollection) {
             }catch(error){
                 console.log("error :: "+error);
             }    
-    } 
+    }
 
     //Get the asset for a given asset_type_id(ROLE) - RM
     this.getAssetForAssetTypeID = async (request) =>{

@@ -5,15 +5,15 @@ function DiffbotService(objectCollection) {
   var ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
   const util = objectCollection.util;
-  accountsList = []
-  articleType = 'article'
-  tenderType = 'tender'
-  var start_from = 0
-  var limit_value = 500
-  var currentNumberOfAccounts
+  var accountsList = [];
+  var articleType = 'article';
+  var tenderType = 'tender';
+  var start_from = 0;
+  var limit_value = 500;
+  var currentNumberOfAccounts;
   var AsyncLock = require('async-lock');
   var lock = new AsyncLock();
-  hasMoreData = true
+  hasMoreData = true;
   var elasticsearch = require('elasticsearch');
   var client = new elasticsearch.Client({
      hosts: [  global.config.elastiSearchNode]
@@ -32,17 +32,16 @@ function DiffbotService(objectCollection) {
     }
   };
 
-  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest)
-  {
-    accountsListTmp = await getAccountsListFromEs("",start_from,limit_value)
+  async function processAccountsDiffbot(start_from,limit_value,diffbotrequest) {
+    let accountsListTmp = await getAccountsListFromEs("",start_from,limit_value);
     //  accountsListTmp = await getAccountsList(
     //   diffbotrequest,
     //   "",
     //   start_from,
     //   limit_value 
     // );
-    accountsList.push(...accountsListTmp)
-    currentNumberOfAccounts = accountsList.length
+    accountsList.push(...accountsListTmp);
+    currentNumberOfAccounts = accountsList.length;
   }
 
   function getKnowledgeGraphUrl() {
@@ -55,7 +54,7 @@ function DiffbotService(objectCollection) {
 
   function getknowledgeGraphPublishedCountry()
   {
-    return 'publisherCountry:"India" '
+    return 'publisherCountry:"India" ';
   }
 
   function getKnowledgeTypeDateParams() {
@@ -73,7 +72,7 @@ function DiffbotService(objectCollection) {
     var knowledgeGraphPublishedCountry = getknowledgeGraphPublishedCountry()
     var knowlegeGrapDateParams = getKnowledgeTypeDateParams();
     var knowlegeGraphKeywordsOrParams = getknowledgeGraphOrParams();
-    var diffbotrequest = {}
+    var diffbotrequest = {};
     let results = new Array();
     let paramsArray;
     var encodedKnowledgeGraphParams = getEncodedKnowledgeGraphParams(
@@ -134,7 +133,7 @@ function DiffbotService(objectCollection) {
 
     };
     next();
-  }
+  };
 
   const Channel = (queue) => {
     return { getWork:  async() => {
@@ -152,12 +151,12 @@ function DiffbotService(objectCollection) {
          }
      },{}).then(function(){
        return queue.pop();
-      })
-     return lockResult
+      });
+     return lockResult;
       }
       else
       {
-        return queue.pop()
+        return queue.pop();
       }
     }};
   };
@@ -277,14 +276,15 @@ function DiffbotService(objectCollection) {
 
   async function getAccountsListFromEs(searchStr,start_from,limit_value) {
     try {
-      var responseData = []
+      var responseData = [];
       if(searchStr == '0'){
-        return responseData
+        return responseData;
       }else{
-        var pagination = {}
-        pagination['size'] = limit_value,
-        pagination['from'] = start_from
-        var query = {}
+        var pagination = {};
+            pagination['size'] = limit_value;
+            pagination['from'] = start_from;
+
+        var query = {};
         if(searchStr != ""){
           query = {
             "query": {
@@ -303,17 +303,20 @@ function DiffbotService(objectCollection) {
                 }]
               }
             }
-          }
+          };
         }
-        query = Object.assign(query, pagination)
-         responseData = await client.search({
+        query = Object.assign(query, pagination);
+        console.log('QUERY : ', query);
+        
+        responseData = await client.search({
           index: 'crawling_accounts',
           body: query
-        })
+        });
+        
         return responseData.hits['hits'];
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return Promise.reject(err);
     }
   }
@@ -357,12 +360,12 @@ function DiffbotService(objectCollection) {
     var streamTypeId
     if(type == articleType)
     {
-      subjectTxt=" A new article with title ' "+title+" ' has been identified for your account."
-      streamTypeId = 723 
+      subjectTxt=" A new article with title ' "+title+" ' has been identified for your account.";
+      streamTypeId = 723; 
     }else
     {
-      subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. "
-      streamTypeId = 724 
+      subjectTxt="A new tender with tender ID ' "+title+" ' has been identified for your account. ";
+      streamTypeId = 724; 
 
     }
     var collectionObj = {
@@ -398,9 +401,7 @@ function DiffbotService(objectCollection) {
       timeline_stream_type_id: streamTypeId
     };
 
-    var result = await activityTimelineService.addTimelineTransactionAsync(
-      requestParams
-    );
+    var result = await activityTimelineService.addTimelineTransactionAsync(requestParams);
   }
 
   function doDiffBotRequest(knowledgeGraphApiUrl) {
@@ -456,40 +457,52 @@ function DiffbotService(objectCollection) {
         W_Location: "",
         SubIndustryName: ""
       };
-      tenderTigerApiUrl =
+      var tenderTigerApiUrl =
         "https://www.tendertiger.com/Contentnd/WebMethod/AdvanceTenderSearchWebMethod.aspx/GetAdvaceSearchData";
 
-      for (var i = 0; i < global.config.knowledgeGraphKeywords.length; i++) {
+      //let cnt = 0;
+      for (var i = 0; i < global.config.knowledgeGraphKeywords.length; i++) {            
         body["Searchtex"] = global.config.knowledgeGraphKeywords[i];
         var tenders = [];
-        while (true) {
+        console.log(' ');
+        //cnt = 0;
+        while (true) {          
+          //if(cnt === 5){
+          //  break;
+          //}
+          cnt++;
           var tenderList = await getTenderList(
             headers,
             body,
             tenderTigerApiUrl
-          );
+          );          
           if (tenderList.length > 0) {
+            console.log('Received Tenders for -  ', global.config.knowledgeGraphKeywords[i]);
+
             if (body["startIndex"] == 0) {
               tenders = [];
             }
-            for (var i = 0; i < tenderList.length; i++) {
-              tenders.push(tenderList[i]);
+            for (var i_iterator = 0; i_iterator < tenderList.length; i_iterator++) {
+              tenders.push(tenderList[i_iterator]);
             }
             body["startIndex"] = body["startIndex"] + 10;
           } else {
             body["startIndex"] = 0;
+            console.log('Did not receive any tenders!');
             break;
           }
         }
-          for (var k = 0; k < tenders.length; k++) {
-            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"])
-             accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || '0',0,50)
+          
+        for (var k = 0; k < tenders.length; k++) {
+            tenders[k]["CompanyName"]= processTenderCompanyName(tenders[k]["CompanyName"]);
+            console.log('Getting Accounts from ES for company: ', tenders[k]["CompanyName"]);
+            accountsList = await getAccountsListFromEs(tenders[k]["CompanyName"] || '0',0,50);
+             
+            console.log('accountsList : ', accountsList);
+
             //  accountsList = await getAccountsListForTenderCrawling(diffbotrequest,tenders[k]["CompanyName"] || 0,0,50);
-             for( var j=0;j<accountsList.length;j++)
-             {
-              if (
-                accountsList[j]['_source']["activity_title"] == tenders[k]["CompanyName"]
-              ) {
+            for( var j=0;j<accountsList.length;j++) {
+              if (accountsList[j]['_source']["activity_title"] == tenders[k]["CompanyName"]) {
                 var checkResult = await checkIfAccountIDTenderIdExist(
                   accountsList[j]['_source'].activity_id,
                   tenders[k].tid,
@@ -516,11 +529,22 @@ function DiffbotService(objectCollection) {
                     tenders[k].tid
                   );
                 }
+              } else {
+                console.log('Activity Title - ', accountsList[j]['_source']["activity_title"]);
+                console.log('Company Name - ', tenders[k]["CompanyName"]);                
+
+                let temp = {
+                  es_activity_title: accountsList[j]['_source']["activity_title"],
+                  crawled_comapany_name: tenders[k]["CompanyName"]
+                };
+
+                temp = JSON.stringify(temp);
+                tenderCrawlTxnInsert({ inline_data: temp });
               }
              }           
           }        
       }
-      return "succesfull";
+      return "successful";
     } catch (error) {
       return Promise.reject(error);
     }
@@ -528,21 +552,21 @@ function DiffbotService(objectCollection) {
 
   function processTenderCompanyName(CompanyName)
   {
-     var aplhaNumericCompanyName
-     aplhaNumericCompanyName = CompanyName.replace(/\W/g, '')
+     var aplhaNumericCompanyName;
+     aplhaNumericCompanyName = CompanyName.replace(/\W/g, '');
      if(aplhaNumericCompanyName.includes('Ltd'))
      {
-      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Ltd/gi, "limited")
+      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Ltd/gi, "limited");
      }
      if(aplhaNumericCompanyName.includes('Pvt'))
      {
-      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Pvt/gi, "private")
+      aplhaNumericCompanyName = aplhaNumericCompanyName.replace(/Pvt/gi, "private");
      }
-     aplhaNumericCompanyName = aplhaNumericCompanyName.toLowerCase()
-     return aplhaNumericCompanyName
+     aplhaNumericCompanyName = aplhaNumericCompanyName.toLowerCase();
+     return aplhaNumericCompanyName;
   }
 
-  async function getTenderList(headers, body, tenderTigerApiUrl) {
+  async function getTenderList(headers, body, tenderTigerApiUrl) {    
     let res;
     try{
       res = await doTenderApiCall(headers, body, tenderTigerApiUrl);
@@ -639,6 +663,31 @@ function DiffbotService(objectCollection) {
 
   function getTodaysDate() {
     return moment(new Date()).format("DD-MM-YYYY");
+  }
+
+  async function tenderCrawlTxnInsert(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.inline_data || '{}',
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_tender_crawl_data_transaction_insert', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                  responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
   }
 
 }
