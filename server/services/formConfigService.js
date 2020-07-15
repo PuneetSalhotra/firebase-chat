@@ -5753,6 +5753,56 @@ function FormConfigService(objCollection) {
         return [error, responseData];
     }
 
+    this.getSmartNonSmartForm = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.timeline_transaction_id || 0,
+            request.flag_previous,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
+
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                   
+                    let newReq = Object.assign({}, request);
+                        newReq.field_id = 0;
+                        newReq.start_from = 0;
+                        newReq.limit_value = 1;
+
+                    //console.log('DATA : ', data);
+
+                    for(const i_iterator of data){                            
+                        newReq.form_id = i_iterator.data_form_id;
+                        
+                        if(Number(newReq.form_id) > 0) {
+                            let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                        //console.log('DATA : ', data);
+                        let temp = {};
+                            temp.form_id = i_iterator.data_form_id;
+                        temp.is_smart = (data.length> 0 && data[0].next_field_id > 0) ? i_iterator.is_smart = 1 : i_iterator.is_smart = 0;                           
+                        responseData.push(temp);
+                        }                        
+                    }
+                    
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }    
+        
+        
+
+        return [error, responseData]; 
+    }
+
 }
 
 module.exports = FormConfigService;
