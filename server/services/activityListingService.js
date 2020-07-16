@@ -3412,6 +3412,29 @@ async function processFormInlineDataV1(request, data){
 		
 		return [error, responseData];
 	};
+
+	this.getChatWithAResource = async (request) => {
+		let responseData = [],
+		error = true;
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_type_category_id,
+			request.asset_id,
+			request.target_asset_id
+		);
+		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_target_chat', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};	
 }
 
 module.exports = ActivityListingService;

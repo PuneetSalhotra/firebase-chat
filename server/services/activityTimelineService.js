@@ -3818,6 +3818,21 @@ async function addFormEntriesAsync(request) {
                 }
             } else {
                 console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
+                //This is Just in case if you want to test for some emails that are not going
+                //sendEmail({
+                //    workflow_title: request.workflow_title,
+                //    workflow_update: request.workflow_update,
+                //    //operating_asset_name: assetData[0].operating_asset_first_name,
+                //    //asset_email_id: assetData[0].operating_asset_email_id,
+                //    //email_receiver_name: assetData[0].operating_asset_first_name,
+                //    //email_sender_name: senderAssetData[0].operating_asset_first_name,                        
+                //    //email_sender: senderAssetData[0].operating_asset_email_id
+                //    email_sender: 'ESMSMails@vodafoneidea.com',
+                //    sender_asset_id: request.asset_id,
+                //    receiver_asset_id: mentionedAssets[i],
+                //    //receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
+                //    //sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
+                //}, request);
             }
         }
 
