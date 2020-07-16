@@ -36,7 +36,7 @@ var corsOptions = {
         }
     }
 };
-app.use(cors());
+app.use(cors(corsOptions));
 var bodyParser = require('body-parser');
 app.use(bodyParser.json({ limit: '500kb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '500kb' }));
