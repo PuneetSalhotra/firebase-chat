@@ -139,6 +139,10 @@ function ActivityParticipantService(objectCollection) {
                             //console.log("participant successfully added");
                             global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
 
+                            if(request.activity_type_category_id == 16){
+                                request.lead_asset_id = participantData.asset_id;
+                                rmbotService.activityListLeadUpdateV2(request, participantData.asset_id);
+                            }
                             //else
                             if(request.hasOwnProperty("add_as_lead")){
                                 rmbotService.assignResourceAsLead(request, participantData.asset_id);
@@ -176,6 +180,12 @@ function ActivityParticipantService(objectCollection) {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
                         global.logger.write('conLog', 'participant already assigned', {}, {});
+
+                        if(request.activity_type_category_id == 16){
+                            request.lead_asset_id = participantData.asset_id;
+                            rmbotService.activityListLeadUpdateV2(request, participantData.asset_id);
+                        }                        
+
                         if(request.hasOwnProperty("add_as_lead")){
                             console.log("Assigning already added resource as Lead");
                             rmbotService.assignResourceAsLead(request, participantData.asset_id);
