@@ -5507,6 +5507,7 @@ function FormConfigService(objCollection) {
                 .then(async (data) => {
 
                     if(request.workforce_id == 5403 || request.workforce_id == 5404 || request.workforce_id == 5648){
+                        request.flag = 0;
                         [error, formData] = await self.formEntityAccessList(request);
                     }else{
 
