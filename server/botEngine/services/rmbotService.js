@@ -1036,7 +1036,8 @@ function RMBotService(objectCollection) {
                 request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
                 self.AIEventTransactionInsert(request);
             }*/
-            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, without going into Resource pool loop again as there is no persistant flag";
+            request.ai_trace_insert_location = "End of flow, assignResourceAsLead, RESOURCE "+leadAssetId+" ALLOCATED FOR "+request.activity_id;
+
             self.AIEventTransactionInsert(request);
     }
         return [error, responseData];
@@ -2518,18 +2519,27 @@ function RMBotService(objectCollection) {
                             self.assetListUpdatePoolEntry(objR);
                             //self.calculateAssetNewSummary(objR);
 
+                           /* 
                             if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
                                 //self.calculateAssetNewSummary(request);
                                 await self.assetListUpdatePoolEntry(request);
-                            }
+                            } */
 
                             request.rm_flag = 2; 
                             request.is_lead_enabled = lead_asset_id; 
                             self.activityListUpdateRMFlags(request);
 
-                            request.activity_timeline_collection = request.activity_lead_timeline_collection||'{}';
+                            let timelineCollection = {};
+                            timelineCollection.content="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.subject="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.mail_body="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.attachments=[];
+                            timelineCollection.asset_reference=[];
+                            timelineCollection.activity_reference=[];
+                            timelineCollection.rm_bot_scores={};
+                            request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
                         }
 
                         logger.info("EXISTING LEAD DATA"+JSON.stringify(data));
@@ -2895,16 +2905,18 @@ function RMBotService(objectCollection) {
             request.organization_id,
             request.activity_type_category_id,
             request.target_asset_id,
+            request.asset_type_id,
             0,
             1                
         );        
-        const queryString = util.getQueryString('ds_v1_activity_search_list_select_lead_task_count', paramsArr);
+        const queryString = util.getQueryString('ds_v1_activity_list_select_lead_task_count', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {                    
                     responseData = data;
                     error = false;
+                    request.global_array.push({"getMinimumLoadedResource":responseData.length+" :: "+queryString});
                 })
                 .catch((err) => {
                     error = err;
@@ -2937,7 +2949,10 @@ function RMBotService(objectCollection) {
                         error = false;                        
                       
                         self.activityListHistoryInsertAsync(request, 15);
-                        
+
+                        request.target_lead_asset_id = lead_asset_id;
+                        self.assetListUpdatePoolEntry(request);
+
                         request.lead_asset_id = lead_asset_id;
                         await self.activityAssetMappingUpdateLead(request);                       
                         
