@@ -2050,7 +2050,7 @@ function FormConfigService(objCollection) {
             request.activity_type_id || 0,
             0, // request.access_level_id || 0,
             request.log_datetime || '1970-01-01 00:00:00',
-            request.start_from,
+            request.start_from || 0,
             request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
@@ -4492,7 +4492,14 @@ function FormConfigService(objCollection) {
         let error = false;
         let formsArr = JSON.parse(JSON.stringify(request.forms));
         //let formsArr = JSON.parse(request.forms);
-        let refinedForms = [];          
+        let refinedForms = [];
+
+        if(Number(request.workforce_id) === 5403 || 
+            Number(request.workforce_id == 5404) || 
+            Number(request.workforce_id) == 5648
+            ){ 
+                return [error, formsArr];
+        }
 
         for(let i of formsArr) {
             //console.log(i.form_id);            
@@ -5075,7 +5082,28 @@ function FormConfigService(objCollection) {
 
     this.getStatusBasedForms = async (request) => {
         let responseData = [],
-            error = true;
+            error = true, 
+            statusData = [],
+            statusError = true;
+
+        if(Number(request.workforce_id) === 5403 || 
+            Number(request.workforce_id == 5404) || 
+            Number(request.workforce_id) == 5648
+            ){ 
+                [statusError, statusData] = await activityCommonService.getAssetTypeIDForAStatusID(request, request.activity_status_id);
+                request.activity_type_id = statusData[0].activity_type_id;
+                
+                let newReq = Object.assign({}, request);
+                    newReq.limit_value = 50;
+                    newReq.flag = 1;
+                    newReq.account_id = 0;
+                    newReq.workforce_id = 0;
+                [error, responseData] = await workforceFormMappingSelectWorkflowForms(newReq);
+                        
+                console.log('responseData.length in IF: ', responseData.length);
+
+                return [error, responseData];
+        }
 
         const paramsArr = new Array(
             request.organization_id,
@@ -5089,7 +5117,28 @@ function FormConfigService(objCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
+                    /*if(request.workforce_id == 5403 || request.workforce_id == 5404 || request.workforce_id == 5648){
+
+                        [statusError, statusData] = await activityCommonService.getAssetTypeIDForAStatusID(request, request.activity_status_id);
+                        request.activity_type_id = statusData[0].activity_type_id;
+                        request.target_asset_id = request.asset_id;
+                        request.flag = 0;
+
+                        //[error, responseData] = await self.formEntityAccessList(request);
+                        let newReq = Object.assign({}, request);
+                            newReq.limit_value = 50;
+                            newReq.flag = 1;
+                            newReq.account_id = 0;
+                            newReq.workforce_id = 0;
+                        [error, responseData] = await workforceFormMappingSelectWorkflowForms(newReq);
+                        
+                        console.log('responseData.length in IF: ', responseData.length);
+                    }else{
+                        responseData = data;
+                        error = false;
+                    }*/
+
                     responseData = data;
                     error = false;
                 })
@@ -5494,11 +5543,17 @@ function FormConfigService(objCollection) {
             await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
 
-                    if(data.length > 0){
-                        formData = data;
-                        error = false;
+                    if(request.workforce_id == 5403 || request.workforce_id == 5404 || request.workforce_id == 5648){
+                        request.flag = 0;
+                        [error, formData] = await self.formEntityAccessList(request);
                     }else{
-                      [error, formData] = await self.formEntityAccessList(request);
+
+                        if(data.length > 0){
+                            formData = data;
+                            error = false;
+                        }else{
+                          [error, formData] = await self.formEntityAccessList(request);
+                        }
                     }
                     
                 })
