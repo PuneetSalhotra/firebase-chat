@@ -1341,6 +1341,8 @@ function AnalyticsService(objectCollection)
                     case 40: //Workflow Reference Value
                     case 41: //Single Selection Reference Volume
                     case 42: //Single Selection Reference Value
+                    case 61:
+                    case 62:
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
