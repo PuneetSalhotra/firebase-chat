@@ -2108,6 +2108,7 @@ function Util(objectCollection) {
     
     this.sendEmailEWS = async(request, receiverEmailID, emailSubject, Template) => {
         const pwd = await cacheWrapper.getESMSMailsPwd();
+        console.log('pwd : ', pwd);
         const ewsConfig = {
             username: 'ESMSMails@vodafoneidea.com',
             password: pwd, //'July@2020',
