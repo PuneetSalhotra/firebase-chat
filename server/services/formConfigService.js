@@ -5075,7 +5075,9 @@ function FormConfigService(objCollection) {
 
     this.getStatusBasedForms = async (request) => {
         let responseData = [],
-            error = true;
+            error = true, 
+            statusData = [],
+            statusError = true;
 
         const paramsArr = new Array(
             request.organization_id,
@@ -5089,9 +5091,19 @@ function FormConfigService(objCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
+                .then(async (data) => {
+                    if(request.workforce_id == 5403 || request.workforce_id == 5404 || request.workforce_id == 5648){
+
+                        [statusError, statusData] = await activityCommonService.getAssetTypeIDForAStatusID(request, request.activity_status_id);
+                        request.activity_type_id = statusData[0].activity_type_id;
+                        request.target_asset_id = request.asset_id;
+                        request.flag = 0;
+
+                        [error, responseData] = await self.formEntityAccessList(request);
+                    }else{
+                        responseData = data;
+                        error = false;
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -5494,11 +5506,17 @@ function FormConfigService(objCollection) {
             await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
 
-                    if(data.length > 0){
-                        formData = data;
-                        error = false;
+                    if(request.workforce_id == 5403 || request.workforce_id == 5404 || request.workforce_id == 5648){
+                        request.flag = 0;
+                        [error, formData] = await self.formEntityAccessList(request);
                     }else{
-                      [error, formData] = await self.formEntityAccessList(request);
+
+                        if(data.length > 0){
+                            formData = data;
+                            error = false;
+                        }else{
+                          [error, formData] = await self.formEntityAccessList(request);
+                        }
                     }
                     
                 })
