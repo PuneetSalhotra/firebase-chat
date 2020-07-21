@@ -2185,8 +2185,9 @@ function Util(objectCollection) {
         const ewsConfig = {
             //username: 'Poonam.Chavan3@vodafoneidea.com',
             //username: 'COR420930@vodafoneidea.com',
-            username: 'Yasmeen.Sayyed3@vodafoneidea.com',
-            password: pwd, //'May@2020',
+            //username: 'Yasmeen.Sayyed3@vodafoneidea.com',
+            username: 'CentralOmt.In@vodafoneidea.com',
+            password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
 
