@@ -4226,6 +4226,40 @@ function AdminOpsService(objectCollection) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
             }
 
+            // Update location for the desk asset
+            try {
+                await activityCommonService.updateAssetLocationPromise({
+                    organization_id:request.organization_id,
+                    asset_id:deskAssetID,
+                    track_latitude:request.work_location_latitude,
+                    track_longitude:request.work_location_longitude,
+                    track_gps_accuracy:0,
+                    track_gps_status:0,
+                    track_gps_location:request.work_location_address,
+                    track_gps_datetime:util.getCurrentUTCTime(),
+                    datetime_log:util.getCurrentUTCTime()
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetLocationPromise [Desk]`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            // Update location for the employee asset
+            try {
+                await activityCommonService.updateAssetLocationPromise({
+                    organization_id:request.organization_id,
+                    asset_id:employeeAssetID,
+                    track_latitude:request.work_location_latitude,
+                    track_longitude:request.work_location_longitude,
+                    track_gps_accuracy:0,
+                    track_gps_status:0,
+                    track_gps_location:request.work_location_address,
+                    track_gps_datetime:util.getCurrentUTCTime(),
+                    datetime_log:util.getCurrentUTCTime()
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetLocationPromise [Employee]`, { type: 'admin_ops', request_body: request, error });
+            }            
+            
             // Update admin flags for the desk asset
             try {
                 await self.updateAssetFlags({
