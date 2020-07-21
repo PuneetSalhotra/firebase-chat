@@ -1343,6 +1343,7 @@ function AnalyticsService(objectCollection)
                     case 42: //Single Selection Reference Value
                     case 61:
                     case 62:
+                    case 63:
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
