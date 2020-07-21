@@ -2459,7 +2459,7 @@ function AdminOpsService(objectCollection) {
             asset_type_category_id: 3
         });
         if (!errTwo && Number(workforceAssetCountData.length) > 0) {
-            if (Number(workforceAssetCountData[0].count) === 50) {
+            if (Number(workforceAssetCountData[0].count) === 1000) {
                 return [true, {
                     message: "The target workforce has maximum number of desks"
                 }];
