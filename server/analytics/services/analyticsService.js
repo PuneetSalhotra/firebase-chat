@@ -1877,61 +1877,61 @@ function AnalyticsService(objectCollection)
                 request.filter_reporting_manager_id = 0;
             }            
 
-            if(request.filter_hierarchy > 0){
-                for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-                {
-                    console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+            
+            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            {
+                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
 
-                     paramsArray = 
-                     new Array(
-                        parseInt(request.widget_type_id),
-                        parseInt(request.filter_date_type_id),
-                        parseInt(request.filter_timeline_id),
-                        timezoneID,
-                        timezoneOffset,
-                        global.analyticsConfig.parameter_flag_sort, //Sort flag
-                        parseInt(request.organization_id),
-                        parseInt(request.filter_circle_id),
-                        parseInt(request.filter_workforce_type_id),
-                        parseInt(request.filter_workforce_id),
-                        parseInt(request.filter_asset_id),
-                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
-                        parseInt(request.filter_tag_id),
-                        parseInt(request.filter_activity_type_id),
-                        global.analyticsConfig.activity_id_all, //Activity ID,
-                        parseInt(request.filter_activity_status_type_id),
-                        parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
-                        //parseInt(filter_activity_status_id),
-                        request.datetime_start,
-                        request.datetime_end,
-                        parseInt(request.filter_segment_id),
-                        parseInt(request.filter_reporting_manager_id),
-                        parseInt(request.filter_product_category_id),
-                        parseInt(request.filter_product_family_id),
-                        parseInt(request.filter_product_activity_id),
-                        parseInt(request.filter_account_activity_id),
-                        parseInt(request.filter_is_value_considered),
-                        //parseInt(request.page_start) || 0,
-                        //parseInt(request.page_limit) || 50
-                        );
-                
-                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray, []);
-                    console.log(tempResult);
-
-                    results[iterator] =
-                    (
-                        {
-                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
-                            "status_type_id": request.filter_activity_status_type_id,
-                            "result": tempResult,
-                        }
+                 paramsArray = 
+                 new Array(
+                    parseInt(request.widget_type_id),
+                    parseInt(request.filter_date_type_id),
+                    parseInt(request.filter_timeline_id),
+                    timezoneID,
+                    timezoneOffset,
+                    global.analyticsConfig.parameter_flag_sort, //Sort flag
+                    parseInt(request.organization_id),
+                    parseInt(request.filter_circle_id),
+                    parseInt(request.filter_workforce_type_id),
+                    parseInt(request.filter_workforce_id),
+                    parseInt(request.filter_asset_id),
+                    parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                    parseInt(request.filter_tag_id),
+                    parseInt(request.filter_activity_type_id),
+                    global.analyticsConfig.activity_id_all, //Activity ID,
+                    parseInt(request.filter_activity_status_type_id),
+                    parseInt(request.filter_activity_status_tag_id),
+                    parseInt(request.filter_activity_status_id),
+                    //parseInt(filter_activity_status_id),
+                    request.datetime_start,
+                    request.datetime_end,
+                    parseInt(request.filter_segment_id),
+                    parseInt(request.filter_reporting_manager_id),
+                    parseInt(request.filter_product_category_id),
+                    parseInt(request.filter_product_family_id),
+                    parseInt(request.filter_product_activity_id),
+                    parseInt(request.filter_account_activity_id),
+                    parseInt(request.filter_is_value_considered),
+                    //parseInt(request.page_start) || 0,
+                    //parseInt(request.page_limit) || 50
                     );
+            
+                tempResult = await db.callDBProcedureRecursive(request, 1, 0, 100, 'ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray, []);
+                console.log(tempResult);
 
-                    iterator++; 
+                results[iterator] =
+                (
+                    {
+                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                        "status_type_id": request.filter_activity_status_type_id,
+                        "result": tempResult,
+                    }
+                );
 
-                }
+                iterator++; 
+
             }
+
             return results;
         }
         catch(error)
