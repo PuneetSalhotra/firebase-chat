@@ -1688,7 +1688,7 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if(request.filter_hierarchy > 0){
+            
                 try{
                 
                     for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
@@ -1793,7 +1793,7 @@ function AnalyticsService(objectCollection)
                     console.log('error ::', e);
                 }
 
-            }
+
             return results;
         }
         catch(error)
