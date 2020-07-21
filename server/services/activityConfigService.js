@@ -1038,7 +1038,7 @@ function ActivityConfigService(db, util, objCollection) {
         }        
 
         switch(activityTypeID) {
-            case 149277://LA                         
+            case 149277://LA - Large Account                     
                         const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
@@ -1052,7 +1052,7 @@ function ActivityConfigService(db, util, objCollection) {
                         
                         break;
                         
-            case 150442://GE
+            case 150442://GE - VGE Segment
                         const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
