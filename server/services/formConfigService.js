@@ -1122,8 +1122,19 @@ function FormConfigService(objCollection) {
                                 let tempVar = (row.field_value).split('|');
                                 let tempObj = {};
                                 tempObj[tempVar[0]] = tempVar[1];
+                                /*OLD
                                 // p_entity_text_2 19
                                 params[19] = tempVar[1] || "";
+                                // p_entity_text_3 20
+                                params[20] = tempVar[3] || "";
+                                /////////*/
+
+                                // p_entity_text_1 18
+                                params[18] = tempVar[1] || "";
+
+                                // p_entity_text_2 19
+                                params[19] = tempVar[2] || "";
+
                                 // p_entity_text_3 20
                                 params[20] = tempVar[3] || "";
 

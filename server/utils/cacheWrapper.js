@@ -747,12 +747,12 @@ function CacheWrapper(client) {
 
     this.getROMSMailsPwd = () => {
         return new Promise((resolve, reject) => {            
-            client.get('Yasmeen.Sayyed3@vodafoneidea.com', (err, reply) => {
+            client.get('omt.in1@vodafoneidea.com', (err, reply) => {
                 if (err) {
-                    logger.error('GET ROMS - Yasmeen.Sayyed3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });
+                    logger.error('GET ROMS - getROMSMailsPwd PWD', { type: 'redis', cache_response: reply, error: err });
                     resolve(err);
                 } else {
-                    logger.verbose('GET ROMS - Yasmeen.Sayyed3@vodafoneidea.com PWD', { type: 'redis', cache_response: reply, error: err });
+                    logger.verbose('GET ROMS - getROMSMailsPwd PWD', { type: 'redis', cache_response: reply, error: err });
                     resolve(reply);
                 }
             });
