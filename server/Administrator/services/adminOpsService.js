@@ -4228,7 +4228,7 @@ function AdminOpsService(objectCollection) {
 
             // Update location for the desk asset
             try {
-                await activityCommonService.updateAssetLocationPromise({
+                await activityCommonService.updateAssetWorkLocation({
                     organization_id:request.organization_id,
                     asset_id:deskAssetID,
                     track_latitude:request.work_location_latitude,
@@ -4245,7 +4245,7 @@ function AdminOpsService(objectCollection) {
 
             // Update location for the employee asset
             try {
-                await activityCommonService.updateAssetLocationPromise({
+                await activityCommonService.updateAssetWorkLocation({
                     organization_id:request.organization_id,
                     asset_id:employeeAssetID,
                     track_latitude:request.work_location_latitude,
