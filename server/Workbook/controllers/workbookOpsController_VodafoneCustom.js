@@ -77,7 +77,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
         logger.silly("[timeout_error]: %j", error.message, { type: 'excel_sqs_consumer', error: serializeError(error) });
     });
 
-    //sqsConsumerApp.start();
+    sqsConsumerApp.start();
     logger.silly("sqsConsumerApp started", { type: 'excel_sqs_consumer' });
 }
 
