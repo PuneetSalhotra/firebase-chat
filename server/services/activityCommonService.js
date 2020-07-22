@@ -5663,6 +5663,34 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, formFieldMappingData];
     };
+
+    this.updateAssetWorkLocation = async function (request) {
+         let responseData = [],
+            error = true;
+
+        var paramsArr = new Array(
+            request.asset_id,            
+            request.organization_id,
+            request.track_latitude,
+            request.track_longitude,
+            request.track_gps_location,
+            request.asset_id,
+            request.datetime_log
+        );
+        var queryString = util.getQueryString('ds_v1_2_asset_list_update_work_location', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });                 
+            }
+        return [error, responseData]; 
+
+    };    
     
 }
 
