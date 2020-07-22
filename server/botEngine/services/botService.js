@@ -5965,6 +5965,9 @@ function BotService(objectCollection) {
             ) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
+                console.log('fieldData : ', fieldData);
+                console.log('Number(fieldData.field_data_type_id) : ', Number(fieldData.field_data_type_id));
+
                 switch(Number(fieldData.field_data_type_id)) {
                     //Workflow Reference
                     case 68: let toBeProcessedfieldValue = fieldData.field_value;
@@ -5976,7 +5979,8 @@ function BotService(objectCollection) {
                              break;
 
                     //Asset Reference
-                    case 59: (fieldValue.includes("|")) ?
+                    case 59: fieldValue = fieldData.field_value; 
+                             (fieldValue.includes("|")) ?
                                 fieldValue = String(fieldValue).split("|")[1]:
                                 fieldValue = fieldData.field_value || "";
                              break;
