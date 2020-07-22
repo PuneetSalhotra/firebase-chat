@@ -67,7 +67,8 @@ function WorkbookOpsService(objectCollection) {
                 if (overrideColumnName !== "" && overrideColumnName === "data_entity_text_2") { return "data_entity_text_2" };
                 return 'data_entity_text_1';
             case 59: // Asset Reference
-                return 'data_entity_text_3';
+                return 'data_entity_text_2';
+                //return 'operating_asset_first_name';
             case 20: // Long Text
                 return 'data_entity_text_2';
         }
@@ -111,8 +112,8 @@ function WorkbookOpsService(objectCollection) {
 
             workflowActivityTypeID = 0;
 
-        console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id)
-        console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id)
+        console.log("[workbookMappingBotOperation] request.bot_id: ", request.bot_id);
+        console.log("[workbookMappingBotOperation] request.bot_operation_id: ", request.bot_operation_id);
         try {
             const [_, botOperationData] = await botOperationMappingSelectID({
                 bot_id: request.bot_id,
@@ -173,6 +174,7 @@ function WorkbookOpsService(objectCollection) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
 
+        console.log('excelSheetFilePath : ', excelSheetFilePath);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -591,8 +593,43 @@ function WorkbookOpsService(objectCollection) {
                 });
         }
         return [error, responseData];
+    }
+
+    this.downloadExcelFromS3 = async(request) => {
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, request.s3_path);
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: true });
+        
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        console.log('sheet_names : ', sheet_names);
+
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+
+        return [false, []];
     };
 
+    this.uploadReadableStreamToS3Method = async(request) => {
+        let updatedWorkbookS3URL = "";
+        try {
+            const workbook = XLSX.read('../../../../Test_BC.xlsx');
+            updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURL(workbook, {
+                organization_id: 858,
+                account_id: 974,
+                workforce_id: 5353,
+                asset_id: 31476,
+                workflow_activity_id: 987456
+            });
+            logger.silly("updatedWorkbookS3URL: %j", updatedWorkbookS3URL, { type: "bot_engine" });
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return [false, []];
+    };
+    
     async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
         const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });
         XLSX.writeFile(workbook, tempXlsxFilePath, {
@@ -876,7 +913,10 @@ function WorkbookOpsService(objectCollection) {
             if (fieldDataTypeID === 57 && String(fieldValue).includes("|")) {
                 fieldValue = String(fieldValue).split("|")[1];
             }
-            logger.silly("fieldValue: %j", fieldValue)
+            if (fieldDataTypeID === 59 && String(fieldValue).includes("|")) {
+                fieldValue = String(fieldValue).split("|")[2];
+            }
+            logger.silly("fieldValue: %j", fieldValue);
 
             inputCellToValueMap.set(`${inputMapping.cell_x}${inputMapping.cell_y}`, {
                 fieldValue,
