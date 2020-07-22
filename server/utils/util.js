@@ -1933,7 +1933,7 @@ function Util(objectCollection) {
         }
         
         return bucketName;
-    }
+    };
 
     this.getS3PrefixPath = async function (request) {
         let prefixPath = request.organization_id + '/' +
@@ -1943,7 +1943,7 @@ function Util(objectCollection) {
             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
         
         return prefixPath;
-    }
+    };
 
     this.sendCustomPushNotification = async function (request, activityData) {
         let error = false;
@@ -2181,6 +2181,7 @@ function Util(objectCollection) {
         let htmlTemplate = buff.toString('ascii');
 
         const pwd = await cacheWrapper.getROMSMailsPwd();
+        console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
         console.log('PWD : ', pwd);
         const ewsConfig = {
             //username: 'Poonam.Chavan3@vodafoneidea.com',
