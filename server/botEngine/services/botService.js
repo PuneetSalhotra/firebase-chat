@@ -5964,9 +5964,33 @@ function BotService(objectCollection) {
                 formInlineDataMap.has(Number(cuidValue.field_id))
             ) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
+
+                console.log('fieldData : ', fieldData);
+                console.log('Number(fieldData.field_data_type_id) : ', Number(fieldData.field_data_type_id));
+
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Workflow Reference
+                    case 68: let toBeProcessedfieldValue = fieldData.field_value;
+                                 toBeProcessedfieldValue = (typeof toBeProcessedfieldValue === 'string')? JSON.parse(toBeProcessedfieldValue): toBeProcessedfieldValue;    
+                            
+                             for(const i_iterator of toBeProcessedfieldValue) {                        
+                                fieldValue = i_iterator.activity_title;
+                             }
+                             break;
+
+                    //Asset Reference
+                    case 59: fieldValue = fieldData.field_value; 
+                             (fieldValue.includes("|")) ?
+                                fieldValue = String(fieldValue).split("|")[1]:
+                                fieldValue = fieldData.field_value || "";
+                             break;
+
+                    default: fieldValue = fieldData.field_value || "";
+                             break;
+                }
                 
                 //Supporting workflow reference types
-                if(Number(fieldData.field_data_type_id) === 68) {
+                /*if(Number(fieldData.field_data_type_id) === 68) {
                     let toBeProcessedfieldValue = fieldData.field_value;
                         toBeProcessedfieldValue = (typeof toBeProcessedfieldValue === 'string')? JSON.parse(toBeProcessedfieldValue): toBeProcessedfieldValue;    
                     
@@ -5975,7 +5999,7 @@ function BotService(objectCollection) {
                     }
                 } else {
                     fieldValue = fieldData.field_value || "";
-                }
+                }*/
             }
             switch (cuidKey) {
                 case "CUID1":

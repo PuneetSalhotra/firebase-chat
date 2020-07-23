@@ -2704,10 +2704,13 @@ function ActivityTimelineService(objectCollection) {
                     try {
                         assetReference = row.field_value.split('|');
                         params[13] = assetReference[0]; //ID
+                        
+                        // p_entity_text_1 18
                         params[18] = assetReference[1]; //Name    
 
                         // p_entity_text_2 19
-                        params[19] = assetReference[1] || "";
+                        params[19] = assetReference[2] || "";
+
                         // p_entity_text_3 20
                         params[20] = assetReference[3] || "";
                     } catch (err) {
@@ -3429,10 +3432,13 @@ async function addFormEntriesAsync(request) {
                 try {
                     assetReference = row.field_value.split('|');
                     params[13] = assetReference[0]; //ID
+                    
+                    // p_entity_text_2 18
                     params[18] = assetReference[1]; //Name
 
                     // p_entity_text_2 19
-                    params[19] = assetReference[1] || "";
+                    params[19] = assetReference[2] || "";
+
                     // p_entity_text_3 20
                     params[20] = assetReference[3] || "";
                 } catch (err) {
