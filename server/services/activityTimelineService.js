@@ -3805,7 +3805,10 @@ async function addFormEntriesAsync(request) {
                     (assetData[0].operating_asset_first_name).length === 0) {
                     console.log('Either Operating asset name or email id not available for : ', mentionedAssets[i]);
                 } else {
-                    console.log(assetData[0].asset_encryption_token_id);
+                    console.log('Mentioned Asset Data : ', assetData[0]);
+                    console.log('------------------------');
+                    console.log('Sender Asset Data : ', senderAssetData[0]);
+                    ///console.log(assetData[0].asset_encryption_token_id);
                     
                     sendEmail({
                         workflow_title: request.workflow_title,
@@ -3877,6 +3880,9 @@ async function addFormEntriesAsync(request) {
 
         const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
         const Template = "";*/
+        let dateTime = await util.mentionsDateFormat();
+        console.log('dateTime : ', dateTime);
+        
         let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${await util.mentionsDateFormat()} By ${request.email_sender_name}`;
 
         const Template = `<table><tbody>

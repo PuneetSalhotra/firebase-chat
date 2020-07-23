@@ -387,7 +387,8 @@ function FormConfigService(objCollection) {
                 //0 - Nothing - field_value_number_representation
                 //1 - Millions
                 //2 - Crores
-                "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation'])
+                "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation']),
+                "is_integrations_dependent": util.replaceDefaultNumber(rowData['field_integrations_dependent_enabled'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)

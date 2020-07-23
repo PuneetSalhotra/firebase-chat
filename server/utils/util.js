@@ -2097,7 +2097,9 @@ function Util(objectCollection) {
 
     this.mentionsDateFormat = async() => {
         //const now = await moment().utc().format("DD-MM-YYYY HH:MM A");
-        const now = await moment().utc().format("DD-MM-YYYY");
+        //const now = await moment().utc().format("DD-MM-YYYY");
+        const now = moment().tz('Asia/Kolkata').format("DD-MM-YYYY HH:mm:ss A");
+        //const now = moment().utcOffset("+5:30").format("DD-MM-YYYY HH:MM A");        
         return now;
     };
 
