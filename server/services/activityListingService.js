@@ -1139,7 +1139,7 @@ function ActivityListingService(objCollection) {
 							}).then(() => {
 								responseArray.push({
 									count: taskCnt,
-									activity_type_category_id: 101,
+									activity_type_category_id: 10,
 									activity_type_category_name: 'Task'
 								});
 								getProjectBadgeCounts(request).then((response) => {
