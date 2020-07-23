@@ -34,6 +34,27 @@ const ActivityTypeIDToFieldMapping = {
             field_id: 218717
         }
     },
+    // SME Opportunity
+    150229: {
+        ProductCartSelectionField: {
+            form_id: 3977,
+            field_id: 218715
+        }
+    },
+    // Channel Opportunity
+    151728: {
+        ProductCartSelectionField: {
+            form_id: 4127,
+            field_id: 217729
+        }
+    },
+    // Renewal
+    149818: {
+        ProductCartSelectionField: {
+            form_id: 3566,
+            field_id: 218718
+        }
+    },
     // New Business Case - BC Approval
     152184: {
         OpportunityReferenceField: {

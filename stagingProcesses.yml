@@ -1,6 +1,6 @@
 apps:
   - name : "Staging_Main"
-    env: {mode: staging}
+    env: {mode: staging, ENABLE_CUSTOM_EXCEL_BOT: 1}
     script   : ./main.js
     instances: max    
     out_file: '/dev/null'
