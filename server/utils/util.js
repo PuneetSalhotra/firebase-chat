@@ -2186,7 +2186,8 @@ function Util(objectCollection) {
             //username: 'Poonam.Chavan3@vodafoneidea.com',
             //username: 'COR420930@vodafoneidea.com',
             //username: 'Yasmeen.Sayyed3@vodafoneidea.com',
-            username: 'CentralOmt.In@vodafoneidea.com',
+            //username: 'CentralOmt.In@vodafoneidea.com',
+            username: 'COR458207@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
