@@ -1510,9 +1510,12 @@ function BotService(objectCollection) {
                             if (global.mode === "sprint" || global.mode === "staging") {
                                 baseURL = `http://10.0.2.49:4000`;
                                 sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
-
-                            } else if (global.mode === "preprod" || global.mode === "prod") {
+                            } else if (global.mode === "preprod") {
                                 baseURL = null;
+                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                            } else if(global.mode === "prod") {
+                                baseURL = null;
+                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
                             }
                             sqs.sendMessage({
                                 // DelaySeconds: 5,
@@ -5978,8 +5981,8 @@ function BotService(objectCollection) {
                              }
                              break;
 
-                    //Asset Reference
-                    case 59: fieldValue = fieldData.field_value; 
+                    //Account Reference/Name
+                    case 57: fieldValue = fieldData.field_value; 
                              (fieldValue.includes("|")) ?
                                 fieldValue = String(fieldValue).split("|")[1]:
                                 fieldValue = fieldData.field_value || "";
