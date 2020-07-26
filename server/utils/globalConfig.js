@@ -966,6 +966,7 @@ if(mode === 'prod') {
     config.esmsMentionsEmail = "https://web.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
+    config.docusignWebApp = "https://web.greneos.com";
 }
 
 
