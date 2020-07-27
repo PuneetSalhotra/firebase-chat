@@ -2682,7 +2682,7 @@ function ActivityTimelineService(objectCollection) {
                         params[13] = workflowReference[0]; //ID
                         params[18] = workflowReference[1]; //Name
                         // p_entity_text_2 19
-                        params[19] = workflowReference[2] || "";
+                        params[19] = workflowReference[4] || workflowReference[2] || "";
                     } catch (err) {
                         console.log(err);
                         console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
@@ -3410,7 +3410,7 @@ async function addFormEntriesAsync(request) {
                     params[13] = workflowReference[0]; //ID
                     params[18] = workflowReference[1]; //Name
                     // p_entity_text_2 19
-                    params[19] = workflowReference[2] || "";
+                    params[19] = workflowReference[4] || workflowReference[2] || "";
                 } catch (err) {
                     console.log(err);
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');

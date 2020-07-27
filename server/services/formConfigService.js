@@ -1100,7 +1100,7 @@ function FormConfigService(objCollection) {
                                 let tempObj = {};
                                 tempObj[tempVar[0]] = tempVar[1];
                                 // p_entity_text_2 19
-                                params[19] = tempVar[2] || "";
+                                params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
                                 console.log('ERROR in field edit - 57 : ', err);
