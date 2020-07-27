@@ -2016,7 +2016,15 @@ function FormConfigService(objCollection) {
             return [error, workflowFormsData];
             
         } else {
-            const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+            let deviceOSID = request.device_os_id?request.device_os_id:0;
+            let error = true, workflowFormsData = [];
+            if(deviceOSID == 5){
+                [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+            }
+            else{
+                [error, workflowFormsData] = await workforceFormMappingSelectWorkflowFormsV1(request);
+            }
+
             return [error, workflowFormsData];
 
         }
@@ -5864,12 +5872,41 @@ function FormConfigService(objCollection) {
                     error = err;
                 });
         }    
-        
-        
 
         return [error, responseData]; 
     }
 
+    async function workforceFormMappingSelectWorkflowFormsV1(request) {
+
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag || 0,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id || 0,
+            0, // request.access_level_id || 0,
+            request.log_datetime || '1970-01-01 00:00:00',
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, workflowFormsData];
+    }
 }
 
 module.exports = FormConfigService;

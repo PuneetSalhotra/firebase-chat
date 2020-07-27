@@ -271,89 +271,118 @@ function CommnElasticService(objectCollection) {
                     try {
                         results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
                     } catch (error) {
-                        console.error(error)
+                        console.error(error);
                     }
-                    return resultObj
+                    return resultObj;
                 } else {
-                    var err = {}
-                    err = 'data not found'
+                    var err = {};
+                    err = 'data not found';
                     res.send(responseWrapper.getResponse(err, {}, -9998, request));
                 }
             } catch (error) {
                 return Promise.reject(error);
             }
-        }
+        };
 
 
-    this.getResult =
-        async (request) => {
-            try {
+    this.getResult = async (request) => {
+        let error = true,
+            responseData = [];
+        
+        try {
                 var flag = true;
-                var responseObj = {}
-                var responseArray = []
-                var dynamicQuery = {}
-                var dynamicQueryArray = []
-                var queryType = "cross_fields"
+                var responseObj = {};
+                var responseArray = [];
+                var dynamicQuery = {};
+                var dynamicQueryArray = [];
+                var queryType = "cross_fields";
                 const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
                 var operator = 'and';
                 var page_size = 50;
                 var page_no = 0;
+
                 if (request.hasOwnProperty('page_size')) {
                     page_size = request.page_size;
                 }
+
                 if (request.hasOwnProperty('page_no')) {
                     page_no = request.page_no;
                 }
-                var pagination = {}
-                pagination['size'] = page_size,
-                    pagination['from'] = page_no
-                var searchFields = []
+
+                var pagination = {};
+                    pagination['size'] = page_size,
+                    pagination['from'] = page_no;
+
+                var searchFields = [];
+                
                 if (request.hasOwnProperty('fields') && request.fields.length > 0) {
                     for (var i = 0; i < request.fields.length; i++) {
                         if (validSearchFields.includes(request.fields[i])) {
                             searchFields.push(request.fields[i]);
                         } else {
-                            flag = false
-                            return request.fields[i] + ' fields is not valid'
-                            break;
+                            flag = false;
+                            return request.fields[i] + ' fields is not valid';
+                            //break;
                         }
                     }
                 } else {
                     searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
                 }
+
                 if (request.hasOwnProperty('search_option') && request.search_option.length > 0) {
                     if (request.search_option == 'EXACT_SEARCH') {
-                        queryType = "phrase"
+                        queryType = "phrase";
                     } else {
                         operator = request.search_option;
                     }
                 }
                 if (flag) {
-                    const orgid = request.organization_id
+                    const orgid = request.organization_id;
                     var orgFilter = {
                         "match": {
                             "orgid": orgid
                         }
-                    }
-                    dynamicQueryArray.push(orgFilter)
-                    var idFilter = ''
+                    };
+
+                    dynamicQueryArray.push(orgFilter);
+                    var idFilter = '';
+
                     if (request.hasOwnProperty('id') && request.id != null && request.id != '') {
                         idFilter = {
                             "match": {
                                 "id": request.id
                             }
-                        }
-                        dynamicQueryArray.push(idFilter)
+                        };
+                        dynamicQueryArray.push(idFilter);
                     }
-                    if (request.hasOwnProperty('search_text') && request.search_text != null &&
-                        request.search_text != '') {
+                    if (request.hasOwnProperty('search_text') && 
+                        request.search_text != null &&
+                        request.search_text != '') 
+                    {
+                        let searchText = (request.search_text).toString();
+
                         if (request.search_text == null || request.search_text.length < 3) {
-                            flag = false
-                            var error_msg = 'minimum 3 char required for search';
-                            return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+                            flag = false;
+                            let error_msg = 'minimum 3 char required for search';
+                                responseData.push({ "error_msg": error_msg });
+                            
+                            return [error, responseData];
+                            //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+
+                        } else if (searchText === 'true' || searchText.includes('=')) {
+                            flag = false;
+                            let error_msg = 'seems like malicious search!';
+                                responseData.push({ "error_msg": error_msg });
+                            
+                            return [error, responseData];
+                            //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
 
                         } else {
-                            const search_text = request.search_text
+                            const search_text = (request.search_text).toString();
+
+                            console.log('typeof search_text : ', typeof search_text);
+                            console.log('search_text : ', search_text);
+
                             dynamicQueryArray.push({
                                 "bool": {
                                     "should": {
@@ -368,41 +397,53 @@ function CommnElasticService(objectCollection) {
                             });
                         }
                     }
-                    var query = {}
-                    var mainQueryObj = {}
-                    var quertObjArray = {}
-                    quertObjArray['must'] = dynamicQueryArray
-                    mainQueryObj['bool'] = quertObjArray
-                    query['query'] = mainQueryObj
+
+                    var query = {};
+                    var mainQueryObj = {};
+                    var quertObjArray = {};
+                        quertObjArray['must'] = dynamicQueryArray;
+
+                    mainQueryObj['bool'] = quertObjArray;
+                    query['query'] = mainQueryObj;
+
                     if (!request.hasOwnProperty('id')) {
-                        query = Object.assign(query, pagination)
-                    }
+                        query = Object.assign(query, pagination);
+                    }                    
+                    
+                    console.log('queryType : ', queryType);
+                    console.log('searchFields : ', searchFields);
+                    console.log('operator : ', operator);                    
+                    console.log('QUERY : ', query);
+                    console.log('dynamicQueryArray : ', dynamicQueryArray);
 
                     const result = await client.search({
                         index: 'documentrepository',
                         type: "_doc",
                         body: query
-                    })
+                    });
 
-                    for (var i = 0; i < result.hits['hits'].length; i++) {
-                        var obj = {}
-                        obj['id'] = result.hits['hits'][i]['_source']['id']
-                        obj['orgid'] = result.hits['hits'][i]['_source']['orgid']
-                        obj['product'] = result.hits['hits'][i]['_source']['product']
-                        obj['documentdesc'] = result.hits['hits'][i]['_source']['documentdesc']
-                        obj['documenttitle'] = result.hits['hits'][i]['_source']['documenttitle']
-                        obj['assetid'] = result.hits['hits'][i]['_source']['assetid']
-                        obj['s3url'] = result.hits['hits'][i]['_source']['s3url']
-                        obj['productid'] = result.hits['hits'][i]['_source']['productid']
-                        obj['filename'] = result.hits['hits'][i]['_source']['filename']
-                        obj['activity_id'] = result.hits['hits'][i]['_source']['productid']
-                        responseArray.push(obj)
+                    for (let j = 0; j < result.hits['hits'].length; j++) {
+                        var obj = {};
+                            obj['id'] = result.hits['hits'][j]['_source']['id'];
+                            obj['orgid'] = result.hits['hits'][j]['_source']['orgid'];
+                            obj['product'] = result.hits['hits'][j]['_source']['product'];
+                            obj['documentdesc'] = result.hits['hits'][j]['_source']['documentdesc'];
+                            obj['documenttitle'] = result.hits['hits'][j]['_source']['documenttitle'];
+                            obj['assetid'] = result.hits['hits'][j]['_source']['assetid'];
+                            obj['s3url'] = result.hits['hits'][j]['_source']['s3url'];
+                            obj['productid'] = result.hits['hits'][j]['_source']['productid'];
+                            obj['filename'] = result.hits['hits'][j]['_source']['filename'];
+                            obj['activity_id'] = result.hits['hits'][j]['_source']['productid'];
+
+                        responseArray.push(obj);
                     }
-                    responseObj['response'] = responseArray
-                    return responseObj;
+
+                    //responseObj['response'] = responseArray;
+                    return [false, responseArray];
                 }
             } catch (error) {
-                return Promise.reject(error);
+                //return Promise.reject(error);
+                return [error, []];
             }
         };
 }
