@@ -2754,6 +2754,9 @@ function ActivityTimelineService(objectCollection) {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 70: // LoV Datatype
+                    params[18] = row.field_value;
+                    break;
                 case 71: //Cart Datatype
                     params[27] = row.field_value;
                     try {
@@ -3483,6 +3486,9 @@ async function addFormEntriesAsync(request) {
                 break;
             case 67: // Reminder DataType
                 params[27] = row.field_value;
+                break;
+            case 70: // LoV Datatype
+                params[18] = row.field_value;
                 break;
             }
 
