@@ -5963,13 +5963,11 @@ function BotService(objectCollection) {
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
                 fieldValue = "";
 
-            if(request.hasOwnProperty("opportunity_update"))
-            {
+            if(request.hasOwnProperty("opportunity_update")){
                 fieldValue = cuidValue;
-            }else if
-            (
-                formInlineDataMap.has(Number(cuidValue.field_id))
-            ) {
+            } else if(request.hasOwnProperty("account_code_update")) {
+                fieldValue = cuidValue;
+            } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
                 console.log('fieldData : ', fieldData);
@@ -7102,7 +7100,13 @@ function BotService(objectCollection) {
             request.limit_value = 50;
 
         reminderBotExecutionFn(request, 0);
-        return [false, []];
+
+        let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
+
+        let responseData = [];
+            responseData.push({'No.Of.Reminders': reminderBotData.length});
+
+        return [false, responseData];
     }    
 
     //async function reminderBotExecutionIntermediateFn() {

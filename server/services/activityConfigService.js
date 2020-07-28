@@ -2,10 +2,18 @@
  * author: Sri Sai Venkatesh
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
+const BotService = require('../botEngine/services/botService');
+
 const logger = require('../logger/winstonLogger');
+
+const elasticsearch = require('elasticsearch');
+const client = new elasticsearch.Client({
+       hosts: [global.config.elastiSearchNode]
+});
 
 function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
+    const botService = new BotService(objCollection);
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request, callback) {
@@ -1017,61 +1025,149 @@ function ActivityConfigService(db, util, objCollection) {
 
     this.generateAcctCode = async(request) => {
         let error = false,
-            responseData = [];
-
-        let activityTypeID = Number(request.activity_type_id);
-        let accountCode = "";
+            responseData = [];        
 
         request.bot_operation_type_id = 22;
         request.start_from = 0;
         request.limit_value = 1;
         [botError, botData] = await self.botOperationMappingSelectOperationType(request);
+        
+        //console.log('botData', botData);
 
-        let botInlineData;
+        let botInlineData;        
 
         if(botData.length > 0){            
             botInlineData = JSON.parse(botData[0].bot_operation_inline_data).account_code_dependent_fields;
+            console.log('Account Code Dependent Fields: ', botInlineData);
         } else {
             error = true;
             responseData.push({'Message': 'Bot not defined on the field ID'});
             return [error, responseData];
-        }        
+        }
+
+        let generatedAccountData =  await generateAccountCode(request, botInlineData);
+        console.log('Generated Account data : ', generatedAccountData);
+
+        let hasSeqNo = generatedAccountData.has_sequence_number;
+        let accountCode = generatedAccountData.account_code;
+        
+        //Check the generated code is unique or not?
+        let [err, accountData] = await checkWhetherAccountCodeExists(accountCode);        
+        if(err) {
+            responseData.push({'message': 'Error in Checking Acount Code!'});
+            return [true, responseData];
+        }
+
+        //1) If it is not unique then check if there is a sequential number as part of the account code.
+        //If it is not there then throw error "Account already exists".
+        if(accountData.length > 0 && Number(hasSeqNo) === 0) {
+            responseData.push({'message': 'Account already exists!'});
+            return [true, responseData];
+
+        } else if(accountData.length > 0 && Number(hasSeqNo) === 1) {
+            //2) If sequential number is there as part of the account code, 
+            //increment the sequential number by 1 and reverify the uniqueness of account code.
+            
+            let tempObj;
+            let newAccountCode;
+            while(true) { //Runs until it finds a unique account code               
+                                
+                //Increment the sequential ID
+                tempObj = await generateAccountCode(request, botInlineData);
+                newAccountCode = tempObj.account_code;
+
+                //Check the uniqueness of the account code
+                let [err, accountData] = await checkWhetherAccountCodeExists(newAccountCode);
+                if(err) {
+                    responseData.push({'message': 'Error in Checking Acount Code!'});
+                    return [true, responseData];
+                }
+
+                if(accountData.length === 0) {
+                    break;
+                }
+            } //End while loop
+
+            accountCode = newAccountCode
+        }
+
+        console.log('Final Account Code : ', accountCode);        
+        //Update the generated Account code in two places
+            //1) CUID3 of Workflow
+            logger.silly("Updating CUID3 Value of workflow");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.account_code_update = true;
+                await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":accountCode});
+            } catch (error) {
+                logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            //Update the same in ElastiSearch
+            client.index({
+                index: 'account-code',
+                body: {
+                  workflow_activity_id: request.workflow_activity_id,
+                  account_code: accountCode
+                }
+            });
+        
+            //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
+
+        return [error, responseData];
+    }
+
+    async function generateAccountCode(request, botInlineData) {        
+        let responseData = {};
+
+        let activityTypeID = Number(request.activity_type_id);
+        let accountCode = "";
+
+        let formID = Number(request.activity_form_id) || Number(request.form_id);
+        let hasSeqNo = 0;
 
         switch(activityTypeID) {
             case 149277://LA - Large Account                     
                         const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                        const laCompanyName = await getFieldValueUsingFieldIdV1(request, laCompanyNameFID);
-                        const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, laGroupCompanyNameFID);
+                        const laCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laCompanyNameFID);
+                        const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laGroupCompanyNameFID);
 
                         accountCode += 'C-';
                         accountCode += laCompanyName.padStart(11, '0');
                         accountCode += '-'
-                        accountCode += laGroupCompanyName.padStart(6, '0');
-                        
+                        accountCode += laGroupCompanyName.padStart(6, '0');                        
                         break;
                         
             case 150442://GE - VGE Segment
                         const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                        const geCompanyName = await getFieldValueUsingFieldIdV1(request, geCompanyNameFID);
-                        const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, geGroupCompanyNameFID);
+                        const geCompanyName = await getFieldValueUsingFieldIdV1(request, formID, geCompanyNameFID);
+                        const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, geGroupCompanyNameFID);
                         
                         accountCode += 'V-';
                         accountCode += geCompanyName.padStart(11, '0');
                         accountCode += '-'
                         accountCode += geGroupCompanyName.padStart(6, '0');
-
                         break;
 
-            case 149809: //SME
-                         // Need 
-                         //    - turnover single selection field
-                         //    - Sub industry selection
+            case 149809: //SME                         
+                         hasSeqNo = 1;
+
+                         const smeCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const smeCompanyName = await getFieldValueUsingFieldIdV1(request, formID, smeCompanyNameFID);
+                         
+                         const smeTurnOverFID = Number(botInlineData.turn_over); //64237 Micro Segment (turn Over)
+                         const smeTurnOver = await getFieldValueUsingFieldIdV1(request, formID, smeTurnOverFID); 
+
+                         //1 SME-Emerging Enterprises (51 - 100 Cr)
+                         //2 SME-Medium Enterprises (101 - 250 Cr)
+                         //3 SME-Small Enterprises (10 - 50 Cr)
+
                          accountCode += 'S-';
-                         accountCode += nameofthecompany.padStart(7, '0');
+                         accountCode += smeCompanyName.padStart(7, '0');
                          
                          //4 digit sequential number, gets reset to 0000 after 9999
                          let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
@@ -1081,17 +1177,52 @@ function ActivityConfigService(db, util, objCollection) {
                             accountCode += '0000';
                          } else {                            
                             accountCode += smeSeqNumber.padStart(4, '0');
-                         }                         
+                         }                     
 
                          accountCode += '-'
-                         accountCode += '1/2/3' // turnover
+                         accountCode += smeTurnOver // turnover
                          accountCode += nameofthecompany.padEnd(5, '0'); //subindustry
                          break;
 
+            case 150443: //Regular Govt/Govt SI Segment
+                         accountCode += 'G-';
+
+                         if(getGovtTypeName) { //Regular Govt
+                            const govtCompanyNameFID = Number(botInlineData.name_of_the_company); //61955
+                            const govtCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtCompanyNameFID); 
+
+                            accountCode += govtCompanyName.padStart(10, '0');
+                            accountCode += '-';
+                            //accountCode += nameofgrouppcompany.padStart(6, '0');
+                            
+                         } else { //Govt SI
+                            const siNameFID = Number(botInlineData.si_name); //61956
+                            const siName = await getFieldValueUsingFieldIdV1(request, formID, siNameFID);
+                            
+                            const departmentNameFID = Number(botInlineData.name_of_the_department);
+                            const departmentName = await getFieldValueUsingFieldIdV1(request, formID, departmentNameFID);
+
+                            accountCode += siName.padStart(3, '0');
+                            accountCode += '-';
+                            accountCode += departmentName.padStart(7, '0');
+                            accountCode += '-';
+                         }
+                         
+                         const centerOrStateFID = Number(botInlineData.center_or_state); //61954
+                         const centerOrStateName = await getFieldValueUsingFieldIdV1(request, formID, centerOrStateFID);
+                         accountCode += centerOrStateName.padStart(3, '0');
+                         
+                         const circleFID = Number(botInlineData.circle); //61958
+                         const circleName = await getFieldValueUsingFieldIdV1(request, formID, circleFID);
+                         accountCode += circleName.padStart(3, '0');
+
+                         break;
+
             case 150254: //VICS: Need - nameofthecompany
+                         hasSeqNo = 1;
                          accountCode += 'W-';
                          accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
+                         accountCode += '-';
 
                          //6 digit sequential number, gets reset to 000000 after 999999
                          let vicsSeqNumber = await cacheWrapper.getVICSSeqNumber();
@@ -1101,16 +1232,7 @@ function ActivityConfigService(db, util, objCollection) {
                             accountCode += '000000';
                          } else {                            
                             accountCode += vicsSeqNumber.padStart(6, '0');
-                         }
-                         
-                         break;
-
-            case 150443: //GOVT -- Thoda Complicated center/state/circle info
-                        //Govt SI Segment
-                         accountCode += 'G-';
-                         accountCode += nameofthecompany.padStart(10, '0');
-                         accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
+                         }                         
                          break;
 
             case 150444: //SOHO -- Need - Name of the company
@@ -1119,15 +1241,29 @@ function ActivityConfigService(db, util, objCollection) {
                          accountCode += '-'
                          break;
         }
+
+        responseData.has_sequence_number = hasSeqNo;
+        responseData.account_code = accountCode;
+
+        return responseData;
     }
 
-    async function getFieldValueUsingFieldIdV1(request, fieldID) {
+    async function getFieldValueUsingFieldIdV1(request, formID, fieldID) {
         let fieldValue = "";
-        let inlineData = JSON.parse(request.activity_inline_data);
 
-        for(const fieldData of inlineData) {                        
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        let formData = await getFormInlineData({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: formID
+        }, 2);
+
+        for(const fieldData of formData) {                        
             if(Number(fieldData.field_id) === fieldID){
                 switch(Number(field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
                     //case 68: break;
                     default: fieldValue = fieldData.field_value;
                 }
@@ -1135,6 +1271,54 @@ function ActivityConfigService(db, util, objCollection) {
         }
 
         return fieldValue;
+    }
+
+    async function getFormInlineData(request, flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+         //3. Send both
+
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;            
+            case 3: break;
+            default: return formData;
+        }        
+    }
+
+    async function checkWhetherAccountCodeExists(accountCode) {
+        let error = false,
+            responseData = [];
+
+        const { body } = await client.search({
+            index: 'account-code',
+            body: {
+              query: {
+                match: {
+                    account_code: accountCode
+                }
+              }
+            }
+          })
+
+        console.log('Got this result from Elasti Search: ', body.hits.hits);
+
+        return [error, body.hits.hits];
     }
 
 }
