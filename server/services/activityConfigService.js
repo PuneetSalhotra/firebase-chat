@@ -1107,7 +1107,7 @@ function ActivityConfigService(db, util, objCollection) {
             }
 
             //Update the same in ElastiSearch
-            /*client.index({
+            client.index({
                 index: 'crawling_accounts',
                 body: {                                 
                   activity_cuid_3: accountCode,
@@ -1122,7 +1122,7 @@ function ActivityConfigService(db, util, objCollection) {
                   //asset_first_name: "Channel Head",
                   //operating_asset_id: 44574,
                 }
-            });*/
+            });
         
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
 
