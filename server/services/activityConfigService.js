@@ -14,6 +14,8 @@ const client = new elasticsearch.Client({
 function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
     const botService = new BotService(objCollection);
+    const activityCommonService = objCollection.activityCommonService;
+    const cacheWrapper = objCollection.cacheWrapper;
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request, callback) {
@@ -1098,19 +1100,29 @@ function ActivityConfigService(db, util, objCollection) {
             logger.silly("Update CUID Bot Request: ", request);
             try {
                 request.account_code_update = true;
+                request.datetime_log = util.getCurrentUTCTime();
                 await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":accountCode});
             } catch (error) {
                 logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
 
             //Update the same in ElastiSearch
-            client.index({
-                index: 'account-code',
-                body: {
-                  workflow_activity_id: request.workflow_activity_id,
-                  account_code: accountCode
+            /*client.index({
+                index: 'crawling_accounts',
+                body: {                                 
+                  activity_cuid_3: accountCode,
+                  activity_type_id: Number(request.activity_type_id),
+                  workforce_id: Number(request.workforce_id),
+                  account_id: Number(request.account_id),
+                  activity_id: Number(request.workflow_activity_id),
+                  asset_id: Number(request.asset_id)
+                  //operating_asset_first_name: "Sagar Pradhan",
+                  //activity_title: "GALAXY MEDICATION",
+                  //activity_type_name: "Account Management - SME",
+                  //asset_first_name: "Channel Head",
+                  //operating_asset_id: 44574,
                 }
-            });
+            });*/
         
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
 
@@ -1134,10 +1146,13 @@ function ActivityConfigService(db, util, objCollection) {
                         const laCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laCompanyNameFID);
                         const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laGroupCompanyNameFID);
 
+                        console.log('LA company Name : ', laCompanyName);
+                        console.log('LA Group company Name : ', laGroupCompanyName);
+
                         accountCode += 'C-';
-                        accountCode += laCompanyName.padStart(11, '0');
-                        accountCode += '-'
-                        accountCode += laGroupCompanyName.padStart(6, '0');                        
+                        accountCode += ((laCompanyName.substring(0,11)).padStart(11, '0')).toUpperCase();
+                        accountCode += '-';
+                        accountCode += ((laGroupCompanyName.substring(0,6)).padStart(6, '0')).toUpperCase();
                         break;
                         
             case 150442://GE - VGE Segment
@@ -1148,9 +1163,9 @@ function ActivityConfigService(db, util, objCollection) {
                         const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, geGroupCompanyNameFID);
                         
                         accountCode += 'V-';
-                        accountCode += geCompanyName.padStart(11, '0');
+                        accountCode += ((geCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
                         accountCode += '-'
-                        accountCode += geGroupCompanyName.padStart(6, '0');
+                        accountCode += ((geGroupCompanyName.substr(0,6)).padStart(6, '0')).toUpperCase();
                         break;
 
             case 149809: //SME                         
@@ -1158,87 +1173,153 @@ function ActivityConfigService(db, util, objCollection) {
 
                          const smeCompanyNameFID = Number(botInlineData.name_of_the_company);
                          const smeCompanyName = await getFieldValueUsingFieldIdV1(request, formID, smeCompanyNameFID);
+
+                         const smeSubIndustryFID = Number(botInlineData.sub_industry);
+                         const smeSubIndustryName = await getFieldValueUsingFieldIdV1(request, formID, smeSubIndustryFID);
                          
-                         const smeTurnOverFID = Number(botInlineData.turn_over); //64237 Micro Segment (turn Over)
-                         const smeTurnOver = await getFieldValueUsingFieldIdV1(request, formID, smeTurnOverFID); 
+                         const smeTurnOverFID = Number(botInlineData.micro_segment_turn_over);
+                         let smeTurnOver = await getFieldValueUsingFieldIdV1(request, formID, smeTurnOverFID);
 
                          //1 SME-Emerging Enterprises (51 - 100 Cr)
                          //2 SME-Medium Enterprises (101 - 250 Cr)
                          //3 SME-Small Enterprises (10 - 50 Cr)
 
+                         smeTurnOver = smeTurnOver.toLowerCase();
+                         if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
+                            smeTurnOver = 1;
+                         } else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
+                            smeTurnOver = 2;
+                         } else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
+                            smeTurnOver = 3;
+                         }                        
+
                          accountCode += 'S-';
-                         accountCode += smeCompanyName.padStart(7, '0');
+                         accountCode += ((smeCompanyName.substr(0,7)).padStart(7, '0')).toUpperCase();
                          
                          //4 digit sequential number, gets reset to 0000 after 9999
                          let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
+                         console.log('smeSeqNumber : ', smeSeqNumber);
                          
                          if(Number(smeSeqNumber) === 9999) {
                             await cacheWrapper.setSmeSeqNumber(0);
                             accountCode += '0000';
                          } else {                            
-                            accountCode += smeSeqNumber.padStart(4, '0');
-                         }                     
+                            accountCode += (smeSeqNumber.toString()).padStart(4, '0');
+                         }
 
                          accountCode += '-'
                          accountCode += smeTurnOver // turnover
-                         accountCode += nameofthecompany.padEnd(5, '0'); //subindustry
+
+                         console.log('sme Sub Industry Name : ', smeSubIndustryName);
+                         if(smeSubIndustryName.toLowerCase() === 'others') {
+                            accountCode += 'OTHERS'
+                         } else {
+                            accountCode += ((smeSubIndustryName.substr(0,3)).padEnd(5, '0')).toUpperCase(); //subindustry
+                         }                         
                          break;
 
             case 150443: //Regular Govt/Govt SI Segment
                          accountCode += 'G-';
+                         const govtAccounTypeFID = Number(botInlineData.account_type);
+                         const govtAccounType = await getFieldValueUsingFieldIdV1(request, formID, govtAccounTypeFID);
 
-                         if(getGovtTypeName) { //Regular Govt
-                            const govtCompanyNameFID = Number(botInlineData.name_of_the_company); //61955
-                            const govtCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtCompanyNameFID); 
+                         console.log('Account Type : ', govtAccounType);
+                         
+                         const govtCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const govtGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                            accountCode += govtCompanyName.padStart(10, '0');
-                            accountCode += '-';
-                            //accountCode += nameofgrouppcompany.padStart(6, '0');
-                            
-                         } else { //Govt SI
+                         const govtCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtCompanyNameFID);
+                         const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtGroupCompanyNameFID);
+
+                         if(govtAccounType === 'SI') { //SI
                             const siNameFID = Number(botInlineData.si_name); //61956
                             const siName = await getFieldValueUsingFieldIdV1(request, formID, siNameFID);
                             
                             const departmentNameFID = Number(botInlineData.name_of_the_department);
                             const departmentName = await getFieldValueUsingFieldIdV1(request, formID, departmentNameFID);
 
-                            accountCode += siName.padStart(3, '0');
+                            accountCode += ((siName.substr(0,3)).padStart(3, '0')).toUpperCase();
                             accountCode += '-';
-                            accountCode += departmentName.padStart(7, '0');
+                            accountCode += ((departmentName.substr(0,7)).padStart(7, '0')).toUpperCase();
                             accountCode += '-';
+                         } else { //Govt Regular
+                            accountCode += ((govtCompanyName.substr(0,10)).padStart(10, '0')).toUpperCase();
+                            accountCode += '-';
+                            //accountCode += nameofgrouppcompany.padStart(6, '0');
                          }
                          
-                         const centerOrStateFID = Number(botInlineData.center_or_state); //61954
+                         //Center or State
+                         const centerOrStateFID = Number(botInlineData.state_central); //61954
                          const centerOrStateName = await getFieldValueUsingFieldIdV1(request, formID, centerOrStateFID);
-                         accountCode += centerOrStateName.padStart(3, '0');
+                         console.log('Center or State : ', centerOrStateName);
+                         accountCode += ((centerOrStateName.substr(0,3)).padStart(3, '0')).toUpperCase();
                          
+                         //Circle
                          const circleFID = Number(botInlineData.circle); //61958
                          const circleName = await getFieldValueUsingFieldIdV1(request, formID, circleFID);
-                         accountCode += circleName.padStart(3, '0');
+                         console.log('Circle : ', circleName);
+                         accountCode += ((circleName.substr(0,3)).padStart(3, '0')).toUpperCase();
 
                          break;
 
-            case 150254: //VICS: Need - nameofthecompany
+            case 150254: //VICS - Carrier partner addition
                          hasSeqNo = 1;
+                         const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const vicsCompanyName = await getFieldValueUsingFieldIdV1(request, formID, vicsCompanyNameFID);
+
                          accountCode += 'W-';
-                         accountCode += nameofthecompany.padStart(11, '0');
+                         accountCode += ((vicsCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
                          accountCode += '-';
 
                          //6 digit sequential number, gets reset to 000000 after 999999
                          let vicsSeqNumber = await cacheWrapper.getVICSSeqNumber();
-                         
-                         if(Number(smeSeqNumber) === 999999) {
+                         console.log('from cache vicsSeqNumber : ', vicsSeqNumber);
+
+                         if(Number(vicsSeqNumber) === 999999) {
                             await cacheWrapper.setVICSSeqNumber(0);
                             accountCode += '000000';
                          } else {                            
-                            accountCode += vicsSeqNumber.padStart(6, '0');
-                         }                         
+                            accountCode += (vicsSeqNumber.toString()).padStart(6, '0');
+                         }   
+                         console.log('from cache vicsSeqNumber : ', vicsSeqNumber);
                          break;
 
-            case 150444: //SOHO -- Need - Name of the company
+            case 150444: //SOHO
+                         hasSeqNo = 1;                         
+                         const sohoCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const sohoTurnOverFID = Number(botInlineData.micro_segment_turn_over);
+
+                         const sohoCompanyName = await getFieldValueUsingFieldIdV1(request, formID, sohoCompanyNameFID);
+                         let sohoTurnOver = await getFieldValueUsingFieldIdV1(request, formID, sohoTurnOverFID);
+
                          accountCode += 'D-';
-                         accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
+                         accountCode += ((sohoCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
+                         accountCode += '-';
+                         
+                         //sohoTurnOver = sohoTurnOver.toLowerCase();
+                         if(sohoTurnOver < 3) {
+                            sohoTurnOver = 1;
+                         } else if(sohoTurnOver < 6) {
+                            sohoTurnOver = 2;
+                         } else if(sohoTurnOver < 11) {
+                            sohoTurnOver = 3;
+                         } else {
+                            sohoTurnOver = 0;
+                         }
+
+                         accountCode += sohoTurnOver // turnover
+
+                         //5 digit sequential number, gets reset to 00000 after 99999
+                         let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
+                         console.log('from cache sohoSeqNumber : ', sohoSeqNumber);
+                         
+                         if(Number(sohoSeqNumber) === 99999) {
+                            await cacheWrapper.setSohoSeqNumber(0);
+                            accountCode += '00000';
+                         } else {                            
+                            accountCode += (sohoSeqNumber.toString()).padStart(5, '0');
+                         }
+                         console.log('After processsing sohoSeqNumber : ', sohoSeqNumber);
                          break;
         }
 
@@ -1261,15 +1342,25 @@ function ActivityConfigService(db, util, objCollection) {
 
         for(const fieldData of formData) {                        
             if(Number(fieldData.field_id) === fieldID){
-                switch(Number(field_data_type_id)) {
+                console.log('fieldData.field_data_type_id : ', fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
                     //Need Single selection and Drop Down
                     //circle/ state
+                    
+                    case 57: //Account
+                             fieldValue = fieldData.field_value;
+                             fieldValue = fieldValue.split('|')[1];                             
+                             break;
                     //case 68: break;
                     default: fieldValue = fieldData.field_value;
                 }
+                break;
             }
         }
-
+        
+        console.log('Field Value B4: ', fieldValue);
+        fieldValue = fieldValue.split(" ").join("");
+        console.log('Field Value After: ', fieldValue);
         return fieldValue;
     }
 
@@ -1305,20 +1396,37 @@ function ActivityConfigService(db, util, objCollection) {
         let error = false,
             responseData = [];
 
-        const { body } = await client.search({
-            index: 'account-code',
+        //accountCode = 'S-CCMOTO17317-2HARDW';
+        console.log('Searching elastisearch for account-code : ', accountCode);
+        const response = await client.search({
+            index: 'crawling_accounts',
             body: {
               query: {
-                match: {
-                    account_code: accountCode
-                }
+                match: { activity_cuid_3: accountCode }
+                //"constant_score" : { 
+                //    "filter" : {
+                //        "term" : { 
+                //            "activity_cuid_3": accountCode
+                //        }
+                //    }
+                // }
               }
             }
           })
 
-        console.log('Got this result from Elasti Search: ', body.hits.hits);
+        console.log('response from ElastiSearch: ', response);        
+        let totalRetrieved = (response.hits.hits).length;
+        console.log('Number of Matched Results : ', totalRetrieved);
 
-        return [error, body.hits.hits];
+        for(const i_iterator of response.hits.hits) {
+            //console.log(i_iterator._source.activity_cuid_3);
+            if(i_iterator._source.activity_cuid_3 === accountCode) {
+                responseData.push({'message' : 'Found a Match!'});
+                console.log('found a Match!');
+            }            
+        }
+
+        return [error, responseData];
     }
 
 }

@@ -651,7 +651,7 @@ function CacheWrapper(client) {
                 }
                 console.log('REPLY - get vics_acccount_seqno : ', reply);
                 if(reply === null) {
-                    this.setSmeSeqNumber(0);
+                    this.setVICSSeqNumber(0);
                     resolve(0);                    
                 } else {
                     
@@ -753,6 +753,52 @@ function CacheWrapper(client) {
                     resolve(err);
                 } else {
                     logger.verbose('GET ROMS - getROMSMailsPwd PWD', { type: 'redis', cache_response: reply, error: err });
+                    resolve(reply);
+                }
+            });
+        });        
+    };
+
+    //get Account SOHO Sequential number
+    this.getSohoSeqNumber = () => {
+        return new Promise((resolve, reject) => {
+
+            //To handle the first time reading case - Key will be missing then we are sending 0
+            client.get('soho_acccount_seqno', (err, reply) => {
+                if(err) {
+                    reject(err);
+                }
+                console.log('REPLY - get soho_acccount_seqno : ', reply);
+                if(reply === null) {
+                    this.setSohoSeqNumber(0);
+                    resolve(0);                    
+                } else {
+                    
+                    client.incr('soho_acccount_seqno', function (err, id) {
+                        if (err) {
+                            logger.error(`INCR soho_acccount_seqno`, { type: 'redis', cache_response: id, error: err });    
+                            reject(err);
+                        }
+                        logger.verbose(`INCR soho_acccount_seqno`, { type: 'redis', cache_response: id, error: err });                
+                        resolve(id);
+                    });
+
+                }
+            });
+
+        });
+    };
+
+
+    //Set Account SOHO Sequential number
+    this.setSohoSeqNumber = (setValue) => {
+        return new Promise((resolve, reject) => {
+            client.set('soho_acccount_seqno', setValue, function (err, reply) {
+                if (err) {
+                    logger.error(`SET soho_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
+                    reject(err);
+                } else {
+                    logger.verbose(`SET soho_acccount_seqno ${JSON.stringify(setValue)}`, { type: 'redis', cache_response: reply, error: err });                    
                     resolve(reply);
                 }
             });
