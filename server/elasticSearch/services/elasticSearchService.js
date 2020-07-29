@@ -36,25 +36,26 @@ function CommnElasticService(objectCollection) {
     this.addFile =
         async (request, res) => {
             try {
-                var pdfUrl = request.url_path
+                var pdfUrl = request.url_path;
                 var temp = await util.downloadS3Object(request, pdfUrl).then(filename => {
                     var fileFullPath = global.config.efsPath + filename;
-                    var filePath = path.join(fileFullPath)
+                    var filePath = path.join(fileFullPath);
                     setTimeout(() => {
                         extract(filePath, function (err, documentcontent) {
                             if (err) {
-                                console.dir(err)
-                                return err
+                                console.dir(err);
+                                return err;
                             }
-                            var result = addDocumetInformation(request, documentcontent, pdfUrl, client, res)
-                            return result
-                        })
-                    }, 1000)
-                })
+                            var result = addDocumetInformation(request, documentcontent, pdfUrl, client, res);
+                            return result;
+                        });
+                    }, 1000);
+                });
             } catch (error) {
                 return Promise.reject(error);
             }
-        }
+        };
+
     async function addDocumetInformation(request, documentcontent, url, client, res) {
         let results = new Array();
         var resultObj = {}
@@ -106,8 +107,8 @@ function CommnElasticService(objectCollection) {
                 "s3url": url,
                 "assetid": request.asset_id
             }
-        })
-        resultObj['document_id'] = results[0][0]['activity_document_id']
+        });
+        resultObj['document_id'] = results[0][0]['activity_document_id'];
         return res.send(responseWrapper.getResponse(false, resultObj, 200, request));
     }
 
