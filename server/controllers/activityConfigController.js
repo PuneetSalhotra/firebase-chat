@@ -185,7 +185,7 @@ function ActivityConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log('Error - /account/check/duplicity : ', err);
+            console.log('Error - /activity/account-code/bot : ', err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });

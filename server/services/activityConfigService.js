@@ -2,10 +2,20 @@
  * author: Sri Sai Venkatesh
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
+const BotService = require('../botEngine/services/botService');
+
 const logger = require('../logger/winstonLogger');
+
+const elasticsearch = require('elasticsearch');
+const client = new elasticsearch.Client({
+       hosts: [global.config.elastiSearchNode]
+});
 
 function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
+    const botService = new BotService(objCollection);
+    const activityCommonService = objCollection.activityCommonService;
+    const cacheWrapper = objCollection.cacheWrapper;
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request, callback) {
@@ -1017,124 +1027,406 @@ function ActivityConfigService(db, util, objCollection) {
 
     this.generateAcctCode = async(request) => {
         let error = false,
-            responseData = [];
-
-        let activityTypeID = Number(request.activity_type_id);
-        let accountCode = "";
+            responseData = [];        
 
         request.bot_operation_type_id = 22;
         request.start_from = 0;
         request.limit_value = 1;
         [botError, botData] = await self.botOperationMappingSelectOperationType(request);
+        
+        //console.log('botData', botData);
 
-        let botInlineData;
+        let botInlineData;        
 
         if(botData.length > 0){            
             botInlineData = JSON.parse(botData[0].bot_operation_inline_data).account_code_dependent_fields;
+            console.log('Account Code Dependent Fields: ', botInlineData);
         } else {
             error = true;
             responseData.push({'Message': 'Bot not defined on the field ID'});
             return [error, responseData];
-        }        
+        }
+
+        let generatedAccountData =  await generateAccountCode(request, botInlineData);
+        console.log('Generated Account data : ', generatedAccountData);
+
+        let hasSeqNo = generatedAccountData.has_sequence_number;
+        let accountCode = generatedAccountData.account_code;
+        
+        //Check the generated code is unique or not?
+        let [err, accountData] = await checkWhetherAccountCodeExists(accountCode);        
+        if(err) {
+            responseData.push({'message': 'Error in Checking Acount Code!'});
+            return [true, responseData];
+        }
+
+        //1) If it is not unique then check if there is a sequential number as part of the account code.
+        //If it is not there then throw error "Account already exists".
+        if(accountData.length > 0 && Number(hasSeqNo) === 0) {
+            responseData.push({'message': 'Account already exists!'});
+            return [true, responseData];
+
+        } else if(accountData.length > 0 && Number(hasSeqNo) === 1) {
+            //2) If sequential number is there as part of the account code, 
+            //increment the sequential number by 1 and reverify the uniqueness of account code.
+            
+            let tempObj;
+            let newAccountCode;
+            while(true) { //Runs until it finds a unique account code               
+                                
+                //Increment the sequential ID
+                tempObj = await generateAccountCode(request, botInlineData);
+                newAccountCode = tempObj.account_code;
+
+                //Check the uniqueness of the account code
+                let [err, accountData] = await checkWhetherAccountCodeExists(newAccountCode);
+                if(err) {
+                    responseData.push({'message': 'Error in Checking Acount Code!'});
+                    return [true, responseData];
+                }
+
+                if(accountData.length === 0) {
+                    break;
+                }
+            } //End while loop
+
+            accountCode = newAccountCode
+        }
+
+        console.log('Final Account Code : ', accountCode);        
+        //Update the generated Account code in two places
+            //1) CUID3 of Workflow
+            logger.silly("Updating CUID3 Value of workflow");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.account_code_update = true;
+                request.datetime_log = util.getCurrentUTCTime();
+                await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":accountCode});
+            } catch (error) {
+                logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+            //Update the same in ElastiSearch
+            client.index({
+                index: 'crawling_accounts',
+                body: {                                 
+                  activity_cuid_3: accountCode,
+                  activity_type_id: Number(request.activity_type_id),
+                  workforce_id: Number(request.workforce_id),
+                  account_id: Number(request.account_id),
+                  activity_id: Number(request.workflow_activity_id),
+                  asset_id: Number(request.asset_id)
+                  //operating_asset_first_name: "Sagar Pradhan",
+                  //activity_title: "GALAXY MEDICATION",
+                  //activity_type_name: "Account Management - SME",
+                  //asset_first_name: "Channel Head",
+                  //operating_asset_id: 44574,
+                }
+            });
+        
+            //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
+
+        return [error, responseData];
+    }
+
+    async function generateAccountCode(request, botInlineData) {        
+        let responseData = {};
+
+        let activityTypeID = Number(request.activity_type_id);
+        let accountCode = "";
+
+        let formID = Number(request.activity_form_id) || Number(request.form_id);
+        let hasSeqNo = 0;
 
         switch(activityTypeID) {
             case 149277://LA - Large Account                     
                         const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                        const laCompanyName = await getFieldValueUsingFieldIdV1(request, laCompanyNameFID);
-                        const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, laGroupCompanyNameFID);
+                        const laCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laCompanyNameFID);
+                        const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, laGroupCompanyNameFID);
+
+                        console.log('LA company Name : ', laCompanyName);
+                        console.log('LA Group company Name : ', laGroupCompanyName);
 
                         accountCode += 'C-';
-                        accountCode += laCompanyName.padStart(11, '0');
-                        accountCode += '-'
-                        accountCode += laGroupCompanyName.padStart(6, '0');
-                        
+                        accountCode += ((laCompanyName.substring(0,11)).padStart(11, '0')).toUpperCase();
+                        accountCode += '-';
+                        accountCode += ((laGroupCompanyName.substring(0,6)).padStart(6, '0')).toUpperCase();
                         break;
                         
             case 150442://GE - VGE Segment
                         const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                         const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                        const geCompanyName = await getFieldValueUsingFieldIdV1(request, geCompanyNameFID);
-                        const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, geGroupCompanyNameFID);
+                        const geCompanyName = await getFieldValueUsingFieldIdV1(request, formID, geCompanyNameFID);
+                        const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, geGroupCompanyNameFID);
                         
                         accountCode += 'V-';
-                        accountCode += geCompanyName.padStart(11, '0');
+                        accountCode += ((geCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
                         accountCode += '-'
-                        accountCode += geGroupCompanyName.padStart(6, '0');
-
+                        accountCode += ((geGroupCompanyName.substr(0,6)).padStart(6, '0')).toUpperCase();
                         break;
 
-            case 149809: //SME
-                         // Need 
-                         //    - turnover single selection field
-                         //    - Sub industry selection
+            case 149809: //SME                         
+                         hasSeqNo = 1;
+
+                         const smeCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const smeCompanyName = await getFieldValueUsingFieldIdV1(request, formID, smeCompanyNameFID);
+
+                         const smeSubIndustryFID = Number(botInlineData.sub_industry);
+                         const smeSubIndustryName = await getFieldValueUsingFieldIdV1(request, formID, smeSubIndustryFID);
+                         
+                         const smeTurnOverFID = Number(botInlineData.micro_segment_turn_over);
+                         let smeTurnOver = await getFieldValueUsingFieldIdV1(request, formID, smeTurnOverFID);
+
+                         //1 SME-Emerging Enterprises (51 - 100 Cr)
+                         //2 SME-Medium Enterprises (101 - 250 Cr)
+                         //3 SME-Small Enterprises (10 - 50 Cr)
+
+                         smeTurnOver = smeTurnOver.toLowerCase();
+                         if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
+                            smeTurnOver = 1;
+                         } else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
+                            smeTurnOver = 2;
+                         } else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
+                            smeTurnOver = 3;
+                         }                        
+
                          accountCode += 'S-';
-                         accountCode += nameofthecompany.padStart(7, '0');
+                         accountCode += ((smeCompanyName.substr(0,7)).padStart(7, '0')).toUpperCase();
                          
                          //4 digit sequential number, gets reset to 0000 after 9999
                          let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
+                         console.log('smeSeqNumber : ', smeSeqNumber);
                          
                          if(Number(smeSeqNumber) === 9999) {
                             await cacheWrapper.setSmeSeqNumber(0);
                             accountCode += '0000';
                          } else {                            
-                            accountCode += smeSeqNumber.padStart(4, '0');
-                         }                         
+                            accountCode += (smeSeqNumber.toString()).padStart(4, '0');
+                         }
 
                          accountCode += '-'
-                         accountCode += '1/2/3' // turnover
-                         accountCode += nameofthecompany.padEnd(5, '0'); //subindustry
+                         accountCode += smeTurnOver // turnover
+
+                         console.log('sme Sub Industry Name : ', smeSubIndustryName);
+                         if(smeSubIndustryName.toLowerCase() === 'others') {
+                            accountCode += 'OTHERS'
+                         } else {
+                            accountCode += ((smeSubIndustryName.substr(0,3)).padEnd(5, '0')).toUpperCase(); //subindustry
+                         }                         
                          break;
 
-            case 150254: //VICS: Need - nameofthecompany
+            case 150443: //Regular Govt/Govt SI Segment
+                         accountCode += 'G-';
+                         const govtAccounTypeFID = Number(botInlineData.account_type);
+                         const govtAccounType = await getFieldValueUsingFieldIdV1(request, formID, govtAccounTypeFID);
+
+                         console.log('Account Type : ', govtAccounType);
+                         
+                         const govtCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const govtGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
+
+                         const govtCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtCompanyNameFID);
+                         const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request, formID, govtGroupCompanyNameFID);
+
+                         if(govtAccounType === 'SI') { //SI
+                            const siNameFID = Number(botInlineData.si_name); //61956
+                            const siName = await getFieldValueUsingFieldIdV1(request, formID, siNameFID);
+                            
+                            const departmentNameFID = Number(botInlineData.name_of_the_department);
+                            const departmentName = await getFieldValueUsingFieldIdV1(request, formID, departmentNameFID);
+
+                            accountCode += ((siName.substr(0,3)).padStart(3, '0')).toUpperCase();
+                            accountCode += '-';
+                            accountCode += ((departmentName.substr(0,7)).padStart(7, '0')).toUpperCase();
+                            accountCode += '-';
+                         } else { //Govt Regular
+                            accountCode += ((govtCompanyName.substr(0,10)).padStart(10, '0')).toUpperCase();
+                            accountCode += '-';
+                            //accountCode += nameofgrouppcompany.padStart(6, '0');
+                         }
+                         
+                         //Center or State
+                         const centerOrStateFID = Number(botInlineData.state_central); //61954
+                         const centerOrStateName = await getFieldValueUsingFieldIdV1(request, formID, centerOrStateFID);
+                         console.log('Center or State : ', centerOrStateName);
+                         accountCode += ((centerOrStateName.substr(0,3)).padStart(3, '0')).toUpperCase();
+                         
+                         //Circle
+                         const circleFID = Number(botInlineData.circle); //61958
+                         const circleName = await getFieldValueUsingFieldIdV1(request, formID, circleFID);
+                         console.log('Circle : ', circleName);
+                         accountCode += ((circleName.substr(0,3)).padStart(3, '0')).toUpperCase();
+
+                         break;
+
+            case 150254: //VICS - Carrier partner addition
+                         hasSeqNo = 1;
+                         const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const vicsCompanyName = await getFieldValueUsingFieldIdV1(request, formID, vicsCompanyNameFID);
+
                          accountCode += 'W-';
-                         accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
+                         accountCode += ((vicsCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
+                         accountCode += '-';
 
                          //6 digit sequential number, gets reset to 000000 after 999999
                          let vicsSeqNumber = await cacheWrapper.getVICSSeqNumber();
-                         
-                         if(Number(smeSeqNumber) === 999999) {
+                         console.log('from cache vicsSeqNumber : ', vicsSeqNumber);
+
+                         if(Number(vicsSeqNumber) === 999999) {
                             await cacheWrapper.setVICSSeqNumber(0);
                             accountCode += '000000';
                          } else {                            
-                            accountCode += vicsSeqNumber.padStart(6, '0');
-                         }
-                         
+                            accountCode += (vicsSeqNumber.toString()).padStart(6, '0');
+                         }   
+                         console.log('from cache vicsSeqNumber : ', vicsSeqNumber);
                          break;
 
-            case 150443: //GOVT -- Thoda Complicated center/state/circle info
-                        //Govt SI Segment
-                         accountCode += 'G-';
-                         accountCode += nameofthecompany.padStart(10, '0');
-                         accountCode += '-'
-                         accountCode += nameofgrouppcompany.padStart(6, '0');
-                         break;
+            case 150444: //SOHO
+                         hasSeqNo = 1;                         
+                         const sohoCompanyNameFID = Number(botInlineData.name_of_the_company);
+                         const sohoTurnOverFID = Number(botInlineData.micro_segment_turn_over);
 
-            case 150444: //SOHO -- Need - Name of the company
+                         const sohoCompanyName = await getFieldValueUsingFieldIdV1(request, formID, sohoCompanyNameFID);
+                         let sohoTurnOver = await getFieldValueUsingFieldIdV1(request, formID, sohoTurnOverFID);
+
                          accountCode += 'D-';
-                         accountCode += nameofthecompany.padStart(11, '0');
-                         accountCode += '-'
+                         accountCode += ((sohoCompanyName.substr(0,11)).padStart(11, '0')).toUpperCase();
+                         accountCode += '-';
+                         
+                         //sohoTurnOver = sohoTurnOver.toLowerCase();
+                         if(sohoTurnOver < 3) {
+                            sohoTurnOver = 1;
+                         } else if(sohoTurnOver < 6) {
+                            sohoTurnOver = 2;
+                         } else if(sohoTurnOver < 11) {
+                            sohoTurnOver = 3;
+                         } else {
+                            sohoTurnOver = 0;
+                         }
+
+                         accountCode += sohoTurnOver // turnover
+
+                         //5 digit sequential number, gets reset to 00000 after 99999
+                         let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
+                         console.log('from cache sohoSeqNumber : ', sohoSeqNumber);
+                         
+                         if(Number(sohoSeqNumber) === 99999) {
+                            await cacheWrapper.setSohoSeqNumber(0);
+                            accountCode += '00000';
+                         } else {                            
+                            accountCode += (sohoSeqNumber.toString()).padStart(5, '0');
+                         }
+                         console.log('After processsing sohoSeqNumber : ', sohoSeqNumber);
                          break;
         }
+
+        responseData.has_sequence_number = hasSeqNo;
+        responseData.account_code = accountCode;
+
+        return responseData;
     }
 
-    async function getFieldValueUsingFieldIdV1(request, fieldID) {
+    async function getFieldValueUsingFieldIdV1(request, formID, fieldID) {
         let fieldValue = "";
-        let inlineData = JSON.parse(request.activity_inline_data);
 
-        for(const fieldData of inlineData) {                        
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        let formData = await getFormInlineData({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: formID
+        }, 2);
+
+        for(const fieldData of formData) {                        
             if(Number(fieldData.field_id) === fieldID){
-                switch(Number(field_data_type_id)) {
+                console.log('fieldData.field_data_type_id : ', fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+                    
+                    case 57: //Account
+                             fieldValue = fieldData.field_value;
+                             fieldValue = fieldValue.split('|')[1];                             
+                             break;
                     //case 68: break;
                     default: fieldValue = fieldData.field_value;
                 }
+                break;
             }
         }
-
+        
+        console.log('Field Value B4: ', fieldValue);
+        fieldValue = fieldValue.split(" ").join("");
+        console.log('Field Value After: ', fieldValue);
         return fieldValue;
+    }
+
+    async function getFormInlineData(request, flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+         //3. Send both
+
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;            
+            case 3: break;
+            default: return formData;
+        }        
+    }
+
+    async function checkWhetherAccountCodeExists(accountCode) {
+        let error = false,
+            responseData = [];
+
+        //accountCode = 'S-CCMOTO17317-2HARDW';
+        console.log('Searching elastisearch for account-code : ', accountCode);
+        const response = await client.search({
+            index: 'crawling_accounts',
+            body: {
+              query: {
+                match: { activity_cuid_3: accountCode }
+                //"constant_score" : { 
+                //    "filter" : {
+                //        "term" : { 
+                //            "activity_cuid_3": accountCode
+                //        }
+                //    }
+                // }
+              }
+            }
+          })
+
+        console.log('response from ElastiSearch: ', response);        
+        let totalRetrieved = (response.hits.hits).length;
+        console.log('Number of Matched Results : ', totalRetrieved);
+
+        for(const i_iterator of response.hits.hits) {
+            //console.log(i_iterator._source.activity_cuid_3);
+            if(i_iterator._source.activity_cuid_3 === accountCode) {
+                responseData.push({'message' : 'Found a Match!'});
+                console.log('found a Match!');
+            }            
+        }
+
+        return [error, responseData];
     }
 
 }
