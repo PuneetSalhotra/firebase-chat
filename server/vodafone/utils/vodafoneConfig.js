@@ -143,6 +143,12 @@ const digitalMssRoms = require("./digital_mss_caf/roms.json");
 const digitalMssRomsActions = require("./digital_mss_caf/roms_actions.json");
 const digitalMSSBulkOrderToOriginFormMappings = require("./digital_mss_caf/bulk_order_to_origin_form_mappings.json");
 
+// IPLC - Digital IPLC CRF - 152451
+const digitalIPLCMappings = require("./digital_iplc_crf/mappings.json");
+const digitalIPLCLabels = require("./digital_iplc_crf/labels.json");
+const digitalIPLCRoms = require("./digital_iplc_crf/roms_actions.json");
+const digitalIPLCRomsActions = require('./digital_iplc_crf/roms_actions.json');
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -329,7 +335,7 @@ vodafoneConfig = {
         "ANNEXURE_DEFAULTS": {
             "SOURCE_FORM_ID": 1068,
             "SOURCE_FIELD_ID": 11182,
-            "TARGET_FIELD_IDS": [7010, 7011, 7012, 7013, 7014, 7015, 7016, 7017, 7018, 7496, 7030, 7007, 7019, 7020, 7021, 7032, 7035, 7076, 7086, 7088, 7093, 7143, 7144, 7145, 7146, 7196, 7197, 7248, 7200]
+            "TARGET_FIELD_IDS": [7010,7011,7012,7013,7014,7015,7016,7017,7018,7496,7030,7007,7019,7020,7021,7032,7035,7076,7086,7088,7093,7143,7144,7145,7146,7196,7197,7248,7200]
         }
     },
     "134564": {
@@ -552,5 +558,15 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalMssRomsActions,
         "ORIGIN_FORM_ID": 2185,
         "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalMSSBulkOrderToOriginFormMappings
+    },
+    "152451": {
+        "REQUIRED_FORMS": [4379],
+        "TARGET_FORM_ID": 4405,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 152451,
+        "FORM_FIELD_MAPPING_DATA": digitalIpcMappings,
+        "LABELS": digitalIPLCLabels,
+        "ROMS": digitalIPLCRoms,
+        "ROMS_ACTIONS": digitalIPLCRomsActions,
+        "ORIGIN_FORM_ID": 2185,
     }
 };

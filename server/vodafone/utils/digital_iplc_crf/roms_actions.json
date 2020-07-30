@@ -1,0 +1,158 @@
+[
+    {
+        "ACTION": "sum",
+        "BATCH": [
+            {
+                "SOURCE_FIELD_IDS": [
+                    219809,
+                    219810,
+                    219811
+                ],
+                "TARGET_FIELD_ID": 219812,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219813,
+                    219814
+                ],
+                "TARGET_FIELD_ID": 219815,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219816,
+                    219817
+                ],
+                "TARGET_FIELD_ID": 219818,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219819,
+                    219820
+                ],
+                "TARGET_FIELD_ID": 219821,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219822,
+                    219823
+                ],
+                "TARGET_FIELD_ID": 219824,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219825,
+                    219826,
+                    219827
+                ],
+                "TARGET_FIELD_ID": 219828,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219829,
+                    219830,
+                    219831
+                ],
+                "TARGET_FIELD_ID": 219832,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219833,
+                    219834,
+                    219835
+                ],
+                "TARGET_FIELD_ID": 219836,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219837,
+                    219838,
+                    219839
+                ],
+                "TARGET_FIELD_ID": 219840,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219841,
+                    219842,
+                    219843
+                ],
+                "TARGET_FIELD_ID": 219844,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219845,
+                    219846,
+                    219847
+                ],
+                "TARGET_FIELD_ID": 219848,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219849,
+                    219850
+                ],
+                "TARGET_FIELD_ID": 219851,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219852,
+                    219853
+                ],
+                "TARGET_FIELD_ID": 219854,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219855
+                ],
+                "TARGET_FIELD_ID": 219856,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [
+                    219857
+                ],
+                "TARGET_FIELD_ID": 219858,
+                "VALUE": 0
+            }
+        ]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 219865,
+                "TZ_OFFSET": "+05:30"
+            }
+        ]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 219867,
+                "ASSET_TYPE_ID": 127254
+            }
+        ]
+    },
+    {
+        "ACTION": "set_circle_office_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 219868
+            }
+        ]
+    }
+]
