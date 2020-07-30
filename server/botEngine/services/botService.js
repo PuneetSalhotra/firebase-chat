@@ -1506,16 +1506,20 @@ function BotService(objectCollection) {
                             request.bot_id = i.bot_id;
                             request.bot_operation_id = i.bot_operation_id;
                             let baseURL = `http://localhost:7000`,
-                            sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                            //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                            sqsQueueUrl = global.config.excelBotSQSQueue;
                             if (global.mode === "sprint" || global.mode === "staging") {
                                 baseURL = `http://10.0.2.49:4000`;
-                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
                             } else if (global.mode === "preprod") {
                                 baseURL = null;
-                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
                             } else if(global.mode === "prod") {
                                 baseURL = null;
-                                sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
                             }
                             sqs.sendMessage({
                                 // DelaySeconds: 5,
@@ -5959,13 +5963,11 @@ function BotService(objectCollection) {
                 activityCUID1 = '', activityCUID2 = '', activityCUID3 = '',
                 fieldValue = "";
 
-            if(request.hasOwnProperty("opportunity_update"))
-            {
+            if(request.hasOwnProperty("opportunity_update")){
                 fieldValue = cuidValue;
-            }else if
-            (
-                formInlineDataMap.has(Number(cuidValue.field_id))
-            ) {
+            } else if(request.hasOwnProperty("account_code_update")) {
+                fieldValue = cuidValue;
+            } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
                 console.log('fieldData : ', fieldData);
@@ -7098,7 +7100,13 @@ function BotService(objectCollection) {
             request.limit_value = 50;
 
         reminderBotExecutionFn(request, 0);
-        return [false, []];
+
+        let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
+
+        let responseData = [];
+            responseData.push({'No.Of.Reminders': reminderBotData.length});
+
+        return [false, responseData];
     }    
 
     //async function reminderBotExecutionIntermediateFn() {

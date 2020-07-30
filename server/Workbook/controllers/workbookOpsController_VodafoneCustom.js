@@ -49,7 +49,8 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     }
 
     const sqsConsumerApp = Consumer.create({
-        queueUrl: 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo',
+        //queueUrl: 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo',
+        queueUrl: global.config.excelBotSQSQueue,
         handleMessage: async (message) => {
             // console.log("message.Attributes: ", message.Attributes);
             console.log("message.MessageAttributes: ", message.MessageAttributes);

@@ -2682,7 +2682,7 @@ function ActivityTimelineService(objectCollection) {
                         params[13] = workflowReference[0]; //ID
                         params[18] = workflowReference[1]; //Name
                         // p_entity_text_2 19
-                        params[19] = workflowReference[2] || "";
+                        params[19] = workflowReference[4] || workflowReference[2] || "";
                     } catch (err) {
                         console.log(err);
                         console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
@@ -2753,6 +2753,9 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
+                    break;
+                case 70: // LoV Datatype
+                    params[18] = row.field_value;
                     break;
                 case 71: //Cart Datatype
                     params[27] = row.field_value;
@@ -3410,7 +3413,7 @@ async function addFormEntriesAsync(request) {
                     params[13] = workflowReference[0]; //ID
                     params[18] = workflowReference[1]; //Name
                     // p_entity_text_2 19
-                    params[19] = workflowReference[2] || "";
+                    params[19] = workflowReference[4] || workflowReference[2] || "";
                 } catch (err) {
                     console.log(err);
                     console.log('%%%%%%%%%%%%%%%%%%%%%%%%');
@@ -3483,6 +3486,9 @@ async function addFormEntriesAsync(request) {
                 break;
             case 67: // Reminder DataType
                 params[27] = row.field_value;
+                break;
+            case 70: // LoV Datatype
+                params[18] = row.field_value;
                 break;
             }
 

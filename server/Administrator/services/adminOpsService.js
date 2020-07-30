@@ -7829,14 +7829,19 @@ function AdminOpsService(objectCollection) {
                 if(activityData[0].activity_master_data !== null) {
                     activityMasterData = JSON.parse(activityData[0].activity_master_data);
                     delegationData = activityMasterData.form_fill_request;
-                    
-                    for(const i_iterator of delegationData) {
-                        for(const j_iterator of statusBasedFormsList) {
-                            //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
-                            if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
-                                (j_iterator.delegated_to_assests).push(i_iterator);
-                            }
-                        }                     
+
+                    console.log('delegationData : ', delegationData);
+                    //console.log('Array.isArray(delegationData) : ', Array.isArray(delegationData));
+
+                    if(Array.isArray(delegationData)) {
+                        for(const i_iterator of delegationData) {
+                            for(const j_iterator of statusBasedFormsList) {
+                                //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
+                                if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                                    (j_iterator.delegated_to_assests).push(i_iterator);
+                                }
+                            }                     
+                        }
                     }
                 }
             }// End of Appending
