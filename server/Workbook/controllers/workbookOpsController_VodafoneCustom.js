@@ -56,11 +56,17 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
             console.log("message.MessageAttributes: ", message.MessageAttributes);
             const request = JSON.parse(message.Body);
             try {
+                console.time("workbook");
                 await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request);
+                console.timeEnd("workbook");
             } catch (error) {
                 logger.error(`Error processing the excel sqs queue message.`, { type: 'excel_sqs_consumer', request_body: request, error: serializeError(error) });
             }
+            console.log(' ');
+            console.log('Waiting for 5 seconds before processing next sheet....');
             await sleep(5000);
+            console.log('Waiting Done!');
+            console.log(' ');
         },
         sqs: new AWS.SQS(),
         messageAttributeNames: ['Environment']
