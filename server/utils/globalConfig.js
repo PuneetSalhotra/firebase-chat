@@ -46,7 +46,7 @@ config.whitelist = [
     'https://web.greneos.com/',
     'https://dashboard.greneos.com',
     'http://127.0.0.1',
-    'http://localhost',
+    'http://localhost:3000',
 ];
 
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
