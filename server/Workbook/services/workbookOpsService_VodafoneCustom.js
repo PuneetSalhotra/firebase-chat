@@ -100,7 +100,15 @@ function WorkbookOpsService(objectCollection) {
     }
 
     // Bot Operation Logic
-    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {
+    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {        
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation - ENTRY 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+        
         const organizationID = Number(request.organization_id);
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
@@ -381,7 +389,13 @@ function WorkbookOpsService(objectCollection) {
 
         // Parse and process the excel file
         // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
+        console.log(' ');
+        console.log('Started Reading xlsxDataBody ....');
+        console.log('please be patient - This will take time ...');
         const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: true });
+        console.log('Done Reading xlsxDataBody!');
+        console.log(' ');
+
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
@@ -425,7 +439,13 @@ function WorkbookOpsService(objectCollection) {
                 }
             }
         }
+        
+        console.log(' ');
         console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
+        console.log('Is output Form Submitted? - ', outFormIsSubmitted);
+        console.log('Number(outputMappings.length) : ',Number(outputMappings.length));
+        console.log('Number(outputFormID) : ', Number(outputFormID));
+        console.log(' ');
 
         if (outFormIsSubmitted) {
             // If the form exists, fire fields alter
@@ -471,6 +491,8 @@ function WorkbookOpsService(objectCollection) {
 
         let updatedWorkbookS3URL = "";
         try {
+            console.log(' ');
+            console.log('Uploading workbook to S3...');            
             updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURL(workbook, {
                 organization_id: request.organization_id,
                 account_id: request.account_id,
@@ -512,8 +534,16 @@ function WorkbookOpsService(objectCollection) {
             throw new Error(error);
         }
 
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation - EXIT 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log(' ');
+
         return [{}, {}];
-    }
+    };
 
     async function getExcelSheetFilePath(request, botOperationInlineData, options) {
 
@@ -631,6 +661,8 @@ function WorkbookOpsService(objectCollection) {
     };
     
     async function uploadWorkbookToS3AndGetURL(workbook, options = {}) {
+        console.log('creating a temp file in a temp location');
+        console.log('Please be patient - This will take time...');
         const tempXlsxFilePath = tempy.file({ extension: 'xlsx' });
         XLSX.writeFile(workbook, tempXlsxFilePath, {
             cellStyles: true,
@@ -1214,7 +1246,7 @@ function WorkbookOpsService(objectCollection) {
         return [error, formData];
     }
 
-    function updateWorkbookURLOnWorkflowTimeline(request, workflowActivityID, updatedWorkbookS3URL, workbookMappedStreamTypeID) {
+    async function updateWorkbookURLOnWorkflowTimeline(request, workflowActivityID, updatedWorkbookS3URL, workbookMappedStreamTypeID) {
         const workbookURLTimelineRequest = Object.assign({}, request);
 
         let workbookTimelineActionName = Number(workbookMappedStreamTypeID) === 718 ? `mapped` : `updated`;
@@ -1239,7 +1271,7 @@ function WorkbookOpsService(objectCollection) {
         workbookURLTimelineRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
         workbookURLTimelineRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 
-        activityCommonService.activityTimelineTransactionInsertAsync(workbookURLTimelineRequest, {}, workbookMappedStreamTypeID);
+        await activityCommonService.activityTimelineTransactionInsertAsync(workbookURLTimelineRequest, {}, workbookMappedStreamTypeID);
     }
 }
 
