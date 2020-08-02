@@ -2519,13 +2519,13 @@ function RMBotService(objectCollection) {
                             self.assetListUpdatePoolEntry(objR);
                             //self.calculateAssetNewSummary(objR);
 
-                           /* 
+                           
                             if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
                                 //self.calculateAssetNewSummary(request);
                                 await self.assetListUpdatePoolEntry(request);
-                            } */
+                            } 
 
                             request.rm_flag = 2; 
                             request.is_lead_enabled = lead_asset_id; 
@@ -2552,6 +2552,13 @@ function RMBotService(objectCollection) {
                             if(data[0].existing_lead_asset_id > 0){
                                 request.global_array.push({"new_lead_asset_id":lead_asset_id});
                                 logger.info("new_lead_asset_id:: "+lead_asset_id);
+
+                                if(lead_asset_id != data[0].existing_lead_asset_id){
+                                    request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                                    request.target_asset_id = data[0].existing_lead_asset_id;
+                                    //self.calculateAssetNewSummary(request);
+                                    await self.assetListUpdatePoolEntry(request);
+                                }                                 
                                 if(Number(lead_asset_id) == 0){
 
                                     logger.info("LEAD_UNASSIGNMENT"+request.lead_asset_id);;
@@ -2952,6 +2959,13 @@ function RMBotService(objectCollection) {
 
                         request.target_lead_asset_id = lead_asset_id;
                         self.assetListUpdatePoolEntry(request);
+
+                        if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
+                            request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                            request.target_asset_id = data[0].existing_lead_asset_id;
+                            //self.calculateAssetNewSummary(request);
+                            await self.assetListUpdatePoolEntry(request);
+                        } 
 
                         request.lead_asset_id = lead_asset_id;
                         await self.activityAssetMappingUpdateLead(request);                       
