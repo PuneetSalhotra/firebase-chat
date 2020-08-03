@@ -902,6 +902,8 @@ if(mode === 'preprod') {
         "https://preprodweb.greneos.com",
         "https://preproddashboard.greneos.com",
         "https://preproddashboard2.greneos.com",
+        "https://preprodmanagement.greneos.com",
+        'http://localhost:3000',
     ];
 }
 
