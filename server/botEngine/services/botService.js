@@ -1212,6 +1212,12 @@ function BotService(objectCollection) {
                 continue;
             }
 
+            //if(i.bot_operation_type_id === 2 || 
+            //   i.bot_operation_type_id === 17 || 
+            //   i.bot_operation_type_id === 28) {
+            //    continue;
+            //}
+
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
@@ -1496,64 +1502,98 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
-                    // break;
-                    try {
-                        if (
-                            Number(request.organization_id) === 868 ||
-                            Number(request.organization_id) === 912
-                        ) {
-                            request.bot_id = i.bot_id;
-                            request.bot_operation_id = i.bot_operation_id;
-                            let baseURL = `http://localhost:7000`,
-                            //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
-                            sqsQueueUrl = global.config.excelBotSQSQueue;
-                            if (global.mode === "sprint" || global.mode === "staging") {
-                                baseURL = `http://10.0.2.49:4000`;
-                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
-                                sqsQueueUrl = global.config.excelBotSQSQueue;
-                            } else if (global.mode === "preprod") {
-                                baseURL = null;
-                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
-                                sqsQueueUrl = global.config.excelBotSQSQueue;
-                            } else if(global.mode === "prod") {
-                                baseURL = null;
-                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
-                                sqsQueueUrl = global.config.excelBotSQSQueue;
-                            }
-                            sqs.sendMessage({
-                                // DelaySeconds: 5,
-                                MessageBody: JSON.stringify(request),
-                                QueueUrl: sqsQueueUrl,
-                                MessageGroupId: `excel-processing-job-queue-v1`,
-                                MessageDeduplicationId: uuidv4(),
-                                MessageAttributes: {
-                                    "Environment": {
-                                        DataType: "String",
-                                        StringValue: global.mode
-                                    },
-                                }
-                            }, (error, data) => {
-                                if (error) {
-                                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                } else {
-                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-                                }
-                            });
-                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                            //     form: request,
-                            // }, function (error, response, body) {
-                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
-                            // });
+                    //logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
+                    //Only if product variant is selected then only trigger the bot
+                    let flag = 0;
+                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+                    let activityInlineData;
 
-                            // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
-                        } else {
-                            // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
-                        }
-                    } catch (error) {
-                        logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    try{
+                        activityInlineData = JSON.parse(request.activity_inline_data);
+                    } catch(err) {
+                        console.log('Error parsing activity inline data');
+                        //flag = 1;
                     }
+                    
+                    for(const i of activityInlineData) {
+                        if(Number(i.field_data_type_id === 71)) {
+                            let fieldValue = JSON.parse(i.field_value);                            
+                            let cartItems = fieldValue.cart_items;
+                            console.log('Cart Items : ', cartItems);
+
+                            if(cartItems.length > 0) {
+                                console.log('Seaching for custom variant');
+                                for(j of cartItems) {
+                                    console.log(('product_variant_activity_title : ', j.product_variant_activity_title).toLowerCase());
+                                    if((j.product_variant_activity_title).toLowerCase() == 'custom variant') {
+                                        flag = 1
+                                    }
+                                }
+                            } //End of If
+                        }
+                    }
+
+                    if(Number(flag) === 1) {
+                        try {
+                            if (
+                                Number(request.organization_id) === 868 ||
+                                Number(request.organization_id) === 912
+                            ) {
+                                request.bot_id = i.bot_id;
+                                request.bot_operation_id = i.bot_operation_id;
+                                let baseURL = `http://localhost:7000`,
+                                //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
+                                if (global.mode === "sprint" || global.mode === "staging") {
+                                    baseURL = `http://10.0.2.49:4000`;
+                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                                    sqsQueueUrl = global.config.excelBotSQSQueue;
+                                } else if (global.mode === "preprod") {
+                                    baseURL = null;
+                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                                    sqsQueueUrl = global.config.excelBotSQSQueue;
+                                } else if(global.mode === "prod") {
+                                    baseURL = null;
+                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                                    sqsQueueUrl = global.config.excelBotSQSQueue;
+                                }
+                                sqs.sendMessage({
+                                    // DelaySeconds: 5,
+                                    MessageBody: JSON.stringify(request),
+                                    QueueUrl: sqsQueueUrl,
+                                    MessageGroupId: `excel-processing-job-queue-v1`,
+                                    MessageDeduplicationId: uuidv4(),
+                                    MessageAttributes: {
+                                        "Environment": {
+                                            DataType: "String",
+                                            StringValue: global.mode
+                                        },
+                                    }
+                                }, (error, data) => {
+                                    if (error) {
+                                        logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                    } else {
+                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                    }
+                                });
+                                // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                                //     form: request,
+                                // }, function (error, response, body) {
+                                //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                                //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                                // });
+    
+                                // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                            } else {
+                                // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                            }
+                        } catch (error) {
+                            logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        }
+                    } else {
+                        console.log('Its not a custom Variant. Hence not triggering the Bot!');
+                    }
+                    
                     break;
 
                 case 19: // Update CUID Bot
