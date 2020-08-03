@@ -2113,7 +2113,7 @@ function Util(objectCollection) {
         console.log('pwd : ', pwd);
         const ewsConfig = {
             username: 'ESMSMails@vodafoneidea.com',
-            password: pwd, //'July@2020',
+            password: pwd, //'Aug@2020',
             host: 'https://webmail.vodafoneidea.com'    
         };
 
