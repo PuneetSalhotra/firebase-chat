@@ -12,43 +12,6 @@ config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinf
 config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
-//config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
-// config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
-config.whitelist = [
-    'http://officedesk.app',
-    "https://management.officedesk.app",
-    "https://web.officedesk.app",
-    "https://dashboard2.officedesk.app",
-    "https://dashboard.officedesk.app",
-    "https://preprod.officedesk.app",
-    "https://preprodmanagement.officedesk.app",
-    "https://preprodweb.officedesk.app",
-    "https://preproddashboard2.officedesk.app",
-    "https://preproddashboard.officedesk.app",
-    "https://staging.officedesk.app",
-    "https://stagingmanagement.officedesk.app",
-    "https://stagingweb.officedesk.app",
-    "https://stagingdashboard2.officedesk.app",
-    "https://stagingdashboard.officedesk.app",
-    "https://sprintoffice.greneos.com",
-    "https://sprintweb.greneos.com",
-    "https://sprintdashboard.greneos.com",
-    "https://sprintdashboard2.greneos.com",
-    "https://stagingoffice.greneos.com",
-    "https://stagingweb.greneos.com",
-    "https://stagingdashboard.greneos.com",
-    "https://stagingdashboard2.greneos.com",
-    "https://preprodoffice.greneos.com",
-    "https://preprodweb.greneos.com",
-    "https://preproddashboard.greneos.com",
-    "https://preproddashboard2.greneos.com",
-    'https://office.greneos.com/',
-    'https://web.greneos.com/',
-    'https://dashboard.greneos.com',
-    'http://127.0.0.1',
-    'http://localhost',
-];
-
 config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
 config.knowledgeGraphArticleMaxSize = 2
 config.knowledgeGraphUrl = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=" + config.knowledgeGraphArticleMaxSize + "&from=0&query=type"
@@ -308,6 +271,19 @@ if(mode === 'masimukku') {
 
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+    config.whitelist = [
+        "https://staging.officedesk.app",
+        "https://stagingmanagement.officedesk.app",
+        "https://stagingweb.officedesk.app",
+        "https://stagingdashboard2.officedesk.app",
+        "https://stagingdashboard.officedesk.app",
+        "https://stagingoffice.greneos.com",
+        "https://stagingweb.greneos.com",
+        "https://stagingdashboard.greneos.com",
+        "https://stagingdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
 
 }
 
@@ -431,6 +407,19 @@ if(mode === 'local') {
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        "https://staging.officedesk.app",
+        "https://stagingmanagement.officedesk.app",
+        "https://stagingweb.officedesk.app",
+        "https://stagingdashboard2.officedesk.app",
+        "https://stagingdashboard.officedesk.app",
+        "https://stagingoffice.greneos.com",
+        "https://stagingweb.greneos.com",
+        "https://stagingdashboard.greneos.com",
+        "https://stagingdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
 }
 
 if(mode === 'dev') {
@@ -516,6 +505,19 @@ if(mode === 'dev') {
 
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+    config.whitelist = [
+        "https://staging.officedesk.app",
+        "https://stagingmanagement.officedesk.app",
+        "https://stagingweb.officedesk.app",
+        "https://stagingdashboard2.officedesk.app",
+        "https://stagingdashboard.officedesk.app",
+        "https://stagingoffice.greneos.com",
+        "https://stagingweb.greneos.com",
+        "https://stagingdashboard.greneos.com",
+        "https://stagingdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
 
 }
 
@@ -627,6 +629,19 @@ if(mode === 'sprint') {
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        "https://staging.officedesk.app",
+        "https://stagingmanagement.officedesk.app",
+        "https://stagingweb.officedesk.app",
+        "https://stagingdashboard2.officedesk.app",
+        "https://stagingdashboard.officedesk.app",
+        "https://sprintoffice.greneos.com",
+        "https://sprintweb.greneos.com",
+        "https://sprintdashboard.greneos.com",
+        "https://sprintdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
 }
 
 if(mode === 'staging') {
@@ -755,6 +770,19 @@ if(mode === 'staging') {
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        "https://staging.officedesk.app",
+        "https://stagingmanagement.officedesk.app",
+        "https://stagingweb.officedesk.app",
+        "https://stagingdashboard2.officedesk.app",
+        "https://stagingdashboard.officedesk.app",
+        "https://stagingoffice.greneos.com",
+        "https://stagingweb.greneos.com",
+        "https://stagingdashboard.greneos.com",
+        "https://stagingdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
 }
 
 if(mode === 'preprod') {
@@ -864,6 +892,19 @@ if(mode === 'preprod') {
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        "https://preprod.officedesk.app",
+        "https://preprodmanagement.officedesk.app",
+        "https://preprodweb.officedesk.app",
+        "https://preproddashboard2.officedesk.app",
+        "https://preproddashboard.officedesk.app",
+        "https://preprodoffice.greneos.com",
+        "https://preprodweb.greneos.com",
+        "https://preproddashboard.greneos.com",
+        "https://preproddashboard2.greneos.com",
+        "https://preprodmanagement.greneos.com",
+        'http://localhost:3000',
+    ];
 }
 
 if(mode === 'prod') {
@@ -976,6 +1017,17 @@ if(mode === 'prod') {
     config.docusignWebApp = "https://web.greneos.com";
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        'http://officedesk.app',
+        "https://management.officedesk.app",
+        "https://web.officedesk.app",
+        "https://dashboard2.officedesk.app",
+        "https://dashboard.officedesk.app",
+        'https://office.greneos.com/',
+        'https://web.greneos.com/',
+        'https://dashboard.greneos.com',
+        'https://management.greneos.com',
+    ];
 }
 
 
