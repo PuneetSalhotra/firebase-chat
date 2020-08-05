@@ -7,62 +7,62 @@ function CommnElasticService(objectCollection) {
     var responseWrapper = objectCollection.responseWrapper;
     var elasticsearch = require('elasticsearch');
     var client = new elasticsearch.Client({
-       hosts: [  global.config.elastiSearchNode]
+        hosts: [global.config.elastiSearchNode]
     });
 
     this.updateFile =
-        async (request, res) => {
+        async (request,res) => {
             try {
                 var pdfUrl = request.url_path
-                util.downloadS3Object(request, pdfUrl).then(filename => {
+                util.downloadS3Object(request,pdfUrl).then(filename => {
                     var fileFullPath = global.config.efsPath + filename;
                     var filePath = path.join(fileFullPath)
                     setTimeout(() => {
-                        extract(filePath, function (err, documentcontent) {
-                            if (err) {
+                        extract(filePath,function (err,documentcontent) {
+                            if(err) {
                                 console.dir(err)
                                 return err
                             }
-                            var result = updateDocumetInformation(request, documentcontent, pdfUrl, client, res)
+                            var result = updateDocumetInformation(request,documentcontent,pdfUrl,client,res)
                             return result
                         })
-                    }, 1000)
+                    },1000)
                 })
-            } catch (error) {
+            } catch(error) {
                 return Promise.reject(error);
             }
         }
 
     this.addFile =
-        async (request, res) => {
+        async (request,res) => {
             try {
                 var pdfUrl = request.url_path;
-                var temp = await util.downloadS3Object(request, pdfUrl).then(filename => {
+                var temp = await util.downloadS3Object(request,pdfUrl).then(filename => {
                     var fileFullPath = global.config.efsPath + filename;
                     var filePath = path.join(fileFullPath);
                     setTimeout(() => {
-                        extract(filePath, function (err, documentcontent) {
-                            if (err) {
+                        extract(filePath,function (err,documentcontent) {
+                            if(err) {
                                 console.dir(err);
                                 return err;
                             }
-                            var result = addDocumetInformation(request, documentcontent, pdfUrl, client, res);
+                            var result = addDocumetInformation(request,documentcontent,pdfUrl,client,res);
                             return result;
                         });
-                    }, 1000);
+                    },1000);
                 });
-            } catch (error) {
+            } catch(error) {
                 return Promise.reject(error);
             }
         };
 
-    async function addDocumetInformation(request, documentcontent, url, client, res) {
+    async function addDocumetInformation(request,documentcontent,url,client,res) {
         let results = new Array();
         var resultObj = {}
         var document_version = 1;
-        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let date = new Date().toISOString().slice(0,19).replace('T',' ');
 
-        var filename = url.substring(url.lastIndexOf("/") + 1, url.length);
+        var filename = url.substring(url.lastIndexOf("/") + 1,url.length);
         let paramsArray;
         paramsArray =
             new Array(
@@ -76,7 +76,7 @@ function CommnElasticService(objectCollection) {
                 parseInt(request.asset_id),
                 date,
             )
-        results[0] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_insert', paramsArray, 0);
+        results[0] = await db.callDBProcedure(request,'ds_v1_activity_document_mapping_insert',paramsArray,0);
 
         paramsArray =
             new Array(
@@ -86,8 +86,8 @@ function CommnElasticService(objectCollection) {
                 date,
             )
         try {
-            results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-        } catch (error) {
+            results[1] = await db.callDBProcedure(request,'ds_v1_activity_document_mapping_history_insert',paramsArray,0);
+        } catch(error) {
             console.error(error)
 
         }
@@ -109,31 +109,31 @@ function CommnElasticService(objectCollection) {
             }
         });
         resultObj['document_id'] = results[0][0]['activity_document_id'];
-        return res.send(responseWrapper.getResponse(false, resultObj, 200, request));
+        return res.send(responseWrapper.getResponse(false,resultObj,200,request));
     }
 
-    async function updateDocumetInformation(request, documentcontent, url, client, res) {
+    async function updateDocumetInformation(request,documentcontent,url,client,res) {
         let results = new Array();
         var resultObj = {}
         let paramsArray;
         let version_id = 1;
-        var filename = url.substring(url.lastIndexOf("/") + 1, url.length);
-        let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        var filename = url.substring(url.lastIndexOf("/") + 1,url.length);
+        let date = new Date().toISOString().slice(0,19).replace('T',' ');
         paramsArray = new Array(
             parseInt(request.organization_id),
             parseInt(request.activity_id),
             parseInt(request.document_id || request.id)
         )
 
-        let error, responseData = [];
+        let error,responseData = [];
         const queryString = util.getQueryString(
             "ds_p1_activity_document_mapping_select",
             paramsArray,
             1
         );
-        if (queryString !== "") {
+        if(queryString !== "") {
             await db
-                .executeQueryPromise(1, queryString, request)
+                .executeQueryPromise(1,queryString,request)
                 .then(data => {
                     responseData = data;
                     error = false;
@@ -142,7 +142,7 @@ function CommnElasticService(objectCollection) {
                     error = err;
                 });
         }
-        if (responseData.length > 0) {
+        if(responseData.length > 0) {
 
             paramsArray =
                 new Array(
@@ -156,7 +156,7 @@ function CommnElasticService(objectCollection) {
                     parseInt(request.asset_id),
                     date
                 )
-            results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_update', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request,'ds_p1_activity_document_mapping_update',paramsArray,0);
 
             const result = await client.updateByQuery({
                 index: 'documentrepository',
@@ -195,16 +195,16 @@ function CommnElasticService(objectCollection) {
                     date,
                 )
             try {
-                results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-            } catch (error) {
+                results[1] = await db.callDBProcedure(request,'ds_v1_activity_document_mapping_history_insert',paramsArray,0);
+            } catch(error) {
                 console.error(error)
 
             }
             resultObj['document_id'] = request.document_id || request.id
-            res.send(responseWrapper.getResponse(false, resultObj, 200, request));
+            res.send(responseWrapper.getResponse(false,resultObj,200,request));
         } else {
             var err = 'data not found'
-            res.send(responseWrapper.getResponse(err, {}, -9998, request));
+            res.send(responseWrapper.getResponse(err,{},-9998,request));
         }
     }
 
@@ -212,7 +212,7 @@ function CommnElasticService(objectCollection) {
     this.deleteFile =
         async (request) => {
             try {
-                let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                let date = new Date().toISOString().slice(0,19).replace('T',' ');
                 var resultObj = {}
                 paramsArray = new Array(
                     parseInt(request.organization_id),
@@ -224,9 +224,9 @@ function CommnElasticService(objectCollection) {
                     paramsArray,
                     1
                 );
-                if (queryString !== "") {
+                if(queryString !== "") {
                     await db
-                        .executeQueryPromise(1, queryString, request)
+                        .executeQueryPromise(1,queryString,request)
                         .then(data => {
                             responseData = data;
                             error = false;
@@ -235,7 +235,7 @@ function CommnElasticService(objectCollection) {
                             error = err;
                         });
                 }
-                if (responseData.length > 0) {
+                if(responseData.length > 0) {
 
 
                     const result = await client.deleteByQuery({
@@ -260,7 +260,7 @@ function CommnElasticService(objectCollection) {
                             date
                         );
 
-                    results[0] = await db.callDBProcedure(request, 'ds_p1_activity_document_mapping_delete', paramsArray, 0);
+                    results[0] = await db.callDBProcedure(request,'ds_p1_activity_document_mapping_delete',paramsArray,0);
 
                     paramsArray =
                         new Array(
@@ -270,17 +270,17 @@ function CommnElasticService(objectCollection) {
                             date,
                         )
                     try {
-                        results[1] = await db.callDBProcedure(request, 'ds_v1_activity_document_mapping_history_insert', paramsArray, 0);
-                    } catch (error) {
+                        results[1] = await db.callDBProcedure(request,'ds_v1_activity_document_mapping_history_insert',paramsArray,0);
+                    } catch(error) {
                         console.error(error);
                     }
                     return resultObj;
                 } else {
                     var err = {};
                     err = 'data not found';
-                    res.send(responseWrapper.getResponse(err, {}, -9998, request));
+                    res.send(responseWrapper.getResponse(err,{},-9998,request));
                 }
-            } catch (error) {
+            } catch(error) {
                 return Promise.reject(error);
             }
         };
@@ -289,164 +289,172 @@ function CommnElasticService(objectCollection) {
     this.getResult = async (request) => {
         let error = true,
             responseData = [];
-        
+
         try {
-                var flag = true;
-                var responseObj = {};
-                var responseArray = [];
-                var dynamicQuery = {};
-                var dynamicQueryArray = [];
-                var queryType = "cross_fields";
-                const validSearchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
-                var operator = 'and';
-                var page_size = 50;
-                var page_no = 0;
+            var flag = true;
+            var responseObj = {};
+            var responseArray = [];
+            var dynamicQuery = {};
+            var dynamicQueryArray = [];
+            var queryType = "cross_fields";
+            const validSearchFields = ["product","content","documentdesc","documenttitle","filetitle","filename"];
+            var operator = 'and';
+            var page_size = 50;
+            var page_no = 0;
 
-                if (request.hasOwnProperty('page_size')) {
-                    page_size = request.page_size;
-                }
+            if(request.hasOwnProperty('page_size')) {
+                page_size = request.page_size;
+            }
 
-                if (request.hasOwnProperty('page_no')) {
-                    page_no = request.page_no;
-                }
+            if(request.hasOwnProperty('page_no')) {
+                page_no = request.page_no;
+            }
 
-                var pagination = {};
-                    pagination['size'] = page_size,
-                    pagination['from'] = page_no;
+            var pagination = {};
+            pagination['size'] = page_size,
+                pagination['from'] = page_no;
 
-                var searchFields = [];
-                
-                if (request.hasOwnProperty('fields') && request.fields.length > 0) {
-                    for (var i = 0; i < request.fields.length; i++) {
-                        if (validSearchFields.includes(request.fields[i])) {
-                            searchFields.push(request.fields[i]);
-                        } else {
-                            flag = false;
-                            return request.fields[i] + ' fields is not valid';
-                            //break;
-                        }
-                    }
-                } else {
-                    searchFields = ["product", "content", "documentdesc", "documenttitle", "filetitle", "filename"];
-                }
+            var searchFields = [];
 
-                if (request.hasOwnProperty('search_option') && request.search_option.length > 0) {
-                    if (request.search_option == 'EXACT_SEARCH') {
-                        queryType = "phrase";
+            if(request.hasOwnProperty('fields') && request.fields.length > 0) {
+                for(var i = 0; i < request.fields.length; i++) {
+                    if(validSearchFields.includes(request.fields[i])) {
+                        searchFields.push(request.fields[i]);
                     } else {
-                        operator = request.search_option;
+                        flag = false;
+                        return request.fields[i] + ' fields is not valid';
+                        //break;
                     }
                 }
-                if (flag) {
-                    const orgid = request.organization_id;
-                    var orgFilter = {
+            } else {
+                searchFields = ["product","content","documentdesc","documenttitle","filetitle","filename"];
+            }
+
+            if(request.hasOwnProperty('search_option') && request.search_option.length > 0) {
+                if(request.search_option == 'EXACT_SEARCH') {
+                    queryType = "phrase";
+                } else {
+                    operator = request.search_option;
+                }
+            }
+            if(flag) {
+                const orgid = request.organization_id;
+                var orgFilter = {
+                    "match": {
+                        "orgid": orgid
+                    }
+                };
+
+                dynamicQueryArray.push(orgFilter);
+                var idFilter = '';
+
+                if(request.hasOwnProperty('id') && request.id != null && request.id != '') {
+                    idFilter = {
                         "match": {
-                            "orgid": orgid
+                            "id": request.id
                         }
                     };
+                    dynamicQueryArray.push(idFilter);
+                }
+                if(request.hasOwnProperty('search_text') &&
+                    request.search_text != null &&
+                    request.search_text != '') {
+                    let searchText = (request.search_text).toString();
 
-                    dynamicQueryArray.push(orgFilter);
-                    var idFilter = '';
+                    if(request.search_text == null || request.search_text.length < 3) {
+                        flag = false;
+                        let error_msg = 'minimum 3 char required for search';
+                        responseData.push({"error_msg": error_msg});
 
-                    if (request.hasOwnProperty('id') && request.id != null && request.id != '') {
-                        idFilter = {
-                            "match": {
-                                "id": request.id
-                            }
-                        };
-                        dynamicQueryArray.push(idFilter);
-                    }
-                    if (request.hasOwnProperty('search_text') && 
-                        request.search_text != null &&
-                        request.search_text != '') 
-                    {
-                        let searchText = (request.search_text).toString();
+                        return [error,responseData];
+                        //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
 
-                        if (request.search_text == null || request.search_text.length < 3) {
-                            flag = false;
-                            let error_msg = 'minimum 3 char required for search';
-                                responseData.push({ "error_msg": error_msg });
-                            
-                            return [error, responseData];
-                            //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+                    } else if(searchText === 'true' || searchText.includes('=')) {
+                        flag = false;
+                        let error_msg = 'seems like malicious search!';
+                        responseData.push({"error_msg": error_msg});
 
-                        } else if (searchText === 'true' || searchText.includes('=')) {
+                        return [error,responseData];
+                        //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+
+                    } else {
+                        const search_text = (request.search_text).toString();
+
+                        const pattrn = new RegExp(/^[a-zA-Z0-9@_. -]*$/);// allow only number alpha numberic and spaces
+                        const searchTextError = !pattrn.test(search_text);
+                        if(searchTextError) {
                             flag = false;
                             let error_msg = 'seems like malicious search!';
-                                responseData.push({ "error_msg": error_msg });
-                            
-                            return [error, responseData];
-                            //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+                            responseData.push({"error_msg": error_msg});
+                            return [error,responseData];
+                        }
 
-                        } else {
-                            const search_text = (request.search_text).toString();
+                        console.log('typeof search_text : ',typeof search_text);
+                        console.log('search_text : ',search_text);
 
-                            console.log('typeof search_text : ', typeof search_text);
-                            console.log('search_text : ', search_text);
-
-                            dynamicQueryArray.push({
-                                "bool": {
-                                    "should": {
-                                        "multi_match": {
-                                            "query": search_text,
-                                            "type": queryType,
-                                            "fields": searchFields,
-                                            "operator": operator
-                                        }
+                        dynamicQueryArray.push({
+                            "bool": {
+                                "should": {
+                                    "multi_match": {
+                                        "query": search_text,
+                                        "type": queryType,
+                                        "fields": searchFields,
+                                        "operator": operator
                                     }
                                 }
-                            });
-                        }
+                            }
+                        });
                     }
-
-                    var query = {};
-                    var mainQueryObj = {};
-                    var quertObjArray = {};
-                        quertObjArray['must'] = dynamicQueryArray;
-
-                    mainQueryObj['bool'] = quertObjArray;
-                    query['query'] = mainQueryObj;
-
-                    if (!request.hasOwnProperty('id')) {
-                        query = Object.assign(query, pagination);
-                    }                    
-                    
-                    console.log('queryType : ', queryType);
-                    console.log('searchFields : ', searchFields);
-                    console.log('operator : ', operator);                    
-                    console.log('QUERY : ', query);
-                    console.log('dynamicQueryArray : ', dynamicQueryArray);
-
-                    const result = await client.search({
-                        index: 'documentrepository',
-                        type: "_doc",
-                        body: query
-                    });
-
-                    for (let j = 0; j < result.hits['hits'].length; j++) {
-                        var obj = {};
-                            obj['id'] = result.hits['hits'][j]['_source']['id'];
-                            obj['orgid'] = result.hits['hits'][j]['_source']['orgid'];
-                            obj['product'] = result.hits['hits'][j]['_source']['product'];
-                            obj['documentdesc'] = result.hits['hits'][j]['_source']['documentdesc'];
-                            obj['documenttitle'] = result.hits['hits'][j]['_source']['documenttitle'];
-                            obj['assetid'] = result.hits['hits'][j]['_source']['assetid'];
-                            obj['s3url'] = result.hits['hits'][j]['_source']['s3url'];
-                            obj['productid'] = result.hits['hits'][j]['_source']['productid'];
-                            obj['filename'] = result.hits['hits'][j]['_source']['filename'];
-                            obj['activity_id'] = result.hits['hits'][j]['_source']['productid'];
-
-                        responseArray.push(obj);
-                    }
-
-                    //responseObj['response'] = responseArray;
-                    return [false, responseArray];
                 }
-            } catch (error) {
-                //return Promise.reject(error);
-                return [error, []];
+
+                var query = {};
+                var mainQueryObj = {};
+                var quertObjArray = {};
+                quertObjArray['must'] = dynamicQueryArray;
+
+                mainQueryObj['bool'] = quertObjArray;
+                query['query'] = mainQueryObj;
+
+                if(!request.hasOwnProperty('id')) {
+                    query = Object.assign(query,pagination);
+                }
+
+                console.log('queryType : ',queryType);
+                console.log('searchFields : ',searchFields);
+                console.log('operator : ',operator);
+                console.log('QUERY : ',query);
+                console.log('dynamicQueryArray : ',dynamicQueryArray);
+
+                const result = await client.search({
+                    index: 'documentrepository',
+                    type: "_doc",
+                    body: query
+                });
+
+                for(let j = 0; j < result.hits['hits'].length; j++) {
+                    var obj = {};
+                    obj['id'] = result.hits['hits'][j]['_source']['id'];
+                    obj['orgid'] = result.hits['hits'][j]['_source']['orgid'];
+                    obj['product'] = result.hits['hits'][j]['_source']['product'];
+                    obj['documentdesc'] = result.hits['hits'][j]['_source']['documentdesc'];
+                    obj['documenttitle'] = result.hits['hits'][j]['_source']['documenttitle'];
+                    obj['assetid'] = result.hits['hits'][j]['_source']['assetid'];
+                    obj['s3url'] = result.hits['hits'][j]['_source']['s3url'];
+                    obj['productid'] = result.hits['hits'][j]['_source']['productid'];
+                    obj['filename'] = result.hits['hits'][j]['_source']['filename'];
+                    obj['activity_id'] = result.hits['hits'][j]['_source']['productid'];
+
+                    responseArray.push(obj);
+                }
+
+                //responseObj['response'] = responseArray;
+                return [false,responseArray];
             }
-        };
+        } catch(error) {
+            //return Promise.reject(error);
+            return [error,[]];
+        }
+    };
 }
 
 
