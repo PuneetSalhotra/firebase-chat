@@ -131,11 +131,16 @@ function WorkbookOpsService(objectCollection) {
                 botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
                 botOperationInlineData = botOperationInlineData.bot_operations.map_workbook;
 
+                console.log(' ');
+                console.log('////////////////////////////////');
+                console.log('Opportunity - ', botOperationInlineData.activity_type_name);
+                console.log('////////////////////////////////');
+                console.log(' ');
             } else {
                 throw new Error(`No bot operation data found for bot_operation_id ${request.bot_operation_id}`);
             }
         } catch (error) {
-            throw new Error(error)
+            throw new Error(error);
         }
         // Flags
         const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
@@ -160,6 +165,8 @@ function WorkbookOpsService(objectCollection) {
             });
         }
 
+        console.log('Excel sheet path from botoperation inline data : ', excelSheetFilePath);
+
         let workflowActivityData = [];
         try {
             workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -182,7 +189,7 @@ function WorkbookOpsService(objectCollection) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
 
-        console.log('excelSheetFilePath : ', excelSheetFilePath);
+        console.log('Final excelSheetFilePath after processing from activity list table: ', excelSheetFilePath);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -207,7 +214,7 @@ function WorkbookOpsService(objectCollection) {
             logger.error("Error fetching sheet index from single selection", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
         }
-        logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
+        logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' });
 
         const inputMappings = botOperationInlineData.mappings[sheetIndex].input;
         let outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
@@ -858,7 +865,7 @@ function WorkbookOpsService(objectCollection) {
         // Fetch input cell value map for each formID
         for (const formID of inputFormIDsSet) {
             const inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, formIDToInputMappingsJSON[formID]);
-            inputCellToValueMasterMap = new Map(function* () { yield* inputCellToValueMasterMap; yield* inputCellToValueMap }());
+            inputCellToValueMasterMap = new Map(function* () { yield* inputCellToValueMasterMap; yield* inputCellToValueMap; }());
         }
 
         debug_info("inputFormIDsSet: ", inputFormIDsSet);
