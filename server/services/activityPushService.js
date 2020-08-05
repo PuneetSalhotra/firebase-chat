@@ -26,8 +26,11 @@ function ActivityPushService(objectCollection) {
         msg.activity_id = request.activity_id;
 
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
-            if (err === false) {
+        objectCollection.activityCommonService.getActivityDetails(request, 0, async (err, activityData) => {
+
+            console.log('activityData.length : ', activityData.length);
+                        
+            if (err === false && activityData.length > 0) {
                 var activityTitle = activityData[0]['activity_title'];
                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
 
