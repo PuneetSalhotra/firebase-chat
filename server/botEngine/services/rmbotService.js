@@ -750,6 +750,31 @@ function RMBotService(objectCollection) {
     }
    }
 
+   this.TriggerRoundRobin = async function (request) {
+
+        let [err, assetData] = await self.getNextRoundRobinAsset(request);
+        if(assetData.length == 0){
+
+            request.global_array.push({"END_OF_FLOW":"NO ASSET RETURNED IN ROUND ROBIN"});
+            self.AIEventTransactionInsert(request);
+            return [false,{}];
+
+        }else{
+            request.global_array.push({"AFTER_EXECUTING_ROUND_ROBIN":"TARGET RESOURCE IS "+assetData[0].asset_id});
+            //request.duration_in_minutes = 0;
+            request.target_status_lead_asset_id = assetData[0].asset_id;
+            request.target_status_lead_asset_name = assetData[0].operating_asset_first_name;
+            request.res_account_id = 0;
+            request.res_workforce_id = 0;
+            request.res_asset_type_id = 0;
+            request.res_asset_category_id = 0;
+            request.res_asset_id = assetData[0].asset_id;
+            self.AIEventTransactionInsert(request);
+           
+            self.addParticipantMakeRequest(request);
+        }
+   }
+
    this.RMAssignWorkflow = async function (request) {
     let [err, assetData] = await self.getAvailableResourcePoolAssetType(request);
         let resources_exists = false;
@@ -1577,9 +1602,15 @@ function RMBotService(objectCollection) {
             request.global_array.push({"UNALLOCATE_WORKFLOW ":"MAKING THE WORKLOW UNALLOCATED "});
             await self.unallocatedWorkflowInsert(request);
 
-            request.global_array.push({"RESOURCE_POOL_TRIGGER":"TRIGGER THE RESOURCE POOL"});
-            //await self.RMLoopInResoources(request);
-            await self.RMAssignWorkflow(request);
+            request.global_array.push({"activity_type_flag_round_robin":request.activity_type_flag_round_robin});
+            if(request.activity_type_flag_round_robin == 1){ 
+                request.global_array.push({"ROUND_ROBIN_FLAG_SET":"HENCE EXECUTING ROUND ROBIN FEATURE"});
+                await self.TriggerRoundRobin(request);
+            }else{
+                request.global_array.push({"ROUND_ROBIN_FLAG_NOT_SET":"TRIGGER THE AssinWorkflow POOL"});
+                //await self.RMLoopInResoources(request);
+                await self.RMAssignWorkflow(request);
+            }
 
         }catch(error){
             console.log("error :: "+error);
@@ -2523,7 +2554,7 @@ function RMBotService(objectCollection) {
                             if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
-                                //self.calculateAssetNewSummary(request);
+                                //self.calculateAssetNewSummaryV1(request);
                                 await self.assetListUpdatePoolEntry(request);
                             } 
 
@@ -3006,7 +3037,325 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
+    } 
+
+    this.getNextRoundRobinAsset = async function(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(  
+            request.organization_id, 
+            request.asset_type_id,
+            request.activity_id,
+            util.getCurrentUTCTime()                
+        );        
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset', paramsArr);
+
+        if (queryString !== '') {
+            request.global_array.push({"getNextRoundRobinAsset":queryString});
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }     
+
+    this.calculateAssetNewSummaryV1 = async function(request){
+
+        let read_efficiency = 0;
+        let work_efficiency = 0;
+        let status_no_rollback_efficiency = 0;
+        let customer_exposure = 0;
+        let industry_exposure = 0;
+        let workflow_exposure = 0;
+        let workflow_type_exposure = 0;
+        let workflow_category_exposure = 0;
+
+        let industry_score = 0;
+        let customer_score = 0;
+        let workflow_score = 0;
+        let workflow_type_score = 0;
+        let workflow_category_score = 0;
+        let status_no_rollback_score = 0;
+
+        let idLeadAsset = request.lead_asset_id;
+
+        let rmInlineData = {};
+        rmInlineData.read_efficiency="";
+        rmInlineData.work_efficiency={};
+        rmInlineData.status_no_rollback={};
+        rmInlineData.customer_exposure={}
+        rmInlineData.industry_exposure={};
+        rmInlineData.workflow_exposure={};
+        rmInlineData.workflow_type_exposure={};
+        rmInlineData.workflow_category_exposure={};        
+
+        console.log("rmInlineData :: ",rmInlineData);
+
+        let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
+
+        if(data.length == 0){
+            console.log("No Activities exists, hence total_score = -1");
+            return[false, {"total_score":-1, "rm_bot_scores":[]}];
+        }
+
+        let reqObj = Object.assign({},request);
+        reqObj.target_asset_id = idLeadAsset;
+        request.target_asset_id = idLeadAsset;
+        reqObj.summary_id = 6;
+        reqObj.flag = 0;
+        let inlineData = {};
+        
+        let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
+        console.log("summary_data :: "+JSON.stringify(summaryData));
+        if(summaryData.length == 1){
+            rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
+        }
+        
+        console.log("Activity activity_type_id***** :: "+data[0].activity_type_id);
+        console.log("Activity activity_type_tag_id***** :: "+data[0].activity_type_tag_id);
+        console.log("Activity tag_type_id***** :: "+data[0].tag_type_id);
+        console.log("Activity activity_status_id*** :: "+data[0].activity_status_id);
+        console.log("Activity industry_id********** :: "+data[0].industry_id);
+        console.log("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
+
+        request.flag = 1;
+        request.entity_id = data[0].activity_type_id;
+        let [error1, activityTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error2, activityTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTypeIntimeCount = 0;
+        let activityTypeCount = 0;
+        
+        try{
+            if(activityTypeStatusCount.length > 0)
+            {
+                if(activityTypeIntimeStatusCount.length > 0){
+                    if(Number(activityTypeStatusCount[0].activity_type_count) > 0){
+                        workflow_score = (Number(activityTypeIntimeStatusCount[0].activity_type_count)/Number(activityTypeStatusCount[0].activity_type_count)).toFixed(2);
+                        activityTypeIntimeCount = Number(activityTypeIntimeStatusCount[0].activity_type_count);
+                        activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                    }else{
+                        workflow_score = 0;
+                        activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                        activityTypeIntimeCount = Number(activityTypeIntimeStatusCount[0].activity_type_count);                        
+                    }
+                }else{
+                    workflow_score = 0;
+                    activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                    activityTypeIntimeCount = 0;
+                }
+            }else{
+                workflow_score = 0;
+            }
+            
+            console.log("rmInlineData.workflow_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_exposure[data[0].activity_type_id] = {"intime":activityTypeIntimeCount,"total":activityTypeCount, "workflow_id":data[0].activity_type_id,"workflow_name":data[0].activity_type_name,"workflow_score":workflow_score};
+            //JSON.parse(rmInlineData.workflow_exposure).dat=workflow_score;
+        }catch(e){
+            console.log(e);
+        }
+
+        request.flag = 2;
+        request.entity_id = data[0].activity_type_tag_id;
+        let [error3, activityTypeTagStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error4, activityTypeTagIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTypeTagIntimeCount = 0;
+        let activityTypeTagCount = 0;
+
+        console.log("Number(activityTypeTagStatusCount[0].activity_type_tag_count) "+Number(activityTypeTagStatusCount[0].activity_type_tag_count));
+        console.log("Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count) "+Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count));
+    
+        try{
+            if(activityTypeTagStatusCount.length > 0)
+            {
+                if(activityTypeTagIntimeStatusCount.length > 0){
+                    if(Number(activityTypeTagStatusCount[0].activity_type_tag_count) > 0){
+                        workflow_type_score = (Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count)/Number(activityTypeTagStatusCount[0].activity_type_tag_count)).toFixed(2);
+                        activityTypeTagIntimeCount = Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count);
+                        activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                    }else{
+                        workflow_type_score = 0;
+                        activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                        activityTypeTagIntimeCount = Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count);                        
+                    }
+                }else{
+                    workflow_type_score = 0;
+                    activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                    activityTypeTagIntimeCount = 0;
+                }
+            }else{
+                workflow_type_score = 0;
+            }
+            
+            console.log("rmInlineData.workflow_type_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_type_exposure[data[0].activity_type_tag_id] = {"intime":activityTypeTagIntimeCount,"total":activityTypeTagCount, "workflow_type_id":data[0].activity_type_tag_id,"workflow_type_name":data[0].activity_type_tag_name,"workflow_type_score":workflow_type_score};
+            //JSON.parse(rmInlineData.workflow_type_exposure).dat=workflow_score;
+        }catch(e){
+            console.log(e);
+        }
+
+        request.flag = 3;
+        request.entity_id = data[0].tag_type_id;
+        let [error5, activityTagTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error6, activityTagTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTagTypeIntimeCount = 0;
+        let activityTagTypeCount = 0;
+
+        console.log("Number(activityTagTypeStatusCount[0].tag_type_count) "+Number(activityTagTypeStatusCount[0].tag_type_count));
+        console.log("Number(activityTagTypeIntimeStatusCount[0].tag_type_count) "+Number(activityTagTypeIntimeStatusCount[0].tag_type_count));
+            
+        try{
+            if(activityTagTypeStatusCount.length > 0)
+            {
+                if(activityTagTypeIntimeStatusCount.length > 0){
+                    if(Number(activityTagTypeStatusCount[0].tag_type_count) > 0){
+                        workflow_category_score = (Number(activityTagTypeIntimeStatusCount[0].tag_type_count)/Number(activityTagTypeStatusCount[0].tag_type_count)).toFixed(2);
+                        activityTagTypeIntimeCount = Number(activityTagTypeIntimeStatusCount[0].tag_type_count);
+                        activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                    }else{
+                        workflow_category_score = 0;
+                        activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                        activityTagTypeIntimeCount = Number(activityTagTypeIntimeStatusCount[0].tag_type_count);                        
+                    }
+                }else{
+                    workflow_category_score = 0;
+                    activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                    activityTagTypeIntimeCount = 0;
+                }
+            }else{
+                workflow_category_score = 0;
+            }
+            
+            console.log("rmInlineData.workflow_category_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_category_exposure[data[0].tag_type_id] = {"intime":activityTagTypeIntimeCount,"total":activityTagTypeCount, "workflow_category_id":data[0].tag_type_id,"workflow_type_name":data[0].tag_type_name,"workflow_category_score":workflow_category_score};
+            //JSON.parse(rmInlineData.workflow_exposure).dat=workflow_score;
+        }catch(e){
+            console.log(e);
+        }
+        //read efficiency
+        //rollback
+        request.flag = 6;
+        request.entity_id = request.target_asset_id;
+        let [error11, totalUpdateCount] = await self.assetTaskParticipatedCount(request);
+        let [error12, totalIntimeUpdateCount] = await self.assetTaskLeadedCount(request);
+        let totalUpdatesIntimeCount = 0;
+        let totalUpdatesCount = 0;
+        let totalUpdatesJson = {};
+
+        try{
+            if(totalUpdateCount.length > 0)
+            {
+                if(totalIntimeUpdateCount.length > 0){
+                    if(Number(totalUpdateCount[0].update_count) > 0){
+                        read_efficiency = (Number(totalIntimeUpdateCount[0].update_count)/Number(totalUpdateCount[0].update_count)).toFixed(2);
+                        totalUpdatesIntimeCount = Number(totalIntimeUpdateCount[0].update_count);
+                        totalUpdatesCount = Number(totalUpdateCount[0].update_count);
+                    }else{
+                        read_efficiency = 0;
+                        totalUpdatesCount = Number(totalUpdateCount[0].update_count);  
+                        totalUpdatesIntimeCount = Number(totalIntimeUpdateCount[0].update_count);
+                    }            
+                }else{
+                    read_efficiency = 0;
+                    totalUpdatesCount = Number(totalUpdateCount[0].update_count);  
+                    totalUpdatesIntimeCount = 0;
+                }
+            }else{
+                read_efficiency = 0;
+            }
+            console.log("totalUpdatesIntimeCount : "+totalUpdatesIntimeCount+" totalUpdatesCount"+totalUpdatesCount+" read_efficiency :"+read_efficiency);
+            rmInlineData.read_efficiency=read_efficiency?read_efficiency:0;
+        }catch(e){
+            console.log(e);
+        }
+
+        request.flag = 7;
+        
+        request.entity_id = data[0].activity_status_id;
+        let [error13, totalStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error14, totalIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let totalIntimeCount = 0;
+        let totalCount = 0;
+        let totalJson = {};
+        try{
+            if(totalStatusCount.length > 0)
+            {
+                if(totalIntimeStatusCount.length > 0){
+                    if(Number(totalStatusCount[0].activity_count) > 0){
+                        work_efficiency = (Number(totalIntimeStatusCount[0].activity_count)/Number(totalStatusCount[0].activity_count)).toFixed(2);
+                        totalIntimeCount = Number(totalIntimeStatusCount[0].activity_count);
+                        totalCount = Number(totalStatusCount[0].activity_count);
+                    }else{
+                        work_efficiency = 0;
+                        totalIntimeCount = Number(totalIntimeStatusCount[0].activity_count);
+                        totalCount = Number(totalStatusCount[0].activity_count);                        
+                    }               
+                }else{
+                    work_efficiency = 0;
+                    totalIntimeCount = 0;
+                    totalCount = Number(totalStatusCount[0].activity_count);  
+                }
+            }else{
+                work_efficiency = 0;
+            }
+            rmInlineData.work_efficiency[data[0].activity_status_id]={"intime":totalIntimeCount,"total":totalCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "work_efficiency":work_efficiency};;
+        }catch(e){
+            console.log(e);
+        }
+
+        request.flag = 8;
+        
+        request.entity_id = data[0].activity_status_id;
+        let [error15, totalStatusCount1] = await self.assetTaskParticipatedCount(request);
+        let [error16, totalRollbackStatusCount] = await self.assetTaskLeadedCount(request);
+        let rollbackCount = 0;
+        let overallCount = 0;
+        let totalNoRollbackCount = 0;
+
+        try{
+            if(totalStatusCount1.length > 0)
+            {
+                if(totalRollbackStatusCount.length > 0){
+                    if(Number(totalStatusCount1[0].activity_status_count) > 0){
+                        status_no_rollback_efficiency = ((Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count))/Number(totalStatusCount1[0].activity_status_count)).toFixed(2);
+                        rollbackCount = Number(totalRollbackStatusCount[0].status_rollback_count);
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);      
+                        totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
+                    }else{
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);  
+                        totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);
+                        status_no_rollback_efficiency = 0;                        
+                    }
+
+                }else{
+                    totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count);
+                    overallCount = Number(totalStatusCount1[0].activity_status_count);
+                    status_no_rollback_efficiency = 1;
+                }
+            }else{
+                status_no_rollback_efficiency = 0;
+            }
+            logger.info("status_no_rollback_efficiency"+status_no_rollback_efficiency+" :: rollbackCount"+rollbackCount+" :: totalNoRollbackCount"+totalNoRollbackCount)
+            rmInlineData.status_no_rollback[data[0].activity_status_id]={"intime":totalNoRollbackCount,"total":overallCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "status_no_rollback_efficiency":status_no_rollback_efficiency};;
+        }catch(e){
+            console.log(e);
+        }
+
+        console.log("rmInlineData ",rmInlineData);
+        let objReq1 = Object.assign({}, request);
+        objReq1.inline_data = JSON.stringify(rmInlineData);
+        objReq1.asset_id = request.lead_asset_id;
+        objReq1.monthly_summary_id = 6;
+        self.assetSummaryTransactionInsert(objReq1);
+        return rmInlineData;
     }
+ 
         
     }
 

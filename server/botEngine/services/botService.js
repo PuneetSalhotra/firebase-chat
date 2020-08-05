@@ -3092,6 +3092,13 @@ function BotService(objectCollection) {
             newReq.activity_type_flag_persist_role = 0;
         }
 
+        // Flag to round robin on the activity type (workflow type)
+        if (inlineData.hasOwnProperty("activity_type_flag_round_robin")) {
+            newReq.activity_type_flag_round_robin = Number(inlineData.activity_type_flag_round_robin);
+        } else {
+            newReq.activity_type_flag_round_robin = 1;
+        }        
+
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
