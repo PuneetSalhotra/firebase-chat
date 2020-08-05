@@ -3136,7 +3136,7 @@ function BotService(objectCollection) {
         if (inlineData.hasOwnProperty("activity_type_flag_round_robin")) {
             newReq.activity_type_flag_round_robin = Number(inlineData.activity_type_flag_round_robin);
         } else {
-            newReq.activity_type_flag_round_robin = 1;
+            newReq.activity_type_flag_round_robin = 0;
         }        
 
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
