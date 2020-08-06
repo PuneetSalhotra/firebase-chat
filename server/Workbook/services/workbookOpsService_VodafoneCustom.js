@@ -127,15 +127,18 @@ function WorkbookOpsService(objectCollection) {
                 bot_id: request.bot_id,
                 bot_operation_id: request.bot_operation_id
             });
-            if (botOperationData.length > 0) {
+            if (botOperationData.length > 0) {                
                 botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
                 botOperationInlineData = botOperationInlineData.bot_operations.map_workbook;
 
-                console.log(' ');
-                console.log('////////////////////////////////');
-                console.log('Opportunity - ', botOperationInlineData.activity_type_name);
-                console.log('////////////////////////////////');
-                console.log(' ');
+                try{
+                    console.log(' ');
+                    console.log('////////////////////////////////');
+                    console.log('Opportunity - ', botOperationData[0].activity_type_name);
+                    console.log('////////////////////////////////');
+                    console.log(' ');
+                } catch(err) {}
+                
             } else {
                 throw new Error(`No bot operation data found for bot_operation_id ${request.bot_operation_id}`);
             }
@@ -189,7 +192,7 @@ function WorkbookOpsService(objectCollection) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
 
-        console.log('Final excelSheetFilePath after processing from activity list table: ', excelSheetFilePath);
+        console.log('Final excelSheetFilePath from activity list table: ', excelSheetFilePath);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -243,7 +246,10 @@ function WorkbookOpsService(objectCollection) {
         if (organizationID === 868 && isOverrideOutputMappingEnabled) {
             // Get the origin form data
             // const originFormID = 4353;
+            console.log(' ');
+            console.log('Is override output mapping is enabled!');
             console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+
             const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
             const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
@@ -282,6 +288,7 @@ function WorkbookOpsService(objectCollection) {
                 if (!(OpportunityUpdateFormData.length > 0)) {
                     throw new Error("No Opportunity Update Form Available For Fetching Product Category");
                 }
+
                 // Get the product cart field value
                 dataEntityInline = JSON.parse(OpportunityUpdateFormData[0].data_entity_inline);
                 formSubmitted = dataEntityInline.form_submitted;
@@ -316,6 +323,7 @@ function WorkbookOpsService(objectCollection) {
                 throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
             }
         }
+
         // Create the cellKey => field_id map for output cells
         let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
 
@@ -369,7 +377,7 @@ function WorkbookOpsService(objectCollection) {
                             outputFormTransactionID
                         );
                         if (outputFormTxnData.length > 0) {
-                            outputFormActivityID = outputFormTxnData[0].activity_id
+                            outputFormActivityID = outputFormTxnData[0].activity_id;
                         }
                     } catch (error) {
                         logger.error("[getFormActivityIDFromActivityFormTxnTable] Error fethcing output form activity ID from the activity_form_transaction table.", { type: 'bot_engine', request_body: request, error: serializeError(error) });

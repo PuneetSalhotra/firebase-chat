@@ -1502,19 +1502,31 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    //logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     //Only if product variant is selected then only trigger the bot
-                    let flag = 0;
-                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+                    let flag = 0;                    
                     let activityInlineData;
 
-                    try{
-                        activityInlineData = JSON.parse(request.activity_inline_data);
-                    } catch(err) {
-                        console.log('Error parsing activity inline data');
-                        //flag = 1;
+                    try {
+                        if (!request.hasOwnProperty('activity_inline_data')) {                            
+                            const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                            activityInlineData = activityTimelineCollection.form_submitted;
+                            if (
+                                Number(request.device_os_id) === 1 &&
+                                typeof activityTimelineCollection.form_submitted === "string"
+                            ) {
+                                activityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                            }
+                        } else {
+                            activityInlineData = JSON.parse(request.activity_inline_data);
+                        }                        
+                    } catch (error) {
+                        logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                     }
-                    
+
+                    console.log(' ');
+                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+
                     for(const i of activityInlineData) {
                         if(Number(i.field_data_type_id === 71)) {
                             let fieldValue = JSON.parse(i.field_value);                            
@@ -1533,7 +1545,15 @@ function BotService(objectCollection) {
                         }
                     }
 
+                    if(Number(request.activity_type_id) === 152184) {
+                        flag = 1;
+                    }
+
                     if(Number(flag) === 1) {
+                        if(Number(request.activity_type_id) === 152184) {
+                            console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
+                        }
+                        
                         try {
                             if (
                                 Number(request.organization_id) === 868 ||
@@ -3595,6 +3615,7 @@ function BotService(objectCollection) {
 
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
+        request.activity_title = activityInlineData[0].field_value;
         
         console.log("targetFormTransactionID: ", targetFormTransactionID);
         console.log("targetFormActivityID: ", targetFormActivityID);
@@ -3620,6 +3641,7 @@ function BotService(objectCollection) {
             console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
+                //console.log('Request.activity_title : ', request);
                 let createTargetFormRequest = Object.assign({}, request);
                     createTargetFormRequest.activity_form_id = targetFormID;
                     createTargetFormRequest.form_id = targetFormID;
@@ -3700,6 +3722,7 @@ function BotService(objectCollection) {
             createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
         }            
         
+        //createTargetFormRequest.activity_title = "This is Target Form submission from BOT";
         createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
 
         // Other miscellaneous parameters
@@ -7174,11 +7197,16 @@ function BotService(objectCollection) {
         }
         
         console.log('Retrieved Date field value : ', dateFieldValue);
+        if(Number(request.device_os_id) === 1) {
+            dateFieldValue = util.getFormatedLogDatetimeV1(dateFieldValue, "DD-MM-YYYY HH:mm:ss");
+            console.log('Retrieved Date field value - ANDROiD: ', dateFieldValue);
+        }
+        
         if(alterType === 'before') {
-            //reminderDatetime--;
+            //reminderDatetime--;            
             reminderDatetime = util.subtractUnitsFromDateTime(dateFieldValue,multiplier,'days');
         } else if(alterType === 'after') {
-            //reminderDatetime++;
+            //reminderDatetime++;            
             reminderDatetime = util.addUnitsToDateTime(dateFieldValue,multiplier,'days');
         }
 
@@ -7306,7 +7334,7 @@ function BotService(objectCollection) {
         let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
 
         let responseData = [];
-            responseData.push({'No.Of.Reminders': reminderBotData.length});
+            responseData.push({'No.Of.Reminders': reminderBotData.length, 'triggered_datetime': util.getCurrentISTTime()});
 
         return [false, responseData];
     }    
@@ -7518,9 +7546,9 @@ function BotService(objectCollection) {
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `This is a scheduled reminder for ${request.activity_title} - Documents`,
-            "subject": `This is a scheduled reminder for ${request.activity_title} - Documents`,
-            "mail_body": `This is a scheduled reminder for ${request.activity_title} - Documents`,
+            "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
+            "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
+            "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
             "attachments": []
         });
         addCommentRequest.activity_stream_type_id = 325;
