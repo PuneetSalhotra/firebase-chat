@@ -5114,7 +5114,8 @@ function FormConfigService(objCollection) {
             Number(request.workforce_id) == 5648
             ){ 
                 [statusError, statusData] = await activityCommonService.getAssetTypeIDForAStatusID(request, request.activity_status_id);
-                request.activity_type_id = statusData[0].activity_type_id;
+                console.log('statusData.length : ', statusData.length);
+                request.activity_type_id = (statusData.length > 0) ? statusData[0].activity_type_id : 0;
                 
                 let newReq = Object.assign({}, request);
                     newReq.limit_value = 50;

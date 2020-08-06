@@ -127,15 +127,23 @@ function WorkbookOpsService(objectCollection) {
                 bot_id: request.bot_id,
                 bot_operation_id: request.bot_operation_id
             });
-            if (botOperationData.length > 0) {
+            if (botOperationData.length > 0) {                
                 botOperationInlineData = JSON.parse(botOperationData[0].bot_operation_inline_data);
                 botOperationInlineData = botOperationInlineData.bot_operations.map_workbook;
 
+                try{
+                    console.log(' ');
+                    console.log('////////////////////////////////');
+                    console.log('Opportunity - ', botOperationData[0].activity_type_name);
+                    console.log('////////////////////////////////');
+                    console.log(' ');
+                } catch(err) {}
+                
             } else {
                 throw new Error(`No bot operation data found for bot_operation_id ${request.bot_operation_id}`);
             }
         } catch (error) {
-            throw new Error(error)
+            throw new Error(error);
         }
         // Flags
         const isFormulaEngineEnabled = botOperationInlineData.is_formula_engine_enabled || false;
@@ -160,6 +168,8 @@ function WorkbookOpsService(objectCollection) {
             });
         }
 
+        console.log('Excel sheet path from botoperation inline data : ', excelSheetFilePath);
+
         let workflowActivityData = [];
         try {
             workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -182,7 +192,7 @@ function WorkbookOpsService(objectCollection) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
 
-        console.log('excelSheetFilePath : ', excelSheetFilePath);
+        console.log('Final excelSheetFilePath from activity list table: ', excelSheetFilePath);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -207,7 +217,7 @@ function WorkbookOpsService(objectCollection) {
             logger.error("Error fetching sheet index from single selection", { type: 'bot_engine', request_body: request, error: serializeError(error) });
             return;
         }
-        logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' })
+        logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' });
 
         const inputMappings = botOperationInlineData.mappings[sheetIndex].input;
         let outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
@@ -236,7 +246,10 @@ function WorkbookOpsService(objectCollection) {
         if (organizationID === 868 && isOverrideOutputMappingEnabled) {
             // Get the origin form data
             // const originFormID = 4353;
+            console.log(' ');
+            console.log('Is override output mapping is enabled!');
             console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+
             const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
             const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
@@ -275,6 +288,7 @@ function WorkbookOpsService(objectCollection) {
                 if (!(OpportunityUpdateFormData.length > 0)) {
                     throw new Error("No Opportunity Update Form Available For Fetching Product Category");
                 }
+
                 // Get the product cart field value
                 dataEntityInline = JSON.parse(OpportunityUpdateFormData[0].data_entity_inline);
                 formSubmitted = dataEntityInline.form_submitted;
@@ -309,6 +323,7 @@ function WorkbookOpsService(objectCollection) {
                 throw new Error("activity_id is either not found or is zero in the Opportunity Reference field");
             }
         }
+
         // Create the cellKey => field_id map for output cells
         let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
 
@@ -362,7 +377,7 @@ function WorkbookOpsService(objectCollection) {
                             outputFormTransactionID
                         );
                         if (outputFormTxnData.length > 0) {
-                            outputFormActivityID = outputFormTxnData[0].activity_id
+                            outputFormActivityID = outputFormTxnData[0].activity_id;
                         }
                     } catch (error) {
                         logger.error("[getFormActivityIDFromActivityFormTxnTable] Error fethcing output form activity ID from the activity_form_transaction table.", { type: 'bot_engine', request_body: request, error: serializeError(error) });
@@ -858,7 +873,7 @@ function WorkbookOpsService(objectCollection) {
         // Fetch input cell value map for each formID
         for (const formID of inputFormIDsSet) {
             const inputCellToValueMap = await getInputFormFieldValues(request, workflowActivityID, formIDToInputMappingsJSON[formID]);
-            inputCellToValueMasterMap = new Map(function* () { yield* inputCellToValueMasterMap; yield* inputCellToValueMap }());
+            inputCellToValueMasterMap = new Map(function* () { yield* inputCellToValueMasterMap; yield* inputCellToValueMap; }());
         }
 
         debug_info("inputFormIDsSet: ", inputFormIDsSet);
