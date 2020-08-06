@@ -3081,9 +3081,10 @@ function RMBotService(objectCollection) {
             request.asset_type_id,
             request.activity_id,
             util.getCurrentUTCTime()                
-        );        
-        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset', paramsArr);
-
+        );
+        //const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset', paramsArr);
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset_json', paramsArr);
+        
         if (queryString !== '') {
             request.global_array.push({"getNextRoundRobinAsset":queryString});
             await db.executeQueryPromise(0, queryString, request)
