@@ -470,7 +470,7 @@ function DiffbotService(objectCollection) {
           //if(cnt === 5){
           //  break;
           //}
-          cnt++;
+          //cnt++;
           var tenderList = await getTenderList(
             headers,
             body,
