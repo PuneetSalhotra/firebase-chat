@@ -1239,6 +1239,7 @@ function AnalyticsService(objectCollection)
                     case 20: //TAT
                     case 28: //Volume Distribution
                     case 29: //Value Distribution
+                    case 62:
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1342,7 +1343,6 @@ function AnalyticsService(objectCollection)
                     case 41: //Single Selection Reference Volume
                     case 42: //Single Selection Reference Value
                     case 61:
-                    case 62:
                     case 63:
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
