@@ -7296,7 +7296,7 @@ function BotService(objectCollection) {
          //3. Send both
 
         let formData = [];
-        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
             console.log('responseData : ', responseData);
