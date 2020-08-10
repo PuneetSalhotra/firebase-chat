@@ -245,12 +245,17 @@ function WorkbookOpsService(objectCollection) {
         // Fetch the relevant output mappings
         if (organizationID === 868 && isOverrideOutputMappingEnabled) {
             // Get the origin form data
-            // const originFormID = 4353;
+            // const originFormID = 4353;            
             console.log(' ');
             console.log('Is override output mapping is enabled!');
             console.log("workflowActivityTypeID: ", workflowActivityTypeID);
 
             const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
+            var isBCOriginForm = 0;
+            if(Number(originFormID) === 4353) {
+                isBCOriginForm = 1;
+            }
+
             const originFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
                 account_id: request.account_id
@@ -277,7 +282,10 @@ function WorkbookOpsService(objectCollection) {
                 const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
                 const OpportunityActivityData = await activityCommonService.getActivityDetailsPromise(request, OpportunityActivityID);
                 let OpportunityActivityTypeID = 0;
-                if (OpportunityActivityData.length > 0) { OpportunityActivityTypeID = OpportunityActivityData[0].activity_type_id || 0; };
+                
+                if (OpportunityActivityData.length > 0) { 
+                    OpportunityActivityTypeID = OpportunityActivityData[0].activity_type_id || 0; 
+                }
 
                 const OpportunityUpdateFormID = outputFormMappings.getActivityTypeIDToFieldMapping(OpportunityActivityTypeID).ProductCartSelectionField.form_id || 0;
                 // Fetch OpportunityUpdateForm from the referenced opportunity
@@ -294,7 +302,7 @@ function WorkbookOpsService(objectCollection) {
                 formSubmitted = dataEntityInline.form_submitted;
                 formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
 
-                let ProductSelectionJSON = {
+                var ProductSelectionJSON = {
                     product_tag_type_id: 0, product_tag_type_name: '',
                     product_tag_id: 0, product_tag_name: '',
                     product_activity_type_id: 0, product_activity_type_name: '',
@@ -549,6 +557,55 @@ function WorkbookOpsService(objectCollection) {
             throw new Error(error);
         }
 
+        //This is to Auto-populate the auto-populate form in BC workflow
+        console.log("isBCOriginForm : ", isBCOriginForm);        
+        if(Number(isBCOriginForm) === 1) {
+            console.log('This is BC origin form. Hence Submitting the Auto populate Form');
+            const autoPopulateFormId = 4609;            
+
+            let [err, formFieldInlineTemplate] = await getWorkforceFormFieldMappingForOutputForm(
+                request,
+                request.organization_id,
+                autoPopulateFormId,
+                [],
+                false
+            );
+            let outputFormFieldInlineTemplateMap = new Map(formFieldInlineTemplate.map(e => [Number(e.field_id), e])); 
+            
+            let outputMappings = [{
+                                        "cell_x": "D",
+                                        "cell_y": 3,
+                                        "form_id": autoPopulateFormId,
+                                        "field_id": 222639
+                                    },
+                                    {
+                                        "cell_x": "D",
+                                        "cell_y": 4,
+                                        "form_id": autoPopulateFormId,
+                                        "field_id": 222640
+                                    }];
+
+            // Create the cellKey => field_id map for output cells
+            let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
+            for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
+                if (outputFormFieldInlineTemplateMap.has(fieldID)) {
+                    let cellValue = "";
+                    try {
+                        cellValue = workbook.Sheets[sheet_names[1]][cellKey].v;
+                        let field = outputFormFieldInlineTemplateMap.get(fieldID);
+
+                        // Update the field
+                        field.field_value = cellValue;
+                        outputFormFieldInlineTemplateMap.set(fieldID, field);
+
+                        logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                    } catch (error) {
+                        logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+                    }
+                }
+            }
+            await callaAutoOopulateBot(request, workflowActivityID, ProductSelectionJSON, outputFormFieldInlineTemplateMap);
+        }
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
@@ -1043,7 +1100,7 @@ function WorkbookOpsService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
     }
@@ -1189,34 +1246,33 @@ function WorkbookOpsService(objectCollection) {
 
             // Make a timeline entry on the workflow
             let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);
-            workflowFile705Request.activity_id = workflowActivityID;
-            workflowFile705Request.data_activity_id = outputFormActivityID
-            workflowFile705Request.form_transaction_id = outputFormTransactionID
-            workflowFile705Request.activity_timeline_collection = JSON.stringify({
-                "mail_body": `${outputForm.outputFormName} submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                "subject": `${outputForm.outputFormName}`,
-                "content": `${outputForm.outputFormName}`,
-                "asset_reference": [],
-                "activity_reference": [],
-                "form_approval_field_reference": [],
-                "form_submitted": outputFormActivityInlineData,
-                "attachments": []
-            });
-            workflowFile705Request.activity_type_category_id = 48;
-            workflowFile705Request.activity_stream_type_id = 705;
-            workflowFile705Request.flag_timeline_entry = 1;
-            workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
-            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            workflowFile705Request.device_os_id = 8;
-            workflowFile705Request.asset_id = workflowActivityCreatorAssetID;
-            workflowFile705Request.log_asset_id = workflowActivityCreatorAssetID;
-            // This will be captured in the push-string message-forming switch-case logic
-            workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
+                workflowFile705Request.activity_id = workflowActivityID;
+                workflowFile705Request.data_activity_id = outputFormActivityID;
+                workflowFile705Request.form_transaction_id = outputFormTransactionID;
+                workflowFile705Request.activity_timeline_collection = JSON.stringify({
+                    "mail_body": `${outputForm.outputFormName} submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                    "subject": `${outputForm.outputFormName}`,
+                    "content": `${outputForm.outputFormName}`,
+                    "asset_reference": [],
+                    "activity_reference": [],
+                    "form_approval_field_reference": [],
+                    "form_submitted": outputFormActivityInlineData,
+                    "attachments": []
+                });
+                workflowFile705Request.activity_type_category_id = 48;
+                workflowFile705Request.activity_stream_type_id = 705;
+                workflowFile705Request.flag_timeline_entry = 1;
+                workflowFile705Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                workflowFile705Request.device_os_id = 8;
+                workflowFile705Request.asset_id = workflowActivityCreatorAssetID;
+                workflowFile705Request.log_asset_id = workflowActivityCreatorAssetID;
+                // This will be captured in the push-string message-forming switch-case logic
+                workflowFile705Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;                
 
             let workflowFile705RequestEvent = {
                 name: "addTimelineTransaction",
-                service: "activityTimelineService",
-                //method: "addTimelineTransaction",
+                service: "activityTimelineService",                
                 method: "addTimelineTransactionAsync",
                 payload: workflowFile705Request
             };
@@ -1288,6 +1344,185 @@ function WorkbookOpsService(objectCollection) {
 
         await activityCommonService.activityTimelineTransactionInsertAsync(workbookURLTimelineRequest, {}, workbookMappedStreamTypeID);
     }
+
+    this.nanikalyan = async(request) => {
+        await callaAutoOopulateBot(request, request.workflow_activity_id, JSON.parse(request.product_data));
+        return [false, []];
+    };
+    
+    async function callaAutoOopulateBot(request, workflowActivityID, productData, outputFormFieldInlineTemplateMap) {
+        const autoPopulateFormId = 4609;        
+        let referredWorkflowActID;              
+    
+        //AOV - Get Referenced Workflow Activity ID
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, workflowActivityID, request.form_id);
+        if(!formDataFrom713Entry.length > 0) {
+            let responseData = [];
+            responseData.push({'message': `${request.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+        
+        console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let referredActActivityTypeID = formDataFrom713Entry[0].activity_type_id;
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+
+        for(const i_iterator of formData) {
+            /*[{
+                  "activity_id": 3140598,
+                  "activity_title": "SME TEST VNK - 1",
+                  "activity_cuid_1": "OPP-S-001590-060820",
+                  "activity_cuid_2": null,
+                  "activity_cuid_3": null,
+                  "operating_asset_first_name": "Nani Kalyan update"
+            }]*/
+
+            if(Number(i_iterator.field_id) === 218728){
+                let fieldValue = i_iterator.field_value; 
+                    fieldValue = (typeof fieldValue == 'string')? JSON.parse(fieldValue): fieldValue; 
+
+                referredWorkflowActID = fieldValue[0].activity_id;                
+                break;
+            }
+        }
+        
+        let workflowActivityTypeID;
+        let workflowActivityCreatorAssetID;
+        let workflowActivityStartDate;
+        let workflowActivityDueDate;
+        let workflowActivityOrganizationID;
+        let workflowActivityAccountID;
+        let workflowActivityWorkforceID;
+        let workflowOriginFormActivityTitle;
+
+        const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, referredWorkflowActID);
+        if (workflowActivityData.length > 0) {
+            workflowActivityTypeID = workflowActivityData[0].activity_type_id;
+            workflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+            workflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+            workflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+            workflowActivityOrganizationID = workflowActivityData[0].organization_id;
+            workflowActivityAccountID = workflowActivityData[0].account_id;
+            workflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+            workflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
+        } else {
+            throw new Error(`[createAndSubmitTheOutputForm] Parent Workflow ${workflowActivityID} Not Found`)
+        }
+
+        referredActActivityTypeID = workflowActivityTypeID;
+
+        console.log('referredWorkflowActID : ', referredWorkflowActID);
+        console.log('referredActActivityTypeID : ', referredActActivityTypeID);
+
+        let referredOppUpdateFormID;
+        let temp = {};
+        switch(Number(referredActActivityTypeID)) {
+            case 149058 : //Enterprise
+                          referredOppUpdateFormID = 2753;
+                          temp.source_form_id = 2753;
+                          temp.source_field_id = 29899;                      
+                          break;
+
+            case 149752 : //Tender RFP
+                            referredOppUpdateFormID = 3565;
+                            temp.source_form_id = 3565;
+                            temp.source_field_id = 56131;
+                          break;
+
+            case 150229 : //SME
+                            referredOppUpdateFormID = 3977;
+                            temp.source_form_id = 3977;
+                            temp.source_field_id = 77668;
+                          break;   
+
+            case 151728 : //Channel Partner
+                            referredOppUpdateFormID = 4127;
+                            temp.source_form_id = 4127;
+                            temp.source_field_id = 215614;
+                          break;
+
+            case 149818 : //Renewal
+                            referredOppUpdateFormID = 3566;
+                            temp.source_form_id = 3566;
+                            temp.source_field_id = 56205;
+                          break;
+        }
+        
+        temp.target_form_id = autoPopulateFormId;
+        temp.target_field_id = 222638;
+        console.log('TEMP : ', temp);
+
+        //AOV - Get Referenced Workflow Activity ID
+        let referredFormData = [];
+        let referredFormDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, referredWorkflowActID, referredOppUpdateFormID);
+        if(!referredFormDataFrom713Entry.length > 0) {
+            let responseData = [];
+            responseData.push({'message': `${request.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+        
+        //console.log('referredFormDataFrom713Entry[0] : ', referredFormDataFrom713Entry[0]);   
+        let referrredformTransactionInlineData = JSON.parse(referredFormDataFrom713Entry[0].data_entity_inline);        
+        referredFormData = referrredformTransactionInlineData.form_submitted;
+        referredFormData = (typeof referredFormData === 'string')? JSON.parse(referredFormData) : referredFormData; 
+        console.log('referredFormData : ', referredFormData);
+        
+        for(const i_iterator of referredFormData){
+            if(Number(i_iterator.field_id) === Number(temp.source_field_id)) {
+                
+                if(outputFormFieldInlineTemplateMap.has(Number(temp.target_field_id))) {
+                    let field = outputFormFieldInlineTemplateMap.get(Number(temp.target_field_id));
+        
+                    // Update the field
+                    field.field_value = i_iterator.field_value;
+                    console.log('AOV Value : ', field.field_value);
+                    outputFormFieldInlineTemplateMap.set(Number(i_iterator.field_id), field);
+                }
+
+            }
+        }
+        ////////////////////////////////////////////////
+
+        let productFieldID = 222641;
+        if(outputFormFieldInlineTemplateMap.has(productFieldID)) {
+            let field = outputFormFieldInlineTemplateMap.get(productFieldID);
+
+            // Update the field
+            field.field_value = productData.product_activity_title;
+            outputFormFieldInlineTemplateMap.set(productFieldID, field);
+        }
+
+        console.log(' ');
+        console.log('***************************************************************');
+        console.log('outputFormFieldInlineTemplateMap in callaAutoOopulateBot: ', outputFormFieldInlineTemplateMap);
+        console.log('***************************************************************');
+        console.log(' ');
+
+        try {
+            await createAndSubmitTheOutputForm(request, 
+                                               workflowActivityID, 
+                                               {
+                                                   outputFormIDoutputFormID: autoPopulateFormId,
+                                                   outputFormName:'Auto Populate Info'
+                                                },
+                                                outputFormFieldInlineTemplateMap
+                                            );
+        } catch (error) {
+            logger.error(`[createAndSubmitTheOutputForm] Error creating and submitting the callaAutoOopulateBot form.`, { type: 'bot_engine', error: serializeError(error) });
+            throw new Error(error);
+        }
+
+        //await sleep(2000);
+        //Call copy field Bot
+
+        return;
+    }
+
 }
 
 module.exports = WorkbookOpsService;

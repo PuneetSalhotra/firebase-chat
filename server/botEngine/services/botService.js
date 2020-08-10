@@ -1843,8 +1843,7 @@ function BotService(objectCollection) {
                 "flag_esms": 1
               }
             }
-          }
-          
+          }          
           
           {
             "bot_operations": {
@@ -1878,7 +1877,7 @@ function BotService(objectCollection) {
 
     async function removeParticipant(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         //Check Whether it is for ESMS
-        if(Number(removeParticipantBotOperationData.flag_esms) === 1) {
+        if(removeParticipantBotOperationData.hasOwnProperty('flag_esms') && Number(removeParticipantBotOperationData.flag_esms) === 1) {
             //1. Check if the asset is the lead for the workflow if YES then remove his as lead
             //2. Remove the asset from the workflow
             
@@ -1894,6 +1893,9 @@ function BotService(objectCollection) {
             if (type[0] === 'static') {
                 assetID = Number(inlineData[type[0]].asset_id);
                 console.log('STATIC - Asset ID : ', assetID);
+            } else if(type[0] === 'from_request') {
+                assetID = Number(request.asset_id);
+                console.log('from_request - Asset ID : ', assetID);
             } else if (type[0] === 'asset_reference') {
                 const formID = Number(inlineData["asset_reference"].form_id),
                       fieldID = Number(inlineData["asset_reference"].field_id);                      
@@ -7296,7 +7298,7 @@ function BotService(objectCollection) {
          //3. Send both
 
         let formData = [];
-        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
             console.log('responseData : ', responseData);
