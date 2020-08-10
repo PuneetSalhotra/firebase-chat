@@ -84,7 +84,9 @@ function ActivityParticipantService(objectCollection) {
                 "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
                 "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
                 "operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path']),
-                "asset_image_path": util.replaceDefaultString(rowData['asset_image_path'])
+                //"asset_image_path": util.replaceDefaultString(rowData['asset_image_path']),
+                "asset_flag_is_owner": util.replaceDefaultNumber(rowData['asset_flag_is_owner']),
+
             };
             responseData.push(rowDataArr);
         }, this);

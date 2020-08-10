@@ -788,8 +788,10 @@ if(mode === 'staging') {
         "https://sprintweb.greneos.com",
         "https://sprintdashboard.greneos.com",
         "https://sprintdashboard2.greneos.com",
-        'http://127.0.0.1',
-        'http://localhost:3000',
+        "http://127.0.0.1",
+        "http://localhost:3000",
+        "http://localhost:5000",
+        "https://stagingmanagement.greneos.com"
     ];
 }
 
@@ -912,6 +914,7 @@ if(mode === 'preprod') {
         "https://preproddashboard2.greneos.com",
         "https://preprodmanagement.greneos.com",
         'http://localhost:3000',
+        'http://localhost:5000'
     ];
 }
 
@@ -1035,6 +1038,7 @@ if(mode === 'prod') {
         'https://web.greneos.com/',
         'https://dashboard.greneos.com',
         'https://management.greneos.com',
+        "https://dashboard2.greneos.com",        
     ];
 }
 
