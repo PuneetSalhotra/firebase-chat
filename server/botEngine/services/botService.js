@@ -1894,7 +1894,8 @@ function BotService(objectCollection) {
                 assetID = Number(inlineData[type[0]].asset_id);
                 console.log('STATIC - Asset ID : ', assetID);
             } else if(type[0] === 'from_request') {
-                    assetID = Number(request.asset_id);
+                assetID = Number(request.asset_id);
+                console.log('from_request - Asset ID : ', assetID);
             } else if (type[0] === 'asset_reference') {
                 const formID = Number(inlineData["asset_reference"].form_id),
                       fieldID = Number(inlineData["asset_reference"].field_id);                      
