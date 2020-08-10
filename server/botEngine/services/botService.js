@@ -1877,7 +1877,7 @@ function BotService(objectCollection) {
 
     async function removeParticipant(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         //Check Whether it is for ESMS
-        if(Number(removeParticipantBotOperationData.flag_esms) === 1) {
+        if(removeParticipantBotOperationData.hasOwnProperty('flag_esms') && Number(removeParticipantBotOperationData.flag_esms) === 1) {
             //1. Check if the asset is the lead for the workflow if YES then remove his as lead
             //2. Remove the asset from the workflow
             
