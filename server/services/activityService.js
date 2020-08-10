@@ -340,6 +340,11 @@ function ActivityService(objectCollection) {
                             }
 
                             if (request.activity_type_category_id == 48) {
+                                logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
+                                if(request.activity_type_id == 152184 && request.activity_form_id == 4353){
+                                    logger.info("HITTING CPQ RoundRobin Allocation Algorithm");
+                                    rmbotService.BCCPQAllocation(request);
+                                }
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
                                 //sendRequesttoWidgetEngine(request);

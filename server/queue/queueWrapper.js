@@ -102,7 +102,7 @@ function QueueWrapper(producer, cacheWrapper) {
             let span = tracer.startSpan('kafka_producer', {
                 childOf: kafkaProduceEventSpan
             });
-            tracer.inject(span, tracerFormats.LOG, traceHeaders)
+            tracer.inject(span, tracerFormats.LOG, traceHeaders);
             logger.silly('trace headers sent from kafka producer: %j', traceHeaders, { type: 'trace_span' });
             // console.log("raiseActivityEvent | span | traceHeaders: ", traceHeaders);
             event.log_trace_headers = traceHeaders;

@@ -798,6 +798,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.getFormatedLogDatetimeV1 = function (timeString, format) {
+        var value = moment(timeString, format).format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
+
     this.getFormatedLogDate = function (timeString) {
         var value = moment(timeString).format("YYYY-MM-DD");
         return value;
@@ -853,6 +858,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.addUnitsToDateTimeV1 = function (timeString, format, days, unit) {
+        const value = moment(timeString, format).add(days, unit).format(format);
+        return value;
+    };
+
     this.subtractDays = function (timeString, days) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
@@ -860,6 +870,11 @@ function Util(objectCollection) {
 
     this.subtractUnitsFromDateTime = function (timeString, days, unit) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, unit).format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
+    
+    this.subtractUnitsFromDateTimeV1 = function (timeString, format, days, unit) {
+        var value = moment(timeString, format).subtract(days, unit).format(format);
         return value;
     };
 

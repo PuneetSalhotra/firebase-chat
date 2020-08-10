@@ -388,14 +388,12 @@ function BotController(objCollection) {
         }
     });
 
-    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
-        //const [err, responseData] = await botService.arithmeticBotVNK(req.body);
-        //const [err, responseData] = await botService.reminderBotVNK(req.body);
-        const [err, responseData] = await botService.reminderBotExecution(req.body);
+    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {        
+        const [err, responseData] = await botService.removeParticipantMethod(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
-            console.log("/bot/esms/test_service | Error: ", err);
+            console.log("/account/nani/kalyan | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });*/
