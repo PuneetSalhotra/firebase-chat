@@ -399,7 +399,8 @@ function ActivityService(objectCollection) {
                                             if(Number(request.activity_type_id) === 134564 || //MPLS CRF
                                                 Number(request.activity_type_id) === 134566 || //ILL CRF
                                                 Number(request.activity_type_id) === 134573 || //NPLC CRF
-                                                Number(request.activity_type_id) === 134575) { 
+                                                Number(request.activity_type_id) === 134575 ||
+                                                Number(request.activity_type_id) === 152451) { 
                                                 
                                                 (Number(arc_1) > Number(arc_2)) ?
                                                     finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
@@ -527,7 +528,7 @@ function ActivityService(objectCollection) {
   
                             if(activityTypeCategroyId === 48) { 
                                 //let crfIds = [134564, 134566, 134573, 134575];
-                                let crfIds = [134562, 134565, 134569, 134574, 134583, 145268, 134564, 134566, 134573, 133892, 133893, 133894, 133895, 133896, 133897, 133898, 133899, 134576, 142431, 142432, 134575];
+                                let crfIds = [134562, 134565, 134569, 134574, 134583, 145268, 134564, 134566, 134573, 133892, 133893, 133894, 133895, 133896, 133897, 133898, 133899, 134576, 142431, 142432, 134575, 152451];
                                 if(!crfIds.includes(request.activity_type_id))
                                     addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1);
                             }else if(activityTypeCategroyId === 9){
