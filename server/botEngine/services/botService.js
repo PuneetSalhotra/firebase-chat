@@ -1525,7 +1525,7 @@ function BotService(objectCollection) {
                     }
 
                     console.log(' ');
-                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+                    console.log('activityInlineData : ', activityInlineData);
 
                     for(const i of activityInlineData) {
                         if(Number(i.field_data_type_id === 71)) {
@@ -1534,10 +1534,11 @@ function BotService(objectCollection) {
                             console.log('Cart Items : ', cartItems);
 
                             if(cartItems.length > 0) {
-                                console.log('Seaching for custom variant');
+                                console.log('Searching for custom variant');
                                 for(j of cartItems) {
                                     console.log(('product_variant_activity_title : ', j.product_variant_activity_title).toLowerCase());
-                                    if((j.product_variant_activity_title).toLowerCase() == 'custom variant') {
+                                    if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
+                                        (j.product_variant_activity_title).toLowerCase() == 'custom') {
                                         flag = 1
                                     }
                                 }
@@ -1657,7 +1658,7 @@ function BotService(objectCollection) {
                             trigger_form_id: Number(request.trigger_form_id),
                             form_transaction_id: Number(request.form_transaction_id),
                             payload: request
-                        }, "staging-vil-esms-ibmmq-v1", request.workflow_activity_id || request.activity_id);
+                        }, "staging-vil-esms-ibmmq-v2", request.workflow_activity_id || request.activity_id);
                     } catch (error) {
                         logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
