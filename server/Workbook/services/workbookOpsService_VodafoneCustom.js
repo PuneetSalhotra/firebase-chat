@@ -473,13 +473,13 @@ function WorkbookOpsService(objectCollection) {
         if (outFormIsSubmitted) {
             // If the form exists, fire fields alter
             let fieldsAlterRequest = Object.assign({}, request);
-            fieldsAlterRequest.form_transaction_id = outputFormTransactionID;
-            fieldsAlterRequest.form_id = outputFormID;
-            fieldsAlterRequest.activity_form_id = outputFormID;
-            fieldsAlterRequest.field_id = 99999999999;
-            fieldsAlterRequest.activity_inline_data = JSON.stringify([...outputFormFieldInlineTemplateMap.values()]);
-            fieldsAlterRequest.activity_id = outputFormActivityID;
-            fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+                fieldsAlterRequest.form_transaction_id = outputFormTransactionID;
+                fieldsAlterRequest.form_id = outputFormID;
+                fieldsAlterRequest.activity_form_id = outputFormID;
+                fieldsAlterRequest.field_id = 99999999999;
+                fieldsAlterRequest.activity_inline_data = JSON.stringify([...outputFormFieldInlineTemplateMap.values()]);
+                fieldsAlterRequest.activity_id = outputFormActivityID;
+                fieldsAlterRequest.workflow_activity_id = workflowActivityID;
 
             const fieldsAlterRequestEvent = {
                 name: "alterFormActivityFieldValues",
@@ -498,14 +498,14 @@ function WorkbookOpsService(objectCollection) {
         } else if (Number(outputMappings.length) > 0 && Number(outputFormID) > 0) {
             // If the form does not exist, fire add activity
             try {
-                await createAndSubmitTheOutputForm(
-                    request, workflowActivityID,
-                    {
-                        outputFormID,
-                        outputFormName,
-                    },
-                    outputFormFieldInlineTemplateMap
-                );
+                //await createAndSubmitTheOutputForm(
+                //    request, workflowActivityID,
+                //    {
+                //        outputFormID,
+                //        outputFormName,
+                //    },
+                //    outputFormFieldInlineTemplateMap
+                //);
             } catch (error) {
                 logger.error(`[createAndSubmitTheOutputForm] Error creating and submitting the output form.`, { type: 'bot_engine', error: serializeError(error) });
                 throw new Error(error);
@@ -572,6 +572,8 @@ function WorkbookOpsService(objectCollection) {
             );
             let outputFormFieldInlineTemplateMap = new Map(formFieldInlineTemplate.map(e => [Number(e.field_id), e])); 
             
+            //Name of the Customer - Account Name
+            //Enterprise Code
             let outputMappings = [{
                                         "cell_x": "D",
                                         "cell_y": 3,
@@ -1351,10 +1353,25 @@ function WorkbookOpsService(objectCollection) {
     };
     
     async function callaAutoOopulateBot(request, workflowActivityID, productData, outputFormFieldInlineTemplateMap) {
+        //outputFormFieldInlineTemplateMap is already updated with 
+        //1. Name of the Customer - Account Name
+        //2. Enterprise Code
+        
+        //In this call - We are updating
+        // 3. AOV
+        // 4. Product Name
+        // 5. Segment    
+        
         const autoPopulateFormId = 4609;        
         let referredWorkflowActID;              
     
         //AOV - Get Referenced Workflow Activity ID
+        //In the Bc origin form - there's a field to choose the workflow (i.e. referenced workflow)
+        //From the workflow activity_id - you will get the "oop update form" based on the activity_type_id and
+        //in that "Opp update form" you will have a filed named AOV
+        console.log('****************************************');
+        console.log('Started processing to retrieve AOV value');
+        
         let formData = [];
         let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, workflowActivityID, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
@@ -1391,24 +1408,24 @@ function WorkbookOpsService(objectCollection) {
         }
         
         let workflowActivityTypeID;
-        let workflowActivityCreatorAssetID;
-        let workflowActivityStartDate;
-        let workflowActivityDueDate;
-        let workflowActivityOrganizationID;
-        let workflowActivityAccountID;
-        let workflowActivityWorkforceID;
-        let workflowOriginFormActivityTitle;
+        //let workflowActivityCreatorAssetID;
+        //let workflowActivityStartDate;
+        //let workflowActivityDueDate;
+        //let workflowActivityOrganizationID;
+        //let workflowActivityAccountID;
+        //let workflowActivityWorkforceID;
+        //let workflowOriginFormActivityTitle;
 
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, referredWorkflowActID);
         if (workflowActivityData.length > 0) {
             workflowActivityTypeID = workflowActivityData[0].activity_type_id;
-            workflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
-            workflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
-            workflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
-            workflowActivityOrganizationID = workflowActivityData[0].organization_id;
-            workflowActivityAccountID = workflowActivityData[0].account_id;
-            workflowActivityWorkforceID = workflowActivityData[0].workforce_id;
-            workflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
+            //workflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+            //workflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+            //workflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+            //workflowActivityOrganizationID = workflowActivityData[0].organization_id;
+            //workflowActivityAccountID = workflowActivityData[0].account_id;
+            //workflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+            //workflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
         } else {
             throw new Error(`[createAndSubmitTheOutputForm] Parent Workflow ${workflowActivityID} Not Found`)
         }
@@ -1418,34 +1435,50 @@ function WorkbookOpsService(objectCollection) {
         console.log('referredWorkflowActID : ', referredWorkflowActID);
         console.log('referredActActivityTypeID : ', referredActActivityTypeID);
 
+        let referredOriginFormID;
+        let referredOrigingAccountNameFieldID;
+
         let referredOppUpdateFormID;
         let temp = {};
+        //From the workflow activity_id - you will get the "oop update form" based on the refererenced activity_type_id and
+        //in that "Opp update form" you will have a filed named AOV
+        //Here you are getting referredOppUpdateFormID
         switch(Number(referredActActivityTypeID)) {
             case 149058 : //Enterprise
+                          referredOriginFormID = 3821;
+                          referredOrigingAccountNameFieldID = 29855;
                           referredOppUpdateFormID = 2753;
                           temp.source_form_id = 2753;
                           temp.source_field_id = 29899;                      
                           break;
 
             case 149752 : //Tender RFP
+                            referredOriginFormID = 3822;
+                            referredOrigingAccountNameFieldID = 64308;
                             referredOppUpdateFormID = 3565;
                             temp.source_form_id = 3565;
                             temp.source_field_id = 56131;
                           break;
 
             case 150229 : //SME
+                            referredOriginFormID = 3823;
+                            referredOrigingAccountNameFieldID = 64256;
                             referredOppUpdateFormID = 3977;
                             temp.source_form_id = 3977;
                             temp.source_field_id = 77668;
                           break;   
 
             case 151728 : //Channel Partner
+                            referredOriginFormID = 4131;
+                            referredOrigingAccountNameFieldID = 217400;
                             referredOppUpdateFormID = 4127;
                             temp.source_form_id = 4127;
                             temp.source_field_id = 215614;
                           break;
 
             case 149818 : //Renewal
+                            referredOriginFormID = 4086;
+                            referredOrigingAccountNameFieldID = 79399;
                             referredOppUpdateFormID = 3566;
                             temp.source_form_id = 3566;
                             temp.source_field_id = 56205;
@@ -1468,8 +1501,8 @@ function WorkbookOpsService(objectCollection) {
         
         //console.log('referredFormDataFrom713Entry[0] : ', referredFormDataFrom713Entry[0]);   
         let referrredformTransactionInlineData = JSON.parse(referredFormDataFrom713Entry[0].data_entity_inline);        
-        referredFormData = referrredformTransactionInlineData.form_submitted;
-        referredFormData = (typeof referredFormData === 'string')? JSON.parse(referredFormData) : referredFormData; 
+            referredFormData = referrredformTransactionInlineData.form_submitted;
+            referredFormData = (typeof referredFormData === 'string')? JSON.parse(referredFormData) : referredFormData; 
         console.log('referredFormData : ', referredFormData);
         
         for(const i_iterator of referredFormData){
@@ -1481,21 +1514,66 @@ function WorkbookOpsService(objectCollection) {
                     // Update the field
                     field.field_value = i_iterator.field_value;
                     console.log('AOV Value : ', field.field_value);
+                    console.log('****************************************');
                     outputFormFieldInlineTemplateMap.set(Number(i_iterator.field_id), field);
                 }
 
             }
         }
+        console.log(' ');
+        //3.DONE udpating 'AOV'
         ////////////////////////////////////////////////
 
+        console.log('********************************************');
+        console.log('Started processing to retrieve PRODUCT value');
+        //4.Updating the 'PRODUCT'
         let productFieldID = 222641;
         if(outputFormFieldInlineTemplateMap.has(productFieldID)) {
             let field = outputFormFieldInlineTemplateMap.get(productFieldID);
 
             // Update the field
             field.field_value = productData.product_activity_title;
+            console.log('PRODUCT : ', productData.product_activity_title);
             outputFormFieldInlineTemplateMap.set(productFieldID, field);
         }
+        console.log('********************************************');
+        console.log(' ');
+
+        
+        console.log('********************************************');
+        console.log('Started processing to retrieve SEGMENT value');
+        //5.updating 'Segment'
+        let segmentFieldID = 222754;
+        let formDataV1 = await getsubmittedFormData(request, referredWorkflowActID, referredOriginFormID);
+        console.log('formData : ', formDataV1);
+
+        for(const i_iterator of formDataV1){
+            if(Number(i_iterator.field_id) === Number(referredOrigingAccountNameFieldID)) {
+
+                if(outputFormFieldInlineTemplateMap.has(segmentFieldID)) {
+                    let field = outputFormFieldInlineTemplateMap.get(segmentFieldID);
+        
+                    //Call activity_activity_mapping retrieval service to get the segment
+                    let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+                        activity_id: referredWorkflowActID, //Workflow activity id 
+                        parent_activity_id: parentActivityID, //reference account workflow activity_id
+                        organization_id: request.organization_id,            
+                        start_from: 0,
+                        limit_value: 50
+                    });
+            
+                    console.log('segmentData : ', segmentData);
+                    let segmentName = (segmentData.length > 0) ? (segmentData[0].parent_activity_tag_name).toLowerCase() : 'ERR';
+                    console.log('segmentData : ', segmentName);
+            
+                    // Update the field
+                    field.field_value = segmentName;
+                    outputFormFieldInlineTemplateMap.set(segmentFieldID, field);
+                }
+
+            }
+        }
+        console.log('********************************************');        
 
         console.log(' ');
         console.log('***************************************************************');
@@ -1523,6 +1601,25 @@ function WorkbookOpsService(objectCollection) {
         return;
     }
 
+    async function getsubmittedFormData(request, workflowActID, formID) {
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, workflowActID, formID);
+        if(!formDataFrom713Entry.length > 0) {
+            let responseData = [];
+            responseData.push({'message': `${request.form_id} is not submitted`});
+            console.log('responseData : ', responseData);
+            return [true, responseData];
+        }
+        
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);   
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);        
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string')? JSON.parse(formData) : formData; 
+        console.log('referredFormData : ', formData);
+
+        return formData;
+    }
+    
 }
 
 module.exports = WorkbookOpsService;
