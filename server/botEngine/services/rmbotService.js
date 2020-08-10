@@ -162,7 +162,7 @@ function RMBotService(objectCollection) {
         timelineCollection.activity_reference=[];
         timelineCollection.rm_bot_scores={};
         request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
-        //console.log("Before Making Request ", JSON.stringify(request,null,2));
+        //logger.info("Before Making Request ", JSON.stringify(request,null,2));
         request.res_account_id = 0;
         request.res_workforce_id = 0;
         request.res_asset_type_id = 0;
@@ -304,7 +304,7 @@ function RMBotService(objectCollection) {
     this.unallocatedWorkflowInsert = async function (request) {
         let responseData = [],
             error = true;
-        console.log(" request.bot_mapping_inline_data :: "+ request.bot_mapping_inline_data);
+        logger.info(" request.bot_mapping_inline_data :: "+ request.bot_mapping_inline_data);
 
         let paramsArr = new Array(
             request.organization_id,
@@ -398,7 +398,7 @@ function RMBotService(objectCollection) {
         var map3 = new Map(); 
         var map4 = new Map();
         const [err, assetData] = await self.assetListSelectAssetWorkforce(request); 
-        //console.log("DATA ::"+assetData[0].asset_inline_data);
+        //logger.info("DATA ::"+assetData[0].asset_inline_data);
         let businessDays = [];
         let minutes_per_day = 0;
 
@@ -413,18 +413,18 @@ function RMBotService(objectCollection) {
         let accountInlineData = assetData[0].account_inline_data?JSON.parse(assetData[0].account_inline_data):{};
 
         if(workforceInlineData.hasOwnProperty("business_days")){
-             //console.log("workforceInlineData2 :: "+workforceInlineData.business_days);
+             //logger.info("workforceInlineData2 :: "+workforceInlineData.business_days);
              workforceInlineData.business_days.map((day) => {
                 //let temp = day.value;
-                //console.log(day.value);
+                //logger.info(day.value);
                 businessDays.push(day.value);
                 
              });
         }else if(accountInlineData.hasOwnProperty("business_days")){
-             //console.log("workforceInlineData2 :: "+workforceInlineData.business_days);
+             //logger.info("workforceInlineData2 :: "+workforceInlineData.business_days);
              accountInlineData.business_days.map((day) => {
                 //let temp = day.value;
-                //console.log(day.value);
+                //logger.info(day.value);
                 businessDays.push(day.value);
                 
              });
@@ -435,18 +435,18 @@ function RMBotService(objectCollection) {
         logger.info("CURRENT TIME IST:: "+util.getCurrentTimeHHmmIST_());
    
         if(assetInlineData.hasOwnProperty("business_hours")){
-            //console.log("assetInlineData1 :: "+assetInlineData.business_hours);
+            //logger.info("assetInlineData1 :: "+assetInlineData.business_hours);
             if(assetInlineData.business_hours.length > 0){
                 logger.info("Specific workhours for asset exists, hence processing asset working hours");
                 assetBusinessHoursExists = true;
                 assetInlineData.business_hours.map((hours) => {
-                    //console.log("assetInlineData business_hours_start_time ",hours.business_hour_start_time);
-                    //console.log("assetInlineData business_hours_end_time ",hours.business_hour_end_time);
+                    //logger.info("assetInlineData business_hours_start_time ",hours.business_hour_start_time);
+                    //logger.info("assetInlineData business_hours_end_time ",hours.business_hour_end_time);
 
                     //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                     let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                     hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-                    //console.log("temp : "+Number(temp));
+                    //logger.info("temp : "+Number(temp));
                     map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                     map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                     map2.set(Number(temp), hours.business_hour_end_time);
@@ -457,28 +457,28 @@ function RMBotService(objectCollection) {
 
                     remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                     minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
-                    // console.log("minutes_per_day : "+minutes_per_day);
-                    // console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
-                    // console.log("map1 :: "+map1.get(Number(temp)));
-                    // console.log("map2 :: "+map2.get(Number(temp)));
-                    // console.log("map3 :: "+map3.get(Number(temp)));
-                    // console.log("map3 :: "+map4.get(Number(temp)));
+                    // logger.info("minutes_per_day : "+minutes_per_day);
+                    // logger.info("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                    // logger.info("map1 :: "+map1.get(Number(temp)));
+                    // logger.info("map2 :: "+map2.get(Number(temp)));
+                    // logger.info("map3 :: "+map3.get(Number(temp)));
+                    // logger.info("map3 :: "+map4.get(Number(temp)));
                     
                 })
             }else{
                 if(workforceInlineData.hasOwnProperty("business_hours")){
                     logger.info("Asset business Hours length = 0 Hence going with workforce level working hours");
-                 //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
+                 //logger.info("workforceInlineData3 :: "+workforceInlineData.business_hours);
                     if(workforceInlineData.business_hours.length > 0){
                     	workforceBusinessHoursExists = true;
                         workforceInlineData.business_hours.map((hours) => {
-                        //console.log("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
-                        //console.log("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
+                        //logger.info("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
+                        //logger.info("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
 
                         //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                         let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                         hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-                        //console.log("temp : "+Number(temp));
+                        //logger.info("temp : "+Number(temp));
                         map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                         map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                         map2.set(Number(temp), hours.business_hour_end_time);
@@ -489,12 +489,12 @@ function RMBotService(objectCollection) {
 
                         remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                         minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
-                        // console.log("minutes_per_day : "+minutes_per_day);
-                        // console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
-                        // console.log("map1 :: "+map1.get(Number(temp)));
-                        // console.log("map2 :: "+map2.get(Number(temp)));
-                        // console.log("map3 :: "+map3.get(Number(temp)));
-                        // console.log("map4 :: "+map3.get(Number(temp)));
+                        // logger.info("minutes_per_day : "+minutes_per_day);
+                        // logger.info("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                        // logger.info("map1 :: "+map1.get(Number(temp)));
+                        // logger.info("map2 :: "+map2.get(Number(temp)));
+                        // logger.info("map3 :: "+map3.get(Number(temp)));
+                        // logger.info("map4 :: "+map3.get(Number(temp)));
                         })
                     }
                 };
@@ -502,17 +502,17 @@ function RMBotService(objectCollection) {
         }else{
             if(workforceInlineData.hasOwnProperty("business_hours")){
                 logger.info("No Specific workhours for asset, hence going for workforce level working hours");
-             //console.log("workforceInlineData3 :: "+workforceInlineData.business_hours);
+             //logger.info("workforceInlineData3 :: "+workforceInlineData.business_hours);
                 if(workforceInlineData.business_hours.length > 0){
                 	workforceBusinessHoursExists = true;
                     workforceInlineData.business_hours.map((hours) => {
-                    //console.log("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
-                    //console.log("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
+                    //logger.info("workforceInlineData business_hours_start_time ",hours.business_hour_start_time);
+                    //logger.info("workforceInlineData business_hours_end_time ",hours.business_hour_end_time);
 
                     //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                     let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                     hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-                    //console.log("temp : "+Number(temp));
+                    //logger.info("temp : "+Number(temp));
                     map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                     map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                     map2.set(Number(temp), hours.business_hour_end_time);
@@ -523,26 +523,26 @@ function RMBotService(objectCollection) {
 
                     remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                     minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
-                    // console.log("minutes_per_day : "+minutes_per_day);
-                    // console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
-                    // console.log("map1 :: "+map1.get(Number(temp)));
-                    // console.log("map2 :: "+map2.get(Number(temp)));
-                    // console.log("map3 :: "+map3.get(Number(temp)));
-                    // console.log("map3 :: "+map4.get(Number(temp)));
+                    // logger.info("minutes_per_day : "+minutes_per_day);
+                    // logger.info("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                    // logger.info("map1 :: "+map1.get(Number(temp)));
+                    // logger.info("map2 :: "+map2.get(Number(temp)));
+                    // logger.info("map3 :: "+map3.get(Number(temp)));
+                    // logger.info("map3 :: "+map4.get(Number(temp)));
                     })
                 }
             }else if(accountInlineData.hasOwnProperty("business_hours")){
-                console.log("No Specific workhours for asset and workforce, hence going for account level working hours");
+                logger.info("No Specific workhours for asset and workforce, hence going for account level working hours");
                 if(accountInlineData.business_hours.length > 0){
                     accountBusinessHoursExists = true;
                     accountInlineData.business_hours.map((hours) => {
-                        // console.log("accountInlineData business_hours_start_time ",hours.business_hour_start_time);
-                        // console.log("accountInlineData business_hours_end_time ",hours.business_hour_end_time);
+                        // logger.info("accountInlineData business_hours_start_time ",hours.business_hour_start_time);
+                        // logger.info("accountInlineData business_hours_end_time ",hours.business_hour_end_time);
 
                         //hours_array.push(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)+"-"+util.getCustomTimeHHmmNumber(hours.business_hour_end_time)+"-"+Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                         let temp = util.getCustomTimeHHmmNumber(hours.business_hour_start_time);
                         hours_array.push(Number(util.getCustomTimeHHmmNumber(hours.business_hour_start_time)));
-                        //console.log("temp : "+Number(temp));
+                        //logger.info("temp : "+Number(temp));
                         map1.set(Number(temp), Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time)));
                         map4.set(Number(temp), Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST_())));
                         map2.set(Number(temp), hours.business_hour_end_time);
@@ -553,12 +553,12 @@ function RMBotService(objectCollection) {
 
                         remaining_mins_in_current_day = remaining_mins_in_current_day + Number(util.reminingTimeOfTheDay(hours.business_hour_start_time, hours.business_hour_end_time, util.getCurrentTimeHHmmIST()));
                         minutes_per_day = minutes_per_day + Number(util.getDiffAMPM(hours.business_hour_start_time, hours.business_hour_end_time));
-                        // console.log("minutes_per_day : "+minutes_per_day);
-                        // console.log("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
-                        // console.log("map1 :: "+map1.get(Number(temp)));
-                        // console.log("map2 :: "+map2.get(Number(temp)));
-                        // console.log("map3 :: "+map3.get(Number(temp)));
-                        // console.log("map3 :: "+map4.get(Number(temp)));
+                        // logger.info("minutes_per_day : "+minutes_per_day);
+                        // logger.info("remaining_mins_in_current_day : "+remaining_mins_in_current_day);
+                        // logger.info("map1 :: "+map1.get(Number(temp)));
+                        // logger.info("map2 :: "+map2.get(Number(temp)));
+                        // logger.info("map3 :: "+map3.get(Number(temp)));
+                        // logger.info("map3 :: "+map4.get(Number(temp)));
                     })
                 }
             }
@@ -574,8 +574,8 @@ function RMBotService(objectCollection) {
         	logger.info("#################### Business Hours and Working Hours Both Exists");
         }
         
-        // console.log("101 Minutes per day : "+minutes_per_day);
-        // console.log("102 (Number(statusDuration) : "+(Number(statusDuration)));
+        // logger.info("101 Minutes per day : "+minutes_per_day);
+        // logger.info("102 (Number(statusDuration) : "+(Number(statusDuration)));
         let dueDate = "";
         let temp_current_datetime = util.getCurrentISTTime();
         let remianing_minutes_after_today = Number(statusDuration);
@@ -586,62 +586,62 @@ function RMBotService(objectCollection) {
         let num_of_days = Math.floor(remianing_minutes_after_today/minutes_per_day);
         let unallocated_remaining_minutes = remianing_minutes_after_today%minutes_per_day;
 
-        // console.log("103 Days :: "+num_of_days);
-        // console.log("104 remianing_minutes_after_today:: "+remianing_minutes_after_today);
-        // console.log("105 Remaining Minutes after day calculations:: "+remianing_minutes_after_today%minutes_per_day);
-        // console.log("106 unallocated_remaining_minutes:: "+unallocated_remaining_minutes);
+        // logger.info("103 Days :: "+num_of_days);
+        // logger.info("104 remianing_minutes_after_today:: "+remianing_minutes_after_today);
+        // logger.info("105 Remaining Minutes after day calculations:: "+remianing_minutes_after_today%minutes_per_day);
+        // logger.info("106 unallocated_remaining_minutes:: "+unallocated_remaining_minutes);
 
          for(let i = 0; i < num_of_days; ){
             if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
                 temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[hours_array.length-1]));
                 temp_current_datetime = util.addDays(temp_current_datetime,1);
-                //console.log("106.1 Working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+                //logger.info("106.1 Working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
                 i++
             }else{
                 temp_current_datetime = util.addDays(temp_current_datetime,1); 
-                //console.log("106.2 Non working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
+                //logger.info("106.2 Non working Day :: "+temp_current_datetime+" "+util.getDayOfWeek(temp_current_datetime)); 
             }   
          }
-         // console.log("107 Due Datetime :: "+temp_current_datetime);
-         // console.log("108 Number(remaining_mins_in_current_day) :: "+Number(remaining_mins_in_current_day));
-         // console.log("109 Number(unallocated_remaining_minutes) :: "+Number(unallocated_remaining_minutes));
+         // logger.info("107 Due Datetime :: "+temp_current_datetime);
+         // logger.info("108 Number(remaining_mins_in_current_day) :: "+Number(remaining_mins_in_current_day));
+         // logger.info("109 Number(unallocated_remaining_minutes) :: "+Number(unallocated_remaining_minutes));
 
          let current_datetime = util.getCurrentISTTime();
          let end_time = "";
-         // console.log("110 hours array :: "+hours_array.sort(function(a, b){return a - b}));
-         // console.log("111 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+         // logger.info("110 hours array :: "+hours_array.sort(function(a, b){return a - b}));
+         // logger.info("111 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
 
          if(Number(num_of_days) <= 0){
-            //console.log("111.1 num_of_days :: "+num_of_days);
+            //logger.info("111.1 num_of_days :: "+num_of_days);
             if(Number(unallocated_remaining_minutes) >= 0){
-                //console.log("111.2 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                //logger.info("111.2 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                 let counter = 0;
                 for(let i = 0; i < 1; ){
                     counter++;
-                    //console.log("112.1 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                    //logger.info("112.1 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                     if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
-                        //console.log("112.2 business days includes :: "+businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1))));
+                        //logger.info("112.2 business days includes :: "+businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1))));
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
-                        // console.log("112 hours_array[0] :: "+hours_array[0]);
-                        // console.log("113 map3.get(hours_array[0]) :: "+map3.get(hours_array[0]));
+                        // logger.info("112 hours_array[0] :: "+hours_array[0]);
+                        // logger.info("113 map3.get(hours_array[0]) :: "+map3.get(hours_array[0]));
                         temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
                         for(let k = 0; k < hours_array.length;){ 
-                            // console.log("114 hours_array[k] :: "+hours_array[k]);
-                            //  console.log("115 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
-                            //  console.log("116 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            // logger.info("114 hours_array[k] :: "+hours_array[k]);
+                            //  logger.info("115 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                            //  logger.info("116 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                        
                             if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
                                 end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                                 unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
                                 k++;
-                                // console.log(k+" 117 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                                // console.log(k+" 118 if end_time :: "+end_time);
+                                // logger.info(k+" 117 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                // logger.info(k+" 118 if end_time :: "+end_time);
                             }else{
                                 end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                                 unallocated_remaining_minutes = Number(map1.get(hours_array[k]) - Number(unallocated_remaining_minutes));
                                 k = hours_array.length;
-                                // console.log(k+" 119 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                                // console.log(k+" 120 else end_time :: "+end_time);
+                                // logger.info(k+" 119 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                // logger.info(k+" 120 else end_time :: "+end_time);
                             } 
                         }
                         i++;
@@ -649,12 +649,12 @@ function RMBotService(objectCollection) {
                         if(counter === 7)
                             i = 1;
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
-                        // console.log("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
+                        // logger.info("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
                     }
                 }
 
                 temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
-                // console.log("121 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                // logger.info("121 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
                 
             }else{
                  
@@ -662,60 +662,60 @@ function RMBotService(objectCollection) {
                     unallocated_remaining_minutes = minutes_per_day + unallocated_remaining_minutes;
                     temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
                     for(let k = 0; k < hours_array.length;){ 
-                        // console.log("122 hours_array[k] :: "+hours_array[k]);
-                        //  console.log("123 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
-                        //  console.log("124 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                        // logger.info("122 hours_array[k] :: "+hours_array[k]);
+                        //  logger.info("123 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                        //  logger.info("124 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                    
                         if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
                             end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                             unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
                             k++;
-                            // console.log(k+" 125 no of days = 0 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                            // console.log(k+" 126 no of days = 0 if end_time :: "+end_time);
+                            // logger.info(k+" 125 no of days = 0 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            // logger.info(k+" 126 no of days = 0 if end_time :: "+end_time);
                         }else{
                             end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                             unallocated_remaining_minutes = Number(map1.get(hours_array[k])) - Number(unallocated_remaining_minutes);
                             k = hours_array.length;
-                            // console.log(k+" 127 no of days = 0 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                            // console.log(k+" 128 no of days = 0 else end_time :: "+end_time);
+                            // logger.info(k+" 127 no of days = 0 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            // logger.info(k+" 128 no of days = 0 else end_time :: "+end_time);
                         } 
                     }
                     
                 }
                 temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
-                // console.log("129 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                // logger.info("129 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
                 
                // request.status_due_datetime = temp_current_datetime;
                // self.updateStatusDueDate(request);
             }
 
          }else if(num_of_days > 0){
-           // console.log("111.3 num_of_days :: "+num_of_days);
+           // logger.info("111.3 num_of_days :: "+num_of_days);
                 let counter = 0;
                 for(let i = 0; i < num_of_days; ){
                     counter++;
-                    //console.log("111.4 num_of_days :: "+num_of_days);
+                    //logger.info("111.4 num_of_days :: "+num_of_days);
                     if(businessDays.includes(util.getDayOfWeek(util.addDays(temp_current_datetime,1)))){
                         counter = 0;
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
                         temp_current_datetime = temp_current_datetime.substring(0,10)+" "+util.getCustomTimeHHmm24Hr(map3.get(hours_array[0]));
                         for(let k = 0; k < hours_array.length;){ 
-                            // console.log("130 hours_array[k] :: "+hours_array[k]);
-                            //  console.log("131 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
-                            //  console.log("132 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                            // logger.info("130 hours_array[k] :: "+hours_array[k]);
+                            //  logger.info("131 map1.get(hours_array[k]) :: "+map1.get(hours_array[k]));
+                            //  logger.info("132 unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
                        
                             if(Number(map1.get(hours_array[k])) <= Number(unallocated_remaining_minutes)){
                                 end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                                 unallocated_remaining_minutes = Number(unallocated_remaining_minutes) - Number(map1.get(hours_array[k]));
                                 k++;
-                                // console.log(k+" 133 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                                // console.log(k+" 134 if end_time :: "+end_time);
+                                // logger.info(k+" 133 if unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                // logger.info(k+" 134 if end_time :: "+end_time);
                             }else{
                                 end_time = util.getCustomTimeHHmm24Hr(map2.get(hours_array[k]));
                                 unallocated_remaining_minutes = Number(map1.get(hours_array[k])) - Number(unallocated_remaining_minutes);
                                 k = hours_array.length;
-                                // console.log(k+" 135 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
-                                // console.log(k+" 136 else end_time :: "+end_time);
+                                // logger.info(k+" 135 else unallocated_remaining_minutes :: "+unallocated_remaining_minutes);
+                                // logger.info(k+" 136 else end_time :: "+end_time);
                             } 
                         }
                         i++;
@@ -724,11 +724,11 @@ function RMBotService(objectCollection) {
                             i = num_of_days;
                         
                         temp_current_datetime = util.addDays(temp_current_datetime,1);
-                        // console.log("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
+                        // logger.info("112.3 Day not exists :: "+util.getDayOfWeek(util.addDays(temp_current_datetime,1)));
                     }
                 }
                 temp_current_datetime = util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes);
-                // console.log("137 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
+                // logger.info("137 substractMinutes "+util.substractMinutes(temp_current_datetime.substring(0,10)+" "+end_time, unallocated_remaining_minutes))
                 
          }
 
@@ -746,10 +746,65 @@ function RMBotService(objectCollection) {
 
         return temp_current_datetime;
     }catch(e){
-        console.log(e);
+        logger.info(e);
     }
    }
 
+   this.TriggerRoundRobin = async function (request) {
+
+        let [err, assetData] = await self.getNextRoundRobinAsset(request);
+        if(assetData.length == 0){
+
+            request.global_array.push({"END_OF_FLOW":"NO ASSET RETURNED IN ROUND ROBIN"});
+            self.AIEventTransactionInsert(request);
+            return [false,{}];
+
+        }else{
+            request.global_array.push({"AFTER_EXECUTING_ROUND_ROBIN":"TARGET RESOURCE IS "+assetData[0].asset_id});
+            //request.duration_in_minutes = 0;
+            request.target_status_lead_asset_id = assetData[0].asset_id;
+            request.target_status_lead_asset_name = assetData[0].operating_asset_first_name;
+            request.res_account_id = 0;
+            request.res_workforce_id = 0;
+            request.res_asset_type_id = 0;
+            request.res_asset_category_id = 0;
+            request.res_asset_id = assetData[0].asset_id;
+            let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
+            if(responseDataAI.length > 0){
+                request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+            }
+           
+            self.addParticipantMakeRequest(request);
+        }
+   }
+
+   this.TriggerRoundRobinV1 = async function (request) {
+
+        let [err, assetData] = await self.getNextRoundRobinAsset(request);
+        if(assetData.length == 0){
+
+            request.global_array.push({"END_OF_FLOW":"NO ASSET RETURNED IN ROUND ROBIN"});
+            self.AIEventTransactionInsert(request);
+            return [false,{}];
+
+        }else{
+            request.global_array.push({"AFTER_EXECUTING_ROUND_ROBIN":"TARGET RESOURCE IS "+assetData[0].asset_id});
+            //request.duration_in_minutes = 0;
+            request.target_status_lead_asset_id = assetData[0].asset_id;
+            request.target_status_lead_asset_name = assetData[0].operating_asset_first_name;
+            request.res_account_id = 0;
+            request.res_workforce_id = 0;
+            request.res_asset_type_id = 0;
+            request.res_asset_category_id = 0;
+            request.res_asset_id = assetData[0].asset_id;
+            let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
+            if(responseDataAI.length > 0){
+                request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+            }
+           
+            self.addParticipantMakeRequest(request);
+        }
+   }
    this.RMAssignWorkflow = async function (request) {
     let [err, assetData] = await self.getAvailableResourcePoolAssetType(request);
         let resources_exists = false;
@@ -771,7 +826,10 @@ function RMBotService(objectCollection) {
                 request.res_asset_type_id = 0;
                 request.res_asset_category_id = 0;
                 request.res_asset_id = resourcecData[0].activity_lead_asset_id;
-                self.AIEventTransactionInsert(request);
+                let [errAI, responseDataAI] = await self.AIEventTransactionInsert(request);
+                if(responseDataAI.length > 0){
+                    request.ai_bot_transaction_id = responseDataAI[0].ai_bot_transaction_id;
+                }
                self.addParticipantMakeRequest(request);
            }else{
             request.global_array.push({"END_OF_FLOW":"NO MINIMAL OCCUPIED RESOURCES AVAILABLE FROM THE OPEN ORDERS, END OF FLOW"});
@@ -938,7 +996,7 @@ function RMBotService(objectCollection) {
             timelineCollection.activity_reference=[];
             timelineCollection.rm_bot_scores=rm_bot_scores;
             request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
-            //console.log("Before Making Request ", JSON.stringify(request,null,2));
+            //logger.info("Before Making Request ", JSON.stringify(request,null,2));
 
             logger.info("ai_bot_transaction_id EXISTS :: "+request.hasOwnProperty("ai_bot_transaction_id"));
            
@@ -994,7 +1052,7 @@ function RMBotService(objectCollection) {
             self.AIEventTransactionInsert(request);
             return [false, {}];
         }
-        //console.log('request '+JSON.stringify(request, null,2));
+        //logger.info('request '+JSON.stringify(request, null,2));
         
     };  
 
@@ -1018,7 +1076,7 @@ function RMBotService(objectCollection) {
             request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
             request.target_asset_id = leadAssetId;
-            console.log("duration_in_minutes :: "+request.duration_in_minutes);
+            logger.info("duration_in_minutes :: "+request.duration_in_minutes);
             let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
             request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
 
@@ -1107,7 +1165,7 @@ function RMBotService(objectCollection) {
             ai_bot_trigger_asset_id:request.ai_bot_trigger_asset_id
             //global_array:request.global_array
         };
-        //console.log("assignRequest :: "+JSON.stringify(assignRequest, null,2));
+        //logger.info("assignRequest :: "+JSON.stringify(assignRequest, null,2));
         //request.global_array.push({"participant_assign_request":JSON.stringify(assignRequest, null,2)})
         const assignActAsync = nodeUtil.promisify(makingRequest.post);
         //logger.info("assignRequest :: "+JSON.stringify(assignRequest, null,2));
@@ -1115,19 +1173,19 @@ function RMBotService(objectCollection) {
             form: assignRequest
         };
         try {
-             //console.log("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+             //logger.info("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
             // global.config.mobileBaseUrl + global.config.version
             const response = await assignActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/participant/access/set', makeRequestOptions1);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                console.log("Activity Mapping Assign | Body: ", body);
+                logger.info("Activity Mapping Assign | Body: ", body);
                 return [false, {}];
             }else{
-                console.log("Error ", body);
+                logger.info("Error ", body);
                 return [true, {}];
             }
         } catch (error) {
-            console.log("Activity Mapping Assign | Error: ", error);
+            logger.info("Activity Mapping Assign | Error: ", error);
             return [true, {}];
         } 
     }    
@@ -1199,26 +1257,26 @@ function RMBotService(objectCollection) {
             push_message:"Status updated to "+rollback_status_name,
             activity_timeline_collection:x
         };
-        //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
-        //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const makeRequestOptions1 = {
             form: alterStatusRequest
         };
         try {
-             //console.log("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+             //logger.info("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
             // global.config.mobileBaseUrl + global.config.version
             const response = await alterStatusActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/status/alter', makeRequestOptions1);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                console.log("Activity Status Alter | Body: ", body);
+                logger.info("Activity Status Alter | Body: ", body);
                 return [false, {}];
             }else{
-                console.log("Error ", body);
+                logger.info("Error ", body);
                 return [true, {}];
             }
         } catch (error) {
-            console.log("Activity Status Alter | Error: ", error);
+            logger.info("Activity Status Alter | Error: ", error);
             return [true, {}];
         } 
     }     
@@ -1337,7 +1395,7 @@ function RMBotService(objectCollection) {
          let [error, responseCode]  = await self.organizationListSelect(request);
 
          let data_config = JSON.parse(responseCode[0].organization_inline_data).rm_bot_config;
-        // console.log("org_level_scores :: "+JSON.parse(responseCode[0].organization_inline_data).rm_bot_config);
+        // logger.info("org_level_scores :: "+JSON.parse(responseCode[0].organization_inline_data).rm_bot_config);
          read_efficiency_percentage = data_config.read_efficiency;
          work_efficiency_percentage = data_config.work_efficiency;
          status_rollback_percentage = data_config.status_rollback_percentage;
@@ -1375,7 +1433,7 @@ function RMBotService(objectCollection) {
             let rmInlineData = {};
 
             let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
-            console.log("summary_data :: "+JSON.stringify(summaryData));
+            logger.info("summary_data :: "+JSON.stringify(summaryData));
 
             if(summaryData.length > 0){
                 rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):{};
@@ -1501,9 +1559,9 @@ function RMBotService(objectCollection) {
 
 
         }catch(err){
-            console.log('Error ',err);
+            logger.info('Error ',err);
         }
-        console.log("Return :: "+total_score);
+        logger.info("Return :: "+total_score);
 
         return[false, {"total_score":total_score, "rm_bot_scores":score_details_array}]
     }
@@ -1577,14 +1635,20 @@ function RMBotService(objectCollection) {
             request.global_array.push({"UNALLOCATE_WORKFLOW ":"MAKING THE WORKLOW UNALLOCATED "});
             await self.unallocatedWorkflowInsert(request);
 
-            request.global_array.push({"RESOURCE_POOL_TRIGGER":"TRIGGER THE RESOURCE POOL"});
-            //await self.RMLoopInResoources(request);
-            await self.RMAssignWorkflow(request);
+            request.global_array.push({"activity_type_flag_round_robin":request.activity_type_flag_round_robin});
+            if(request.activity_type_flag_round_robin == 1){ 
+                request.global_array.push({"ROUND_ROBIN_FLAG_SET":"HENCE EXECUTING ROUND ROBIN FEATURE"});
+                await self.TriggerRoundRobin(request);
+            }else{
+                request.global_array.push({"ROUND_ROBIN_FLAG_NOT_SET":"TRIGGER THE AssinWorkflow POOL"});
+                //await self.RMLoopInResoources(request);
+                await self.RMAssignWorkflow(request);
+            }
 
         }catch(error){
-            console.log("error :: "+error);
+            logger.info("error :: "+error);
         }
-        console.log('request '+JSON.stringify(request, null,2));
+        logger.info('request '+JSON.stringify(request, null,2));
         return [false, {}];
     };
 
@@ -1603,7 +1667,7 @@ function RMBotService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    //console.log("DD :: "+JSON.stringify(data));
+                    //logger.info("DD :: "+JSON.stringify(data));
                     responseData = data;
                     error = false;
                 })
@@ -1631,7 +1695,7 @@ function RMBotService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    //console.log("Response :: "+JSON.stringify(data, null, 2));
+                    //logger.info("Response :: "+JSON.stringify(data, null, 2));
                     responseData = data;
                     error = false;
                 })
@@ -1659,7 +1723,7 @@ function RMBotService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    //console.log("Response :: "+JSON.stringify(data, null, 2));
+                    //logger.info("Response :: "+JSON.stringify(data, null, 2));
                     responseData = data;
                     error = false;
                 })
@@ -1800,7 +1864,7 @@ function RMBotService(objectCollection) {
         const queryString = util.getQueryString("ds_v1_asset_summary_transaction_insert", paramsArr);
 
         if(request.asset_id === 0) {
-            console.log('Not making db call when the asset_id is 0', request.asset_id );
+            logger.info('Not making db call when the asset_id is 0', request.asset_id );
             return[error = false, []];
         }
         else {
@@ -1904,7 +1968,7 @@ function RMBotService(objectCollection) {
                     request.track_gps_datetime = util.getCurrentUTCTime();
                     request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                     
-                    //console.log("activityListLeadUpdate :: "+JSON.stringify(request,null,2));
+                    //logger.info("activityListLeadUpdate :: "+JSON.stringify(request,null,2));
                     if(request.timeline_stream_type_id > 0)
                     activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, Number(request.timeline_stream_type_id)); 
 
@@ -1919,7 +1983,7 @@ function RMBotService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                    console.log("error :: "+error);
+                    logger.info("error :: "+error);
                 });
         }
 
@@ -1935,7 +1999,7 @@ function RMBotService(objectCollection) {
                 });
         }      
         }catch(error){
-            console.log("error :: "+error);
+            logger.info("error :: "+error);
         } 
 
         return [error, responseData];
@@ -2212,12 +2276,12 @@ function RMBotService(objectCollection) {
         rmInlineData.industry_exposure={};
         rmInlineData.workflow_exposure={};
 
-        console.log("rmInlineData :: ",rmInlineData);
+        logger.info("rmInlineData :: ",rmInlineData);
 
         let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
 
         if(data.length == 0){
-            console.log("No Activities exists, hence total_score = -1");
+            logger.info("No Activities exists, hence total_score = -1");
             return[false, {"total_score":-1, "rm_bot_scores":[]}];
         }
 
@@ -2229,15 +2293,15 @@ function RMBotService(objectCollection) {
         let inlineData = {};
         /*
             let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
-            console.log("summary_data :: "+JSON.stringify(summaryData));
+            logger.info("summary_data :: "+JSON.stringify(summaryData));
             if(summaryData.length == 1){
                 rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
             }
         */
-        console.log("Activity activity_type_id***** :: "+data[0].activity_type_id);
-        console.log("Activity activity_status_id*** :: "+data[0].activity_status_id);
-        console.log("Activity industry_id********** :: "+data[0].industry_id);
-        console.log("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
+        logger.info("Activity activity_type_id***** :: "+data[0].activity_type_id);
+        logger.info("Activity activity_status_id*** :: "+data[0].activity_status_id);
+        logger.info("Activity industry_id********** :: "+data[0].industry_id);
+        logger.info("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
 
         request.flag = 1;
         request.entity_id = data[0].activity_type_id;
@@ -2268,11 +2332,11 @@ function RMBotService(objectCollection) {
                 workflow_score = 0;
             }
             
-            console.log("rmInlineData.workflow_exposure :: "+JSON.stringify(rmInlineData));
+            logger.info("rmInlineData.workflow_exposure :: "+JSON.stringify(rmInlineData));
             rmInlineData.workflow_exposure[data[0].activity_type_id] = {"intime":activityTypeIntimeCount,"total":activityTypeCount, "workflow_id":data[0].activity_type_id,"workflow_name":data[0].activity_type_name,"workflow_score":workflow_score};
             //JSON.parse(rmInlineData.workflow_exposure).dat=workflow_score;
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
 
         request.flag = 4;
@@ -2306,7 +2370,7 @@ function RMBotService(objectCollection) {
 
             rmInlineData.industry_exposure[data[0].industry_id]={"intime":industryIntimeCount,"total":industryCount, "industry_id":data[0].industry_id, "industry_name":data[0].industry_name, "industry_score":industry_score};
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
 
         request.flag = 5;
@@ -2339,7 +2403,7 @@ function RMBotService(objectCollection) {
             }
             rmInlineData.customer_exposure[data[0].customer_asset_id]={"intime":customerIntimeCount,"total":customerCount, "customer_asset_id":data[0].customer_asset_id, "customer_asset_name":data[0].customer_asset_first_name, "customer_score":customer_score};
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
         //read efficiency
         //rollback
@@ -2372,10 +2436,10 @@ function RMBotService(objectCollection) {
             }else{
                 read_efficiency = 0;
             }
-            console.log("totalUpdatesIntimeCount : "+totalUpdatesIntimeCount+" totalUpdatesCount"+totalUpdatesCount+" read_efficiency :"+read_efficiency);
+            logger.info("totalUpdatesIntimeCount : "+totalUpdatesIntimeCount+" totalUpdatesCount"+totalUpdatesCount+" read_efficiency :"+read_efficiency);
             rmInlineData.read_efficiency=read_efficiency?read_efficiency:0;
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
 
         request.flag = 7;
@@ -2409,7 +2473,7 @@ function RMBotService(objectCollection) {
             }
             rmInlineData.work_efficiency[data[0].activity_status_id]={"intime":totalIntimeCount,"total":totalCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "work_efficiency":work_efficiency};;
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
 
         request.flag = 8;
@@ -2448,10 +2512,10 @@ function RMBotService(objectCollection) {
             logger.info("status_no_rollback_efficiency"+status_no_rollback_efficiency+" :: rollbackCount"+rollbackCount+" :: totalNoRollbackCount"+totalNoRollbackCount)
             rmInlineData.status_no_rollback[data[0].activity_status_id]={"intime":totalNoRollbackCount,"total":overallCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "status_no_rollback_efficiency":status_no_rollback_efficiency};;
         }catch(e){
-            console.log(e);
+            logger.info(e);
         }
 
-        console.log("rmInlineData ",rmInlineData);
+        logger.info("rmInlineData ",rmInlineData);
         let objReq1 = Object.assign({}, request);
         objReq1.inline_data = JSON.stringify(rmInlineData);
         objReq1.asset_id = request.lead_asset_id;
@@ -2519,13 +2583,13 @@ function RMBotService(objectCollection) {
                             self.assetListUpdatePoolEntry(objR);
                             //self.calculateAssetNewSummary(objR);
 
-                           /* 
+                           
                             if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
                                 request.target_lead_asset_id = data[0].existing_lead_asset_id;
                                 request.target_asset_id = data[0].existing_lead_asset_id;
-                                //self.calculateAssetNewSummary(request);
+                                //self.calculateAssetNewSummaryV1(request);
                                 await self.assetListUpdatePoolEntry(request);
-                            } */
+                            } 
 
                             request.rm_flag = 2; 
                             request.is_lead_enabled = lead_asset_id; 
@@ -2552,6 +2616,13 @@ function RMBotService(objectCollection) {
                             if(data[0].existing_lead_asset_id > 0){
                                 request.global_array.push({"new_lead_asset_id":lead_asset_id});
                                 logger.info("new_lead_asset_id:: "+lead_asset_id);
+
+                                if(lead_asset_id != data[0].existing_lead_asset_id){
+                                    request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                                    request.target_asset_id = data[0].existing_lead_asset_id;
+                                    //self.calculateAssetNewSummary(request);
+                                    await self.assetListUpdatePoolEntry(request);
+                                }                                 
                                 if(Number(lead_asset_id) == 0){
 
                                     logger.info("LEAD_UNASSIGNMENT"+request.lead_asset_id);;
@@ -2598,7 +2669,7 @@ function RMBotService(objectCollection) {
                         if(!request.hasOwnProperty("message_unique_id"))
                             request.message_unique_id = util.getMessageUniqueId(request.asset_id);
                         
-                        console.log("activityListLeadUpdate :: ",request.activity_lead_timeline_collection);
+                        logger.info("activityListLeadUpdate :: ",request.activity_lead_timeline_collection);
                         
                         if(Number(request.timeline_stream_type_id) > 0){
                             //request.global_array.push({"asyncActivityTimelineTransactionInsert":JSON.stringify(request,null,2)});
@@ -2635,7 +2706,7 @@ function RMBotService(objectCollection) {
                 });
             }
         }catch(error){
-            console.log("error :: "+error);
+            logger.info("error :: "+error);
         }    
     }      
 
@@ -2668,7 +2739,7 @@ function RMBotService(objectCollection) {
                         });
                 } 
             }catch(error){
-                console.log("error :: "+error);
+                logger.info("error :: "+error);
             }    
     }
 
@@ -2752,7 +2823,7 @@ function RMBotService(objectCollection) {
                     });
             } 
         }catch(error){
-            console.log("error :: "+error);
+            logger.info("error :: "+error);
         }   
         return [error, responseData]; 
     }   
@@ -2953,6 +3024,13 @@ function RMBotService(objectCollection) {
                         request.target_lead_asset_id = lead_asset_id;
                         self.assetListUpdatePoolEntry(request);
 
+                        if(data[0].existing_lead_asset_id > 0 && lead_asset_id != data[0].existing_lead_asset_id){
+                            request.target_lead_asset_id = data[0].existing_lead_asset_id;
+                            request.target_asset_id = data[0].existing_lead_asset_id;
+                            //self.calculateAssetNewSummary(request);
+                            await self.assetListUpdatePoolEntry(request);
+                        } 
+
                         request.lead_asset_id = lead_asset_id;
                         await self.activityAssetMappingUpdateLead(request);                       
                         
@@ -2992,7 +3070,387 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
+    } 
+
+    this.getNextRoundRobinAsset = async function(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(  
+            request.organization_id, 
+            request.asset_type_id,
+            request.activity_id,
+            util.getCurrentUTCTime()                
+        );
+        //const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset', paramsArr);
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset_json', paramsArr);
+        
+        if (queryString !== '') {
+            request.global_array.push({"getNextRoundRobinAsset":queryString});
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }     
+
+    this.BCCPQAllocation = async function(request){
+        request.global_array = [];
+        request.ai_bot_trigger_key = "BCCPQAllocation_"+request.activity_id;
+        request.ai_bot_trigger_asset_id = 0;
+        request.ai_bot_trigger_activity_id = request.activity_id;
+        request.ai_bot_trigger_activity_status_id = request.activity_status_id||0;
+        request.global_array.push({"BCCPQAllocation_":"BCCPQAllocation_"+JSON.stringify(request)});
+
+        logger.info("IN BCCPQAllocation");
+        const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
+        let referenceFields = widgetFieldsStatusesData.BC_OPP_REF_FIELDS;
+        let tenderType = widgetFieldsStatusesData.BC_TENDER_TYPE;
+        let b_p_team = widgetFieldsStatusesData.BC_B_P_TEAM;//140788; //
+        let potfolio_mgr_ld_team = widgetFieldsStatusesData.BC_PORTFOLIO_MGR_LD_TEAM;//127254;//
+        let pricing_mgr_ld_team = widgetFieldsStatusesData.PRICING_MGR_LD_TEAM;//140787;//
+        let requestFormData = JSON.parse(request.activity_inline_data);
+        let idActivityType = 0;
+        let AOV = 0;
+
+        forEachAsync(requestFormData, async function (next, fieldObj) {
+            logger.info('LOOP ::' + request.activity_type_id + ' ' + fieldObj.field_id);
+            request.global_array.push({"LOOP_FIELDS":"Field "+fieldObj.field_id});
+
+            if(Object.keys(referenceFields).includes(String(fieldObj.field_id))){
+                logger.info('BCCPQAllocation :: MATCH FOUND ::' + Object.keys(referenceFields) + ' ' + fieldObj.field_id);
+                request.global_array.push({"MATCH_FOUND":"Field "+Object.keys(referenceFields)+" :: "+fieldObj.field_id});
+
+                let opportunityData = JSON.parse(fieldObj.field_value);
+                logger.info("BCCPQAllocation :: Refered Opportunity Data "+JSON.stringify(opportunityData));
+                request.global_array.push({"ReferedOpportunityData":"Activity "+opportunityData[0].activity_id});
+
+                let activityData = await activityCommonService.getActivityDetailsPromise(request, opportunityData[0].activity_id);
+                logger.info("BCCPQAllocation :: Opportunity Activity Data "+activityData[0].activity_id);
+                request.global_array.push({"activity_details":"ActivityType "+activityData[0].activity_type_id+" :: AOV "+activityData[0].activity_workflow_value_final});
+                
+                if(activityData.length > 0){
+                    if(tenderType == String(activityData[0].activity_type_id)){
+                        //request.asset_type_id = b_p_team.asset_type_id;
+                        request.asset_type_id = b_p_team;
+                        request.global_array.push({"TenderTeamType":"Tender ActivityType "+tenderType+" AssetTypeId "+request.asset_type_id});
+                        
+                    }else{
+                        if(Number(activityData[0].activity_workflow_value_final) >= 6000000){
+                             //request.asset_type_id = potfolio_mgr_ld_team.asset_type_id;
+                             request.asset_type_id = potfolio_mgr_ld_team;
+                             request.global_array.push({"NonTenderTeamTypeWithAOVgreaterthan6000000":"AssetTypeId "+request.asset_type_id});
+                        }else if(Number(activityData[0].activity_workflow_value_final) < 6000000){
+                             //request.asset_type_id = pricing_mgr_ld_team.asset_type_id;
+                             request.asset_type_id = pricing_mgr_ld_team;
+                             request.global_array.push({"NonTenderTeamTypeWithAOVlessthan6000000":"AssetTypeId "+request.asset_type_id});
+                        }
+                    }
+                    logger.info(JSON.stringify(request, null, 2));
+                    self.TriggerRoundRobinV1(request);
+                }
+            }else{
+                next();
+            }
+        });
     }
+
+    this.calculateAssetNewSummaryV1 = async function(request){
+
+        let read_efficiency = 0;
+        let work_efficiency = 0;
+        let status_no_rollback_efficiency = 0;
+        let customer_exposure = 0;
+        let industry_exposure = 0;
+        let workflow_exposure = 0;
+        let workflow_type_exposure = 0;
+        let workflow_category_exposure = 0;
+
+        let industry_score = 0;
+        let customer_score = 0;
+        let workflow_score = 0;
+        let workflow_type_score = 0;
+        let workflow_category_score = 0;
+        let status_no_rollback_score = 0;
+
+        let idLeadAsset = request.lead_asset_id;
+
+        let rmInlineData = {};
+        rmInlineData.read_efficiency="";
+        rmInlineData.work_efficiency={};
+        rmInlineData.status_no_rollback={};
+        rmInlineData.customer_exposure={}
+        rmInlineData.industry_exposure={};
+        rmInlineData.workflow_exposure={};
+        rmInlineData.workflow_type_exposure={};
+        rmInlineData.workflow_category_exposure={};        
+
+        logger.info("rmInlineData :: ",rmInlineData);
+
+        let [err, data] = await self.getActivityDetailsPromiseAsync(request, request.activity_id);
+
+        if(data.length == 0){
+            logger.info("No Activities exists, hence total_score = -1");
+            return[false, {"total_score":-1, "rm_bot_scores":[]}];
+        }
+
+        let reqObj = Object.assign({},request);
+        reqObj.target_asset_id = idLeadAsset;
+        request.target_asset_id = idLeadAsset;
+        reqObj.summary_id = 6;
+        reqObj.flag = 0;
+        let inlineData = {};
+        
+        let [summaryErr, summaryData] = await self.assetSummarytransactionSelect(reqObj);
+        logger.info("summary_data :: "+JSON.stringify(summaryData));
+        if(summaryData.length == 1){
+            rmInlineData = summaryData[0].data_entity_inline?JSON.parse(summaryData[0].data_entity_inline):rmInlineData;
+        }
+        
+        logger.info("Activity activity_type_id***** :: "+data[0].activity_type_id);
+        logger.info("Activity activity_type_tag_id***** :: "+data[0].activity_type_tag_id);
+        logger.info("Activity tag_type_id***** :: "+data[0].tag_type_id);
+        logger.info("Activity activity_status_id*** :: "+data[0].activity_status_id);
+        logger.info("Activity industry_id********** :: "+data[0].industry_id);
+        logger.info("Activity customer_asset_id**** :: "+data[0].customer_asset_id);
+
+        request.flag = 1;
+        request.entity_id = data[0].activity_type_id;
+        let [error1, activityTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error2, activityTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTypeIntimeCount = 0;
+        let activityTypeCount = 0;
+        
+        try{
+            if(activityTypeStatusCount.length > 0)
+            {
+                if(activityTypeIntimeStatusCount.length > 0){
+                    if(Number(activityTypeStatusCount[0].activity_type_count) > 0){
+                        workflow_score = (Number(activityTypeIntimeStatusCount[0].activity_type_count)/Number(activityTypeStatusCount[0].activity_type_count)).toFixed(2);
+                        activityTypeIntimeCount = Number(activityTypeIntimeStatusCount[0].activity_type_count);
+                        activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                    }else{
+                        workflow_score = 0;
+                        activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                        activityTypeIntimeCount = Number(activityTypeIntimeStatusCount[0].activity_type_count);                        
+                    }
+                }else{
+                    workflow_score = 0;
+                    activityTypeCount = Number(activityTypeStatusCount[0].activity_type_count);
+                    activityTypeIntimeCount = 0;
+                }
+            }else{
+                workflow_score = 0;
+            }
+            
+            logger.info("rmInlineData.workflow_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_exposure[data[0].activity_type_id] = {"intime":activityTypeIntimeCount,"total":activityTypeCount, "workflow_id":data[0].activity_type_id,"workflow_name":data[0].activity_type_name,"workflow_score":workflow_score};
+            //JSON.parse(rmInlineData.workflow_exposure).dat=workflow_score;
+        }catch(e){
+            logger.info(e);
+        }
+
+        request.flag = 2;
+        request.entity_id = data[0].activity_type_tag_id;
+        let [error3, activityTypeTagStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error4, activityTypeTagIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTypeTagIntimeCount = 0;
+        let activityTypeTagCount = 0;
+
+        logger.info("Number(activityTypeTagStatusCount[0].activity_type_tag_count) "+Number(activityTypeTagStatusCount[0].activity_type_tag_count));
+        logger.info("Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count) "+Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count));
+    
+        try{
+            if(activityTypeTagStatusCount.length > 0)
+            {
+                if(activityTypeTagIntimeStatusCount.length > 0){
+                    if(Number(activityTypeTagStatusCount[0].activity_type_tag_count) > 0){
+                        workflow_type_score = (Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count)/Number(activityTypeTagStatusCount[0].activity_type_tag_count)).toFixed(2);
+                        activityTypeTagIntimeCount = Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count);
+                        activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                    }else{
+                        workflow_type_score = 0;
+                        activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                        activityTypeTagIntimeCount = Number(activityTypeTagIntimeStatusCount[0].activity_type_tag_count);                        
+                    }
+                }else{
+                    workflow_type_score = 0;
+                    activityTypeTagCount = Number(activityTypeTagStatusCount[0].activity_type_tag_count);
+                    activityTypeTagIntimeCount = 0;
+                }
+            }else{
+                workflow_type_score = 0;
+            }
+            
+            logger.info("rmInlineData.workflow_type_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_type_exposure[data[0].activity_type_tag_id] = {"intime":activityTypeTagIntimeCount,"total":activityTypeTagCount, "workflow_type_id":data[0].activity_type_tag_id,"workflow_type_name":data[0].activity_type_tag_name,"workflow_type_score":workflow_type_score};
+            //JSON.parse(rmInlineData.workflow_type_exposure).dat=workflow_score;
+        }catch(e){
+            logger.info(e);
+        }
+
+        request.flag = 3;
+        request.entity_id = data[0].tag_type_id;
+        let [error5, activityTagTypeStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error6, activityTagTypeIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let activityTagTypeIntimeCount = 0;
+        let activityTagTypeCount = 0;
+
+        logger.info("Number(activityTagTypeStatusCount[0].tag_type_count) "+Number(activityTagTypeStatusCount[0].tag_type_count));
+        logger.info("Number(activityTagTypeIntimeStatusCount[0].tag_type_count) "+Number(activityTagTypeIntimeStatusCount[0].tag_type_count));
+            
+        try{
+            if(activityTagTypeStatusCount.length > 0)
+            {
+                if(activityTagTypeIntimeStatusCount.length > 0){
+                    if(Number(activityTagTypeStatusCount[0].tag_type_count) > 0){
+                        workflow_category_score = (Number(activityTagTypeIntimeStatusCount[0].tag_type_count)/Number(activityTagTypeStatusCount[0].tag_type_count)).toFixed(2);
+                        activityTagTypeIntimeCount = Number(activityTagTypeIntimeStatusCount[0].tag_type_count);
+                        activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                    }else{
+                        workflow_category_score = 0;
+                        activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                        activityTagTypeIntimeCount = Number(activityTagTypeIntimeStatusCount[0].tag_type_count);                        
+                    }
+                }else{
+                    workflow_category_score = 0;
+                    activityTagTypeCount = Number(activityTagTypeStatusCount[0].tag_type_count);
+                    activityTagTypeIntimeCount = 0;
+                }
+            }else{
+                workflow_category_score = 0;
+            }
+            
+            logger.info("rmInlineData.workflow_category_exposure :: "+JSON.stringify(rmInlineData));
+            rmInlineData.workflow_category_exposure[data[0].tag_type_id] = {"intime":activityTagTypeIntimeCount,"total":activityTagTypeCount, "workflow_category_id":data[0].tag_type_id,"workflow_type_name":data[0].tag_type_name,"workflow_category_score":workflow_category_score};
+            //JSON.parse(rmInlineData.workflow_exposure).dat=workflow_score;
+        }catch(e){
+            logger.info(e);
+        }
+        //read efficiency
+        //rollback
+        request.flag = 6;
+        request.entity_id = request.target_asset_id;
+        let [error11, totalUpdateCount] = await self.assetTaskParticipatedCount(request);
+        let [error12, totalIntimeUpdateCount] = await self.assetTaskLeadedCount(request);
+        let totalUpdatesIntimeCount = 0;
+        let totalUpdatesCount = 0;
+        let totalUpdatesJson = {};
+
+        try{
+            if(totalUpdateCount.length > 0)
+            {
+                if(totalIntimeUpdateCount.length > 0){
+                    if(Number(totalUpdateCount[0].update_count) > 0){
+                        read_efficiency = (Number(totalIntimeUpdateCount[0].update_count)/Number(totalUpdateCount[0].update_count)).toFixed(2);
+                        totalUpdatesIntimeCount = Number(totalIntimeUpdateCount[0].update_count);
+                        totalUpdatesCount = Number(totalUpdateCount[0].update_count);
+                    }else{
+                        read_efficiency = 0;
+                        totalUpdatesCount = Number(totalUpdateCount[0].update_count);  
+                        totalUpdatesIntimeCount = Number(totalIntimeUpdateCount[0].update_count);
+                    }            
+                }else{
+                    read_efficiency = 0;
+                    totalUpdatesCount = Number(totalUpdateCount[0].update_count);  
+                    totalUpdatesIntimeCount = 0;
+                }
+            }else{
+                read_efficiency = 0;
+            }
+            logger.info("totalUpdatesIntimeCount : "+totalUpdatesIntimeCount+" totalUpdatesCount"+totalUpdatesCount+" read_efficiency :"+read_efficiency);
+            rmInlineData.read_efficiency=read_efficiency?read_efficiency:0;
+        }catch(e){
+            logger.info(e);
+        }
+
+        request.flag = 7;
+        
+        request.entity_id = data[0].activity_status_id;
+        let [error13, totalStatusCount] = await self.assetTaskParticipatedCount(request);
+        let [error14, totalIntimeStatusCount] = await self.assetTaskLeadedCount(request);
+        let totalIntimeCount = 0;
+        let totalCount = 0;
+        let totalJson = {};
+        try{
+            if(totalStatusCount.length > 0)
+            {
+                if(totalIntimeStatusCount.length > 0){
+                    if(Number(totalStatusCount[0].activity_count) > 0){
+                        work_efficiency = (Number(totalIntimeStatusCount[0].activity_count)/Number(totalStatusCount[0].activity_count)).toFixed(2);
+                        totalIntimeCount = Number(totalIntimeStatusCount[0].activity_count);
+                        totalCount = Number(totalStatusCount[0].activity_count);
+                    }else{
+                        work_efficiency = 0;
+                        totalIntimeCount = Number(totalIntimeStatusCount[0].activity_count);
+                        totalCount = Number(totalStatusCount[0].activity_count);                        
+                    }               
+                }else{
+                    work_efficiency = 0;
+                    totalIntimeCount = 0;
+                    totalCount = Number(totalStatusCount[0].activity_count);  
+                }
+            }else{
+                work_efficiency = 0;
+            }
+            rmInlineData.work_efficiency[data[0].activity_status_id]={"intime":totalIntimeCount,"total":totalCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "work_efficiency":work_efficiency};;
+        }catch(e){
+            logger.info(e);
+        }
+
+        request.flag = 8;
+        
+        request.entity_id = data[0].activity_status_id;
+        let [error15, totalStatusCount1] = await self.assetTaskParticipatedCount(request);
+        let [error16, totalRollbackStatusCount] = await self.assetTaskLeadedCount(request);
+        let rollbackCount = 0;
+        let overallCount = 0;
+        let totalNoRollbackCount = 0;
+
+        try{
+            if(totalStatusCount1.length > 0)
+            {
+                if(totalRollbackStatusCount.length > 0){
+                    if(Number(totalStatusCount1[0].activity_status_count) > 0){
+                        status_no_rollback_efficiency = ((Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count))/Number(totalStatusCount1[0].activity_status_count)).toFixed(2);
+                        rollbackCount = Number(totalRollbackStatusCount[0].status_rollback_count);
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);      
+                        totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
+                    }else{
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);  
+                        totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count) - Number(totalRollbackStatusCount[0].status_rollback_count);       
+                        overallCount = Number(totalStatusCount1[0].activity_status_count);
+                        status_no_rollback_efficiency = 0;                        
+                    }
+
+                }else{
+                    totalNoRollbackCount =  Number(totalStatusCount1[0].activity_status_count);
+                    overallCount = Number(totalStatusCount1[0].activity_status_count);
+                    status_no_rollback_efficiency = 1;
+                }
+            }else{
+                status_no_rollback_efficiency = 0;
+            }
+            logger.info("status_no_rollback_efficiency"+status_no_rollback_efficiency+" :: rollbackCount"+rollbackCount+" :: totalNoRollbackCount"+totalNoRollbackCount)
+            rmInlineData.status_no_rollback[data[0].activity_status_id]={"intime":totalNoRollbackCount,"total":overallCount, "activity_status_id":data[0].activity_status_id, "activity_status_name":data[0].activity_status_name, "activity_type_id":data[0].activity_type_id, "activity_type_name":data[0].activity_type_name, "status_no_rollback_efficiency":status_no_rollback_efficiency};;
+        }catch(e){
+            logger.info(e);
+        }
+
+        logger.info("rmInlineData ",rmInlineData);
+        let objReq1 = Object.assign({}, request);
+        objReq1.inline_data = JSON.stringify(rmInlineData);
+        objReq1.asset_id = request.lead_asset_id;
+        objReq1.monthly_summary_id = 6;
+        self.assetSummaryTransactionInsert(objReq1);
+        return rmInlineData;
+    }
+ 
         
     }
 

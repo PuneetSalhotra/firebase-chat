@@ -1502,19 +1502,31 @@ function BotService(objectCollection) {
                     break;
 
                 case 18: // Workbook Mapping Bot
-                    //logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
+                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
                     //Only if product variant is selected then only trigger the bot
-                    let flag = 0;
-                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+                    let flag = 0;                    
                     let activityInlineData;
 
-                    try{
-                        activityInlineData = JSON.parse(request.activity_inline_data);
-                    } catch(err) {
-                        console.log('Error parsing activity inline data');
-                        //flag = 1;
+                    try {
+                        if (!request.hasOwnProperty('activity_inline_data')) {                            
+                            const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                            activityInlineData = activityTimelineCollection.form_submitted;
+                            if (
+                                Number(request.device_os_id) === 1 &&
+                                typeof activityTimelineCollection.form_submitted === "string"
+                            ) {
+                                activityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                            }
+                        } else {
+                            activityInlineData = JSON.parse(request.activity_inline_data);
+                        }                        
+                    } catch (error) {
+                        logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                     }
-                    
+
+                    console.log(' ');
+                    console.log('request.activity_inline_data : ', request.activity_inline_data);
+
                     for(const i of activityInlineData) {
                         if(Number(i.field_data_type_id === 71)) {
                             let fieldValue = JSON.parse(i.field_value);                            
@@ -1533,7 +1545,15 @@ function BotService(objectCollection) {
                         }
                     }
 
+                    if(Number(request.activity_type_id) === 152184) {
+                        flag = 1;
+                    }
+
                     if(Number(flag) === 1) {
+                        if(Number(request.activity_type_id) === 152184) {
+                            console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
+                        }
+                        
                         try {
                             if (
                                 Number(request.organization_id) === 868 ||
@@ -1813,7 +1833,163 @@ function BotService(objectCollection) {
         }
     }
 
+    this.removeParticipantMethod = async(request) => {
+        /*{
+            "bot_operations": {
+              "participant_remove": {
+                "static": {        
+                  "asset_id": 32079
+                }
+                "flag_esms": 1
+              }
+            }
+          }          
+          
+          {
+            "bot_operations": {
+              "participant_remove": {
+                "asset_reference": {
+                  "form_id": "",
+                  "field_id": ""
+                },
+                "flag_esms": 1
+              }
+            }
+          }*/
+        
+        //TEST CASE 1
+        let inlineData = {};
+            inlineData.static = {};
+            inlineData.static.asset_id = 38848;    
+            inlineData.flag_esms = 1;
+            
+
+        //TEST CASE 2
+        //let inlineData = {};
+        //    inlineData.flag_esms = 1;
+        //    inlineData.asset_reference = {};
+        //    inlineData.asset_reference.form_id = 1234;
+        //    inlineData.asset_reference.field_id = 1234;
+
+        await removeParticipant(request, inlineData);
+        return [false, []];
+    }
+
     async function removeParticipant(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
+        //Check Whether it is for ESMS
+        if(removeParticipantBotOperationData.hasOwnProperty('flag_esms') && Number(removeParticipantBotOperationData.flag_esms) === 1) {
+            //1. Check if the asset is the lead for the workflow if YES then remove his as lead
+            //2. Remove the asset from the workflow
+            
+            const workflowActivityID = Number(request.workflow_activity_id) || 0;
+            let assetID = 0;
+
+            let inlineData = removeParticipantBotOperationData;
+
+            let type = Object.keys(inlineData);
+                global.logger.write('conLog', type, {}, {});
+
+            console.log('type[0]: ', type[0]);
+            if (type[0] === 'static') {
+                assetID = Number(inlineData[type[0]].asset_id);
+                console.log('STATIC - Asset ID : ', assetID);
+            } else if(type[0] === 'from_request') {
+                assetID = Number(request.asset_id);
+                console.log('from_request - Asset ID : ', assetID);
+            } else if (type[0] === 'asset_reference') {
+                const formID = Number(inlineData["asset_reference"].form_id),
+                      fieldID = Number(inlineData["asset_reference"].field_id);                      
+    
+                let formTransactionID = 0, formActivityID = 0;    
+                
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, formID);
+    
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                
+                if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
+                        // Fetch the field value
+                        const fieldData = await getFieldValue({
+                            form_transaction_id: formTransactionID,
+                            form_id: formID,
+                            field_id: fieldID,
+                            organization_id: request.organization_id
+                        });
+                        assetID = Number(fieldData[0].data_entity_bigint_1);
+                    }
+                    console.log('Asset Reference - Asset ID : ', assetID);
+            }
+
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+
+            if(wfActivityDetails.length > 0) {                    
+                let leadAssetID = Number(wfActivityDetails[0].activity_lead_asset_id);
+                let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
+                    
+                console.log('Asset ID : ', assetID);
+                console.log('Lead Asset ID : ', leadAssetID);
+                console.log('Creator Asset ID : ', creatorAssetID);
+
+                if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
+                    //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
+                    let newReq = {};
+                        newReq.organization_id = request.organization_id;
+                        newReq.account_id = request.account_id;
+                        newReq.workforce_id = request.workforce_id;
+                        newReq.asset_id = 100;
+                        newReq.activity_id = workflowActivityID;
+                        newReq.lead_asset_id = creatorAssetID;
+                        newReq.timeline_stream_type_id = 718;
+                        newReq.datetime_log = util.getCurrentUTCTime();
+
+                    await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
+
+                    //Add a timeline entry
+                    let activityTimelineCollection =  JSON.stringify({                            
+                        "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "subject": `Note - ${util.getCurrentDate()}.`,
+                        "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "activity_reference": [],
+                        "asset_reference": [],
+                        "attachments": [],
+                        "form_approval_field_reference": []
+                    });
+
+                    let timelineReq = Object.assign({}, addParticipantRequest);
+                        timelineReq.activity_type_id = request.activity_type_id;
+                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                        timelineReq.activity_stream_type_id = 711;
+                        timelineReq.timeline_stream_type_id = 711;
+                        timelineReq.activity_timeline_collection = activityTimelineCollection;
+                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                    
+                    await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                } 
+                    
+                    //remove the asset from the workflow
+                if(assetID !== creatorAssetID) {
+                    await unassignParticipantFunc(request, workflowActivityID, assetID);
+                }                
+            }
+        } //END of IF (esms flag)
+        else {
+            try {
+                await removeParticipantBot(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
+            } catch (error) {
+                throw new Error("Error in processing remove participant Bot");
+            }
+        }
+        
+        return;
+    }
+
+    async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
         if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
             throw new Error("FlagFormSubmitter flag not set to 1");
@@ -3132,6 +3308,13 @@ function BotService(objectCollection) {
             newReq.activity_type_flag_persist_role = 0;
         }
 
+        // Flag to round robin on the activity type (workflow type)
+        if (inlineData.hasOwnProperty("activity_type_flag_round_robin")) {
+            newReq.activity_type_flag_round_robin = Number(inlineData.activity_type_flag_round_robin);
+        } else {
+            newReq.activity_type_flag_round_robin = 0;
+        }        
+
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
@@ -3434,6 +3617,7 @@ function BotService(objectCollection) {
 
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
+        request.activity_title = activityInlineData[0].field_value;
         
         console.log("targetFormTransactionID: ", targetFormTransactionID);
         console.log("targetFormActivityID: ", targetFormActivityID);
@@ -3459,10 +3643,12 @@ function BotService(objectCollection) {
             console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
+                //console.log('Request.activity_title : ', request);
                 let createTargetFormRequest = Object.assign({}, request);
-                createTargetFormRequest.activity_form_id = targetFormID;
-                createTargetFormRequest.form_id = targetFormID;
-                createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                    createTargetFormRequest.activity_form_id = targetFormID;
+                    createTargetFormRequest.form_id = targetFormID;
+                    createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+
                 if(Number(esmsFlag) === 0) {
                     createTargetFormRequest.workflow_activity_id = workflowActivityID;
                 }
@@ -3538,6 +3724,7 @@ function BotService(objectCollection) {
             createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
         }            
         
+        //createTargetFormRequest.activity_title = "This is Target Form submission from BOT";
         createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
 
         // Other miscellaneous parameters
@@ -7012,11 +7199,16 @@ function BotService(objectCollection) {
         }
         
         console.log('Retrieved Date field value : ', dateFieldValue);
+        if(Number(request.device_os_id) === 1) {
+            dateFieldValue = util.getFormatedLogDatetimeV1(dateFieldValue, "DD-MM-YYYY HH:mm:ss");
+            console.log('Retrieved Date field value - ANDROiD: ', dateFieldValue);
+        }
+        
         if(alterType === 'before') {
-            //reminderDatetime--;
+            //reminderDatetime--;            
             reminderDatetime = util.subtractUnitsFromDateTime(dateFieldValue,multiplier,'days');
         } else if(alterType === 'after') {
-            //reminderDatetime++;
+            //reminderDatetime++;            
             reminderDatetime = util.addUnitsToDateTime(dateFieldValue,multiplier,'days');
         }
 
@@ -7106,7 +7298,7 @@ function BotService(objectCollection) {
          //3. Send both
 
         let formData = [];
-        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);        
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
             console.log('responseData : ', responseData);
@@ -7144,7 +7336,7 @@ function BotService(objectCollection) {
         let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
 
         let responseData = [];
-            responseData.push({'No.Of.Reminders': reminderBotData.length});
+            responseData.push({'No.Of.Reminders': reminderBotData.length, 'triggered_datetime': util.getCurrentISTTime()});
 
         return [false, responseData];
     }    
@@ -7356,9 +7548,9 @@ function BotService(objectCollection) {
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `This is a scheduled reminder for ${request.activity_title} - Documents`,
-            "subject": `This is a scheduled reminder for ${request.activity_title} - Documents`,
-            "mail_body": `This is a scheduled reminder for ${request.activity_title} - Documents`,
+            "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
+            "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
+            "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
             "attachments": []
         });
         addCommentRequest.activity_stream_type_id = 325;
@@ -7382,7 +7574,71 @@ function BotService(objectCollection) {
         }
 
         return "success";
-    }    
+    }   
+    
+    
+    async function unassignParticipantFunc(request, activityID, assetID) {
+        console.log('Unassigning the participant!');
+
+        let trackGpsDatetime = request.track_gps_datetime || util.getCurrentUTCTime();
+
+        let removeParticipantRequest = {
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_id: activityID,
+                asset_id: request.asset_id,
+                asset_token_auth: request.asset_token_auth,
+                activity_participant_collection: JSON.stringify([]), // Placeholder
+                api_version: request.api_version,
+                app_version: request.app_version,
+                asset_message_counter: request.asset_message_counter,
+                device_os_id: request.device_os_id,
+                flag_offline: request.flag_offline,
+                flag_retry: request.flag_retry,
+                message_unique_id: request.message_unique_id,
+                service_version: request.service_version,
+                track_gps_accuracy: request.track_gps_accuracy,
+                track_gps_datetime: trackGpsDatetime,
+                track_gps_location: request.track_gps_location,
+                track_gps_status: request.track_gps_status,
+                track_latitude: request.track_latitude,
+                track_longitude: request.track_longitude
+            };
+
+        try {
+            const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: assetID
+            });
+
+            console.log("removeParticipant | error: ", error);
+            if (assetData.length > 0) {
+                removeParticipantRequest.activity_participant_collection = JSON.stringify([
+                    {
+                        "organization_id": assetData[0].organization_id,
+                        "account_id": assetData[0].account_id,
+                        "workforce_id": assetData[0].workforce_id,
+                        "asset_type_id": assetData[0].asset_type_id,
+                        "asset_category_id": assetData[0].asset_type_category_id,
+                        "asset_id": assetID,
+                        "access_role_id": 0,
+                        "message_unique_id": util.getMessageUniqueId(assetData[0].asset_id)
+                    }
+                ]);
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        try {
+            await activityParticipantService.unassignParticicpant(removeParticipantRequest);
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return;
+    }
 
 }
 
