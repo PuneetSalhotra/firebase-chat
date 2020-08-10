@@ -1240,6 +1240,7 @@ function AnalyticsService(objectCollection)
                     case 28: //Volume Distribution
                     case 29: //Value Distribution
                     case 62:
+                    case 64: //participating single
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
