@@ -22,6 +22,8 @@ const outputFormMappings = require("../outputFormMappings/index");
 const objectPath = require("object-path");
 
 const ActivityService = require('../../services/activityService.js');
+const BotService = require('../../botEngine/services/botService');
+
 
 function WorkbookOpsService(objectCollection) {
 
@@ -30,9 +32,10 @@ function WorkbookOpsService(objectCollection) {
     const activityCommonService = objectCollection.activityCommonService;
     const queueWrapper = objectCollection.queueWrapper;
     const cacheWrapper = objectCollection.cacheWrapper;
-    const nodeUtil = require('util');
+    const nodeUtil = require('util');    
 
-    const activityService = new ActivityService(objectCollection);
+    const activityService = new ActivityService(objectCollection);        
+    const botService = new BotService(objectCollection);
 
     const self = this;
 
@@ -587,6 +590,7 @@ function WorkbookOpsService(objectCollection) {
                                         "field_id": 222640
                                     }];
 
+            let widgetData = {};
             // Create the cellKey => field_id map for output cells
             let outputCellToFieldIDMap = new Map(outputMappings.map(e => [`${e.cell_x}${e.cell_y}`, Number(e.field_id)]));
             for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
@@ -596,9 +600,17 @@ function WorkbookOpsService(objectCollection) {
                         cellValue = workbook.Sheets[sheet_names[1]][cellKey].v;
                         let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                        // Update the field
-                        field.field_value = cellValue;
-                        outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        if(fieldID == 222639) {
+                            widgetData.customer_name = cellValue;
+                            
+                            // Update the field
+                            field.field_value = 'account_id|' + cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        } else {
+                            // Update the field
+                            field.field_value = cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        }
 
                         logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
                     } catch (error) {
@@ -606,7 +618,11 @@ function WorkbookOpsService(objectCollection) {
                     }
                 }
             }
-            await callaAutoOopulateBot(request, workflowActivityID, ProductSelectionJSON, outputFormFieldInlineTemplateMap);
+            await callaAutoOopulateBot(request, 
+                                       workflowActivityID, 
+                                       ProductSelectionJSON, 
+                                       outputFormFieldInlineTemplateMap,
+                                       widgetData);
         }
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
@@ -1247,7 +1263,7 @@ function WorkbookOpsService(objectCollection) {
             await addActivityAsync(outputFormSubmissionRequest);
 
             // Make a timeline entry on the workflow
-            let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);
+            let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);                
                 workflowFile705Request.activity_id = workflowActivityID;
                 workflowFile705Request.data_activity_id = outputFormActivityID;
                 workflowFile705Request.form_transaction_id = outputFormTransactionID;
@@ -1278,7 +1294,7 @@ function WorkbookOpsService(objectCollection) {
                 method: "addTimelineTransactionAsync",
                 payload: workflowFile705Request
             };
-
+            
             await queueWrapper.raiseActivityEventPromise(workflowFile705RequestEvent, request.activity_id || request.workflow_activity_id);
         } catch (error) {
             throw new Error(error);
@@ -1352,7 +1368,7 @@ function WorkbookOpsService(objectCollection) {
         return [false, []];
     };
     
-    async function callaAutoOopulateBot(request, workflowActivityID, productData, outputFormFieldInlineTemplateMap) {
+    async function callaAutoOopulateBot(request, workflowActivityID, productData, outputFormFieldInlineTemplateMap, widgetData) {
         //outputFormFieldInlineTemplateMap is already updated with 
         //1. Name of the Customer - Account Name
         //2. Enterprise Code
@@ -1360,7 +1376,7 @@ function WorkbookOpsService(objectCollection) {
         //In this call - We are updating
         // 3. AOV
         // 4. Product Name
-        // 5. Segment    
+        // 5. Segment            
         
         const autoPopulateFormId = 4609;        
         let referredWorkflowActID;              
@@ -1487,6 +1503,8 @@ function WorkbookOpsService(objectCollection) {
         
         temp.target_form_id = autoPopulateFormId;
         temp.target_field_id = 222638;
+        console.log('referredOriginFormID : ', referredOriginFormID);
+        console.log('referredOrigingAccountNameFieldID : ', referredOrigingAccountNameFieldID);
         console.log('TEMP : ', temp);
 
         //AOV - Get Referenced Workflow Activity ID
@@ -1503,7 +1521,7 @@ function WorkbookOpsService(objectCollection) {
         let referrredformTransactionInlineData = JSON.parse(referredFormDataFrom713Entry[0].data_entity_inline);        
             referredFormData = referrredformTransactionInlineData.form_submitted;
             referredFormData = (typeof referredFormData === 'string')? JSON.parse(referredFormData) : referredFormData; 
-        console.log('referredFormData : ', referredFormData);
+        console.log('referredFormData OPP update form: ', referredFormData);
         
         for(const i_iterator of referredFormData){
             if(Number(i_iterator.field_id) === Number(temp.source_field_id)) {
@@ -1514,6 +1532,7 @@ function WorkbookOpsService(objectCollection) {
                     // Update the field
                     field.field_value = i_iterator.field_value;
                     console.log('AOV Value : ', field.field_value);
+                    widgetData.aov_value = field.field_value;
                     console.log('****************************************');
                     outputFormFieldInlineTemplateMap.set(Number(i_iterator.field_id), field);
                 }
@@ -1534,6 +1553,7 @@ function WorkbookOpsService(objectCollection) {
             // Update the field
             field.field_value = productData.product_activity_title;
             console.log('PRODUCT : ', productData.product_activity_title);
+            widgetData.product = productData.product_activity_title;
             outputFormFieldInlineTemplateMap.set(productFieldID, field);
         }
         console.log('********************************************');
@@ -1542,10 +1562,11 @@ function WorkbookOpsService(objectCollection) {
         
         console.log('********************************************');
         console.log('Started processing to retrieve SEGMENT value');
+        console.log(' ');
         //5.updating 'Segment'
         let segmentFieldID = 222754;
         let formDataV1 = await getsubmittedFormData(request, referredWorkflowActID, referredOriginFormID);
-        console.log('formData : ', formDataV1);
+        console.log('formDataV1 : ', formDataV1);
 
         for(const i_iterator of formDataV1){
             if(Number(i_iterator.field_id) === Number(referredOrigingAccountNameFieldID)) {
@@ -1553,6 +1574,7 @@ function WorkbookOpsService(objectCollection) {
                 if(outputFormFieldInlineTemplateMap.has(segmentFieldID)) {
                     let field = outputFormFieldInlineTemplateMap.get(segmentFieldID);
         
+                    let parentActivityID = (field.field_value).split('|')[0] || 0;
                     //Call activity_activity_mapping retrieval service to get the segment
                     let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
                         activity_id: referredWorkflowActID, //Workflow activity id 
@@ -1563,7 +1585,8 @@ function WorkbookOpsService(objectCollection) {
                     });
             
                     console.log('segmentData : ', segmentData);
-                    let segmentName = (segmentData.length > 0) ? (segmentData[0].parent_activity_tag_name).toLowerCase() : 'ERR';
+                    let segmentName = (segmentData.length > 0) ? segmentData[0].parent_activity_tag_name : '';
+                    widgetData.segment_name = segmentName;
                     console.log('segmentData : ', segmentName);
             
                     // Update the field
@@ -1581,11 +1604,11 @@ function WorkbookOpsService(objectCollection) {
         console.log('***************************************************************');
         console.log(' ');
 
-        try {
+        try {            
             await createAndSubmitTheOutputForm(request, 
                                                workflowActivityID, 
                                                {
-                                                   outputFormIDoutputFormID: autoPopulateFormId,
+                                                   outputFormID: autoPopulateFormId,
                                                    outputFormName:'Auto Populate Info'
                                                 },
                                                 outputFormFieldInlineTemplateMap
@@ -1594,6 +1617,36 @@ function WorkbookOpsService(objectCollection) {
             logger.error(`[createAndSubmitTheOutputForm] Error creating and submitting the callaAutoOopulateBot form.`, { type: 'bot_engine', error: serializeError(error) });
             throw new Error(error);
         }
+
+        //Update the widget related Data        
+        console.log(' ');
+        console.log('Started processing Widget related data!');
+        console.log('***************************************');
+        console.log(' ');
+        console.log('widgetData : ', widgetData);
+
+        try {
+            request.workflow_activity_id = workflowActivityID;
+            request.account_code_update = true;
+            request.datetime_log = util.getCurrentUTCTime();
+            logger.silly("Update CUID1 Bot Request: ", request);
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.product});
+
+            logger.silly("Update CUID2 Bot Request: ", request);
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID2":widgetData.customer_name});
+
+            logger.silly("Update CUID3 Bot Request: ", request);
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":widgetData.segment_name});
+        } catch (error) {
+            logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
+        }
+
+        //Update workflow value
+        console.log('Updating the Workflow value');
+        await activityCommonService.analyticsUpdateWidgetValue(request, workflowActivityID, 0, widgetData.aov_value);
+        console.log('***************************************');
+        console.log(' ');
+        
 
         //await sleep(2000);
         //Call copy field Bot
@@ -1615,7 +1668,7 @@ function WorkbookOpsService(objectCollection) {
         let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);        
         formData = formTransactionInlineData.form_submitted;
         formData = (typeof formData === 'string')? JSON.parse(formData) : formData; 
-        console.log('referredFormData : ', formData);
+        //console.log('referredFormData : ', formData);
 
         return formData;
     }

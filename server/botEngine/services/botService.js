@@ -16,8 +16,8 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
-const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
-const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
+//const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+//const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
 const RMBotService = require('./rmbotService');
 
@@ -62,8 +62,8 @@ function BotService(objectCollection) {
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
 
-    const workbookOpsService = new WorkbookOpsService(objectCollection);
-    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
+    //const workbookOpsService = new WorkbookOpsService(objectCollection);
+    //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const rmBotService = new RMBotService(objectCollection);
 
@@ -1528,7 +1528,7 @@ function BotService(objectCollection) {
                     console.log('activityInlineData : ', activityInlineData);
 
                     for(const i of activityInlineData) {
-                        if(Number(i.field_data_type_id === 71)) {
+                        if(Number(i.field_data_type_id) === 71) {
                             let fieldValue = JSON.parse(i.field_value);                            
                             let cartItems = fieldValue.cart_items;
                             console.log('Cart Items : ', cartItems);

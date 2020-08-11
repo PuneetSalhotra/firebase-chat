@@ -1243,7 +1243,8 @@ function FormConfigService(objCollection) {
                                 if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
                                 Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
-                                Number(workflowData[0].activity_type_id) !== 134575) { //FLV CRF                                                                           
+                                Number(workflowData[0].activity_type_id) !== 134575 &&
+                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF                                                                           
                                         logger.info("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
                                         addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
@@ -1299,7 +1300,8 @@ function FormConfigService(objCollection) {
                                             if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                                 Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                                 Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                                Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
+                                                Number(workflowData[0].activity_type_id) === 134575 ||
+                                                Number(workflowData[0].activity_type_id) === 152451) { //FLV CRF
                                                 
                                                 (Number(arc_1) > Number(arc_2)) ?
                                                     finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
@@ -1342,7 +1344,8 @@ function FormConfigService(objCollection) {
                                                 if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                                     Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                                     Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                                    Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
+                                                    Number(workflowData[0].activity_type_id) === 134575 ||
+                                                    Number(workflowData[0].activity_type_id) === 152451 ) { //FLV CRF
                                                     //Do Nothing
                                                 } else {
                                                     if(Number(request.organization_id) !== 868) {

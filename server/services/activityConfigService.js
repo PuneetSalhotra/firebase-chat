@@ -1429,6 +1429,33 @@ function ActivityConfigService(db, util, objCollection) {
         return [error, responseData];
     }
 
+    this.setAtivityOwnerFlag = async(request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id,
+            request.owner_flag || 0,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityConfigService;
