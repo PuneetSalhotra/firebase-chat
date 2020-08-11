@@ -4032,6 +4032,12 @@ function VodafoneService(objectCollection) {
         // Magic
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
         const { TARGET_FORM_DATA, UPDATED_ROMS_FIELDS } = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS, isParentOrder);
+        //try {
+        //    var { TARGET_FORM_DATA, UPDATED_ROMS_FIELDS } = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS, isParentOrder);
+        //} catch(err) {
+        //    console.log(err);
+        //}
+        
         targetFormData = TARGET_FORM_DATA;
 
         // Fetch the target form's field sequence data
@@ -4212,6 +4218,7 @@ function VodafoneService(objectCollection) {
 
         // Convert targetFormData to an ES6 Map
         let targetFormDataMap = new Map();
+        console.log('targetFormData : ', targetFormData);
         for (const field of targetFormData) {
             targetFormDataMap.set(Number(field.field_id), field);
         }
@@ -4224,6 +4231,9 @@ function VodafoneService(objectCollection) {
 
         await sleep(2000);
 
+        //console.log('******************************');
+        //console.log('ROMS_ACTIONS : ', ROMS_ACTIONS);
+        //console.log('******************************');
         for (const action of ROMS_ACTIONS) {
             // sum
             if (action.ACTION === "sum") {
@@ -4308,7 +4318,9 @@ function VodafoneService(objectCollection) {
                     });
 
                 if (workflowParticipantsData.length > 0) {
-                    for (const batch of action.BATCH) {
+                    //console.log('action.BATCH : ', action.BATCH);
+                    //console.log('targetFormDataMap : ',targetFormDataMap);
+                    for (const batch of action.BATCH) {                        
                         // Update the value of the target field ID
                         let targetFieldID = batch.TARGET_FIELD_ID;
                         for (const participant of workflowParticipantsData) {
@@ -4318,6 +4330,8 @@ function VodafoneService(objectCollection) {
                             if (PASS_THROUGH) {
                                 // Get the entire object
                                 let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                //console.log('targetFieldEntry : ', targetFieldEntry);
+
                                 // Set the value
                                 let oldValue = String(targetFieldEntry.field_value);
                                 targetFieldEntry.field_value = participant.activity_creator_operating_asset_first_name;
@@ -4966,6 +4980,11 @@ function VodafoneService(objectCollection) {
         }
 
         // Fetch relevant source and target form field mappings
+        console.log('request.form_id : ', request.form_id);
+        console.log('workflowActivityTypeId : ',workflowActivityTypeId);
+        console.log(global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id]);
+        console.log('*********************');
+
         let SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
         console.log('SOURCE_FORM_FIELD_MAPPING_DATA : ', SOURCE_FORM_FIELD_MAPPING_DATA);
         //console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
