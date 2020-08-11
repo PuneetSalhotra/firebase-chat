@@ -1528,7 +1528,7 @@ function BotService(objectCollection) {
                     console.log('activityInlineData : ', activityInlineData);
 
                     for(const i of activityInlineData) {
-                        if(Number(i.field_data_type_id === 71)) {
+                        if(Number(i.field_data_type_id) === 71) {
                             let fieldValue = JSON.parse(i.field_value);                            
                             let cartItems = fieldValue.cart_items;
                             console.log('Cart Items : ', cartItems);
