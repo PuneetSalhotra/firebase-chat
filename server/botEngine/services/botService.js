@@ -16,8 +16,8 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
-const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
-const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
+//const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
+//const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
 const RMBotService = require('./rmbotService');
 
@@ -62,8 +62,8 @@ function BotService(objectCollection) {
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
 
-    const workbookOpsService = new WorkbookOpsService(objectCollection);
-    const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
+    //const workbookOpsService = new WorkbookOpsService(objectCollection);
+    //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const rmBotService = new RMBotService(objectCollection);
 
