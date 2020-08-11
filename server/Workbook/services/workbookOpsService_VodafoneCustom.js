@@ -600,12 +600,16 @@ function WorkbookOpsService(objectCollection) {
                         cellValue = workbook.Sheets[sheet_names[1]][cellKey].v;
                         let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                        // Update the field
-                        field.field_value = cellValue;                        
-                        outputFormFieldInlineTemplateMap.set(fieldID, field);
-
                         if(fieldID == 222639) {
                             widgetData.customer_name = cellValue;
+                            
+                            // Update the field
+                            field.field_value = 'account_id|' + cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        } else {
+                            // Update the field
+                            field.field_value = cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
                         }
 
                         logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
@@ -1259,7 +1263,7 @@ function WorkbookOpsService(objectCollection) {
             await addActivityAsync(outputFormSubmissionRequest);
 
             // Make a timeline entry on the workflow
-            let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);
+            let workflowFile705Request = Object.assign({}, outputFormSubmissionRequest);                
                 workflowFile705Request.activity_id = workflowActivityID;
                 workflowFile705Request.data_activity_id = outputFormActivityID;
                 workflowFile705Request.form_transaction_id = outputFormTransactionID;
@@ -1290,7 +1294,7 @@ function WorkbookOpsService(objectCollection) {
                 method: "addTimelineTransactionAsync",
                 payload: workflowFile705Request
             };
-
+            
             await queueWrapper.raiseActivityEventPromise(workflowFile705RequestEvent, request.activity_id || request.workflow_activity_id);
         } catch (error) {
             throw new Error(error);
@@ -1600,11 +1604,11 @@ function WorkbookOpsService(objectCollection) {
         console.log('***************************************************************');
         console.log(' ');
 
-        try {
+        try {            
             await createAndSubmitTheOutputForm(request, 
                                                workflowActivityID, 
                                                {
-                                                   outputFormIDoutputFormID: autoPopulateFormId,
+                                                   outputFormID: autoPopulateFormId,
                                                    outputFormName:'Auto Populate Info'
                                                 },
                                                 outputFormFieldInlineTemplateMap
@@ -1629,10 +1633,10 @@ function WorkbookOpsService(objectCollection) {
             await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.product});
 
             logger.silly("Update CUID2 Bot Request: ", request);
-            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.customer_name});
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID2":widgetData.customer_name});
 
             logger.silly("Update CUID3 Bot Request: ", request);
-            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.segment_name});
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":widgetData.segment_name});
         } catch (error) {
             logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
         }
