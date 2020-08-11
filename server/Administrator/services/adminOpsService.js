@@ -7172,7 +7172,7 @@ function AdminOpsService(objectCollection) {
             //get Asset Data
             let reqObject = Object.assign({}, request);
             reqObject.asset_id = request.target_asset_id;
-            let [errorOne, responseDataOne]  = await activityCommonService.getAssetDetailsAsync(request);
+            let [errorOne, responseDataOne]  = await activityCommonService.getAssetDetailsAsync(reqObject);
 
             // Get the Org data
             let orgData = [], senderID = '';
