@@ -4031,7 +4031,12 @@ function VodafoneService(objectCollection) {
 
         // Magic
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
-        const { TARGET_FORM_DATA, UPDATED_ROMS_FIELDS } = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS, isParentOrder);
+        try {
+            var { TARGET_FORM_DATA, UPDATED_ROMS_FIELDS } = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS, isParentOrder);
+        } catch(err) {
+            console.log(err);
+        }
+        
         targetFormData = TARGET_FORM_DATA;
 
         // Fetch the target form's field sequence data
