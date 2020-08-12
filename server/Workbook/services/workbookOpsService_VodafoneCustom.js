@@ -551,10 +551,12 @@ function WorkbookOpsService(objectCollection) {
                 });
 
                 // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
-                await updateWorkbookURLOnWorkflowTimeline(
-                    request, workflowActivityID,
-                    updatedWorkbookS3URL, workbookMappedStreamTypeID
-                );
+                if(Number(isBCOriginForm) !== 1) {
+                    await updateWorkbookURLOnWorkflowTimeline(
+                        request, workflowActivityID,
+                        updatedWorkbookS3URL, workbookMappedStreamTypeID
+                    );
+                }
             }
         } catch (error) {
             throw new Error(error);
@@ -576,7 +578,9 @@ function WorkbookOpsService(objectCollection) {
             let outputFormFieldInlineTemplateMap = new Map(formFieldInlineTemplate.map(e => [Number(e.field_id), e])); 
             
             //Name of the Customer - Account Name
-            //Enterprise Code
+            //Opportunity Code
+            //Circle
+            //Segment
             let outputMappings = [{
                                         "cell_x": "D",
                                         "cell_y": 3,
@@ -585,9 +589,21 @@ function WorkbookOpsService(objectCollection) {
                                     },
                                     {
                                         "cell_x": "D",
-                                        "cell_y": 4,
+                                        "cell_y": 12,
                                         "form_id": autoPopulateFormId,
                                         "field_id": 222640
+                                    },
+                                    {
+                                        "cell_x": "D",
+                                        "cell_y": 8,
+                                        "form_id": autoPopulateFormId,
+                                        "field_id": 222753
+                                    },
+                                    {
+                                        "cell_x": "D",
+                                        "cell_y": 9,
+                                        "form_id": autoPopulateFormId,
+                                        "field_id": 222754
                                     }];
 
             let widgetData = {};
@@ -597,14 +613,26 @@ function WorkbookOpsService(objectCollection) {
                 if (outputFormFieldInlineTemplateMap.has(fieldID)) {
                     let cellValue = "";
                     try {
-                        cellValue = workbook.Sheets[sheet_names[1]][cellKey].v;
+                        cellValue = workbook.Sheets[sheet_names[0]][cellKey].v;
                         let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
-                        if(fieldID == 222639) {
+                        if(fieldID == 222639) { //Customer Name
                             widgetData.customer_name = cellValue;
                             
                             // Update the field
                             field.field_value = 'account_id|' + cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        } else if(fieldID == 222753) { //Circle Name
+                            widgetData.circle_name = cellValue;
+
+                            // Update the field
+                            field.field_value = cellValue;
+                            outputFormFieldInlineTemplateMap.set(fieldID, field);
+                        } else if(fieldID == 222754) { //Segment Name
+                            widgetData.segment_name = cellValue;
+
+                            // Update the field
+                            field.field_value = cellValue;
                             outputFormFieldInlineTemplateMap.set(fieldID, field);
                         } else {
                             // Update the field
@@ -1534,7 +1562,7 @@ function WorkbookOpsService(objectCollection) {
                     console.log('AOV Value : ', field.field_value);
                     widgetData.aov_value = field.field_value;
                     console.log('****************************************');
-                    outputFormFieldInlineTemplateMap.set(Number(i_iterator.field_id), field);
+                    outputFormFieldInlineTemplateMap.set(Number(temp.target_field_id), field);
                 }
 
             }
@@ -1564,7 +1592,7 @@ function WorkbookOpsService(objectCollection) {
         console.log('Started processing to retrieve SEGMENT value');
         console.log(' ');
         //5.updating 'Segment'
-        let segmentFieldID = 222754;
+        /*let segmentFieldID = 222754;
         let formDataV1 = await getsubmittedFormData(request, referredWorkflowActID, referredOriginFormID);
         console.log('formDataV1 : ', formDataV1);
 
@@ -1596,7 +1624,7 @@ function WorkbookOpsService(objectCollection) {
 
             }
         }
-        console.log('********************************************');        
+        console.log('********************************************');        */
 
         console.log(' ');
         console.log('***************************************************************');
@@ -1630,13 +1658,13 @@ function WorkbookOpsService(objectCollection) {
             request.account_code_update = true;
             request.datetime_log = util.getCurrentUTCTime();
             logger.silly("Update CUID1 Bot Request: ", request);
-            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.product});
+            //await botService.updateCUIDBotOperationMethod(request, {}, {"CUID1":widgetData.product});
 
             logger.silly("Update CUID2 Bot Request: ", request);
-            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID2":widgetData.customer_name});
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID2":widgetData.product + '|'+ widgetData.customer_name});
 
             logger.silly("Update CUID3 Bot Request: ", request);
-            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":widgetData.segment_name});
+            await botService.updateCUIDBotOperationMethod(request, {}, {"CUID3":widgetData.circle_name + '|'+ widgetData.segment_name});
         } catch (error) {
             logger.error("Error running the CUID update bot - CUID3", { type: 'bot_engine', error: serializeError(error), request_body: request });
         }
