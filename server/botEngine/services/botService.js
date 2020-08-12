@@ -1694,6 +1694,19 @@ function BotService(objectCollection) {
                             });
                         }                
                         break;
+
+                case 30: // Bulk Feasibility Excel Parser Bot
+                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                    try {
+                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                    } catch (error) {
+                        logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -7639,6 +7652,35 @@ function BotService(objectCollection) {
         }
 
         return;
+    }
+
+    async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
+        await sleep(2000);
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityTypeID = 0,
+            attachmentsList = [];
+
+        const triggerFormID = request.trigger_form_id,
+            triggerFormName = request.trigger_form_name,
+            triggerFieldID = request.trigger_field_id,
+            triggerFieldName = request.trigger_field_name,
+            // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
     }
 
 }
