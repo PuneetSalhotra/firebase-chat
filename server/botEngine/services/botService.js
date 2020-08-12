@@ -7659,15 +7659,16 @@ function BotService(objectCollection) {
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0,
-            attachmentsList = [];
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
             triggerFieldID = request.trigger_field_id,
             triggerFieldName = request.trigger_field_name,
             // Form and Field for getting the excel file's 
-            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id,
-            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id;
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -7681,6 +7682,38 @@ function BotService(objectCollection) {
         if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
+
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
+        }
+
+        // Fetch the bulk upload excel's S3 URL
+        const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, bulkUploadFormID);
+
+        if (Number(bulkUploadFormData.length) > 0) {
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+        }
+
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            throw new Error("Form to bulk upload feasibility is not submitted");
+        }
+
+        // Fetch the Attestation URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
+            organization_id: request.organization_id
+        });
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
+        }
+
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
     }
 
 }
