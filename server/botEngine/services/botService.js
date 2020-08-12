@@ -1531,12 +1531,15 @@ function BotService(objectCollection) {
                         if(Number(i.field_data_type_id) === 71) {
                             let fieldValue = JSON.parse(i.field_value);                            
                             let cartItems = fieldValue.cart_items;
+                            console.log('typeof Cart Items : ', typeof cartItems);
                             console.log('Cart Items : ', cartItems);
+
+                            cartItems = (typeof cartItems === 'string') ? JSON.parse(cartItems) : cartItems;
 
                             if(cartItems.length > 0) {
                                 console.log('Searching for custom variant');
                                 for(j of cartItems) {
-                                    console.log(('product_variant_activity_title : ', j.product_variant_activity_title).toLowerCase());
+                                    console.log('product_variant_activity_title : ', (j.product_variant_activity_title).toLowerCase());
                                     if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
                                         (j.product_variant_activity_title).toLowerCase() == 'custom') {
                                         flag = 1
@@ -4455,6 +4458,8 @@ function BotService(objectCollection) {
         if (global.mode === 'preprod') {
             urlStrFill = "https://preprodweb.officedesk.app/#/orderstatus/" + base64Json;
         }
+
+        console.log('urlStrFill : ', urlStrFill);
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
@@ -4888,7 +4893,7 @@ function BotService(objectCollection) {
             global.logger.write('conLog', emailSubject, {}, {});
             global.logger.write('conLog', Template, {}, {});
 
-            util.sendEmailV3(request,
+            /*util.sendEmailV3(request,
                 request.email_id,
                 emailSubject,
                 "IGNORE",
@@ -4903,7 +4908,10 @@ function BotService(objectCollection) {
                     }
 
                     resolve();
-                });
+                });*/
+
+            util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
+            resolve();
         });
     }
 
@@ -7540,7 +7548,12 @@ function BotService(objectCollection) {
         return [error, responseData];
     }
 
-    async function addTimelineEntry(request) {
+    this.callAddTimelineEntry = async(request) => {        
+        await addTimelineEntry(request, 1);
+        return [false, []];
+    }
+    
+    async function addTimelineEntry(request, flag = 0) {
         let addCommentRequest = Object.assign(request, {});
 
         addCommentRequest.asset_id = 100;
@@ -7548,14 +7561,27 @@ function BotService(objectCollection) {
         //addCommentRequest.activity_type_category_id = 48;
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
-        addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
-            "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
-            "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
-            "attachments": []
-        });
-        addCommentRequest.activity_stream_type_id = 325;
-        addCommentRequest.timeline_stream_type_id = 325;
+
+        if(flag === 1) {
+            addCommentRequest.activity_timeline_collection = JSON.stringify({
+                "content": request.content,
+                "subject": request.subject,
+                "mail_body": request.mail_body,
+                "attachments": []
+            });
+
+            addCommentRequest.activity_stream_type_id = request.timeline_stream_type_id;
+            addCommentRequest.timeline_stream_type_id = request.timeline_stream_type_id;
+        } else {
+            addCommentRequest.activity_timeline_collection = JSON.stringify({
+                "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                "attachments": []
+            });
+            addCommentRequest.activity_stream_type_id = 325;
+            addCommentRequest.timeline_stream_type_id = 325;
+        }
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
         addCommentRequest.operating_asset_first_name = "TONY"
