@@ -4332,14 +4332,16 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime(),
             request.joining_datetime,
             request.gender_id,
-            request.email_id
+            request.email_id,
+            request.asset_type_id
         );
-        const queryString = util.getQueryString('ds_p1_3_asset_list_update_details', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_asset_list_update_details', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    updateRoleINRoundRobinQueue(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -7893,6 +7895,31 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    async function updateRoleINRoundRobinQueue(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_id,
+            request.desk_asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_role', paramsArr); 
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
 }
 
 module.exports = AdminOpsService;
