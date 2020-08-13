@@ -7736,7 +7736,8 @@ function BotService(objectCollection) {
             "AN", "AO", "AP", "AQ", "AR", "AS", "AT", "AU", "AV", "AW", "AX", "AY", "AZ",
 
             "BA", "BB", "BC", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BK", "BL", "BM",
-            "BN", "BO", "BP", "BQ", "BR", "BS", "BT", "BU", "BV", "BW", "BX", "BY", "BZ"
+            "BN", "BO", "BP", "BQ", "BR", "BS", "BT", "BU", "BV", "BW", "BX", "BY"
+            //, "BZ"
         ];
 
         for (let i = 4; i < MAX_ORDERS_TO_BE_PARSED; i++) {
@@ -7746,7 +7747,7 @@ function BotService(objectCollection) {
             }
 
             for (const col of colsArray) {
-                
+                console.dir(workbook.Sheets[sheet_names[0]][`${col}${row}`])
             }
         }
     }
