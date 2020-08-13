@@ -7702,7 +7702,7 @@ function BotService(objectCollection) {
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
-        // Fetch the Attestation URL
+        // Fetch the excel URL
         const bulkUploadFieldData = await getFieldValue({
             form_transaction_id: bulkUploadFormTransactionID,
             form_id: bulkUploadFormID,
@@ -7714,6 +7714,10 @@ function BotService(objectCollection) {
         }
 
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
     }
 
 }
