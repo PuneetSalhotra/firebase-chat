@@ -32,6 +32,8 @@ AWS.config.update({
 });
 const sqs = new AWS.SQS();
 
+const XLSX = require('xlsx');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -7656,6 +7658,7 @@ function BotService(objectCollection) {
 
     async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
         await sleep(2000);
+        const MAX_ORDERS_TO_BE_PARSED = 100;
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0,
@@ -7717,6 +7720,34 @@ function BotService(objectCollection) {
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
+        }
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
+
+
+        const colsArray = [
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+            "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+
+            "AA", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK", "AL", "AM",
+            "AN", "AO", "AP", "AQ", "AR", "AS", "AT", "AU", "AV", "AW", "AX", "AY", "AZ",
+
+            "BA", "BB", "BC", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BK", "BL", "BM",
+            "BN", "BO", "BP", "BQ", "BR", "BS", "BT", "BU", "BV", "BW", "BX", "BY", "BZ"
+        ];
+
+        for (let i = 4; i < MAX_ORDERS_TO_BE_PARSED; i++) {
+            // Break at the first emtpy row at column A
+            if (!workbook.Sheets[sheet_names[0]][`C${row}`]) {
+                break;
+            }
+
+            for (const col of colsArray) {
+                
+            }
         }
     }
 
