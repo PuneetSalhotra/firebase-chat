@@ -1638,7 +1638,7 @@ function RMBotService(objectCollection) {
             request.global_array.push({"activity_type_flag_round_robin":request.activity_type_flag_round_robin});
             if(request.activity_type_flag_round_robin == 1){ 
                 request.global_array.push({"ROUND_ROBIN_FLAG_SET":"HENCE EXECUTING ROUND ROBIN FEATURE"});
-                await self.TriggerRoundRobin(request);
+                await self.TriggerRoundRobinV1(request);
             }else{
                 request.global_array.push({"ROUND_ROBIN_FLAG_NOT_SET":"TRIGGER THE AssinWorkflow POOL"});
                 //await self.RMLoopInResoources(request);
@@ -3113,7 +3113,7 @@ function RMBotService(objectCollection) {
         let tenderType = widgetFieldsStatusesData.BC_TENDER_TYPE;
         let b_p_team = widgetFieldsStatusesData.BC_B_P_TEAM;//140788; //
         let potfolio_mgr_ld_team = widgetFieldsStatusesData.BC_PORTFOLIO_MGR_LD_TEAM;//127254;//
-        let pricing_mgr_ld_team = widgetFieldsStatusesData.PRICING_MGR_LD_TEAM;//140787;//
+        let pricing_mgr_ld_team = widgetFieldsStatusesData.BC_PRICING_MGR_LD_TEAM;//140787;//
         let requestFormData = JSON.parse(request.activity_inline_data);
         let idActivityType = 0;
         let AOV = 0;
@@ -3126,11 +3126,12 @@ function RMBotService(objectCollection) {
                 logger.info('BCCPQAllocation :: MATCH FOUND ::' + Object.keys(referenceFields) + ' ' + fieldObj.field_id);
                 request.global_array.push({"MATCH_FOUND":"Field "+Object.keys(referenceFields)+" :: "+fieldObj.field_id});
 
-                let opportunityData = JSON.parse(fieldObj.field_value);
-                logger.info("BCCPQAllocation :: Refered Opportunity Data "+JSON.stringify(opportunityData));
-                request.global_array.push({"ReferedOpportunityData":"Activity "+opportunityData[0].activity_id});
+                //let opportunityData = JSON.parse(fieldObj.field_value);
+                let referredOpportunity = fieldObj.field_value.split('\|')[0];
+                logger.info("BCCPQAllocation :: Refered Opportunity "+referredOpportunity);
+                request.global_array.push({"ReferedOpportunityData":"Activity "+referredOpportunity});
 
-                let activityData = await activityCommonService.getActivityDetailsPromise(request, opportunityData[0].activity_id);
+                let activityData = await activityCommonService.getActivityDetailsPromise(request, referredOpportunity);
                 logger.info("BCCPQAllocation :: Opportunity Activity Data "+activityData[0].activity_id);
                 request.global_array.push({"activity_details":"ActivityType "+activityData[0].activity_type_id+" :: AOV "+activityData[0].activity_workflow_value_final});
                 
