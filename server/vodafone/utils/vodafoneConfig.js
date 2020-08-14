@@ -148,6 +148,7 @@ const digitalIPLCMappings = require("./digital_iplc_crf/mappings.json");
 const digitalIPLCLabels = require("./digital_iplc_crf/labels.json");
 const digitalIPLCRoms = require("./digital_iplc_crf/roms_actions.json");
 const digitalIPLCRomsActions = require('./digital_iplc_crf/roms_actions.json');
+const digitalIPLCBulkOrderToOriginFormMappings = require("./digital_iplc_crf/bulk_order_to_origin_form_mappings.json")
 
 vodafoneConfig = {
     "860": {
@@ -568,5 +569,6 @@ vodafoneConfig = {
         "ROMS": digitalIPLCRoms,
         "ROMS_ACTIONS": digitalIPLCRomsActions,
         "ORIGIN_FORM_ID": 4379,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIPLCBulkOrderToOriginFormMappings
     }
 };
