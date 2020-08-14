@@ -5140,10 +5140,11 @@ function ActivityService(objectCollection) {
                         }
                         break;
 
-                case 71: let childActivities = fieldValue.cart_items;
+                case 71: /*let childActivities = fieldValue.cart_items;
                         for(const i of childActivities) {
                                 await activityCommonService.activityActivityMappingInsertV1(newReq, i.product_variant_activity_id);
-                        }
+                        }*/
+                        await activityCommonService.activityActivityMappingInsertV1(newReq, fieldValue.product_activity_id);
                         break;
                 }
         } catch(err) {

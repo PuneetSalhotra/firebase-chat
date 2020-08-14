@@ -277,12 +277,17 @@ function WorkbookOpsService(objectCollection) {
                 const OpportunityReferenceFieldID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.field_id || 0;
                 if (Number(field.field_id) === Number(OpportunityReferenceFieldID)) {
                     const fieldValue = field.field_value;
-                    OpportunityReferenceJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                    //OpportunityReferenceJSON = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                    console.log('fieldValue : ', fieldValue);
+                    OpportunityReferenceJSON = fieldValue.split('|');
+                    console.log('OpportunityReferenceJSON : ', OpportunityReferenceJSON);                    
                 }
             }
 
-            if (Number(OpportunityReferenceJSON[0].activity_id) !== 0) {
-                const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
+            //if (Number(OpportunityReferenceJSON[0].activity_id) !== 0) {
+                //const OpportunityActivityID = OpportunityReferenceJSON[0].activity_id;
+            if (Number(OpportunityReferenceJSON[0]) !== 0) {
+                const OpportunityActivityID = OpportunityReferenceJSON[0];
                 const OpportunityActivityData = await activityCommonService.getActivityDetailsPromise(request, OpportunityActivityID);
                 let OpportunityActivityTypeID = 0;
                 
@@ -1444,9 +1449,12 @@ function WorkbookOpsService(objectCollection) {
 
             if(Number(i_iterator.field_id) === 218728){
                 let fieldValue = i_iterator.field_value; 
-                    fieldValue = (typeof fieldValue == 'string')? JSON.parse(fieldValue): fieldValue; 
+                    //fieldValue = (typeof fieldValue == 'string')? JSON.parse(fieldValue): fieldValue; 
+                    //referredWorkflowActID = fieldValue[0].activity_id;
 
-                referredWorkflowActID = fieldValue[0].activity_id;                
+                    console.log('FielValue: ', fieldValue);
+                    fieldValue = fieldValue.split('|');                
+                referredWorkflowActID = fieldValue[0];
                 break;
             }
         }

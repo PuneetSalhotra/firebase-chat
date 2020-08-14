@@ -388,8 +388,8 @@ function BotController(objCollection) {
         }
     });
 
-    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {        
-        const [err, responseData] = await botService.removeParticipantMethod(req.body);
+    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+        const [err, responseData] = await botService.callSetDueDateOfWorkflow(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
