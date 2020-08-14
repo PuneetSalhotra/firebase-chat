@@ -7663,7 +7663,9 @@ function BotService(objectCollection) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0,
             bulkUploadFormTransactionID = 0,
-            bulkUploadFormActivityID = 0;
+            bulkUploadFormActivityID = 0,
+            opportunityID = "",
+            sqsQueueUrl = "";
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -7673,16 +7675,26 @@ function BotService(objectCollection) {
             bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
             bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
 
+        switch (process.env.mode) {
+            case "local":
+                sqsQueueUrl = "local-vil-bulk-feasibility-jobs-queue.fifo"
+                break;
+
+            default:
+                sqsQueueUrl = "local-vil-bulk-feasibility-jobs-queue.fifo"
+                break;
+        }
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                opportunityID = workflowActivityData[0].activity_cuid_1;
             }
         } catch (error) {
             throw new Error("No Workflow Data Found in DB");
         }
 
-        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
@@ -7740,15 +7752,55 @@ function BotService(objectCollection) {
             //, "BZ"
         ];
 
-        for (let i = 4; i < MAX_ORDERS_TO_BE_PARSED; i++) {
-            // Break at the first emtpy row at column A
-            if (!workbook.Sheets[sheet_names[0]][`C${row}`]) {
+        const jObj = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], {header:["Aasdsad","Easad","Iasas","Oadasd","Uasdasd","6adasd","9adfsdf"]});
+        console.log({ jObj });
+        return;
+        for (let row = 4; row < MAX_ORDERS_TO_BE_PARSED; row++) {
+            // Break at the first emtpy row at column A | Serial No.
+            if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
                 break;
             }
 
-            for (const col of colsArray) {
-                console.dir(workbook.Sheets[sheet_names[0]][`${col}${row}`])
+            const serialNumberCell = workbook.Sheets[sheet_names[0]][`A${row}`];
+
+            const bulkJobRequest = {
+                workflow_activity_id: workflowActivityID,
+                workflow_activity_type_id: workflowActivityTypeID,
+                opportunity_id: opportunityID,
+                child_opportunity_id: `${opportunityID}-${serialNumberCell.v}`
             }
+
+            for (const col of colsArray) {
+                const cell = workbook.Sheets[sheet_names[0]][`${col}${row}`];
+                // console.log(`row: ${row} | column: ${col}: `, cell.v)
+                if (cell !== undefined) {
+                    // console.log(`Value: ${row}${col}`, cell.v);
+                } else {
+                    console.log(`Value: ${row}${col}: undefined!`);
+                }
+            }
+
+            // sqs.sendMessage({
+            //     // DelaySeconds: 5,
+            //     MessageBody: JSON.stringify(request),
+            //     QueueUrl: sqsQueueUrl,
+            //     MessageGroupId: `excel-processing-job-queue-v1`,
+            //     MessageDeduplicationId: uuidv4(),
+            //     MessageAttributes: {
+            //         "Environment": {
+            //             DataType: "String",
+            //             StringValue: global.mode
+            //         },
+            //     }
+            // }, (error, data) => {
+            //     if (error) {
+            //         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            //     } else {
+            //         logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+            //     }
+            // });
+
+            console.log("bulkJobRequest: ", bulkJobRequest);
         }
     }
 
