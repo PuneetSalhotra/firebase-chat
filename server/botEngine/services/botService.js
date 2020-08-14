@@ -7677,11 +7677,11 @@ function BotService(objectCollection) {
 
         switch (process.env.mode) {
             case "local":
-                sqsQueueUrl = "local-vil-bulk-feasibility-jobs-queue.fifo"
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
 
             default:
-                sqsQueueUrl = "local-vil-bulk-feasibility-jobs-queue.fifo"
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
         }
         try {
@@ -7739,69 +7739,65 @@ function BotService(objectCollection) {
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
 
-
-        const colsArray = [
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-            "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-
-            "AA", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK", "AL", "AM",
-            "AN", "AO", "AP", "AQ", "AR", "AS", "AT", "AU", "AV", "AW", "AX", "AY", "AZ",
-
-            "BA", "BB", "BC", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BK", "BL", "BM",
-            "BN", "BO", "BP", "BQ", "BR", "BS", "BT", "BU", "BV", "BW", "BX", "BY"
-            //, "BZ"
+        const headersArray = [
+            "serialNum", "OppId", "ESMSId", "TransactionId", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "LinkType", "CustomerName",
+            "CustomerCode", "RequestCreationDate", "ServiceType", "OpportunityLineItem", "IsCableAndWirelessCustomer", "IsVPNExtendedConnectSISA", "IsVPNExtendedConnect",
+            "BandwidthUnit", "BandwidthAmount", "IsPhysicalSurveyRequired", "JustificationForPSR", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G",
+            "IsWireless4G", "PostingCircle", "CountryEndA", "StateEndA", "SearchCityEndA", "CircleEndA", "SearchPinEndA", "SearchAreaEndA", "SearchBuildingIdEndA", "StreetFloorNameEndA",
+            "IsThelocationADataCenterEndA", "RackNoEndA", "CageNoEndA", "AddressEndA", "InterfaceEndA", "CustomerNameEndA", "ContactNoEndA", "ContactPersonEmailIdEndA", "AlternateContactNumberEndA",
+            "SolutionDocRequiredEndA", "SpecialInstructionsBySalesEndA", "CountryEndB", "StateEndB", "SearchCityEndB", "CircleEndB", "SearchPinEndB", "SearchAreaEndB", "SearchBuildingIdEndB",
+            "StreetFloorNameEndB", "IsThelocationADataCenterEndB", "RackNoEndB", "CageNoEndB", "AddressEndB", "InterfaceEndB", "CustomerNameEndB", "ContactNoEndB", "ContactPersonEmailIdEndB",
+            "AlternateContactNumberEndB", "SolutionDocRequiredEndB", "SpecialInstructionsBySalesEndB", "ConnectionType", "CodecRequired", "AdditionalBandwidth", "AdditionalBandwidthUnit", "AudioCodecType",
+            "VideoCodecType", "SuperWiFiFlavour", "NumberOfAudioSession", "NumberOfVideoSession", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface",
+            "SuperWiFiExistingLastMile", "MSBPOP", "RaisedThrough"
         ];
 
-        const jObj = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], {header:["Aasdsad","Easad","Iasas","Oadasd","Uasdasd","6adasd","9adfsdf"]});
-        console.log({ jObj });
-        return;
-        for (let row = 4; row < MAX_ORDERS_TO_BE_PARSED; row++) {
-            // Break at the first emtpy row at column A | Serial No.
-            if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
+        const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        // console.log({ childOpportunitiesArray });
+
+        for (let i = 1; i < childOpportunitiesArray.length; i++) {
+            const childOpportunity = childOpportunitiesArray[i];
+            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
+            if (
+                !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
+                childOpportunity.IsNewFeasibilityRequest === "" ||
+                !childOpportunity.hasOwnProperty("serialNum") ||
+                Number(childOpportunity.serialNum) <= 0
+            ) {
                 break;
             }
 
-            const serialNumberCell = workbook.Sheets[sheet_names[0]][`A${row}`];
-
+            const serialNumber = childOpportunity.serialNum;
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
-                child_opportunity_id: `${opportunityID}-${serialNumberCell.v}`
+                child_opportunity_id: `${opportunityID}-${serialNumber}`,
+                childOpportunity: childOpportunity
             }
 
-            for (const col of colsArray) {
-                const cell = workbook.Sheets[sheet_names[0]][`${col}${row}`];
-                // console.log(`row: ${row} | column: ${col}: `, cell.v)
-                if (cell !== undefined) {
-                    // console.log(`Value: ${row}${col}`, cell.v);
-                } else {
-                    console.log(`Value: ${row}${col}: undefined!`);
+            sqs.sendMessage({
+                // DelaySeconds: 5,
+                MessageBody: JSON.stringify(bulkJobRequest),
+                QueueUrl: sqsQueueUrl,
+                MessageGroupId: `excel-processing-job-queue-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
                 }
-            }
-
-            // sqs.sendMessage({
-            //     // DelaySeconds: 5,
-            //     MessageBody: JSON.stringify(request),
-            //     QueueUrl: sqsQueueUrl,
-            //     MessageGroupId: `excel-processing-job-queue-v1`,
-            //     MessageDeduplicationId: uuidv4(),
-            //     MessageAttributes: {
-            //         "Environment": {
-            //             DataType: "String",
-            //             StringValue: global.mode
-            //         },
-            //     }
-            // }, (error, data) => {
-            //     if (error) {
-            //         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            //     } else {
-            //         logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-            //     }
-            // });
-
-            console.log("bulkJobRequest: ", bulkJobRequest);
+            }, (error, data) => {
+                if (error) {
+                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                } else {
+                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                }
+            });
         }
+
+        return;
     }
 
 }
