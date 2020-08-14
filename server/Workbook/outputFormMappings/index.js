@@ -83,5 +83,7 @@ const ProductToOutputMapping = {
         // International Private Leased Line (IPLC)
         3126842: { OutputMapping: fldJSON.bot_operations.map_workbook.mappings["11"].output, SheetIndex: 11 }
     },
+    preprod: {},
+    prod: {},
     get local() { return this.staging; },
 };
