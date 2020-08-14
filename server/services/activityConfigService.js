@@ -1435,7 +1435,7 @@ function ActivityConfigService(db, util, objCollection) {
 
         let paramsArr = new Array(
             request.activity_id,
-            request.asset_id,
+            request.target_asset_id,
             request.organization_id,
             request.owner_flag || 0,
             request.asset_id,
@@ -1453,6 +1453,14 @@ function ActivityConfigService(db, util, objCollection) {
                     error = err;
                 });
         }
+
+        //ADD a 711 timeline Entry
+        request.content = "New Owner has been assigned!";
+        request.subject = request.content;
+        request.mail_body = request.content;
+        requuest.timeline_stream_type_id = 711;
+        botService.callAddTimelineEntry(request);
+
         return [error, responseData];
     }
 

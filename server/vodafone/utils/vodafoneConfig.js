@@ -563,10 +563,10 @@ vodafoneConfig = {
         "REQUIRED_FORMS": [4379],
         "TARGET_FORM_ID": 4405,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 152451,
-        "FORM_FIELD_MAPPING_DATA": digitalIpcMappings,
+        "FORM_FIELD_MAPPING_DATA": digitalIPLCMappings,
         "LABELS": digitalIPLCLabels,
         "ROMS": digitalIPLCRoms,
         "ROMS_ACTIONS": digitalIPLCRomsActions,
-        "ORIGIN_FORM_ID": 2185,
+        "ORIGIN_FORM_ID": 4379,
     }
 };

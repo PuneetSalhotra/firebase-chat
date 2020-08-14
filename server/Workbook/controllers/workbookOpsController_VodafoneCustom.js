@@ -51,7 +51,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     const sqsConsumerApp = Consumer.create({
         //queueUrl: 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo',
         queueUrl: global.config.excelBotSQSQueue,
-        handleMessage: async (message) => {
+        handleMessage: async (message) => {            
             // console.log("message.Attributes: ", message.Attributes);
             console.log("message.MessageAttributes: ", message.MessageAttributes);
             const request = JSON.parse(message.Body);
@@ -84,8 +84,47 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
         logger.silly("[timeout_error]: %j", error.message, { type: 'excel_sqs_consumer', error: serializeError(error) });
     });
 
-    sqsConsumerApp.start();
+    //sqsConsumerApp.start();
     logger.silly("sqsConsumerApp started", { type: 'excel_sqs_consumer' });
+    console.log('queueUrl : ', global.config.excelBotSQSQueue);
+
+    /*var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+    var queueURL = global.config.excelBotSQSQueue;
+
+    var params = {
+                    AttributeNames: [
+                        "SentTimestamp"
+                    ],
+                    MaxNumberOfMessages: 1,
+                    MessageAttributeNames: [
+                        "All"
+                    ],
+                    QueueUrl: queueURL,
+                    VisibilityTimeout: 20,
+                    WaitTimeSeconds: 0
+                };
+
+    sqs.receiveMessage(params, (err, data) => {
+                if (err) {
+                    console.log("Receive Error", err);
+                } else if (data.Messages) {
+                    console.log(data.Messages);
+
+                    /*var deleteParams = {
+                        QueueUrl: queueURL,
+                        ReceiptHandle: data.Messages[0].ReceiptHandle
+                    };
+                    
+                    sqs.deleteMessage(deleteParams, function(err, data) {
+                        if (err) {
+                            console.log("Delete Error", err);
+                        } else {
+                            console.log("Message Deleted", data);
+                        }
+                    });
+        }
+    });*/
+
 }
 
 module.exports = WorkbookOpsController_VodafoneCustom;
