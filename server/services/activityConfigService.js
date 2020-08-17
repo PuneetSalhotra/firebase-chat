@@ -1429,39 +1429,31 @@ function ActivityConfigService(db, util, objCollection) {
         return [error, responseData];
     }
 
-    this.setAtivityOwnerFlag = async(request) => {
+    this.setAtivityOwnerFlag = async (request) => {
         let responseData = [],
             error = true;
 
         let paramsArr = new Array(
-            request.activity_id,
-            request.target_asset_id,
-            request.organization_id,
-            request.owner_flag || 0,
-            request.asset_id,
-            util.getCurrentUTCTime()
+          request.activity_id,
+          request.target_asset_id,
+          request.organization_id,
+          request.owner_flag || 0,
+          request.asset_id,
+          util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                await botService.callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = eerr;
+            }
         }
-
-        //ADD a 711 timeline Entry
-        request.content = "New Owner has been assigned!";
-        request.subject = request.content;
-        request.mail_body = request.content;
-        requuest.timeline_stream_type_id = 711;
-        botService.callAddTimelineEntry(request);
-
-        return [error, responseData];
+        return [error,responseData];
     }
 
 }
