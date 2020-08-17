@@ -6498,6 +6498,7 @@ function BotService(objectCollection) {
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
+                    form_id: 1234,
                     field_id: 223743
                 } 
             }
@@ -6546,14 +6547,33 @@ function BotService(objectCollection) {
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         oldDate = util.replaceDefaultDatetime(oldDate);
         console.log('formInlineDataMap : ', formInlineDataMap);
-        console.log('dueDateEdit form bot inline: ', dueDateEdit);
+        console.log('dueDateEdit form bot inline: ', dueDateEdit);        
 
-        if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
-            fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
-            console.log('fieldData : ', fieldData);
+        //for(const i_iterator of dateFormData) {
+        //    if(Number(i_iterator.field_id) === Number(dateReminder.date_field_id)) {
+        //        dateFieldValue = i_iterator.field_value;
+        //        break;
+        //    }
+        //}
 
-            newDate = fieldData.field_value;
+        let dateReq = Object.assign({}, request);
+                    dateReq.form_id = dueDateEdit.date_form_id;
+                    dateReq.field_id = dueDateEdit.date_field_id;
+        let dateFormData = await getFormInlineData(dateReq, 2);
+        
+        for(const i_iterator of dateFormData) {
+            if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
+                newDate = i_iterator.field_value;
+                break;
+            }
         }
+        
+        //if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
+        //    fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
+        //    console.log('fieldData : ', fieldData);
+//
+        //    newDate = fieldData.field_value;
+        //}
 
         console.log('OLD DATE : ', oldDate);
         console.log('NEW DATE : ', newDate);
