@@ -773,7 +773,8 @@ function AssetService(objectCollection) {
             'organization_enterprise_features_enabled':util.replaceDefaultNumber(rowArray[0]['organization_enterprise_features_enabled']),
             'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
             'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
-            'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path'])
+            'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path']),
+            'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management'])
         };
 
         callback(false, rowData);

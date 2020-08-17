@@ -6494,6 +6494,46 @@ function BotService(objectCollection) {
     }
 
 
+    this.callSetDueDateOfWorkflow = async(request) => {
+        let botOperationsJson = {
+            bot_operations: {
+                due_date_edit: {
+                    form_id: 1234,
+                    field_id: 223743
+                } 
+            }
+        };
+
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            if (!request.hasOwnProperty('activity_inline_data')) {
+                // Usually mobile apps send only activity_timeline_collection parameter in
+                // the "/activity/timeline/entry/add" call
+                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                formInlineData = activityTimelineCollection.form_submitted;
+                if (
+                    Number(request.device_os_id) === 1 &&
+                    typeof activityTimelineCollection.form_submitted === "string"
+                ) {
+                    formInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                }
+            } else {
+                formInlineData = JSON.parse(request.activity_inline_data);
+            }
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+        }
+
+        console.log('formInlineDataMap : ', formInlineDataMap);
+
+        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
+
+        return [false, []];
+    }
+    
     this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit) => {
         let responseData = [],
             error = false,
@@ -6507,13 +6547,27 @@ function BotService(objectCollection) {
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         oldDate = util.replaceDefaultDatetime(oldDate);
         console.log('formInlineDataMap : ', formInlineDataMap);
-        console.log('dueDateEdit : ', dueDateEdit);
+        console.log('dueDateEdit form bot inline: ', dueDateEdit);
 
-        if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
-            fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
-            console.log('fieldData : ', fieldData);
+        if(dueDateEdit.hasOwnProperty('form_id') && dueDateEdit.form_id > 0) {
+            let dateReq = Object.assign({}, request);
+                    dateReq.form_id = dueDateEdit.form_id;
+                    dateReq.field_id = dueDateEdit.field_id;
+            let dateFormData = await getFormInlineData(dateReq, 2);
 
-            newDate = fieldData.field_value;
+            for(const i_iterator of dateFormData) {
+                if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
+                    newDate = i_iterator.field_value;
+                    break;
+                }
+            }
+        } else {
+            if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
+                fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
+                console.log('fieldData : ', fieldData);
+
+                newDate = fieldData.field_value;
+            }
         }
 
         console.log('OLD DATE : ', oldDate);
@@ -6547,11 +6601,13 @@ function BotService(objectCollection) {
             track_latitude: 0
             track_longitude: 0
             workforce_id: 5912*/
+
         let newReq = Object.assign({}, request);
-            newReq.timeline_transaction_datetime = 
+            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
             newReq.track_gps_datetime = util.getCurrentUTCTime();
             newReq.datetime_log = newReq.track_gps_datetime;
-            newReq.message_unique_id = util.getMessageUniqueId(100);     
+            newReq.message_unique_id = util.getMessageUniqueId(100);
+
         let activityCoverData = {};
             activityCoverData.title = {};
                 activityCoverData.title.old = request.activity_title;
@@ -6573,13 +6629,15 @@ function BotService(objectCollection) {
         }
         
         newReq.asset_id = 100;
+        newReq.activity_id = Number(request.workflow_activity_id);
         const event = {
             name: "alterActivityCover",
             service: "activityUpdateService",
             method: "alterActivityCover",
             payload: newReq
         };
-        await queueWrapper.raiseActivityEventPromise(event, request.activity_id);
+        console.log('request.workflow_activity_id : ', request.workflow_activity_id);
+        await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
 
         //Timeline /activity/timeline/entry/add
             /*account_id: 1100
@@ -6644,13 +6702,14 @@ function BotService(objectCollection) {
                 timelineReq.message_unique_id = util.getMessageUniqueId(100);
                 //timelineReq.device_os_id = 10; //Do not trigger Bots
 
+            timelineReq.activity_id = Number(request.workflow_activity_id);
             const event1 = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",                
                 method: "addTimelineTransactionAsync",                
                 payload: timelineReq
             };
-            await queueWrapper.raiseActivityEventPromise(event1, request.activity_id);
+            await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
 
         return [error, responseData];
     }
