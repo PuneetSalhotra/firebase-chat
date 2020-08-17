@@ -3815,6 +3815,8 @@ async function addFormEntriesAsync(request) {
                     console.log('------------------------');
                     console.log('Sender Asset Data : ', senderAssetData[0]);
                     ///console.log(assetData[0].asset_encryption_token_id);
+
+                    console.log('Number(request.organization_id === 868) : ', Number(request.organization_id));
                     
                     sendEmail({
                         workflow_title: request.workflow_title,
@@ -3824,7 +3826,7 @@ async function addFormEntriesAsync(request) {
                         email_receiver_name: assetData[0].operating_asset_first_name,
                         email_sender_name: senderAssetData[0].operating_asset_first_name,                        
                         //email_sender: senderAssetData[0].operating_asset_email_id
-                        email_sender: 'ESMSMails@vodafoneidea.com',
+                        email_sender: (Number(request.organization_id === 868)) ? 'ESMSMails@vodafoneidea.com' : request.email_sender,
                         sender_asset_id: request.asset_id,
                         receiver_asset_id: mentionedAssets[i],
                         receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
@@ -3916,23 +3918,31 @@ async function addFormEntriesAsync(request) {
                             </tbody>
                             </table>`;
 
-        //util.sendEmailV3(request,
-        //                 request.asset_email_id,
-        //                 emailSubject,
-        //                 "IGNORE",
-        //                 Template,
-        //                 (err, data) => {
-        //                            if (err) {
-        //                                console.log("[Send Email - Mention | Error]: ", data);
-        //                            } else {
-        //                                console.log("[Send Email - Mention | Response]: ", "Email Sent");
-        //                            }                
-        //                        }
-        //                 );
+        console.log('Number(requestObj.organization_id) : ', requestObj.organization_id);
 
-        console.log('Sending mentions email to : ', request.asset_email_id);
-        //console.log('Template : ', Template);
-        util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);        
+        if(Number(requestObj.organization_id) === 868) {
+            console.log('Sending mentions email to : ', request.asset_email_id);
+            //console.log('Template : ', Template);
+            util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
+        } else {
+            console.log('Non-Vodafone Organization!');
+            console.log('Sending mentions email to : ', request.asset_email_id);
+
+            util.sendEmailV3(request,
+                request.asset_email_id,
+                emailSubject,
+                "IGNORE",
+                Template,
+                (err, data) => {
+                           if (err) {
+                               console.log("[Send Email - SIB - Mention | Error]: ", data);
+                           } else {
+                               console.log("[Send Email - SIB - Mention | Response]: ", "Email Sent");
+                           }                
+                       }
+                );
+        }
+        
         return [error, responseData];
     }
 

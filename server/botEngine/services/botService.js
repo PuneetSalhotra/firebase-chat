@@ -6498,6 +6498,7 @@ function BotService(objectCollection) {
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
+                    form_id: 1234,
                     field_id: 223743
                 } 
             }
@@ -6548,11 +6549,25 @@ function BotService(objectCollection) {
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
 
-        if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
-            fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
-            console.log('fieldData : ', fieldData);
+        if(dueDateEdit.hasOwnProperty('form_id') && dueDateEdit.form_id > 0) {
+            let dateReq = Object.assign({}, request);
+                    dateReq.form_id = dueDateEdit.form_id;
+                    dateReq.field_id = dueDateEdit.field_id;
+            let dateFormData = await getFormInlineData(dateReq, 2);
 
-            newDate = fieldData.field_value;
+            for(const i_iterator of dateFormData) {
+                if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
+                    newDate = i_iterator.field_value;
+                    break;
+                }
+            }
+        } else {
+            if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
+                fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
+                console.log('fieldData : ', fieldData);
+
+                newDate = fieldData.field_value;
+            }
         }
 
         console.log('OLD DATE : ', oldDate);
