@@ -1232,6 +1232,7 @@ function AnalyticsService(objectCollection)
                     }
 
             }else{
+                console.log("else "+request.widget_type_id);
                 switch (parseInt(request.widget_type_id))
                 {
                     case 18: //Volume
@@ -1241,6 +1242,7 @@ function AnalyticsService(objectCollection)
                     case 29: //Value Distribution
                     case 62:
                     case 64: //participating single
+                    case 66://avg sales bar chart                    
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1276,11 +1278,15 @@ function AnalyticsService(objectCollection)
                                         //parseInt(filter_activity_status_id),
                                         request.datetime_start,
                                         request.datetime_end,
-                                        parseInt(request.page_start),
-                                        parseInt(util.replaceQueryLimit(request.page_limit))
+                                        request.filter_product_category_id || 0,
+                                        request.filter_product_family_id || 0,
+                                        request.filter_product_activity_id || 0,
+                                        request.filter_segment_id || 0,
+                                        request.filter_account_activity_id || 0,
+                                        request.filter_asset_type_id || 0
                                     );
                 
-                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
                                     console.log(tempResult);
                                         
                                     if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
@@ -1311,6 +1317,19 @@ function AnalyticsService(objectCollection)
                                             }
                                         );
                                     } 
+                                    else if
+                                    (
+                                        parseInt(request.widget_type_id) === 66
+                                    )
+                                    {
+                                            results[iterator] =
+                                        (
+                                            {
+                                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                            "result": tempResult,
+                                            }
+                                        );
+                                    }
                                     else 
                                     {
                                         results[iterator] =
@@ -1345,6 +1364,7 @@ function AnalyticsService(objectCollection)
                     case 42: //Single Selection Reference Value
                     case 61:
                     case 63:
+                    case 65://product category wise pie chart
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1372,11 +1392,15 @@ function AnalyticsService(objectCollection)
                                 parseInt(request.filter_activity_status_id),
                                 request.datetime_start,
                                 request.datetime_end,
-                                parseInt(request.page_start),
-                                parseInt(util.replaceQueryLimit(request.page_limit))
+                                request.filter_product_category_id || 0,
+                                request.filter_product_family_id || 0,
+                                request.filter_product_activity_id || 0,
+                                request.filter_segment_id || 0,
+                                request.filter_account_activity_id || 0,
+                                request.filter_asset_type_id || 0
                             );
         
-                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
 
                             results[iterator] =
@@ -1397,6 +1421,7 @@ function AnalyticsService(objectCollection)
         }
         catch(error)
         {
+            console.log("error ",error)
             return Promise.reject(error);
         }
     };
@@ -1583,14 +1608,18 @@ function AnalyticsService(objectCollection)
                                 request.field_id || 0,
                                 request.data_type_combo_id || 0,
                                 request.datetime_start,
-                                request.datetime_end
-                                //parseInt(request.page_start),
-                                //parseInt(util.replaceQueryLimit(request.page_limit))
+                                request.datetime_end,
+                                request.filter_product_category_id || 0,
+                                request.filter_product_family_id || 0,
+                                request.filter_product_activity_id || 0,
+                                request.filter_segment_id || 0,
+                                request.filter_account_activity_id || 0,
+                                request.filter_asset_type_id || 0
                             );
 
                             // tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
                             //tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
-                            tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_1_activity_list_select_widget_drilldown', paramsArray, []);
+                            tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_3_activity_list_select_widget_drilldown', paramsArray, []);
                             //console.log(tempResult);
 
                             results[iterator] =
@@ -1611,6 +1640,7 @@ function AnalyticsService(objectCollection)
         }
         catch(error)
         {
+            console.log(error);
             return Promise.reject(error);
         }
     };
@@ -1755,7 +1785,7 @@ function AnalyticsService(objectCollection)
                             tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
                             if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
-                             || request.widget_type_id == 48 || request.widget_type_id == 49){
+                             || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65){
                                 results[iterator] =
                                 (
                                     {
