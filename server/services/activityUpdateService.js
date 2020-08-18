@@ -1229,7 +1229,7 @@ function ActivityUpdateService(objectCollection) {
                 if (activityTypeCategoryId === 48) {
                     let datetimeEndDeffered;
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
-                    console.log("parsedActivityCoverData: ", parsedActivityCoverData)
+                    console.log("parsedActivityCoverData: ", parsedActivityCoverData);
                     console.log("parsedActivityCoverData.duedate.old: ", parsedActivityCoverData.duedate.old)
                     console.log("parsedActivityCoverData.duedate.new: ", parsedActivityCoverData.duedate.new)
 
