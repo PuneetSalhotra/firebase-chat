@@ -146,7 +146,7 @@ const digitalMSSBulkOrderToOriginFormMappings = require("./digital_mss_caf/bulk_
 // IPLC - Digital IPLC CRF - 152451
 const digitalIPLCMappings = require("./digital_iplc_crf/mappings.json");
 const digitalIPLCLabels = require("./digital_iplc_crf/labels.json");
-const digitalIPLCRoms = require("./digital_iplc_crf/roms_actions.json");
+const digitalIPLCRoms = require("./digital_iplc_crf/roms.json");
 const digitalIPLCRomsActions = require('./digital_iplc_crf/roms_actions.json');
 const digitalIPLCBulkOrderToOriginFormMappings = require("./digital_iplc_crf/bulk_order_to_origin_form_mappings.json")
 
