@@ -7773,7 +7773,8 @@ function BotService(objectCollection) {
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
                 child_opportunity_id: `${opportunityID}-${serialNumber}`,
-                childOpportunity: childOpportunity
+                childOpportunity: childOpportunity,
+                feasibility_form_id: triggerFormID
             }
 
             sqs.sendMessage({
