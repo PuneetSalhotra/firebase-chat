@@ -1190,6 +1190,9 @@ function FormConfigService(objCollection) {
                     case 67: // Reminder DataType
                         params[27] = row.field_value;
                         break;
+                    case 68: // contact DataType
+                        params[27] = row.field_value;
+                        break;
                     case 70: // LoV Datatype
                         params[18] = row.field_value;
                         break;
