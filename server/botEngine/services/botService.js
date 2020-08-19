@@ -4909,26 +4909,33 @@ function BotService(objectCollection) {
             //request.email_sender_name = 'Vodafoneidea';
 
             global.logger.write('conLog', emailSubject, {}, {});
-            global.logger.write('conLog', Template, {}, {});
+            global.logger.write('conLog', Template, {}, {});            
 
-            /*util.sendEmailV3(request,
-                request.email_id,
-                emailSubject,
-                "IGNORE",
-                Template,
-                (err, data) => {
-                    if (err) {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                        global.logger.write('conLog', err, {}, {});
-                    } else {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                        global.logger.write('conLog', data, {}, {});
-                    }
+            if(Number(request.organization_id) === 868) {
+                console.log('Its vodafone request');
+                //From ESMSMails@vodafoneidea.com
+                //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
-                    resolve();
-                });*/
-
-            util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
+                //CentralOmt.In@vodafoneidea.com        
+                util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+            } else {
+                console.log('Its non-vodafone request');
+                util.sendEmailV3(request,
+                    request.email_id,
+                    emailSubject,
+                    "IGNORE",
+                    Template,
+                    (err, data) => {
+                        if (err) {
+                            global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                            global.logger.write('conLog', err, {}, {});
+                        } else {
+                            global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                            global.logger.write('conLog', data, {}, {});
+                        }                        
+                    });
+            }
+            
             resolve();
         });
     }
