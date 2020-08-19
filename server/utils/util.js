@@ -1594,31 +1594,45 @@ function Util(objectCollection) {
                         Key: KeyName
                         };
 
-        let fileName = '';
-        //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
-        switch(global.mode) {            
-            case 'staging': fileName = '/apistaging-data/';
-                            break;
-            case 'preprod': fileName = '/data/';
-                            break;
-            case 'prod': fileName = '/api-data/';
-                         break;            
-            default: fileName = '/api-data/'; 
-                     break;
-        }
+        let fileName = '/Projects/Node/Desker/desker_api/data/Valid-Annexure-updated-05.11.2019 (1).xls';
+        // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+        // switch(global.mode) {            
+        //     case 'staging': fileName = '/apistaging-data/';
+        //                     break;
+        //     case 'preprod': fileName = '/data/';
+        //                     break;
+        //     case 'prod': fileName = '/api-data/';
+        //                  break;            
+        //     default: fileName = '/api-data/'; 
+        //              break;
+        // }
 
-        fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
+        // fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
+     
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
 
-        console.log('HERE I AM ', fileName);        
+         console.log('HERE I AM ', fileName);        
 
         return await new Promise((resolve, reject)=>{
             setTimeout(() =>{
                 const result = excelToJson({sourceFile: fileName});
                 //console.log(JSON.stringify(result, null, 4));
                 fs.unlink(fileName, ()=>{});
-                resolve(JSON.stringify(result, null, 4));                
+                let modifiedResult = [];
+                modifiedResult.push(result.Sheet1[0]);
+                for(let i=1;i<result.Sheet1.length;i++){
+                  let temp = result.Sheet1[i];
+                 if(result.Sheet1[i].H){
+                 
+                    let d =  new Date(`${result.Sheet1[i].H}`);
+                    
+                    temp.H = `${d.getMonth()}/${d.getDate()}/${d.getFullYear()}`;
+
+                  }
+                modifiedResult.push(temp);
+                }
+                resolve(JSON.stringify(modifiedResult, null, 4));                
             },
             3000
             );

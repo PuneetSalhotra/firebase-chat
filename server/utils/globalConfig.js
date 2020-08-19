@@ -2,7 +2,7 @@
  * author: V Nani Kalyan
  */
 
-mode = process.env.mode;
+mode = "local";
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
