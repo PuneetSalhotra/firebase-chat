@@ -179,6 +179,14 @@ loggerstream = {
 };
 app.use(require("morgan")('{"remote_addr": ":remote-addr", "remote_user": ":remote-user", "date": ":date[clf]", "method": ":method", "url": ":url", "http_version": ":http-version", "status": ":status", "result_length": ":res[content-length]", "referrer": ":referrer", "user_agent": ":user-agent", "response_time": ":response-time"}',{stream: loggerstream}));
 
+/** Global Error handler */
+app.use((err,req,res,next) => {
+    var responseWrapper = new ResponseWrapper(util);
+    res.send(responseWrapper.getResponse(err,{
+        message: 'CORS - origin access not allowed!'
+    },401,req.body))
+});
+
 function connectToKafkaBroker() {
     console.log("redis is connected");
 
