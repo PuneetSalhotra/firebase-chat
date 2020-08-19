@@ -32,6 +32,8 @@ AWS.config.update({
 });
 const sqs = new AWS.SQS();
 
+const XLSX = require('xlsx');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -1697,6 +1699,19 @@ function BotService(objectCollection) {
                             });
                         }                
                         break;
+
+                case 30: // Bulk Feasibility Excel Parser Bot
+                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                    try {
+                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                    } catch (error) {
+                        logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -1894,7 +1909,12 @@ function BotService(objectCollection) {
                 global.logger.write('conLog', type, {}, {});
 
             console.log('type[0]: ', type[0]);
-            if (type[0] === 'static') {
+            if(type[0] === 'flag_esms') {
+                if(type[1] === 'from_request') {
+                    assetID = Number(request.asset_id);
+                    console.log('from_request - Asset ID : ', assetID);
+                }
+            } else if (type[0] === 'static') {
                 assetID = Number(inlineData[type[0]].asset_id);
                 console.log('STATIC - Asset ID : ', assetID);
             } else if(type[0] === 'from_request') {
@@ -1953,18 +1973,31 @@ function BotService(objectCollection) {
 
                     await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
 
+                    let leadAssetFirstName = '';
+                    try {
+                        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                            organization_id: request.organization_id,
+                            asset_id: leadAssetID
+                        });
+            
+                        console.log('LEAD ASSET DATA - ', assetData[0]);
+                        leadAssetFirstName = assetData[0].asset_first_name;
+                    } catch (error) {
+                        console.log(error);
+                    }
+
                     //Add a timeline entry
                     let activityTimelineCollection =  JSON.stringify({                            
-                        "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                         "subject": `Note - ${util.getCurrentDate()}.`,
-                        "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                         "activity_reference": [],
                         "asset_reference": [],
                         "attachments": [],
                         "form_approval_field_reference": []
                     });
 
-                    let timelineReq = Object.assign({}, addParticipantRequest);
+                    let timelineReq = Object.assign({}, request);
                         timelineReq.activity_type_id = request.activity_type_id;
                         timelineReq.message_unique_id = util.getMessageUniqueId(100);
                         timelineReq.track_gps_datetime = util.getCurrentUTCTime();
@@ -4891,26 +4924,33 @@ function BotService(objectCollection) {
             //request.email_sender_name = 'Vodafoneidea';
 
             global.logger.write('conLog', emailSubject, {}, {});
-            global.logger.write('conLog', Template, {}, {});
+            global.logger.write('conLog', Template, {}, {});            
 
-            /*util.sendEmailV3(request,
-                request.email_id,
-                emailSubject,
-                "IGNORE",
-                Template,
-                (err, data) => {
-                    if (err) {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                        global.logger.write('conLog', err, {}, {});
-                    } else {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                        global.logger.write('conLog', data, {}, {});
-                    }
+            if(Number(request.organization_id) === 868) {
+                console.log('Its vodafone request');
+                //From ESMSMails@vodafoneidea.com
+                util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
-                    resolve();
-                });*/
-
-            util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
+                //CentralOmt.In@vodafoneidea.com        
+                //util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+            } else {
+                console.log('Its non-vodafone request');
+                util.sendEmailV3(request,
+                    request.email_id,
+                    emailSubject,
+                    "IGNORE",
+                    Template,
+                    (err, data) => {
+                        if (err) {
+                            global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                            global.logger.write('conLog', err, {}, {});
+                        } else {
+                            global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                            global.logger.write('conLog', data, {}, {});
+                        }                        
+                    });
+            }
+            
             resolve();
         });
     }
@@ -7736,6 +7776,151 @@ function BotService(objectCollection) {
             await activityParticipantService.unassignParticicpant(removeParticipantRequest);
         } catch (error) {
             throw new Error(error);
+        }
+
+        return;
+    }
+
+    async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
+        await sleep(2000);
+        const MAX_ORDERS_TO_BE_PARSED = 100;
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityTypeID = 0,
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0,
+            opportunityID = "",
+            sqsQueueUrl = "";
+
+        const triggerFormID = request.trigger_form_id,
+            triggerFormName = request.trigger_form_name,
+            triggerFieldID = request.trigger_field_id,
+            triggerFieldName = request.trigger_field_name,
+            // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+
+        switch (process.env.mode) {
+            case "local":
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
+                break;
+
+            default:
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
+                break;
+        }
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                opportunityID = workflowActivityData[0].activity_cuid_1;
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
+        }
+
+        // Fetch the bulk upload excel's S3 URL
+        const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, bulkUploadFormID);
+
+        if (Number(bulkUploadFormData.length) > 0) {
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+        }
+
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            throw new Error("Form to bulk upload feasibility is not submitted");
+        }
+
+        // Fetch the excel URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
+            organization_id: request.organization_id
+        });
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
+        }
+
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
+
+        const headersArray = [
+            "serialNum", "OppId", "ESMSId", "TransactionId", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "LinkType", "CustomerName",
+            "CustomerCode", "RequestCreationDate", "ServiceType", "OpportunityLineItem", "IsCableAndWirelessCustomer", "IsVPNExtendedConnectSISA", "IsVPNExtendedConnect",
+            "BandwidthUnit", "BandwidthAmount", "IsPhysicalSurveyRequired", "JustificationForPSR", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G",
+            "IsWireless4G", "PostingCircle", "CountryEndA", "StateEndA", "SearchCityEndA", "CircleEndA", "SearchPinEndA", "SearchAreaEndA", "SearchBuildingIdEndA", "StreetFloorNameEndA",
+            "IsThelocationADataCenterEndA", "RackNoEndA", "CageNoEndA", "AddressEndA", "InterfaceEndA", "CustomerNameEndA", "ContactNoEndA", "ContactPersonEmailIdEndA", "AlternateContactNumberEndA",
+            "SolutionDocRequiredEndA", "SpecialInstructionsBySalesEndA", "CountryEndB", "StateEndB", "SearchCityEndB", "CircleEndB", "SearchPinEndB", "SearchAreaEndB", "SearchBuildingIdEndB",
+            "StreetFloorNameEndB", "IsThelocationADataCenterEndB", "RackNoEndB", "CageNoEndB", "AddressEndB", "InterfaceEndB", "CustomerNameEndB", "ContactNoEndB", "ContactPersonEmailIdEndB",
+            "AlternateContactNumberEndB", "SolutionDocRequiredEndB", "SpecialInstructionsBySalesEndB", "ConnectionType", "CodecRequired", "AdditionalBandwidth", "AdditionalBandwidthUnit", "AudioCodecType",
+            "VideoCodecType", "SuperWiFiFlavour", "NumberOfAudioSession", "NumberOfVideoSession", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface",
+            "SuperWiFiExistingLastMile", "MSBPOP", "RaisedThrough"
+        ];
+
+        const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        // console.log({ childOpportunitiesArray });
+
+        for (let i = 1; i < childOpportunitiesArray.length; i++) {
+            const childOpportunity = childOpportunitiesArray[i];
+            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
+            if (
+                !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
+                childOpportunity.IsNewFeasibilityRequest === "" ||
+                !childOpportunity.hasOwnProperty("serialNum") ||
+                Number(childOpportunity.serialNum) <= 0
+            ) {
+                break;
+            }
+
+            const serialNumber = childOpportunity.serialNum;
+            const bulkJobRequest = {
+                workflow_activity_id: workflowActivityID,
+                workflow_activity_type_id: workflowActivityTypeID,
+                opportunity_id: opportunityID,
+                child_opportunity_id: `${opportunityID}-${serialNumber}`,
+                childOpportunity: childOpportunity,
+                feasibility_form_id: triggerFormID
+            }
+
+            sqs.sendMessage({
+                // DelaySeconds: 5,
+                MessageBody: JSON.stringify(bulkJobRequest),
+                QueueUrl: sqsQueueUrl,
+                MessageGroupId: `excel-processing-job-queue-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                } else {
+                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                }
+            });
         }
 
         return;
