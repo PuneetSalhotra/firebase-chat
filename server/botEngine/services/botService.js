@@ -4914,10 +4914,10 @@ function BotService(objectCollection) {
             if(Number(request.organization_id) === 868) {
                 console.log('Its vodafone request');
                 //From ESMSMails@vodafoneidea.com
-                //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
+                util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
                 //CentralOmt.In@vodafoneidea.com        
-                util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+                //util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
             } else {
                 console.log('Its non-vodafone request');
                 util.sendEmailV3(request,
