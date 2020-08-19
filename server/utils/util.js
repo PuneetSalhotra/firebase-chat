@@ -1468,7 +1468,7 @@ function Util(objectCollection) {
 
     this.getWorkFlowUrl = function (url) {
         return url.slice(4);
-    }
+    };
 
     this.writeLogs = function (data, isTargeted) {
         var date = this.getCurrentUTCTime();

@@ -6567,6 +6567,14 @@ function BotService(objectCollection) {
                 console.log('fieldData : ', fieldData);
 
                 newDate = fieldData.field_value;
+
+                if(Number(request.device_os_id) === 1) {
+                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    console.log('Retrieved Date field value - ANDROiD: ', newDate);
+                } else if(Number(request.device_os_id) === 2) {
+                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    console.log('Retrieved Date field value - IOS: ', newDate);
+                }
             }
         }
 
@@ -6610,8 +6618,8 @@ function BotService(objectCollection) {
 
         let activityCoverData = {};
             activityCoverData.title = {};
-                activityCoverData.title.old = request.activity_title;
-                activityCoverData.title.new = request.activity_title;
+                activityCoverData.title.old = workflowActivityDetails[0].activity_title;
+                activityCoverData.title.new = workflowActivityDetails[0].activity_title;
 
             activityCoverData.description = {};
                 activityCoverData.description.old = "";
@@ -6678,7 +6686,14 @@ function BotService(objectCollection) {
             track_longitude: "0.0"
             workforce_id: 5912*/
 
-            let content = `Due date changed from ${oldDate} to ${newDate} by Bot`;
+            let assetDetails = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": request.asset_id
+            });
+
+            let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
+
+            let content = `Due date changed from ${oldDate} to ${newDate} by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,
