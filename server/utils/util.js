@@ -1627,7 +1627,7 @@ function Util(objectCollection) {
                  
                     let d =  new Date(`${result.Sheet1[i].H}`);
                     
-                    temp.H = `${d.getMonth()}/${d.getDate()}/${d.getFullYear()}`;
+                    temp.H = `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`;
 
                   }
                 modifiedResult.push(temp);
