@@ -1027,9 +1027,7 @@ if(mode === 'prod') {
     config.elastiSearchNode = 'https://vpc-worlddesk-thg4o3ddhlkj4bbkj3tfwiky4a.ap-south-1.es.amazonaws.com';
     config.docusignWebApp = "https://web.greneos.com";
 
-    //config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo';
-    config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod1-vil-excel-job-queue.fifo';
-    
+    config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo';
     config.whitelist = [
         'http://officedesk.app',
         "https://management.officedesk.app",

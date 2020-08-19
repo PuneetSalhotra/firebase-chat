@@ -1627,7 +1627,7 @@ function Util(objectCollection) {
                  
                     let d =  new Date(`${result.Sheet1[i].H}`);
                     
-                    temp.H = `${d.getMonth()}/${d.getDate()}/${d.getFullYear()}`;
+                    temp.H = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
 
                   }
                 modifiedResult.push(temp);
@@ -2200,7 +2200,7 @@ function Util(objectCollection) {
     };
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
         let responseData = [],
             error = false;
 
@@ -2208,15 +2208,8 @@ function Util(objectCollection) {
         //console.log('subject : ', subject);
         //console.log('text : ', text);
 
-        console.log('FLAG : ', flag);
-        let buff;
-        let htmlTemplate;
-        if(flag === 0 ) {
-            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
-            htmlTemplate = buff.toString('ascii');
-        } else if(flag === 1) {
-            htmlTemplate = text;
-        }       
+        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+        let htmlTemplate = buff.toString('ascii');
 
         const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
