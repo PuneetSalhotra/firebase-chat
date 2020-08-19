@@ -1894,7 +1894,12 @@ function BotService(objectCollection) {
                 global.logger.write('conLog', type, {}, {});
 
             console.log('type[0]: ', type[0]);
-            if (type[0] === 'static') {
+            if(type[0] === 'flag_esms') {
+                if(type[1] === 'from_request') {
+                    assetID = Number(request.asset_id);
+                    console.log('from_request - Asset ID : ', assetID);
+                }
+            } else if (type[0] === 'static') {
                 assetID = Number(inlineData[type[0]].asset_id);
                 console.log('STATIC - Asset ID : ', assetID);
             } else if(type[0] === 'from_request') {
@@ -1953,18 +1958,31 @@ function BotService(objectCollection) {
 
                     await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
 
+                    let leadAssetFirstName = '';
+                    try {
+                        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                            organization_id: request.organization_id,
+                            asset_id: leadAssetID
+                        });
+            
+                        console.log('LEAD ASSET DATA - ', assetData[0]);
+                        leadAssetFirstName = assetData[0].asset_first_name;
+                    } catch (error) {
+                        console.log(error);
+                    }
+
                     //Add a timeline entry
                     let activityTimelineCollection =  JSON.stringify({                            
-                        "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                         "subject": `Note - ${util.getCurrentDate()}.`,
-                        "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                         "activity_reference": [],
                         "asset_reference": [],
                         "attachments": [],
                         "form_approval_field_reference": []
                     });
 
-                    let timelineReq = Object.assign({}, addParticipantRequest);
+                    let timelineReq = Object.assign({}, request);
                         timelineReq.activity_type_id = request.activity_type_id;
                         timelineReq.message_unique_id = util.getMessageUniqueId(100);
                         timelineReq.track_gps_datetime = util.getCurrentUTCTime();
