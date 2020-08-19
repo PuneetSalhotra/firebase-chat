@@ -1594,20 +1594,20 @@ function Util(objectCollection) {
                         Key: KeyName
                         };
 
-        let fileName = '/Projects/Node/Desker/desker_api/data/Valid-Annexure-updated-05.11.2019 (1).xls';
+        let fileName = '';
         // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
-        // switch(global.mode) {            
-        //     case 'staging': fileName = '/apistaging-data/';
-        //                     break;
-        //     case 'preprod': fileName = '/data/';
-        //                     break;
-        //     case 'prod': fileName = '/api-data/';
-        //                  break;            
-        //     default: fileName = '/api-data/'; 
-        //              break;
-        // }
+        switch(global.mode) {            
+            case 'staging': fileName = '/apistaging-data/';
+                            break;
+            case 'preprod': fileName = '/data/';
+                            break;
+            case 'prod': fileName = '/api-data/';
+                         break;            
+            default: fileName = '/api-data/'; 
+                     break;
+        }
 
-        // fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
+        fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
      
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
