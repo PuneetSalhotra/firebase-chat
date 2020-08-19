@@ -1242,7 +1242,8 @@ function AnalyticsService(objectCollection)
                     case 29: //Value Distribution
                     case 62:
                     case 64: //participating single
-                    case 66://avg sales bar chart                    
+                    case 66: //avg sales bar chart     
+                    case 67: //active fos users bar chart              
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1319,10 +1320,11 @@ function AnalyticsService(objectCollection)
                                     } 
                                     else if
                                     (
-                                        parseInt(request.widget_type_id) === 66
+                                        parseInt(request.widget_type_id) === 66 ||
+                                        parseInt(request.widget_type_id) === 67
                                     )
                                     {
-                                            results[iterator] =
+                                        results[iterator] =
                                         (
                                             {
                                             "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
