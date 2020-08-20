@@ -6570,7 +6570,8 @@ function BotService(objectCollection) {
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
-        oldDate = util.replaceDefaultDatetime(oldDate);
+        //oldDate = util.replaceDefaultDatetime(oldDate);
+        oldDate = util.replaceDefaultDate(oldDate);
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
 
