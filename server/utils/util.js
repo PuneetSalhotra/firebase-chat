@@ -2201,7 +2201,7 @@ function Util(objectCollection) {
     };
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0) {
         let responseData = [],
             error = false;
 
@@ -2209,8 +2209,15 @@ function Util(objectCollection) {
         //console.log('subject : ', subject);
         //console.log('text : ', text);
 
-        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
-        let htmlTemplate = buff.toString('ascii');
+        console.log('FLAG : ', flag);
+        let buff;
+        let htmlTemplate;
+        if(flag === 0 ) {
+            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+        } else if(flag === 1) {
+            htmlTemplate = text;
+        }       
 
         const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
