@@ -1029,6 +1029,7 @@ if(mode === 'prod') {
 
     //config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo';
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/prod1-vil-excel-job-queue.fifo';
+    
     config.whitelist = [
         'http://officedesk.app',
         "https://management.officedesk.app",
