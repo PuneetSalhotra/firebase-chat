@@ -7805,6 +7805,10 @@ function BotService(objectCollection) {
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
 
+            case "staging":
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue.fifo"
+                break;
+
             default:
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
@@ -7865,22 +7869,23 @@ function BotService(objectCollection) {
         logger.silly("sheet_names: %j", sheet_names);
 
         const headersArray = [
-            "serialNum", "OppId", "ESMSId", "TransactionId", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "LinkType", "CustomerName",
-            "CustomerCode", "RequestCreationDate", "ServiceType", "OpportunityLineItem", "IsCableAndWirelessCustomer", "IsVPNExtendedConnectSISA", "IsVPNExtendedConnect",
-            "BandwidthUnit", "BandwidthAmount", "IsPhysicalSurveyRequired", "JustificationForPSR", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G",
-            "IsWireless4G", "PostingCircle", "CountryEndA", "StateEndA", "SearchCityEndA", "CircleEndA", "SearchPinEndA", "SearchAreaEndA", "SearchBuildingIdEndA", "StreetFloorNameEndA",
-            "IsThelocationADataCenterEndA", "RackNoEndA", "CageNoEndA", "AddressEndA", "InterfaceEndA", "CustomerNameEndA", "ContactNoEndA", "ContactPersonEmailIdEndA", "AlternateContactNumberEndA",
-            "SolutionDocRequiredEndA", "SpecialInstructionsBySalesEndA", "CountryEndB", "StateEndB", "SearchCityEndB", "CircleEndB", "SearchPinEndB", "SearchAreaEndB", "SearchBuildingIdEndB",
-            "StreetFloorNameEndB", "IsThelocationADataCenterEndB", "RackNoEndB", "CageNoEndB", "AddressEndB", "InterfaceEndB", "CustomerNameEndB", "ContactNoEndB", "ContactPersonEmailIdEndB",
-            "AlternateContactNumberEndB", "SolutionDocRequiredEndB", "SpecialInstructionsBySalesEndB", "ConnectionType", "CodecRequired", "AdditionalBandwidth", "AdditionalBandwidthUnit", "AudioCodecType",
-            "VideoCodecType", "SuperWiFiFlavour", "NumberOfAudioSession", "NumberOfVideoSession", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface",
-            "SuperWiFiExistingLastMile", "MSBPOP", "RaisedThrough"
+            "serialNum", "OppId", "ServiceType", "LinkType", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "BandwidthAmount",
+            "BandwidthUnit", "InterfaceEndA", "CustomerNameEndA", "ContactPersonEmailIdEndA", "ContactNoEndA", "AlternateContactNumberEndA", "SearchBuildingIdEndA",
+            "StreetFloorNameEndA", "SearchAreaEndA", "SearchPinEndA", "SearchCityEndA", "CircleEndA", "StateEndA", "CountryEndA", "IsThelocationADataCenterEndA",
+            "RackNoEndA", "CageNoEndA", "AddressEndA", "SpecialInstructionsBySalesEndA", "SolutionDocRequiredEndA", "InterfaceEndB", "CustomerNameEndB",
+            "ContactPersonEmailIdEndB", "ContactNoEndB", "AlternateContactNumberEndB", "SearchBuildingIdEndB", "StreetFloorNameEndB", "SearchAreaEndB",
+            "SearchPinEndB", "SearchCityEndB", "CircleEndB", "StateEndB", "CountryEndB", "IsThelocationADataCenterEndB", "RackNoEndB", "CageNoEndB",
+            "AddressEndB", "SpecialInstructionsBySalesEndB", "SolutionDocRequiredEndB", "IsVPNExtendedConnectSISA", "IsVPNExtendedConnect", "ConnectionType",
+            "CodecRequired", "AudioCodecType", "VideoCodecType", "NumberOfAudioSession", "NumberOfVideoSession", "AdditionalBandwidth", "AdditionalBandwidthUnit",
+            "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
+            "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
+            "B_Latitude", "B_Longitude"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
         // console.log({ childOpportunitiesArray });
 
-        for (let i = 1; i < childOpportunitiesArray.length; i++) {
+        for (let i = 3; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
             if (
