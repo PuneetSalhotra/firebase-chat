@@ -3,6 +3,7 @@
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
 const BotService = require('../botEngine/services/botService');
+const elasticSearchService = require('../elasticSearch/services/elasticSearchService');
 
 const logger = require('../logger/winstonLogger');
 
@@ -16,6 +17,7 @@ function ActivityConfigService(db,util,objCollection) {
     const botService = new BotService(objCollection);
     const activityCommonService = objCollection.activityCommonService;
     const cacheWrapper = objCollection.cacheWrapper;
+    const elasticService = new elasticSearchService(objCollection);
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request,callback) {
@@ -1452,6 +1454,30 @@ function ActivityConfigService(db,util,objCollection) {
             } catch(e) {
                 error = e;
             }
+        }
+        return [error,responseData];
+    }
+
+    this.groupAccountName = async (request) => {
+        let error = false,responseData = { 'message' : 'Something went wrong. Please try again later'}, response = [];
+        request.activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });
+        if(!error) {
+            if(response.hits.hits.length) {
+                error = true;
+                responseData = {'message': 'Found a Match!'};
+            } else {
+                [error, response] = await elasticService.insertAccountName(request);
+                if(!error) {
+                    request.expression = request.activityTitleExpression;
+                    activityCommonService.activityUpdateExpression(request);
+                    responseData = {'message': 'Unique group account name'};
+                } else {
+                    error = true;
+                }
+            }
+        } else {
+            error = true;
         }
         return [error,responseData];
     }
