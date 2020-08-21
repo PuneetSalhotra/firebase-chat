@@ -1331,14 +1331,20 @@ function ActivityConfigService(db,util,objCollection) {
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
         let fieldValue = "";
+        let formData;
 
         //Based on the workflow Activity Id - Fetch the latest entry from 713
-        let formData = await getFormInlineData({
-            organization_id: request.organization_id,
-            account_id: request.account_id,
-            workflow_activity_id: request.workflow_activity_id,
-            form_id: formID
-        },2);
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0){
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        } else {
+            //Take the inline data from the request
+            formData = (request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }        
 
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === fieldID) {
