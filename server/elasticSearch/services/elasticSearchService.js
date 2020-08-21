@@ -455,6 +455,36 @@ function CommnElasticService(objectCollection) {
             return [error,[]];
         }
     };
+
+    this.getAccountName = async(request) => {
+        let error = false;
+        let responseData = await client.search({
+            index: 'crawling_accounts',
+            body: {
+                query: {
+                    match: {activity_title_expression : request.activityTitleExpression}
+                }
+            }
+        })
+
+        return [error, responseData];
+    }
+
+    this.insertAccountName = async(request) => {
+        let error = false;
+        let responseData = await client.index({
+            index: 'crawling_accounts',
+            body: {
+                organization_id: Number(request.organization_id),
+                account_id: Number(request.account_id),
+                workforce_id: Number(request.workforce_id),
+                asset_id: Number(request.asset_id),
+                activity_title: request.activity_title,
+                activity_title_expression : request.activityTitleExpression
+            }
+        });
+        return [error, responseData];
+    }
 }
 
 

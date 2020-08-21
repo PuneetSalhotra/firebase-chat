@@ -199,6 +199,16 @@ function ActivityConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/group-account-name/bot', async (req, res) => {
+        const [err, data] = await activityConfigService.groupAccountName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/owner/flag/set : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 

@@ -1555,6 +1555,10 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
+                    if(Number(request.parent_activity_id) > 0) {
+                        flag = 0;
+                    }
+
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
                             console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
@@ -1567,6 +1571,13 @@ function BotService(objectCollection) {
                             ) {
                                 request.bot_id = i.bot_id;
                                 request.bot_operation_id = i.bot_operation_id;
+                                
+                                let[err, response] = await activityCommonService.workbookTrxInsert(request);
+                                console.log(response);
+                                
+                                let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
+                                request.activity_workbook_transaction_id = workbookTxnID;
+
                                 let baseURL = `http://localhost:7000`,
                                 //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
                                 sqsQueueUrl = global.config.excelBotSQSQueue;
@@ -1598,9 +1609,15 @@ function BotService(objectCollection) {
                                 }, (error, data) => {
                                     if (error) {
                                         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+
+                                        activityCommonService.workbookTrxUpdate({
+                                            activity_workbook_transaction_id: workbookTxnID,
+                                            flag_generated: -1, //Error pushing to SQS Queue
+                                            url: ''
+                                        });
                                     } else {
-                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-                                    }
+                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
+                                    }                                    
                                 });
                                 // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
                                 //     form: request,
@@ -1618,6 +1635,7 @@ function BotService(objectCollection) {
                         }
                     } else {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
+                        console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
                     }
                     
                     break;
@@ -6585,7 +6603,8 @@ function BotService(objectCollection) {
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
-        oldDate = util.replaceDefaultDatetime(oldDate);
+        //oldDate = util.replaceDefaultDatetime(oldDate);
+        oldDate = util.replaceDefaultDate(oldDate);
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
 

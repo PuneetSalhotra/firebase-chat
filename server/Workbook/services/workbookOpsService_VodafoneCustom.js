@@ -112,6 +112,17 @@ function WorkbookOpsService(objectCollection) {
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
         
+        //flag_generated
+        // -1 - Not able to push to SQS engine
+        //  0 - In SQS Queue
+        //  1 - received from SQS queue
+        //  2 - Error processing - Technically it should reprocess 
+        await activityCommonService.workbookTrxUpdate({
+            activity_workbook_transaction_id: request.activity_workbook_transaction_id,
+            flag_generated: 1,
+            url: ''
+        });
+
         const organizationID = Number(request.organization_id);
         const workflowActivityID = request.workflow_activity_id;
         let workbookMappedStreamTypeID = 718; // For initial mapping
@@ -196,6 +207,7 @@ function WorkbookOpsService(objectCollection) {
         }
 
         console.log('Final excelSheetFilePath from activity list table: ', excelSheetFilePath);
+
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -536,6 +548,13 @@ function WorkbookOpsService(objectCollection) {
             throw new Error(error);
         }
 
+        //Updating the workbook generated S3 Path
+        await activityCommonService.workbookTrxUpdate({
+            activity_workbook_transaction_id: request.activity_workbook_transaction_id,
+            flag_generated: 1,
+            url: updatedWorkbookS3URL
+        });
+
         try {
             if (updatedWorkbookS3URL) {
                 // Activity List Table
@@ -657,6 +676,14 @@ function WorkbookOpsService(objectCollection) {
                                        outputFormFieldInlineTemplateMap,
                                        widgetData);
         }
+        
+        //Updating the workbook generated S3 Path
+        await activityCommonService.workbookTrxUpdate({
+            activity_workbook_transaction_id: request.activity_workbook_transaction_id,
+            flag_generated: 2, //Done processing
+            url: updatedWorkbookS3URL
+        });
+        
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
