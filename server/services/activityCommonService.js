@@ -5690,8 +5690,90 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             }
         return [error, responseData]; 
 
-    };    
+    };
     
+
+    this.workbookTrxInsert = async (request) => {
+        let responseData = [],
+           error = true;
+
+       const paramsArr = new Array(
+            request.activity_workbook_transction_datetime,
+            request.activity_workbook_template_url,
+            request.activity_product_selection,
+            request.activity_id,
+            request.activity_cuid_1,
+            request.activity_cuid_2,
+            request.activity_cuid_3,
+            request.activity_type_id,
+            request.activity_type_category_id,
+            util.getCurrentUTCTime(),
+            request.asset_id           
+       );
+       const queryString = util.getQueryString('ds_v1_activity_workbook_transaction_insert', paramsArr);
+       if (queryString != '') {
+           await db.executeQueryPromise(0, queryString, request)
+               .then((data) => {
+                   responseData = data;
+                   error = false;
+               })
+               .catch((err) => {
+                   error = err;
+               });                 
+           }
+       return [error, responseData]; 
+   };
+
+
+   this.workbookTrxUpdate = async (request) => {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.activity_workbook_transaction_id,
+            request.flag_generated,
+            request.url,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_workbook_transaction_update', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });                 
+            }
+        return [error, responseData];
+    };
+
+    this.activityUpdateExpression  = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+          request.activity_id,
+          request.expression,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_update_title_expression', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data)=>{
+                responseData = data;
+            error = false;
+        })
+        .catch((err)=>{
+                console.log('[Error] activityUpdateExpression ',err);
+            error = err;
+        });
+        }
+        return [error, responseData];
+    };
+
 }
 
 

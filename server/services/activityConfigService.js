@@ -3,6 +3,7 @@
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
 const BotService = require('../botEngine/services/botService');
+const elasticSearchService = require('../elasticSearch/services/elasticSearchService');
 
 const logger = require('../logger/winstonLogger');
 
@@ -16,6 +17,7 @@ function ActivityConfigService(db,util,objCollection) {
     const botService = new BotService(objCollection);
     const activityCommonService = objCollection.activityCommonService;
     const cacheWrapper = objCollection.cacheWrapper;
+    const elasticService = new elasticSearchService(objCollection);
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request,callback) {
@@ -1029,6 +1031,12 @@ function ActivityConfigService(db,util,objCollection) {
         let error = false,
             responseData = [];
 
+        let is_from_integrations = 0;
+
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0){
+            is_from_integrations = 1;
+        }
+
         request.bot_operation_type_id = 22;
         request.start_from = 0;
         request.limit_value = 1;
@@ -1066,65 +1074,73 @@ function ActivityConfigService(db,util,objCollection) {
             responseData.push({'message': 'Account already exists!'});
             return [true,responseData];
 
-        } else if(accountData.length > 0 && Number(hasSeqNo) === 1) {
+        } else if(accountData.length > 0 && Number(hasSeqNo) === 1){
             //2) If sequential number is there as part of the account code, 
             //increment the sequential number by 1 and reverify the uniqueness of account code.
 
             let tempObj;
-            let newAccountCode;
+            let newAccountCode;            
             while(true) { //Runs until it finds a unique account code               
 
                 //Increment the sequential ID
                 tempObj = await generateAccountCode(request,botInlineData);
                 newAccountCode = tempObj.account_code;
+                console.log('*******************');
+                console.log('New Account Code : ', newAccountCode);
 
                 //Check the uniqueness of the account code
                 let [err,accountData] = await checkWhetherAccountCodeExists(newAccountCode);
+                console.log('**********', accountData);
+
                 if(err) {
                     responseData.push({'message': 'Error in Checking Acount Code!'});
                     return [true,responseData];
                 }
 
-                if(accountData.length === 0) {
+                if(accountData.length === 0 || cnt === 5) {
                     break;
-                }
+                }                
             } //End while loop
 
             accountCode = newAccountCode
         }
 
         console.log('Final Account Code : ',accountCode);
-        //Update the generated Account code in two places
-        //1) CUID3 of Workflow
-        logger.silly("Updating CUID3 Value of workflow");
-        logger.silly("Update CUID Bot Request: ",request);
-        try {
-            request.account_code_update = true;
-            request.datetime_log = util.getCurrentUTCTime();
-            await botService.updateCUIDBotOperationMethod(request,{},{"CUID3": accountCode});
-        } catch(error) {
-            logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
-        }
+        responseData.push({'account_code' : accountCode});
 
-        //Update the same in ElastiSearch
-        client.index({
-            index: 'crawling_accounts',
-            body: {
-                activity_cuid_3: accountCode,
-                activity_type_id: Number(request.activity_type_id),
-                workforce_id: Number(request.workforce_id),
-                account_id: Number(request.account_id),
-                activity_id: Number(request.workflow_activity_id),
-                asset_id: Number(request.asset_id)
-                //operating_asset_first_name: "Sagar Pradhan",
-                //activity_title: "GALAXY MEDICATION",
-                //activity_type_name: "Account Management - SME",
-                //asset_first_name: "Channel Head",
-                //operating_asset_id: 44574,
+        if(Number(is_from_integrations) === 1) {
+            //Update the generated Account code in two places
+            //1) CUID3 of Workflow
+            logger.silly("Updating CUID3 Value of workflow");
+            logger.silly("Update CUID Bot Request: ",request);
+            try {
+                request.account_code_update = true;
+                request.datetime_log = util.getCurrentUTCTime();
+                await botService.updateCUIDBotOperationMethod(request,{},{"CUID3": accountCode});
+            } catch(error) {
+                logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
             }
-        });
 
-        //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
+            //Update the same in ElastiSearch
+            client.index({
+                index: 'crawling_accounts',
+                body: {
+                    activity_cuid_3: accountCode,
+                    activity_type_id: Number(request.activity_type_id),
+                    workforce_id: Number(request.workforce_id),
+                    account_id: Number(request.account_id),
+                    activity_id: Number(request.workflow_activity_id),
+                    asset_id: Number(request.asset_id)
+                    //operating_asset_first_name: "Sagar Pradhan",
+                    //activity_title: "GALAXY MEDICATION",
+                    //activity_type_name: "Account Management - SME",
+                    //asset_first_name: "Channel Head",
+                    //operating_asset_id: 44574,
+                }
+            });
+
+            //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
+        }       
 
         return [error,responseData];
     }
@@ -1331,14 +1347,20 @@ function ActivityConfigService(db,util,objCollection) {
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
         let fieldValue = "";
+        let formData;
 
         //Based on the workflow Activity Id - Fetch the latest entry from 713
-        let formData = await getFormInlineData({
-            organization_id: request.organization_id,
-            account_id: request.account_id,
-            workflow_activity_id: request.workflow_activity_id,
-            form_id: formID
-        },2);
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0){
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        } else {
+            //Take the inline data from the request
+            formData = (request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
 
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === fieldID) {
@@ -1452,6 +1474,35 @@ function ActivityConfigService(db,util,objCollection) {
             } catch(e) {
                 error = e;
             }
+        }
+        return [error,responseData];
+    }
+
+    this.groupAccountName = async (request) => {
+        let error = false,
+            //responseData = { 'message' : 'Something went wrong. Please try again later'}, 
+            responseData = [],
+            response = [];
+        request.activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });        
+        if(!error) {
+            if(response.hits.hits.length){
+                error = true;
+                //responseData = {'message': 'Found a Match!'};
+                responseData.push({'message': 'Found a Match!'});
+            } else {
+                //[error, response] = await elasticService.insertAccountName(request);
+                if(!error) {
+                    request.expression = request.activityTitleExpression;
+                    //activityCommonService.activityUpdateExpression(request);
+                    //responseData = {'generated_group_account_name': request.activityTitleExpression};
+                    responseData.push({'generated_group_account_name': request.activityTitleExpression});
+                } else {
+                    error = true;
+                }
+            }
+        } else {
+            error = true;
         }
         return [error,responseData];
     }
