@@ -1479,19 +1479,24 @@ function ActivityConfigService(db,util,objCollection) {
     }
 
     this.groupAccountName = async (request) => {
-        let error = false,responseData = { 'message' : 'Something went wrong. Please try again later'}, response = [];
+        let error = false,
+            //responseData = { 'message' : 'Something went wrong. Please try again later'}, 
+            responseData = [],
+            response = [];
         request.activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
-        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });
+        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });        
         if(!error) {
-            if(response.hits.hits.length) {
+            if(response.hits.hits.length){
                 error = true;
-                responseData = {'message': 'Found a Match!'};
+                //responseData = {'message': 'Found a Match!'};
+                responseData.push({'message': 'Found a Match!'});
             } else {
-                [error, response] = await elasticService.insertAccountName(request);
+                //[error, response] = await elasticService.insertAccountName(request);
                 if(!error) {
                     request.expression = request.activityTitleExpression;
-                    activityCommonService.activityUpdateExpression(request);
-                    responseData = {'message': 'Unique group account name'};
+                    //activityCommonService.activityUpdateExpression(request);
+                    //responseData = {'generated_group_account_name': request.activityTitleExpression};
+                    responseData.push({'generated_group_account_name': request.activityTitleExpression});
                 } else {
                     error = true;
                 }
