@@ -1555,6 +1555,10 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
+                    if(Number(request.parent_activity_id) > 0) {
+                        flag = 0;
+                    }
+
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
                             console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
@@ -1618,6 +1622,7 @@ function BotService(objectCollection) {
                         }
                     } else {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
+                        console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
                     }
                     
                     break;
