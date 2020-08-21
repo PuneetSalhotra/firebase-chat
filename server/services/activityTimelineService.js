@@ -3897,7 +3897,7 @@ async function addFormEntriesAsync(request) {
                             <tr>
                             <p>
                             Hello <strong>${request.operating_asset_name},</strong><br/>
-                            You have been mentioned by ${request.email_sender_name} on ${request.workflow_title} @ ${util.getCurrentUTCTime()}
+                            You have been mentioned by ${request.email_sender_name} on ${request.workflow_title} @ ${await util.mentionsDateFormat()}
                             </p>
                             <p>
                                 Following is the copy of the exact update... <br/>

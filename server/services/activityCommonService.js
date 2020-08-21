@@ -5749,6 +5749,31 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
+    this.activityUpdateExpression  = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+          request.activity_id,
+          request.expression,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_update_title_expression', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data)=>{
+                responseData = data;
+            error = false;
+        })
+        .catch((err)=>{
+                console.log('[Error] activityUpdateExpression ',err);
+            error = err;
+        });
+        }
+        return [error, responseData];
+    };
+
 }
 
 
