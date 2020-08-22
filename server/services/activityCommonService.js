@@ -5698,13 +5698,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
            error = true;
 
        const paramsArr = new Array(
-            request.activity_workbook_transction_datetime,
-            request.activity_workbook_template_url,
+            request.activity_workbook_transaction_datetime || util.getCurrentUTCTime(),
+            request.activity_workbook_template_url || '',
             request.activity_product_selection,
             request.activity_id,
-            request.activity_cuid_1,
-            request.activity_cuid_2,
-            request.activity_cuid_3,
+            request.activity_cuid_1 || '',
+            request.activity_cuid_2 || '',
+            request.activity_cuid_3 || '',
             request.activity_type_id,
             request.activity_type_category_id,
             util.getCurrentUTCTime(),
