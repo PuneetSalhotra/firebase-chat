@@ -1595,7 +1595,7 @@ function Util(objectCollection) {
                         };
 
         let fileName = '';
-        //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+        // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
         switch(global.mode) {            
             case 'staging': fileName = '/apistaging-data/';
                             break;
@@ -1608,17 +1608,32 @@ function Util(objectCollection) {
         }
 
         fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
+     
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
 
-        console.log('HERE I AM ', fileName);        
+         console.log('HERE I AM ', fileName);        
 
         return await new Promise((resolve, reject)=>{
             setTimeout(() =>{
                 const result = excelToJson({sourceFile: fileName});
                 //console.log(JSON.stringify(result, null, 4));
                 fs.unlink(fileName, ()=>{});
-                resolve(JSON.stringify(result, null, 4));                
+                let modifiedResult = [];
+                modifiedResult.push(result.Sheet1[0]);
+                for(let i=1;i<result.Sheet1.length;i++){
+                  let temp = result.Sheet1[i];
+                 if(result.Sheet1[i].H){
+                 
+                    let d =  new Date(`${result.Sheet1[i].H}`);
+                    
+                    //temp.H = `${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}`;
+                    temp.H = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+
+                  }
+                modifiedResult.push(temp);
+                }
+                resolve(JSON.stringify(modifiedResult, null, 4));                
             },
             3000
             );
@@ -2186,7 +2201,7 @@ function Util(objectCollection) {
     };
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0) {
         let responseData = [],
             error = false;
 
@@ -2194,8 +2209,15 @@ function Util(objectCollection) {
         //console.log('subject : ', subject);
         //console.log('text : ', text);
 
-        let buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
-        let htmlTemplate = buff.toString('ascii');
+        console.log('FLAG : ', flag);
+        let buff;
+        let htmlTemplate;
+        if(flag === 0 ) {
+            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+        } else if(flag === 1) {
+            htmlTemplate = text;
+        }       
 
         const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
