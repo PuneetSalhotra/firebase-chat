@@ -1681,13 +1681,28 @@ function BotService(objectCollection) {
                     
                 case 26: // ESMS Integrations- Consume Part - Bot
                     logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
+                    let esmsIntegrationsTopicName = "";
+                    switch (process.env.mode) {
+                        case "staging":
+                            // Disabled for PreProd testing, because both staging and preprod
+                            // share the same topic for integrations communication
+                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            break;
+                        case "preprod":
+                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            break;
+                        case "prod":
+                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            break;
+                    }
                     try {
+                        if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
                         await queueWrapper.raiseActivityEventToTopicPromise({
                             type: "VIL_ESMS_IBMMQ_INTEGRATION",
                             trigger_form_id: Number(request.trigger_form_id),
                             form_transaction_id: Number(request.form_transaction_id),
                             payload: request
-                        }, "staging-vil-esms-ibmmq-v2", request.workflow_activity_id || request.activity_id);
+                        }, esmsIntegrationsTopicName, request.workflow_activity_id || request.activity_id);
                     } catch (error) {
                         logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
