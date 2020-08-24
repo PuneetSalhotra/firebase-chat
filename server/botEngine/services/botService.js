@@ -1529,9 +1529,12 @@ function BotService(objectCollection) {
                     console.log(' ');
                     console.log('activityInlineData : ', activityInlineData);
 
+                    let activityProductSelection;
                     for(const i of activityInlineData) {
                         if(Number(i.field_data_type_id) === 71) {
-                            let fieldValue = JSON.parse(i.field_value);                            
+                            activityProductSelection = i.field_value;
+
+                            let fieldValue = JSON.parse(i.field_value);
                             let cartItems = fieldValue.cart_items;
                             console.log('typeof Cart Items : ', typeof cartItems);
                             console.log('Cart Items : ', cartItems);
@@ -1555,6 +1558,19 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
+                    if(Number(request.parent_activity_id) > 0) {
+                        flag = 0;
+                    }
+
+                    //For Workbook logs
+                    request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
+                    let[err, response] = await activityCommonService.workbookTrxInsert(request);
+                    console.log(response);
+                                
+                    let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
+                    request.activity_workbook_transaction_id = workbookTxnID;
+                    ///////////////////////////
+
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
                             console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
@@ -1567,6 +1583,7 @@ function BotService(objectCollection) {
                             ) {
                                 request.bot_id = i.bot_id;
                                 request.bot_operation_id = i.bot_operation_id;
+
                                 let baseURL = `http://localhost:7000`,
                                 //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
                                 sqsQueueUrl = global.config.excelBotSQSQueue;
@@ -1598,9 +1615,15 @@ function BotService(objectCollection) {
                                 }, (error, data) => {
                                     if (error) {
                                         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+
+                                        activityCommonService.workbookTrxUpdate({
+                                            activity_workbook_transaction_id: workbookTxnID,
+                                            flag_generated: -1, //Error pushing to SQS Queue
+                                            url: ''
+                                        });
                                     } else {
-                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
-                                    }
+                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
+                                    }                                    
                                 });
                                 // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
                                 //     form: request,
@@ -1618,6 +1641,7 @@ function BotService(objectCollection) {
                         }
                     } else {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
+                        console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
                     }
                     
                     break;

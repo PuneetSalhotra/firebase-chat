@@ -3402,6 +3402,12 @@ async function processFormInlineDataV1(request, data){
 			await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
 						//console.log('DATA : ', data);
+						for(const i of data) {
+							let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
+														
+							i.current_status_id = queueActMapInlineData.queue_sort.current_status_id;
+							i.current_status_name = queueActMapInlineData.queue_sort.current_status_name;
+						}
                         responseData = data;
                         error = false;
                     })
