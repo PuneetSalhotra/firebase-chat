@@ -25,6 +25,9 @@ function ActivityService(objectCollection) {
     const RMBotService = require('../botEngine/services/rmbotService');
     const rmbotService = new RMBotService(objectCollection);
 
+    const CommnElasticService = require('../elasticSearch/services/elasticSearchService');
+    const elasticService = new CommnElasticService(objectCollection);
+
     //const DoaService = require('../Doa/services/doaService');
     //const doaService = new DoaService(objectCollection);
     //const doaForms = require('../Doa/utils/doaFormConfig.json');
@@ -608,6 +611,21 @@ function ActivityService(objectCollection) {
                                     opportunityRequest.workflow_activity_id = request.activity_id;
                                     opportunityRequest.generic_url = '/activity/opportunity/set';
                                     activityCommonService.makeGenericRequest(opportunityRequest);
+                            }
+
+                            console.log("ACCOUNT Code Hook:: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                            if(request.activity_type_category_id == 53 && (request.activity_type_id == 149277
+                                || request.activity_type_id == 149809 || request.activity_type_id == 150443
+                                || request.activity_type_id == 150254 || request.activity_type_id == 150442
+                                || request.activity_type_id == 150444)){
+                                    console.log("Account Code :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                                    await UpdateGeneratedAccountCode(request);
+                            }
+
+                            console.log("ACCOUNT GROUP NAME Hook:: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                            if(request.activity_type_category_id == 53 && (request.activity_type_id == 150011)){
+                                    console.log("Account Group Name :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                                    await UpdateGroupAccountName(request);
                             }
                                                         
                             //activityCommonService.activityListHistoryInsert(request, updateTypeId, (err, restult)=>{});
@@ -5277,6 +5295,45 @@ function ActivityService(objectCollection) {
                 });
             }
         });
+    }
+
+    async function UpdateGeneratedAccountCode(request) {
+        console.log('In UpdateGeneratedAccountCode func');
+        let generatedAccountCode = request.generated_account_code;
+        console.log('receieved generatedAccountCode - ',generatedAccountCode);
+
+        let newReq = Object.assign({}, request);
+
+        //Update in DB 
+        try {
+            newReq.account_code_update = true;
+            newReq.datetime_log = util.getCurrentUTCTime();
+            await botService.updateCUIDBotOperationMethod(newReq,{},{"CUID3": generatedAccountCode});
+        } catch(error) {
+            logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
+        }
+
+        //Update in Elasti-Search
+        await elasticService.updateAccountCode(request, accountCode);
+        return [false, []];
+    }
+
+    async function UpdateGroupAccountName(request) {
+        console.log('In UpdateGroupAccountName Func');
+        let groupaccountName = request.generated_group_account_name;
+        console.log('Received GroupAccountName - ', groupaccountName);
+
+        let newReq = Object.assign({}, request);
+        
+        //Update in DB 
+        newReq.expression = groupaccountName;
+        activityCommonService.activityUpdateExpression(newReq);
+
+        //Update in Elasti-Search
+        newReq.workflow_activity_id = request.activity_id;
+        await elasticService.insertAccountName(newReq);
+
+        return [false, []];
     }
 
 }
