@@ -1022,6 +1022,9 @@ function BotService(objectCollection) {
 
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+            console.log('In form_field_alter');
+            console.log("formInlineDataMap: ", formInlineDataMap);
+            console.log(' ');
             /*In case of Refill 
                 1) trigger all form level bots 
                 2) trigger bots on the respective field i.e. altered*/
