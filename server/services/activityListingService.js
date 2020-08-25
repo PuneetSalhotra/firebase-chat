@@ -1659,7 +1659,8 @@ function ActivityListingService(objCollection) {
 				"activity_type_tag_id": util.replaceDefaultNumber(rowData['activity_type_tag_id']),
 				"activity_type_tag_name": util.replaceDefaultString(rowData['activity_type_tag_name']),
 				"tag_type_id": util.replaceDefaultNumber(rowData['tag_type_id']),
-				"tag_type_name": util.replaceDefaultString(rowData['tag_type_name'])
+				"tag_type_name": util.replaceDefaultString(rowData['tag_type_name']),
+				"asset_flag_is_owner": util.replaceDefaultNumber(rowData['asset_flag_is_owner'])
 			};
 			responseData.push(rowDataArr);
 		}, this);
@@ -3405,8 +3406,8 @@ async function processFormInlineDataV1(request, data){
 						for(const i of data) {
 							let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
 														
-							i.current_status_id = queueActMapInlineData.queue_sort.current_status_id;
-							i.current_status_name = queueActMapInlineData.queue_sort.current_status_name;
+							i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
+							i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
 						}
                         responseData = data;
                         error = false;
