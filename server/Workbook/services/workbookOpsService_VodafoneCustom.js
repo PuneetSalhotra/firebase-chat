@@ -116,7 +116,8 @@ function WorkbookOpsService(objectCollection) {
         // -1 - Not able to push to SQS engine
         //  0 - In SQS Queue
         //  1 - received from SQS queue
-        //  2 - Error processing - Technically it should reprocess 
+        //  2 - Done processing         
+        //- Technically it should reprocess 
         await activityCommonService.workbookTrxUpdate({
             activity_workbook_transaction_id: request.activity_workbook_transaction_id,
             flag_generated: 1,
