@@ -1739,7 +1739,20 @@ function BotService(objectCollection) {
                         }                
                         break;
 
-                case 30: // workflow start bot
+                case 30: // Bulk Feasibility Excel Parser Bot
+                        logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                        try {
+                            await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        } catch (error) {
+                            logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                        }
+                        break;
+                
+                case 31: // workflow start bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WorkFlow Bot', {}, {});
                     try {
@@ -1756,20 +1769,7 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
-
-                case 31: // Bulk Feasibility Excel Parser Bot
-                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
-                    try {
-                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                    } catch (error) {
-                        logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                    }
-                    break;
+                    break;                
 
             }
 
