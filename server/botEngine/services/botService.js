@@ -1739,7 +1739,26 @@ function BotService(objectCollection) {
                         }                
                         break;
 
-                case 30: // Bulk Feasibility Excel Parser Bot
+                case 30: // workflow start bot
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    try {
+                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        console.log('workflow start | Request Params received by BOT ENGINE', request);
+                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                    } catch (err) {
+                        global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                        //return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
+
+                case 31: // Bulk Feasibility Excel Parser Bot
                     logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
                     try {
                         await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
@@ -1751,6 +1770,7 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -3745,6 +3765,226 @@ function BotService(objectCollection) {
                 }
             }
             
+        }
+        return;
+    }
+    async function workFlowCopyFields(request, fieldCopyInlineData, condition = {}) {
+
+        //enable_target_form_submission = 1 then submit the target form
+        //enable_target_form_submission = 0 then do not submit the target form
+        let shouldSubmitTargetForm;
+        (condition.hasOwnProperty('enable_target_form_submission')) ?
+            shouldSubmitTargetForm = Number(condition.enable_target_form_submission):
+            shouldSubmitTargetForm = 0;
+
+        const workflowActivityID = Number(request.workflow_activity_id),
+            // sourceFormActivityID = Number(request.activity_id),
+            // sourceFormID = Number(request.form_id),
+            targetFormID = Number(fieldCopyInlineData[0].target_form_id);
+
+        let sourceFormActivityTypeID = Number(condition.source_form_activity_type_id);
+
+        //ESMS Requirement - Check If target_form_id is an origin form
+        //////////////////////////////////////////////////////////////
+        let esmsFlag = 0,
+            esmsOriginFlag = 0;
+
+        let esmsReq = Object.assign({}, request);
+            esmsReq.form_id = targetFormID;
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(esmsReq);
+        if (formConfigError !== false || formConfigData.length === 0) {
+            return [true, {
+                message: `Couldn't fetch form data for form ${esmsReq.form_id}.`
+            }];
+        }
+
+        if (Number(formConfigData.length) > 0) {
+            //console.log('############################################################');
+            //console.log('ESMS - Target Form Data - formConfigData : ', formConfigData);
+            //console.log('############################################################');
+
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+                workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                //formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48,
+                //workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                //formName = String(formConfigData[0].form_name),
+                //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
+
+            console.log('##################################');
+            console.log('originFlagSet : ', originFlagSet);
+            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
+            console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
+            console.log('workflowActivityTypeId : ', workflowActivityTypeId);
+
+            if(sourceFormActivityTypeID !== workflowActivityTypeId){
+                console.log('Target Form Process is different from the Source form');
+                console.log('##################################');
+
+                esmsFlag = 1;
+                if(originFlagSet && isWorkflowEnabled) {
+                    esmsOriginFlag = 1; //This is an origin form in another process
+                    await sleep(4000);
+                }
+            }
+        }
+        ///////////////////////////////////////////////////// - ESMS
+
+        let targetFormTransactionData = [],
+            targetFormActivityID = 0,
+            targetFormTransactionID = 0;
+
+        // Check if the target form already exists for the given workflow
+        //if(Number(esmsFlag) === 0) {
+            try {
+                targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, targetFormID);
+
+                if (Number(targetFormTransactionData.length) > 0) {
+                    targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                    targetFormActivityID = targetFormTransactionData[0].data_activity_id;
+
+                    if(Number(esmsFlag) === 1) {
+                        console.log('Target Form Submitted!');
+                        console.log(targetFormTransactionID);
+                        console.log(targetFormActivityID);
+                    }
+                } else {
+                    if(Number(esmsFlag) === 1) {
+                        console.log('Target Form Not Submitted!');
+                    }
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                throw new Error(error);
+            }
+        //}
+
+        let activityInlineData = [],
+            activityInlineDataMap = new Map(),
+            REQUEST_FIELD_ID = 0;
+
+        console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
+        for (const batch of fieldCopyInlineData) {
+            let sourceFormID = Number(batch.source_form_id),
+                sourceFormTransactionData = [],
+                sourceFormActivityID = 0,
+                sourceFormTransactionID = 0;
+
+            // Fetch Source Form Transaction Data
+            try {
+                sourceFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, sourceFormID);
+
+                if (Number(sourceFormTransactionData.length) > 0) {
+                    //sourceFormActivityTypeID = Number(sourceFormTransactionData[0].activity_type_id);
+                    sourceFormTransactionID = Number(sourceFormTransactionData[0].data_form_transaction_id);
+                    sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Source Form Transaction Data | Error: ", error);
+                throw new Error(error);
+            }
+            if (
+                sourceFormTransactionID === 0
+            ) {
+                continue;
+            }
+            const sourceFieldID = Number(batch.source_field_id);
+            const targetFieldID = Number(batch.target_field_id);
+
+            // This is purely for passing as a parameter to the field alter service
+            REQUEST_FIELD_ID = targetFieldID;
+
+            const sourceFieldData = await getFieldValue({
+                form_transaction_id: sourceFormTransactionID,
+                form_id: sourceFormID,
+                field_id: sourceFieldID,
+                organization_id: request.organization_id
+            });
+
+            try {
+                console.log('sourceFieldData[0] : ', sourceFieldData[0]);
+                const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
+                console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
+                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
+
+                activityInlineDataMap.set(sourceFieldID, {
+                    // "form_name": Number(sourceFieldData[0].form_name),
+                    "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
+                    "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
+                    "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
+                    "field_data_type_id": Number(sourceFieldData[0].data_type_id),
+                    "field_id": targetFieldID,
+                    "field_name": String(sourceFieldData[0].field_name),
+                    "field_value": sourceFieldValue,
+                    "form_id": targetFormID,
+                    "message_unique_id": 123123123123123123
+                });
+            } catch(err) {
+                console.log(`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`);
+            }
+        } //For loop Finished
+
+        activityInlineData = [...activityInlineDataMap.values()];
+        console.log("copyFields | activityInlineData: ", activityInlineData);
+        request.activity_title = activityInlineData[0].field_value;
+
+        console.log("targetFormTransactionID: ", targetFormTransactionID);
+        console.log("targetFormActivityID: ", targetFormActivityID);
+
+        if (targetFormTransactionID !== 0) {
+            let fieldsAlterRequest = Object.assign({}, request);
+                fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
+                fieldsAlterRequest.form_id = targetFormID;
+                fieldsAlterRequest.activity_form_id = targetFormID;
+                fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
+                fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                fieldsAlterRequest.activity_id = targetFormActivityID;
+                fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+
+            try {
+                await alterFormActivityFieldValues(fieldsAlterRequest);
+            } catch (error) {
+                console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+            }
+
+        } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, DO NOT DO ANYTHING
+            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            if(shouldSubmitTargetForm === 1) {
+                // If the target form has not been submitted yet, create one
+                //console.log('Request.activity_title : ', request);
+                let createTargetFormRequest = Object.assign({}, request);
+                    createTargetFormRequest.activity_form_id = targetFormID;
+                    createTargetFormRequest.form_id = targetFormID;
+                    createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+
+                if(Number(esmsFlag) === 0) {
+                    createTargetFormRequest.workflow_activity_id = workflowActivityID;
+                }
+
+                if(Number(esmsFlag) === 1) {
+                    //Internally in activityService File. Workflow will be created
+                    createTargetFormRequest.isESMS = 1;
+                    createTargetFormRequest.isEsmsOriginFlag = esmsOriginFlag;
+
+                    //flag to know that this form and workflow is submitted by a Bot
+                    createTargetFormRequest.activity_flag_created_by_bot = 1;
+                }
+
+                try {
+                    await createTargetFormActivity(createTargetFormRequest);
+                } catch (error) {
+                    console.log("copyFields | createTargetFormActivity | Error: ", error);
+                }
+            }
+
         }
         return;
     }
@@ -6579,7 +6819,7 @@ function BotService(objectCollection) {
                 due_date_edit: {
                     form_id: 1234,
                     field_id: 223743
-                } 
+                }
             }
         };
 
