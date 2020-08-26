@@ -1,5 +1,5 @@
-var path = require('path')
-var extract = require('pdf-text-extract')
+var path = require('path');
+var extract = require('pdf-text-extract');
 
 function CommnElasticService(objectCollection) {
     const util = objectCollection.util;
@@ -13,21 +13,21 @@ function CommnElasticService(objectCollection) {
     this.updateFile =
         async (request,res) => {
             try {
-                var pdfUrl = request.url_path
+                var pdfUrl = request.url_path;
                 util.downloadS3Object(request,pdfUrl).then(filename => {
                     var fileFullPath = global.config.efsPath + filename;
-                    var filePath = path.join(fileFullPath)
+                    var filePath = path.join(fileFullPath);
                     setTimeout(() => {
                         extract(filePath,function (err,documentcontent) {
                             if(err) {
-                                console.dir(err)
-                                return err
+                                console.dir(err);
+                                return err;
                             }
                             var result = updateDocumetInformation(request,documentcontent,pdfUrl,client,res)
-                            return result
-                        })
-                    },1000)
-                })
+                            return result;
+                        });
+                    },1000);
+                });
             } catch(error) {
                 return Promise.reject(error);
             }
@@ -88,7 +88,7 @@ function CommnElasticService(objectCollection) {
         try {
             results[1] = await db.callDBProcedure(request,'ds_v1_activity_document_mapping_history_insert',paramsArray,0);
         } catch(error) {
-            console.error(error)
+            console.error(error);
 
         }
         const result = await client.index({
@@ -465,10 +465,10 @@ function CommnElasticService(objectCollection) {
                     match: {activity_title_expression : request.activityTitleExpression}
                 }
             }
-        })
+        });
 
         return [error, responseData];
-    }
+    };
 
     this.insertAccountName = async(request) => {
         let error = false;
@@ -480,11 +480,37 @@ function CommnElasticService(objectCollection) {
                 workforce_id: Number(request.workforce_id),
                 asset_id: Number(request.asset_id),
                 activity_title: request.activity_title,
-                activity_title_expression : request.activityTitleExpression
+                activity_title_expression : request.activityTitleExpression,
+                activity_id: request.workflow_activity_id
             }
         });
         return [error, responseData];
-    }
+    };
+
+    //Inserting the generated code received back from the workflow creation request
+    this.updateAccountCode = async(request, accountCode) => {
+        let error = false,
+            responseData = [];
+
+        client.index({
+            index: 'crawling_accounts',
+            body: {
+                activity_cuid_3: accountCode,
+                activity_type_id: Number(request.activity_type_id),
+                workforce_id: Number(request.workforce_id),
+                account_id: Number(request.account_id),
+                activity_id: Number(request.workflow_activity_id),
+                asset_id: Number(request.asset_id)
+                //operating_asset_first_name: "Sagar Pradhan",
+                //activity_title: "GALAXY MEDICATION",
+                //activity_type_name: "Account Management - SME",
+                //asset_first_name: "Channel Head",
+                //operating_asset_id: 44574,
+            }
+        });
+
+        return [false, responseData];
+    };
 }
 
 

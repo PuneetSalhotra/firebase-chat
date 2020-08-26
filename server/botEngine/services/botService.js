@@ -1022,6 +1022,9 @@ function BotService(objectCollection) {
 
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+            console.log('In form_field_alter');
+            console.log("formInlineDataMap: ", formInlineDataMap);
+            console.log(' ');
             /*In case of Refill 
                 1) trigger all form level bots 
                 2) trigger bots on the respective field i.e. altered*/
@@ -1739,7 +1742,20 @@ function BotService(objectCollection) {
                         }                
                         break;
 
-                case 30: // workflow start bot
+                case 30: // Bulk Feasibility Excel Parser Bot
+                        logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                        try {
+                            await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        } catch (error) {
+                            logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                        }
+                        break;
+                
+                case 31: // workflow start bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WorkFlow Bot', {}, {});
                     try {
@@ -1756,20 +1772,7 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
-
-                case 31: // Bulk Feasibility Excel Parser Bot
-                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
-                    try {
-                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                    } catch (error) {
-                        logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                    }
-                    break;
+                    break;                
 
             }
 
