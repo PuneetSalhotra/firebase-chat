@@ -407,6 +407,16 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/bot_step/cuid/set', async (req, res) => {        
+        const [err, responseData] = await botService.callUpdateCUIDBotOperation(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/reminder-bot/consume | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+        }
+    });
 }
 
 module.exports = BotController;

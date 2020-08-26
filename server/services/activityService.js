@@ -5308,7 +5308,13 @@ function ActivityService(objectCollection) {
         try {
             newReq.account_code_update = true;
             newReq.datetime_log = util.getCurrentUTCTime();
-            await botService.updateCUIDBotOperationMethod(newReq,{},{"CUID3": generatedAccountCode});
+            newReq.cuid_inline_data = JSON.stringify({"CUID3": generatedAccountCode});
+            //await botService.updateCUIDBotOperationMethod(newReq,{},{"CUID3": generatedAccountCode});
+            
+            await activityCommonService.makeRequest(newReq, "bot_step/cuid/set", 1)
+                .then((resp) => {
+                    global.logger.write('debug', "bot_step/cuid/set Trigger Response: " + JSON.stringify(resp), {}, request);
+                });
         } catch(error) {
             logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
         }
