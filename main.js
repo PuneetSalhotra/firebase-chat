@@ -181,6 +181,10 @@ app.use(require("morgan")('{"remote_addr": ":remote-addr", "remote_user": ":remo
 
 /** Global Error handler */
 app.use((err,req,res,next) => {
+    var util = new Util({
+        cacheWrapper
+        });
+        
     var responseWrapper = new ResponseWrapper(util);
     res.send(responseWrapper.getResponse(err,{
         message: 'CORS - origin access not allowed!'
