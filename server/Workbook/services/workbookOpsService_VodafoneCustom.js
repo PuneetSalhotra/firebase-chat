@@ -443,45 +443,58 @@ function WorkbookOpsService(objectCollection) {
         // Select sheet
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
-        for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
-            // Check if the cell has the up-to-date value
-            const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-            if (existingCellValue == cellValue) {
-                logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
-                continue;
-            }
-            const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
-            try {
-                logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
-                if (isFormulaEngineEnabled) {
-                    S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
-
-                } else {
-                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
-                    workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
-                }
-            } catch (error) {
-                logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
-            }
+        
+        //Significance of Flag if 1 then apply the logic update the sheet 
+        //else 0 then simply dump the file as it is in the timeline withour any logic applied
+        let executeLogicFlag = 0;
+        if(sheet_names[sheetIndex] == 'Input Generic Info') {
+            executeLogicFlag = 1;
         }
 
-        // Fetch the updated values
-        for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
-            if (outputFormFieldInlineTemplateMap.has(fieldID)) {
-                let cellValue = "";
+        
+        if(Number(executeLogicFlag) === 1) {
+            
+            for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
+                // Check if the cell has the up-to-date value
+                const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                if (existingCellValue == cellValue) {
+                    logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
+                    continue;
+                }
+                const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
                 try {
-                    cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                    let field = outputFormFieldInlineTemplateMap.get(fieldID);
+                    logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
+                    if (isFormulaEngineEnabled) {
+                        S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
 
-                    // Update the field
-                    field.field_value = cellValue;
-                    outputFormFieldInlineTemplateMap.set(fieldID, field);
-
-                    logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                    } else {
+                        workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
+                        workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
+                    }
                 } catch (error) {
-                    logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+                    logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
                 }
             }
+
+            // Fetch the updated values
+            for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
+                if (outputFormFieldInlineTemplateMap.has(fieldID)) {
+                    let cellValue = "";
+                    try {
+                        cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+                        let field = outputFormFieldInlineTemplateMap.get(fieldID);
+
+                        // Update the field
+                        field.field_value = cellValue;
+                        outputFormFieldInlineTemplateMap.set(fieldID, field);
+
+                        logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
+                    } catch (error) {
+                        logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
+                    }
+                }
+            }
+
         }
         
         console.log(' ');
