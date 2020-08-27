@@ -7833,10 +7833,10 @@ function BotService(objectCollection) {
                                 "asset_id": assetID
                             });
 
-                            emailID = assetDetails[0].asset_email_id;
+                            emailID = assetDetails[0].operating_asset_email_id;
                             emailReceiverName = assetDetails[0].operating_asset_first_name;
-                            textPhCtyCode = assetDetails[0].asset_phone_country_code;
-                            textPhNo = assetDetails[0].asset_phone_number;
+                            textPhCtyCode = assetDetails[0].operating_asset_phone_country_code;
+                            textPhNo = assetDetails[0].operating_asset_phone_number;
 
                             /*Operating Asset Detais
                             //activityData[0].activity_creator_operating_asset_id
@@ -7853,10 +7853,10 @@ function BotService(objectCollection) {
                                 "asset_id": assetID
                             });
 
-                            emailID = assetDetails[0].asset_email_id;
+                            emailID = assetDetails[0].operating_asset_email_id;
                             emailReceiverName = assetDetails[0].operating_asset_first_name;
-                            textPhCtyCode = assetDetails[0].asset_phone_country_code;
-                            textPhNo = assetDetails[0].asset_phone_number;
+                            textPhCtyCode = assetDetails[0].operating_asset_phone_country_code;
+                            textPhNo = assetDetails[0].operating_asset_phone_number;
 
                             ///activityData[0].activity_lead_operating_asset_id
                         } else if(dateReminder.escalation_target === 'manager') {                            
@@ -7876,10 +7876,10 @@ function BotService(objectCollection) {
                                 });
                                 
                                 //Manager asset Details
-                                emailID = assetDetails[0].asset_email_id;
+                                emailID = assetDetails[0].operating_asset_email_id;
                                 emailReceiverName = assetDetails[0].operating_asset_first_name;
-                                textPhCtyCode = assetDetails[0].asset_phone_country_code;
-                                textPhNo = assetDetails[0].asset_phone_number;
+                                textPhCtyCode = assetDetails[0].operating_asset_phone_country_code;
+                                textPhNo = assetDetails[0].operating_asset_phone_number;
                             } //else send to the creator lead's manager 
                             else {  
                                 assetDetails = await getAssetDetails({
@@ -7896,10 +7896,10 @@ function BotService(objectCollection) {
                                 });
                                 
                                 //Manager asset Details
-                                emailID = assetDetails[0].asset_email_id;
+                                emailID = assetDetails[0].operating_asset_email_id;
                                 emailReceiverName = assetDetails[0].operating_asset_first_name;
-                                textPhCtyCode = assetDetails[0].asset_phone_country_code;
-                                textPhNo = assetDetails[0].asset_phone_number;
+                                textPhCtyCode = assetDetails[0].operating_asset_phone_country_code;
+                                textPhNo = assetDetails[0].operating_asset_phone_number;
                             }                            
                         }
                         
