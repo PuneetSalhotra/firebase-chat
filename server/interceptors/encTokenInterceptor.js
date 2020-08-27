@@ -12,6 +12,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
         let asset_id = req.body.auth_asset_id || req.body.asset_id;
         switch (req.url) {
             case '/' + global.config.version + '/activity/access/asset/list/v1': 
+            case '/' + global.config.version + '/activity/access/asset/list/v3': 
             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                 if (err) {                               
                     global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);

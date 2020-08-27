@@ -6487,6 +6487,14 @@ function BotService(objectCollection) {
         return [error, responseData];
     };
 
+    this.callUpdateCUIDBotOperation = async(request) => {
+        let formInlineDataMap = request.form_inline_data_map || {};
+        let cuidInlineData = request.cuid_inline_data;
+
+        let parsedCuidInlineData = (typeof cuidInlineData === 'string') ? JSON.parse(cuidInlineData) : cuidInlineData;
+        return await updateCUIDBotOperation(request, formInlineDataMap, parsedCuidInlineData);
+    }
+    
     this.updateCUIDBotOperationMethod = async(request, formInlineDataMap = {}, cuidInlineData) => {
         //let formInlineDataMap = request.form_inline_data_map || {};
         //let cuidInlineData = request.cuid_inline_data;
