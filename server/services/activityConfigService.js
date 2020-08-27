@@ -1106,7 +1106,7 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
         console.log('Final Account Code : ',accountCode);
-        responseData.push({'account_code' : accountCode});
+        responseData.push({'generated_account_code' : accountCode});
 
         if(Number(is_from_integrations) === 1) {
             //Update the generated Account code in two places
