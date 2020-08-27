@@ -623,7 +623,7 @@ function ActivityService(objectCollection) {
                             }
 
                             console.log("ACCOUNT GROUP NAME Hook:: "+request.activity_type_category_id + " :: " +request.activity_type_id);
-                            if(request.activity_type_category_id == 53 && (request.activity_type_id == 150011)){
+                            if(request.activity_type_category_id == 48 && (request.activity_type_id == 150011)){
                                     console.log("Account Group Name :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
                                     await UpdateGroupAccountName(request);
                             }
@@ -5320,7 +5320,7 @@ function ActivityService(objectCollection) {
         }
 
         //Update in Elasti-Search
-        await elasticService.updateAccountCode(request, accountCode);
+        await elasticService.updateAccountCode(request, generatedAccountCode);
         return [false, []];
     }
 
@@ -5337,6 +5337,7 @@ function ActivityService(objectCollection) {
 
         //Update in Elasti-Search
         newReq.workflow_activity_id = request.activity_id;
+        newReq.activityTitleExpression = groupaccountName;
         await elasticService.insertAccountName(newReq);
 
         return [false, []];
