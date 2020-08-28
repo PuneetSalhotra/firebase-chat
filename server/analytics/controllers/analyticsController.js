@@ -209,6 +209,32 @@ function AnalyticsController(objCollection)
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
+
+    //Get the drill down with limit for a specific widget
+    //Sravankumar
+    //2020-07-01
+    app.post('/' + global.config.version + '/analytics/management/widget/drilldown/v1', async (req, res) =>{             
+            try{
+                let result = await analyticsService.getManagementWidgetDrilldownLimit(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }catch(err){
+                console.log('error :: ',err);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });  
+
+    //Get the widget configuration mappings
+    //Sravankumar
+    //2020-08-27
+    app.post('/' + global.config.version + '/analytics/management/widget/configs', async (req, res) =>{             
+            try{
+                let result = await analyticsService.getWidgetMappings(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }catch(err){
+                console.log('error :: ',err);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });    
     
 }
 
