@@ -234,7 +234,20 @@ function AnalyticsController(objCollection)
                 console.log('error :: ',err);
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
-    });    
+    });  
+
+    //Get the list of management widgets
+    //Sravankumar
+    //2020-08-28
+    app.post('/' + global.config.version + '/analytics/management/widget/list', async (req, res) => {        
+            try{
+                let result = await analyticsService.getManagementWidgetList(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err){
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        });      
     
 }
 
