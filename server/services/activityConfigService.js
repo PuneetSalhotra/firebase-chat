@@ -1055,7 +1055,14 @@ function ActivityConfigService(db,util,objCollection) {
             return [error,responseData];
         }
 
-        let generatedAccountData = await generateAccountCode(request,botInlineData);
+        let generatedAccountData;
+        try{
+            generatedAccountData = await generateAccountCode(request,botInlineData);
+        } catch(err) {
+            responseData.push({'Message': 'Error generating Account Code'});
+            return[true, responseData];
+        }
+        
         console.log('Generated Account data : ',generatedAccountData);
 
         let hasSeqNo = generatedAccountData.has_sequence_number;
