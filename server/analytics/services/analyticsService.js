@@ -1052,6 +1052,38 @@ function AnalyticsService(objectCollection)
         }
     };
 
+    //Get the list of management widgets
+    //Sravankumar
+    //2020-08-28
+    this.getManagementWidgetList = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.tag_type_id,
+                global.analyticsConfig.parameter_flag_sort,
+                request.page_start || 0,
+                request.page_limit || 50
+            );
+
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_management_widgets', paramsArray, 1);
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };    
+
     //Get specific widgets value
     //Bharat Masimukku
     //2019-07-16
@@ -1759,6 +1791,7 @@ function AnalyticsService(objectCollection)
                             parseInt(request.filter_product_activity_id),
                             parseInt(request.filter_account_activity_id),
                             parseInt(request.filter_is_value_considered),
+                            parseInt(request.filter_cluster_tag_id) || 0,
                             parseInt(request.page_start) || 0,
                             parseInt(request.page_limit) || 50
                         );
@@ -1770,7 +1803,7 @@ function AnalyticsService(objectCollection)
                        
                             for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                                  paramsArray.push(iteratorM)
-                                tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_values', paramsArray, 1);
+                                tempResult = await db.callDBProcedureR2(request, 'ds_v1_2_activity_search_list_select_widget_values', paramsArray, 1);
                                 paramsArray.pop();
                                 responseArray.push(tempResult[0])
                             }
@@ -1784,7 +1817,7 @@ function AnalyticsService(objectCollection)
                             iterator++
                         }else{
                             paramsArray.push(0)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_2_activity_search_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
                             if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
                              || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65){
@@ -2084,11 +2117,12 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_product_activity_id),
                     parseInt(request.filter_account_activity_id),
                     parseInt(request.filter_is_value_considered),
+                    parseInt(request.filter_cluster_tag_id) || 0,
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray);
+                var queryString = util.getQueryString('ds_v1_2_activity_search_list_select_widget_drilldown', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
