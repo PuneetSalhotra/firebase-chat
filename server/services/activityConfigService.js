@@ -1359,7 +1359,7 @@ function ActivityConfigService(db,util,objCollection) {
             },2);
         } else {
             //Take the inline data from the request
-            formData = (request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
         for(const fieldData of formData) {
