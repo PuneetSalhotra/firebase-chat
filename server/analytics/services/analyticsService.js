@@ -1973,6 +1973,203 @@ function AnalyticsService(objectCollection)
             return Promise.reject(error);
         }
     };
+
+    //Get the drill down with limit for a specific widget
+    //Sravankumar
+    //2020-07-01
+    this.getManagementWidgetDrilldownLimit = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: "+request.activity_status_id);
+
+            let arrayStatuses = new Array();
+            if(request.hasOwnProperty("activity_status_id")){
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if(request.activity_status_id != 0){
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                }else{
+                    let json = {"activity_status_id": 0};
+                    arrayStatuses.push(json); 
+                    console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+                }
+                 //console.log("arrayStatuses1 :: "+JSON.stringify(arrayStatuses))
+            }else{
+               
+                let json = {"activity_status_id": 0};
+                arrayStatuses.push(json); 
+                console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+            }
+
+            // YTD widget's start date should be the Unix epoch
+            // if (parseInt(request.filter_timeline_id) === 8) {
+            //     request.datetime_start = '1970-01-01 00:00:00';
+            // }
+            if(!request.hasOwnProperty("filter_hierarchy")){
+                request.filter_hierarchy = 0;
+            }
+            if(!request.hasOwnProperty("filter_reporting_manager_id")){
+                request.filter_reporting_manager_id = 0;
+            }            
+
+            
+            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            {
+                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                 paramsArray = 
+                 new Array(
+                    parseInt(request.widget_type_id),
+                    parseInt(request.filter_date_type_id),
+                    parseInt(request.filter_timeline_id),
+                    timezoneID,
+                    timezoneOffset,
+                    global.analyticsConfig.parameter_flag_sort, //Sort flag
+                    parseInt(request.organization_id),
+                    parseInt(request.filter_circle_id),
+                    parseInt(request.filter_workforce_type_id),
+                    parseInt(request.filter_workforce_id),
+                    parseInt(request.filter_asset_id),
+                    parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                    parseInt(request.filter_tag_id),
+                    parseInt(request.filter_activity_type_id),
+                    global.analyticsConfig.activity_id_all, //Activity ID,
+                    parseInt(request.filter_activity_status_type_id),
+                    parseInt(request.filter_activity_status_tag_id),
+                    parseInt(request.filter_activity_status_id),
+                    //parseInt(filter_activity_status_id),
+                    request.datetime_start,
+                    request.datetime_end,
+                    parseInt(request.filter_segment_id),
+                    parseInt(request.filter_reporting_manager_id),
+                    parseInt(request.filter_product_category_id),
+                    parseInt(request.filter_product_family_id),
+                    parseInt(request.filter_product_activity_id),
+                    parseInt(request.filter_account_activity_id),
+                    parseInt(request.filter_is_value_considered),
+                    parseInt(request.page_start) || 0,
+                    parseInt(request.page_limit) || 100
+                    );
+            
+                var queryString = util.getQueryString('ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray);
+                if (queryString !== '') {
+                    tempResult = await (db.executeQueryPromise(1, queryString, request));
+                }
+               // tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray, 1);
+                console.log(tempResult.length);
+
+                results[iterator] =
+                (
+                    {
+                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                        "status_type_id": request.filter_activity_status_type_id,
+                        "result": tempResult,
+                    }
+                );
+
+                iterator++; 
+
+            }
+
+            return results;
+        }
+        catch(error)
+        {
+            console.log("error :; ",error);
+            return Promise.reject(error);
+        }
+    };
+
+    this.getWidgetMappings = async function (request) {
+
+        let responseData = [],
+            error = true, dbCall;
+
+        switch (parseInt(request.flag))
+        {
+            //Tag Type (Workflow Category)
+            case 1:
+                paramsArray = 
+                new Array
+                (
+                    request.application_id,
+                    request.organization_id
+                );
+                
+                var queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArray);
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+                return responseData;
+
+                break;
+
+            case 2:
+                paramsArray = 
+                new Array
+                (
+                    request.segment_id,
+                    request.organization_id
+                );
+                
+                var queryString = util.getQueryString('ds_v1_segment_activity_type_mapping_select', paramsArray);
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+                return responseData;
+
+            break;
+        }
+
+    };
+
 }
 
 module.exports = AnalyticsService;

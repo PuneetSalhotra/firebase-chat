@@ -4897,11 +4897,12 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.target_asset_id,
                 request.tag_type_id || 0,
                 request.tag_id || 0,
+                request.cluster_tag_id || 0,
                 request.flag || 1,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            const queryString = util.getQueryString('ds_p1_asset_access_level_mapping_select_flag', paramsArr);
+            const queryString = util.getQueryString('ds_p1_1_asset_access_level_mapping_select_flag', paramsArr);
             if (queryString !== '') {
                 db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
@@ -4909,27 +4910,44 @@ this.getQrBarcodeFeeback = async(request) => {
                         error = false;
                         console.log("DATA LENGTH ", data.length);
                         if (request.flag == 2) {
-                            if (data.length == 0) {
-                                responseData[0] = "";
-                                responseData[1] = data;
-                                resolve(responseData);
 
-                            } else if (data.length == 1) {
+                            if (data.length == 1) {
+                                console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
+                                if(request.cluster_tag_id == 0){ // cluster tag
 
-                                if (data[0].account_id == 0) {
-
-                                    accountListSelect(request).then((resData) => {
+                                    tagEntityMappingTagSelect(request).then((resData) => {
                                         singleData.query_status = 0;
                                         singleData.account_id = 0;
-                                        singleData.account_name = "National";
+                                        singleData.account_name = "All";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
+                                    });                                 
+                                }else if(request.cluster_tag_id > 0){
 
-                                    });
+                                    if(data[0].account_id == 0){
+                                        tagEntityMappingTagSelect(request).then((resData) => {
+                                            singleData.query_status = 0;
+                                            singleData.account_id = 0;
+                                            singleData.account_name = "All";
+
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
+                                        });
+                                    }else{
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+
+                                //}else if (data[0].account_id == 0 && request.cluster_id > 0 && data[0].cluster_id == 0) {
+
                                 } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
@@ -5267,6 +5285,38 @@ this.getQrBarcodeFeeback = async(request) => {
                                     resolve(responseData);
                                 }
                             }
+                        } else if (request.flag == 25) {
+                            if (data.length == 0) {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].cluster_tag_id == 0) {
+
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.cluster_tag_id = 0;
+                                        singleData.cluster_tag_name = "National";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -5327,6 +5377,26 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.page_limit
             );
             const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag_type', paramsArr);
+
+             if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+
+    async function tagEntityMappingTagSelect(request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_category_id,
+                request.tag_type_id,
+                request.cluster_tag_id,
+                request.page_start || 0,
+                request.page_limit
+            );
+            const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag', paramsArr);
 
              if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
