@@ -4910,54 +4910,60 @@ this.getQrBarcodeFeeback = async(request) => {
                         error = false;
                         console.log("DATA LENGTH ", data.length);
                         if (request.flag == 2) {
+                            console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
+                            if(request.cluster_tag_id == 0){ // cluster tag
 
-                            if (data.length == 1) {
-                                console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
-                                if(request.cluster_tag_id == 0){ // cluster tag
+                                tagEntityMappingTagSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.account_id = 0;
+                                    singleData.account_name = "National";
 
-                                    tagEntityMappingTagSelect(request).then((resData) => {
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+                                });                                 
+                            }else if(request.cluster_tag_id > 0){
+                                    if(data.length == 0){
+                                        let resData = [];
                                         singleData.query_status = 0;
                                         singleData.account_id = 0;
                                         singleData.account_name = "All";
-
-                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        
+                                        resData.splice(0, 0, singleData);
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
-                                    });                                 
-                                }else if(request.cluster_tag_id > 0){
-
-                                    if(data[0].account_id == 0){
-                                        tagEntityMappingTagSelect(request).then((resData) => {
-                                            singleData.query_status = 0;
-                                            singleData.account_id = 0;
-                                            singleData.account_name = "All";
-
-                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                            responseData[0] = "";
-                                            responseData[1] = resData;
-                                            //console.log("responseData ", responseData);
-                                            resolve(responseData);
-                                        });
                                     }else{
-                                        responseData[0] = "";
-                                        responseData[1] = data;
-                                        resolve(responseData);
+                                          if(data[0].account_id == 0) {
+
+                                            tagEntityMappingTagSelect(request).then((resData) => {
+                                                singleData.query_status = 0;
+                                                singleData.account_id = 0;
+                                                singleData.account_name = "All";
+
+                                                resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                                responseData[0] = "";
+                                                responseData[1] = resData;
+                                                //console.log("responseData ", responseData);
+                                                resolve(responseData);
+                                            });                                            
+                                        }else{
+                                                responseData[0] = "";
+                                                responseData[1] = data;
+                                                resolve(responseData);
+                                        }
                                     }
 
-                                //}else if (data[0].account_id == 0 && request.cluster_id > 0 && data[0].cluster_id == 0) {
 
-                                } else {
-                                    responseData[0] = "";
-                                    responseData[1] = data;
-                                    resolve(responseData);
-                                }
                             } else {
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                            
                         } else if (request.flag == 21) {
                             if (data.length == 0) {
                                 if (request.account_id > 0) {
@@ -5297,8 +5303,8 @@ this.getQrBarcodeFeeback = async(request) => {
 
                                     tagListOfTagTypeSelect(request).then((resData) => {
                                         singleData.query_status = 0;
-                                        singleData.cluster_tag_id = 0;
-                                        singleData.cluster_tag_name = "National";
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "National";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
