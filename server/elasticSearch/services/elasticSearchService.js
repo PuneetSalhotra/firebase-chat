@@ -459,7 +459,7 @@ function CommnElasticService(objectCollection) {
     this.getAccountName = async(request) => {
         let error = false;
         let responseData = await client.search({
-            index: 'crawling_accounts',
+            index: 'crawling_group_accounts',
             body: {
                 query: {
                     match: {activity_title_expression : request.activityTitleExpression}
@@ -473,7 +473,7 @@ function CommnElasticService(objectCollection) {
     this.insertAccountName = async(request) => {
         let error = false;
         let responseData = await client.index({
-            index: 'crawling_accounts',
+            index: 'crawling_group_accounts',
             body: {
                 organization_id: Number(request.organization_id),
                 account_id: Number(request.account_id),
@@ -488,7 +488,7 @@ function CommnElasticService(objectCollection) {
     };
 
     //Inserting the generated code received back from the workflow creation request
-    this.updateAccountCode = async(request, accountCode) => {
+    this.updateAccountCode = async(request, accountCode, activityTitleExpression) => {
         let error = false,
             responseData = [];
 
@@ -500,12 +500,13 @@ function CommnElasticService(objectCollection) {
                 workforce_id: Number(request.workforce_id),
                 account_id: Number(request.account_id),
                 activity_id: Number(request.workflow_activity_id),
-                asset_id: Number(request.asset_id)
+                asset_id: Number(request.asset_id),
+                activity_title_expression: activityTitleExpression
                 //operating_asset_first_name: "Sagar Pradhan",
                 //activity_title: "GALAXY MEDICATION",
                 //activity_type_name: "Account Management - SME",
                 //asset_first_name: "Channel Head",
-                //operating_asset_id: 44574,
+                //operating_asset_id: 44574,                
             }
         });
 
