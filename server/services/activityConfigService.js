@@ -1106,6 +1106,8 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
         console.log('Final Account Code : ',accountCode);
+        //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode});
 
         if(Number(is_from_integrations) === 1) {
@@ -1185,22 +1187,57 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
 
             case 149809: //SME                         
+                /*{
+                    "dedupe": {
+                        "pan_number": 61867,
+                        "account_name_field": 54156
+                    },
+                    "account_code_dependent_fields": [
+                            {"field_name": "name_of_the_company", "name_of_the_company": 223744, "form_id": 4651},
+                            {"field_name": "micro_segment_turn_over", "micro_segment_turn_over": 223698, "form_id": 3781},
+                            {"field_name": "sub_industry", "sub_industry": 223697, "form_id": 3781}    
+                    ]
+                    }*/
+                 //This will be triggerred on 3781
+
                 hasSeqNo = 1;
 
-                const smeCompanyNameFID = Number(botInlineData.name_of_the_company);
-                const smeCompanyName = await getFieldValueUsingFieldIdV1(request,formID,smeCompanyNameFID);
+                let smeCompanyNameFID;
+                let smeCompanyName;
 
-                const smeSubIndustryFID = Number(botInlineData.sub_industry);
-                const smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,formID,smeSubIndustryFID);
+                let smeSubIndustryFID;
+                let smeSubIndustryName;
 
-                const smeTurnOverFID = Number(botInlineData.micro_segment_turn_over);
-                let smeTurnOver = await getFieldValueUsingFieldIdV1(request,formID,smeTurnOverFID);
+                let smeTurnOverFID;
+                let smeTurnOver;
+
+                for(const i of x.botInlineData){
+                    //console.log(i);
+                    switch(i.field_name){
+                        case 'name_of_the_company': console.log(i.name_of_the_company);
+                                                    smeCompanyNameFID = Number(botInlineData.name_of_the_company);
+                                                    smeCompanyName = await getFieldValueUsingFieldIdV1(request,formID,smeCompanyNameFID);
+                                                    break;
+                        
+                        case 'sub_industry': console.log(i.sub_industry);
+                                             smeSubIndustryFID = Number(botInlineData.sub_industry);
+                                             smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,formID,smeSubIndustryFID);
+                        
+                        case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
+                                                        smeTurnOverFID = Number(botInlineData.micro_segment_turn_over);
+                                                        smeTurnOver = await getFieldValueUsingFieldIdV1(request,formID,smeTurnOverFID);
+                                                      break;
+                    }
+                }                
+
+                console.log('smeSubIndustryName - ', smeSubIndustryName);
 
                 //1 SME-Emerging Enterprises (51 - 100 Cr)
                 //2 SME-Medium Enterprises (101 - 250 Cr)
                 //3 SME-Small Enterprises (10 - 50 Cr)
 
                 smeTurnOver = smeTurnOver.toLowerCase();
+                console.log('smeTurnOver : ', smeTurnOver);
                 if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
                     smeTurnOver = 1;
                 } else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
@@ -1248,10 +1285,12 @@ function ActivityConfigService(db,util,objCollection) {
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
 
                 if(govtAccounType === 'SI') { //SI
+                    //console.log('Inside SI');
+
                     const siNameFID = Number(botInlineData.si_name); //61956
                     const siName = await getFieldValueUsingFieldIdV1(request,formID,siNameFID);
 
-                    const departmentNameFID = Number(botInlineData.name_of_the_department);
+                    const departmentNameFID = Number(botInlineData.department_name);
                     const departmentName = await getFieldValueUsingFieldIdV1(request,formID,departmentNameFID);
 
                     accountCode += ((siName.substr(0,3)).padStart(3,'0')).toUpperCase();
@@ -1259,6 +1298,8 @@ function ActivityConfigService(db,util,objCollection) {
                     accountCode += ((departmentName.substr(0,7)).padStart(7,'0')).toUpperCase();
                     accountCode += '-';
                 } else { //Govt Regular
+                    //console.log('Inside ELSE');
+
                     accountCode += ((govtCompanyName.substr(0,10)).padStart(10,'0')).toUpperCase();
                     accountCode += '-';
                     //accountCode += nameofgrouppcompany.padStart(6, '0');
@@ -1301,18 +1342,46 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
 
             case 150444: //SOHO
+                /*{
+                    "dedupe": {
+                        "pan_number": 61867,
+                        "account_name_field": 54156
+                    },
+                    "account_code_dependent_fields": [
+                        {"field_name": "name_of_the_company", "name_of_the_company": 223887, "form_id": 4679},
+                        {"field_name": "micro_segment_turn_over", "micro_segment_turn_over": 223877, "form_id": 3782}
+                    ]
+                    }
+                */
                 hasSeqNo = 1;
-                const sohoCompanyNameFID = Number(botInlineData.name_of_the_company);
-                const sohoTurnOverFID = Number(botInlineData.micro_segment_turn_over);
 
-                const sohoCompanyName = await getFieldValueUsingFieldIdV1(request,formID,sohoCompanyNameFID);
-                let sohoTurnOver = await getFieldValueUsingFieldIdV1(request,formID,sohoTurnOverFID);
+                let sohoCompanyNameFID;
+                let sohoCompanyName;
+
+                let sohoTurnOverFID;
+                let sohoTurnOver;
+
+                for(const i of botInlineData){                    
+                    switch(i.field_name){
+                        case 'name_of_the_company': console.log(i.name_of_the_company);
+                                                    sohoCompanyNameFID = Number(i.name_of_the_company);
+                                                    sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
+                                                    console.log('sohoCompanyName - ', sohoCompanyName);
+                                                    break;
+
+                        case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
+                                                        sohoTurnOverFID = Number(i.micro_segment_turn_over);                
+                                                        sohoTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoTurnOverFID);
+                                                        break;
+                    }
+                }
 
                 accountCode += 'D-';
                 accountCode += ((sohoCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
                 accountCode += '-';
 
                 //sohoTurnOver = sohoTurnOver.toLowerCase();
+                console.log('sohoTurnOver - ', sohoTurnOver);
                 if(sohoTurnOver < 3) {
                     sohoTurnOver = 1;
                 } else if(sohoTurnOver < 6) {
@@ -1359,7 +1428,7 @@ function ActivityConfigService(db,util,objCollection) {
             },2);
         } else {
             //Take the inline data from the request
-            formData = (request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
         for(const fieldData of formData) {
@@ -1441,7 +1510,7 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('Number of Matched Results : ',totalRetrieved);
 
         for(const i_iterator of response.hits.hits) {
-            //console.log(i_iterator._source.activity_cuid_3);
+            console.log(i_iterator._source.activity_cuid_3);
             if(i_iterator._source.activity_cuid_3 === accountCode) {
                 responseData.push({'message': 'Found a Match!'});
                 console.log('found a Match!');
