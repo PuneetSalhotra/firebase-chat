@@ -5848,6 +5848,16 @@ function BotService(objectCollection) {
                     var phone = row.field_value.split('|');
                     params[13] = phone[0]; //country code
                     params[18] = phone[1]; //phone number
+
+                    if (
+                        String(row.field_value).includes('|')
+                    ) {
+                        const phone = row.field_value.split('|');
+                        params[13] = phone[0]; // country code
+                        params[18] = phone[1]; // phone number
+                    } else {
+                        params[18] = row.field_value; // phone number
+                    }
                     break;
                 case 24: //Gallery Image
                 case 25: //Camera Front Image
@@ -6727,15 +6737,15 @@ function BotService(objectCollection) {
     this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
-            generatedOpportunityID = "OPP-";        
+            generatedOpportunityID = "OPP-";
 
         let activityInlineData = JSON.parse(request.activity_inline_data);
         let parentActivityID;
 
-        for(let i_iterator of activityInlineData) {
-            if(Number(i_iterator.field_data_type_id) === 57) {
+        for (let i_iterator of activityInlineData) {
+            if (Number(i_iterator.field_data_type_id) === 57) {
                 let fieldValue = i_iterator.field_value;
-                if(fieldValue.includes('|')) {                    
+                if (fieldValue.includes('|')) {
                     //parentActivityID = fieldValue.split('|')[1];                    
                     parentActivityID = fieldValue.split('|')[0];
                 }
@@ -6744,85 +6754,103 @@ function BotService(objectCollection) {
 
         //Call activity_activity_mapping retrieval service to get the segment
         let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
-                                        activity_id: request.activity_id, //Workflow activity id 
-                                        parent_activity_id: parentActivityID, //reference account workflow activity_id
-                                        organization_id: request.organization_id,            
-                                        start_from: 0,
-                                        limit_value: 50
-                                    });
+            activity_id: request.activity_id, //Workflow activity id 
+            parent_activity_id: parentActivityID, //reference account workflow activity_id
+            organization_id: request.organization_id,
+            start_from: 0,
+            limit_value: 50
+        });
 
         console.log('segmentData : ', segmentData);
         let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
         console.log('segmentData : ', segmentName);
-        switch(segmentName) {            
-            case 'la': generatedOpportunityID+='C-';
-                        break;
-            case 'ge': generatedOpportunityID+='V-';
-                        break;
-            case 'soho': generatedOpportunityID+='D-';
-                         break;
-            case 'sme': generatedOpportunityID+='S-';
-                        break;
-            case 'govt': generatedOpportunityID+='G-'; 
-                        break;
-            case 'vics': generatedOpportunityID+='W-';
-                         break;
+        switch (segmentName) {
+            case 'la': generatedOpportunityID += 'C-';
+                break;
+            case 'ge': generatedOpportunityID += 'V-';
+                break;
+            case 'soho': generatedOpportunityID += 'D-';
+                break;
+            case 'sme': generatedOpportunityID += 'S-';
+                break;
+            case 'govt': generatedOpportunityID += 'G-';
+                break;
+            case 'vics': generatedOpportunityID += 'W-';
+                break;
         }
 
-        try{
+        try {
 
             let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-            if(targetOpportunityID >= 100000){
+            if (targetOpportunityID >= 100000) {
 
-            }else if(targetOpportunityID >= 10000){
-                targetOpportunityID = "0"+targetOpportunityID;
-            }else if(targetOpportunityID >= 1000){
-                targetOpportunityID = "00"+targetOpportunityID;
-            }else if(targetOpportunityID >= 100){
-                targetOpportunityID = "000"+targetOpportunityID;
-            }else if(targetOpportunityID >= 10){
-                targetOpportunityID = "0000"+targetOpportunityID;
-            }else if(targetOpportunityID >= 1){
-                targetOpportunityID = "00000"+targetOpportunityID;
+            } else if (targetOpportunityID >= 10000) {
+                targetOpportunityID = "0" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1000) {
+                targetOpportunityID = "00" + targetOpportunityID;
+            } else if (targetOpportunityID >= 100) {
+                targetOpportunityID = "000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 10) {
+                targetOpportunityID = "0000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1) {
+                targetOpportunityID = "00000" + targetOpportunityID;
             }
 
-            if(targetOpportunityID == 999900){
+            if (targetOpportunityID == 999900) {
                 await cacheWrapper.setOppurtunity(0);
             }
-            generatedOpportunityID = generatedOpportunityID+targetOpportunityID+'-'+util.getCurrentISTDDMMYY();
-            responseData.push(generatedOpportunityID); 
+            generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+            responseData.push(generatedOpportunityID);
 
-
-            // request.activity_inline_data
-            // form_id
-/*            let formInlineData = [], formInlineDataMap = new Map();
-            try {
-                
-                    formInlineData = JSON.parse(request.activity_inline_data);
-
-                    for (const field of formInlineData) {
-                        formInlineDataMap.set(Number(field.field_id), field);
-                    }
-            } catch (error) {
-                logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'opportunity', error, request_body: request });
-            }            
-*/
             logger.silly("Update CUID Bot");
             logger.silly("Update CUID Bot Request: ", request);
             try {
                 request.opportunity_update = true;
-                await updateCUIDBotOperation(request, {}, {"CUID1":generatedOpportunityID});
+                await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
             } catch (error) {
                 logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            }            
+            }
 
-        }catch(e){
+        } catch (e) {
             error = true;
-            console.log("error : ",e);
+            console.log("error : ", e);
         }
-        return [error, responseData];        
+        return [error, responseData];
     }
 
+    async function generateChildOppurtunityIDNoSet(request, parentOppurtunityID = "") {
+        let responseData = {},
+            error = false,
+            baseOpportunityID = String(parentOppurtunityID).substring(0, 6);
+
+        try {
+            let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+            if (targetOpportunityID >= 100000) {
+
+            } else if (targetOpportunityID >= 10000) {
+                targetOpportunityID = "0" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1000) {
+                targetOpportunityID = "00" + targetOpportunityID;
+            } else if (targetOpportunityID >= 100) {
+                targetOpportunityID = "000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 10) {
+                targetOpportunityID = "0000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1) {
+                targetOpportunityID = "00000" + targetOpportunityID;
+            }
+
+            if (targetOpportunityID == 999900) {
+                await cacheWrapper.setOppurtunity(0);
+            }
+            const childOpportunityID = baseOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+            responseData.childOpportunityID = childOpportunityID;
+
+        } catch (error) {
+            error = true;
+            logger.error("Error generating child opportunity", { type: 'bot_engine', error, request_body: request });
+        }
+        return [error, responseData];
+    }
 
     this.callSetDueDateOfWorkflow = async(request) => {
         let botOperationsJson = {
@@ -8096,13 +8124,9 @@ function BotService(objectCollection) {
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
 
-            //case "staging":
+            // case "staging":
             case "preprod":
-                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue.fifo"
-                break;
-
-            default:
-                //sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue"
                 break;
         }
         try {
@@ -8189,12 +8213,17 @@ function BotService(objectCollection) {
                 break;
             }
 
+            const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
+            if (error) {
+                continue;
+            }
+
             const serialNumber = childOpportunity.serialNum;
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
-                child_opportunity_id: `${opportunityID}-${serialNumber}`,
+                child_opportunity_id: response.childOpportunityID,
                 childOpportunity: childOpportunity,
                 feasibility_form_id: triggerFormID
             }
@@ -8203,8 +8232,8 @@ function BotService(objectCollection) {
                 // DelaySeconds: 5,
                 MessageBody: JSON.stringify(bulkJobRequest),
                 QueueUrl: sqsQueueUrl,
-                MessageGroupId: `excel-processing-job-queue-v1`,
-                MessageDeduplicationId: uuidv4(),
+                // MessageGroupId: `excel-processing-job-queue-v1`,
+                // MessageDeduplicationId: uuidv4(),
                 MessageAttributes: {
                     "Environment": {
                         DataType: "String",
