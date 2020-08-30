@@ -5299,8 +5299,12 @@ function ActivityService(objectCollection) {
 
     async function UpdateGeneratedAccountCode(request) {
         console.log('In UpdateGeneratedAccountCode func');
+        
         let generatedAccountCode = request.generated_account_code;
-        console.log('receieved generatedAccountCode - ',generatedAccountCode);
+        console.log('receieved generatedAccountCode - ', generatedAccountCode);
+
+        let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        console.log('receieved activityTitleExpression - ', activityTitleExpression);
 
         let newReq = Object.assign({}, request);
 
@@ -5311,6 +5315,8 @@ function ActivityService(objectCollection) {
             newReq.cuid_inline_data = JSON.stringify({"CUID3": generatedAccountCode});
             //await botService.updateCUIDBotOperationMethod(newReq,{},{"CUID3": generatedAccountCode});
             
+            console.log('request.activity_type_category_id - ', request.activity_type_category_id);
+            newReq.workflow_activity_id = request.activity_id;
             await activityCommonService.makeRequest(newReq, "bot_step/cuid/set", 1)
                 .then((resp) => {
                     global.logger.write('debug', "bot_step/cuid/set Trigger Response: " + JSON.stringify(resp), {}, request);
@@ -5320,7 +5326,7 @@ function ActivityService(objectCollection) {
         }
 
         //Update in Elasti-Search
-        await elasticService.updateAccountCode(request, generatedAccountCode);
+        await elasticService.updateAccountCode(request, generatedAccountCode, activityTitleExpression);
         return [false, []];
     }
 
