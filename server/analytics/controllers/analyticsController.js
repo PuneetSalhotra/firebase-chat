@@ -210,6 +210,18 @@ function AnalyticsController(objCollection)
             } 
     });
 
+    //Get specific widgets value
+    //Sravankumar
+    //2020-07-01
+    app.post('/' + global.config.version + '/analytics/management/widget/value/v1', async (req, res) => {
+            try{
+                let result = await analyticsService.getManagementWidgetValueV1(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }catch(err){
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+
     //Get the drill down with limit for a specific widget
     //Sravankumar
     //2020-07-01
