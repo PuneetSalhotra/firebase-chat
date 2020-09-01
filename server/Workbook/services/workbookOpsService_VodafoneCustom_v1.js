@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // Core
 const logger = require('../../logger/winstonLogger');
 const fs = require('fs');
@@ -15,8 +16,8 @@ const XLSX = require('@sheet/core');
 const S5SCalc = require("@sheet/formula");
 S5SCalc.set_XLSX(XLSX);
 
-//var aspose = aspose || {};
-//aspose.cells = require("aspose.cells");
+var aspose = aspose || {};
+aspose.cells = require("aspose.cells");
 
 const AWS = require('aws-sdk');
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
@@ -109,94 +110,11 @@ function WorkbookOpsService(objectCollection) {
     }
 
 
-    /*this.workbookMappingBotOperationV1 = async(request) => {
-        let url = 'https://worlddesk-staging-2020-08.s3.ap-south-1.amazonaws.com/868/984/5403/39076/2020/08/103/1598533846752/3149544_2020-08-27_06-35-PM_workbook.xlsb';
-
-        let [downloadedFileName, downloadedFilePath] = await downloadS3Object(request, url);
-        
-        console.log('downloaded FilePath - ', downloadedFilePath);
-        console.log('downloaded FileName - ', downloadedFileName);
-
-        //downloadedFileName = 'Temp_CLOUD.xlsb';
-        console.log(`${downloadedFilePath}${downloadedFileName}`);
-
-        var filePathWithName = `${downloadedFilePath}${downloadedFileName}`;
-        console.log('filePathWithName - ', filePathWithName);
-        
-        //var workbook = new aspose.cells.Workbook(filePathWithName);
-        var workbook = new aspose.cells.Workbook('/home/nani/Desker-vnk-API/3149544_2020-08-27_06-35-PM_workbook.xlsb');
-        //var workbook = new aspose.cells.Workbook('/apistaging-data/3149544_2020-08-27_06-35-PM_workbook.xlsb');
-        
-        var sheet = workbook.getWorksheets().get(0);
-        var sheetName = sheet.getName();
-
-        console.log('sheet Name - ', sheetName);
-        
-        let sheetNameExpression = sheetName.toLowerCase().split(/\s/).join('');
-        console.log('sheet Name Expression - ', sheetNameExpression);
-
-        for(let i=0;i<4;i++) {
-            try{
-                console.log('Hello');
-                console.log(workbook.getWorksheets().get(i).getName());
-            }catch(err){}
-        }
-
-        if(sheetNameExpression != 'inputgenericinfo') {
-            //skip everything and do the timeline entry with the excel sheet
-            
-            //timeline entry             
-            return [false, []];
-        }
-
-        //Update the xlsb file with the following
-        workbook.getWorksheets().get(0).getCells().get("D3").putValue("Nani");
-        workbook.getWorksheets().get(0).getCells().get("D4").putValue("1236465");
-
-        let updatedWorkbookFileName = "output_modified.xlsb";
-        //workbook.save(updatedWorkbookFileName);
-
-        //let updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURLV1(updatedWorkbookFileName, {
-        //        organization_id: 868,
-        //        account_id: 984,
-        //        workforce_id: 5403,
-        //        asset_id: 39076,
-        //        workflow_activity_id: 3149544
-        //    });
-//
-        //console.log('updatedWorkbookS3URL : ', updatedWorkbookS3URL);
-        return [false, []];
-    };*/
-
-    
-    async function uploadWorkbookToS3AndGetURLV1(updatedWorkbookFileName, options={}) {
-        const bucketName = await util.getS3BucketName(),
-            prefixPath = await util.getS3PrefixPath(options);
-
-        logger.silly("bucketName: %j", bucketName, { type: "bot_engine" });
-        logger.silly("prefixPath: %j", prefixPath, { type: "bot_engine" });
-
-        const uploadDetails = await util.uploadReadableStreamToS3(options, {
-            Bucket: bucketName,
-            Key: `${prefixPath}/${options.workflow_activity_id}_${moment().utcOffset("+05:30").format("YYYY-MM-DD_hh-mm-A")}_workbook.xlsb`,
-            Body: fs.createReadStream(updatedWorkbookFileName),
-            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ACL: 'public-read'
-        }, undefined);
-
-        // Delete the file
-        fs.unlinkSync(updatedWorkbookFileName);
-
-        return uploadDetails.Location;
-    }
-
-
-    // Bot Operation Logic
-    this.workbookMappingBotOperation = async function (request, formInlineDataMap, botOperationInlineData = {}) {        
+    this.workbookMappingBotOperationV1 = async(request, botOperationInlineData = {}) => {
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
-        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation - ENTRY 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation V1 - ENTRY 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
@@ -256,7 +174,6 @@ function WorkbookOpsService(objectCollection) {
         const isOverrideOutputMappingEnabled = botOperationInlineData.is_override_output_mapping_enabled || false;
 
         let excelSheetFilePath = botOperationInlineData.workbook_url;
-        
         // Override the excel base template path
         if (
             isObject(botOperationInlineData.workbook_url) &&
@@ -274,7 +191,7 @@ function WorkbookOpsService(objectCollection) {
             });
         }
 
-        console.log('Excel sheet path from botoperation inline data : ', excelSheetFilePath);
+        console.log('Excel sheet path from botoperation inline data : ', excelSheetFilePath, '\n');
 
         let workflowActivityData = [];
         try {
@@ -298,12 +215,11 @@ function WorkbookOpsService(objectCollection) {
             throw new Error("workbookMappingBotOperation | Error fetching Workflow Data Found in DB");
         }
 
-        console.log('Final excelSheetFilePath from activity list table: ', excelSheetFilePath);
+        console.log('Final excelSheetFilePath from activity list table: ', excelSheetFilePath, '\n');
 
-        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, excelSheetFilePath);
-        if (xlsxDataBodyError) {
-            throw new Error(xlsxDataBodyError);
-        }
+        let temp = excelSheetFilePath.split('.');
+        let templateTypeXlsxOrXlsb = temp[temp.length-1];
+        console.log('templateTypeXlsxOrXlsb : ', templateTypeXlsxOrXlsb, '\n');        
 
         // Get the single selection value for selecting the sheet
         let sheetIndex = 0;
@@ -326,6 +242,60 @@ function WorkbookOpsService(objectCollection) {
         }
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' });
 
+        //Now you read the xlsb file
+        let fileData = await downloadS3Object(request, excelSheetFilePath);
+        console.log('\ndownloaded File Name - ', fileData.file_name);
+        console.log('downloaded File Path - ', fileData.file_path);
+        //console.log('downloaded File Obj - ', fileData.fileObject);
+
+        //var xlsbDataBody = fileData.fileObject;
+
+        //downloadedFileName = 'Temp_CLOUD.xlsb';       
+
+        var filePathWithName = `${fileData.file_path}${fileData.file_name}`;
+        console.log('typeof filePathWithName - ', typeof filePathWithName);
+        console.log('filePathWithName - ', filePathWithName);
+
+        
+        //var workbook = new aspose.cells.Workbook(filePathWithName);
+        var workbook = new aspose.cells.Workbook('/home/nani/Desktop/Commerical_Requirement_Temp_CLOUD.xlsb');
+        let sheet = workbook.getWorksheets().get(0);
+        let sheetName = sheet.getName();
+        console.log('sheet Name - ', sheetName);
+        
+        let sheetNameExpression = sheetName.toLowerCase().split(/\s/).join('');
+        console.log('sheet Name Expression - ', sheetNameExpression, '\n');
+        
+        //If first Sheet is not inputgenericinfo then simply skip
+        if(sheetNameExpression != 'inputgenericinfo') {
+            console.log('First Sheet is not input generic info');
+
+            //skip everything and do the timeline entry with the excel sheet
+            let updatedWorkbookFileName = `output_not_modified.${templateTypeXlsxOrXlsb}`;
+            console.log('Not updated Workbook FileName : ', updatedWorkbookFileName);
+            workbook.save(updatedWorkbookFileName);
+
+            let timelineReq = {
+                "template_type": templateTypeXlsxOrXlsb,
+                "workbook_stream_type_id": workbookMappedStreamTypeID,
+                "updated_wb_file_name": updatedWorkbookFileName,
+                "is_BC_origin": 0,
+                "workflow_activity_id": workflowActivityID
+            };
+
+            const updatedWorkbookS3URL = await doTheTimelineEntry(request, timelineReq);
+
+            //Updating the workbook generated S3 Path
+            await activityCommonService.workbookTrxUpdate({
+                activity_workbook_transaction_id: request.activity_workbook_transaction_id,
+                flag_generated: 2, //Done processing
+                url: updatedWorkbookS3URL
+            });
+            
+            //timeline entry             
+            return [false, []];
+        }
+
         const inputMappings = botOperationInlineData.mappings[sheetIndex].input;
         let outputMappings = botOperationInlineData.mappings[sheetIndex].output || [];
 
@@ -347,7 +317,7 @@ function WorkbookOpsService(objectCollection) {
             return;
         }
         console.log("inputCellToValueMap: ", inputCellToValueMap);
-        // return;
+
 
         // Fetch the relevant output mappings
         if (organizationID === 868 && isOverrideOutputMappingEnabled) {
@@ -520,76 +490,58 @@ function WorkbookOpsService(objectCollection) {
                 return;
             }
         }
-        // return;
 
-        // Parse and process the excel file
-        // const workbook = XLSX.readFile(excelSheetFilePath, { type: "buffer" });
-        console.log(' ');
-        console.log('Started Reading xlsxDataBody ....');
-        console.log('please be patient - This will take time ...');
-        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: true });
-        console.log('Done Reading xlsxDataBody!');
-        console.log(' ');
-
-        // Select sheet
-        const sheet_names = workbook.SheetNames;
-        logger.silly("sheet_names: %j", sheet_names);
-        
-        //Significance of Flag if 1 then apply the logic update the sheet 
-        //else 0 then simply dump the file as it is in the timeline withour any logic applied
-        let executeLogicFlag = 0;
-        if(sheet_names[sheetIndex] == 'Input Generic Info') {
-            executeLogicFlag = 1;
-        }
-
-        
-        if(Number(executeLogicFlag) === 1) {
+        for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
+            // Check if the cell has the up-to-date value
             
-            for (const [cellKey, { fieldValue: cellValue, fieldDataTypeID }] of inputCellToValueMap) {
-                // Check if the cell has the up-to-date value
-                const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                if (existingCellValue == cellValue) {
-                    logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
-                    continue;
+            //const existingCellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
+            const existingCellValue = workbook.getWorksheets().get(sheetIndex).getCells().get(cellKey).getValue();
+            if (existingCellValue == cellValue) {
+                logger.silly(`${cellKey} is up-to-date. No update needed: \`${existingCellValue}\` == \`${cellValue}\` `);
+                continue;
+            }
+
+            const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
+            try {
+                logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
+                
+                if (isFormulaEngineEnabled) {
+                    //S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+                } else {
+                    //workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
+                    //workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
+
+                    workbook.getWorksheets().get(sheetIndex).getCells().get(cellKey).putValue(cellValue);
                 }
-                const cellDataType = getExcelCellDataTypeByfieldDataTypeID(fieldDataTypeID);
+
+            } catch (error) {
+                logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${workbook.getWorksheets().get(sheetIndex)}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
+            }
+        }
+
+        // Fetch the updated values
+        for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
+            if (outputFormFieldInlineTemplateMap.has(fieldID)) {
+                let cellValue = "";
                 try {
-                    logger.silly(`Updating ${cellKey} of type ${cellDataType} to ${cellValue}`);
-                    if (isFormulaEngineEnabled) {
-                        S5SCalc.update_value(workbook, sheet_names[sheetIndex], cellKey, cellValue);
+                    //cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
 
-                    } else {
-                        workbook.Sheets[sheet_names[sheetIndex]][cellKey].t = cellDataType;
-                        workbook.Sheets[sheet_names[sheetIndex]][cellKey].v = cellValue;
-                    }
+                    cellValue = workbook.getWorksheets().get(sheetIndex).getCells().get(cellKey).getValue();
+                    let field = outputFormFieldInlineTemplateMap.get(fieldID);
+
+                    // Update the field
+                    field.field_value = cellValue;
+                    outputFormFieldInlineTemplateMap.set(fieldID, field);
+
+                    logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
                 } catch (error) {
-                    logger.error(`Error updating cell ${cellKey}, with the value ${cellValue} in the sheet ${sheet_names[sheetIndex]}.`, { type: 'bot_engine', request_body: request, error: serializeError(error) });
+                    logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
                 }
             }
-
-            // Fetch the updated values
-            for (const [cellKey, fieldID] of outputCellToFieldIDMap) {
-                if (outputFormFieldInlineTemplateMap.has(fieldID)) {
-                    let cellValue = "";
-                    try {
-                        cellValue = workbook.Sheets[sheet_names[sheetIndex]][cellKey].v;
-                        let field = outputFormFieldInlineTemplateMap.get(fieldID);
-
-                        // Update the field
-                        field.field_value = cellValue;
-                        outputFormFieldInlineTemplateMap.set(fieldID, field);
-
-                        logger.silly(`Updated the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine' });
-                    } catch (error) {
-                        logger.error(`Error updating the field ${fieldID} with the value at ${cellKey}: %j`, cellValue, { type: 'bot_engine', error: serializeError(error) });
-                    }
-                }
-            }
-
         }
         
         console.log(' ');
-        console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap);
+        console.log("outputFormFieldInlineTemplateMap: ", outputFormFieldInlineTemplateMap.length);
         console.log('Is output Form Submitted? - ', outFormIsSubmitted);
         console.log('Number(outputMappings.length) : ',Number(outputMappings.length));
         console.log('Number(outputFormID) : ', Number(outputFormID));
@@ -637,64 +589,25 @@ function WorkbookOpsService(objectCollection) {
             }
         }
 
-        let updatedWorkbookS3URL = "";
-        try {
-            console.log(' ');
-            console.log('Uploading workbook to S3...');            
-            updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURL(workbook, {
-                organization_id: request.organization_id,
-                account_id: request.account_id,
-                workforce_id: request.workforce_id,
-                asset_id: request.asset_id,
-                workflow_activity_id: workflowActivityID
-            });
-            logger.silly("updatedWorkbookS3URL: %j", updatedWorkbookS3URL, { type: "bot_engine" });
-        } catch (error) {
-            throw new Error(error);
-        }
+        //upload the file to S3 and do the timeline entry
+        let updatedWorkbookFileName = `output_modified.${templateTypeXlsxOrXlsb}`;
+        console.log('updated Workbook FileName : ', updatedWorkbookFileName);
+        workbook.save(updatedWorkbookFileName);
 
-        //Updating the workbook generated S3 Path
-        await activityCommonService.workbookTrxUpdate({
-            activity_workbook_transaction_id: request.activity_workbook_transaction_id,
-            flag_generated: 1,
-            url: updatedWorkbookS3URL
-        });
+        let timelineReq = {
+            "template_type": templateTypeXlsxOrXlsb,
+            "workbook_stream_type_id": workbookMappedStreamTypeID,
+            "updated_wb_file_name": updatedWorkbookFileName,
+            "is_BC_origin": isBCOriginForm,
+            "workflow_activity_id": workflowActivityID
+        };
 
-        try {
-            if (updatedWorkbookS3URL) {
-                // Activity List Table
-                await activityListUpdateWorkbookURL({
-                    organization_id: request.organization_id,
-                    activity_id: request.activity_id,
-                    workbook_url: updatedWorkbookS3URL,
-                    workbook_mapped: 1,
-                    asset_id: request.asset_id
-                });
-                // Activity Asset Mapping Table
-                await activityAssetMappingUpdateWorkbookURL({
-                    organization_id: request.organization_id,
-                    activity_id: request.activity_id,
-                    workbook_url: updatedWorkbookS3URL,
-                    workbook_mapped: 1,
-                    asset_id: request.asset_id
-                });
-
-                // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
-                if(Number(isBCOriginForm) !== 1) {
-                    await updateWorkbookURLOnWorkflowTimeline(
-                        request, workflowActivityID,
-                        updatedWorkbookS3URL, workbookMappedStreamTypeID
-                    );
-                }
-            }
-        } catch (error) {
-            throw new Error(error);
-        }
+        let updatedWorkbookS3URL = await doTheTimelineEntry(request, timelineReq);
 
         //This is to Auto-populate the auto-populate form in BC workflow
         console.log("isBCOriginForm : ", isBCOriginForm);        
         if(Number(isBCOriginForm) === 1) {
-            console.log('This is BC origin form. Hence Submitting the Auto populate Form');
+            console.log('This is BC origin form. Hence Submitting the Auto populate Form\n');
             const autoPopulateFormId = 4609;            
 
             let [err, formFieldInlineTemplate] = await getWorkforceFormFieldMappingForOutputForm(
@@ -742,7 +655,8 @@ function WorkbookOpsService(objectCollection) {
                 if (outputFormFieldInlineTemplateMap.has(fieldID)) {
                     let cellValue = "";
                     try {
-                        cellValue = workbook.Sheets[sheet_names[0]][cellKey].v;
+                        //cellValue = workbook.Sheets[sheet_names[0]][cellKey].v;
+                        cellValue = workbook.getWorksheets().get(0).getCells().get(cellKey).getValue();
                         let field = outputFormFieldInlineTemplateMap.get(fieldID);
 
                         if(fieldID == 222639) { //Customer Name
@@ -788,17 +702,100 @@ function WorkbookOpsService(objectCollection) {
             flag_generated: 2, //Done processing
             url: updatedWorkbookS3URL
         });
-        
+
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
-        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation - EXIT 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
+        console.log('📖 📖 📖 📖 📖 📖 📖 📖 workbookMappingBotOperation V1 - EXIT 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
 
         return [{}, {}];
     };
+
+    
+    async function uploadWorkbookToS3AndGetURLV1(updatedWorkbookFileName, templateTypeXlsxOrXlsb, options={}) {
+        const bucketName = await util.getS3BucketName(),
+            prefixPath = await util.getS3PrefixPath(options);
+
+        logger.silly("bucketName: %j", bucketName, { type: "bot_engine" });
+        logger.silly("prefixPath: %j", prefixPath, { type: "bot_engine" });
+
+        const uploadDetails = await util.uploadReadableStreamToS3(options, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/${options.workflow_activity_id}_${moment().utcOffset("+05:30").format("YYYY-MM-DD_hh-mm-A")}_workbook.${templateTypeXlsxOrXlsb}`,
+            Body: fs.createReadStream(updatedWorkbookFileName),
+            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ACL: 'public-read'
+        }, undefined);
+
+        // Delete the file
+        fs.unlinkSync(updatedWorkbookFileName);
+
+        return uploadDetails.Location;
+    }
+
+    async function doTheTimelineEntry(request, timelineReq) {
+        
+        let updatedWorkbookS3URL = "";
+        let workflowActivityID = Number(timelineReq.workflow_activity_id);        
+
+        try {
+            console.log(' ');
+            console.log('Uploading workbook to S3...');            
+            updatedWorkbookS3URL = await uploadWorkbookToS3AndGetURLV1(timelineReq.updated_wb_file_name, timelineReq.template_type, {
+                        organization_id: request.organization_id,
+                        account_id: request.account_id,
+                        workforce_id: request.workforce_id,
+                        asset_id: request.asset_id,
+                        workflow_activity_id: timelineReq.workflow_activity_id
+                    });
+            logger.silly("updatedWorkbookS3URL: %j", updatedWorkbookS3URL, { type: "bot_engine" });
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        //Updating the workbook generated S3 Path
+        await activityCommonService.workbookTrxUpdate({
+            activity_workbook_transaction_id: request.activity_workbook_transaction_id,
+            flag_generated: 1,
+            url: updatedWorkbookS3URL
+        });
+
+        try {
+            if (updatedWorkbookS3URL) {
+                // Activity List Table
+                await activityListUpdateWorkbookURL({
+                    organization_id: request.organization_id,
+                    activity_id: request.activity_id,
+                    workbook_url: updatedWorkbookS3URL,
+                    workbook_mapped: 1,
+                    asset_id: request.asset_id
+                });
+                // Activity Asset Mapping Table
+                await activityAssetMappingUpdateWorkbookURL({
+                    organization_id: request.organization_id,
+                    activity_id: request.activity_id,
+                    workbook_url: updatedWorkbookS3URL,
+                    workbook_mapped: 1,
+                    asset_id: request.asset_id
+                });
+
+                // Make a timeline entry onto the workflow for mapping (718) or updating (719) the workbook
+                if(Number(timelineReq.is_BC_origin) !== 1) {
+                    await updateWorkbookURLOnWorkflowTimeline(
+                        request, workflowActivityID,
+                        updatedWorkbookS3URL, timelineReq.workbook_stream_type_id
+                    );
+                }
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+
+        return updatedWorkbookS3URL;
+    }
 
     async function getExcelSheetFilePath(request, botOperationInlineData, options) {
 
@@ -1843,7 +1840,7 @@ function WorkbookOpsService(objectCollection) {
     
     async function downloadS3Object(request, url) {        
         var s3 = new AWS.S3();
-        console.log('URL : ', url);
+        console.log('\nURL : ', url);
 
         let BucketName = url.slice(8, 25);
         let KeyName = url.slice(43);
@@ -1879,7 +1876,13 @@ function WorkbookOpsService(objectCollection) {
         let fileStream = s3.getObject(params).createReadStream();
         fileStream.pipe(myFile);
 
-        return[FileName, filePath];
+        let response = {
+            "file_name": FileName,
+            "file_path": filePath,
+            "fileObject": myFile
+        };
+
+        return response;
 
     }
 }
