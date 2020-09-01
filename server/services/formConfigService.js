@@ -5927,6 +5927,64 @@ function FormConfigService(objCollection) {
 
         return [error, workflowFormsData];
     }
+
+    this.autoPopulateForm = async (request) => {
+        try {
+
+            request.limit_value = 50;
+            request.bot_id = 0;
+            request.field_id = 0;
+            let [err, fieldLevelBots] = await activityCommonService.getMappedBotSteps(request, 0);
+
+            console.log("fieldLevelBots", JSON.stringify(fieldLevelBots));
+
+            if(err) {
+                return [err, fieldLevelBots];
+            }
+
+            let botInlineData;
+
+            if(fieldLevelBots.length) {
+                for(let row of fieldLevelBots) {
+                    if(row.bot_operation_type_id == 3) {
+                        botInlineData = JSON.parse(row.bot_operation_inline_data);
+                        break;
+                    }
+                }
+            }
+
+            if(!botInlineData) {
+                return [true, [{ message : "Form field data is empty"}]];
+            }
+
+            botInlineData = botInlineData.bot_operations.form_field_copy;
+            console.log("botInlineData", JSON.stringify(botInlineData));
+            let response = {};
+            for(let row of botInlineData) {
+                let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, request.workflow_activity_id, row.source_form_id);
+
+
+                for(let row1 of dependentFormTransaction) {
+                    let data = JSON.parse(row1.data_entity_inline);
+                    let formSubmittedInfo = data.form_submitted;
+                    for(let newRow of formSubmittedInfo) {
+                        if(newRow.field_id == row.source_field_id) {
+                            response[row.target_field_id] = newRow.field_value;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return [err, [response]];
+        } catch (e) {
+            console.log("Something went wrong", e.stack);
+            return [true, [{ message : "Something went wrong. Please try again"}]]
+        }
+    }
 }
 
 module.exports = FormConfigService;
