@@ -818,7 +818,17 @@ function FormConfigController(objCollection) {
             console.log("/form/type/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });  
+    });
+
+    app.post('/' + global.config.version + '/form/auto-populate/list', async (req, res) => {
+        const [err, responseData] = await formConfigService.autoPopulateForm(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/form/type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = FormConfigController;

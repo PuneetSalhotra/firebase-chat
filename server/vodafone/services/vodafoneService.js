@@ -6069,7 +6069,13 @@ function VodafoneService(objectCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        let queryString = util.getQueryString('ds_p1_activity_list_search_workflow_reference', paramsArr);
+        let dbCall = 'ds_p1_activity_list_search_workflow_reference';
+
+        if(request.hasOwnProperty("activity_status_type_id")) {
+            dbCall = 'ds_p1_2_activity_list_search_workflow_reference';
+        }
+
+        let queryString = util.getQueryString(dbCall, paramsArr);
         if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
