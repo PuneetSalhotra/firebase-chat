@@ -243,7 +243,11 @@ function WorkbookOpsService(objectCollection) {
         logger.silly(`sheetIndex: ${sheetIndex}`, { type: 'workbook_bot' });
 
         //Now you read the xlsb file
-        let fileData = await downloadS3Object(request, excelSheetFilePath);
+        let [err, fileData] = await downloadS3Object(request, excelSheetFilePath);
+        if(err) {
+            console.log('Error downloading the file - ', excelSheetFilePath);
+            throw new Error("Error downloading the File");
+        }
         console.log('\ndownloaded File Name - ', fileData.file_name);
         console.log('downloaded File Path - ', fileData.file_path);
         //console.log('downloaded File Obj - ', fileData.fileObject);
@@ -252,16 +256,20 @@ function WorkbookOpsService(objectCollection) {
 
         //downloadedFileName = 'Temp_CLOUD.xlsb';       
 
-        var filePathWithName = `${fileData.file_path}${fileData.file_name}`;
+        let filePathWithName = `${fileData.file_path}${fileData.file_name}`;
         console.log('typeof filePathWithName - ', typeof filePathWithName);
         console.log('filePathWithName - ', filePathWithName);
 
         
-        //var workbook = new aspose.cells.Workbook(filePathWithName);
-        var workbook = new aspose.cells.Workbook('/home/nani/Desktop/Commerical_Requirement_Temp_CLOUD.xlsb');
+        ///var workbook = new aspose.cells.Workbook('/home/nani/Desktop/3151476_2020-09-01_11-54-PM_workbook.xlsb');
+        //var workbook = new aspose.cells.Workbook('/home/nani/Desktop/Commerical_Requirement_Temp_CLOUD.xlsb');
+        var workbook = new aspose.cells.Workbook(filePathWithName);
         let sheet = workbook.getWorksheets().get(0);
         let sheetName = sheet.getName();
         console.log('sheet Name - ', sheetName);
+
+        console.log('FileName - ', workbook.getFileName());
+        console.log('Has Macros - ', workbook.hasMacro());
         
         let sheetNameExpression = sheetName.toLowerCase().split(/\s/).join('');
         console.log('sheet Name Expression - ', sheetNameExpression, '\n');
@@ -695,6 +703,8 @@ function WorkbookOpsService(objectCollection) {
                                        outputFormFieldInlineTemplateMap,
                                        widgetData);
         }
+        
+        fs.unlinkSync(filePathWithName);
         
         //Updating the workbook generated S3 Path
         await activityCommonService.workbookTrxUpdate({
@@ -1876,14 +1886,30 @@ function WorkbookOpsService(objectCollection) {
         let fileStream = s3.getObject(params).createReadStream();
         fileStream.pipe(myFile);
 
+        const s3GetObjectPromise = s3.getObject(params).promise();
+        let error = false, fileData;
+        await s3GetObjectPromise
+            .then(function (data) {
+                //logger.verbose(`s3GetObjectPromise | Data Fetched: %j`, data, { type: 'aws_s3', s3_url: url, bucket: BucketName, key: KeyName, data, request_body: request, error: null });
+
+                fileData = data;
+                //data.pipe(myFile);
+
+                console.log('No Error!');
+            }).catch(function (err) {
+                error = true;
+                console.log('error - ', error);
+                logger.verbose(`s3GetObjectPromise | Data Fetch Error `, { type: 'aws_s3', s3_url: url, bucket: BucketName, key: KeyName, request_body: request, error });
+            });
+
+        await sleep(2000);
         let response = {
             "file_name": FileName,
             "file_path": filePath,
             "fileObject": myFile
         };
 
-        return response;
-
+        return [error, response];        
     }
 }
 

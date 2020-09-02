@@ -1,5 +1,5 @@
 const { serializeError } = require('serialize-error');
-const moment = require('moment');
+//const moment = require('moment');
 
 const { Consumer } = require('sqs-consumer');
 const AWS = require('aws-sdk');
@@ -17,10 +17,10 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
-    const util = objCollection.util;
-    const cacheWrapper = objCollection.cacheWrapper;
-    const queueWrapper = objCollection.queueWrapper;
-    const activityCommonService = objCollection.activityCommonService;
+    //const util = objCollection.util;
+    //const cacheWrapper = objCollection.cacheWrapper;
+    //const queueWrapper = objCollection.queueWrapper;
+    //const activityCommonService = objCollection.activityCommonService;
 
     const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objCollection);
     const workbookOpsService_VodafoneCustom_v1 = new WorkbookOpsService_VodafoneCustom_v1(objCollection);
@@ -83,7 +83,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
                 const end= Date.now();
 
                 const timeSpent=(end-begin)/1000+"secs";
-                console.log('\n timeSpent - ', timeSpent);                
+                console.log('\n timeSpent - ', timeSpent);
                 
             } catch (error) {
                 logger.error(`Error processing the excel sqs queue message.`, { type: 'excel_sqs_consumer', request_body: request, error: serializeError(error) });
