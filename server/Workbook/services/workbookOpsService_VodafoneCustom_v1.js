@@ -16,8 +16,8 @@ const XLSX = require('@sheet/core');
 const S5SCalc = require("@sheet/formula");
 S5SCalc.set_XLSX(XLSX);
 
-var aspose = aspose || {};
-aspose.cells = require("aspose.cells");
+//var aspose = aspose || {};
+//aspose.cells = require("aspose.cells");
 
 const AWS = require('aws-sdk');
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
@@ -110,7 +110,7 @@ function WorkbookOpsService(objectCollection) {
     }
 
 
-    this.workbookMappingBotOperationV1 = async(request, botOperationInlineData = {}) => {
+    /*this.workbookMappingBotOperationV1 = async(request, botOperationInlineData = {}) => {
         console.log(' ');
         console.log('📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖 📖');
         console.log(' ');
@@ -722,7 +722,7 @@ function WorkbookOpsService(objectCollection) {
         console.log(' ');
 
         return [{}, {}];
-    };
+    };*/
 
     
     async function uploadWorkbookToS3AndGetURLV1(updatedWorkbookFileName, templateTypeXlsxOrXlsb, options={}) {
