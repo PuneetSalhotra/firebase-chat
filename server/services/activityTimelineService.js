@@ -2623,7 +2623,7 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = phone[1];  //phone number
                     break;*/
                     let phone;
-                    if ((row.field_value).includes('||')) {
+                    if (String(row.field_value).includes('||')) {
                         phone = row.field_value.split('||');
                         params[13] = phone[0]; // country code
                         params[18] = phone[1]; // phone number
@@ -3357,7 +3357,7 @@ async function addFormEntriesAsync(request) {
                 params[18] = phone[1];  //phone number
                 break;*/
                 let phone;
-                if ((row.field_value).includes('||')) {
+                if (String(row.field_value).includes('||')) {
                     phone = row.field_value.split('||');
                     params[13] = phone[0]; // country code
                     params[18] = phone[1]; // phone number
