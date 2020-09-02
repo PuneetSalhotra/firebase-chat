@@ -11,7 +11,7 @@ AWS.config.update({
 
 const logger = require("../../logger/winstonLogger");
 const WorkbookOpsService_VodafoneCustom = require("../services/workbookOpsService_VodafoneCustom");
-const WorkbookOpsService_VodafoneCustom_v1 = require("../services/workbookOpsService_VodafoneCustom_v1");
+//const WorkbookOpsService_VodafoneCustom_v1 = require("../services/workbookOpsService_VodafoneCustom_v1");
 
 function WorkbookOpsController_VodafoneCustom(objCollection) {
 
@@ -23,7 +23,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     //const activityCommonService = objCollection.activityCommonService;
 
     const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objCollection);
-    const workbookOpsService_VodafoneCustom_v1 = new WorkbookOpsService_VodafoneCustom_v1(objCollection);
+    //const workbookOpsService_VodafoneCustom_v1 = new WorkbookOpsService_VodafoneCustom_v1(objCollection);
    
     app.post('/' + global.config.version + '/excel/s3/upload', async (req, res) => {        
         const [err, responseData] = await workbookOpsService_VodafoneCustom.uploadReadableStreamToS3Method(req.body);        
@@ -45,7 +45,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
         }
     });
     
-    app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
         const [err, responseData] = await workbookOpsService_VodafoneCustom_v1.workbookMappingBotOperationV1(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
@@ -53,7 +53,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
             console.log("/excel/s3/download | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
-    });
+    });*/
 
     // Helper methods
     function sleep(ms) {
@@ -110,7 +110,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
         logger.silly("[timeout_error]: %j", error.message, { type: 'excel_sqs_consumer', error: serializeError(error) });
     });
 
-    sqsConsumerApp.start();
+    //sqsConsumerApp.start();
     logger.silly("sqsConsumerApp started", { type: 'excel_sqs_consumer' });
     console.log('queueUrl : ', global.config.excelBotSQSQueue);
 
