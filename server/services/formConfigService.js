@@ -2015,18 +2015,17 @@ function FormConfigService(objCollection) {
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
         activityCommonService.updateAssetLocation(request, () => {});
+        let error = true, workflowFormsData = [];
 
         if (
-            request.hasOwnProperty("add_process") &&
-            Number(request.add_process) === 1
+          request.hasOwnProperty("add_process") &&
+          Number(request.add_process) === 1
         ) {
             //const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
-            const [error, workflowFormsData] = await retrieveOriginForm(request);
-            return [error, workflowFormsData];
-            
+            [error, workflowFormsData] = await retrieveOriginForm(request);
+
         } else {
             let deviceOSID = request.device_os_id?request.device_os_id:0;
-            let error = true, workflowFormsData = [];
             if(deviceOSID == 5){
                 [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
             }
@@ -2034,13 +2033,29 @@ function FormConfigService(objCollection) {
                 [error, workflowFormsData] = await workforceFormMappingSelectWorkflowFormsV1(request);
             }
 
-            return [error, workflowFormsData];
 
         }
+
+        if(!error) {
+            for(let row of workflowFormsData) {
+                let newReq = Object.assign({}, request);
+                //newReq.organization_id = 0;
+                newReq.form_id = row.form_id;
+                newReq.field_id = 0;
+                newReq.start_from = 0;
+                newReq.limit_value = 1;
+                let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                //console.log('DATA : ', data);
+                (data.length> 0 && data[0].next_field_id > 0) ? row.is_smart = 1 : row.is_smart = 0;
+            }
+        }
+
+        return [error, workflowFormsData];
+
         // Process the data if needed
         // ...
         // ...
-        // 
+        //
     };
 
     async function workforceFormMappingSelectWorkflowForms(request) {
