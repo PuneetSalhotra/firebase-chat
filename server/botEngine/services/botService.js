@@ -8201,7 +8201,7 @@ function BotService(objectCollection) {
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
         // console.log({ childOpportunitiesArray });
 
-        for (let i = 3; i < childOpportunitiesArray.length; i++) {
+        for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
             if (
