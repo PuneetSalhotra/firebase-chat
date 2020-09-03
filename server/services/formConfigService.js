@@ -1042,9 +1042,19 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value;
                         break;
                     case 23: //Phone Number with Country Code
-                        var phone = row.field_value.split('|');
-                        params[13] = phone[0]; //country code
-                        params[18] = phone[1]; //phone number
+                        // var phone = row.field_value.split('|');
+                        // params[13] = phone[0]; //country code
+                        // params[18] = phone[1]; //phone number
+
+                        if (
+                            String(row.field_value).includes('|')
+                        ) {
+                            const phone = row.field_value.split('|');
+                            params[13] = phone[0]; // country code
+                            params[18] = phone[1]; // phone number
+                        } else {
+                            params[18] = row.field_value; // phone number
+                        }
                         break;
                     case 24: //Gallery Image
                     case 25: //Camera Front Image

@@ -1915,12 +1915,33 @@ function BotService(objectCollection) {
     }
 
     this.removeParticipantMethod = async(request) => {
-        /*{
+        /*
+        
+        {
+            "bot_operations": {
+              "participant_remove": {
+                "from_request": {        
+                  "asset_id": 32079
+                },
+            "flag_remove_participant": 1,
+                "flag_remove_lead": 0,
+                "flag_remove_owner": 0,
+                "flag_esms": 1
+              }
+            }
+          }  
+        
+        
+        
+        {
             "bot_operations": {
               "participant_remove": {
                 "static": {        
                   "asset_id": 32079
-                }
+                },
+            "flag_remove_participant": 1,
+                "flag_remove_lead": 0,
+                "flag_remove_owner": 0,
                 "flag_esms": 1
               }
             }
@@ -1940,10 +1961,13 @@ function BotService(objectCollection) {
         
         //TEST CASE 1
         let inlineData = {};
-            inlineData.static = {};
-            inlineData.static.asset_id = 38848;    
+            inlineData.from_request = {};
+            inlineData.from_request.asset_id = 38848;    
             inlineData.flag_esms = 1;
-            
+            inlineData.flag_remove_participant = 0;
+            inlineData.flag_remove_lead = 1;
+            inlineData.flag_remove_owner = 0;
+            inlineData.flag_remove_creator_as_owner = 0;
 
         //TEST CASE 2
         //let inlineData = {};
@@ -1966,6 +1990,9 @@ function BotService(objectCollection) {
             let assetID = 0;
 
             let inlineData = removeParticipantBotOperationData;
+
+            console.log("Inline data");
+            console.log(inlineData);
 
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
@@ -2021,60 +2048,50 @@ function BotService(objectCollection) {
                 console.log('Lead Asset ID : ', leadAssetID);
                 console.log('Creator Asset ID : ', creatorAssetID);
 
-                if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
-                    //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
-                    let newReq = {};
-                        newReq.organization_id = request.organization_id;
-                        newReq.account_id = request.account_id;
-                        newReq.workforce_id = request.workforce_id;
-                        newReq.asset_id = 100;
-                        newReq.activity_id = workflowActivityID;
-                        newReq.lead_asset_id = creatorAssetID;
-                        newReq.timeline_stream_type_id = 718;
-                        newReq.datetime_log = util.getCurrentUTCTime();
 
-                    await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
+                if(Number(inlineData["flag_remove_lead"]) === 1){
+                    console.log('Remove as lead');
+                    await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                }
+                else if(Number(inlineData["flag_remove_owner"]) === 1){
 
-                    let leadAssetFirstName = '';
-                    try {
-                        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-                            organization_id: request.organization_id,
-                            asset_id: leadAssetID
-                        });
-            
-                        console.log('LEAD ASSET DATA - ', assetData[0]);
-                        leadAssetFirstName = assetData[0].asset_first_name;
-                    } catch (error) {
-                        console.log(error);
+                    console.log('Remove as Owner');
+                    let reqDataForRemovingAsOwner = { 
+                        activity_id : workflowActivityID,
+                        target_asset_id : assetID,
+                        organization_id : request.organization_id,
+                        owner_flag : 0,
                     }
+                 await removeAsOwner(request,reqDataForRemovingAsOwner);
 
-                    //Add a timeline entry
-                    let activityTimelineCollection =  JSON.stringify({                            
-                        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                        "subject": `Note - ${util.getCurrentDate()}.`,
-                        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                        "activity_reference": [],
-                        "asset_reference": [],
-                        "attachments": [],
-                        "form_approval_field_reference": []
-                    });
+                }
+                else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
+                    console.log("Remove Creator as owner");
+                    let reqDataForRemovingCreaterAsOwner = { 
+                        activity_id : workflowActivityID,
+                        target_asset_id : creatorAssetID,
+                        organization_id : request.organization_id,
+                        owner_flag : 0,
+                    };
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner);
 
-                    let timelineReq = Object.assign({}, request);
-                        timelineReq.activity_type_id = request.activity_type_id;
-                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
-                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
-                        timelineReq.activity_stream_type_id = 711;
-                        timelineReq.timeline_stream_type_id = 711;
-                        timelineReq.activity_timeline_collection = activityTimelineCollection;
-                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
-                    
-                    await activityTimelineService.addTimelineTransactionAsync(timelineReq);
-                } 
-                    
-                    //remove the asset from the workflow
-                if(assetID !== creatorAssetID) {
-                    await unassignParticipantFunc(request, workflowActivityID, assetID);
-                }                
+                }
+                else if(Number(inlineData["flag_remove_participant"]) === 1){
+
+                    console.log("Remove Participant");
+
+                    if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
+                        //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
+                        await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                    } 
+                        
+                        //remove the asset from the workflow
+                    if(assetID !== creatorAssetID) {
+                        await unassignParticipantFunc(request, workflowActivityID, assetID);
+                    }
+                }
+
+                
             }
         } //END of IF (esms flag)
         else {
@@ -2087,6 +2104,84 @@ function BotService(objectCollection) {
         
         return;
     }
+
+async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
+
+    let newReq = {};
+    newReq.organization_id = request.organization_id;
+    newReq.account_id = request.account_id;
+    newReq.workforce_id = request.workforce_id;
+    newReq.asset_id = 100;
+    newReq.activity_id = workflowActivityID;
+    newReq.lead_asset_id = creatorAssetID;
+    newReq.timeline_stream_type_id = 718;
+    newReq.datetime_log = util.getCurrentUTCTime();
+
+    await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
+
+    let leadAssetFirstName = '';
+    try {
+        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: leadAssetID
+        });
+
+        console.log('LEAD ASSET DATA - ', assetData[0]);
+        leadAssetFirstName = assetData[0].asset_first_name;
+    } catch (error) {
+        console.log(error);
+    }
+
+    //Add a timeline entry
+    let activityTimelineCollection =  JSON.stringify({                            
+        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "subject": `Note - ${util.getCurrentDate()}.`,
+        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "activity_reference": [],
+        "asset_reference": [],
+        "attachments": [],
+        "form_approval_field_reference": []
+    });
+
+    let timelineReq = Object.assign({}, request);
+        timelineReq.activity_type_id = request.activity_type_id;
+        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+        timelineReq.activity_stream_type_id = 711;
+        timelineReq.timeline_stream_type_id = 711;
+        timelineReq.activity_timeline_collection = activityTimelineCollection;
+        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+    await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+}
+
+async function removeAsOwner(request,data)  {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            data.activity_id,
+            data.target_asset_id,
+            data.organization_id,
+            data.owner_flag || 0,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                // await callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
+    }
+
 
     async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
@@ -5845,9 +5940,19 @@ function BotService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23: //Phone Number with Country Code
-                    var phone = row.field_value.split('|');
-                    params[13] = phone[0]; //country code
-                    params[18] = phone[1]; //phone number
+                    // var phone = row.field_value.split('|');
+                    // params[13] = phone[0]; //country code
+                    // params[18] = phone[1]; //phone number
+
+                    if (
+                        String(row.field_value).includes('|')
+                    ) {
+                        const phone = row.field_value.split('|');
+                        params[13] = phone[0]; // country code
+                        params[18] = phone[1]; // phone number
+                    } else {
+                        params[18] = row.field_value; // phone number
+                    }
                     break;
                 case 24: //Gallery Image
                 case 25: //Camera Front Image
@@ -6727,15 +6832,15 @@ function BotService(objectCollection) {
     this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
-            generatedOpportunityID = "OPP-";        
+            generatedOpportunityID = "OPP-";
 
         let activityInlineData = JSON.parse(request.activity_inline_data);
         let parentActivityID;
 
-        for(let i_iterator of activityInlineData) {
-            if(Number(i_iterator.field_data_type_id) === 57) {
+        for (let i_iterator of activityInlineData) {
+            if (Number(i_iterator.field_data_type_id) === 57) {
                 let fieldValue = i_iterator.field_value;
-                if(fieldValue.includes('|')) {                    
+                if (fieldValue.includes('|')) {
                     //parentActivityID = fieldValue.split('|')[1];                    
                     parentActivityID = fieldValue.split('|')[0];
                 }
@@ -6744,85 +6849,103 @@ function BotService(objectCollection) {
 
         //Call activity_activity_mapping retrieval service to get the segment
         let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
-                                        activity_id: request.activity_id, //Workflow activity id 
-                                        parent_activity_id: parentActivityID, //reference account workflow activity_id
-                                        organization_id: request.organization_id,            
-                                        start_from: 0,
-                                        limit_value: 50
-                                    });
+            activity_id: request.activity_id, //Workflow activity id 
+            parent_activity_id: parentActivityID, //reference account workflow activity_id
+            organization_id: request.organization_id,
+            start_from: 0,
+            limit_value: 50
+        });
 
         console.log('segmentData : ', segmentData);
         let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
         console.log('segmentData : ', segmentName);
-        switch(segmentName) {            
-            case 'la': generatedOpportunityID+='C-';
-                        break;
-            case 'ge': generatedOpportunityID+='V-';
-                        break;
-            case 'soho': generatedOpportunityID+='D-';
-                         break;
-            case 'sme': generatedOpportunityID+='S-';
-                        break;
-            case 'govt': generatedOpportunityID+='G-'; 
-                        break;
-            case 'vics': generatedOpportunityID+='W-';
-                         break;
+        switch (segmentName) {
+            case 'la': generatedOpportunityID += 'C-';
+                break;
+            case 'ge': generatedOpportunityID += 'V-';
+                break;
+            case 'soho': generatedOpportunityID += 'D-';
+                break;
+            case 'sme': generatedOpportunityID += 'S-';
+                break;
+            case 'govt': generatedOpportunityID += 'G-';
+                break;
+            case 'vics': generatedOpportunityID += 'W-';
+                break;
         }
 
-        try{
+        try {
 
             let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-            if(targetOpportunityID >= 100000){
+            if (targetOpportunityID >= 100000) {
 
-            }else if(targetOpportunityID >= 10000){
-                targetOpportunityID = "0"+targetOpportunityID;
-            }else if(targetOpportunityID >= 1000){
-                targetOpportunityID = "00"+targetOpportunityID;
-            }else if(targetOpportunityID >= 100){
-                targetOpportunityID = "000"+targetOpportunityID;
-            }else if(targetOpportunityID >= 10){
-                targetOpportunityID = "0000"+targetOpportunityID;
-            }else if(targetOpportunityID >= 1){
-                targetOpportunityID = "00000"+targetOpportunityID;
+            } else if (targetOpportunityID >= 10000) {
+                targetOpportunityID = "0" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1000) {
+                targetOpportunityID = "00" + targetOpportunityID;
+            } else if (targetOpportunityID >= 100) {
+                targetOpportunityID = "000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 10) {
+                targetOpportunityID = "0000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1) {
+                targetOpportunityID = "00000" + targetOpportunityID;
             }
 
-            if(targetOpportunityID == 999900){
+            if (targetOpportunityID == 999900) {
                 await cacheWrapper.setOppurtunity(0);
             }
-            generatedOpportunityID = generatedOpportunityID+targetOpportunityID+'-'+util.getCurrentISTDDMMYY();
-            responseData.push(generatedOpportunityID); 
+            generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+            responseData.push(generatedOpportunityID);
 
-
-            // request.activity_inline_data
-            // form_id
-/*            let formInlineData = [], formInlineDataMap = new Map();
-            try {
-                
-                    formInlineData = JSON.parse(request.activity_inline_data);
-
-                    for (const field of formInlineData) {
-                        formInlineDataMap.set(Number(field.field_id), field);
-                    }
-            } catch (error) {
-                logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'opportunity', error, request_body: request });
-            }            
-*/
             logger.silly("Update CUID Bot");
             logger.silly("Update CUID Bot Request: ", request);
             try {
                 request.opportunity_update = true;
-                await updateCUIDBotOperation(request, {}, {"CUID1":generatedOpportunityID});
+                await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
             } catch (error) {
                 logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            }            
+            }
 
-        }catch(e){
+        } catch (e) {
             error = true;
-            console.log("error : ",e);
+            console.log("error : ", e);
         }
-        return [error, responseData];        
+        return [error, responseData];
     }
 
+    async function generateChildOppurtunityIDNoSet(request, parentOppurtunityID = "") {
+        let responseData = {},
+            error = false,
+            baseOpportunityID = String(parentOppurtunityID).substring(0, 6);
+
+        try {
+            let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+            if (targetOpportunityID >= 100000) {
+
+            } else if (targetOpportunityID >= 10000) {
+                targetOpportunityID = "0" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1000) {
+                targetOpportunityID = "00" + targetOpportunityID;
+            } else if (targetOpportunityID >= 100) {
+                targetOpportunityID = "000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 10) {
+                targetOpportunityID = "0000" + targetOpportunityID;
+            } else if (targetOpportunityID >= 1) {
+                targetOpportunityID = "00000" + targetOpportunityID;
+            }
+
+            if (targetOpportunityID == 999900) {
+                await cacheWrapper.setOppurtunity(0);
+            }
+            const childOpportunityID = baseOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+            responseData.childOpportunityID = childOpportunityID;
+
+        } catch (error) {
+            error = true;
+            logger.error("Error generating child opportunity", { type: 'bot_engine', error, request_body: request });
+        }
+        return [error, responseData];
+    }
 
     this.callSetDueDateOfWorkflow = async(request) => {
         let botOperationsJson = {
@@ -8096,13 +8219,9 @@ function BotService(objectCollection) {
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
 
-            //case "staging":
+            // case "staging":
             case "preprod":
-                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue.fifo"
-                break;
-
-            default:
-                //sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue"
                 break;
         }
         try {
@@ -8189,12 +8308,17 @@ function BotService(objectCollection) {
                 break;
             }
 
+            const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
+            if (error) {
+                continue;
+            }
+
             const serialNumber = childOpportunity.serialNum;
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
-                child_opportunity_id: `${opportunityID}-${serialNumber}`,
+                child_opportunity_id: response.childOpportunityID,
                 childOpportunity: childOpportunity,
                 feasibility_form_id: triggerFormID
             }
@@ -8203,8 +8327,8 @@ function BotService(objectCollection) {
                 // DelaySeconds: 5,
                 MessageBody: JSON.stringify(bulkJobRequest),
                 QueueUrl: sqsQueueUrl,
-                MessageGroupId: `excel-processing-job-queue-v1`,
-                MessageDeduplicationId: uuidv4(),
+                // MessageGroupId: `excel-processing-job-queue-v1`,
+                // MessageDeduplicationId: uuidv4(),
                 MessageAttributes: {
                     "Environment": {
                         DataType: "String",
