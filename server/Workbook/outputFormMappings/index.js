@@ -55,6 +55,13 @@ const ActivityTypeIDToFieldMapping = {
             field_id: 218718
         }
     },
+    //Modification/Addition
+    151727: {
+        ProductCartSelectionField: {
+            form_id: 4100,
+            field_id: 218719
+        }
+    },
     // New Business Case - BC Approval
     152184: {
         OpportunityReferenceField: {
