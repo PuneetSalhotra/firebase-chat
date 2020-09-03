@@ -4166,8 +4166,12 @@ function ActivityService(objectCollection) {
                                             console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
                                         });
                                 } else {
-                                    // Insert activity to the queue in the queue_activity_mapping table
-                                    await activityCommonService
+
+                                    //do this only for activity_type_category_id= 48
+                                    if(Number(request.activity_type_category_id) === 48) {
+
+                                        // Insert activity to the queue in the queue_activity_mapping table
+                                        await activityCommonService
                                         .mapFileToQueue(request, queueId, JSON.stringify({
                                             "queue_sort": {
                                                 "current_status_id": 0,
@@ -4187,6 +4191,11 @@ function ActivityService(objectCollection) {
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
                                             console.log("Object.keys(error): ", Object.keys(error));
                                         });
+                                        
+                                    } else {
+                                        console.log('The activity_type_category_id is not 48');
+                                    }
+                                    
                                 }
                             });
 
