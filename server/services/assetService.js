@@ -774,7 +774,8 @@ function AssetService(objectCollection) {
             'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
             'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
             'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path']),
-            'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management'])
+            'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management']),
+            'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access'])
         };
 
         callback(false, rowData);
