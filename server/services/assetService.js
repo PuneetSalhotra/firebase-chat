@@ -774,7 +774,8 @@ function AssetService(objectCollection) {
             'asset_type_id': util.replaceDefaultNumber(rowArray[0]['asset_type_id']),
             'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
             'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path']),
-            'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management'])
+            'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management']),
+            'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access'])
         };
 
         callback(false, rowData);
@@ -4897,6 +4898,403 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.target_asset_id,
                 request.tag_type_id || 0,
                 request.tag_id || 0,
+                request.flag || 1,
+                request.page_start || 0,
+                request.page_limit || 50
+            );
+            const queryString = util.getQueryString('ds_p1_asset_access_level_mapping_select_flag', paramsArr);
+            if (queryString !== '') {
+                db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        //responseData = data;
+                        error = false;
+                        console.log("DATA LENGTH ", data.length);
+                        if (request.flag == 2) {
+                            if (data.length == 0) {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].account_id == 0) {
+
+                                    accountListSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.account_id = 0;
+                                        singleData.account_name = "National";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 21) {
+                            if (data.length == 0) {
+                                if (request.account_id > 0) {
+                                    let paramsArrInter = new Array(
+                                        request.organization_id,
+                                        0,
+                                        request.workforce_id,
+                                        request.segment_id || 0,
+                                        request.target_asset_id,
+                                        request.tag_type_id || 0,
+                                        request.tag_id || 0,
+                                        request.flag || 1,
+                                        request.page_start || 0,
+                                        request.page_limit || 50
+                                    );
+                                    let queryStringInter = util.getQueryString('ds_p1_asset_access_level_mapping_select_flag', paramsArrInter);
+                                    if (queryStringInter !== '') {
+                                        db.executeQueryPromise(1, queryStringInter, request)
+                                            .then((IntermediateData) => {
+
+                                                if (IntermediateData.length == 1) {
+
+                                                    if (IntermediateData[0].tag_id == 0) {
+                                                        
+                                                        tagListOfTagTypeSelect(request).then((resData) => {
+
+                                                            singleData.query_status = 0;
+                                                            singleData.tag_id = 0;
+                                                            singleData.tag_name = "All";
+
+                                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                                            responseData[0] = "";
+                                                            responseData[1] = resData;
+                                                            //console.log("responseData ", responseData);
+                                                            resolve(responseData);
+
+                                                        });
+                                                    } else {
+                                                        responseData[0] = "";
+                                                        responseData[1] = IntermediateData;
+                                                        resolve(responseData);
+                                                    }
+                                                } else {
+                                                    responseData[0] = "";
+                                                    responseData[1] = IntermediateData;
+                                                    resolve(responseData);
+                                                }
+                                            })
+
+                                    } else {
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+
+                            } else if (data.length == 1) {
+                                if (data[0].tag_id == 0) {
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 6) {
+
+                            if (data.length == 0) {
+                                if (request.account_id == 0) {
+                                    singleData.query_status = 0;
+                                    singleData.asset_id = 0;
+                                    singleData.asset_first_name = "All";
+                                    singleData.operating_asset_id = 0;
+                                    singleData.operating_asset_first_name = "All";
+
+                                    responseData[0] = "";
+                                    responseData[1] = singleData;
+                                    resolve(responseData);
+                                } else {
+                                    assetListSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.asset_id = 0;
+                                        singleData.asset_first_name = "All";
+                                        singleData.operating_asset_id = 0;
+                                        singleData.operating_asset_first_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                }
+                            } else if (data.length == 1) {
+                                console.log("CASE 6, DATA LENGTH 1, request.account_id :: ", request.account_id + ' ' + data[0].asset_id);
+                                if (request.account_id == 0) {
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id = 0 :: ", request.account_id + ' ' + data[0].asset_id);
+                                    singleData.query_status = 0;
+                                    singleData.asset_id = 0;
+                                    singleData.asset_first_name = "All";
+                                    singleData.operating_asset_id = 0;
+                                    singleData.operating_asset_first_name = "All";
+
+                                    responseData[0] = "";
+                                    responseData[1] = singleData;
+                                    resolve(responseData);
+
+                                } else {
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ", request.account_id + ' ' + data[0].asset_id);
+                                    if (data[0].target_asset_id == 0) {
+                                        assetListSelect(request).then((resData) => {
+
+                                            singleData.query_status = 0;
+                                            singleData.asset_id = 0;
+                                            singleData.asset_first_name = "All";
+                                            singleData.operating_asset_id = 0;
+                                            singleData.operating_asset_first_name = "All";
+
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
+
+                                        });
+                                    } else {
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ', +' ' + JSON.stringify(data));
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 responseData :: ', +' ' + JSON.stringify(responseData));
+                                        resolve(responseData);
+                                    }
+                                }
+
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 8) {
+                            if (data.length == 0) {
+                                tagEntityMappingTagTypeSelect(request).then((resData) => {
+
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            } else {
+                                if (data[0].activity_type_id == 0) {
+
+                                    tagEntityMappingTagTypeSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.activity_type_id = 0;
+                                        singleData.activity_type_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            }
+                        } else if (request.flag == 22) {
+                            if (data.length == 0) {
+                                if (request.account_id > 0) {
+                                    let paramsArrInter = new Array(
+                                        request.organization_id,
+                                        0,
+                                        request.workforce_id,
+                                        request.segment_id || 0,
+                                        request.target_asset_id,
+                                        request.tag_type_id || 0,
+                                        request.tag_id || 0,
+                                        request.flag || 1,
+                                        request.page_start || 0,
+                                        request.page_limit || 50
+                                    );
+                                    let queryStringInter = util.getQueryString('ds_p1_asset_access_level_mapping_select_flag', paramsArrInter);
+                                    if (queryStringInter !== '') {
+                                        db.executeQueryPromise(1, queryStringInter, request)
+                                            .then((IntermediateData) => {
+
+                                                if (IntermediateData.length == 1) {
+
+                                                    if (IntermediateData[0].tag_id == 0) {
+                                                        
+                                                        tagListOfTagTypeSelect(request).then((resData) => {
+
+                                                            singleData.query_status = 0;
+                                                            singleData.tag_id = 0;
+                                                            singleData.tag_name = "All";
+
+                                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                                            responseData[0] = "";
+                                                            responseData[1] = resData;
+                                                            //console.log("responseData ", responseData);
+                                                            resolve(responseData);
+
+                                                        });
+                                                    } else {
+                                                        responseData[0] = "";
+                                                        responseData[1] = IntermediateData;
+                                                        resolve(responseData);
+                                                    }
+                                                } else {
+                                                    responseData[0] = "";
+                                                    responseData[1] = IntermediateData;
+                                                    resolve(responseData);
+                                                }
+                                            })
+
+                                    } else {
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+
+                            } else if (data.length == 1) {
+                                if (data[0].tag_id == 0) {
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 23) {
+                            if (data.length == 0) {
+                                tagEntityMappingSelect(request).then((resData) => {
+
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            } else {
+                                if (data[0].product_type_id == 0) {
+
+                                    tagEntityMappingSelect(request).then((resData) => {
+
+                                        singleData.query_status = 0;
+                                        singleData.activity_type_id = 0;
+                                        singleData.activity_type_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            }
+                        } else {
+                            responseData[0] = "";
+                            responseData[1] = data;
+                            resolve(responseData);
+                        }
+
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        });
+    };  
+
+    this.assetAccessLevelMappingSelectFlagV2 = function (request) {
+        return new Promise((resolve, reject) => {
+            let responseData = [];
+            let singleData = {};
+
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.segment_id || 0,
+                request.target_asset_id,
+                request.tag_type_id || 0,
+                request.tag_id || 0,
                 request.cluster_tag_id || 0,
                 request.flag || 1,
                 request.page_start || 0,
@@ -4910,54 +5308,60 @@ this.getQrBarcodeFeeback = async(request) => {
                         error = false;
                         console.log("DATA LENGTH ", data.length);
                         if (request.flag == 2) {
+                            console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
+                            if(request.cluster_tag_id == 0){ // cluster tag
 
-                            if (data.length == 1) {
-                                console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
-                                if(request.cluster_tag_id == 0){ // cluster tag
+                                tagEntityMappingTagSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.account_id = 0;
+                                    singleData.account_name = "National";
 
-                                    tagEntityMappingTagSelect(request).then((resData) => {
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+                                });                                 
+                            }else if(request.cluster_tag_id > 0){
+                                    if(data.length == 0){
+                                        let resData = [];
                                         singleData.query_status = 0;
                                         singleData.account_id = 0;
                                         singleData.account_name = "All";
-
-                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        
+                                        resData.splice(0, 0, singleData);
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
-                                    });                                 
-                                }else if(request.cluster_tag_id > 0){
-
-                                    if(data[0].account_id == 0){
-                                        tagEntityMappingTagSelect(request).then((resData) => {
-                                            singleData.query_status = 0;
-                                            singleData.account_id = 0;
-                                            singleData.account_name = "All";
-
-                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                            responseData[0] = "";
-                                            responseData[1] = resData;
-                                            //console.log("responseData ", responseData);
-                                            resolve(responseData);
-                                        });
                                     }else{
-                                        responseData[0] = "";
-                                        responseData[1] = data;
-                                        resolve(responseData);
+                                          if(data[0].account_id == 0) {
+
+                                            tagEntityMappingTagSelect(request).then((resData) => {
+                                                singleData.query_status = 0;
+                                                singleData.account_id = 0;
+                                                singleData.account_name = "All";
+
+                                                resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                                responseData[0] = "";
+                                                responseData[1] = resData;
+                                                //console.log("responseData ", responseData);
+                                                resolve(responseData);
+                                            });                                            
+                                        }else{
+                                                responseData[0] = "";
+                                                responseData[1] = data;
+                                                resolve(responseData);
+                                        }
                                     }
 
-                                //}else if (data[0].account_id == 0 && request.cluster_id > 0 && data[0].cluster_id == 0) {
 
-                                } else {
-                                    responseData[0] = "";
-                                    responseData[1] = data;
-                                    resolve(responseData);
-                                }
                             } else {
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                            
                         } else if (request.flag == 21) {
                             if (data.length == 0) {
                                 if (request.account_id > 0) {
@@ -5297,8 +5701,8 @@ this.getQrBarcodeFeeback = async(request) => {
 
                                     tagListOfTagTypeSelect(request).then((resData) => {
                                         singleData.query_status = 0;
-                                        singleData.cluster_tag_id = 0;
-                                        singleData.cluster_tag_name = "National";
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "National";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
@@ -5499,7 +5903,47 @@ this.getQrBarcodeFeeback = async(request) => {
         }
 
         return [error, responseData];
-    };  
+    };
+
+    this.getActivityAssetReferenceList = async(request) => {
+
+        let [error, responseData] = await getAssetReferenceList(request);
+        if(error) {
+            console.error("filterActivityParticipants error", error);
+            return [true, [{ message : "Something went wrong"}]]
+        }
+
+        return [error, responseData];
+    }
+
+    async function getAssetReferenceList(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.activity_id,
+          request.asset_type_category_id,
+          request.flag_filter,
+          request.search_string,
+          request.start_from || 0,
+          request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request).then((data) => {
+                responseData = data;
+                error = false;
+            }).catch((err) => {
+                    error = err;
+            });
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;

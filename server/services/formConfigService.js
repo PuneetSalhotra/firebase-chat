@@ -2025,18 +2025,17 @@ function FormConfigService(objCollection) {
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
         activityCommonService.updateAssetLocation(request, () => {});
+        let error = true, workflowFormsData = [];
 
         if (
-            request.hasOwnProperty("add_process") &&
-            Number(request.add_process) === 1
+          request.hasOwnProperty("add_process") &&
+          Number(request.add_process) === 1
         ) {
             //const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
-            const [error, workflowFormsData] = await retrieveOriginForm(request);
-            return [error, workflowFormsData];
-            
+            [error, workflowFormsData] = await retrieveOriginForm(request);
+
         } else {
             let deviceOSID = request.device_os_id?request.device_os_id:0;
-            let error = true, workflowFormsData = [];
             if(deviceOSID == 5){
                 [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
             }
@@ -2044,13 +2043,29 @@ function FormConfigService(objCollection) {
                 [error, workflowFormsData] = await workforceFormMappingSelectWorkflowFormsV1(request);
             }
 
-            return [error, workflowFormsData];
 
         }
+
+        if(!error) {
+            for(let row of workflowFormsData) {
+                let newReq = Object.assign({}, request);
+                //newReq.organization_id = 0;
+                newReq.form_id = row.form_id;
+                newReq.field_id = 0;
+                newReq.start_from = 0;
+                newReq.limit_value = 1;
+                let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                //console.log('DATA : ', data);
+                (data.length> 0 && data[0].next_field_id > 0) ? row.is_smart = 1 : row.is_smart = 0;
+            }
+        }
+
+        return [error, workflowFormsData];
+
         // Process the data if needed
         // ...
         // ...
-        // 
+        //
     };
 
     async function workforceFormMappingSelectWorkflowForms(request) {
@@ -5926,6 +5941,64 @@ function FormConfigService(objCollection) {
         }
 
         return [error, workflowFormsData];
+    }
+
+    this.autoPopulateForm = async (request) => {
+        try {
+
+            request.limit_value = 50;
+            request.bot_id = 0;
+            request.field_id = 0;
+            let [err, fieldLevelBots] = await activityCommonService.getMappedBotSteps(request, 0);
+
+            console.log("fieldLevelBots", JSON.stringify(fieldLevelBots));
+
+            if(err) {
+                return [err, fieldLevelBots];
+            }
+
+            let botInlineData;
+
+            if(fieldLevelBots.length) {
+                for(let row of fieldLevelBots) {
+                    if(row.bot_operation_type_id == 3) {
+                        botInlineData = JSON.parse(row.bot_operation_inline_data);
+                        break;
+                    }
+                }
+            }
+
+            if(!botInlineData) {
+                return [true, [{ message : "Form field data is empty"}]];
+            }
+
+            botInlineData = botInlineData.bot_operations.form_field_copy;
+            console.log("botInlineData", JSON.stringify(botInlineData));
+            let response = {};
+            for(let row of botInlineData) {
+                let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, request.workflow_activity_id, row.source_form_id);
+
+
+                for(let row1 of dependentFormTransaction) {
+                    let data = JSON.parse(row1.data_entity_inline);
+                    let formSubmittedInfo = data.form_submitted;
+                    for(let newRow of formSubmittedInfo) {
+                        if(newRow.field_id == row.source_field_id) {
+                            response[row.target_field_id] = newRow.field_value;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return [err, [response]];
+        } catch (e) {
+            console.log("Something went wrong", e.stack);
+            return [true, [{ message : "Something went wrong. Please try again"}]]
+        }
     }
 }
 

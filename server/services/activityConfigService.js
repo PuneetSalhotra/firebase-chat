@@ -1051,7 +1051,7 @@ function ActivityConfigService(db,util,objCollection) {
             console.log('Account Code Dependent Fields: ',botInlineData);
         } else {
             error = true;
-            responseData.push({'Message': 'Bot not defined on the field ID'});
+            responseData.push({'message': 'Bot not defined on the field ID'});
             return [error,responseData];
         }
 
@@ -1059,7 +1059,7 @@ function ActivityConfigService(db,util,objCollection) {
         try{
             generatedAccountData = await generateAccountCode(request,botInlineData);
         } catch(err) {
-            responseData.push({'Message': 'Error generating Account Code'});
+            responseData.push({'message': 'Error generating Account Code'});
             return[true, responseData];
         }
         
@@ -1215,43 +1215,51 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeSubIndustryFID;
                 let smeSubIndustryName;
 
+                let smeSubIndustrySubID;
                 let smeTurnOverFID;
                 let smeTurnOver;
 
-                for(const i of x.botInlineData){
+                for(const i of botInlineData){
                     //console.log(i);
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
-                                                    smeCompanyNameFID = Number(botInlineData.name_of_the_company);
-                                                    smeCompanyName = await getFieldValueUsingFieldIdV1(request,formID,smeCompanyNameFID);
+                                                    smeCompanyNameFID = Number(i.name_of_the_company);
+                                                    smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
-                                             smeSubIndustryFID = Number(botInlineData.sub_industry);
-                                             smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,formID,smeSubIndustryFID);
+                                             smeSubIndustryFID = Number(i.sub_industry);
+                                             smeSubIndustrySubID = await getFieldDataComboIdUsingFieldIdV1(request,i.form_id,smeSubIndustryFID);
+                                             
+                                             smeSubIndustrySubFID = i.sub_industry_field_values[`${smeSubIndustrySubID}`];
+                                             smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
+                                             
+                                             break;
                         
                         case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
-                                                        smeTurnOverFID = Number(botInlineData.micro_segment_turn_over);
-                                                        smeTurnOver = await getFieldValueUsingFieldIdV1(request,formID,smeTurnOverFID);
+                                                        smeTurnOverFID = Number(i.micro_segment_turn_over);
+                                                        smeTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,smeTurnOverFID);
+                                                        console.log('smeTurnOver --- ', smeTurnOver);
                                                       break;
                     }
                 }                
 
                 console.log('smeSubIndustryName - ', smeSubIndustryName);
+                console.log('smeTurnOver : ', smeTurnOver);
 
                 //1 SME-Emerging Enterprises (51 - 100 Cr)
                 //2 SME-Medium Enterprises (101 - 250 Cr)
                 //3 SME-Small Enterprises (10 - 50 Cr)
 
-                smeTurnOver = smeTurnOver.toLowerCase();
+                //smeTurnOver = smeTurnOver.toLowerCase();
                 console.log('smeTurnOver : ', smeTurnOver);
-                if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
-                    smeTurnOver = 1;
-                } else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
-                    smeTurnOver = 2;
-                } else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
-                    smeTurnOver = 3;
-                }
+                //if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
+                //    smeTurnOver = 1;
+                //} else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
+                //    smeTurnOver = 2;
+                //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
+                //    smeTurnOver = 3;
+                //}
 
                 accountCode += 'S-';
                 accountCode += ((smeCompanyName.substr(0,7)).padStart(7,'0')).toUpperCase();
@@ -1373,7 +1381,7 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
-                                                    console.log('sohoCompanyName - ', sohoCompanyName);
+                                                    console.log('soho Company Name - ', sohoCompanyName);
                                                     break;
 
                         case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
@@ -1422,11 +1430,17 @@ function ActivityConfigService(db,util,objCollection) {
     }
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
         let fieldValue = "";
         let formData;
 
         //Based on the workflow Activity Id - Fetch the latest entry from 713
-        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0){
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
             formData = await getFormInlineData({
                 organization_id: request.organization_id,
                 account_id: request.account_id,
@@ -1438,8 +1452,11 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
+        // console.log('formData - ', formData);
+
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === fieldID) {
+               
                 console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
                 switch(Number(fieldData.field_data_type_id)) {
                     //Need Single selection and Drop Down
@@ -1459,6 +1476,58 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('Field Value B4: ',fieldValue);
         fieldValue = fieldValue.split(" ").join("");
         console.log('Field Value After: ',fieldValue);
+        console.log('*************************');
+        return fieldValue;
+    }
+
+    async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID,sme) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        //console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue=fieldData.data_type_combo_id;
+                }
+                break;
+            }
+        }
+
+        console.log('Field Value B4: ',fieldValue);
+        // fieldValue = fieldValue.split(" ").join("");
+        // console.log('Field Value After: ',fieldValue);
+        // console.log('*************************');
         return fieldValue;
     }
 

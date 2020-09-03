@@ -3390,15 +3390,17 @@ async function processFormInlineDataV1(request, data){
 		const paramsArr = new Array(
 			request.organization_id,
 			request.asset_id,
-			request.activity_type_category_id,
+			request.activity_type_category_id || 0,
 			request.queue_id || 0,
+			request.is_search,
+			request.search_string,
 			request.flag || 0, // 0 => Due date | 1 => Created date
 			request.sort_flag || 0, // 0 => Ascending | 1 => Descending			
 			request.page_start || 0,
 			request.page_limit || 50
 		);
 		
-		const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
+		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
