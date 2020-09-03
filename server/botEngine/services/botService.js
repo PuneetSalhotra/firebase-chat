@@ -1915,12 +1915,33 @@ function BotService(objectCollection) {
     }
 
     this.removeParticipantMethod = async(request) => {
-        /*{
+        /*
+        
+        {
+            "bot_operations": {
+              "participant_remove": {
+                "from_request": {        
+                  "asset_id": 32079
+                },
+            "flag_remove_participant": 1,
+                "flag_remove_lead": 0,
+                "flag_remove_owner": 0,
+                "flag_esms": 1
+              }
+            }
+          }  
+        
+        
+        
+        {
             "bot_operations": {
               "participant_remove": {
                 "static": {        
                   "asset_id": 32079
-                }
+                },
+            "flag_remove_participant": 1,
+                "flag_remove_lead": 0,
+                "flag_remove_owner": 0,
                 "flag_esms": 1
               }
             }
@@ -1940,10 +1961,13 @@ function BotService(objectCollection) {
         
         //TEST CASE 1
         let inlineData = {};
-            inlineData.static = {};
-            inlineData.static.asset_id = 38848;    
+            inlineData.from_request = {};
+            inlineData.from_request.asset_id = 38848;    
             inlineData.flag_esms = 1;
-            
+            inlineData.flag_remove_participant = 0;
+            inlineData.flag_remove_lead = 1;
+            inlineData.flag_remove_owner = 0;
+            inlineData.flag_remove_creator_as_owner = 0;
 
         //TEST CASE 2
         //let inlineData = {};
@@ -1966,6 +1990,9 @@ function BotService(objectCollection) {
             let assetID = 0;
 
             let inlineData = removeParticipantBotOperationData;
+
+            console.log("Inline data");
+            console.log(inlineData);
 
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
@@ -2021,60 +2048,50 @@ function BotService(objectCollection) {
                 console.log('Lead Asset ID : ', leadAssetID);
                 console.log('Creator Asset ID : ', creatorAssetID);
 
-                if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
-                    //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
-                    let newReq = {};
-                        newReq.organization_id = request.organization_id;
-                        newReq.account_id = request.account_id;
-                        newReq.workforce_id = request.workforce_id;
-                        newReq.asset_id = 100;
-                        newReq.activity_id = workflowActivityID;
-                        newReq.lead_asset_id = creatorAssetID;
-                        newReq.timeline_stream_type_id = 718;
-                        newReq.datetime_log = util.getCurrentUTCTime();
 
-                    await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
+                if(Number(inlineData["flag_remove_lead"]) === 1){
+                    console.log('Remove as lead');
+                    await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                }
+                else if(Number(inlineData["flag_remove_owner"]) === 1){
 
-                    let leadAssetFirstName = '';
-                    try {
-                        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-                            organization_id: request.organization_id,
-                            asset_id: leadAssetID
-                        });
-            
-                        console.log('LEAD ASSET DATA - ', assetData[0]);
-                        leadAssetFirstName = assetData[0].asset_first_name;
-                    } catch (error) {
-                        console.log(error);
+                    console.log('Remove as Owner');
+                    let reqDataForRemovingAsOwner = { 
+                        activity_id : workflowActivityID,
+                        target_asset_id : assetID,
+                        organization_id : request.organization_id,
+                        owner_flag : 0,
                     }
+                 await removeAsOwner(request,reqDataForRemovingAsOwner);
 
-                    //Add a timeline entry
-                    let activityTimelineCollection =  JSON.stringify({                            
-                        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                        "subject": `Note - ${util.getCurrentDate()}.`,
-                        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                        "activity_reference": [],
-                        "asset_reference": [],
-                        "attachments": [],
-                        "form_approval_field_reference": []
-                    });
+                }
+                else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
+                    console.log("Remove Creator as owner");
+                    let reqDataForRemovingCreaterAsOwner = { 
+                        activity_id : workflowActivityID,
+                        target_asset_id : creatorAssetID,
+                        organization_id : request.organization_id,
+                        owner_flag : 0,
+                    };
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner);
 
-                    let timelineReq = Object.assign({}, request);
-                        timelineReq.activity_type_id = request.activity_type_id;
-                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
-                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
-                        timelineReq.activity_stream_type_id = 711;
-                        timelineReq.timeline_stream_type_id = 711;
-                        timelineReq.activity_timeline_collection = activityTimelineCollection;
-                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
-                    
-                    await activityTimelineService.addTimelineTransactionAsync(timelineReq);
-                } 
-                    
-                    //remove the asset from the workflow
-                if(assetID !== creatorAssetID) {
-                    await unassignParticipantFunc(request, workflowActivityID, assetID);
-                }                
+                }
+                else if(Number(inlineData["flag_remove_participant"]) === 1){
+
+                    console.log("Remove Participant");
+
+                    if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
+                        //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
+                        await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                    } 
+                        
+                        //remove the asset from the workflow
+                    if(assetID !== creatorAssetID) {
+                        await unassignParticipantFunc(request, workflowActivityID, assetID);
+                    }
+                }
+
+                
             }
         } //END of IF (esms flag)
         else {
@@ -2087,6 +2104,84 @@ function BotService(objectCollection) {
         
         return;
     }
+
+async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
+
+    let newReq = {};
+    newReq.organization_id = request.organization_id;
+    newReq.account_id = request.account_id;
+    newReq.workforce_id = request.workforce_id;
+    newReq.asset_id = 100;
+    newReq.activity_id = workflowActivityID;
+    newReq.lead_asset_id = creatorAssetID;
+    newReq.timeline_stream_type_id = 718;
+    newReq.datetime_log = util.getCurrentUTCTime();
+
+    await rmBotService.activityListLeadUpdateV2(newReq, creatorAssetID);
+
+    let leadAssetFirstName = '';
+    try {
+        const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: leadAssetID
+        });
+
+        console.log('LEAD ASSET DATA - ', assetData[0]);
+        leadAssetFirstName = assetData[0].asset_first_name;
+    } catch (error) {
+        console.log(error);
+    }
+
+    //Add a timeline entry
+    let activityTimelineCollection =  JSON.stringify({                            
+        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "subject": `Note - ${util.getCurrentDate()}.`,
+        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "activity_reference": [],
+        "asset_reference": [],
+        "attachments": [],
+        "form_approval_field_reference": []
+    });
+
+    let timelineReq = Object.assign({}, request);
+        timelineReq.activity_type_id = request.activity_type_id;
+        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+        timelineReq.activity_stream_type_id = 711;
+        timelineReq.timeline_stream_type_id = 711;
+        timelineReq.activity_timeline_collection = activityTimelineCollection;
+        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+    await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+}
+
+async function removeAsOwner(request,data)  {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            data.activity_id,
+            data.target_asset_id,
+            data.organization_id,
+            data.owner_flag || 0,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                // await callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
+    }
+
 
     async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
