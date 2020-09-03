@@ -1397,15 +1397,15 @@ function ActivityConfigService(db,util,objCollection) {
 
                 //sohoTurnOver = sohoTurnOver.toLowerCase();
                 console.log('sohoTurnOver - ', sohoTurnOver);
-                if(sohoTurnOver < 3) {
-                    sohoTurnOver = 1;
-                } else if(sohoTurnOver < 6) {
-                    sohoTurnOver = 2;
-                } else if(sohoTurnOver < 11) {
-                    sohoTurnOver = 3;
-                } else {
-                    sohoTurnOver = 0;
-                }
+                // if(sohoTurnOver < 3) {
+                //     sohoTurnOver = 1;
+                // } else if(sohoTurnOver < 6) {
+                //     sohoTurnOver = 2;
+                // } else if(sohoTurnOver < 11) {
+                //     sohoTurnOver = 3;
+                // } else {
+                //     sohoTurnOver = 0;
+                // }
 
                 accountCode += sohoTurnOver // turnover
 
