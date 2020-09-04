@@ -4284,12 +4284,12 @@ async function removeAsOwner(request,data)  {
             default: console.log('In default Case : getFielDataValueColumnName');
         }
     }    
-
+    
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
-        let isLead = 0;
+        let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -4301,6 +4301,8 @@ async function removeAsOwner(request,data)  {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -4331,6 +4333,8 @@ async function removeAsOwner(request,data)  {
             newReq.participant_account_id = inlineData[type[0]].account_id || 0;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
             let activityInlineData;
 
@@ -4372,6 +4376,8 @@ async function removeAsOwner(request,data)  {
             let formTransactionID = 0, formActivityID = 0;
 
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
+            isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData["flag_creator_as_owner"].is_owner : 0;
 
             if (!formInlineDataMap.has(fieldID)) {
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
@@ -4435,6 +4441,8 @@ async function removeAsOwner(request,data)  {
         }
 
         newReq.is_lead = isLead;
+        newReq.is_owner = isOwner;
+        newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
         console.log('newReq.phone_number : ', newReq.phone_number);
         if (
@@ -5698,6 +5706,71 @@ async function removeAsOwner(request,data)  {
                             timelineReq.timeline_stream_type_id = 711;
                             timelineReq.activity_timeline_collection = activityTimelineCollection;
                             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                        activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                    }
+                    if(parseInt(request.is_owner) == 1) {
+
+                        console.log("making owner bot");
+                        let params = {
+                            activity_id : Number(request.workflow_activity_id),
+                            target_asset_id : assetData.desk_asset_id,
+                            organization_id : request.organization_id,
+                            owner_flag : 1,
+                            asset_id : 100
+                        }
+                        await activityCommonService.setAtivityOwnerFlag(params);
+
+                        let activityTimelineCollection =  JSON.stringify({
+                            "content": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "subject": `Note - ${util.getCurrentDate()}.`,
+                            "mail_body": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "activity_reference": [],
+                            "asset_reference": [],
+                            "attachments": [],
+                            "form_approval_field_reference": []
+                        });
+
+                        let timelineReq = Object.assign({}, addParticipantRequest);
+                        timelineReq.activity_type_id = request.activity_type_id;
+                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                        timelineReq.activity_stream_type_id = 711;
+                        timelineReq.timeline_stream_type_id = 711;
+                        timelineReq.activity_timeline_collection = activityTimelineCollection;
+                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                        activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                    }
+                    if(parseInt(request.flag_creator_as_owner) == 1) {
+                        console.log("making creator bot");
+                        let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
+                        let assetID = activityData[0].activity_creator_asset_id;
+                        let params = {
+                            activity_id : Number(request.workflow_activity_id),
+                            target_asset_id : assetID,
+                            organization_id : request.organization_id,
+                            owner_flag : 1,
+                            asset_id : 100
+                        }
+                        await activityCommonService.setAtivityOwnerFlag(params);
+
+                        let activityTimelineCollection =  JSON.stringify({
+                            "content": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "subject": `Note - ${util.getCurrentDate()}.`,
+                            "mail_body": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "activity_reference": [],
+                            "asset_reference": [],
+                            "attachments": [],
+                            "form_approval_field_reference": []
+                        });
+
+                        let timelineReq = Object.assign({}, addParticipantRequest);
+                        timelineReq.activity_type_id = request.activity_type_id;
+                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                        timelineReq.activity_stream_type_id = 711;
+                        timelineReq.timeline_stream_type_id = 711;
+                        timelineReq.activity_timeline_collection = activityTimelineCollection;
+                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
                         activityTimelineService.addTimelineTransactionAsync(timelineReq);
                     }
                     
