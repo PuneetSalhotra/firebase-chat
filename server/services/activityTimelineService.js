@@ -2622,15 +2622,19 @@ function ActivityTimelineService(objectCollection) {
                     params[13] = phone[0];  //country code
                     params[18] = phone[1];  //phone number
                     break;*/
-                    var phone;
+                    let phone;
                     if ((row.field_value).includes('||')) {
                         phone = row.field_value.split('||');
-                        params[13] = phone[0]; //country code
-                        params[18] = phone[1]; //phone number
-                    } else {
+                        params[13] = phone[0]; // country code
+                        params[18] = phone[1]; // phone number
+                    } else if (
+                        String(row.field_value).includes('|')
+                    ) {
                         phone = row.field_value.split('|');
-                        params[13] = phone[0]; //country code
-                        params[18] = phone[1]; //phone number
+                        params[13] = phone[0]; // country code
+                        params[18] = phone[1]; // phone number
+                    } else {
+                        params[18] = row.field_value; // phone number
                     }
                     break;
                 case 24: //Gallery Image
@@ -3352,17 +3356,21 @@ async function addFormEntriesAsync(request) {
                 params[13] = phone[0];  //country code
                 params[18] = phone[1];  //phone number
                 break;*/
-                var phone;
+                let phone;
                 if ((row.field_value).includes('||')) {
                     phone = row.field_value.split('||');
-                    params[13] = phone[0]; //country code
-                    params[18] = phone[1]; //phone number
+                    params[13] = phone[0]; // country code
+                    params[18] = phone[1]; // phone number
+                } else if (
+                    String(row.field_value).includes('|')
+                ) {
+                    phone = row.field_value.split('|');
+                    params[13] = phone[0]; // country code
+                    params[18] = phone[1]; // phone number
                 } else {
-                        phone = row.field_value.split('|');
-                        params[13] = phone[0]; //country code
-                        params[18] = phone[1]; //phone number
-                    }
-                    break;
+                    params[18] = row.field_value; // phone number
+                }
+                break;
             case 24: //Gallery Image
             case 25: //Camera Front Image
             case 26: //Video Attachment

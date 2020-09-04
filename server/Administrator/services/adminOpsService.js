@@ -7919,7 +7919,44 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
-    
+
+    this.formConverter = async (request) => {
+        let responseData = [], response,
+            error = true;
+        
+        [error, response] = await getFormConverterData(request);
+
+        if(error){
+            return [error, response];
+        }
+        return [error, responseData];
+    }
+
+    async function getFormConverterData(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.form_id,
+          request.form_submission_type_id,
+          request.log_asset_id,
+          request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_submission_type', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

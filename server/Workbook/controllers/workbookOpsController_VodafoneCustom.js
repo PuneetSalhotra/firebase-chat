@@ -1,5 +1,5 @@
 const { serializeError } = require('serialize-error');
-const moment = require('moment');
+//const moment = require('moment');
 
 const { Consumer } = require('sqs-consumer');
 const AWS = require('aws-sdk');
@@ -17,10 +17,10 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
-    const util = objCollection.util;
-    const cacheWrapper = objCollection.cacheWrapper;
-    const queueWrapper = objCollection.queueWrapper;
-    const activityCommonService = objCollection.activityCommonService;
+    //const util = objCollection.util;
+    //const cacheWrapper = objCollection.cacheWrapper;
+    //const queueWrapper = objCollection.queueWrapper;
+    //const activityCommonService = objCollection.activityCommonService;
 
     const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objCollection);
     //const workbookOpsService_VodafoneCustom_v1 = new WorkbookOpsService_VodafoneCustom_v1(objCollection);
@@ -67,10 +67,24 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
             // console.log("message.Attributes: ", message.Attributes);
             console.log("message.MessageAttributes: ", message.MessageAttributes);
             const request = JSON.parse(message.Body);
+            //console.log('Request params : ', request);
             try {
-                console.time("workbook");
-                await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request);
-                console.timeEnd("workbook");
+                const begin=Date.now();
+                //await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request);
+                await workbookOpsService_VodafoneCustom_v1.workbookMappingBotOperationV1(request);
+
+                console.log('\n Memory Details');
+                console.log('--------------');
+                let used = process.memoryUsage();
+                for (let key in used) {
+                    console.log(`Memory: ${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+                }
+
+                const end= Date.now();
+
+                const timeSpent=(end-begin)/1000+"secs";
+                console.log('\n timeSpent - ', timeSpent);
+                
             } catch (error) {
                 logger.error(`Error processing the excel sqs queue message.`, { type: 'excel_sqs_consumer', request_body: request, error: serializeError(error) });
             }

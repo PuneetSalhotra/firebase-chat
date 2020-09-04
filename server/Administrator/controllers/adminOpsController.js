@@ -694,7 +694,17 @@ function AdminOpsController(objCollection) {
             console.log("/admin/form/access/share | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
-    });  
+    });
+
+    app.post('/' + global.config.version + '/form/submission-type/alter', async (req, res) => {
+        const [err, responseData] = await adminOpsService.formConverter(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/form/access/share | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

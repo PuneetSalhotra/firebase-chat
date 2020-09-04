@@ -1215,6 +1215,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeSubIndustryFID;
                 let smeSubIndustryName;
 
+                let smeSubIndustrySubID;
                 let smeTurnOverFID;
                 let smeTurnOver;
 
@@ -1228,7 +1229,11 @@ function ActivityConfigService(db,util,objCollection) {
                         
                         case 'sub_industry': console.log(i.sub_industry);
                                              smeSubIndustryFID = Number(i.sub_industry);
-                                             smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustryFID);
+                                             smeSubIndustrySubID = await getFieldDataComboIdUsingFieldIdV1(request,i.form_id,smeSubIndustryFID);
+                                             
+                                             smeSubIndustrySubFID = i.sub_industry_field_values[`${smeSubIndustrySubID}`];
+                                             smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
+                                             
                                              break;
                         
                         case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
@@ -1392,15 +1397,15 @@ function ActivityConfigService(db,util,objCollection) {
 
                 //sohoTurnOver = sohoTurnOver.toLowerCase();
                 console.log('sohoTurnOver - ', sohoTurnOver);
-                if(sohoTurnOver < 3) {
-                    sohoTurnOver = 1;
-                } else if(sohoTurnOver < 6) {
-                    sohoTurnOver = 2;
-                } else if(sohoTurnOver < 11) {
-                    sohoTurnOver = 3;
-                } else {
-                    sohoTurnOver = 0;
-                }
+                // if(sohoTurnOver < 3) {
+                //     sohoTurnOver = 1;
+                // } else if(sohoTurnOver < 6) {
+                //     sohoTurnOver = 2;
+                // } else if(sohoTurnOver < 11) {
+                //     sohoTurnOver = 3;
+                // } else {
+                //     sohoTurnOver = 0;
+                // }
 
                 accountCode += sohoTurnOver // turnover
 
@@ -1447,10 +1452,11 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        //console.log('formData - ', formData);
+        // console.log('formData - ', formData);
 
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === fieldID) {
+               
                 console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
                 switch(Number(fieldData.field_data_type_id)) {
                     //Need Single selection and Drop Down
@@ -1471,6 +1477,57 @@ function ActivityConfigService(db,util,objCollection) {
         fieldValue = fieldValue.split(" ").join("");
         console.log('Field Value After: ',fieldValue);
         console.log('*************************');
+        return fieldValue;
+    }
+
+    async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID,sme) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        //console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue=fieldData.data_type_combo_id;
+                }
+                break;
+            }
+        }
+
+        console.log('Field Value B4: ',fieldValue);
+        // fieldValue = fieldValue.split(" ").join("");
+        // console.log('Field Value After: ',fieldValue);
+        // console.log('*************************');
         return fieldValue;
     }
 
