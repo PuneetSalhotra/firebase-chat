@@ -3444,6 +3444,26 @@ async function processFormInlineDataV1(request, data){
 		}
 		return [error, responseData];
 	};	
+
+	this.getActBulkSummaryData = async(request) => {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = [request.parent_activity_id];
+		const queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_select', paramsArr);
+		
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
 }
 
 module.exports = ActivityListingService;

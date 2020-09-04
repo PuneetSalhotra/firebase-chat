@@ -1561,7 +1561,8 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
-                    if(Number(request.parent_activity_id) > 0) {
+                    console.log('Number(request.parent_activity_id) - ', Number(request.parent_activity_id));
+                    if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
                         flag = 0;
                     }
 
