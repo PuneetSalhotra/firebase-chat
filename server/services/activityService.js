@@ -5358,6 +5358,31 @@ function ActivityService(objectCollection) {
         return [false, []];
     }
 
+    this.addBulkSummary = async(request) => {
+        let responseData = [],
+			error = true;
+
+		const paramsArr = [
+                request.parent_activity_id,
+                request.summary_data || '{}',
+                request.asset_id,
+                util.getCurrentUTCTime()
+            ];
+		const queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_insert', paramsArr);
+		
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityService;
