@@ -860,7 +860,17 @@ function ActivityController(objCollection) {
             console.log("/activity/expression/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
-    });    
+    });
+    
+    app.post('/' + global.config.version + '/activity/bulk-summary/add', async (req, res) =>{
+        const [err, responseData] = await activityService.addBulkSummary(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/bulk-summary/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });
 }
 
 
