@@ -2855,6 +2855,31 @@ function ActivityUpdateService(objectCollection) {
         }
         return [error, responseData];
     }
+
+
+
+    this.bulkSummaryActivityUpdate = async(request) =>{
+        let responseData = [],error = true;
+        var paramsArr = new Array(
+            request.workflow_activity_id,
+            request.comments
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_update_comment', paramsArr);
+
+        if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            return [error, responseData];
+        }
+    };
+
     
 }
 

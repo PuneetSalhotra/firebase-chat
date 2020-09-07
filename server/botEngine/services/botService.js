@@ -2107,6 +2107,7 @@ function BotService(objectCollection) {
     }
 
 async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
+    console.log('removeAsLeadAndAssignCreaterAsLead - ', removeAsLeadAndAssignCreaterAsLead);
 
     let newReq = {};
     newReq.organization_id = request.organization_id;
@@ -2127,7 +2128,9 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
             asset_id: leadAssetID
         });
 
+        console.log('********************************');
         console.log('LEAD ASSET DATA - ', assetData[0]);
+        console.log('********************************');
         leadAssetFirstName = assetData[0].asset_first_name;
     } catch (error) {
         console.log(error);
