@@ -1175,9 +1175,9 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log('LA Group company Name : ',laGroupCompanyName);
 
                 accountCode += 'C-';
-                accountCode += ((laCompanyName.substring(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((laCompanyName.substring(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
-                accountCode += ((laGroupCompanyName.substring(0,6)).padStart(6,'0')).toUpperCase();
+                accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();
                 break;
 
             case 150442://GE - VGE Segment
@@ -1188,9 +1188,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
 
                 accountCode += 'V-';
-                accountCode += ((geCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((geCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-'
-                accountCode += ((geGroupCompanyName.substr(0,6)).padStart(6,'0')).toUpperCase();
+                accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
                 break;
 
             case 149809: //SME                         
@@ -1262,7 +1262,7 @@ function ActivityConfigService(db,util,objCollection) {
                 //}
 
                 accountCode += 'S-';
-                accountCode += ((smeCompanyName.substr(0,7)).padStart(7,'0')).toUpperCase();
+                accountCode += ((smeCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
                 //4 digit sequential number, gets reset to 0000 after 9999
                 let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
@@ -1272,7 +1272,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setSmeSeqNumber(0);
                     accountCode += '0000';
                 } else {
-                    accountCode += (smeSeqNumber.toString()).padStart(4,'0');
+                    accountCode += (smeSeqNumber.toString()).padEnd(4,'0');
                 }
 
                 accountCode += '-'
@@ -1308,29 +1308,29 @@ function ActivityConfigService(db,util,objCollection) {
                     const departmentNameFID = Number(botInlineData.department_name);
                     const departmentName = await getFieldValueUsingFieldIdV1(request,formID,departmentNameFID);
 
-                    accountCode += ((siName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                    accountCode += ((siName.substr(0,3)).padEnd(3,'0')).toUpperCase();
                     accountCode += '-';
-                    accountCode += ((departmentName.substr(0,7)).padStart(7,'0')).toUpperCase();
+                    accountCode += ((departmentName.substr(0,7)).padEnd(7,'0')).toUpperCase();
                     accountCode += '-';
                 } else { //Govt Regular
                     //console.log('Inside ELSE');
 
-                    accountCode += ((govtCompanyName.substr(0,10)).padStart(10,'0')).toUpperCase();
+                    accountCode += ((govtCompanyName.substr(0,10)).padEnd(10,'0')).toUpperCase();
                     accountCode += '-';
-                    //accountCode += nameofgrouppcompany.padStart(6, '0');
+                    //accountCode += nameofgrouppcompany.padEnd(6, '0');
                 }
 
                 //Center or State
                 const centerOrStateFID = Number(botInlineData.state_central); //61954
                 const centerOrStateName = await getFieldValueUsingFieldIdV1(request,formID,centerOrStateFID);
                 console.log('Center or State : ',centerOrStateName);
-                accountCode += ((centerOrStateName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                accountCode += ((centerOrStateName.substr(0,3)).padEnd(3,'0')).toUpperCase();
 
                 //Circle
                 const circleFID = Number(botInlineData.circle); //61958
                 const circleName = await getFieldValueUsingFieldIdV1(request,formID,circleFID);
                 console.log('Circle : ',circleName);
-                accountCode += ((circleName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                accountCode += ((circleName.substr(0,3)).padEnd(3,'0')).toUpperCase();
 
                 break;
 
@@ -1340,7 +1340,7 @@ function ActivityConfigService(db,util,objCollection) {
                 const vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
 
                 accountCode += 'W-';
-                accountCode += ((vicsCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((vicsCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
 
                 //6 digit sequential number, gets reset to 000000 after 999999
@@ -1351,7 +1351,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setVICSSeqNumber(0);
                     accountCode += '000000';
                 } else {
-                    accountCode += (vicsSeqNumber.toString()).padStart(6,'0');
+                    accountCode += (vicsSeqNumber.toString()).padEnd(6,'0');
                 }
                 console.log('from cache vicsSeqNumber : ',vicsSeqNumber);
                 break;
@@ -1392,7 +1392,7 @@ function ActivityConfigService(db,util,objCollection) {
                 }
 
                 accountCode += 'D-';
-                accountCode += ((sohoCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((sohoCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
 
                 //sohoTurnOver = sohoTurnOver.toLowerCase();
@@ -1417,7 +1417,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setSohoSeqNumber(0);
                     accountCode += '00000';
                 } else {
-                    accountCode += (sohoSeqNumber.toString()).padStart(5,'0');
+                    accountCode += (sohoSeqNumber.toString()).padEnd(5,'0');
                 }
                 console.log('After processsing sohoSeqNumber : ',sohoSeqNumber);
                 break;
