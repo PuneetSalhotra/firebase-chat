@@ -5365,6 +5365,7 @@ function ActivityService(objectCollection) {
 		const paramsArr = [
                 request.parent_activity_id,
                 request.summary_data || '{}',
+                request.comments,//Added by Akshay Singh
                 request.asset_id,
                 util.getCurrentUTCTime()
             ];

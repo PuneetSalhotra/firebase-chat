@@ -3,6 +3,8 @@
  * 
  */
 
+const ActivityUpdateService = require("../services/activityUpdateService");
+
 //var ActivityUpdateService = require("../services/activityUpdateService");
 
 function ActivityUpdateController(objCollection) {
@@ -13,7 +15,8 @@ function ActivityUpdateController(objCollection) {
     var app = objCollection.app;
     var util = objCollection.util;
     var forEachAsync = objCollection.forEachAsync;
-
+    const activityUpdateService = new ActivityUpdateService(objCollection);
+    
     app.post('/' + global.config.version + '/activity/inline/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
@@ -683,6 +686,17 @@ function ActivityUpdateController(objCollection) {
                     callback(false, {});
                 }
             });
+        }
+    });
+
+
+    //Added by Akshay Singh
+    app.post('/' + global.config.version + '/activity/bulk-summary/update', async function (req, res) {
+        const [err, data] = await activityUpdateService.bulkSummaryActivityUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
     
