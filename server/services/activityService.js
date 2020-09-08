@@ -4167,8 +4167,12 @@ function ActivityService(objectCollection) {
                                         });
                                 } else {
 
+                                    console.log('*******************************************************');
+                                    console.log('Number(request.activity_type_category_id) - ', Number(request.activity_type_category_id));
+                                    console.log('*******************************************************');
+                                    
                                     //do this only for activity_type_category_id= 48
-                                    if(Number(request.activity_type_category_id) === 48) {
+                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53) {
 
                                         // Insert activity to the queue in the queue_activity_mapping table
                                         await activityCommonService
@@ -4193,7 +4197,7 @@ function ActivityService(objectCollection) {
                                         });
                                         
                                     } else {
-                                        console.log('The activity_type_category_id is not 48');
+                                        console.log('The activity_type_category_id is either not 48');
                                     }
                                     
                                 }
