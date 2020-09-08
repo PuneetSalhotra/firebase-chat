@@ -666,9 +666,15 @@ function AccountService(objectCollection) {
                 result = await getActivityTypeMappingSelectSearch(request, i);
                 if(result.length > 0) {
                     for(j=0;j<result.length;j++) {
+                        let newReq = Object.assign({}, request);
+                        newReq.form_id = result[j].form_id;
+                        newReq.field_id = 0;
+                        newReq.start_from = 0;
+                        newReq.limit_value = 1;
+                        let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                        (data.length> 0 && data[0].next_field_id > 0) ? result[j].is_smart = 1 : result[j].is_smart = 0;
                         responseData.push(result[j]);
-                        //console.log(result[j].form_workflow_activity_type_name);
-                    }                    
+                    }
                 }
             } catch(err) {
                 error = err;
