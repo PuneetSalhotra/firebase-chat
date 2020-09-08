@@ -4381,7 +4381,7 @@ async function removeAsOwner(request,data)  {
 
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
             isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
-            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData["flag_creator_as_owner"].is_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData["asset_reference"].flag_creator_as_owner : 0;
 
             if (!formInlineDataMap.has(fieldID)) {
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
