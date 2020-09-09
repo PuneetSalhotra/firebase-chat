@@ -7119,7 +7119,8 @@ async function removeAsOwner(request,data)  {
                 
             }
         }
-              
+ 
+        
         console.log('OLD DATE : ', oldDate);
         console.log('NEW DATE : ', newDate);
 
