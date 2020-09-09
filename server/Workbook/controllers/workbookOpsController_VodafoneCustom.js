@@ -70,8 +70,8 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
             //console.log('Request params : ', request);
             try {
                 const begin=Date.now();
-                //await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request);
-                await workbookOpsService_VodafoneCustom_v1.workbookMappingBotOperationV1(request);
+                await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request);
+                //await workbookOpsService_VodafoneCustom_v1.workbookMappingBotOperationV1(request);
 
                 console.log('\n Memory Details');
                 console.log('--------------');
@@ -94,7 +94,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
             console.log('Waiting Done!');
             console.log(' ');
         },
-        sqs: new AWS.SQS(),
+        //sqs: new AWS.SQS(),
         messageAttributeNames: ['Environment']
     });
 
