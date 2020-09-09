@@ -1612,7 +1612,7 @@ function Util(objectCollection) {
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
 
-         console.log('HERE I AM ', fileName);        
+         console.log('HERE I AM ', fileName);
 
         return await new Promise((resolve, reject)=>{
             setTimeout(() =>{
