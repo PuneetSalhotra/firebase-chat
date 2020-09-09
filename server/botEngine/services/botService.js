@@ -7081,7 +7081,7 @@ async function removeAsOwner(request,data)  {
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         //oldDate = util.replaceDefaultDatetime(oldDate);
-        oldDate = util.replaceDefaultDate(oldDate);
+        oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
 
@@ -7094,6 +7094,7 @@ async function removeAsOwner(request,data)  {
             for(const i_iterator of dateFormData) {
                 if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
                     newDate = i_iterator.field_value;
+                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     break;
                 }
             }
@@ -7103,7 +7104,7 @@ async function removeAsOwner(request,data)  {
                 console.log('fieldData : ', fieldData);
 
                 newDate = fieldData.field_value;
-
+                 
                 if(Number(request.device_os_id) === 1) {
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     console.log('Retrieved Date field value - ANDROiD: ', newDate);
@@ -7111,9 +7112,15 @@ async function removeAsOwner(request,data)  {
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
+                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
+                    newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                }
+               
+                
             }
         }
-
+ 
+        
         console.log('OLD DATE : ', oldDate);
         console.log('NEW DATE : ', newDate);
 
