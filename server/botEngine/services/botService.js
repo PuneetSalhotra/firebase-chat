@@ -8289,6 +8289,7 @@ async function removeAsOwner(request,data)  {
         const MAX_ORDERS_TO_BE_PARSED = 100;
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
             bulkUploadFormTransactionID = 0,
             bulkUploadFormActivityID = 0,
@@ -8316,6 +8317,7 @@ async function removeAsOwner(request,data)  {
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {
+                workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
             }
@@ -8361,7 +8363,7 @@ async function removeAsOwner(request,data)  {
         let childOpportunitiesCountOffset = 0;
         const [errorZero, childOpportunitiesCount] = await activityListSelectChildOrderCount({
             organization_id: request.organization_id,
-            activity_type_category_id: Number(workflowActivityData[0].activity_type_category_id),
+            activity_type_category_id: workflowActivityCategoryTypeID,
             activity_type_id: workflowActivityTypeID,
             parent_activity_id: workflowActivityID,
         })
@@ -8395,16 +8397,17 @@ async function removeAsOwner(request,data)  {
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        // console.log({ length: childOpportunitiesArray.length });
         // console.log({ childOpportunitiesArray });
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
-            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
+            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
             if (
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                childOpportunity.actionType !== "new" || childOpportunity.actionType !== "correction" ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
@@ -8421,7 +8424,7 @@ async function removeAsOwner(request,data)  {
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId !== "") {
                 const [errorOne, childOpportunityData] = await activityListSearchCUID({
                     organization_id: request.organization_id,
-                    activity_type_category_id: Number(workflowActivityData[0].activity_type_category_id),
+                    activity_type_category_id: workflowActivityCategoryTypeID,
                     flag: 1,
                     search_string: childOpportunity.OppId
                 });
