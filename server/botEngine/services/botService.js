@@ -8357,6 +8357,18 @@ async function removeAsOwner(request,data)  {
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
+        // Get the count of child orders.
+        let childOpportunitiesCountOffset = 0;
+        const [errorZero, childOpportunitiesCount] = await activityListSelectChildOrderCount({
+            organization_id: request.organization_id,
+            activity_type_category_id: Number(workflowActivityData[0].activity_type_category_id),
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        })
+        if (childOpportunitiesCount.length > 0) {
+            childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
+        }
+
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -8369,7 +8381,7 @@ async function removeAsOwner(request,data)  {
         logger.silly("sheet_names: %j", sheet_names);
 
         const headersArray = [
-            "serialNum", "OppId", "ServiceType", "LinkType", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "BandwidthAmount",
+            "serialNum", "actionType", "OppId", "ServiceType", "LinkType", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "BandwidthAmount",
             "BandwidthUnit", "InterfaceEndA", "CustomerNameEndA", "ContactPersonEmailIdEndA", "ContactNoEndA", "AlternateContactNumberEndA", "SearchBuildingIdEndA",
             "StreetFloorNameEndA", "SearchAreaEndA", "SearchPinEndA", "SearchCityEndA", "CircleEndA", "StateEndA", "CountryEndA", "IsThelocationADataCenterEndA",
             "RackNoEndA", "CageNoEndA", "AddressEndA", "SpecialInstructionsBySalesEndA", "SolutionDocRequiredEndA", "InterfaceEndB", "CustomerNameEndB",
@@ -8391,15 +8403,44 @@ async function removeAsOwner(request,data)  {
             if (
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
+                !childOpportunity.hasOwnProperty("actionType") ||
+                childOpportunity.actionType !== "new" || childOpportunity.actionType !== "correction" ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
                 break;
             }
 
-            const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
-            if (error) {
+            let childOpportunityID = "";
+            // If actionType === correction, assert that OppId is populated. Otherwise
+            // just move to the next row 
+            if (childOpportunity.actionType === "correction" && childOpportunity.OppId === "") {
                 continue;
+            }
+            // If actionType === correction, assert that the child opportunity exists
+            if (childOpportunity.actionType === "correction" && childOpportunity.OppId !== "") {
+                const [errorOne, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: Number(workflowActivityData[0].activity_type_category_id),
+                    flag: 1,
+                    search_string: childOpportunity.OppId
+                });
+                if (childOpportunityData.length === 0) {
+                    continue;
+                }
+                childOpportunityID = childOpportunity.OppId
+            }
+
+            // Do not freshly generate child opportunities, revert back to suffixing an
+            // incremental offset to the parent's opportunity ID
+            // const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
+            // if (error) {
+            //     continue;
+            // }
+            if (childOpportunity.actionType === "new") {
+                ++childOpportunitiesCountOffset;
+                childOpportunityID = `${opportunityID}-${childOpportunitiesCountOffset}`;
+                childOpportunity.OppId = childOpportunityID;
             }
 
             const serialNumber = childOpportunity.serialNum;
@@ -8407,7 +8448,7 @@ async function removeAsOwner(request,data)  {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
-                child_opportunity_id: response.childOpportunityID,
+                child_opportunity_id: childOpportunityID,
                 childOpportunity: childOpportunity,
                 feasibility_form_id: triggerFormID
             }
@@ -8434,6 +8475,59 @@ async function removeAsOwner(request,data)  {
         }
 
         return;
+    }
+
+    async function activityListSearchCUID(request) {
+        let error = true,
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id || 0,
+            request.flag || 0,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get account bassed on country code
+    async function activityListSelectChildOrderCount(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || 0,
+            request.parent_activity_id,
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_child_order_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function addParticipantCreatorOwner(request) {
