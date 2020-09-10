@@ -8397,8 +8397,8 @@ async function removeAsOwner(request,data)  {
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
-        console.log({ length: childOpportunitiesArray.length });
-        console.log({ childOpportunitiesArray });
+        // console.log({ length: childOpportunitiesArray.length });
+        // console.log({ childOpportunitiesArray });
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
