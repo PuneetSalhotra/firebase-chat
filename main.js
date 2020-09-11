@@ -191,6 +191,8 @@ app.use((err,req,res,next) => {
     },401,req.body))
 });
 
+app.use(helmet.frameguard({ action: 'SAMEORIGIN' }));
+
 function connectToKafkaBroker() {
     console.log("redis is connected");
 

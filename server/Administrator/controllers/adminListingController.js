@@ -440,7 +440,17 @@ function AdminListingController(objCollection) {
             console.log("/admin/workforce_type/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, workforceTypeData, -9999, req.body));
         }
-    });        
+    });
+
+    app.post('/' + global.config.version + '/admin/lov-datatype/list/v1', async (req, res) => {
+        const [err, data] = await adminListingService.getLovDatatypeListV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/lov-datatype/list/v1 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
