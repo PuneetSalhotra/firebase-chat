@@ -1783,7 +1783,7 @@ function AdminListingService(objectCollection) {
               request.page_limit || 50
         ];
 
-        const queryString = util.getQueryString('ds_p1_lov_list_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_lov_list_hierarchy_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
