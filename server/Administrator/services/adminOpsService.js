@@ -7203,6 +7203,52 @@ function AdminOpsService(objectCollection) {
 
     //Dependent form Submitted?
     //All conditions satisfying in the bots?
+
+    this.dependedFormCheckWrapper = async (request) => {
+
+        let err = false, dependedFormCheckResult, result = [], formEnable;
+        request.bot_operation_type_id = 20;
+        request.activity_type_id = 153706;
+        [err, formEnable] = await adminListingService.botOperationMappingSelectOperationType(request);
+        if(err) {
+            return [true, [{ message : "Something went wrong!"}]];
+        }
+
+        for(let mainRow of formEnable) {
+            let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
+            let condition = botInlineDataParsed.conditions;
+            let formEnableData = botInlineDataParsed.form_enable;
+            for(let row of formEnableData) {
+
+                for(let key in row) {
+                    request.version = 2;
+                    request.form_id = row[key].form_id;
+                    request.botsData = [{
+                        bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
+                    }];
+                    [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
+                    if(err) {
+                        return [err, dependedFormCheckResult];
+                    }
+                    console.log('var ' + key + '=' + dependedFormCheckResult + ';');
+                    eval('var ' + key + '=' + dependedFormCheckResult + ';' );
+                }
+            }
+            try {
+                result = eval(condition);
+                console.log("result------------>", result);
+            } catch (err) {
+                console.log("Error occured while processing the expression ", err);
+                result = [{ message : "Error while processing expression", expression : condition }];
+            }
+        }
+
+        return [err, result]
+        
+    }
+    
+    //Dependent form Submitted?
+    //All conditions satisfying in the bots?
     this.dependedFormCheck = async (request) => {
         let responseData = [],
             error = true;
@@ -7215,7 +7261,7 @@ function AdminOpsService(objectCollection) {
             let i, j, k , l;
 
             for(i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
-                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);                
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
                 //console.log(inlineData.form_enable);
 
                 tempFormsArr = inlineData.form_enable?inlineData.form_enable:[];
@@ -7225,16 +7271,16 @@ function AdminOpsService(objectCollection) {
                     error = false;
                     responseData.push({"message": "No Dependent Forms defined for this Form!"});
                 }
-                
+
                 for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
                     console.log(tempFormsArr[j].form_id);
                     conditions = tempFormsArr[j].conditions;
 
                     console.log('Conditions: ', conditions);
 
-                    if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form                        
-                        
-                        for(k=0;k<conditions.length;k++) { //Conditions Array                           
+                    if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
+
+                        for(k=0;k<conditions.length;k++) { //Conditions Array
                             try {
                                 //Check whether the dependent form is submitted
                                 console.log(`Checking the dependent form - ${conditions[k].form_id}`)
@@ -7242,76 +7288,76 @@ function AdminOpsService(objectCollection) {
                                     organization_id: request.organization_id,
                                     account_id: request.account_id
                                 }, Number(request.workflow_activity_id), conditions[k].form_id);
-                    
-                                //console.log(`Dependent form  - ${conditions[k].form_id} length : ${Number(dependentFormTransactionData.length)}`);
-                            if (Number(dependentFormTransactionData.length) > 0) {                                
-                                dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
-                                //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
-                                let formData = dependentFormTransactionInlineData.form_submitted;
-                                formData = (typeof formData === 'string')? JSON.parse(formData) : formData;                         
-                                let breakFlag = 0; //to break the outer loop
-    
-                                //Iterate on form data                                
-                                //for(k=0;k<conditions.length;k++) { //Conditions Array
-                                        
-                                if(!conditions[k].hasOwnProperty('field_id')) {
-                                    if(conditions[k].join_condition == 'OR') {
-                                        error = false;
-                                        console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                        responseData.push({"message": "dependent form conditions passed!"});
-                                        break;
-                                    } else if (conditions[k].join_condition == 'AND') {
-                                        continue;
-                                    } else { // EOJ
-                                        error = false;
-                                        console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                        responseData.push({"message": "dependent form conditions passed!"});
-                                        break;
-                                    }
-                                } else {
-                                    for(l=0;l<formData.length;l++){ //Iterate on the retrieved dependent Form Data                                                                                
-                                        //console.log(Number(conditions[k].field_id), ' - ', Number(formData[l].field_id), ' - ', formData[l].field_id);
-                                        
-                                        if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
-                                        
-                                            let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
-                                            
-                                            console.log('PROCEED : ', proceed);
-                                            console.log('conditionStatus : ', conditionStatus);                              
-        
-                                            //Reached either EOJ or one of the conditions failed
-                                            if(proceed === 0 || conditionStatus === 0) {
-                                                if(conditionStatus === 1){
-                                                    error = false;
-                                                    responseData.push({"message": "dependent form conditions passed!"});
-                                                    console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
 
-                                                    breakFlag = 1;
-                                                    break;
-                                                } else {  
-                                                    if(conditions[k].join_condition == 'OR') {
-                                                        responseData.push({"message": "dependent form conditions failed!"});
-                                                        console.log('As the condition is OR proceeding to check the next form');                                                        
-                                                    } else {
-                                                        responseData.push({"message": "dependent form conditions failed!"});
-                                                        console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+                                //console.log(`Dependent form  - ${conditions[k].form_id} length : ${Number(dependentFormTransactionData.length)}`);
+                                if (Number(dependentFormTransactionData.length) > 0) {
+                                    dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
+                                    //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
+                                    let formData = dependentFormTransactionInlineData.form_submitted;
+                                    formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+                                    let breakFlag = 0; //to break the outer loop
+
+                                    //Iterate on form data
+                                    //for(k=0;k<conditions.length;k++) { //Conditions Array
+
+                                    if(!conditions[k].hasOwnProperty('field_id')) {
+                                        if(conditions[k].join_condition == 'OR') {
+                                            error = false;
+                                            console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
+                                        } else if (conditions[k].join_condition == 'AND') {
+                                            continue;
+                                        } else { // EOJ
+                                            error = false;
+                                            console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
+                                        }
+                                    } else {
+                                        for(l=0;l<formData.length;l++){ //Iterate on the retrieved dependent Form Data
+                                            //console.log(Number(conditions[k].field_id), ' - ', Number(formData[l].field_id), ' - ', formData[l].field_id);
+
+                                            if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
+
+                                                let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
+
+                                                console.log('PROCEED : ', proceed);
+                                                console.log('conditionStatus : ', conditionStatus);
+
+                                                //Reached either EOJ or one of the conditions failed
+                                                if(proceed === 0 || conditionStatus === 0) {
+                                                    if(conditionStatus === 1){
+                                                        error = false;
+                                                        responseData.push({"message": "dependent form conditions passed!"});
+                                                        console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
 
                                                         breakFlag = 1;
                                                         break;
-                                                    }                                                    
+                                                    } else {
+                                                        if(conditions[k].join_condition == 'OR') {
+                                                            responseData.push({"message": "dependent form conditions failed!"});
+                                                            console.log('As the condition is OR proceeding to check the next form');
+                                                        } else {
+                                                            responseData.push({"message": "dependent form conditions failed!"});
+                                                            console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+
+                                                            breakFlag = 1;
+                                                            break;
+                                                        }
+                                                    }
                                                 }
-                                            }        
-                                        } else {
-                                            //responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
-                                        }
-                                    } //End of for Loop - retrieved dependent Form data
-                                }                                    
-                                        
-                                if(breakFlag === 1) {
-                                    break;
-                                }
-                                console.log('----------------------------------');
-                                    //} //End of for Loop - Conditions Array                                
+                                            } else {
+                                                //responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
+                                            }
+                                        } //End of for Loop - retrieved dependent Form data
+                                    }
+
+                                    if(breakFlag === 1) {
+                                        break;
+                                    }
+                                    console.log('----------------------------------');
+                                    //} //End of for Loop - Conditions Array
                                 } else {
                                     console.log('Dependent form ', conditions[k].form_id, ' is not submitted');
                                     if(conditions[k].join_condition == 'OR') {
@@ -7323,7 +7369,7 @@ function AdminOpsService(objectCollection) {
                                 console.log("Fetch Dependent Form Data | Error: ", error);
                                 throw new Error(error);
                             }
-                        } //End of Conditions Array                        
+                        } //End of Conditions Array
                     } else { //If the form_enable form is different from the request.form_id
                         responseData.push({"message": `No Dependent forms for form_id - ${request.form_id}`});
                     }
@@ -7333,7 +7379,143 @@ function AdminOpsService(objectCollection) {
             error = false;
             console.log('No Dependent Forms defined for this Form!');
             responseData.push({"message": "No Dependent Forms defined for this Form!"});
-        }        
+        }
+        return [error, responseData];
+    }
+
+    this.dependedFormCheckV2 = async (request) => {
+        let responseData = [],
+            error = true, botsData, err;
+        console.log('In dependedFormCheck Function', request)
+        request.bot_operation_type_id = 20;
+        botsData = request.botsData;
+
+        if(botsData.length > 0) {
+            let inlineData,tempFormsArr,conditions,dependentFormTransactionData;
+            let i, j, k , l;
+
+            for(i=0;i< botsData.length;i++) { //Looping on all bots_enabled forms in a given process
+
+                inlineData = JSON.parse(botsData[i].bot_operation_inline_data);
+                //console.log(inlineData.form_enable);
+
+                tempFormsArr = inlineData.form_enable ? inlineData.form_enable : [];
+                console.log('tempFormsArr : ', tempFormsArr);
+
+                if(tempFormsArr.length == 0){
+                    error = false;
+                    responseData.push({"message": "No Dependent Forms defined for this Form!"});
+                }
+
+                for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
+                    console.log(tempFormsArr[j].form_id);
+                    conditions = tempFormsArr[j].conditions;
+
+                    console.log('Conditions: ', conditions, tempFormsArr[j].form_id);
+
+                    if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
+
+                        for(k=0;k<conditions.length;k++) { //Conditions Array
+                            try {
+                                //Check whether the dependent form is submitted
+                                console.log(`Checking the dependent form - ${conditions[k].form_id}`)
+                                dependentFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                    organization_id: request.organization_id,
+                                    account_id: request.account_id
+                                }, Number(request.workflow_activity_id), conditions[k].form_id);
+
+                                //console.log(`Dependent form  - ${conditions[k].form_id} length : ${Number(dependentFormTransactionData.length)}`);
+                                if (Number(dependentFormTransactionData.length) > 0) {
+                                    dependentFormTransactionInlineData = JSON.parse(dependentFormTransactionData[0].data_entity_inline);
+                                    //console.log('FORM DATA : ', dependentFormTransactionInlineData.form_submitted);
+                                    let formData = dependentFormTransactionInlineData.form_submitted;
+                                    formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
+                                    let breakFlag = 0; //to break the outer loop
+
+                                    //Iterate on form data
+                                    //for(k=0;k<conditions.length;k++) { //Conditions Array
+
+                                    if(!conditions[k].hasOwnProperty('field_id')) {
+                                        if(conditions[k].join_condition == 'OR') {
+                                            error = false;
+                                            console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
+                                        } else if (conditions[k].join_condition == 'AND') {
+                                            continue;
+                                        } else { // EOJ
+                                            error = false;
+                                            console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
+                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            break;
+                                        }
+                                    } else {
+                                        for(l=0;l<formData.length;l++){ //Iterate on the retrieved dependent Form Data
+                                            //console.log(Number(conditions[k].field_id), ' - ', Number(formData[l].field_id), ' - ', formData[l].field_id);
+
+                                            // if(Number(conditions[k].field_id) === Number(formData[l].field_id)) {
+
+                                            let [err, proceed, conditionStatus] = await evaluateJoinCondition(conditions[k], formData[l]);
+
+                                            console.log('PROCEED : ', proceed);
+                                            console.log('conditionStatus : ', conditionStatus);
+
+                                            //Reached either EOJ or one of the conditions failed
+                                            if(proceed === 0 || conditionStatus === 0) {
+                                                if(conditionStatus === 1){
+                                                    error = false;
+                                                    responseData.push({"message": "dependent form conditions passed!"});
+                                                    console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
+
+                                                    breakFlag = 1;
+                                                    break;
+                                                } else {
+                                                    if(conditions[k].join_condition == 'OR') {
+                                                        error = false;
+                                                        responseData = 0;
+                                                        console.log('As the condition is OR proceeding to check the next form');
+                                                    } else {
+                                                        error = false;
+                                                        responseData = 0;
+                                                        console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
+                                                        breakFlag = 1;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            // } else {
+                                            //     //responseData.push({"message": `${conditions[k].field_id} is not present in dependent form - ${conditions[k].form_id}`});
+                                            // }
+                                        } //End of for Loop - retrieved dependent Form data
+                                    }
+
+                                    if(breakFlag === 1) {
+                                        break;
+                                    }
+                                    console.log('----------------------------------');
+                                    //} //End of for Loop - Conditions Array
+                                } else {
+                                    console.log('Dependent form ', conditions[k].form_id, ' is not submitted');
+                                    if(conditions[k].join_condition == 'OR') {
+                                        console.log('As the condition is OR proceeding to check the next form');
+                                        continue;
+                                    }
+                                }
+                            } catch (error) {
+                                console.log("Fetch Dependent Form Data | Error: ", error);
+                                throw new Error(error);
+                            }
+                        } //End of Conditions Array
+                    } else { //If the form_enable form is different from the request.form_id
+                        responseData.push({"message": `No Dependent forms for form_id - ${request.form_id}`});
+                    }
+                } // Looping on a Single Form
+            } //Looping on all the bot_enabled forms
+        } else {
+            error = false;
+            console.log('No Dependent Forms defined for this Form!');
+            responseData.push({"message": "No Dependent Forms defined for this Form!"});
+        }
         return [error, responseData];
     }
 

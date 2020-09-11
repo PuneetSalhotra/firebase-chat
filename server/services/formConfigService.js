@@ -3222,6 +3222,7 @@ function FormConfigService(objCollection) {
 
     this.formFieldDefinitionUpdate = async function (request) {
         let fieldDefinitions = [];
+        console.log("request.fields_data", request.fields_data);
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
         request.update_type_id = 28;
