@@ -839,6 +839,36 @@ function ActivityTimelineService(objectCollection) {
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let isAddToTimeline = true;
 
+        if(activityTypeCategoryId === 48 && activityStreamTypeId === 705) {
+            //Add extra key to the activity_timeline_colletion
+            let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+            //console.log('activityTimelineCollection - ', activityTimelineCollection);
+
+            let [err, data] = await getPreviewEnabledFields(request);
+            //console.log('DATA - ', data);
+
+            let formInlineData = activityTimelineCollection.form_submitted;
+            let formFieldPreviewEnabled = [];
+
+            for(const i of formInlineData) {
+                for(const j of data) {                
+                    if(i.field_id == j.field_id) {
+                        let temp = {};
+                        temp.field_name = i.field_name;
+                        temp.field_value = i.field_value;
+
+                        formFieldPreviewEnabled.push(temp);
+                    }
+                }
+            }
+
+            activityTimelineCollection.form_field_preview_enabled = formFieldPreviewEnabled;
+            //console.log('***************');
+            //console.log('activityTimelineCollection - ', activityTimelineCollection);
+            //console.log('***************');
+            request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+        }
+
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
 
@@ -3996,6 +4026,33 @@ async function addFormEntriesAsync(request) {
                 );
 
         const queryString = util.getQueryString('ds_v1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
+    async function getPreviewEnabledFields(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                    request.organization_id,
+                    request.workflow_activity_type_id || 0,                    
+                    request.form_id,
+                    0, //flag
+                    0, // start_from
+                    50 // limit_value
+        ];
+
+        const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_preview_enable', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
