@@ -5496,8 +5496,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     })
                     .catch((err) => {
                         error = err;
-                    });                 
+                    });
+            if(error.code == "ER_DUP_ENTRY") {
+                request.log_state = 2;
+                error = false;
+                [error, responseData] = await this.activityActivityMappingArchive(request, referredActivityID);
             }
+        }
         return [error, responseData];   
     };
 
