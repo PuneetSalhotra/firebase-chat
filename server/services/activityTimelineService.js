@@ -826,6 +826,9 @@ function ActivityTimelineService(objectCollection) {
     }
 
     async function timelineStandardCallsAsync(request) {
+        console.log('#########################');
+        console.log('In timelineStandardCallsAsync');
+        console.log('#########################');
         let responseData = [],
             error = true;
 
@@ -838,14 +841,20 @@ function ActivityTimelineService(objectCollection) {
         let activityStreamTypeId = Number(request.activity_stream_type_id);
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let isAddToTimeline = true;
-
-        if(activityTypeCategoryId === 48 && activityStreamTypeId === 705) {
+        
+        if((activityTypeCategoryId === 48 || 
+            activityTypeCategoryId === 53 ||
+            activityTypeCategoryId === 54 ) && 
+            (activityStreamTypeId === 705 ||
+                activityStreamTypeId === 713))
+                {
+        console.log('Inside the function!');
             //Add extra key to the activity_timeline_colletion
             let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
             //console.log('activityTimelineCollection - ', activityTimelineCollection);
 
             let [err, data] = await getPreviewEnabledFields(request);
-            //console.log('DATA - ', data);
+            console.log('DATA - ', data);
 
             let formInlineData = activityTimelineCollection.form_submitted;
             let formFieldPreviewEnabled = [];
@@ -863,9 +872,9 @@ function ActivityTimelineService(objectCollection) {
             }
 
             activityTimelineCollection.form_field_preview_enabled = formFieldPreviewEnabled;
-            //console.log('***************');
-            //console.log('activityTimelineCollection - ', activityTimelineCollection);
-            //console.log('***************');
+            console.log('***************');
+            console.log('activityTimelineCollection - ', activityTimelineCollection);
+            console.log('***************');
             request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
         }
 
