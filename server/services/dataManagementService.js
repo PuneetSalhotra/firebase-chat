@@ -28,7 +28,9 @@ module.exports = function DataManagementService(params) {
             console.log("pdf generated");
             const pdfUrl = await pushStreamToS3(req,pdfResult,res)// upload pdf to s3 
             console.log("pdf to s3",pdfUrl);
-            await putTimelineEntry(req,res,pdfUrl); // add timeline entry 
+            if(!req.body.is_timeline_disable) {
+                await putTimelineEntry(req,res,pdfUrl); // add timeline entry
+            }
             console.log("add timeline entyr");
             return res.send(responseWrapper.getResponse(
                 false,
