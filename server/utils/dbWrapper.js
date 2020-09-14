@@ -16,6 +16,9 @@ var clusterConfig = {
 var writeCluster = mysql.createPoolCluster();
 var readCluster = mysql.createPoolCluster(clusterConfig);
 
+const writeClusterForHealthCheck = mysql.createPoolCluster();
+const readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
+
 //Adding Master
 writeCluster.add('MASTER', {
     connectionLimit: global.config.conLimit,
@@ -36,6 +39,26 @@ readCluster.add('SLAVE1', {
     debug: false
 });
 
+//Adding Master for healthCheck purpose
+writeClusterForHealthCheck.add('MASTER', {
+    connectionLimit: 1,
+    host: global.config.masterIp,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+
+//Adding Slave for healthCheck purpose
+readClusterForHealthCheck.add('SLAVE1', {
+    connectionLimit: 1,
+    host: global.config.slave1Ip,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+
 //Adding Master
 //readCluster.add('MASTER', {
 //    connectionLimit: global.config.conLimit,
@@ -47,7 +70,7 @@ readCluster.add('SLAVE1', {
 //});
 
 //Test the connection pool error
-var checkDBInstanceAvailablity = async (flag) => {
+/*var checkDBInstanceAvailablity = async (flag) => {
     var conPool;
     switch (flag) {
         case 0: conPool = writeCluster;
@@ -73,6 +96,28 @@ var checkDBInstanceAvailablity = async (flag) => {
         }
     });
 
+};*/
+
+//Test the connection pool error
+const checkDBInstanceAvailablityV1 = async (flag) => {
+    //console.log('checkDBInstanceAvailablityV1');
+    const conPool = (Number(flag) === 1) ? writeClusterForHealthCheck: readClusterForHealthCheck;   
+    return await new Promise((resolve) => {
+        try {
+            conPool.getConnection(function (err, conn) {
+                if (err) {
+                    //console.log('ERROR WHILE GETTING CONNECTON - ', err);
+                    resolve([1, err]);
+                } else {
+                    conn.release();
+                    resolve([0, 'up']);
+                }
+            });
+        } catch (exception) {
+            //console.log('Exception Occurred - ' , exception);
+            resolve([0, exception]);
+        }
+    });
 };
 
 var executeQuery = function (flag, queryString, request, callback) {
@@ -433,5 +478,5 @@ module.exports = {
     callDBProcedure: callDBProcedure,
     callDBProcedureR2: callDBProcedureR2,
     callDBProcedureRecursive: callDBProcedureRecursive,
-    checkDBInstanceAvailablity: checkDBInstanceAvailablity
+    checkDBInstanceAvailablity: checkDBInstanceAvailablityV1
 };
