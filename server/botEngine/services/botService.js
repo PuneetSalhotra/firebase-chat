@@ -8399,6 +8399,18 @@ async function removeAsOwner(request,data)  {
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
         // console.log({ length: childOpportunitiesArray.length });
         // console.log({ childOpportunitiesArray });
+        let errorMessageJSON = {
+            action: {
+                new: {
+                    message: "The following opportunity IDs couldn't be created because they already exist",
+                    opportunity_ids: []
+                },
+                correction: {
+                    message: "The following opportunity IDs couldn't be corrected because they don't exist",
+                    opportunity_ids: []
+                }
+            }
+        };
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
@@ -8429,6 +8441,7 @@ async function removeAsOwner(request,data)  {
                     search_string: childOpportunity.OppId
                 });
                 if (childOpportunityData.length === 0) {
+                    errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
                     continue;
                 }
                 childOpportunityID = childOpportunity.OppId
@@ -8440,13 +8453,30 @@ async function removeAsOwner(request,data)  {
             // if (error) {
             //     continue;
             // }
+            const serialNumber = childOpportunity.serialNum;
             if (childOpportunity.actionType === "new") {
-                ++childOpportunitiesCountOffset;
-                childOpportunityID = `${opportunityID}-${childOpportunitiesCountOffset}`;
+                // Do not depend on the total number of child orders created already
+                // for deciding on the serial number offset for naming the child orders
+                // ++childOpportunitiesCountOffset;
+                // childOpportunityID = `${opportunityID}-${childOpportunitiesCountOffset}`;
+
+                // Depend on the serial number explicitly entered by the user in the excel sheet
+                childOpportunityID = `${opportunityID}-${serialNumber}`;
+                // Check if the child opportunity already exists
+                const [errorTwo, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunityID
+                });
+                if (childOpportunityData.length > 0) {
+                    errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
                 childOpportunity.OppId = childOpportunityID;
             }
 
-            const serialNumber = childOpportunity.serialNum;
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
