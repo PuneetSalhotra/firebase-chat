@@ -8400,13 +8400,14 @@ async function removeAsOwner(request,data)  {
         // console.log({ length: childOpportunitiesArray.length });
         // console.log({ childOpportunitiesArray });
         let errorMessageJSON = {
+            errorExists: false,
             action: {
                 new: {
-                    message: "The following opportunity IDs couldn't be created because they already exist",
+                    message: "The following opportunity IDs couldn't be created because they already exist:\n",
                     opportunity_ids: []
                 },
                 correction: {
-                    message: "The following opportunity IDs couldn't be corrected because they don't exist",
+                    message: "The following opportunity IDs couldn't be corrected because they don't exist:\n",
                     opportunity_ids: []
                 }
             }
@@ -8441,6 +8442,7 @@ async function removeAsOwner(request,data)  {
                     search_string: childOpportunity.OppId
                 });
                 if (childOpportunityData.length === 0) {
+                    errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
                     continue;
                 }
@@ -8470,6 +8472,7 @@ async function removeAsOwner(request,data)  {
                     search_string: childOpportunityID
                 });
                 if (childOpportunityData.length > 0) {
+                    errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
@@ -8507,8 +8510,127 @@ async function removeAsOwner(request,data)  {
             });
         }
 
+        try {
+            if (!errorMessageJSON.errorExists) { throw new Error("NoErrorsFound") };
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`
+            // New
+            if (errorMessageJSON.action.new.opportunity_ids.length > 0) {
+                formattedTimelineMessage += errorMessageJSON.action.new.message;
+                formattedTimelineMessage += `${errorMessageJSON.action.new.opportunity_ids.join(', ')}\n\n`;
+            }
+            // Correction
+            if (errorMessageJSON.action.correction.opportunity_ids.length > 0) {
+                formattedTimelineMessage += errorMessageJSON.action.correction.message;
+                formattedTimelineMessage += `${errorMessageJSON.action.correction.opportunity_ids.join(', ')}\n\n`;
+            }
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+        } catch (error) {
+            logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+        }
+
         return;
     }
+
+    async function addTimelineMessage(request, workflowActivityID, timelineMessageObject = {}, streamTypeID = 325) {
+        // Make a 705 timeline transaction entry in the workflow file
+        // Get the Opportunity Workflow's details:
+        const [errorZero, workflowActivityData] = await getActivityDetailsAsync({
+            organization_id: request.organization_id,
+        }, workflowActivityID);
+
+        if (
+            Number(workflowActivityID) > 0 &&
+            workflowActivityData.length > 0
+        ) {
+            let workflowTimelineRequest = {
+                "organization_id": workflowActivityData[0].organization_id,
+                "account_id": workflowActivityData[0].account_id,
+                "workforce_id": workflowActivityData[0].workforce_id,
+                "asset_id": workflowActivityData[0].asset_id || 100,
+                "track_gps_datetime": util.getCurrentUTCTime(),
+                "activity_type_category_id": workflowActivityData[0].activity_type_category_id,
+                "activity_type_id": workflowActivityData[0].activity_type_id,
+                "activity_id": workflowActivityID,
+                "activity_timeline_collection": JSON.stringify(timelineMessageObject),
+                "activity_stream_type_id": streamTypeID,
+                "timeline_stream_type_id": streamTypeID,
+                "data_entity_inline": JSON.stringify(timelineMessageObject),
+                "operating_asset_first_name": "ESMS Integrations Services",
+                "datetime_log": util.getCurrentUTCTime(),
+                "message_unique_id": util.getMessageUniqueId(100),
+                "activity_access_role_id": 27,
+                "device_os_id": 5,
+                "service_version": 1,
+                "app_version": 1,
+                "activity_timeline_text": request.activity_timeline_text || "",
+                "activity_timeline_url": "",
+                "activity_parent_id": 0,
+                "activity_sub_type_id": -1,
+                "track_gps_accuracy": "0",
+                "track_gps_status": 0,
+                "activity_channel_category_id": 0,
+                "activity_channel_id": 0,
+                "track_latitude": "0.0",
+                "track_longitude": "0.0",
+                "track_altitude": 0,
+                "asset_message_counter": 0,
+                "flag_pin": 0,
+                "flag_priority": 0,
+                "flag_offline": 0,
+                "flag_retry": 0,
+            };
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowTimelineRequest);
+            } catch (error) {
+                debug_warn("addTimelineMessage | workflowTimelineRequest | addTimelineTransactionAsync | Error: ", error);
+            }
+        }
+    }
+
+    async function getActivityDetailsAsync(request, activityID) {
+
+        let responseData = [],
+            error = true;
+
+        var paramsArr;
+        if (Number(activityID > 0)) {
+            paramsArr = new Array(
+                activityID,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+        }
+        const queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function activityListSearchCUID(request) {
         let error = true,
