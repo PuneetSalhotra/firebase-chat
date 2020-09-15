@@ -6102,6 +6102,21 @@ async function removeAsOwner(request,data)  {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 74: // Composite Online List
+                    let fieldValue = row.field_value;
+                    try {
+                        if (typeof fieldValue === 'string') {
+                            params[18] = fieldValue;
+                            params[27] = fieldValue;
+                        }
+                        if (typeof fieldValue === 'object') {
+                            params[18] = JSON.stringify(fieldValue);
+                            params[27] = JSON.stringify(fieldValue);
+                        }
+                    } catch (err) {
+                        console.log('Data type 74 | Composite Online List: ', err);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
