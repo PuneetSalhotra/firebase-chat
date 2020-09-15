@@ -2811,6 +2811,21 @@ function ActivityTimelineService(objectCollection) {
                         console.log('data type 71 : ', err);
                     }
                     break;
+                case 74: // Composite Online List
+                    let fieldValue = row.field_value;
+                    try {
+                        if (typeof fieldValue === 'string') {
+                            params[18] = fieldValue;
+                            params[27] = fieldValue;
+                        }
+                        if (typeof fieldValue === 'object') {
+                            params[18] = JSON.stringify(fieldValue);
+                            params[27] = JSON.stringify(fieldValue);
+                        }
+                    } catch (err) {
+                        console.log('Data type 74 | Composite Online List: ', err);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3536,6 +3551,21 @@ async function addFormEntriesAsync(request) {
                 break;
             case 70: // LoV Datatype
                 params[18] = row.field_value;
+                break;
+            case 74: // Composite Online List
+                let fieldValue = row.field_value;
+                try {
+                    if (typeof fieldValue === 'string') {
+                        params[18] = fieldValue;
+                        params[27] = fieldValue;
+                    }
+                    if (typeof fieldValue === 'object') {
+                        params[18] = JSON.stringify(fieldValue);
+                        params[27] = JSON.stringify(fieldValue);
+                    }
+                } catch (err) {
+                    console.log('Data type 74 | Composite Online List: ', err);
+                }
                 break;
             }
 
