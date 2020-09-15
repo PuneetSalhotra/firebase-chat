@@ -4190,9 +4190,18 @@ function AssetService(objectCollection) {
         console.log('xlData :: ' + xlData.length);
         //console.log('xlData :: ' + JSON.stringify(xlData));
 
+
         if(xlData.length == 0){
             return ["error", "The CAF annexure is not filled in the required format,   please check and resubmit"];
         }
+
+        for(let row of xlData) {
+           if(!row.hasOwnProperty('One Time Charges (Rs.)')
+             || !row.hasOwnProperty('Existing Recurring Charges (Rs.)') || !row.hasOwnProperty('Recurring Charges (Rs.)')) {
+               return ["error", "The CAF annexure is not filled in the required format, please check and resubmit"];
+           }
+        }
+        
         for (let row = 2; row <= (xlData.length+1); row++) {
             //console.log('row ',row);
             for (const col of 'EFG') {
