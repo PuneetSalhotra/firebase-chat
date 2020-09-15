@@ -1748,7 +1748,7 @@ function BotService(objectCollection) {
                         try {
                             await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
                         } catch (error) {
-                            logger.error("[Bulk Feasibility Excel Parser Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
@@ -6101,6 +6101,21 @@ async function removeAsOwner(request,data)  {
                     break;
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
+                    break;
+                case 74: // Composite Online List
+                    let fieldValue = row.field_value;
+                    try {
+                        if (typeof fieldValue === 'string') {
+                            params[18] = fieldValue;
+                            params[27] = fieldValue;
+                        }
+                        if (typeof fieldValue === 'object') {
+                            params[18] = JSON.stringify(fieldValue);
+                            params[27] = JSON.stringify(fieldValue);
+                        }
+                    } catch (err) {
+                        console.log('Data type 74 | Composite Online List: ', err);
+                    }
                     break;
             }
 

@@ -1217,6 +1217,21 @@ function FormConfigService(objCollection) {
                             console.log('field alter data type 71 : ', err);
                         }
                         break;
+                    case 74: // Composite Online List
+                        let fieldValue = row.field_value;
+                        try {
+                            if (typeof fieldValue === 'string') {
+                                params[18] = fieldValue;
+                                params[27] = fieldValue;
+                            }
+                            if (typeof fieldValue === 'object') {
+                                params[18] = JSON.stringify(fieldValue);
+                                params[27] = JSON.stringify(fieldValue);
+                            }
+                        } catch (err) {
+                            console.log('Data type 74 | Composite Online List: ', err);
+                        }
+                        break;
                 }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -1238,7 +1253,7 @@ function FormConfigService(objCollection) {
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
+                 let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
                     global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
                 }
