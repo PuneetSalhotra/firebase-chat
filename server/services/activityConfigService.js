@@ -1067,7 +1067,27 @@ function ActivityConfigService(db,util,objCollection) {
 
         let hasSeqNo = generatedAccountData.has_sequence_number;
         let accountCode = generatedAccountData.account_code;
-
+        let panNumber = generatedAccountData.panNumber;
+        let gstNumber = generatedAccountData.gstNumber;
+        let checkPan = "";
+        if(panNumber!=null||panNumber!=""){
+          checkPan = panNumber.toString();
+        }
+        else if(gstNumber!=null||gstNumber!=""){
+         checkPan = gstNumber.substring(2,12);
+        }
+        else{
+            checkPan =""
+        }
+                //Check the uniqueness of the account code
+                
+                let panExist = await checkForPanNumberExistence(request,checkPan);
+                
+                if(panExist) {
+                    responseData.push({'message': 'Error in Checking pan card!'});
+                    return [true,responseData];
+                }
+        
         //Check the generated code is unique or not?
         let [err,accountData] = await checkWhetherAccountCodeExists(accountCode);
         if(err) {
@@ -1086,7 +1106,8 @@ function ActivityConfigService(db,util,objCollection) {
             //increment the sequential number by 1 and reverify the uniqueness of account code.
 
             let tempObj;
-            let newAccountCode;            
+            let newAccountCode; 
+                    
             while(true) { //Runs until it finds a unique account code               
 
                 //Increment the sequential ID
@@ -1094,7 +1115,7 @@ function ActivityConfigService(db,util,objCollection) {
                 newAccountCode = tempObj.account_code;
                 console.log('*******************');
                 console.log('New Account Code : ', newAccountCode);
-
+                
                 //Check the uniqueness of the account code
                 let [err,accountData] = await checkWhetherAccountCodeExists(newAccountCode);
                 console.log('**********', accountData);
@@ -1154,11 +1175,29 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
+    async function checkForPanNumberExistence(request,panNumber) {
+        let error = true,
+            dataExists = false;
+
+        request.search_string = panNumber.trim();
+        request.flag = 1;
+
+        let [err,response] = await self.searchDuplicateWorkflow(request);
+        
+        if(response.length > 0) {
+            dataExists = true;
+        }
+
+        return dataExists;
+    }
+
     async function generateAccountCode(request,botInlineData) {
         let responseData = {};
 
         let activityTypeID = Number(request.activity_type_id);
         let accountCode = "";
+        let gstNumber = "";
+        let panNumber = "";
 
         let formID = Number(request.activity_form_id) || Number(request.form_id);
         let hasSeqNo = 0;
@@ -1181,12 +1220,17 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
 
             case 150442://GE - VGE Segment
+            
                 const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
-
+                
+                const getPanNumber = await getFieldValueUsingFieldIdV1(request,formID,61910);
+                const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,61908);
+                console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
-
+                panNumber = getPanNumber;
+                gstNumber = getGstNumber;
                 accountCode += 'V-';
                 accountCode += ((geCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-'
@@ -1272,7 +1316,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setSmeSeqNumber(0);
                     accountCode += '0000';
                 } else {
-                    accountCode += (smeSeqNumber.toString()).padEnd(4,'0');
+                    accountCode += (smeSeqNumber.toString()).padStart(4,'0');
                 }
 
                 accountCode += '-'
@@ -1351,7 +1395,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setVICSSeqNumber(0);
                     accountCode += '000000';
                 } else {
-                    accountCode += (vicsSeqNumber.toString()).padEnd(6,'0');
+                    accountCode += (vicsSeqNumber.toString()).padStart(6,'0');
                 }
                 console.log('from cache vicsSeqNumber : ',vicsSeqNumber);
                 break;
@@ -1417,7 +1461,7 @@ function ActivityConfigService(db,util,objCollection) {
                     await cacheWrapper.setSohoSeqNumber(0);
                     accountCode += '00000';
                 } else {
-                    accountCode += (sohoSeqNumber.toString()).padEnd(5,'0');
+                    accountCode += (sohoSeqNumber.toString()).padStart(5,'0');
                 }
                 console.log('After processsing sohoSeqNumber : ',sohoSeqNumber);
                 break;
@@ -1425,6 +1469,8 @@ function ActivityConfigService(db,util,objCollection) {
 
         responseData.has_sequence_number = hasSeqNo;
         responseData.account_code = accountCode;
+        responseData.panNumber = panNumber;
+        responseData.gstNumber = gstNumber;
 
         return responseData;
     }
