@@ -1141,7 +1141,7 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('Final Account Code : ',accountCode);
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
-        responseData.push({'generated_account_code' : accountCode});
+        responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber,'gst_number':gstNumber});
 
         if(Number(is_from_integrations) === 1) {
             //Update the generated Account code in two places
@@ -1238,10 +1238,10 @@ function ActivityConfigService(db,util,objCollection) {
 
                 const laPanFID = Number(botInlineData.pan_number);
                 const laGstFID = Number(botInlineData.gst_number);
-
+              
                 const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,laPanFID);
                 const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
-                console.log("pan and gst numbers",getPanNumber,getGstNumber)
+                console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
 
