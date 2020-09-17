@@ -1094,8 +1094,8 @@ function ActivityConfigService(db,util,objCollection) {
 
                 }
         //Check the generated code is unique or not?
-        let [err,accountData] = await checkWhetherAccountCodeExists(accountCode);
-        if(err) {
+        let [err1,accountData] = await checkWhetherAccountCodeExists(accountCode);
+        if(err1) {
             responseData.push({'message': 'Error in Checking Acount Code!'});
             return [true,responseData];
         }
@@ -1236,8 +1236,11 @@ function ActivityConfigService(db,util,objCollection) {
                 const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
-                const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,61910);
-                const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,61908);
+                const laPanFID = Number(botInlineData.pan_number);
+                const laGstFID = Number(botInlineData.gst_number);
+
+                const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,laPanFID);
+                const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
@@ -1257,9 +1260,12 @@ function ActivityConfigService(db,util,objCollection) {
             
                 const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
+
+                const gePanFID = Number(botInlineData.pan_number);
+                const geGstFID = Number(botInlineData.gst_number);
                 
-                const getPanNumber = await getFieldValueUsingFieldIdV1(request,formID,61910);
-                const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,61908);
+                const getPanNumber = await getFieldValueUsingFieldIdV1(request,formID,gePanFID);
+                const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,geGstFID);
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);

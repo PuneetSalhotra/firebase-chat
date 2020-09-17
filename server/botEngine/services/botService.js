@@ -6079,6 +6079,24 @@ async function removeAsOwner(request,data)  {
                 case 39: //Flag
                     params[11] = row.field_value;
                     break;
+                case 57: //Workflow reference                        
+                    //params[27] = row.field_value;                        
+                    if (typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[18] = row.field_value;
+                        try {
+                            let tempVar = (row.field_value).split('|');
+                            let tempObj = {};
+                            tempObj[tempVar[0]] = tempVar[1];
+                            // p_entity_text_2 19
+                            params[19] = tempVar[4] || tempVar[2] || "";
+                            params[27] = JSON.stringify(tempObj);
+                        } catch (err) {
+                            console.log('ERROR in field edit - 57 : ', err);
+                        }
+                    }
+                    break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
                     break;
