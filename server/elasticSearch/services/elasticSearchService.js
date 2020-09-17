@@ -481,7 +481,9 @@ function CommnElasticService(objectCollection) {
                 asset_id: Number(request.asset_id),
                 activity_title: request.activity_title,
                 activity_title_expression : request.activityTitleExpression,
-                activity_id: request.workflow_activity_id
+                activity_id: request.workflow_activity_id,
+                activity_cuid_1:request.cuid_1,
+                activity_cuid_2:request.cuid_2
             }
         });
         return [error, responseData];
