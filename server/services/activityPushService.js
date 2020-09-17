@@ -20,7 +20,7 @@ function ActivityPushService(objectCollection) {
         var pushString = {};
         var extraData = {};
         var msg = {}; //Pubnub Push String
-        var smsString = '';
+        var smsString = '', attachments = [], content = "", message = '';
         //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
         msg.activity_id = request.activity_id;
@@ -205,14 +205,31 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_unread';
 
-                                pushString.title = senderName;
                                 pushString.description = 'made you the owner of: ' + activityTitle;
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    message = activityTimelineCollection.content;
+                                } catch (error) {
+                                    console.log('Error in case 16 activityPushService : ', error);
+                                }
+                                pushString.title = activityTitle;
+                                pushString.subtitle = message;
+                                pushString.body = senderName;
                                 break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_unread';
 
-                                pushString.title = senderName;
+                                // pushString.title = senderName;
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    message = activityTimelineCollection.content;
+                                } catch (error) {
+                                    console.log('Error in case 16 activityPushService : ', error);
+                                }
+                                pushString.title = activityTitle;
+                                pushString.subtitle = message;
+                                pushString.body = senderName;
                                 pushString.description = 'Has added an update to - ' + activityTitle;
                                 if (Number(request.activity_sub_type_id) === 1)
                                     smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
@@ -225,7 +242,16 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_unread';
 
-                                pushString.title = senderName;
+                                // pushString.title = senderName;
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    message = activityTimelineCollection.content;
+                                } catch (error) {
+                                    console.log('Error in case 16 activityPushService : ', error);
+                                }
+                                pushString.title = activityTitle;
+                                pushString.subtitle = message;
+                                pushString.body = senderName;
                                 (Number(request.owner_asset_id) === 0) ? //means unassigning
                                     pushString.description = 'Task: ' + activityTitle + ' is unassigned' :
                                     pushString.description = 'Task: ' + activityTitle + ' is assigned';
@@ -239,7 +265,16 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_unread';
 
-                                pushString.title = senderName;
+                                // pushString.title = senderName;
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    message = activityTimelineCollection.content;
+                                } catch (error) {
+                                    console.log('Error in case 16 activityPushService : ', error);
+                                }
+                                pushString.title = activityTitle;
+                                pushString.subtitle = message;
+                                pushString.body = senderName;
                                 //pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
                                 pushString.description = activityTitle + ' has been shared to collaborate';
                                 if (Number(request.activity_sub_type_id) === 1) {
@@ -259,6 +294,7 @@ function ActivityPushService(objectCollection) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 }
                                 break;
+
                             //////////////////////////
 
                         }
@@ -334,11 +370,18 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 16;
                                 msg.type = 'activity_unread';
 
+                                message = 'has sent u a message';
+                                try {
+                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    message = activityTimelineCollection.content;
+                                } catch (error) {
+                                    console.log('Error in case 16 activityPushService : ', error);
+                                }
                                 pushString.title = senderName;
                                 pushString.description = 'has started a conversation with you';
 
                                 pushString.subtitle = 'has started a conversation with you';
-                                pushString.body = 'has started a conversation with you';
+                                pushString.body = message;
                                 break;
 
                             case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -347,7 +390,7 @@ function ActivityPushService(objectCollection) {
                                 //pushString.title = senderName;
                                 //pushString.description = 'has sent u a message';
 
-                                let message = 'has sent u a message';
+                                message = 'has sent u a message';
                                 try {
                                     let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
                                     message = activityTimelineCollection.content;
@@ -372,14 +415,21 @@ function ActivityPushService(objectCollection) {
                     case 27:   // Group: Conversation
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/participant/access/set':
+                                attachments = [], content = "";
+                                try {
+                                    const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    attachments = activityTimelineCollection.attachments;
+                                    content = activityTimelineCollection.content;
+
+                                } catch (error) { }
+
                                 msg.activity_type_category_id = 27;
                                 msg.type = 'activity_unread';
-
-                                pushString.title = senderName;
-                                pushString.description = 'has added you into a group conversation';
-
-                                pushString.subtitle = 'has added you into a group conversation';
-                                pushString.body = 'has added you into a group conversation';
+                                msg.description = `Added text in ${activityTitle}.`;
+                                pushString.description = `${content} - ${senderName}`;
+                                pushString.title = activityTitle;
+                                pushString.subtitle = content;
+                                pushString.body = senderName;
                                 break;
 
                             case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -387,25 +437,22 @@ function ActivityPushService(objectCollection) {
                                 // Push Notification
                                 //pushString.title = senderName;
                                 //pushString.description = 'has sent a message';
-                                let message = 'has sent u a message';
+                                message = 'has sent u a message';
+                                attachments = [], content = "";
                                 try {
-                                    let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
-                                    message = activityTimelineCollection.content;
-                                } catch (error) { 
-                                    console.log('Error in case 27 activityPushService : ', error);
-                                }
+                                    const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    attachments = activityTimelineCollection.attachments;
+                                    content = activityTimelineCollection.content;
 
-                                pushString.title = senderName;
-                                //pushString.subtitle = 'has sent a message';
-                                //pushString.description = 'has sent a message';
-                                pushString.subtitle = message;
-                                pushString.description = message;
-                                pushString.body = activityTitle;
+                                } catch (error) { }
 
-                                // PubNub
                                 msg.activity_type_category_id = 27;
-                                msg.description = message;
                                 msg.type = 'activity_unread';
+                                msg.description = `Added text in ${activityTitle}.`;
+                                pushString.description = `${content} - ${senderName}`;
+                                pushString.title = activityTitle;
+                                pushString.subtitle = content;
+                                pushString.body = senderName;
                                 break;
                         }
                         break;                        

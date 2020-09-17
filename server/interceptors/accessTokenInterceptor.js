@@ -147,10 +147,13 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
 
                     let userNameFromAccessToken = decoded.payload.username;
 
-                    //console.log(' ');                        
+                    console.log('&&&&&&&&&&&&&&&&');
+                    console.log(decoded.payload.iss);
+                    console.log('&&&&&&&&&&&&&&&&');
                             
-                    url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
-                    //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/ap-south-1_U5xHOaPMS/.well-known/jwks.json`;
+                    url = `${decoded.payload.iss}/.well-known/jwks.json`;
+                    //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
+                    //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/ap-south-1_DQ3ZEJi00/.well-known/jwks.json`;
                     console.log(url);
                             
                     https.get(url, (resp) => {
