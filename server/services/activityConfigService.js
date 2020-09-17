@@ -1081,13 +1081,18 @@ function ActivityConfigService(db,util,objCollection) {
         }
                 //Check the uniqueness of the account code
                 
-                let panExist = await checkForPanNumberExistence(request,checkPan);
+                let [err,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
+
                 
-                if(panExist) {
-                    responseData.push({'message': 'Error in Checking pan card!'});
+                if(err) {
+                    responseData.push({'message': 'Error in checking pan card'});
                     return [true,responseData];
                 }
-        
+                if(panresponse.length>0) {
+                    responseData.push({'message': 'Pan already exists!'});
+                    return [true,responseData];
+
+                }
         //Check the generated code is unique or not?
         let [err,accountData] = await checkWhetherAccountCodeExists(accountCode);
         if(err) {
@@ -1160,7 +1165,7 @@ function ActivityConfigService(db,util,objCollection) {
                     workforce_id: Number(request.workforce_id),
                     account_id: Number(request.account_id),
                     activity_id: Number(request.workflow_activity_id),
-                    asset_id: Number(request.asset_id)
+                    asset_id: Number(request.asset_id),
                     //operating_asset_first_name: "Sagar Pradhan",
                     //activity_title: "GALAXY MEDICATION",
                     //activity_type_name: "Account Management - SME",
@@ -1175,20 +1180,44 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
-    async function checkForPanNumberExistence(request,panNumber) {
-        let error = true,
-            dataExists = false;
-
-        request.search_string = panNumber.trim();
-        request.flag = 1;
-
-        let [err,response] = await self.searchDuplicateWorkflow(request);
+    async function checkForPanNumberExistenceElasticServer(request,panNumber) {
+        let error = false;
         
-        if(response.length > 0) {
-            dataExists = true;
-        }
+        let responseData=[]
 
-        return dataExists;
+            console.log('Searching elastisearch for pan number : ',panNumber);
+            const response = await client.search({
+                index: 'crawling_accounts',
+                body: {
+                    query: {
+                        match: {activity_cuid_1: panNumber}
+                        //"constant_score" : { 
+                        //    "filter" : {
+                        //        "term" : { 
+                        //            "activity_cuid_3": accountCode
+                        //        }
+                        //    }
+                        // }
+                    }
+                }
+            })
+    
+            console.log('response from ElastiSearch: ',response);
+            let totalRetrieved = (response.hits.hits).length;
+            console.log('Number of Matched Results : ',totalRetrieved);
+    
+            for(const i_iterator of response.hits.hits) {
+                console.log(i_iterator._source.activity_cuid_1);
+                if(i_iterator._source.activity_cuid_1 === panNumber) {
+                    
+                    responseData.push({'message': 'Found a Match!'});
+                    console.log('found a Match!');
+                }
+            }
+    
+            return [error,responseData];
+
+        
     }
 
     async function generateAccountCode(request,botInlineData) {
@@ -1207,9 +1236,14 @@ function ActivityConfigService(db,util,objCollection) {
                 const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
+                const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,61910);
+                const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,61908);
+                console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
 
+                panNumber = laPanNumber;
+                gstNumber = laGstNumber;
                 console.log('LA company Name : ',laCompanyName);
                 console.log('LA Group company Name : ',laGroupCompanyName);
 
