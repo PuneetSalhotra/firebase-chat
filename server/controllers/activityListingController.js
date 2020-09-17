@@ -899,6 +899,8 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    //With V1 old one actually bypasses the authentiation layer
+    //Hence we started using V1 to support cognito
     app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list/v1', (req, res) => {
         activityListingService.getOrganizationsOfANumber(req.headers, req.body, (err, data, statusCode) => {
             //statusCode = -3204;
@@ -1034,6 +1036,7 @@ function ActivityListingController(objCollection) {
         });
     });
 
+    //We started using V2 so that we can send -3204 in V1 and force the users to upgrade to the latest App
     app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list/v2', (req, res) => {
         activityListingService.getOrganizationsOfANumber(req.headers, req.body, (err, data, statusCode) => {
             if (err === false) {
