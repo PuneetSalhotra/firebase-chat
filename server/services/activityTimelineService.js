@@ -3458,7 +3458,9 @@ async function addFormEntriesAsync(request) {
                 try {
                     workflowReference = row.field_value.split('|');
                     params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
+                    //params[18] = workflowReference[1]; //Name
+                    params[18] = row.field_value; //This is coz during retrival we are using 18 to get entire string with pipe
+                    
                     // p_entity_text_2 19
                     params[19] = workflowReference[4] || workflowReference[2] || "";
                 } catch (err) {
