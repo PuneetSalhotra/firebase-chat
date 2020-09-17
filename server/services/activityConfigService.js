@@ -1238,10 +1238,10 @@ function ActivityConfigService(db,util,objCollection) {
 
                 const laPanFID = Number(botInlineData.pan_number);
                 const laGstFID = Number(botInlineData.gst_number);
-
+              
                 const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,laPanFID);
                 const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
-                console.log("pan and gst numbers",getPanNumber,getGstNumber)
+                console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
 
