@@ -5347,6 +5347,17 @@ function ActivityService(objectCollection) {
         console.log('In UpdateGroupAccountName Func');
         let groupaccountName = request.generated_group_account_name;
         console.log('Received GroupAccountName - ', groupaccountName);
+        
+        let panNumber ="";
+        let gstNumber = "";
+        if(request.pan_number||request.gst_number){
+         panNumber = request.pan_number;
+        console.log('receieved panNumber - ', panNumber);
+        
+
+         gstNumber = request.gst_number;
+        console.log('receieved gstNumber - ', gstNumber);
+        }
 
         let newReq = Object.assign({}, request);
         
@@ -5355,6 +5366,8 @@ function ActivityService(objectCollection) {
         activityCommonService.activityUpdateExpression(newReq);
 
         //Update in Elasti-Search
+        newReq.cuid_1 = panNumber;
+        newReq.cuid_2 = gstNumber;
         newReq.workflow_activity_id = request.activity_id;
         newReq.activityTitleExpression = groupaccountName;
         await elasticService.insertAccountName(newReq);

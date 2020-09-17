@@ -1646,9 +1646,7 @@ function AdminListingService(objectCollection) {
                 }
             }
 
-            if(!productActivityId) {
-                return [true, [{ message : "Product Activity Id not found" }]];
-            }
+            
             paramsArr = new Array(
               productActivityId,
               request.type_id,
