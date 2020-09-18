@@ -574,6 +574,16 @@ function AdminOpsController(objCollection) {
         }
     });    
 
+    app.post('/' + global.config.version + '/admin/asset/entity-mapping/set', async (req, res) => {
+        const [err, responseData] = await adminOpsService.assetAccessRoleMappingUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset/entity/mapping | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });    
+
     // To add dotted managers
     app.post('/' + global.config.version + '/admin/asset/manager/dotted/add', async (req, res) => {
         const [err, responseData] = await adminOpsService.addDottedManagerForAsset(req.body);
