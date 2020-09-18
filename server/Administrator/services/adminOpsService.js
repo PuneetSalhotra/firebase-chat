@@ -6630,6 +6630,35 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     } 
 
+    this.assetAccessRoleMappingUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.access_level_id,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+
+
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Move Employee Desk To Another Organization
     this.moveEmployeeDeskToAnotherOrganization = async function (request) {
         const organizationID = Number(request.organization_id),
