@@ -1072,10 +1072,10 @@ function ActivityConfigService(db,util,objCollection) {
         let hasAccountCode = generatedAccountData.hasAccountCode;
         let checkPan = "";
         if(panNumber!=null||panNumber!=""){
-          checkPan = panNumber.toString();
+          checkPan = panNumber.toUpperCase();
         }
         else if(gstNumber!=null||gstNumber!=""){
-         checkPan = gstNumber.substring(2,12);
+         checkPan = gstNumber.substring(2,12).toUpperCase();
         }
         else{
             checkPan =""
@@ -1144,7 +1144,7 @@ function ActivityConfigService(db,util,objCollection) {
     }
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
-        responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber,'gst_number':gstNumber});
+        responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
 
         if(Number(is_from_integrations) === 1) {
             //Update the generated Account code in two places
@@ -1270,7 +1270,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
-
+                
                 panNumber = laPanNumber;
                 gstNumber = laGstNumber;
                 console.log('LA company Name : ',laCompanyName);
@@ -1307,13 +1307,13 @@ function ActivityConfigService(db,util,objCollection) {
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
                 panNumber = getPanNumber;
                 gstNumber = getGstNumber;
-
+                
                 accountCode += 'V-';
                 accountCode += ((geCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-'
                 //accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
 
-                let geNewGroupCompanyName = laGroupCompanyName.replace(/\s/g, '').toLowerCase();
+                let geNewGroupCompanyName = geGroupCompanyName.replace(/\s/g, '').toLowerCase();
                 console.log('geNewGroupCompanyName - ',geNewGroupCompanyName);
 
                 if(geNewGroupCompanyName === 'genericparentgroup') {
@@ -1403,7 +1403,7 @@ function ActivityConfigService(db,util,objCollection) {
                 //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
                 //    smeTurnOver = 3;
                 //}
-                if(smeTurnOver==""){
+                if(panNumber!=""){
                     hasAccountCode=false;
                 }
                 accountCode += 'S-';
@@ -1523,7 +1523,8 @@ function ActivityConfigService(db,util,objCollection) {
                 let sohoGstNumber;
                 let sohoPanNumber;
 
-                for(const i of botInlineData){                    
+                for(const i of botInlineData){  
+                    console.log("each",botInlineData)                  
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
@@ -1546,13 +1547,14 @@ function ActivityConfigService(db,util,objCollection) {
                                            break;   
                         case 'pan_number': console.log(i.pan_number);
                                            sohoPanNumber = i.pan_number;
-                                           console.log("gst number",sohoPanNumber)
+                                           console.log("pan number",sohoPanNumber)
                                            panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoPanNumber);
                                             
                                            break;  
                     }
                 }
-                if(sohoTurnOver==""){
+                console.log("pan number",panNumber)
+                if(panNumber!=""){
                     hasAccountCode=false;
                 }
                 accountCode += 'D-';
@@ -1626,9 +1628,10 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        // console.log('formData - ', formData);
+        console.log('formData - ', formData);
 
         for(const fieldData of formData) {
+            
             if(Number(fieldData.field_id) === fieldID) {
                
                 console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
