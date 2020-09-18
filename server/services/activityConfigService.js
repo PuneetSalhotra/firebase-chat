@@ -1069,6 +1069,7 @@ function ActivityConfigService(db,util,objCollection) {
         let accountCode = generatedAccountData.account_code;
         let panNumber = generatedAccountData.panNumber;
         let gstNumber = generatedAccountData.gstNumber;
+        let hasAccountCode = generatedAccountData.hasAccountCode;
         let checkPan = "";
         if(panNumber!=null||panNumber!=""){
           checkPan = panNumber.toString();
@@ -1081,10 +1082,10 @@ function ActivityConfigService(db,util,objCollection) {
         }
                 //Check the uniqueness of the account code
                 
-                let [err,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
+                let [errpa,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
 
                 
-                if(err) {
+                if(errpa) {
                     responseData.push({'message': 'Error in checking pan card'});
                     return [true,responseData];
                 }
@@ -1093,6 +1094,7 @@ function ActivityConfigService(db,util,objCollection) {
                     return [true,responseData];
 
                 }
+         if(hasAccountCode){
         //Check the generated code is unique or not?
         let [err1,accountData] = await checkWhetherAccountCodeExists(accountCode);
         if(err1) {
@@ -1139,6 +1141,7 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
         console.log('Final Account Code : ',accountCode);
+    }
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber,'gst_number':gstNumber});
@@ -1157,6 +1160,27 @@ function ActivityConfigService(db,util,objCollection) {
             }
 
             //Update the same in ElastiSearch
+            if(!hasAccountCode){
+            client.updateByQuery({
+                index: 'crawling_accounts',
+                "body": {
+                    "query": {
+                        "match": {
+                            "activity_id": Number(request.workflow_activity_id)
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {
+                            "activity_cuid_1":panNumber,
+                            "activity_cuid_2":gstNumber
+                        }
+                    }
+                }
+            });
+        }
+        else{
             client.index({
                 index: 'crawling_accounts',
                 body: {
@@ -1165,7 +1189,7 @@ function ActivityConfigService(db,util,objCollection) {
                     workforce_id: Number(request.workforce_id),
                     account_id: Number(request.account_id),
                     activity_id: Number(request.workflow_activity_id),
-                    asset_id: Number(request.asset_id),
+                    asset_id: Number(request.asset_id)
                     //operating_asset_first_name: "Sagar Pradhan",
                     //activity_title: "GALAXY MEDICATION",
                     //activity_type_name: "Account Management - SME",
@@ -1173,6 +1197,8 @@ function ActivityConfigService(db,util,objCollection) {
                     //operating_asset_id: 44574,
                 }
             });
+
+        }
 
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
         }       
@@ -1227,7 +1253,7 @@ function ActivityConfigService(db,util,objCollection) {
         let accountCode = "";
         let gstNumber = "";
         let panNumber = "";
-
+        let hasAccountCode =true;
         let formID = Number(request.activity_form_id) || Number(request.form_id);
         let hasSeqNo = 0;
 
@@ -1302,6 +1328,8 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeSubIndustrySubID;
                 let smeTurnOverFID;
                 let smeTurnOver;
+                let smePanNumber;
+                let smeGstNumber;
 
                 for(const i of botInlineData){
                     //console.log(i);
@@ -1319,6 +1347,16 @@ function ActivityConfigService(db,util,objCollection) {
                                              smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
                                              
                                              break;
+                        case 'pan_number': console.log(i.pan_number);
+                                           smePanNumber = i.pan_number;
+                                           panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,smePanNumber);
+                                            
+                                           break;      
+                        case 'gst_number': console.log(i.gst_number);
+                                           smeGstNumber = i.gst_number;
+                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,smeGstNumber);
+                                            
+                                           break;                 
                         
                         case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
                                                         smeTurnOverFID = Number(i.micro_segment_turn_over);
@@ -1344,7 +1382,9 @@ function ActivityConfigService(db,util,objCollection) {
                 //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
                 //    smeTurnOver = 3;
                 //}
-
+                if(smeTurnOver==""){
+                    hasAccountCode=false;
+                }
                 accountCode += 'S-';
                 accountCode += ((smeCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
@@ -1459,6 +1499,8 @@ function ActivityConfigService(db,util,objCollection) {
 
                 let sohoTurnOverFID;
                 let sohoTurnOver;
+                let sohoGstNumber;
+                let sohoPanNumber;
 
                 for(const i of botInlineData){                    
                     switch(i.field_name){
@@ -1472,9 +1514,26 @@ function ActivityConfigService(db,util,objCollection) {
                                                         sohoTurnOverFID = Number(i.micro_segment_turn_over);                
                                                         sohoTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoTurnOverFID);
                                                         break;
+                                                       
+                                                         
+                                                             
+                        case 'gst_number': console.log(i.gst_number);
+                                           sohoGstNumber = i.gst_number;
+                                           console.log("gst number",sohoGstNumber)
+                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoGstNumber);
+                                                         
+                                           break;   
+                        case 'pan_number': console.log(i.pan_number);
+                                           sohoPanNumber = i.pan_number;
+                                           console.log("gst number",sohoPanNumber)
+                                           panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoPanNumber);
+                                            
+                                           break;  
                     }
                 }
-
+                if(sohoTurnOver==""){
+                    hasAccountCode=false;
+                }
                 accountCode += 'D-';
                 accountCode += ((sohoCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
@@ -1511,6 +1570,7 @@ function ActivityConfigService(db,util,objCollection) {
         responseData.account_code = accountCode;
         responseData.panNumber = panNumber;
         responseData.gstNumber = gstNumber;
+        responseData.hasAccountCode = hasAccountCode;
 
         return responseData;
     }
@@ -1524,15 +1584,22 @@ function ActivityConfigService(db,util,objCollection) {
 
         let fieldValue = "";
         let formData;
-
+      
+            console.log(request.form_id,formID)
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
             formData = await getFormInlineData({
                 organization_id: request.organization_id,
                 account_id: request.account_id,
                 workflow_activity_id: request.workflow_activity_id,
                 form_id: formID
             },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
         } else {
             //Take the inline data from the request
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
@@ -1558,7 +1625,7 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
             }
         }
-
+    
         console.log('Field Value B4: ',fieldValue);
         fieldValue = fieldValue.split(" ").join("");
         console.log('Field Value After: ',fieldValue);
@@ -1575,7 +1642,7 @@ function ActivityConfigService(db,util,objCollection) {
 
         let fieldValue = "";
         let formData;
-
+        
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
             formData = await getFormInlineData({
@@ -1609,6 +1676,7 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
             }
         }
+    
 
         console.log('Field Value B4: ',fieldValue);
         // fieldValue = fieldValue.split(" ").join("");

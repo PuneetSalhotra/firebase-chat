@@ -481,9 +481,7 @@ function CommnElasticService(objectCollection) {
                 asset_id: Number(request.asset_id),
                 activity_title: request.activity_title,
                 activity_title_expression : request.activityTitleExpression,
-                activity_id: request.workflow_activity_id,
-                activity_cuid_1:request.cuid_1,
-                activity_cuid_2:request.cuid_2
+                activity_id: request.workflow_activity_id
             }
         });
         return [error, responseData];
@@ -503,7 +501,9 @@ function CommnElasticService(objectCollection) {
                 account_id: Number(request.account_id),
                 activity_id: Number(request.workflow_activity_id),
                 asset_id: Number(request.asset_id),
-                activity_title_expression: activityTitleExpression
+                activity_title_expression: activityTitleExpression,
+                activity_cuid_1:request.cuid_1,
+                activity_cuid_2:request.cuid_2
                 //operating_asset_first_name: "Sagar Pradhan",
                 //activity_title: "GALAXY MEDICATION",
                 //activity_type_name: "Account Management - SME",
