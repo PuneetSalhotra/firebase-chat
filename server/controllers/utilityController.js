@@ -1,3 +1,4 @@
+const request = require('request');
 /*
  *author: Sri Sai Venkatesh 
  * 
@@ -400,5 +401,35 @@ function UtilityController(objCollection) {
         }
     });
 
+    //Uploading XLSB file 
+    //Added by Akshay Singh
+    app.post('/'+global.config.version+'/excel/s3/upload',async(req,res)=>{
+        let filePath = req.body.filePath;
+        console.log("File Path"+filePath);
+        let [err,data] = await util.uploadExcelFileToS3(req.body,filePath);
+        console.log(err);
+        console.log(data);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    //Downloading XLSB file 
+    //Added by Akshay Singh
+    app.post('/'+global.config.version+'/excel/s3/download',async(req,res)=>{
+        let fileKey = req.body.fileKey;
+        let pathToDownload = req.body.pathToDownload;
+        let fileNameToCreate = req.body.fileNameToCreate;
+
+        let [err,data] = await util.downloadExcelFileFromS3(req.body,fileKey,pathToDownload,fileNameToCreate);
+        console.log(err,data);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
 }
 module.exports = UtilityController;

@@ -5316,6 +5316,18 @@ function ActivityService(objectCollection) {
         let generatedAccountCode = request.generated_account_code;
         console.log('receieved generatedAccountCode - ', generatedAccountCode);
 
+        let panNumber ="";
+        let gstNumber = "";
+        if(request.pan_number||request.gst_number){
+         panNumber = request.pan_number;
+        console.log('receieved panNumber - ', panNumber);
+        
+
+         gstNumber = request.gst_number;
+        console.log('receieved gstNumber - ', gstNumber);
+        }
+        
+
         let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         console.log('receieved activityTitleExpression - ', activityTitleExpression);
 
@@ -5337,9 +5349,11 @@ function ActivityService(objectCollection) {
         } catch(error) {
             logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
         }
+        newReq.cuid_1 = panNumber;
+        newReq.cuid_2 = gstNumber;
 
         //Update in Elasti-Search
-        await elasticService.updateAccountCode(request, generatedAccountCode, activityTitleExpression);
+        await elasticService.updateAccountCode(newReq, generatedAccountCode, activityTitleExpression);
         return [false, []];
     }
 
@@ -5348,16 +5362,6 @@ function ActivityService(objectCollection) {
         let groupaccountName = request.generated_group_account_name;
         console.log('Received GroupAccountName - ', groupaccountName);
         
-        let panNumber ="";
-        let gstNumber = "";
-        if(request.pan_number||request.gst_number){
-         panNumber = request.pan_number;
-        console.log('receieved panNumber - ', panNumber);
-        
-
-         gstNumber = request.gst_number;
-        console.log('receieved gstNumber - ', gstNumber);
-        }
 
         let newReq = Object.assign({}, request);
         
@@ -5366,8 +5370,6 @@ function ActivityService(objectCollection) {
         activityCommonService.activityUpdateExpression(newReq);
 
         //Update in Elasti-Search
-        newReq.cuid_1 = panNumber;
-        newReq.cuid_2 = gstNumber;
         newReq.workflow_activity_id = request.activity_id;
         newReq.activityTitleExpression = groupaccountName;
         await elasticService.insertAccountName(newReq);
