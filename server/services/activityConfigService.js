@@ -1816,6 +1816,7 @@ function ActivityConfigService(db,util,objCollection) {
         for(const i_iterator of response.hits.hits) {
             console.log(request.activityTitleExpression, '-' ,i_iterator._source.activity_title_expression);
             if(i_iterator._source.activity_title_expression === request.activityTitleExpression) {
+                error = true;
                 responseData.push({'message': `Found a Match! ${request.activityTitleExpression}`});
                 flagFound = 1;
                 console.log('found a Match!');
