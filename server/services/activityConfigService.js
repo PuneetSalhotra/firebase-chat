@@ -1274,12 +1274,22 @@ function ActivityConfigService(db,util,objCollection) {
                 panNumber = laPanNumber;
                 gstNumber = laGstNumber;
                 console.log('LA company Name : ',laCompanyName);
-                console.log('LA Group company Name : ',laGroupCompanyName);
+                console.log('LA Group company Name : ',laGroupCompanyName);               
 
                 accountCode += 'C-';
                 accountCode += ((laCompanyName.substring(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
-                accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();
+                //accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();
+
+                let laNewGroupCompanyName = laGroupCompanyName.replace(/\s/g, '').toLowerCase();
+                console.log('laNewGroupCompanyName - ',laNewGroupCompanyName);
+
+                if(laNewGroupCompanyName === 'genericparentgroup') {
+                    //then take the name from the group account name
+                    accountCode += ((laCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                } else {
+                    accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                }
                 break;
 
             case 150442://GE - VGE Segment
@@ -1297,10 +1307,21 @@ function ActivityConfigService(db,util,objCollection) {
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
                 panNumber = getPanNumber;
                 gstNumber = getGstNumber;
+
                 accountCode += 'V-';
                 accountCode += ((geCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-'
-                accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                //accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+
+                let geNewGroupCompanyName = laGroupCompanyName.replace(/\s/g, '').toLowerCase();
+                console.log('geNewGroupCompanyName - ',geNewGroupCompanyName);
+
+                if(geNewGroupCompanyName === 'genericparentgroup') {
+                    //then take the name from the group account name
+                    accountCode += ((geCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                } else {
+                    accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                }
                 break;
 
             case 149809: //SME                         
@@ -1783,12 +1804,32 @@ function ActivityConfigService(db,util,objCollection) {
             responseData = [],
             response = [];
         request.activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
-        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });        
-        if(!error) {
+        console.log('activityTitleExpression - ', request.activityTitleExpression);
+        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });
+
+        console.log(response.hits.hits);
+
+        let flagFound = 0;
+        for(const i_iterator of response.hits.hits) {
+            console.log(request.activityTitleExpression, '-' ,i_iterator._source.activity_title_expression);
+            if(i_iterator._source.activity_title_expression === request.activityTitleExpression) {
+                responseData.push({'message': `Found a Match! ${request.activityTitleExpression}`});
+                flagFound = 1;
+                console.log('found a Match!');
+                break;
+            }
+        }
+
+        if(flagFound === 0) {
+            responseData.push({'generated_group_account_name': request.activityTitleExpression});
+        }
+
+        /*if(!error) {
             if(response.hits.hits.length){
+                console.log(response);
                 error = true;
                 //responseData = {'message': 'Found a Match!'};
-                responseData.push({'message': 'Found a Match!'});
+                responseData.push({'message': `Found a Match! ${request.activityTitleExpression}`});
             } else {
                 //[error, response] = await elasticService.insertAccountName(request);
                 if(!error) {
@@ -1802,7 +1843,8 @@ function ActivityConfigService(db,util,objCollection) {
             }
         } else {
             error = true;
-        }
+        }*/
+
         return [error,responseData];
     }
 
