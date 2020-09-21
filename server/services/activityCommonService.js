@@ -368,6 +368,8 @@ this.getAllParticipantsAsync = async (request) => {
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
+            case 728: // Report form BC
+            case 729: // Report form BC Edit
             case 713:
             case 714:
             case 715:
@@ -609,6 +611,8 @@ this.getAllParticipantsAsync = async (request) => {
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
+            case 728: // Report form BC
+            case 729: // Report form BC Edit
             case 713: // form field alter
             case 714: //Bot Firing External API
             case 715:
@@ -4282,6 +4286,8 @@ this.getAllParticipantsAsync = async (request) => {
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
+            case 728: // Report form BC
+case 729: // Report form BC Edit
             case 713: // form field alter
             case 714: //Bot Firing External API
             case 715:
@@ -4576,6 +4582,8 @@ this.getAllParticipantsAsync = async (request) => {
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
+            case 728: // Report form BC
+case 729: // Report form BC Edit
             case 713:
             case 714:
             case 715:
