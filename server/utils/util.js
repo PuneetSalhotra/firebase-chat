@@ -68,6 +68,7 @@ const PubnubWrapper = require('./pubnubWrapper');
 const pubnubWrapper = new PubnubWrapper();
 
 const EWS = require('node-ews');
+const { response } = require('express');
 
 // exchange server connection info
 /*const ewsConfig = {
@@ -1612,7 +1613,7 @@ function Util(objectCollection) {
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
 
-         console.log('HERE I AM ', fileName);        
+         console.log('HERE I AM ', fileName);
 
         return await new Promise((resolve, reject)=>{
             setTimeout(() =>{
@@ -2286,6 +2287,66 @@ function Util(objectCollection) {
 
         return [error, responseData];        
     };
+
+    //Uploading XLSB file 
+    //Added by Akshay Singh
+    this.uploadExcelFileToS3 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
+            const params = {
+              Bucket: await this.getS3BucketName(request),
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+
+    this.downloadExcelFileFromS3 = async function(request,fileKey,pathToDownload,fileNameToCreate){
+
+        try{
+            const s3 = new AWS.S3();
+            
+            const params = {
+              Bucket: await this.getS3BucketName(request),
+              Key: fileKey,
+            };
+          
+
+            let responseData = await s3.getObject(params).promise();
+            console.log(responseData);
+
+            const fs1 = require("fs").promises;
+            let error = await fs1.writeFile(pathToDownload+"\\"+fileNameToCreate, responseData.Body);
+            
+            if(error)
+            {
+                return [error,[{status :false ,message : "Unsuccessfull"}]];
+            }
+            else{
+                return [false,[{status : true,message : "File Created Successfully!"}]];
+            }
+
+        }catch(e)
+        {
+            return[e,[{}]];
+        }      
+    }
 
 }
 

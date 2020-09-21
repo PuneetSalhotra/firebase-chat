@@ -5496,8 +5496,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     })
                     .catch((err) => {
                         error = err;
-                    });                 
+                    });
+            if(error.code == "ER_DUP_ENTRY") {
+                request.log_state = 2;
+                error = false;
+                [error, responseData] = await this.activityActivityMappingArchive(request, referredActivityID);
             }
+        }
         return [error, responseData];   
     };
 
@@ -5773,6 +5778,33 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     };
+
+    this.setAtivityOwnerFlag = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.activity_id,
+          request.target_asset_id,
+          request.organization_id,
+          request.owner_flag || 0,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                await botService.callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
+    }
 
 }
 

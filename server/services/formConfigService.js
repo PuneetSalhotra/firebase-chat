@@ -3222,6 +3222,7 @@ function FormConfigService(objCollection) {
 
     this.formFieldDefinitionUpdate = async function (request) {
         let fieldDefinitions = [];
+        console.log("request.fields_data", request.fields_data);
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
         request.update_type_id = 28;
@@ -5961,7 +5962,7 @@ function FormConfigService(objCollection) {
 
             if(fieldLevelBots.length) {
                 for(let row of fieldLevelBots) {
-                    if(row.bot_operation_type_id == 3) {
+                    if(row.bot_operation_type_id == 32) {
                         botInlineData = JSON.parse(row.bot_operation_inline_data);
                         break;
                     }

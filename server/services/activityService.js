@@ -4167,8 +4167,12 @@ function ActivityService(objectCollection) {
                                         });
                                 } else {
 
+                                    console.log('*******************************************************');
+                                    console.log('Number(request.activity_type_category_id) - ', Number(request.activity_type_category_id));
+                                    console.log('*******************************************************');
+                                    
                                     //do this only for activity_type_category_id= 48
-                                    if(Number(request.activity_type_category_id) === 48) {
+                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53) {
 
                                         // Insert activity to the queue in the queue_activity_mapping table
                                         await activityCommonService
@@ -4193,7 +4197,7 @@ function ActivityService(objectCollection) {
                                         });
                                         
                                     } else {
-                                        console.log('The activity_type_category_id is not 48');
+                                        console.log('The activity_type_category_id is either not 48');
                                     }
                                     
                                 }
@@ -5312,6 +5316,18 @@ function ActivityService(objectCollection) {
         let generatedAccountCode = request.generated_account_code;
         console.log('receieved generatedAccountCode - ', generatedAccountCode);
 
+        let panNumber ="";
+        let gstNumber = "";
+        if(request.pan_number||request.gst_number){
+         panNumber = request.pan_number;
+        console.log('receieved panNumber - ', panNumber);
+        
+
+         gstNumber = request.gst_number;
+        console.log('receieved gstNumber - ', gstNumber);
+        }
+        
+
         let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         console.log('receieved activityTitleExpression - ', activityTitleExpression);
 
@@ -5333,9 +5349,11 @@ function ActivityService(objectCollection) {
         } catch(error) {
             logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
         }
+        newReq.cuid_1 = panNumber;
+        newReq.cuid_2 = gstNumber;
 
         //Update in Elasti-Search
-        await elasticService.updateAccountCode(request, generatedAccountCode, activityTitleExpression);
+        await elasticService.updateAccountCode(newReq, generatedAccountCode, activityTitleExpression);
         return [false, []];
     }
 
@@ -5343,6 +5361,7 @@ function ActivityService(objectCollection) {
         console.log('In UpdateGroupAccountName Func');
         let groupaccountName = request.generated_group_account_name;
         console.log('Received GroupAccountName - ', groupaccountName);
+        
 
         let newReq = Object.assign({}, request);
         
@@ -5356,6 +5375,32 @@ function ActivityService(objectCollection) {
         await elasticService.insertAccountName(newReq);
 
         return [false, []];
+    }
+
+    this.addBulkSummary = async(request) => {
+        let responseData = [],
+			error = true;
+
+		const paramsArr = [
+                request.parent_activity_id,
+                request.summary_data || '{}',
+                request.comments,//Added by Akshay Singh
+                request.asset_id,
+                util.getCurrentUTCTime()
+            ];
+		const queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_insert', paramsArr);
+		
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
     }
 
 }

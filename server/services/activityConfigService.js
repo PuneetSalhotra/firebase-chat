@@ -1067,10 +1067,37 @@ function ActivityConfigService(db,util,objCollection) {
 
         let hasSeqNo = generatedAccountData.has_sequence_number;
         let accountCode = generatedAccountData.account_code;
+        let panNumber = generatedAccountData.panNumber;
+        let gstNumber = generatedAccountData.gstNumber;
+        let hasAccountCode = generatedAccountData.hasAccountCode;
+        let checkPan = "";
+        if(panNumber!=null||panNumber!=""){
+          checkPan = panNumber.toUpperCase();
+        }
+        else if(gstNumber!=null||gstNumber!=""){
+         checkPan = gstNumber.substring(2,12).toUpperCase();
+        }
+        else{
+            checkPan =""
+        }
+                //Check the uniqueness of the account code
+                
+                let [errpa,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
 
+                
+                if(errpa) {
+                    responseData.push({'message': 'Error in checking pan card'});
+                    return [true,responseData];
+                }
+                if(panresponse.length>0) {
+                    responseData.push({'message': 'Pan already exists!'});
+                    return [true,responseData];
+
+                }
+         if(hasAccountCode){
         //Check the generated code is unique or not?
-        let [err,accountData] = await checkWhetherAccountCodeExists(accountCode);
-        if(err) {
+        let [err1,accountData] = await checkWhetherAccountCodeExists(accountCode);
+        if(err1) {
             responseData.push({'message': 'Error in Checking Acount Code!'});
             return [true,responseData];
         }
@@ -1086,7 +1113,8 @@ function ActivityConfigService(db,util,objCollection) {
             //increment the sequential number by 1 and reverify the uniqueness of account code.
 
             let tempObj;
-            let newAccountCode;            
+            let newAccountCode; 
+                    
             while(true) { //Runs until it finds a unique account code               
 
                 //Increment the sequential ID
@@ -1094,7 +1122,7 @@ function ActivityConfigService(db,util,objCollection) {
                 newAccountCode = tempObj.account_code;
                 console.log('*******************');
                 console.log('New Account Code : ', newAccountCode);
-
+                
                 //Check the uniqueness of the account code
                 let [err,accountData] = await checkWhetherAccountCodeExists(newAccountCode);
                 console.log('**********', accountData);
@@ -1113,9 +1141,10 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
         console.log('Final Account Code : ',accountCode);
+    }
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
-        responseData.push({'generated_account_code' : accountCode});
+        responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
 
         if(Number(is_from_integrations) === 1) {
             //Update the generated Account code in two places
@@ -1131,6 +1160,27 @@ function ActivityConfigService(db,util,objCollection) {
             }
 
             //Update the same in ElastiSearch
+            if(!hasAccountCode){
+            client.updateByQuery({
+                index: 'crawling_accounts',
+                "body": {
+                    "query": {
+                        "match": {
+                            "activity_id": Number(request.workflow_activity_id)
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {
+                            "activity_cuid_1":panNumber,
+                            "activity_cuid_2":gstNumber
+                        }
+                    }
+                }
+            });
+        }
+        else{
             client.index({
                 index: 'crawling_accounts',
                 body: {
@@ -1148,10 +1198,52 @@ function ActivityConfigService(db,util,objCollection) {
                 }
             });
 
+        }
+
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
         }       
 
         return [error,responseData];
+    }
+
+    async function checkForPanNumberExistenceElasticServer(request,panNumber) {
+        let error = false;
+        
+        let responseData=[]
+
+            console.log('Searching elastisearch for pan number : ',panNumber);
+            const response = await client.search({
+                index: 'crawling_accounts',
+                body: {
+                    query: {
+                        match: {activity_cuid_1: panNumber}
+                        //"constant_score" : { 
+                        //    "filter" : {
+                        //        "term" : { 
+                        //            "activity_cuid_3": accountCode
+                        //        }
+                        //    }
+                        // }
+                    }
+                }
+            })
+    
+            console.log('response from ElastiSearch: ',response);
+            let totalRetrieved = (response.hits.hits).length;
+            console.log('Number of Matched Results : ',totalRetrieved);
+    
+            for(const i_iterator of response.hits.hits) {
+                console.log(i_iterator._source.activity_cuid_1);
+                if(i_iterator._source.activity_cuid_1 === panNumber) {
+                    
+                    responseData.push({'message': 'Found a Match!'});
+                    console.log('found a Match!');
+                }
+            }
+    
+            return [error,responseData];
+
+        
     }
 
     async function generateAccountCode(request,botInlineData) {
@@ -1159,7 +1251,9 @@ function ActivityConfigService(db,util,objCollection) {
 
         let activityTypeID = Number(request.activity_type_id);
         let accountCode = "";
-
+        let gstNumber = "";
+        let panNumber = "";
+        let hasAccountCode =true;
         let formID = Number(request.activity_form_id) || Number(request.form_id);
         let hasSeqNo = 0;
 
@@ -1168,29 +1262,66 @@ function ActivityConfigService(db,util,objCollection) {
                 const laCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const laGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
+                const laPanFID = Number(botInlineData.pan_number);
+                const laGstFID = Number(botInlineData.gst_number);
+              
+                const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,laPanFID);
+                const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
+                console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
-
+                
+                panNumber = laPanNumber;
+                gstNumber = laGstNumber;
                 console.log('LA company Name : ',laCompanyName);
-                console.log('LA Group company Name : ',laGroupCompanyName);
+                console.log('LA Group company Name : ',laGroupCompanyName);               
 
                 accountCode += 'C-';
-                accountCode += ((laCompanyName.substring(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((laCompanyName.substring(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
-                accountCode += ((laGroupCompanyName.substring(0,6)).padStart(6,'0')).toUpperCase();
+                //accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();
+
+                let laNewGroupCompanyName = laGroupCompanyName.replace(/\s/g, '').toLowerCase();
+                console.log('laNewGroupCompanyName - ',laNewGroupCompanyName);
+
+                if(laNewGroupCompanyName === 'genericparentgroup') {
+                    //then take the name from the group account name
+                    accountCode += ((laCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                } else {
+                    accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                }
                 break;
 
             case 150442://GE - VGE Segment
+            
                 const geCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const geGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
 
+                const gePanFID = Number(botInlineData.pan_number);
+                const geGstFID = Number(botInlineData.gst_number);
+                
+                const getPanNumber = await getFieldValueUsingFieldIdV1(request,formID,gePanFID);
+                const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,geGstFID);
+                console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
-
+                panNumber = getPanNumber;
+                gstNumber = getGstNumber;
+                
                 accountCode += 'V-';
-                accountCode += ((geCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((geCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-'
-                accountCode += ((geGroupCompanyName.substr(0,6)).padStart(6,'0')).toUpperCase();
+                //accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+
+                let geNewGroupCompanyName = geGroupCompanyName.replace(/\s/g, '').toLowerCase();
+                console.log('geNewGroupCompanyName - ',geNewGroupCompanyName);
+
+                if(geNewGroupCompanyName === 'genericparentgroup') {
+                    //then take the name from the group account name
+                    accountCode += ((geCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                } else {
+                    accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                }
                 break;
 
             case 149809: //SME                         
@@ -1218,6 +1349,8 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeSubIndustrySubID;
                 let smeTurnOverFID;
                 let smeTurnOver;
+                let smePanNumber;
+                let smeGstNumber;
 
                 for(const i of botInlineData){
                     //console.log(i);
@@ -1235,6 +1368,16 @@ function ActivityConfigService(db,util,objCollection) {
                                              smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
                                              
                                              break;
+                        case 'pan_number': console.log(i.pan_number);
+                                           smePanNumber = i.pan_number;
+                                           panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,smePanNumber);
+                                            
+                                           break;      
+                        case 'gst_number': console.log(i.gst_number);
+                                           smeGstNumber = i.gst_number;
+                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,smeGstNumber);
+                                            
+                                           break;                 
                         
                         case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
                                                         smeTurnOverFID = Number(i.micro_segment_turn_over);
@@ -1260,9 +1403,11 @@ function ActivityConfigService(db,util,objCollection) {
                 //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
                 //    smeTurnOver = 3;
                 //}
-
+                if(panNumber!=""){
+                    hasAccountCode=false;
+                }
                 accountCode += 'S-';
-                accountCode += ((smeCompanyName.substr(0,7)).padStart(7,'0')).toUpperCase();
+                accountCode += ((smeCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
                 //4 digit sequential number, gets reset to 0000 after 9999
                 let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
@@ -1308,29 +1453,29 @@ function ActivityConfigService(db,util,objCollection) {
                     const departmentNameFID = Number(botInlineData.department_name);
                     const departmentName = await getFieldValueUsingFieldIdV1(request,formID,departmentNameFID);
 
-                    accountCode += ((siName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                    accountCode += ((siName.substr(0,3)).padEnd(3,'0')).toUpperCase();
                     accountCode += '-';
-                    accountCode += ((departmentName.substr(0,7)).padStart(7,'0')).toUpperCase();
+                    accountCode += ((departmentName.substr(0,7)).padEnd(7,'0')).toUpperCase();
                     accountCode += '-';
                 } else { //Govt Regular
                     //console.log('Inside ELSE');
 
-                    accountCode += ((govtCompanyName.substr(0,10)).padStart(10,'0')).toUpperCase();
+                    accountCode += ((govtCompanyName.substr(0,10)).padEnd(10,'0')).toUpperCase();
                     accountCode += '-';
-                    //accountCode += nameofgrouppcompany.padStart(6, '0');
+                    //accountCode += nameofgrouppcompany.padEnd(6, '0');
                 }
 
                 //Center or State
                 const centerOrStateFID = Number(botInlineData.state_central); //61954
                 const centerOrStateName = await getFieldValueUsingFieldIdV1(request,formID,centerOrStateFID);
                 console.log('Center or State : ',centerOrStateName);
-                accountCode += ((centerOrStateName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                accountCode += ((centerOrStateName.substr(0,3)).padEnd(3,'0')).toUpperCase();
 
                 //Circle
                 const circleFID = Number(botInlineData.circle); //61958
                 const circleName = await getFieldValueUsingFieldIdV1(request,formID,circleFID);
                 console.log('Circle : ',circleName);
-                accountCode += ((circleName.substr(0,3)).padStart(3,'0')).toUpperCase();
+                accountCode += ((circleName.substr(0,3)).padEnd(3,'0')).toUpperCase();
 
                 break;
 
@@ -1340,7 +1485,7 @@ function ActivityConfigService(db,util,objCollection) {
                 const vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
 
                 accountCode += 'W-';
-                accountCode += ((vicsCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((vicsCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
 
                 //6 digit sequential number, gets reset to 000000 after 999999
@@ -1375,8 +1520,11 @@ function ActivityConfigService(db,util,objCollection) {
 
                 let sohoTurnOverFID;
                 let sohoTurnOver;
+                let sohoGstNumber;
+                let sohoPanNumber;
 
-                for(const i of botInlineData){                    
+                for(const i of botInlineData){  
+                    console.log("each",botInlineData)                  
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
@@ -1388,11 +1536,29 @@ function ActivityConfigService(db,util,objCollection) {
                                                         sohoTurnOverFID = Number(i.micro_segment_turn_over);                
                                                         sohoTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoTurnOverFID);
                                                         break;
+                                                       
+                                                         
+                                                             
+                        case 'gst_number': console.log(i.gst_number);
+                                           sohoGstNumber = i.gst_number;
+                                           console.log("gst number",sohoGstNumber)
+                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoGstNumber);
+                                                         
+                                           break;   
+                        case 'pan_number': console.log(i.pan_number);
+                                           sohoPanNumber = i.pan_number;
+                                           console.log("pan number",sohoPanNumber)
+                                           panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoPanNumber);
+                                            
+                                           break;  
                     }
                 }
-
+                console.log("pan number",panNumber)
+                if(panNumber!=""){
+                    hasAccountCode=false;
+                }
                 accountCode += 'D-';
-                accountCode += ((sohoCompanyName.substr(0,11)).padStart(11,'0')).toUpperCase();
+                accountCode += ((sohoCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
 
                 //sohoTurnOver = sohoTurnOver.toLowerCase();
@@ -1425,6 +1591,9 @@ function ActivityConfigService(db,util,objCollection) {
 
         responseData.has_sequence_number = hasSeqNo;
         responseData.account_code = accountCode;
+        responseData.panNumber = panNumber;
+        responseData.gstNumber = gstNumber;
+        responseData.hasAccountCode = hasAccountCode;
 
         return responseData;
     }
@@ -1438,23 +1607,31 @@ function ActivityConfigService(db,util,objCollection) {
 
         let fieldValue = "";
         let formData;
-
+      
+            console.log(request.form_id,formID)
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
             formData = await getFormInlineData({
                 organization_id: request.organization_id,
                 account_id: request.account_id,
                 workflow_activity_id: request.workflow_activity_id,
                 form_id: formID
             },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
         } else {
             //Take the inline data from the request
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        // console.log('formData - ', formData);
+        console.log('formData - ', formData);
 
         for(const fieldData of formData) {
+            
             if(Number(fieldData.field_id) === fieldID) {
                
                 console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
@@ -1472,7 +1649,7 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
             }
         }
-
+    
         console.log('Field Value B4: ',fieldValue);
         fieldValue = fieldValue.split(" ").join("");
         console.log('Field Value After: ',fieldValue);
@@ -1489,7 +1666,7 @@ function ActivityConfigService(db,util,objCollection) {
 
         let fieldValue = "";
         let formData;
-
+        
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
             formData = await getFormInlineData({
@@ -1523,6 +1700,7 @@ function ActivityConfigService(db,util,objCollection) {
                 break;
             }
         }
+    
 
         console.log('Field Value B4: ',fieldValue);
         // fieldValue = fieldValue.split(" ").join("");
@@ -1629,12 +1807,33 @@ function ActivityConfigService(db,util,objCollection) {
             responseData = [],
             response = [];
         request.activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
-        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });        
-        if(!error) {
+        console.log('activityTitleExpression - ', request.activityTitleExpression);
+        [error, response] = await elasticService.getAccountName({ activityTitleExpression : request.activityTitleExpression });
+
+        console.log(response.hits.hits);
+
+        let flagFound = 0;
+        for(const i_iterator of response.hits.hits) {
+            console.log(request.activityTitleExpression, '-' ,i_iterator._source.activity_title_expression);
+            if(i_iterator._source.activity_title_expression === request.activityTitleExpression) {
+                error = true;
+                responseData.push({'message': `Found a Match! ${request.activityTitleExpression}`});
+                flagFound = 1;
+                console.log('found a Match!');
+                break;
+            }
+        }
+
+        if(flagFound === 0) {
+            responseData.push({'generated_group_account_name': request.activityTitleExpression});
+        }
+
+        /*if(!error) {
             if(response.hits.hits.length){
+                console.log(response);
                 error = true;
                 //responseData = {'message': 'Found a Match!'};
-                responseData.push({'message': 'Found a Match!'});
+                responseData.push({'message': `Found a Match! ${request.activityTitleExpression}`});
             } else {
                 //[error, response] = await elasticService.insertAccountName(request);
                 if(!error) {
@@ -1648,7 +1847,8 @@ function ActivityConfigService(db,util,objCollection) {
             }
         } else {
             error = true;
-        }
+        }*/
+
         return [error,responseData];
     }
 

@@ -1614,30 +1614,63 @@ function AdminListingService(objectCollection) {
         //2005 VIL - City
         //2006 VIL - Pincode
         //2007 VIL - Industry Type
+        //2010 VIL - Feasibility City List
 
         let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.type_id,
-            request.entity_id,
-            request.search_string,
-            request.flag,
-            request.sort_flag,
-            request.page_start || 0,
-            request.page_limit
+            error = true, dbCall = 'ds_p1_lov_list_select';
+        let paramsArr = new Array(
+          request.type_id,
+          request.entity_id,
+          request.search_string,
+          request.flag,
+          request.sort_flag,
+          request.page_start || 0,
+          request.page_limit
         );
-        const queryString = util.getQueryString('ds_p1_lov_list_select', paramsArr);
+
+        if(request.type_id == 2010) {
+            request.activity_id = request.workflow_activity_id;
+            request.parent_activity_id = 0;
+            [error, responseData] = await activityCommonService.activityActivityMappingSelect(request);
+            if(error) {
+                return [error, responseData];
+            }
+
+            console.log("responseData", JSON.stringify(responseData));
+            responseData.reverse();
+            let productActivityId = 0;
+            for(let row of responseData) {
+                if(row.parent_activity_type_category_id == 55) {
+                    productActivityId = row.parent_activity_id; // parent activity id is the product activity id
+                    break;
+                }
+            }
+
+            
+            paramsArr = new Array(
+              productActivityId,
+              request.type_id,
+              request.entity_id,
+              request.search_string,
+              request.flag || 0,
+              request.sort_flag || 0,
+              request.page_start || 0,
+              request.page_limit
+            );
+            dbCall = "ds_p1_city_feasibility_lov_list_select"
+        }
+
+        const queryString = util.getQueryString(dbCall, paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
         }
         return [error, responseData];
     }
@@ -1723,6 +1756,45 @@ function AdminListingService(objectCollection) {
 
         return [error, workflowFormsData];
     }  
+
+
+    this.getLovDatatypeListV1 = async (request) => {
+        //2001 VIL - Account Type
+        //2002 VIL - Corporate Class
+        //2003 VIL - Circle
+        //2004 VIL - State
+        //2005 VIL - City
+        //2006 VIL - Pincode
+        //2007 VIL - Industry Type
+        //2010 VIL - Feasibility City List
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [              
+              request.type_id,
+              request.entity_id,
+              request.search_string,
+              request.flag || 0,
+              request.sort_flag || 0,
+              request.page_start || 0,
+              request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_p1_lov_list_hierarchy_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminListingService;

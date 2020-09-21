@@ -1561,7 +1561,8 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
-                    if(Number(request.parent_activity_id) > 0) {
+                    console.log('Number(request.parent_activity_id) - ', Number(request.parent_activity_id));
+                    if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
                         flag = 0;
                     }
 
@@ -2106,6 +2107,7 @@ function BotService(objectCollection) {
     }
 
 async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
+    console.log('removeAsLeadAndAssignCreaterAsLead - ', removeAsLeadAndAssignCreaterAsLead);
 
     let newReq = {};
     newReq.organization_id = request.organization_id;
@@ -2126,7 +2128,9 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
             asset_id: leadAssetID
         });
 
+        console.log('********************************');
         console.log('LEAD ASSET DATA - ', assetData[0]);
+        console.log('********************************');
         leadAssetFirstName = assetData[0].asset_first_name;
     } catch (error) {
         console.log(error);
@@ -4284,12 +4288,12 @@ async function removeAsOwner(request,data)  {
             default: console.log('In default Case : getFielDataValueColumnName');
         }
     }    
-
+    
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
         let newReq = Object.assign({}, request);
         let resp;
-        let isLead = 0;
+        let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -4301,6 +4305,8 @@ async function removeAsOwner(request,data)  {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -4331,6 +4337,8 @@ async function removeAsOwner(request,data)  {
             newReq.participant_account_id = inlineData[type[0]].account_id || 0;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
             let activityInlineData;
 
@@ -4372,6 +4380,13 @@ async function removeAsOwner(request,data)  {
             let formTransactionID = 0, formActivityID = 0;
 
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
+            isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            if(Number(flagCreatorAsOwner) === 1) {
+                await addParticipantCreatorOwner(request);
+                return [false, []];
+            }
 
             if (!formInlineDataMap.has(fieldID)) {
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
@@ -4435,6 +4450,8 @@ async function removeAsOwner(request,data)  {
         }
 
         newReq.is_lead = isLead;
+        newReq.is_owner = isOwner;
+        newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
         console.log('newReq.phone_number : ', newReq.phone_number);
         if (
@@ -5306,10 +5323,10 @@ async function removeAsOwner(request,data)  {
             if(Number(request.organization_id) === 868) {
                 console.log('Its vodafone request');
                 //From ESMSMails@vodafoneidea.com
-                util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
+                //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
                 //CentralOmt.In@vodafoneidea.com        
-                //util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+                util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
             } else {
                 console.log('Its non-vodafone request');
                 util.sendEmailV3(request,
@@ -5700,6 +5717,71 @@ async function removeAsOwner(request,data)  {
                             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
                         activityTimelineService.addTimelineTransactionAsync(timelineReq);
                     }
+                    if(parseInt(request.is_owner) == 1) {
+
+                        console.log("making owner bot");
+                        let params = {
+                            activity_id : Number(request.workflow_activity_id),
+                            target_asset_id : assetData.desk_asset_id,
+                            organization_id : request.organization_id,
+                            owner_flag : 1,
+                            asset_id : 100
+                        }
+                        await activityCommonService.setAtivityOwnerFlag(params);
+
+                        let activityTimelineCollection =  JSON.stringify({
+                            "content": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "subject": `Note - ${util.getCurrentDate()}.`,
+                            "mail_body": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "activity_reference": [],
+                            "asset_reference": [],
+                            "attachments": [],
+                            "form_approval_field_reference": []
+                        });
+
+                        let timelineReq = Object.assign({}, addParticipantRequest);
+                        timelineReq.activity_type_id = request.activity_type_id;
+                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                        timelineReq.activity_stream_type_id = 711;
+                        timelineReq.timeline_stream_type_id = 711;
+                        timelineReq.activity_timeline_collection = activityTimelineCollection;
+                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                        activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                    }
+                    if(parseInt(request.flag_creator_as_owner) == 1) {
+                        console.log("making creator bot");
+                        let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
+                        let assetID = activityData[0].activity_creator_asset_id;
+                        let params = {
+                            activity_id : Number(request.workflow_activity_id),
+                            target_asset_id : assetID,
+                            organization_id : request.organization_id,
+                            owner_flag : 1,
+                            asset_id : 100
+                        }
+                        await activityCommonService.setAtivityOwnerFlag(params);
+
+                        let activityTimelineCollection =  JSON.stringify({
+                            "content": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "subject": `Note - ${util.getCurrentDate()}.`,
+                            "mail_body": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "activity_reference": [],
+                            "asset_reference": [],
+                            "attachments": [],
+                            "form_approval_field_reference": []
+                        });
+
+                        let timelineReq = Object.assign({}, addParticipantRequest);
+                        timelineReq.activity_type_id = request.activity_type_id;
+                        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                        timelineReq.activity_stream_type_id = 711;
+                        timelineReq.timeline_stream_type_id = 711;
+                        timelineReq.activity_timeline_collection = activityTimelineCollection;
+                        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+                        activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                    }
                     
                     resolve()
                 } else {
@@ -5996,6 +6078,24 @@ async function removeAsOwner(request,data)  {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                case 57: //Workflow reference                        
+                    //params[27] = row.field_value;                        
+                    if (typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[18] = row.field_value;
+                        try {
+                            let tempVar = (row.field_value).split('|');
+                            let tempObj = {};
+                            tempObj[tempVar[0]] = tempVar[1];
+                            // p_entity_text_2 19
+                            params[19] = tempVar[4] || tempVar[2] || "";
+                            params[27] = JSON.stringify(tempObj);
+                        } catch (err) {
+                            console.log('ERROR in field edit - 57 : ', err);
+                        }
+                    }
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
@@ -6999,7 +7099,7 @@ async function removeAsOwner(request,data)  {
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         //oldDate = util.replaceDefaultDatetime(oldDate);
-        oldDate = util.replaceDefaultDate(oldDate);
+        oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
 
@@ -7012,6 +7112,7 @@ async function removeAsOwner(request,data)  {
             for(const i_iterator of dateFormData) {
                 if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
                     newDate = i_iterator.field_value;
+                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     break;
                 }
             }
@@ -7021,7 +7122,7 @@ async function removeAsOwner(request,data)  {
                 console.log('fieldData : ', fieldData);
 
                 newDate = fieldData.field_value;
-
+                 
                 if(Number(request.device_os_id) === 1) {
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     console.log('Retrieved Date field value - ANDROiD: ', newDate);
@@ -7029,9 +7130,15 @@ async function removeAsOwner(request,data)  {
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
+                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
+                    newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                }
+               
+                
             }
         }
-
+ 
+        
         console.log('OLD DATE : ', oldDate);
         console.log('NEW DATE : ', newDate);
 
@@ -8345,6 +8452,46 @@ async function removeAsOwner(request,data)  {
         }
 
         return;
+    }
+
+    async function addParticipantCreatorOwner(request) {
+        console.log("making creator bot - addParticipantCreatorOwner");
+        
+        let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
+        let assetID = activityData[0].activity_creator_asset_id;
+        let assetOperatingAssetFirstName = activityData[0].activity_creator_operating_asset_first_name;
+
+        let params = {
+            activity_id : Number(request.workflow_activity_id),
+            target_asset_id : assetID,
+            organization_id : request.organization_id,
+            owner_flag : 1,
+            asset_id : 100
+        }
+        await activityCommonService.setAtivityOwnerFlag(params);
+
+        let activityTimelineCollection =  JSON.stringify({
+            "content": `Tony assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "subject": `Note - ${util.getCurrentDate()}.`,
+            "mail_body": `Tony assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "activity_reference": [],
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+
+        let timelineReq = Object.assign({}, request);
+            timelineReq.activity_type_id = request.activity_type_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 711;
+            timelineReq.timeline_stream_type_id = 711;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+        
+        activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+        return [false, []];
     }
 
 }

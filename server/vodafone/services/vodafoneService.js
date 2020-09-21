@@ -6145,25 +6145,50 @@ function VodafoneService(objectCollection) {
 
     this.searchWFBasedOnActivityTypeV1 =  async (request) => {
 		let responseData = [],
-            error = true;
+            error = true, dbCall;            
+        let paramsArr;
 
-        const paramsArr = new Array(            
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.asset_id,
-            request.activity_type_id,
-            request.activity_type_category_id,
-            request.tag_id,
-            request.tag_type_id,
-            request.search_string,
-            request.flag_status,
-			request.flag_participating,
-			request.page_start || 0,
-			request.page_limit
-        );        
+        if(request.hasOwnProperty("activity_status_type_id")) {
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_type_id,
+                request.activity_type_category_id,             
+                request.activity_status_type_id,
+                request.tag_id,
+                request.tag_type_id,
+                request.search_string,
+                request.flag_status,
+                request.flag_participating,
+                request.page_start || 0,
+                request.page_limit
+            );
+            
+            dbCall = 'ds_p1_3_activity_list_search_workflow_reference';
+        } else {
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_type_id,
+                request.activity_type_category_id,
+                request.tag_id,
+                request.tag_type_id,
+                request.search_string,
+                request.flag_status,
+                request.flag_participating,
+                request.page_start || 0,
+                request.page_limit
+            );
+
+            dbCall = 'ds_p1_2_activity_list_search_workflow_reference';
+        }
+
         //const queryString = util.getQueryString('ds_p1_1_activity_list_search_workflow_reference', paramsArr);
-        const queryString = util.getQueryString('ds_p1_2_activity_list_search_workflow_reference', paramsArr);
+        const queryString = util.getQueryString(dbCall, paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
