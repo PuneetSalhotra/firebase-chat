@@ -900,6 +900,7 @@ if(mode === 'preprod') {
     config.esmsMentionsEmail = "https://preprodweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
+    config.docusignWebApp = "https://preprodweb.greneos.com";
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo';
     config.whitelist = [
