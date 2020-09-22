@@ -7137,6 +7137,8 @@ async function removeAsOwner(request,data)  {
                 console.log('fieldData : ', fieldData);
 
                 newDate = fieldData.field_value;
+                console.log('New Date b4 converting - ', newDate);
+                console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
@@ -7146,10 +7148,15 @@ async function removeAsOwner(request,data)  {
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
-                    newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid);
+                    if(moment(newDate, 'YYYY-MM-DD', true).isValid) {
+                        console.log('IN IF');
+                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
+                    } else {
+                        console.log('IN ELSE');
+                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    }
                 }
-               
-                
             }
         }
  
