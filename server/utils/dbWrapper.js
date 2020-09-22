@@ -19,6 +19,8 @@ var readCluster = mysql.createPoolCluster(clusterConfig);
 const writeClusterForHealthCheck = mysql.createPoolCluster();
 const readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
 
+const readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
+
 //Adding Master
 writeCluster.add('MASTER', {
     connectionLimit: global.config.conLimit,
@@ -53,6 +55,15 @@ writeClusterForHealthCheck.add('MASTER', {
 readClusterForHealthCheck.add('SLAVE1', {
     connectionLimit: 1,
     host: global.config.slave1Ip,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+
+readClusterForAccountSearch.add('SLAVE2', {
+    connectionLimit: global.config.conLimit,
+    host: global.config.slave2Ip,
     user: global.config.dbUser,
     password: global.config.dbPassword,
     database: global.config.database,
@@ -179,9 +190,17 @@ var executeQueryPromise = function (flag, queryString, request) {
         let conPool;
         let label;
         
-        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
+        //(flag === 0) ? conPool = writeCluster : conPool = readCluster;
+        if(flag === 0) {
+            conPool = writeCluster;
+        } else if(flag === 1) {
+            conPool = readCluster;
+        } else {
+            conPool = readClusterForAccountSearch;
+            console.log('Hitting the account search Read Replica DB');
+        }
 
-        try {
+        try {            
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
