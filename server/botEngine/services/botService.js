@@ -1961,22 +1961,25 @@ function BotService(objectCollection) {
           }*/
         
         //TEST CASE 1
+        // let inlineData = {};
+        //     inlineData.from_request = {};
+        //     inlineData.from_request.asset_id = 38848;    
+        //     inlineData.flag_esms = 1;
+        //     inlineData.flag_remove_participant = 0;
+        //     inlineData.flag_remove_lead = 1;
+        //     inlineData.flag_remove_owner = 0;
+        //     inlineData.flag_remove_creator_as_owner = 0;
+
+        //TEST CASE 2
         let inlineData = {};
-            inlineData.from_request = {};
-            inlineData.from_request.asset_id = 38848;    
-            inlineData.flag_esms = 1;
-            inlineData.flag_remove_participant = 0;
+           inlineData.flag_esms = 1;
+           inlineData.asset_reference = {};
+           inlineData.asset_reference.form_id = 1234;
+           inlineData.asset_reference.field_id = 1234;
+          inlineData.flag_remove_participant = 0;
             inlineData.flag_remove_lead = 1;
             inlineData.flag_remove_owner = 0;
             inlineData.flag_remove_creator_as_owner = 0;
-
-        //TEST CASE 2
-        //let inlineData = {};
-        //    inlineData.flag_esms = 1;
-        //    inlineData.asset_reference = {};
-        //    inlineData.asset_reference.form_id = 1234;
-        //    inlineData.asset_reference.field_id = 1234;
-
         await removeParticipant(request, inlineData);
         return [false, []];
     }
@@ -2052,8 +2055,9 @@ function BotService(objectCollection) {
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
                     console.log('Remove as lead');
-                    await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                    await removeAsLead(request,workflowActivityID);
                 }
+                
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
 
                     console.log('Remove as Owner');
@@ -2106,9 +2110,23 @@ function BotService(objectCollection) {
         return;
     }
 
-async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
-    console.log('removeAsLeadAndAssignCreaterAsLead - ', removeAsLeadAndAssignCreaterAsLead);
+    async function removeAsLead(request,workflowActivityID)
+    {
+        let newReq = {};
+        newReq.organization_id = request.organization_id;
+        newReq.account_id = request.account_id;
+        newReq.workforce_id = request.workforce_id;
+        newReq.asset_id = 100;
+        newReq.activity_id = workflowActivityID;
+        newReq.lead_asset_id = 0;
+        newReq.timeline_stream_type_id = 718;
+        newReq.datetime_log = util.getCurrentUTCTime();
+    
+        await rmBotService.activityListLeadUpdateV2(newReq, 0);
+    
+    }
 
+async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
     let newReq = {};
     newReq.organization_id = request.organization_id;
     newReq.account_id = request.account_id;
