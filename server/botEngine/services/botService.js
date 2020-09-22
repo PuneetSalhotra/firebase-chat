@@ -8346,6 +8346,12 @@ async function removeAsOwner(request,data)  {
             case "preprod":
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue"
                 break;
+
+            case "prod":
+            case "production":
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/production-vil-bulk-feasibility-jobs-queue"
+                break;
+
         }
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
