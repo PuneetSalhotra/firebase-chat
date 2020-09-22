@@ -775,7 +775,9 @@ function AssetService(objectCollection) {
             'operating_asset_type_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_type_id']),
             'organization_image_path': util.replaceDefaultString(rowArray[0]['organization_image_path']),
             'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management']),
-            'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access'])
+            'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access']),
+            'cluster_tag_id': util.replaceDefaultNumber(rowArray[0]['cluster_tag_id']),
+            'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name'])            
         };
 
         callback(false, rowData);
@@ -5949,6 +5951,85 @@ this.getQrBarcodeFeeback = async(request) => {
             }).catch((err) => {
                     error = err;
             });
+        }
+
+        return [error, responseData];
+    }
+
+    this.insertAssetSlot = async(request) => {
+
+        request.flag = 1; 
+        // IF p_flag = 0 THEN RETURNS COUNT of OPEN workflows which are lead by the owner in the given duration 
+        // IF p_flag = 1 THEN RETURNS LIST of OPEN workflows which are lead by the owner in the given duration
+        
+        let [error, assetSlots] = await fetchAssetSlots(request);
+        if(error) {
+            console.error("insertAssetSlot error", error);
+            return [true, [{ message : "Something went wrong"}]];
+        }
+
+        if(!assetSlots.length) {
+            return insertAssetSlot(request);
+        }
+
+        return [true, [{ message : "Slot already exists" }]];
+    }
+
+    async function fetchAssetSlots(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.flag || 0,
+          request.start_datetime,
+          request.end_datetime,
+          request.start_from || 0,
+          request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_slot_transaction_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request).then((data) => {
+                responseData = data;
+                error = false;
+            }).catch((err) => {
+                error = err;
+            });
+        }
+
+        return [error, responseData];
+    }
+
+    async function insertAssetSlot(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.start_datetime,
+          request.end_datetime,
+        );
+        const queryString = util.getQueryString('ds_p1_asset_slot_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request).then((data) => {
+                error = false;
+            }).catch((err) => {
+                error = err;
+            });
+        }
+
+        return [error, responseData];
+    }
+
+    this.getAssetSlots = async(request) => {
+
+        let [error, responseData] = await fetchAssetSlots(request);
+        if(error) {
+            console.error("getAssetSlots error", error);
+            return [true, [{ message : "Something went wrong"}]]
         }
 
         return [error, responseData];
