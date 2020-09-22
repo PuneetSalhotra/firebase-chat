@@ -9,7 +9,7 @@ module.exports = function DataManagementController(params) {
 
     app.post(`/${global.config.version}/datamanagement/export`,async (req,res) => {
         try {
-            await dmService.exportFormsDataToPdf(req,res)
+            await dmService.exportFormsDataToPdf(req,res);
         } catch(err) {
             res.send(responseWrapper.getResponse(err,{},-9998,req.body));
         }
