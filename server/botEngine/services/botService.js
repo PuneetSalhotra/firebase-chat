@@ -1693,10 +1693,10 @@ function BotService(objectCollection) {
                             // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
                             break;
                         case "preprod":
-                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
                             break;
                         case "prod":
-                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
                             break;
                     }
                     try {
