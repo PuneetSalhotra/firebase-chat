@@ -866,6 +866,13 @@ function ActivityTimelineService(objectCollection) {
                         temp.field_name = i.field_name;
                         temp.field_value = i.field_value;
 
+                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57) {
+                            try {
+                                temp.field_value = i.field_value.split('|')[3]; //get the name
+                            } catch (e) {
+                                console.log("Could not parse the data type id ", i.field_data_type_id, i.field_value);
+                            }
+                        }
                         formFieldPreviewEnabled.push(temp);
                     }
                 }
