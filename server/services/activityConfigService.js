@@ -1306,6 +1306,7 @@ function ActivityConfigService(db,util,objCollection) {
                     //then take the name from the group account name
                     accountCode += ((laCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
+                    laGroupCompanyName = laGroupCompanyName.split(" ").join("");
                     accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 }
                 break;
@@ -1357,6 +1358,7 @@ function ActivityConfigService(db,util,objCollection) {
                     //then take the name from the group account name
                     accountCode += ((geCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
+                    geGroupCompanyName = geGroupCompanyName.split(" ").join("");
                     accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
                 }
                 break;
