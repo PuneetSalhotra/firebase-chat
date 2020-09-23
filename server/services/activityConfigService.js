@@ -1300,14 +1300,15 @@ function ActivityConfigService(db,util,objCollection) {
                 } else if(global.mode == 'prod') {
                     laGenericparentgroupActId = 3053964;
                 }
-
+                
                 //if(laNewGroupCompanyName === 'genericparentgroup') {
                 if(laActivityID == laGenericparentgroupActId) {
                     //then take the name from the group account name
                     accountCode += ((laCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
-                    laGroupCompanyName = laGroupCompanyName.split(" ").join("");
-                    accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                   
+                    laNewGroupCompanyName = laNewGroupCompanyName.split(" ").join('');
+                    accountCode += ((laNewGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 }
                 break;
 
@@ -1358,8 +1359,8 @@ function ActivityConfigService(db,util,objCollection) {
                     //then take the name from the group account name
                     accountCode += ((geCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
-                    geGroupCompanyName = geGroupCompanyName.split(" ").join("");
-                    accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                    geNewGroupCompanyName = geNewGroupCompanyName.split(" ").join("");
+                    accountCode += ((geNewGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
                 }
                 break;
 
