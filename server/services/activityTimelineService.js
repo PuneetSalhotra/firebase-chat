@@ -868,7 +868,7 @@ function ActivityTimelineService(objectCollection) {
 
                         if(i.field_data_type_id == 59 || i.field_data_type_id == 57) {
                             try {
-                                temp.field_value = i.field_value.split('|')[3]; //get the name
+                                temp.field_value = i.field_value.split('|')[1]; //get the name
                             } catch (e) {
                                 console.log("Could not parse the data type id ", i.field_data_type_id, i.field_value);
                             }
