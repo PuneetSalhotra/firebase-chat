@@ -2074,6 +2074,13 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.location_address = util.replaceDefaultString(rowData['location_address']);
             rowDataArr.location_datetime = util.replaceDefaultDatetime(rowData['location_datetime']);
 
+            // activity status keys
+            rowDataArr.activity_status_id = util.replaceDefaultNumber(rowData['activity_status_id']);
+            rowDataArr.activity_status_name = util.replaceDefaultString(rowData['activity_status_name']);
+            rowDataArr.activity_status_type_id = util.replaceDefaultNumber(rowData['activity_status_type_id']);
+            rowDataArr.activity_status_type_name = util.replaceDefaultString(rowData['activity_status_type_name']);
+            rowDataArr.activity_status_type_category_id = util.replaceDefaultNumber(rowData['activity_status_type_category_id']);
+            
             switch (activityTypeCategoryId) {
                 case 1: //To do
                     switch (rowData['timeline_stream_type_id']) {
