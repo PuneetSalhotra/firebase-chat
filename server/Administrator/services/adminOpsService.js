@@ -873,7 +873,7 @@ function AdminOpsService(objectCollection) {
         if (errZero_2 || Number(checkCUIDData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCustomerUniqueID | Error: ", errZero_2);
             return [true, {
-                message: `An employee with the CUID ${Number(request.customer_unique_id)} already exists.`
+                message: `An employee with the CUID ${request.customer_unique_id} already exists.`
             }]
         }
 
