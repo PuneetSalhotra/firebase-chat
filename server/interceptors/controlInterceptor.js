@@ -54,6 +54,10 @@ const UrlOpsController = require('../UrlShortner/controllers/urlOpsController');
 const LedgerListingController = require('../Ledgers/controllers/ledgerListingController');
 const LedgerOpsController = require('../Ledgers/controllers/ledgerOpsController');
 
+// Customer App Services
+const CustomerListingController = require('../Customer/controllers/customerListingController');
+// const CustomerOpsController = require('../Customer/controllers/customerOpsController');
+
 // Stats
 var StatsController = require('../controllers/statsController');
 
@@ -122,12 +126,16 @@ function ControlInterceptor(objCollection) {
     //DOA services
     new doaController(objCollection);
 
+
+    // Customer App Services
+    new CustomerListingController(objCollection);
+    
     // data management export
     new DataManagementController(objCollection);
 
     if(process.env.ENABLE_CUSTOM_EXCEL_BOT) {
         new WorkbookOpsController_VodafoneCustom(objCollection);
     }
+};
 
-}
 module.exports = ControlInterceptor;
