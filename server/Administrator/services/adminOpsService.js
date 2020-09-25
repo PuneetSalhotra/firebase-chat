@@ -708,7 +708,10 @@ function AdminOpsService(objectCollection) {
         });
 
         // Create the asset
-        const [errOne, assetData] = await createAssetBundle(request, workforceID, organizationID, accountID);
+        let cloneRequest = {}; 
+        Object.assign(cloneRequest, request);
+        cloneRequest.customer_unique_id = null;
+        const [errOne, assetData] = await createAssetBundle(cloneRequest, workforceID, organizationID, accountID);
         if (errOne) {
             return [true, {
                 message: "Error creating a new desk on the workforce"
@@ -873,7 +876,7 @@ function AdminOpsService(objectCollection) {
         if (errZero_2 || Number(checkCUIDData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCustomerUniqueID | Error: ", errZero_2);
             return [true, {
-                message: `An employee with the CUID ${Number(request.customer_unique_id)} already exists.`
+                message: `An employee with the CUID ${request.customer_unique_id} already exists.`
             }]
         }
 
