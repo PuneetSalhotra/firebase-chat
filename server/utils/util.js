@@ -2075,18 +2075,18 @@ function Util(objectCollection) {
         ) {
             return [true, {
                 message: "Incorrect target workforce_id specified."
-            }]
+            }];
         }
 
-        pubnubWrapper.publish(request.target_workforce_id, {
-            type: "workforce_push",
-            organization_id: Number(request.organization_id),
-            activity_type_category_id: 0,
-            activity_id: 0,
-            activity_title: request.push_title,
-            description: request.push_message,
-            target_workforce_id:request.target_workforce_id
-        });
+        //pubnubWrapper.publish(request.target_workforce_id, {
+        //    type: "workforce_push",
+        //    organization_id: Number(request.organization_id),
+        //    activity_type_category_id: 0,
+        //    activity_id: 0,
+        //    activity_title: request.push_title,
+        //    description: request.push_message,
+        //    target_workforce_id:request.target_workforce_id
+        //});
 
         return [error, {
             message: `Push sent to ${request.target_workforce_id}`
