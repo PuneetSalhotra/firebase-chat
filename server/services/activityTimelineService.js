@@ -1846,7 +1846,7 @@ function ActivityTimelineService(objectCollection) {
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+            //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
