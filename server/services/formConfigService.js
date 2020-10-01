@@ -1221,10 +1221,13 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 72: //Multi Type File Attachment 
+                    params[18] = row.field_value;
                         break;
                     case 73: //Zip File Attachment
+                    params[18] = row.field_value;
                         break;
                     case 74: //Composite Online List
+                    params[18] = row.field_value;
                         break;
                 }
 
