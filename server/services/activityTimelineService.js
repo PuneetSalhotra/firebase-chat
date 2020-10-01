@@ -2556,55 +2556,6 @@ function ActivityTimelineService(objectCollection) {
                     //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-                case 50: // Reference - File
-                    try {
-                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                        params[18] = row.field_value; // p_entity_text_1
-                    } catch (err) {}
-                    break;
-                case 52: // Excel Document
-                    params[18] = row.field_value;
-                    break;
-                case 53: // IP Address Form
-                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                    // Revision 1 | 25th September 2019
-                    // try {
-                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-
-                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                    //         params[18] = fieldValue.ip_address_data.ip_address;
-                    //         // Set the IP address availibility flag
-                    //         params[11] = 1;
-                    //     } else {
-                    //         // Reset the IP address availibility flag
-                    //         params[11] = 0;
-                    //     }
-                    //     break;
-                    // } catch (error) {
-                    //     console.log("Error parsing location data")
-                    //     // Proceed
-                    // }
-                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                    params[18] = row.field_value;
-                    if (
-                        row.field_value !== "null" &&
-                        row.field_value !== "" &&
-                        row.field_value !== "undefined" &&
-                        row.field_value !== "NA"
-                    ) {
-                        // Set the IP address availibility flag
-                        params[11] = 1;
-                    }
-                    break;
-                case 54: // MAC Address Form
-                    params[18] = row.field_value;
-                    break;
-                case 55: // Word Document
-                    params[18] = row.field_value;
-                    break;
-                case 56: // Outlook Message
-                    params[18] = row.field_value;
-                    break;
                 case 17: // Location
                     // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                     // Revision 1 | 25th September 2019
@@ -2713,10 +2664,7 @@ function ActivityTimelineService(objectCollection) {
                 case 31: //Cloud Document Link
                     params[18] = row.field_value;
                     break;
-                case 32: // PDF Document
-                case 51: // PDF Scan
-                    params[18] = row.field_value;
-                    break;
+                case 32: // PDF Document                
                 case 33: //Single Selection List
                     params[18] = row.field_value;
                     break;
@@ -2732,6 +2680,58 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                    case 50: // Reference - File
+                    try {
+                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        params[18] = row.field_value; // p_entity_text_1
+                    } catch (err) {}
+                    break;
+                case 51: // PDF Scan
+                    params[18] = row.field_value;
+                    break;
+                case 52: // Excel Document
+                    params[18] = row.field_value;
+                    break;
+                case 53: // IP Address Form
+                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                    // Revision 1 | 25th September 2019
+                    // try {
+                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+
+                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                    //         params[18] = fieldValue.ip_address_data.ip_address;
+                    //         // Set the IP address availibility flag
+                    //         params[11] = 1;
+                    //     } else {
+                    //         // Reset the IP address availibility flag
+                    //         params[11] = 0;
+                    //     }
+                    //     break;
+                    // } catch (error) {
+                    //     console.log("Error parsing location data")
+                    //     // Proceed
+                    // }
+                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                    params[18] = row.field_value;
+                    if (
+                        row.field_value !== "null" &&
+                        row.field_value !== "" &&
+                        row.field_value !== "undefined" &&
+                        row.field_value !== "NA"
+                    ) {
+                        // Set the IP address availibility flag
+                        params[11] = 1;
+                    }
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 55: // Word Document
+                    params[18] = row.field_value;
+                    break;
+                case 56: // Outlook Message
+                    params[18] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference                    
                     try {
@@ -3308,54 +3308,6 @@ async function addFormEntriesAsync(request) {
                 //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-            case 50: // Reference - File
-                try {
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
-                } catch (err) {}
-                break;
-            case 52: // Excel Document
-                params[18] = row.field_value;
-                break;
-            case 53: // IP Address Form
-                // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                // Revision 1 | 25th September 2019
-                // try {
-                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-                //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                //         params[18] = fieldValue.ip_address_data.ip_address;
-                //         // Set the IP address availibility flag
-                //         params[11] = 1;
-                //     } else {
-                //         // Reset the IP address availibility flag
-                //         params[11] = 0;
-                //     }
-                //     break;
-                // } catch (error) {
-                //     console.log("Error parsing location data")
-                //     // Proceed
-                // }
-                // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                params[18] = row.field_value;
-                if (
-                    row.field_value !== "null" &&
-                    row.field_value !== "" &&
-                    row.field_value !== "undefined" &&
-                    row.field_value !== "NA"
-                ) {
-                    // Set the IP address availibility flag
-                    params[11] = 1;
-                }
-                break;
-            case 54: // MAC Address Form
-                params[18] = row.field_value;
-                break;
-            case 55: // Word Document
-                params[18] = row.field_value;
-                break;
-            case 56: // Outlook Message
-                params[18] = row.field_value;
-                break;
             case 17: // Location
                 // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                 // Revision 1 | 25th September 2019
@@ -3481,6 +3433,54 @@ async function addFormEntriesAsync(request) {
                 break;
             case 39: //Flag
                 params[11] = row.field_value;
+                break;
+            case 50: // Reference - File
+                try {
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
+                } catch (err) {}
+                break;
+            case 52: // Excel Document
+                params[18] = row.field_value;
+                break;
+            case 53: // IP Address Form
+                // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                // Revision 1 | 25th September 2019
+                // try {
+                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                //         params[18] = fieldValue.ip_address_data.ip_address;
+                //         // Set the IP address availibility flag
+                //         params[11] = 1;
+                //     } else {
+                //         // Reset the IP address availibility flag
+                //         params[11] = 0;
+                //     }
+                //     break;
+                // } catch (error) {
+                //     console.log("Error parsing location data")
+                //     // Proceed
+                // }
+                // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                params[18] = row.field_value;
+                if (
+                    row.field_value !== "null" &&
+                    row.field_value !== "" &&
+                    row.field_value !== "undefined" &&
+                    row.field_value !== "NA"
+                ) {
+                    // Set the IP address availibility flag
+                    params[11] = 1;
+                }
+                break;
+            case 54: // MAC Address Form
+                params[18] = row.field_value;
+                break;
+            case 55: // Word Document
+                params[18] = row.field_value;
+                break;
+            case 56: // Outlook Message
+                params[18] = row.field_value;
                 break;
             case 57: //Workflow(/Activity) reference                    
                 //params[27] = row.field_value;
