@@ -195,7 +195,8 @@ function ActivityConfigService(db,util,objCollection) {
                 request.organization_id,
                 request.asset_id,
                 request.datetime_log || util.getCurrentUTCTime(),
-                request.activity_type_flag_control_visibility || 0
+                request.activity_type_flag_control_visibility || 0,
+                request.duration
             );
             //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
             const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_insert',paramsArr);
