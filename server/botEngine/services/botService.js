@@ -1773,8 +1773,25 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;                
+                    break;
 
+                case 33: //Global Add Participant
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
+                    try {
+                        await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                    } catch (err) {
+                        global.logger.write('serverError', 'Error in executing Global addParticipant Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                        //return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;                    
             }
 
             //botOperationTxnInsert(request, i);
@@ -8531,6 +8548,150 @@ async function removeAsOwner(request,data)  {
         activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
         return [false, []];
+    }
+
+    this.wrapperGlobalAddParticipantFunc = (request)=> {
+         /*{
+            "bot_operations": {    
+              "participant_add": {
+                "asset_reference": {
+                  "form_id": "2090",
+                  "field_id": "0"
+                }
+              }
+            }
+          }*/
+    }
+    
+    // Bot Step Adding a Global add participant
+    async function globalAddParticipant(request, inlineData, formInlineDataMap = new Map()) {
+        let newReq = Object.assign({}, request);
+        let resp;
+        let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
+        
+        global.logger.write('conLog', inlineData, {}, {});
+        newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+        let inlineKeys = Object.keys(inlineData);
+        global.logger.write('conLog', type, {}, {});
+
+        if(inlineKeys.includes('static')) {
+            newReq.flag_asset = inlineData[type[0]].flag_asset;
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            if (newReq.flag_asset === 1) {
+                //Use Asset Id
+                newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
+                newReq.phone_number = inlineData[type[0]].phone_number || 0;
+            } else {
+                //Use Phone Number
+                newReq.desk_asset_id = 0;
+                let phoneNumber = inlineData[type[0]].phone_number;
+                let phone;
+                (phoneNumber.includes('||')) ?
+                    phone = phoneNumber.split('||') :
+                    phone = phoneNumber.split('|');
+
+                newReq.country_code = phone[0]; //country code
+                newReq.phone_number = phone[1]; //phone number                      
+            }
+        } else if(inlineKeys.includes('asset_reference')) {
+            const formID = Number(inlineData["asset_reference"].form_id),
+                fieldID = Number(inlineData["asset_reference"].field_id),
+                workflowActivityID = Number(request.workflow_activity_id);
+
+            let formTransactionID = 0, formActivityID = 0;
+
+            isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
+            isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            if(Number(flagCreatorAsOwner) === 1) {
+                await addParticipantCreatorOwner(request);
+                return [false, []];
+            }
+
+            if (!formInlineDataMap.has(fieldID)) {
+                // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
+                // newReq.desk_asset_id = fieldValue[0];
+                // newReq.customer_name = fieldValue[1]
+
+            } else {
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, formID);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
+                    newReq.customer_name = fieldData[0].data_entity_text_1;
+                }
+            }
+
+            if (Number(newReq.desk_asset_id) > 0) {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: newReq.desk_asset_id
+                });
+                if (assetData.length > 0) {
+                    newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
+                    newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+                }
+            }
+        }
+
+        // Fetch participant name from the DB
+        if (newReq.customer_name === '') {
+            try {
+                let fieldData = await getFieldValue({
+                    form_transaction_id: newReq.form_transaction_id,
+                    form_id: newReq.form_id,
+                    field_id: newReq.name_field_id,
+                    organization_id: newReq.organization_id
+                });
+                if (fieldData.length > 0) {
+                    newReq.customer_name = String(fieldData[0].data_entity_text_1);
+                    console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                }
+            } catch (error) {
+                logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
+            }
+        }
+
+        newReq.is_lead = isLead;
+        newReq.is_owner = isOwner;
+        newReq.flag_creator_as_owner = flagCreatorAsOwner;
+
+        console.log('newReq.phone_number : ', newReq.phone_number);
+        if (
+            (newReq.phone_number !== -1) &&
+            (Number(newReq.phone_number) !== 0) &&
+            (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
+        ) {
+            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            return await addParticipantStep(newReq);
+        } else {
+            logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
+            return [true, "Phone Number is Undefined"];
+        }
+
     }
 
 }

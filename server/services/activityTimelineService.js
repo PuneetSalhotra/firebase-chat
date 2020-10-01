@@ -2811,6 +2811,8 @@ function ActivityTimelineService(objectCollection) {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 68: break;
+                case 69: break;
                 case 70: // LoV Datatype
                     params[18] = row.field_value;
                     break;
@@ -2824,7 +2826,10 @@ function ActivityTimelineService(objectCollection) {
                     } catch(err) {
                         console.log('data type 71 : ', err);
                     }
-                    break;
+                    break;                
+                case 72: break;
+                case 73: break;
+                case 74: break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3550,9 +3555,32 @@ async function addFormEntriesAsync(request) {
             case 67: // Reminder DataType
                 params[27] = row.field_value;
                 break;
+            case 68: //Multi Workflow Reference
+                params[27] = row.field_value;
+                break;
+            case 69: //Multi Asset Reference
+                params[27] = row.field_value;
+                break;
             case 70: // LoV Datatype
                 params[18] = row.field_value;
                 break;
+            case 71: //Cart Datatype
+                params[27] = row.field_value;
+                try {
+                    let fieldValue = row.field_value;
+                    (typeof fieldValue === 'string') ?
+                        params[13] = JSON.parse(row.field_value).cart_total_cost:
+                        params[13] = Number(fieldValue.cart_total_cost);
+                } catch(err) {
+                    console.log('data type 71 : ', err);
+                }
+                break;
+            case 72: //Multi Type File Attachment 
+                     break;
+            case 73: //Zip File Attachment
+                     break;
+            case 74: //Composite Online List
+                     break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)

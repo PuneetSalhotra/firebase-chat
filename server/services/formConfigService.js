@@ -1203,6 +1203,9 @@ function FormConfigService(objCollection) {
                     case 68: // contact DataType
                         params[27] = row.field_value;
                         break;
+                    case 69: //Multi Asset Reference
+                        params[27] = row.field_value;
+                        break;
                     case 70: // LoV Datatype
                         params[18] = row.field_value;
                         break;
@@ -1216,6 +1219,12 @@ function FormConfigService(objCollection) {
                         } catch(err) {
                             console.log('field alter data type 71 : ', err);
                         }
+                        break;
+                    case 72: //Multi Type File Attachment 
+                        break;
+                    case 73: //Zip File Attachment
+                        break;
+                    case 74: //Composite Online List
                         break;
                 }
 
