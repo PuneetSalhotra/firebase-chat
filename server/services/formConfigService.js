@@ -1203,6 +1203,9 @@ function FormConfigService(objCollection) {
                     case 68: // contact DataType
                         params[27] = row.field_value;
                         break;
+                    case 69: //Multi Asset Reference
+                        params[27] = row.field_value;
+                        break;
                     case 70: // LoV Datatype
                         params[18] = row.field_value;
                         break;
@@ -1217,20 +1220,14 @@ function FormConfigService(objCollection) {
                             console.log('field alter data type 71 : ', err);
                         }
                         break;
-                    case 74: // Composite Online List
-                        let fieldValue = row.field_value;
-                        try {
-                            if (typeof fieldValue === 'string') {
-                                params[18] = fieldValue;
-                                params[27] = fieldValue;
-                            }
-                            if (typeof fieldValue === 'object') {
-                                params[18] = JSON.stringify(fieldValue);
-                                params[27] = JSON.stringify(fieldValue);
-                            }
-                        } catch (err) {
-                            console.log('Data type 74 | Composite Online List: ', err);
-                        }
+                    case 72: //Multi Type File Attachment 
+                    params[18] = row.field_value;
+                        break;
+                    case 73: //Zip File Attachment
+                    params[18] = row.field_value;
+                        break;
+                    case 74: //Composite Online List
+                    params[18] = row.field_value;
                         break;
                 }
 
@@ -5720,6 +5717,22 @@ function FormConfigService(objCollection) {
             //return "Failure";
         }
 
+        if(fieldData.field_data_type_id == 71) { // for this the inline json have different structure
+            try{
+                if(flag === 'multi') {
+                    processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
+                    await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
+                } else { //'Single'
+                    processedOldFieldValue = oldFieldValue.split('|');
+                    await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue[0]);
+                }
+
+            } catch(err) {
+                console.log('Error in parsing workflow reference datatype old V1 field edit for data type id 71: ', processedOldFieldValue);
+                console.log(err);
+            }
+        }
+        
         //Update with the newData
         let fieldValue;
         let newReq = Object.assign({}, request);
