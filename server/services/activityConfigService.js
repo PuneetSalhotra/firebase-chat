@@ -1523,8 +1523,19 @@ function ActivityConfigService(db,util,objCollection) {
             case 150254: //VICS - Carrier partner addition
                 hasSeqNo = 1;
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
-                const vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
-
+                let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
+                
+                const vicsAccountTypeFID = Number(botInlineData.account_type);
+                const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
+                const vicsPanFID = Number(botInlineData.pan_number);
+                const vicsGstFID = Number(botInlineData.gst_number);
+              
+                const vicsPanNumber = await getFieldValueUsingFieldIdV1(request,formID,vicsPanFID);
+                const vicsGstNumber = await getFieldValueUsingFieldIdV1(request,formID,vicsGstFID);
+                console.log("vics pan--------vics gst",vicsPanNumber,vicsGstNumber)
+                if(vicsAccountType=="ISP"){
+                    vicsCompanyName = "ISP"+vicsCompanyName;
+                }
                 accountCode += 'W-';
                 accountCode += ((vicsCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
@@ -1539,6 +1550,8 @@ function ActivityConfigService(db,util,objCollection) {
                 } else {
                     accountCode += (vicsSeqNumber.toString()).padStart(6,'0');
                 }
+                panNumber = vicsPanNumber;
+                gstNumber = vicsGstNumber;
                 console.log('from cache vicsSeqNumber : ',vicsSeqNumber);
                 break;
 
@@ -1649,7 +1662,7 @@ function ActivityConfigService(db,util,objCollection) {
         let fieldValue = "";
         let formData;
       
-            console.log(request.form_id,formID)
+            // console.log(request.form_id,formID)
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
           try{
@@ -1669,7 +1682,7 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        console.log('formData - ', formData);
+        // console.log('formData - ', formData);
 
         for(const fieldData of formData) {
             
@@ -1903,7 +1916,7 @@ function ActivityConfigService(db,util,objCollection) {
         let fieldValue = "";
         let formData;
       
-            console.log(request.form_id,formID)
+            // console.log(request.form_id,formID)
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
           try{
@@ -1923,7 +1936,7 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        console.log('formData - ', formData);
+        // console.log('formData - ', formData);
 
         for(const fieldData of formData) {
             
