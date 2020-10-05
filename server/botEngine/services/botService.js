@@ -7192,35 +7192,33 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    console.log('Retrieved Date field value - ANDROiD: ', newDate);
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
+                    }
+                    
+                    console.log('Retrieved Date field value - ANDROID: ', newDate);
                 } else if(Number(request.device_os_id) === 2) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
+                    }                   
+                    
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
-                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){                   
-                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid);
-                    if(moment(newDate, 'YYYY-MM-DD', true).isValid) {
+                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         console.log('IN IF');
                         newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
                     } else {
                         console.log('IN ELSE');
                         newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
-                    
-                    /*if(moment(newDate, 'YYYY-MM-DD', true).isValid()) { //WEB
-                        console.log('IN IF');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
-                    } else if(moment(newDate, 'DD-MM-YYYY HH:mm:ss', true).isValid()) { //ANDROID
-                        console.log('This is ANDROID!');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    } else if(moment(newDate, 'DD MMM YYYY', true).isValid()) { //IOS
-                        console.log('This is IOS!');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
-                    } else if(moment(newDate, 'DD-MM-YYYY HH:mm:ss', true).isValid()){
-                        console.log('IN ELSE');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    }*/
                 }
             }
         }
