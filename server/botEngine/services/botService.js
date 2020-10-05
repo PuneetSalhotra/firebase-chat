@@ -7196,7 +7196,7 @@ async function removeAsOwner(request,data)  {
 
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                        newDate = util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
                     
                     console.log('Retrieved Date field value - ANDROID: ', newDate);
@@ -7205,7 +7205,7 @@ async function removeAsOwner(request,data)  {
 
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                        newDate = util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     }                   
                     
                     console.log('Retrieved Date field value - IOS: ', newDate);
