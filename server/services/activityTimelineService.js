@@ -853,7 +853,12 @@ function ActivityTimelineService(objectCollection) {
                 {
         console.log('Inside the function!');
             //Add extra key to the activity_timeline_colletion
-            let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+            let activityTimelineCollection = (typeof request.activity_timeline_collection === 'string') ?
+            JSON.parse(request.activity_timeline_collection) :
+            request.activity_timeline_collection;
+
+
+            //let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
             //console.log('activityTimelineCollection - ', activityTimelineCollection);
 
             let [err, data] = await getPreviewEnabledFields(request);
@@ -861,6 +866,8 @@ function ActivityTimelineService(objectCollection) {
 
             let formInlineData = activityTimelineCollection.form_submitted;
             let formFieldPreviewEnabled = [];
+            formInlineData = (typeof formInlineData === 'string') ?
+            JSON.parse(formInlineData) : formInlineData;
 
             for(const i of formInlineData) {
                 for(const j of data) {                

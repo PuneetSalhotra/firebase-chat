@@ -2018,46 +2018,43 @@ function BotService(objectCollection) {
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
 
-            console.log('type[0]: ', type[0]);
-            if(type[0] === 'flag_esms') {
-                if(type[1] === 'from_request') {
+                if(type.includes('static')){
+                    assetID = Number(inlineData[type[0]].asset_id);
+                    console.log('STATIC - Asset ID : ', assetID);
+                }
+                else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
                 }
-            } else if (type[0] === 'static') {
-                assetID = Number(inlineData[type[0]].asset_id);
-                console.log('STATIC - Asset ID : ', assetID);
-            } else if(type[0] === 'from_request') {
-                assetID = Number(request.asset_id);
-                console.log('from_request - Asset ID : ', assetID);
-            } else if (type[0] === 'asset_reference') {
-                const formID = Number(inlineData["asset_reference"].form_id),
-                      fieldID = Number(inlineData["asset_reference"].field_id);                      
-    
-                let formTransactionID = 0, formActivityID = 0;    
-                
-                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                    organization_id: request.organization_id,
-                    account_id: request.account_id
-                }, workflowActivityID, formID);
-    
-                if (Number(formData.length) > 0) {
-                    formTransactionID = Number(formData[0].data_form_transaction_id);
-                    formActivityID = Number(formData[0].data_activity_id);
-                }
-                
-                if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
-                        // Fetch the field value
-                        const fieldData = await getFieldValue({
-                            form_transaction_id: formTransactionID,
-                            form_id: formID,
-                            field_id: fieldID,
-                            organization_id: request.organization_id
-                        });
-                        assetID = Number(fieldData[0].data_entity_bigint_1);
+                else if(type.includes('asset_reference'))
+                {
+                    const formID = Number(inlineData["asset_reference"].form_id),
+                    fieldID = Number(inlineData["asset_reference"].field_id);                      
+  
+                    let formTransactionID = 0, formActivityID = 0;    
+              
+                    const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                        organization_id: request.organization_id,
+                                        account_id: request.account_id
+                                        }, workflowActivityID, formID);
+  
+                    if (Number(formData.length) > 0) {
+                        formTransactionID = Number(formData[0].data_form_transaction_id);
+                        formActivityID = Number(formData[0].data_activity_id);
                     }
-                    console.log('Asset Reference - Asset ID : ', assetID);
-            }
+                    
+                    if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
+                            // Fetch the field value
+                            const fieldData = await getFieldValue({
+                                form_transaction_id: formTransactionID,
+                                form_id: formID,
+                                field_id: fieldID,
+                                organization_id: request.organization_id
+                            });
+                            assetID = Number(fieldData[0].data_entity_bigint_1);
+                        }
+                        console.log('Asset Reference - Asset ID : ', assetID);
+                }
 
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
 
@@ -2072,7 +2069,7 @@ function BotService(objectCollection) {
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
                     console.log('Remove as lead');
-                    await removeAsLead(request,workflowActivityID);
+                    await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
                 
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
@@ -2127,7 +2124,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function removeAsLead(request,workflowActivityID)
+    async function removeAsLead(request,workflowActivityID,leadAssetID)
     {
         let newReq = {};
         newReq.organization_id = request.organization_id;
@@ -2141,6 +2138,46 @@ function BotService(objectCollection) {
     
         await rmBotService.activityListLeadUpdateV2(newReq, 0);
     
+        if(leadAssetID !== 0)
+        {
+            let leadAssetFirstName = '';
+            try {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: leadAssetID
+                });
+        
+                console.log('********************************');
+                console.log('LEAD ASSET DATA - ', assetData[0]);
+                console.log('********************************');
+                leadAssetFirstName = assetData[0].asset_first_name;
+            } catch (error) {
+                console.log(error);
+            }
+        
+            //Add a timeline entry
+            let activityTimelineCollection =  JSON.stringify({                            
+                "content": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "subject": `Note - ${util.getCurrentDate()}.`,
+                "mail_body": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "activity_reference": [],
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+        
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_id = request.activity_type_id;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id = 327;
+                timelineReq.timeline_stream_type_id = 327;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+        
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        }
+
     }
 
 async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
