@@ -7192,35 +7192,33 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    console.log('Retrieved Date field value - ANDROiD: ', newDate);
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    }
+                    
+                    console.log('Retrieved Date field value - ANDROID: ', newDate);
                 } else if(Number(request.device_os_id) === 2) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    }                   
+                    
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
-                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){                   
-                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid);
-                    if(moment(newDate, 'YYYY-MM-DD', true).isValid) {
+                 else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         console.log('IN IF');
                         newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
                     } else {
                         console.log('IN ELSE');
                         newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
-                    
-                    /*if(moment(newDate, 'YYYY-MM-DD', true).isValid()) { //WEB
-                        console.log('IN IF');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
-                    } else if(moment(newDate, 'DD-MM-YYYY HH:mm:ss', true).isValid()) { //ANDROID
-                        console.log('This is ANDROID!');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    } else if(moment(newDate, 'DD MMM YYYY', true).isValid()) { //IOS
-                        console.log('This is IOS!');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
-                    } else if(moment(newDate, 'DD-MM-YYYY HH:mm:ss', true).isValid()){
-                        console.log('IN ELSE');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    }*/
                 }
             }
         }
@@ -8856,26 +8854,27 @@ async function removeAsOwner(request,data)  {
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
+        console.log(inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
-        let inlineKeys = Object.keys(inlineData);
-        global.logger.write('conLog', type, {}, {});
+        let inlineKeys = Object.keys(inlineData);        
+        console.log('inlineKeys - ', inlineKeys);
 
         if(inlineKeys.includes('static')) {
-            newReq.flag_asset = inlineData[type[0]].flag_asset;
+            newReq.flag_asset = inlineData.static.flag_asset;
 
-            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
-            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
-            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+            isLead = (inlineData.static.hasOwnProperty('is_lead')) ? inlineData.static.is_lead : 0;
+            isOwner = (inlineData.static.hasOwnProperty('is_owner')) ? inlineData.static.is_owner : 0;
+            flagCreatorAsOwner = (inlineData.static.hasOwnProperty('flag_creator_as_owner')) ? inlineData.static.flag_creator_as_owner : 0;
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
-                newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
-                newReq.phone_number = inlineData[type[0]].phone_number || 0;
+                newReq.desk_asset_id = inlineData.static.desk_asset_id;
+                newReq.phone_number = inlineData.static.phone_number || 0;
             } else {
                 //Use Phone Number
                 newReq.desk_asset_id = 0;
-                let phoneNumber = inlineData[type[0]].phone_number;
+                let phoneNumber = inlineData.static.phone_number;
                 let phone;
                 (phoneNumber.includes('||')) ?
                     phone = phoneNumber.split('||') :
@@ -8893,7 +8892,7 @@ async function removeAsOwner(request,data)  {
 
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
             isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
-            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData["asset_reference"].flag_creator_as_owner : 0;
 
             if(Number(flagCreatorAsOwner) === 1) {
                 await addParticipantCreatorOwner(request);
@@ -8933,7 +8932,7 @@ async function removeAsOwner(request,data)  {
 
             if (Number(newReq.desk_asset_id) > 0) {
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-                    organization_id: request.organization_id,
+                    organization_id: 906,
                     asset_id: newReq.desk_asset_id
                 });
                 if (assetData.length > 0) {
@@ -8972,6 +8971,7 @@ async function removeAsOwner(request,data)  {
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            newReq.organization_id = 906;
             return await addParticipantStep(newReq);
         } else {
             logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
