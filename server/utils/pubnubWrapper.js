@@ -9,11 +9,14 @@ var pubnub = new PubNub({
     subscribeKey: 'sub-c-d5a2bff8-2c13-11e3-9343-02ee2ddab7fe'
 });
 
+const io = require('socket.io-client');
+const socket = io.connect(`http://localhost:${global.config.servicePort}`, {reconnect: true});
+
 function PubnubPush() {
 
     var publishConfig;
 
-    this.push = function (channelId, message, isRateLimitExceeded = false) {
+    this.push = function (channelId, message, io, isRateLimitExceeded = false) {
 
         if (isRateLimitExceeded) return;
 
@@ -25,11 +28,26 @@ function PubnubPush() {
         pubnub.publish(publishConfig, function (status, response) {
 
             logger.verbose('pubnub.push.publish: %j', message, { type: 'pubnub', message, status, response, channel_id: channelId });
-            console.log("PubnubPush: publish | message: ", message)
+            console.log("PubnubPush: publish | message: ", message);
             console.log("PubnubPush: publish | status: ", status);
             console.log("PubnubPush: publish | response: ", response);
 
         });
+
+        //Push to the socket
+        try{
+            message = (typeof message === 'object') ? JSON.stringify(message): message;
+            //console.log('IO - ', io);
+            io.emit(channelId, message);
+            console.log(`Emitted the message- ${message} to channel id - ${channelId}`);
+        } catch(err) {
+            console.log('In catch!');
+            console.log('About to emit now!');
+            socket.emit('failedmessage', channelId, message);
+            console.log(`Unable to emit the message- ${message} to channel id - ${channelId}`);
+            console.log(err);
+        }
+        
     };
 
     this.publish = function (channelId, message) {

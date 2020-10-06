@@ -86,7 +86,8 @@ function ActivityParticipantService(objectCollection) {
                 "operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path']),
                 //"asset_image_path": util.replaceDefaultString(rowData['asset_image_path']),
                 "asset_flag_is_owner": util.replaceDefaultNumber(rowData['asset_flag_is_owner']),
-
+                "asset_participant_access_id":util.replaceDefaultNumber(rowData['asset_participant_access_id']),
+                "asset_participant_access_name":util.replaceDefaultString(rowData['asset_participant_access_name'])
             };
             responseData.push(rowDataArr);
         }, this);
