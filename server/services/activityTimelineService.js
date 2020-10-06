@@ -22,6 +22,7 @@ function ActivityTimelineService(objectCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const sleep = nodeUtil.promisify(setTimeout);
+    const io = objectCollection.io;
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -370,7 +371,8 @@ function ActivityTimelineService(objectCollection) {
                 activityTypeCategoryId === 51 ||
                 activityTypeCategoryId === 53 ||
                 activityTypeCategoryId === 54 ||
-                activityTypeCategoryId === 55
+                activityTypeCategoryId === 55 ||
+                activityTypeCategoryId === 59
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -413,7 +415,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 50 ||
                     activityTypeCategoryId === 51 ||
                     activityTypeCategoryId === 53 ||
-                    activityTypeCategoryId === 54
+                    activityTypeCategoryId === 54 ||
+                    activityTypeCategoryId === 59
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }
@@ -1755,6 +1758,8 @@ function ActivityTimelineService(objectCollection) {
         // 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+
+        //console.log('REQUEST - ', request);
         if (
             (Number(request.device_os_id) !== 5) &&
             (Number(request.auth_asset_id) === Number(request.asset_id))
@@ -1766,8 +1771,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+            pubnubWrapper.push(request.asset_id, pubnubMsg, io);
+            pubnubWrapper.push(request.organization_id, pubnubMsg, io, isOrgRateLimitExceeded);
 
             //Send pushes using Pusher
             //let eventName = 'retrieveTimelineList';
@@ -1852,7 +1857,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            pubnubWrapper.push(request.asset_id, pubnubMsg);
+            pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {

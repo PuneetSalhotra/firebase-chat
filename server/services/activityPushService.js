@@ -9,12 +9,15 @@ const moment = require('moment');
 const path = require('path');
 const logger = require("../logger/winstonLogger");
 
+//const io = require('socket.io')(7000);
+let io;
+
 function ActivityPushService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const activityCommonService = objectCollection.activityCommonService;
 
     const AwsSns = require('../utils/snsWrapper');
-    const sns = new AwsSns();
+    const sns = new AwsSns();    
 
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
@@ -870,7 +873,7 @@ function ActivityPushService(objectCollection) {
             console.log("pubNubPush | orgRateLimitCheckAndSet | Error: ", error);
         }
         //
-        pubnubWrapper.push(request.asset_id, message);
+        pubnubWrapper.push(request.asset_id, message, io);
         //pubnubWrapper.push(request.organization_id, message, isOrgRateLimitExceeded);
 
         //Send pushes using Pusher
@@ -968,7 +971,7 @@ function ActivityPushService(objectCollection) {
                                                         //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                         //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                     }
-                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                                     //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                 }
                                                 //PUB
@@ -995,7 +998,7 @@ function ActivityPushService(objectCollection) {
                                             //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                             //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                         }
-                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                         //pusherWrapper.push('asset_' + rowData.assetId, pubnubMsg);
                                     }
                                 }
@@ -1031,7 +1034,7 @@ function ActivityPushService(objectCollection) {
                                                     //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                                 }
-                                                pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                                 //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg);
                                             }
                                             break;
@@ -1322,7 +1325,7 @@ function ActivityPushService(objectCollection) {
                                         //(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                         //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                     }
-                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                    pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                     //pusherWrapper.push('asset_' + rowData.assetId, pubnubMsg);
                                 }
                                 //PUB
@@ -1340,7 +1343,7 @@ function ActivityPushService(objectCollection) {
                                         //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                         //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                     }
-                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                    pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                     //pusherWrapper.push('asset_' + rowData.assetId, pubnubMsg);
                                 }
                             }
@@ -1373,7 +1376,7 @@ function ActivityPushService(objectCollection) {
                                             //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                             //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                         }
-                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                         //pusherWrapper.push('asset_' + rowData.assetId, pubnubMsg);
                                     }
                                     break;
@@ -1389,7 +1392,7 @@ function ActivityPushService(objectCollection) {
                                                 //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
                                             }
-                                            pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                            pubnubWrapper.push(rowData.assetId, pubnubMsg, io);
                                             //pusherWrapper.push('asset_' + rowData.assetId, pubnubMsg);
                                         }
                                         break;
