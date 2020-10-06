@@ -23,6 +23,22 @@ var Logger = require('./server/utils/logger.js');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);//.listen(global.config.servicePort);
+const io = require('socket.io')(server); //To use socket instead of Pubnub
+
+io.on('connection', socket => {   
+     //console.log('connection'); 
+     socket.on('failedmessage', (channelID, message) => {
+     
+     console.log('######################')
+        console.log('In failedmessage');
+        console.log('######################')
+     console.log(channelID);
+     console.log(message);
+
+     io.emit(channelID, message);
+     console.log(`Emitted the message- ${message} to channel id - ${channelID}`);
+   }); 
+ });
 
 var cors = require('cors');
 var corsOptions = {
@@ -246,7 +262,8 @@ function connectToKafkaBroker() {
             cacheWrapper: cacheWrapper,
             queueWrapper: queueWrapper,
             activityCommonService: activityCommonService,
-            forEachAsync: forEachAsync
+            forEachAsync: forEachAsync,
+            io:io
         };
         new AccessTokenInterceptor(app,responseWrapper,map,cacheWrapper);
         new EncTokenInterceptor(app,cacheWrapper,responseWrapper,util);
