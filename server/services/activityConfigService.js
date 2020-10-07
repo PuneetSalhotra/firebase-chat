@@ -1481,7 +1481,9 @@ function ActivityConfigService(db,util,objCollection) {
 
                 const govtCompanyNameFID = Number(botInlineData.name_of_the_company);
                 const govtGroupCompanyNameFID = Number(botInlineData.name_of_the_group_company);
+                const govtPanId = Number(botInlineData.pan_number);
 
+                const govtPanNumber = await getFieldValueUsingFieldIdV1(request,formID,govtPanId);
                 const govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
 
@@ -1517,6 +1519,7 @@ function ActivityConfigService(db,util,objCollection) {
                 const circleName = await getFieldValueUsingFieldIdV1(request,formID,circleFID);
                 console.log('Circle : ',circleName);
                 accountCode += ((circleName.substr(0,3)).padEnd(3,'0')).toUpperCase();
+                panNumber = govtPanNumber;
 
                 break;
 
