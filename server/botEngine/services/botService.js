@@ -1693,10 +1693,10 @@ function BotService(objectCollection) {
                             // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
                             break;
                         case "preprod":
-                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
                             break;
                         case "prod":
-                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
+                            esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
                             break;
                     }
                     try {
@@ -1773,8 +1773,25 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;                
+                    break;
 
+                case 33: //Global Add Participant
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
+                    try {
+                        await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                    } catch (err) {
+                        global.logger.write('serverError', 'Error in executing Global addParticipant Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                        //return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;                    
             }
 
             //botOperationTxnInsert(request, i);
@@ -1961,22 +1978,25 @@ function BotService(objectCollection) {
           }*/
         
         //TEST CASE 1
+        // let inlineData = {};
+        //     inlineData.from_request = {};
+        //     inlineData.from_request.asset_id = 38848;    
+        //     inlineData.flag_esms = 1;
+        //     inlineData.flag_remove_participant = 0;
+        //     inlineData.flag_remove_lead = 1;
+        //     inlineData.flag_remove_owner = 0;
+        //     inlineData.flag_remove_creator_as_owner = 0;
+
+        //TEST CASE 2
         let inlineData = {};
-            inlineData.from_request = {};
-            inlineData.from_request.asset_id = 38848;    
-            inlineData.flag_esms = 1;
-            inlineData.flag_remove_participant = 0;
+           inlineData.flag_esms = 1;
+           inlineData.asset_reference = {};
+           inlineData.asset_reference.form_id = 1234;
+           inlineData.asset_reference.field_id = 1234;
+          inlineData.flag_remove_participant = 0;
             inlineData.flag_remove_lead = 1;
             inlineData.flag_remove_owner = 0;
             inlineData.flag_remove_creator_as_owner = 0;
-
-        //TEST CASE 2
-        //let inlineData = {};
-        //    inlineData.flag_esms = 1;
-        //    inlineData.asset_reference = {};
-        //    inlineData.asset_reference.form_id = 1234;
-        //    inlineData.asset_reference.field_id = 1234;
-
         await removeParticipant(request, inlineData);
         return [false, []];
     }
@@ -1998,46 +2018,43 @@ function BotService(objectCollection) {
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
 
-            console.log('type[0]: ', type[0]);
-            if(type[0] === 'flag_esms') {
-                if(type[1] === 'from_request') {
+                if(type.includes('static')){
+                    assetID = Number(inlineData[type[0]].asset_id);
+                    console.log('STATIC - Asset ID : ', assetID);
+                }
+                else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
                 }
-            } else if (type[0] === 'static') {
-                assetID = Number(inlineData[type[0]].asset_id);
-                console.log('STATIC - Asset ID : ', assetID);
-            } else if(type[0] === 'from_request') {
-                assetID = Number(request.asset_id);
-                console.log('from_request - Asset ID : ', assetID);
-            } else if (type[0] === 'asset_reference') {
-                const formID = Number(inlineData["asset_reference"].form_id),
-                      fieldID = Number(inlineData["asset_reference"].field_id);                      
-    
-                let formTransactionID = 0, formActivityID = 0;    
-                
-                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                    organization_id: request.organization_id,
-                    account_id: request.account_id
-                }, workflowActivityID, formID);
-    
-                if (Number(formData.length) > 0) {
-                    formTransactionID = Number(formData[0].data_form_transaction_id);
-                    formActivityID = Number(formData[0].data_activity_id);
-                }
-                
-                if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
-                        // Fetch the field value
-                        const fieldData = await getFieldValue({
-                            form_transaction_id: formTransactionID,
-                            form_id: formID,
-                            field_id: fieldID,
-                            organization_id: request.organization_id
-                        });
-                        assetID = Number(fieldData[0].data_entity_bigint_1);
+                else if(type.includes('asset_reference'))
+                {
+                    const formID = Number(inlineData["asset_reference"].form_id),
+                    fieldID = Number(inlineData["asset_reference"].field_id);                      
+  
+                    let formTransactionID = 0, formActivityID = 0;    
+              
+                    const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                        organization_id: request.organization_id,
+                                        account_id: request.account_id
+                                        }, workflowActivityID, formID);
+  
+                    if (Number(formData.length) > 0) {
+                        formTransactionID = Number(formData[0].data_form_transaction_id);
+                        formActivityID = Number(formData[0].data_activity_id);
                     }
-                    console.log('Asset Reference - Asset ID : ', assetID);
-            }
+                    
+                    if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
+                            // Fetch the field value
+                            const fieldData = await getFieldValue({
+                                form_transaction_id: formTransactionID,
+                                form_id: formID,
+                                field_id: fieldID,
+                                organization_id: request.organization_id
+                            });
+                            assetID = Number(fieldData[0].data_entity_bigint_1);
+                        }
+                        console.log('Asset Reference - Asset ID : ', assetID);
+                }
 
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
 
@@ -2052,8 +2069,9 @@ function BotService(objectCollection) {
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
                     console.log('Remove as lead');
-                    await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID);
+                    await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
+                
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
 
                     console.log('Remove as Owner');
@@ -2106,9 +2124,63 @@ function BotService(objectCollection) {
         return;
     }
 
-async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
-    console.log('removeAsLeadAndAssignCreaterAsLead - ', removeAsLeadAndAssignCreaterAsLead);
+    async function removeAsLead(request,workflowActivityID,leadAssetID)
+    {
+        let newReq = {};
+        newReq.organization_id = request.organization_id;
+        newReq.account_id = request.account_id;
+        newReq.workforce_id = request.workforce_id;
+        newReq.asset_id = 100;
+        newReq.activity_id = workflowActivityID;
+        newReq.lead_asset_id = 0;
+        newReq.timeline_stream_type_id = 718;
+        newReq.datetime_log = util.getCurrentUTCTime();
+    
+        await rmBotService.activityListLeadUpdateV2(newReq, 0);
+    
+        if(leadAssetID !== 0)
+        {
+            let leadAssetFirstName = '';
+            try {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: leadAssetID
+                });
+        
+                console.log('********************************');
+                console.log('LEAD ASSET DATA - ', assetData[0]);
+                console.log('********************************');
+                leadAssetFirstName = assetData[0].asset_first_name;
+            } catch (error) {
+                console.log(error);
+            }
+        
+            //Add a timeline entry
+            let activityTimelineCollection =  JSON.stringify({                            
+                "content": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "subject": `Note - ${util.getCurrentDate()}.`,
+                "mail_body": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "activity_reference": [],
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+        
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_id = request.activity_type_id;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id = 327;
+                timelineReq.timeline_stream_type_id = 327;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+        
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        }
 
+    }
+
+async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
     let newReq = {};
     newReq.organization_id = request.organization_id;
     newReq.account_id = request.account_id;
@@ -5909,53 +5981,6 @@ async function removeAsOwner(request,data)  {
                     //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-                case 50: // Reference - File
-                    // params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
-                    break;
-                case 52: // Excel Document
-                    params[18] = row.field_value;
-                    break;
-                case 53: // IP Address Form
-                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                    // Revision 1 | 25th September 2019
-                    // try {
-                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-
-                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                    //         params[18] = fieldValue.ip_address_data.ip_address;
-                    //         // Set the IP address availibility flag
-                    //         params[11] = 1;
-                    //     } else {
-                    //         // Reset the IP address availibility flag
-                    //         params[11] = 0;
-                    //     }
-                    //     break;
-                    // } catch (error) {
-                    //     console.log("Error parsing location data")
-                    //     // Proceed
-                    // }
-                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                    params[18] = row.field_value;
-                    if (
-                        row.field_value !== "null" &&
-                        row.field_value !== "" &&
-                        row.field_value !== "undefined" &&
-                        row.field_value !== "NA"
-                    ) {
-                        // Set the IP address availibility flag
-                        params[11] = 1;
-                    }
-                    break;
-                case 54: // MAC Address Form
-                    params[18] = row.field_value;
-                    break;
-                case 55: // Word Document
-                    params[18] = row.field_value;
-                    break;
-                case 56: // Outlook Message
-                    params[18] = row.field_value;
-                    break;
                 case 17: //Location
                     // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                     // Revision 1 | 25th September 2019
@@ -6059,8 +6084,7 @@ async function removeAsOwner(request,data)  {
                 case 31: //Cloud Document Link
                     params[18] = row.field_value;
                     break;
-                case 32: // PDF Document
-                case 51: // PDF Scan
+                case 32: // PDF Document                
                     params[18] = row.field_value;
                     break;
                 case 33: //Single Selection List
@@ -6078,6 +6102,56 @@ async function removeAsOwner(request,data)  {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                case 51: // PDF Scan
+                    params[18] = row.field_value;
+                    break;
+                    case 50: // Reference - File
+                    // params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
+                    break;
+                case 52: // Excel Document
+                    params[18] = row.field_value;
+                    break;
+                case 53: // IP Address Form
+                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                    // Revision 1 | 25th September 2019
+                    // try {
+                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+
+                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                    //         params[18] = fieldValue.ip_address_data.ip_address;
+                    //         // Set the IP address availibility flag
+                    //         params[11] = 1;
+                    //     } else {
+                    //         // Reset the IP address availibility flag
+                    //         params[11] = 0;
+                    //     }
+                    //     break;
+                    // } catch (error) {
+                    //     console.log("Error parsing location data")
+                    //     // Proceed
+                    // }
+                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                    params[18] = row.field_value;
+                    if (
+                        row.field_value !== "null" &&
+                        row.field_value !== "" &&
+                        row.field_value !== "undefined" &&
+                        row.field_value !== "NA"
+                    ) {
+                        // Set the IP address availibility flag
+                        params[11] = 1;
+                    }
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 55: // Word Document
+                    params[18] = row.field_value;
+                    break;
+                case 56: // Outlook Message
+                    params[18] = row.field_value;
                     break;
                 case 57: //Workflow reference                        
                     //params[27] = row.field_value;                        
@@ -6120,6 +6194,35 @@ async function removeAsOwner(request,data)  {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 68: // contact DataType
+                    params[27] = row.field_value;
+                    break;
+                case 69: //Multi Asset Reference
+                    params[27] = row.field_value;
+                    break;
+                case 70: // LoV Datatype
+                    params[18] = row.field_value;
+                    break;
+                case 71: //Cart Datatype
+                    params[27] = row.field_value;
+                    try {
+                        let fieldValue = row.field_value;
+                        (typeof fieldValue === 'string') ?
+                            params[13] = JSON.parse(row.field_value).cart_total_cost:
+                            params[13] = Number(fieldValue.cart_total_cost);
+                    } catch(err) {
+                        console.log('field alter data type 71 : ', err);
+                    }
+                    break;
+                case 72: //Multi Type File Attachment 
+                    params[18] = row.field_value;
+                        break;
+                case 73: //Zip File Attachment
+                    params[18] = row.field_value;
+                        break;
+                case 74: //Composite Online List
+                    params[18] = row.field_value;
+                        break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -7122,19 +7225,38 @@ async function removeAsOwner(request,data)  {
                 console.log('fieldData : ', fieldData);
 
                 newDate = fieldData.field_value;
+                console.log('New Date b4 converting - ', newDate);
+                console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-                    console.log('Retrieved Date field value - ANDROiD: ', newDate);
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    }
+                    
+                    console.log('Retrieved Date field value - ANDROID: ', newDate);
                 } else if(Number(request.device_os_id) === 2) {
-                    newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
+                    }                   
+                    
                     console.log('Retrieved Date field value - IOS: ', newDate);
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
-                    newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                        console.log('IN IF');
+                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
+                    } else {
+                        console.log('IN ELSE');
+                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    }
                 }
-               
-                
             }
         }
  
@@ -8492,6 +8614,152 @@ async function removeAsOwner(request,data)  {
         activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
         return [false, []];
+    }
+
+    this.wrapperGlobalAddParticipantFunc = (request)=> {
+         /*{
+            "bot_operations": {    
+              "participant_add": {
+                "asset_reference": {
+                  "form_id": "2090",
+                  "field_id": "0"
+                }
+              }
+            }
+          }*/
+    }
+    
+    // Bot Step Adding a Global add participant
+    async function globalAddParticipant(request, inlineData, formInlineDataMap = new Map()) {
+        let newReq = Object.assign({}, request);
+        let resp;
+        let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
+        
+        global.logger.write('conLog', inlineData, {}, {});
+        console.log(inlineData);
+        newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+        let inlineKeys = Object.keys(inlineData);        
+        console.log('inlineKeys - ', inlineKeys);
+
+        if(inlineKeys.includes('static')) {
+            newReq.flag_asset = inlineData.static.flag_asset;
+
+            isLead = (inlineData.static.hasOwnProperty('is_lead')) ? inlineData.static.is_lead : 0;
+            isOwner = (inlineData.static.hasOwnProperty('is_owner')) ? inlineData.static.is_owner : 0;
+            flagCreatorAsOwner = (inlineData.static.hasOwnProperty('flag_creator_as_owner')) ? inlineData.static.flag_creator_as_owner : 0;
+
+            if (newReq.flag_asset === 1) {
+                //Use Asset Id
+                newReq.desk_asset_id = inlineData.static.desk_asset_id;
+                newReq.phone_number = inlineData.static.phone_number || 0;
+            } else {
+                //Use Phone Number
+                newReq.desk_asset_id = 0;
+                let phoneNumber = inlineData.static.phone_number;
+                let phone;
+                (phoneNumber.includes('||')) ?
+                    phone = phoneNumber.split('||') :
+                    phone = phoneNumber.split('|');
+
+                newReq.country_code = phone[0]; //country code
+                newReq.phone_number = phone[1]; //phone number                      
+            }
+        } else if(inlineKeys.includes('asset_reference')) {
+            const formID = Number(inlineData["asset_reference"].form_id),
+                fieldID = Number(inlineData["asset_reference"].field_id),
+                workflowActivityID = Number(request.workflow_activity_id);
+
+            let formTransactionID = 0, formActivityID = 0;
+
+            isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
+            isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
+            flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData["asset_reference"].flag_creator_as_owner : 0;
+
+            if(Number(flagCreatorAsOwner) === 1) {
+                await addParticipantCreatorOwner(request);
+                return [false, []];
+            }
+
+            if (!formInlineDataMap.has(fieldID)) {
+                // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
+                // newReq.desk_asset_id = fieldValue[0];
+                // newReq.customer_name = fieldValue[1]
+
+            } else {
+                const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, formID);
+
+                if (Number(formData.length) > 0) {
+                    formTransactionID = Number(formData[0].data_form_transaction_id);
+                    formActivityID = Number(formData[0].data_activity_id);
+                }
+                if (
+                    Number(formTransactionID) > 0 &&
+                    Number(formActivityID) > 0
+                ) {
+                    // Fetch the field value
+                    const fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id
+                    });
+                    newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
+                    newReq.customer_name = fieldData[0].data_entity_text_1;
+                }
+            }
+
+            if (Number(newReq.desk_asset_id) > 0) {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: 906,
+                    asset_id: newReq.desk_asset_id
+                });
+                if (assetData.length > 0) {
+                    newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
+                    newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+                }
+            }
+        }
+
+        // Fetch participant name from the DB
+        if (newReq.customer_name === '') {
+            try {
+                let fieldData = await getFieldValue({
+                    form_transaction_id: newReq.form_transaction_id,
+                    form_id: newReq.form_id,
+                    field_id: newReq.name_field_id,
+                    organization_id: newReq.organization_id
+                });
+                if (fieldData.length > 0) {
+                    newReq.customer_name = String(fieldData[0].data_entity_text_1);
+                    console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                }
+            } catch (error) {
+                logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
+            }
+        }
+
+        newReq.is_lead = isLead;
+        newReq.is_owner = isOwner;
+        newReq.flag_creator_as_owner = flagCreatorAsOwner;
+
+        console.log('newReq.phone_number : ', newReq.phone_number);
+        if (
+            (newReq.phone_number !== -1) &&
+            (Number(newReq.phone_number) !== 0) &&
+            (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
+        ) {
+            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            newReq.organization_id = 906;
+            return await addParticipantStep(newReq);
+        } else {
+            logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
+            return [true, "Phone Number is Undefined"];
+        }
+
     }
 
 }

@@ -22,6 +22,7 @@ function ActivityTimelineService(objectCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const sleep = nodeUtil.promisify(setTimeout);
+    const io = objectCollection.io;
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -370,7 +371,8 @@ function ActivityTimelineService(objectCollection) {
                 activityTypeCategoryId === 51 ||
                 activityTypeCategoryId === 53 ||
                 activityTypeCategoryId === 54 ||
-                activityTypeCategoryId === 55
+                activityTypeCategoryId === 55 ||
+                activityTypeCategoryId === 59
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -413,7 +415,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 50 ||
                     activityTypeCategoryId === 51 ||
                     activityTypeCategoryId === 53 ||
-                    activityTypeCategoryId === 54
+                    activityTypeCategoryId === 54 ||
+                    activityTypeCategoryId === 59
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }
@@ -850,7 +853,12 @@ function ActivityTimelineService(objectCollection) {
                 {
         console.log('Inside the function!');
             //Add extra key to the activity_timeline_colletion
-            let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+            let activityTimelineCollection = (typeof request.activity_timeline_collection === 'string') ?
+            JSON.parse(request.activity_timeline_collection) :
+            request.activity_timeline_collection;
+
+
+            //let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
             //console.log('activityTimelineCollection - ', activityTimelineCollection);
 
             let [err, data] = await getPreviewEnabledFields(request);
@@ -858,6 +866,8 @@ function ActivityTimelineService(objectCollection) {
 
             let formInlineData = activityTimelineCollection.form_submitted;
             let formFieldPreviewEnabled = [];
+            formInlineData = (typeof formInlineData === 'string') ?
+            JSON.parse(formInlineData) : formInlineData;
 
             for(const i of formInlineData) {
                 for(const j of data) {                
@@ -866,6 +876,13 @@ function ActivityTimelineService(objectCollection) {
                         temp.field_name = i.field_name;
                         temp.field_value = i.field_value;
 
+                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57) {
+                            try {
+                                temp.field_value = i.field_value.split('|')[1]; //get the name
+                            } catch (e) {
+                                console.log("Could not parse the data type id ", i.field_data_type_id, i.field_value);
+                            }
+                        }
                         formFieldPreviewEnabled.push(temp);
                     }
                 }
@@ -1741,6 +1758,8 @@ function ActivityTimelineService(objectCollection) {
         // 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+
+        //console.log('REQUEST - ', request);
         if (
             (Number(request.device_os_id) !== 5) &&
             (Number(request.auth_asset_id) === Number(request.asset_id))
@@ -1752,8 +1771,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+            pubnubWrapper.push(request.asset_id, pubnubMsg, io);
+            pubnubWrapper.push(request.organization_id, pubnubMsg, io, isOrgRateLimitExceeded);
 
             //Send pushes using Pusher
             //let eventName = 'retrieveTimelineList';
@@ -1838,8 +1857,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
+            pubnubWrapper.push(request.asset_id, pubnubMsg, io);
+            //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
@@ -2067,6 +2086,13 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.location_address = util.replaceDefaultString(rowData['location_address']);
             rowDataArr.location_datetime = util.replaceDefaultDatetime(rowData['location_datetime']);
 
+            // activity status keys
+            rowDataArr.activity_status_id = util.replaceDefaultNumber(rowData['activity_status_id']);
+            rowDataArr.activity_status_name = util.replaceDefaultString(rowData['activity_status_name']);
+            rowDataArr.activity_status_type_id = util.replaceDefaultNumber(rowData['activity_status_type_id']);
+            rowDataArr.activity_status_type_name = util.replaceDefaultString(rowData['activity_status_type_name']);
+            rowDataArr.activity_status_type_category_id = util.replaceDefaultNumber(rowData['activity_status_type_category_id']);
+            
             switch (activityTypeCategoryId) {
                 case 1: //To do
                     switch (rowData['timeline_stream_type_id']) {
@@ -2542,55 +2568,6 @@ function ActivityTimelineService(objectCollection) {
                     //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-                case 50: // Reference - File
-                    try {
-                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                        params[18] = row.field_value; // p_entity_text_1
-                    } catch (err) {}
-                    break;
-                case 52: // Excel Document
-                    params[18] = row.field_value;
-                    break;
-                case 53: // IP Address Form
-                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                    // Revision 1 | 25th September 2019
-                    // try {
-                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-
-                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                    //         params[18] = fieldValue.ip_address_data.ip_address;
-                    //         // Set the IP address availibility flag
-                    //         params[11] = 1;
-                    //     } else {
-                    //         // Reset the IP address availibility flag
-                    //         params[11] = 0;
-                    //     }
-                    //     break;
-                    // } catch (error) {
-                    //     console.log("Error parsing location data")
-                    //     // Proceed
-                    // }
-                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                    params[18] = row.field_value;
-                    if (
-                        row.field_value !== "null" &&
-                        row.field_value !== "" &&
-                        row.field_value !== "undefined" &&
-                        row.field_value !== "NA"
-                    ) {
-                        // Set the IP address availibility flag
-                        params[11] = 1;
-                    }
-                    break;
-                case 54: // MAC Address Form
-                    params[18] = row.field_value;
-                    break;
-                case 55: // Word Document
-                    params[18] = row.field_value;
-                    break;
-                case 56: // Outlook Message
-                    params[18] = row.field_value;
-                    break;
                 case 17: // Location
                     // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                     // Revision 1 | 25th September 2019
@@ -2699,10 +2676,7 @@ function ActivityTimelineService(objectCollection) {
                 case 31: //Cloud Document Link
                     params[18] = row.field_value;
                     break;
-                case 32: // PDF Document
-                case 51: // PDF Scan
-                    params[18] = row.field_value;
-                    break;
+                case 32: // PDF Document                
                 case 33: //Single Selection List
                     params[18] = row.field_value;
                     break;
@@ -2718,6 +2692,58 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                    case 50: // Reference - File
+                    try {
+                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        params[18] = row.field_value; // p_entity_text_1
+                    } catch (err) {}
+                    break;
+                case 51: // PDF Scan
+                    params[18] = row.field_value;
+                    break;
+                case 52: // Excel Document
+                    params[18] = row.field_value;
+                    break;
+                case 53: // IP Address Form
+                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                    // Revision 1 | 25th September 2019
+                    // try {
+                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+
+                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                    //         params[18] = fieldValue.ip_address_data.ip_address;
+                    //         // Set the IP address availibility flag
+                    //         params[11] = 1;
+                    //     } else {
+                    //         // Reset the IP address availibility flag
+                    //         params[11] = 0;
+                    //     }
+                    //     break;
+                    // } catch (error) {
+                    //     console.log("Error parsing location data")
+                    //     // Proceed
+                    // }
+                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                    params[18] = row.field_value;
+                    if (
+                        row.field_value !== "null" &&
+                        row.field_value !== "" &&
+                        row.field_value !== "undefined" &&
+                        row.field_value !== "NA"
+                    ) {
+                        // Set the IP address availibility flag
+                        params[11] = 1;
+                    }
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 55: // Word Document
+                    params[18] = row.field_value;
+                    break;
+                case 56: // Outlook Message
+                    params[18] = row.field_value;
                     break;
                 case 57: //Workflow(/Activity) reference                    
                     try {
@@ -2797,6 +2823,8 @@ function ActivityTimelineService(objectCollection) {
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
                     break;
+                case 68: break;
+                case 69: break;
                 case 70: // LoV Datatype
                     params[18] = row.field_value;
                     break;
@@ -2810,6 +2838,15 @@ function ActivityTimelineService(objectCollection) {
                     } catch(err) {
                         console.log('data type 71 : ', err);
                     }
+                    break;                
+                case 72: 
+                    params[18] = row.field_value;
+                    break;
+                case 73: 
+                    params[18] = row.field_value;
+                    break;
+                case 74: 
+                    params[18] = row.field_value;
                     break;
             }
 
@@ -3279,54 +3316,6 @@ async function addFormEntriesAsync(request) {
                 //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-            case 50: // Reference - File
-                try {
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
-                } catch (err) {}
-                break;
-            case 52: // Excel Document
-                params[18] = row.field_value;
-                break;
-            case 53: // IP Address Form
-                // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                // Revision 1 | 25th September 2019
-                // try {
-                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-                //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                //         params[18] = fieldValue.ip_address_data.ip_address;
-                //         // Set the IP address availibility flag
-                //         params[11] = 1;
-                //     } else {
-                //         // Reset the IP address availibility flag
-                //         params[11] = 0;
-                //     }
-                //     break;
-                // } catch (error) {
-                //     console.log("Error parsing location data")
-                //     // Proceed
-                // }
-                // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                params[18] = row.field_value;
-                if (
-                    row.field_value !== "null" &&
-                    row.field_value !== "" &&
-                    row.field_value !== "undefined" &&
-                    row.field_value !== "NA"
-                ) {
-                    // Set the IP address availibility flag
-                    params[11] = 1;
-                }
-                break;
-            case 54: // MAC Address Form
-                params[18] = row.field_value;
-                break;
-            case 55: // Word Document
-                params[18] = row.field_value;
-                break;
-            case 56: // Outlook Message
-                params[18] = row.field_value;
-                break;
             case 17: // Location
                 // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                 // Revision 1 | 25th September 2019
@@ -3453,6 +3442,54 @@ async function addFormEntriesAsync(request) {
             case 39: //Flag
                 params[11] = row.field_value;
                 break;
+            case 50: // Reference - File
+                try {
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
+                } catch (err) {}
+                break;
+            case 52: // Excel Document
+                params[18] = row.field_value;
+                break;
+            case 53: // IP Address Form
+                // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                // Revision 1 | 25th September 2019
+                // try {
+                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                //         params[18] = fieldValue.ip_address_data.ip_address;
+                //         // Set the IP address availibility flag
+                //         params[11] = 1;
+                //     } else {
+                //         // Reset the IP address availibility flag
+                //         params[11] = 0;
+                //     }
+                //     break;
+                // } catch (error) {
+                //     console.log("Error parsing location data")
+                //     // Proceed
+                // }
+                // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                params[18] = row.field_value;
+                if (
+                    row.field_value !== "null" &&
+                    row.field_value !== "" &&
+                    row.field_value !== "undefined" &&
+                    row.field_value !== "NA"
+                ) {
+                    // Set the IP address availibility flag
+                    params[11] = 1;
+                }
+                break;
+            case 54: // MAC Address Form
+                params[18] = row.field_value;
+                break;
+            case 55: // Word Document
+                params[18] = row.field_value;
+                break;
+            case 56: // Outlook Message
+                params[18] = row.field_value;
+                break;
             case 57: //Workflow(/Activity) reference                    
                 //params[27] = row.field_value;
                 try {
@@ -3536,9 +3573,35 @@ async function addFormEntriesAsync(request) {
             case 67: // Reminder DataType
                 params[27] = row.field_value;
                 break;
+            case 68: //Multi Workflow Reference
+                params[27] = row.field_value;
+                break;
+            case 69: //Multi Asset Reference
+                params[27] = row.field_value;
+                break;
             case 70: // LoV Datatype
                 params[18] = row.field_value;
                 break;
+            case 71: //Cart Datatype
+                params[27] = row.field_value;
+                try {
+                    let fieldValue = row.field_value;
+                    (typeof fieldValue === 'string') ?
+                        params[13] = JSON.parse(row.field_value).cart_total_cost:
+                        params[13] = Number(fieldValue.cart_total_cost);
+                } catch(err) {
+                    console.log('data type 71 : ', err);
+                }
+                break;
+            case 72: //Multi Type File Attachment 
+            params[18] = row.field_value;
+                     break;
+            case 73: //Zip File Attachment
+            params[18] = row.field_value;
+                     break;
+            case 74: //Composite Online List
+            params[18] = row.field_value;
+                     break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)

@@ -195,7 +195,8 @@ function ActivityConfigService(db,util,objCollection) {
                 request.organization_id,
                 request.asset_id,
                 request.datetime_log || util.getCurrentUTCTime(),
-                request.activity_type_flag_control_visibility || 0
+                request.activity_type_flag_control_visibility || 0,
+                request.duration
             );
             //var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
             const queryString = util.getQueryString('ds_p1_3_workforce_activity_type_mapping_insert',paramsArr);
@@ -1269,7 +1270,15 @@ function ActivityConfigService(db,util,objCollection) {
                 const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
                 console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
-                const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
+                //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
+
+                const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
+                
+                console.log('laGroupCompany - ', laGroupCompany);
+
+                let laTempVar = laGroupCompany.split('|');
+                let laActivityID = laTempVar[0];
+                const laGroupCompanyName = laTempVar[1];
                 
                 panNumber = laPanNumber;
                 gstNumber = laGstNumber;
@@ -1284,11 +1293,23 @@ function ActivityConfigService(db,util,objCollection) {
                 let laNewGroupCompanyName = laGroupCompanyName.replace(/\s/g, '').toLowerCase();
                 console.log('laNewGroupCompanyName - ',laNewGroupCompanyName);
 
-                if(laNewGroupCompanyName === 'genericparentgroup') {
+                let laGenericparentgroupActId;
+                if(global.mode == 'staging') {
+                    laGenericparentgroupActId = 3155254;
+                } else if(global.mode == 'preprod') {
+                    laGenericparentgroupActId = 284427;
+                } else if(global.mode == 'prod') {
+                    laGenericparentgroupActId = 3053964;
+                }
+                
+                //if(laNewGroupCompanyName === 'genericparentgroup') {
+                if(laActivityID == laGenericparentgroupActId) {
                     //then take the name from the group account name
                     accountCode += ((laCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
-                    accountCode += ((laGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
+                   
+                    laNewGroupCompanyName = laNewGroupCompanyName.split(" ").join('');
+                    accountCode += ((laNewGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 }
                 break;
 
@@ -1304,7 +1325,16 @@ function ActivityConfigService(db,util,objCollection) {
                 const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,geGstFID);
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 const geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
-                const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
+                //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
+
+                const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
+                
+                console.log('geGroupCompany - ', geGroupCompany);
+
+                let geTempVar = geGroupCompany.split('|');
+                let geActivityID = geTempVar[0];
+                const geGroupCompanyName = geTempVar[1];
+
                 panNumber = getPanNumber;
                 gstNumber = getGstNumber;
                 
@@ -1316,11 +1346,22 @@ function ActivityConfigService(db,util,objCollection) {
                 let geNewGroupCompanyName = geGroupCompanyName.replace(/\s/g, '').toLowerCase();
                 console.log('geNewGroupCompanyName - ',geNewGroupCompanyName);
 
-                if(geNewGroupCompanyName === 'genericparentgroup') {
+                let geGenericparentgroupActId;
+                if(global.mode == 'staging') {
+                    geGenericparentgroupActId = 3155254;
+                } else if(global.mode == 'preprod') {
+                    geGenericparentgroupActId = 284427;
+                } else if(global.mode == 'prod') {
+                    geGenericparentgroupActId = 3053964;
+                }
+
+                //if(geNewGroupCompanyName === 'genericparentgroup') {
+                if(geActivityID == geGenericparentgroupActId) {
                     //then take the name from the group account name
                     accountCode += ((geCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 } else {
-                    accountCode += ((geGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                    geNewGroupCompanyName = geNewGroupCompanyName.split(" ").join("");
+                    accountCode += ((geNewGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
                 }
                 break;
 
@@ -1482,8 +1523,19 @@ function ActivityConfigService(db,util,objCollection) {
             case 150254: //VICS - Carrier partner addition
                 hasSeqNo = 1;
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
-                const vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
-
+                let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
+                
+                const vicsAccountTypeFID = Number(botInlineData.account_type);
+                const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
+                const vicsPanFID = Number(botInlineData.pan_number);
+                const vicsGstFID = Number(botInlineData.gst_number);
+              
+                const vicsPanNumber = await getFieldValueUsingFieldIdV1(request,formID,vicsPanFID);
+                const vicsGstNumber = await getFieldValueUsingFieldIdV1(request,formID,vicsGstFID);
+                console.log("vics pan--------vics gst",vicsPanNumber,vicsGstNumber)
+                if(vicsAccountType=="ISP"){
+                    vicsCompanyName = "ISP"+vicsCompanyName;
+                }
                 accountCode += 'W-';
                 accountCode += ((vicsCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                 accountCode += '-';
@@ -1498,6 +1550,8 @@ function ActivityConfigService(db,util,objCollection) {
                 } else {
                     accountCode += (vicsSeqNumber.toString()).padStart(6,'0');
                 }
+                panNumber = vicsPanNumber;
+                gstNumber = vicsGstNumber;
                 console.log('from cache vicsSeqNumber : ',vicsSeqNumber);
                 break;
 
@@ -1608,7 +1662,7 @@ function ActivityConfigService(db,util,objCollection) {
         let fieldValue = "";
         let formData;
       
-            console.log(request.form_id,formID)
+            // console.log(request.form_id,formID)
         //Based on the workflow Activity Id - Fetch the latest entry from 713
         if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
           try{
@@ -1628,7 +1682,7 @@ function ActivityConfigService(db,util,objCollection) {
             formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
         }    
 
-        console.log('formData - ', formData);
+        // console.log('formData - ', formData);
 
         for(const fieldData of formData) {
             
@@ -1850,6 +1904,66 @@ function ActivityConfigService(db,util,objCollection) {
         }*/
 
         return [error,responseData];
+    }
+
+    async function getFieldValueUsingFieldIdV2(request,formID,fieldID) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+      
+            // console.log(request.form_id,formID)
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        // console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        //console.log('57 - fieldValue: ', fieldValue);
+                        //fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue = fieldData.field_value;
+                }
+                break;
+            }
+        }
+    
+        console.log('Field Value : ',fieldValue);
+        //fieldValue = fieldValue.split(" ").join("");
+        //console.log('Field Value After: ',fieldValue);
+        console.log('*************************');
+        return fieldValue;
     }
 
 }

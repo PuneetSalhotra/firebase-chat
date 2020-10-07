@@ -830,6 +830,33 @@ function AssetController(objCollection) {
         } else {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
+    });    
+    
+    app.post('/' + global.config.version + '/activity/asset-role-reference/list', async function (req, res) {
+        const [err, data] = await assetService.getActivityAssetRoleReferenceList(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/asset-slot/add', async function (req, res) {
+        const [err, data] = await assetService.insertAssetSlot(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/asset-slot/list', async function (req, res) {
+        const [err, data] = await assetService.getAssetSlots(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
     });
 }
 module.exports = AssetController;

@@ -6191,7 +6191,12 @@ function VodafoneService(objectCollection) {
         const queryString = util.getQueryString(dbCall, paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+
+            let flag = 1;
+            (global.mode === 'prod') ? flag = 2 : flag = 1;
+            //Hitting Acount search DB readreplica - DB slave 2
+            await db.executeQueryPromise(flag, queryString, request)
+            //await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

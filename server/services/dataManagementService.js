@@ -26,7 +26,7 @@ module.exports = function DataManagementService(params) {
             console.log('==== starting data management export ====');
             const pdfResult = await generateFormDataPdf(req,res);// generate pdf    
             console.log("pdf generated");
-            const pdfUrl = await pushStreamToS3(req,pdfResult,res)// upload pdf to s3 
+            const pdfUrl = await pushStreamToS3(req,pdfResult,res);// upload pdf to s3 
             console.log("pdf to s3",pdfUrl);
             if(!req.body.is_timeline_disable) {
                 await putTimelineEntry(req,res,pdfUrl); // add timeline entry
@@ -48,6 +48,8 @@ module.exports = function DataManagementService(params) {
     async function generateFormDataPdf(req,res) {
         try {
             const exportFormUrl = `${global.config.docusignWebApp}/#/forms/exportview/${req.body.form_data}`;
+            console.log('exportFormUrl - ', exportFormUrl);
+            
             const browser = await puppeteer.launch({args: ['--no-sandbox','--disable-setuid-sandbox']});
             console.log('browser launch');
             const page = await browser.newPage();

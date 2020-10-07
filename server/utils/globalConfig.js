@@ -313,6 +313,9 @@ if(mode === 'local') {
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
+    //This is for Account Search
+    //config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
     // config.database = 'desker_staging';
@@ -900,6 +903,7 @@ if(mode === 'preprod') {
     config.esmsMentionsEmail = "https://preprodweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
+    config.docusignWebApp = "https://preprodweb.greneos.com";
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo';
     config.whitelist = [
@@ -941,6 +945,9 @@ if(mode === 'prod') {
     //Mysql Config   
     config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    
+    //This is for Account Search
+    config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
     config.database = 'desker';
