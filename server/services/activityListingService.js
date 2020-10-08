@@ -3456,6 +3456,10 @@ async function processFormInlineDataV1(request, data){
 			await db.executeQueryPromise(1, queryString, request)
 				.then(async (data) => {
 					responseData = data;
+					for(eachResponse of responseData){
+						eachResponse.activity_feasibility_data = eachResponse.activity_feasibility_data == null ? {} : eachResponse.activity_feasibility_data;
+						eachResponse.activity_summary_data = eachResponse.activity_summary_data == null ? {} : eachResponse.activity_summary_data;
+					}
 					error = false;
 				})
 				.catch((err) => {
