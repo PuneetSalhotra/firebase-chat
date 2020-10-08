@@ -4451,6 +4451,9 @@ async function removeAsOwner(request,data)  {
                     });
                     newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
                     newReq.customer_name = fieldData[0].data_entity_text_1;
+
+                    console.log('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ', fieldData[0].data_entity_bigint_1);
+                    console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
                 }
             }
 
@@ -4459,15 +4462,19 @@ async function removeAsOwner(request,data)  {
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
                 });
+                console.log('assetData.length - ', assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
                     newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+
+                    console.log('newReq.phone_number - ', newReq.phone_number);
                 }
             }
         }
 
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
+            console.log('Customer Name is empty hence fetching from DB');
             try {
                 let fieldData = await getFieldValue({
                     form_transaction_id: newReq.form_transaction_id,
