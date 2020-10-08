@@ -2799,7 +2799,8 @@ async function removeAsOwner(request,data)  {
                 if(Number(request.device_os_id) === 2) { //IOS
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
                 } else if(Number(request.device_os_id) === 1) { //Android
-                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
+                    //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
                 } else {
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it    
                 }
@@ -7256,12 +7257,15 @@ async function removeAsOwner(request,data)  {
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
-                    if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                        console.log('IN IF');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
-                    } else {
-                        console.log('IN ELSE');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    
+                    if(!(moment(newDate, 'YYYY-MM-DD', true).isValid() || moment(newDate, 'YYYY-MM-DD HH:mm:ss', true).isValid())) {
+                        if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                            console.log('IN IF');
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
+                        } else {
+                            console.log('IN ELSE');
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                        }
                     }
                 }
             }
