@@ -5695,6 +5695,7 @@ function FormConfigService(objCollection) {
         console.log('fieldData.field_value', fieldData.field_value);
         console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
         console.log('oldFieldValue: ', oldFieldValue);
+        console.log('flag : ', flag);
         
         //Unmap the existing one
         let processedOldFieldValue;
@@ -5702,9 +5703,10 @@ function FormConfigService(objCollection) {
             oldReq.activity_id = currentWorkflowActivityId;
         try{
             if(flag === 'multi') {
-                processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;    
-                for(const i_iterator of processedOldFieldValue) {
-                    await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.activity_id);
+                processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
+                let cartItems = processedOldFieldValue.cart_items;
+                for(const i_iterator of cartItems) {
+                    await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.product_variant_activity_id);
                 }
             } else { //'Single'
                 processedOldFieldValue = oldFieldValue.split('|');
@@ -5717,7 +5719,7 @@ function FormConfigService(objCollection) {
             //return "Failure";
         }
 
-        if(fieldData.field_data_type_id == 71) { // for this the inline json have different structure
+        /*if(fieldData.field_data_type_id == 71) { // for this the inline json have different structure
             try{
                 if(flag === 'multi') {
                     processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
@@ -5731,7 +5733,7 @@ function FormConfigService(objCollection) {
                 console.log('Error in parsing workflow reference datatype old V1 field edit for data type id 71: ', processedOldFieldValue);
                 console.log(err);
             }
-        }
+        }*/
         
         //Update with the newData
         let fieldValue;
