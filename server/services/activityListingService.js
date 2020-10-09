@@ -3348,6 +3348,42 @@ async function processFormInlineDataV1(request, data){
 		return [error, responseData];
 	};
 
+	this.getActivityFocusListV1 = async (request) => {
+		let responseData = [],
+		error = true;
+		/*
+		 due asc = 0
+		 create asc = 1
+		 last update = 2 // ignore this
+		 due dsc = 3
+		 create asc = 4
+		 */
+		const paramsArr = new Array(
+			request.asset_id,
+			request.organization_id,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.flag || 0,
+			request.flag_search || 0,
+			request.search_string || '',
+			request.sort_flag || 0,
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+		const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_focus_list', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
+
 	this.getActivitySearchList = async (request) => {
 		let responseData = [],
 		error = true;
@@ -3399,7 +3435,7 @@ async function processFormInlineDataV1(request, data){
 			request.page_start || 0,
 			request.page_limit || 50
 		);
-		
+
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
