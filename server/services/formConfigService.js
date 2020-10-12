@@ -490,10 +490,16 @@ function FormConfigService(objCollection) {
             organization_id: request.organization_id
         });
 
+        let activityTypeID = 0;
+        let workflowActID = 0;
         if(responseData.length > 0) {            
             console.log('Form Activity ID - ', responseData[0].form_activity_id);
             console.log('Workflow Activity ID - ', responseData[0].workflow_activity_id);
             console.log('request.activity_id - ', request.activity_id);
+            console.log('responseData[0].activity_type_id - ', responseData[0].activity_type_id);
+            
+            workflowActID = responseData[0].workflow_activity_id;
+            activityTypeID = Number(responseData[0].activity_type_id);
 
             if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
                 console.log('Received workflow_Activity_Id instead of form_activity_id from request');
@@ -635,8 +641,7 @@ function FormConfigService(objCollection) {
 
                         activityInlineData[0].old_field_value = oldFieldValue;
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
-
-                            
+                        console.log('After putLatestUpdateSeqId');                            
 
                             var event = {
                                 name: "alterActivityInline",
@@ -655,8 +660,32 @@ function FormConfigService(objCollection) {
                                 }
                             });
 
+                            if(activityTypeID === 151717) {
+                                let newReq = Object.assign({}, request);
+                                newReq.activity_id = workflowActID;
+                                console.log('workflowActID - ', workflowActID);
+
+                                var event = {
+                                    name: "alterActivityInline",
+                                    service: "activityUpdateService",
+                                    method: "alterActivityInline",
+                                    payload: newReq
+                                };
+
+                                queueWrapper.raiseActivityEvent(event, workflowActID, (err, resp) => {
+                                    if (err) {
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
+                                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                    } else {
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
+                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, newReq);
+                                    }
+                                }); 
+                            }
+
                         }).catch((err) => {
                             // global.logger.write(err);
+                            console.log(err);
                         });
 
                         //Analytics for Widget
