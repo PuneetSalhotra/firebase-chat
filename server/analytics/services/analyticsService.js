@@ -2308,12 +2308,15 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_cluster_tag_id) || 0,
                     parseInt(request.filter_is_direct_report),
                     parseInt(request.filter_is_datetime_considered), 
-                    parseInt(request.filter_asset_type_id),                
+                    parseInt(request.filter_asset_type_id),     
+                    parseInt(request.filter_is_count) || 0,
+                    parseInt(request.filter_is_search) || 0,
+                    parseInt(request.filter_search_string) || '',        
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_3_activity_search_list_select_widget_drilldown', paramsArray);
+                var queryString = util.getQueryString('ds_v1_3_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
