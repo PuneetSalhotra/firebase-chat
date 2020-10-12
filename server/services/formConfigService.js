@@ -384,6 +384,7 @@ function FormConfigService(objCollection) {
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
                 "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
                 "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id']),
+                "field_value_prefill_enabled": util.replaceDefaultNumber(rowData['field_value_prefill_enabled']),
                 //0 - Nothing - field_value_number_representation
                 //1 - Millions
                 //2 - Crores
@@ -6011,13 +6012,12 @@ function FormConfigService(objCollection) {
                 return [err, fieldLevelBots];
             }
 
-            let botInlineData;
+            let botInlineData = [];
 
             if(fieldLevelBots.length) {
                 for(let row of fieldLevelBots) {
                     if(row.bot_operation_type_id == 32) {
-                        botInlineData = JSON.parse(row.bot_operation_inline_data);
-                        break;
+                        botInlineData = botInlineData.concat(JSON.parse(row.bot_operation_inline_data).bot_operations.form_field_copy);
                     }
                 }
             }
@@ -6026,9 +6026,8 @@ function FormConfigService(objCollection) {
                 return [true, [{ message : "Form field data is empty"}]];
             }
 
-            botInlineData = botInlineData.bot_operations.form_field_copy;
             console.log("botInlineData", JSON.stringify(botInlineData));
-            let response = {};
+            let response = [];
             for(let row of botInlineData) {
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
@@ -6041,14 +6040,16 @@ function FormConfigService(objCollection) {
                     let formSubmittedInfo = data.form_submitted;
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
-                            response[row.target_field_id] = newRow.field_value;
+                            response.push({
+                                [row.target_field_id]: newRow.field_value
+                            });
                             break;
                         }
                     }
                 }
             }
 
-            return [err, [response]];
+            return [err, response];
         } catch (e) {
             console.log("Something went wrong", e.stack);
             return [true, [{ message : "Something went wrong. Please try again"}]]
