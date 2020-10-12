@@ -329,6 +329,25 @@ function BotService(objectCollection) {
                 // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
                 results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
 
+                if(request.bot_operation_type_id == 32) { // set a flag for the target field as prefill enabled for prefil bot
+                    let inlineData = JSON.parse(request.bot_operation_inline_data);
+                    let fieldCopy = inlineData.bot_operations.form_field_copy;
+
+                    for(let row of fieldCopy) {
+                        paramsArray =
+                          new Array(
+                            row.target_field_id,
+                            request.form_id,
+                            request.organization_id,
+                            request.field_value_prefill_enabled || 0,
+                            request.log_asset_id,
+                            request.log_datetime
+                          );
+
+                        await db.callDBProcedure(request, 'ds_p1_workforce_form_field_mapping_update_prefill_enabled', paramsArray, 0);
+                    }
+                }
+
                 paramsArray =
                     new Array(
                         request.bot_id,

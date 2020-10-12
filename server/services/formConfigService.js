@@ -384,6 +384,7 @@ function FormConfigService(objCollection) {
                 "form_submission_type_id": util.replaceDefaultNumber(rowData['form_submission_type_id']),
                 "form_submission_type_name": util.replaceDefaultNumber(rowData['form_submission_type_name']),
                 "field_reference_id": util.replaceDefaultNumber(rowData['field_reference_id']),
+                "field_value_prefill_enabled": util.replaceDefaultNumber(rowData['field_value_prefill_enabled']),
                 //0 - Nothing - field_value_number_representation
                 //1 - Millions
                 //2 - Crores
@@ -474,10 +475,33 @@ function FormConfigService(objCollection) {
         }
     };
 
-    this.alterFormActivity = function (request, callback) {
+    this.alterFormActivity = async function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+
+        //From the request you are suppossed to get the form_activity_id in the parameter activity_id
+        //for some migration data in production Instread of getting form_activity_id we are getting workflow_activity_id in the parameter activity_id
+        //Hence added the following check
+
+        //If the parameter activity_id is form_activity_id then proceed else check and the get the form_activity_id and append
+        let [err, responseData] = await checkWhetherFormWorkflowActID({
+            form_transaction_id: request.form_transaction_id,
+            organization_id: request.organization_id
+        });
+
+        if(responseData.length > 0) {            
+            console.log('Form Activity ID - ', responseData[0].form_activity_id);
+            console.log('Workflow Activity ID - ', responseData[0].workflow_activity_id);
+            console.log('request.activity_id - ', request.activity_id);
+
+            if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
+                console.log('Received workflow_Activity_Id instead of form_activity_id from request');
+                request.activity_id = responseData[0].form_activity_id;
+            } else {
+                console.log('Received form_activity_id from request. Hence proceeeding!');
+            }
+        }        
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var newData = activityInlineData[0];        
@@ -5988,13 +6012,12 @@ function FormConfigService(objCollection) {
                 return [err, fieldLevelBots];
             }
 
-            let botInlineData;
+            let botInlineData = [];
 
             if(fieldLevelBots.length) {
                 for(let row of fieldLevelBots) {
                     if(row.bot_operation_type_id == 32) {
-                        botInlineData = JSON.parse(row.bot_operation_inline_data);
-                        break;
+                        botInlineData = botInlineData.concat(JSON.parse(row.bot_operation_inline_data).bot_operations.form_field_copy);
                     }
                 }
             }
@@ -6003,9 +6026,8 @@ function FormConfigService(objCollection) {
                 return [true, [{ message : "Form field data is empty"}]];
             }
 
-            botInlineData = botInlineData.bot_operations.form_field_copy;
             console.log("botInlineData", JSON.stringify(botInlineData));
-            let response = {};
+            let response = [];
             for(let row of botInlineData) {
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
@@ -6018,18 +6040,45 @@ function FormConfigService(objCollection) {
                     let formSubmittedInfo = data.form_submitted;
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
-                            response[row.target_field_id] = newRow.field_value;
+                            response.push({
+                                [row.target_field_id]: newRow.field_value
+                            });
                             break;
                         }
                     }
                 }
             }
 
-            return [err, [response]];
+            return [err, response];
         } catch (e) {
             console.log("Something went wrong", e.stack);
             return [true, [{ message : "Something went wrong. Please try again"}]]
         }
+    }
+
+    async function checkWhetherFormWorkflowActID(request) {
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [
+                            request.form_transaction_id,
+                            request.organization_id
+                            ];
+
+        const queryString = util.getQueryString('ds_p1_activity_list_select_workflow_activity', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data)=>{
+                responseData = data;
+                error = false;
+        })
+        .catch((err)=>{
+                console.log('[Error] activityUpdateExpression ',err);
+            error = err;
+        });
+        }
+
+        return [error, responseData];       
     }
 }
 
