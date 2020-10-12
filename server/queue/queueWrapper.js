@@ -22,15 +22,19 @@ function QueueWrapper(producer, cacheWrapper) {
 
     this.raiseActivityEvent = function (event, activityId, callback) {
         // Get current SpanContext
-        let kafkaProduceEventSpan = tracer.scope().active().context();
-        const traceHeaders = {};
-        let span = tracer.startSpan('kafka_producing_message', {
-            childOf: kafkaProduceEventSpan
-        });
-        tracer.inject(span, tracerFormats.LOG, traceHeaders)
-        logger.silly('traceHeaders: %j', traceHeaders, {type: 'trace_span'});
-        // console.log("raiseActivityEvent | span | logHeaders: ", traceHeaders);
-        event.log_trace_headers = traceHeaders;
+        try{
+            let kafkaProduceEventSpan = tracer.scope().active().context();
+            const traceHeaders = {};
+            let span = tracer.startSpan('kafka_producing_message', {
+                childOf: kafkaProduceEventSpan
+            });
+            tracer.inject(span, tracerFormats.LOG, traceHeaders)
+            logger.silly('traceHeaders: %j', traceHeaders, {type: 'trace_span'});
+            // console.log("raiseActivityEvent | span | logHeaders: ", traceHeaders);
+            event.log_trace_headers = traceHeaders;
+        } catch(err) {
+            console.log(err);
+        }
 
         //event.payload.pubnub_push = 0;
         
