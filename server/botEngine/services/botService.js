@@ -2799,7 +2799,8 @@ async function removeAsOwner(request,data)  {
                 if(Number(request.device_os_id) === 2) { //IOS
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
                 } else if(Number(request.device_os_id) === 1) { //Android
-                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
+                    //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
                 } else {
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it    
                 }
@@ -4488,6 +4489,9 @@ async function removeAsOwner(request,data)  {
                     });
                     newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
                     newReq.customer_name = fieldData[0].data_entity_text_1;
+
+                    console.log('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ', fieldData[0].data_entity_bigint_1);
+                    console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
                 }
             }
 
@@ -4496,15 +4500,19 @@ async function removeAsOwner(request,data)  {
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
                 });
+                console.log('assetData.length - ', assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
                     newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
+
+                    console.log('newReq.phone_number - ', newReq.phone_number);
                 }
             }
         }
 
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
+            console.log('Customer Name is empty hence fetching from DB');
             try {
                 let fieldData = await getFieldValue({
                     form_transaction_id: newReq.form_transaction_id,
@@ -7249,12 +7257,15 @@ async function removeAsOwner(request,data)  {
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
-                    if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                        console.log('IN IF');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
-                    } else {
-                        console.log('IN ELSE');
-                        newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                    
+                    if(!(moment(newDate, 'YYYY-MM-DD', true).isValid() || moment(newDate, 'YYYY-MM-DD HH:mm:ss', true).isValid())) {
+                        if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
+                            console.log('IN IF');
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
+                        } else {
+                            console.log('IN ELSE');
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                        }
                     }
                 }
             }
