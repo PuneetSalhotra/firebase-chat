@@ -2037,19 +2037,15 @@ function BotService(objectCollection) {
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
 
-            console.log('type[0]: ', type[0]);
-            if(type[0] === 'flag_esms') {
-                if(type[1] === 'from_request') {
+            //console.log('type[0]: ', type[0]);
+            //if(type[0] === 'flag_esms') {
+            if(type.includes('static')){                
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
-                }
-            } else if (type[0] === 'static') {
+            } else if(type.includes('from_request')){
                 assetID = Number(inlineData[type[0]].asset_id);
                 console.log('STATIC - Asset ID : ', assetID);
-            } else if(type[0] === 'from_request') {
-                assetID = Number(request.asset_id);
-                console.log('from_request - Asset ID : ', assetID);
-            } else if (type[0] === 'asset_reference') {
+            } else if(type.includes('asset_reference')) {
                 const formID = Number(inlineData["asset_reference"].form_id),
                       fieldID = Number(inlineData["asset_reference"].field_id);                      
     
