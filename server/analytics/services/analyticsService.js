@@ -2269,6 +2269,7 @@ function AnalyticsService(objectCollection)
                 request.filter_reporting_manager_id = 0;
             }            
             console.log('request.filter_is_datetime_considered :: '+ request.filter_is_datetime_considered);
+            console.log('request.filter_search_string :: '+ request.filter_search_string);
 
             
             for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
@@ -2311,7 +2312,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_asset_type_id),     
                     parseInt(request.filter_is_count) || 0,
                     parseInt(request.filter_is_search) || 0,
-                    parseInt(request.filter_search_string) || '',        
+                    request.filter_search_string || '',        
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
