@@ -5772,7 +5772,7 @@ function FormConfigService(objCollection) {
             //return "Failure";
         }
 
-        /*if(fieldData.field_data_type_id == 71) { // for this the inline json have different structure
+        if(fieldData.field_data_type_id == 71) { // for this the inline json have different structure
             try{
                 if(flag === 'multi') {
                     processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
@@ -5786,7 +5786,7 @@ function FormConfigService(objCollection) {
                 console.log('Error in parsing workflow reference datatype old V1 field edit for data type id 71: ', processedOldFieldValue);
                 console.log(err);
             }
-        }*/
+        }
         
         //Update with the newData
         let fieldValue;
