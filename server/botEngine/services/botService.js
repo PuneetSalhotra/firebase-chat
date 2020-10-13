@@ -2155,6 +2155,47 @@ function BotService(objectCollection) {
         newReq.datetime_log = util.getCurrentUTCTime();
     
         await rmBotService.activityListLeadUpdateV2(newReq, 0);
+
+        if(leadAssetID !== 0)
+        {
+            let leadAssetFirstName = '';
+            try {
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: leadAssetID
+                });
+        
+                console.log('********************************');
+                console.log('LEAD ASSET DATA - ', assetData[0]);
+                console.log('********************************');
+                leadAssetFirstName = assetData[0].asset_first_name;
+            } catch (error) {
+                console.log(error);
+            }
+        
+            //Add a timeline entry
+            let activityTimelineCollection =  JSON.stringify({                            
+                "content": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "subject": `Note - ${util.getCurrentDate()}.`,
+                "mail_body": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "activity_reference": [],
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+        
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_id = request.activity_type_id;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id = 327;
+                timelineReq.timeline_stream_type_id = 327;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+        
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        }
+
     
     }
 
