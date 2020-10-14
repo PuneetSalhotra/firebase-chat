@@ -29,7 +29,15 @@ function elasticSearchController(objCollection) {
             } else {
                 res.send(responseWrapper.getResponse(err, data, -9999, req.body));
             }
-    });       
+    });
+  app.post('/' + global.config.version + '/activity/vidm-data/list', async (req, res) => {
+        const [err, data] = await commnElasticService.getVidmData(req.body);
+            if (!err) {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            }
+    });
 
     app.post('/' + global.config.version + '/document/delete', async (req, res) => {
             try {
