@@ -514,6 +514,29 @@ function CommnElasticService(objectCollection) {
 
         return [false, responseData];
     };
+
+    this.getVidmData = async(request) => {
+        const result = await client.search({
+            index: 'vidm',
+            body: {
+            size : request.page_size,
+            from : request.page_no,
+                "query": {
+                    "multi_match": {
+                        "query": request.search_string,
+                        "fields" : ["account_code", "account_name"]
+                    }
+                }
+            }
+        })
+
+        let finalResp = [];
+
+        for(let row of result.hits.hits) {
+            finalResp.push(row._source);
+        }
+        return [false, finalResp]
+    };
 }
 
 
