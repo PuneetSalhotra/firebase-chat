@@ -2834,6 +2834,7 @@ async function removeAsOwner(request,data)  {
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});
 
+        
             if(comment.comment === "<<vf_frid_expire>>" && fridNotExists) {
                 //let fridExpiryDateArr = fridExpiryDate.split("-");
                 //let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
@@ -2855,6 +2856,20 @@ async function removeAsOwner(request,data)  {
                     comment.comment = `This Order's FRID is expired on ${fridExpiryDate}, please raise a new FRID for this Order.`;
                 }
             }
+
+            if(comment.comment.includes("<<asset_id>>"))
+            {
+                comment.comment = comment.comment.replace("<<asset_id>>",request.asset_id);
+            }
+            
+            if(comment.comment.includes("<<activity_id>>"))
+            {
+                comment.comment = comment.comment.replace("<<activity_id>>",workflowActivityID);
+            }
+
+
+            console.log("comment ---------------------");
+            console.log(comment.comment);
 
             addCommentRequest.asset_id = 100;
             addCommentRequest.device_os_id = 7;
