@@ -27,17 +27,17 @@ const io = require('socket.io')(server); //To use socket instead of Pubnub
 
 io.on('connection', socket => {   
      //console.log('connection'); 
-     socket.on('failedmessage', (channelID, message) => {
+     /*socket.on('failedmessage', (channelID, message) => {
      
-     console.log('######################')
-        console.log('In failedmessage');
         console.log('######################')
-     console.log(channelID);
-     console.log(message);
+            console.log('In failedmessage');
+            console.log('######################')
+        console.log(channelID);
+        console.log(message);
 
-     io.emit(channelID, message);
-     console.log(`Emitted the message- ${message} to channel id - ${channelID}`);
-   }); 
+        io.emit(channelID, message);
+        console.log(`Emitted the message- ${message} to channel id - ${channelID}`);
+    });*/ 
  });
 
 var cors = require('cors');
