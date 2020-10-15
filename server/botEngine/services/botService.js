@@ -8482,6 +8482,7 @@ async function removeAsOwner(request,data)  {
         const MAX_ORDERS_TO_BE_PARSED = 100;
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
             bulkUploadFormTransactionID = 0,
             bulkUploadFormActivityID = 0,
@@ -8505,10 +8506,17 @@ async function removeAsOwner(request,data)  {
             case "preprod":
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-bulk-feasibility-jobs-queue"
                 break;
+
+            case "prod":
+            case "production":
+                sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/production-vil-bulk-feasibility-jobs-queue"
+                break;
+
         }
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {
+                workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
             }
@@ -8550,6 +8558,18 @@ async function removeAsOwner(request,data)  {
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
+        // Get the count of child orders.
+        let childOpportunitiesCountOffset = 0;
+        const [errorZero, childOpportunitiesCount] = await activityListSelectChildOrderCount({
+            organization_id: request.organization_id,
+            activity_type_category_id: workflowActivityCategoryTypeID,
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        })
+        if (childOpportunitiesCount.length > 0) {
+            childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
+        }
+
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -8562,7 +8582,7 @@ async function removeAsOwner(request,data)  {
         logger.silly("sheet_names: %j", sheet_names);
 
         const headersArray = [
-            "serialNum", "OppId", "ServiceType", "LinkType", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "BandwidthAmount",
+            "serialNum", "actionType", "OppId", "ServiceType", "LinkType", "IsNewFeasibilityRequest", "UpgradeOrDowngrade", "OrderID", "CircuitID", "BandwidthAmount",
             "BandwidthUnit", "InterfaceEndA", "CustomerNameEndA", "ContactPersonEmailIdEndA", "ContactNoEndA", "AlternateContactNumberEndA", "SearchBuildingIdEndA",
             "StreetFloorNameEndA", "SearchAreaEndA", "SearchPinEndA", "SearchCityEndA", "CircleEndA", "StateEndA", "CountryEndA", "IsThelocationADataCenterEndA",
             "RackNoEndA", "CageNoEndA", "AddressEndA", "SpecialInstructionsBySalesEndA", "SolutionDocRequiredEndA", "InterfaceEndB", "CustomerNameEndB",
@@ -8576,31 +8596,94 @@ async function removeAsOwner(request,data)  {
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        // console.log({ length: childOpportunitiesArray.length });
         // console.log({ childOpportunitiesArray });
+        let errorMessageJSON = {
+            errorExists: false,
+            action: {
+                new: {
+                    message: "The following opportunity IDs couldn't be created because they already exist:\n",
+                    opportunity_ids: []
+                },
+                correction: {
+                    message: "The following opportunity IDs couldn't be corrected because they don't exist:\n",
+                    opportunity_ids: []
+                }
+            }
+        };
 
-        for (let i = 3; i < childOpportunitiesArray.length; i++) {
+        for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
-            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum}`);
+            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
             if (
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
+                !childOpportunity.hasOwnProperty("actionType") ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
                 break;
             }
 
-            const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
-            if (error) {
+            let childOpportunityID = "";
+            // If actionType === correction, assert that OppId is populated. Otherwise
+            // just move to the next row 
+            if (childOpportunity.actionType === "correction" && childOpportunity.OppId === "") {
                 continue;
             }
+            // If actionType === correction, assert that the child opportunity exists
+            if (childOpportunity.actionType === "correction" && childOpportunity.OppId !== "") {
+                const [errorOne, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunity.OppId
+                });
+                if (childOpportunityData.length === 0) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
+                    continue;
+                }
+                childOpportunityID = childOpportunity.OppId
+            }
 
+            // Do not freshly generate child opportunities, revert back to suffixing an
+            // incremental offset to the parent's opportunity ID
+            // const [error, response] = await generateChildOppurtunityIDNoSet(request, opportunityID);
+            // if (error) {
+            //     continue;
+            // }
             const serialNumber = childOpportunity.serialNum;
+            if (childOpportunity.actionType === "new") {
+                // Do not depend on the total number of child orders created already
+                // for deciding on the serial number offset for naming the child orders
+                // ++childOpportunitiesCountOffset;
+                // childOpportunityID = `${opportunityID}-${childOpportunitiesCountOffset}`;
+
+                // Depend on the serial number explicitly entered by the user in the excel sheet
+                childOpportunityID = `${opportunityID}-${serialNumber}`;
+                // Check if the child opportunity already exists
+                const [errorTwo, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunityID
+                });
+                if (childOpportunityData.length > 0) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
+                childOpportunity.OppId = childOpportunityID;
+            }
+
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
                 opportunity_id: opportunityID,
-                child_opportunity_id: response.childOpportunityID,
+                child_opportunity_id: childOpportunityID,
                 childOpportunity: childOpportunity,
                 feasibility_form_id: triggerFormID
             }
@@ -8626,7 +8709,179 @@ async function removeAsOwner(request,data)  {
             });
         }
 
+        try {
+            if (!errorMessageJSON.errorExists) { throw new Error("NoErrorsFound") };
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`
+            // New
+            if (errorMessageJSON.action.new.opportunity_ids.length > 0) {
+                formattedTimelineMessage += errorMessageJSON.action.new.message;
+                formattedTimelineMessage += `${errorMessageJSON.action.new.opportunity_ids.join(', ')}\n\n`;
+            }
+            // Correction
+            if (errorMessageJSON.action.correction.opportunity_ids.length > 0) {
+                formattedTimelineMessage += errorMessageJSON.action.correction.message;
+                formattedTimelineMessage += `${errorMessageJSON.action.correction.opportunity_ids.join(', ')}\n\n`;
+            }
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+        } catch (error) {
+            logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+        }
+
         return;
+    }
+
+    async function addTimelineMessage(request, workflowActivityID, timelineMessageObject = {}, streamTypeID = 325) {
+        // Make a 705 timeline transaction entry in the workflow file
+        // Get the Opportunity Workflow's details:
+        const [errorZero, workflowActivityData] = await getActivityDetailsAsync({
+            organization_id: request.organization_id,
+        }, workflowActivityID);
+
+        if (
+            Number(workflowActivityID) > 0 &&
+            workflowActivityData.length > 0
+        ) {
+            let workflowTimelineRequest = {
+                "organization_id": workflowActivityData[0].organization_id,
+                "account_id": workflowActivityData[0].account_id,
+                "workforce_id": workflowActivityData[0].workforce_id,
+                "asset_id": workflowActivityData[0].asset_id || 100,
+                "track_gps_datetime": util.getCurrentUTCTime(),
+                "activity_type_category_id": workflowActivityData[0].activity_type_category_id,
+                "activity_type_id": workflowActivityData[0].activity_type_id,
+                "activity_id": workflowActivityID,
+                "activity_timeline_collection": JSON.stringify(timelineMessageObject),
+                "activity_stream_type_id": streamTypeID,
+                "timeline_stream_type_id": streamTypeID,
+                "data_entity_inline": JSON.stringify(timelineMessageObject),
+                "operating_asset_first_name": "ESMS Integrations Services",
+                "datetime_log": util.getCurrentUTCTime(),
+                "message_unique_id": util.getMessageUniqueId(100),
+                "activity_access_role_id": 27,
+                "device_os_id": 5,
+                "service_version": 1,
+                "app_version": 1,
+                "activity_timeline_text": request.activity_timeline_text || "",
+                "activity_timeline_url": "",
+                "activity_parent_id": 0,
+                "activity_sub_type_id": -1,
+                "track_gps_accuracy": "0",
+                "track_gps_status": 0,
+                "activity_channel_category_id": 0,
+                "activity_channel_id": 0,
+                "track_latitude": "0.0",
+                "track_longitude": "0.0",
+                "track_altitude": 0,
+                "asset_message_counter": 0,
+                "flag_pin": 0,
+                "flag_priority": 0,
+                "flag_offline": 0,
+                "flag_retry": 0,
+            };
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowTimelineRequest);
+            } catch (error) {
+                debug_warn("addTimelineMessage | workflowTimelineRequest | addTimelineTransactionAsync | Error: ", error);
+            }
+        }
+    }
+
+    async function getActivityDetailsAsync(request, activityID) {
+
+        let responseData = [],
+            error = true;
+
+        var paramsArr;
+        if (Number(activityID > 0)) {
+            paramsArr = new Array(
+                activityID,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+        }
+        const queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function activityListSearchCUID(request) {
+        let error = true,
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id || 0,
+            request.flag || 0,
+            request.search_string,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get account bassed on country code
+    async function activityListSelectChildOrderCount(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || 0,
+            request.parent_activity_id,
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_child_order_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function addParticipantCreatorOwner(request) {
