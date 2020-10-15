@@ -5801,8 +5801,9 @@ async function removeAsOwner(request,data)  {
                 if(err === false) {                    
                     
                     //Check for lead flag                    
-                    console.log('request.is_lead : ',request.is_lead);
+                    console.log('request.is_lead in BotService: ',request.is_lead);
                     if(Number(request.is_lead) === 1) {
+                        console.log('Inside IF');
                         let newReq = {};
                             newReq.organization_id = request.organization_id;
                             newReq.account_id = request.account_id;
