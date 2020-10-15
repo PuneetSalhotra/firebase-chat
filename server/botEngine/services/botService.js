@@ -8210,7 +8210,10 @@ async function removeAsOwner(request,data)  {
                                     field_id: dateReminder.asset_reference_field_id
                                 }
                             }
-                        await addParticipant(i_iterator, participantReq);
+                        i_iterator.workflow_activity_id = i_iterator.activity_id;
+                        let formInlineDataMap = new Map();
+                        formInlineDataMap.set(Number(dateReminder.asset_reference_field_id), 1);
+                        await addParticipant(i_iterator, participantReq, formInlineDataMap);
                         break;
 
                 case 3: //Send email                        
@@ -8334,7 +8337,6 @@ async function removeAsOwner(request,data)  {
                         }                     
                         break;                
             }
-
             await activityCommonService.activityReminderTxnUpdate({
                 reminder_trx_id: i_iterator.reminder_transaction_id,
                 workflow_activity_id: i_iterator.activity_id,
