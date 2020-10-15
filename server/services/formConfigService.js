@@ -6067,6 +6067,12 @@ function FormConfigService(objCollection) {
                 for(let row1 of dependentFormTransaction) {
                     let data = JSON.parse(row1.data_entity_inline);
                     let formSubmittedInfo = data.form_submitted;
+                    try {
+                        formSubmittedInfo = JSON.parse(formSubmittedInfo);
+                    } catch (e) {
+                        console.log("got formSubmittedInfo as string");
+                    }
+
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
                             response.push({
