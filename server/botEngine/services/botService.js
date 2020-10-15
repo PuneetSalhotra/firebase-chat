@@ -8608,6 +8608,14 @@ async function removeAsOwner(request,data)  {
                 correction: {
                     message: "The following opportunity IDs couldn't be corrected because they don't exist:\n",
                     opportunity_ids: []
+                },
+                new_secondary: {
+                    message: "Secondary FR cannot be created on the following opportunity IDs because their primary FRs don't exist:\n",
+                    opportunity_ids: []
+                },
+                correction_secondary: {
+                    message: "Secondary FR creation cannot be corrected on the following opportunity IDs because their primary FRs don't exist:\n",
+                    opportunity_ids: []
                 }
             }
         };
@@ -8620,6 +8628,8 @@ async function removeAsOwner(request,data)  {
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
                 !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction") ||
+                !childOpportunity.hasOwnProperty("LinkType") ||
+                !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
@@ -8627,6 +8637,7 @@ async function removeAsOwner(request,data)  {
             }
 
             let childOpportunityID = "";
+            const linkType = String(childOpportunity.LinkType).toLowerCase();
             // If actionType === correction, assert that OppId is populated. Otherwise
             // just move to the next row 
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId === "") {
@@ -8640,12 +8651,23 @@ async function removeAsOwner(request,data)  {
                     flag: 1,
                     search_string: childOpportunity.OppId
                 });
+                // Primary
                 if (childOpportunityData.length === 0) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
                     continue;
                 }
-                childOpportunityID = childOpportunity.OppId
+                // Secondary
+                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                if (
+                    linkType === "secondary" &&
+                    !String(primaryFRID).startsWith("FR")
+                ) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.correction_secondary.opportunity_ids.push(childOpportunity.OppId);
+                    continue;
+                }
+                childOpportunityID = childOpportunity.OppId;
             }
 
             // Do not freshly generate child opportunities, revert back to suffixing an
@@ -8662,7 +8684,10 @@ async function removeAsOwner(request,data)  {
                 // childOpportunityID = `${opportunityID}-${childOpportunitiesCountOffset}`;
 
                 // Depend on the serial number explicitly entered by the user in the excel sheet
-                childOpportunityID = `${opportunityID}-${serialNumber}`;
+
+                if (linkType === "primary") { childOpportunityID = `${opportunityID}-${serialNumber}`; }
+                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId; }
+
                 // Check if the child opportunity already exists
                 const [errorTwo, childOpportunityData] = await activityListSearchCUID({
                     organization_id: request.organization_id,
@@ -8670,9 +8695,23 @@ async function removeAsOwner(request,data)  {
                     flag: 1,
                     search_string: childOpportunityID
                 });
-                if (childOpportunityData.length > 0) {
+
+                if (
+                    linkType === "primary" &&
+                    childOpportunityData.length > 0
+                ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
+                if (
+                    linkType === "secondary" &&
+                    childOpportunityData.length > 0 &&
+                    !String(childOpportunityData[0].activity_cuid_2).startsWith("FR")
+                ) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.new_secondary.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
 
