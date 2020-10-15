@@ -2088,7 +2088,7 @@ function BotService(objectCollection) {
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
                     console.log('Remove as lead');
-                    await removeAsLead(request,workflowActivityID);
+                    await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
                 
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
@@ -2143,7 +2143,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function removeAsLead(request,workflowActivityID)
+    async function removeAsLead(request,workflowActivityID, leadAssetID)
     {
         let newReq = {};
         newReq.organization_id = request.organization_id;
