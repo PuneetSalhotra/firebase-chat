@@ -1978,25 +1978,26 @@ function BotService(objectCollection) {
           }*/
         
         //TEST CASE 1
+        let inlineData = {};
+            inlineData.from_request = {};
+            inlineData.from_request.asset_id = 38848;    
+            inlineData.flag_esms = 1;
+            inlineData.flag_remove_participant = 0;
+            inlineData.flag_remove_lead = 1;
+            inlineData.flag_remove_owner = 0;
+            inlineData.flag_remove_creator_as_owner = 0;
+
+        //TEST CASE 2
         // let inlineData = {};
-        //     inlineData.from_request = {};
-        //     inlineData.from_request.asset_id = 38848;    
-        //     inlineData.flag_esms = 1;
-        //     inlineData.flag_remove_participant = 0;
+        //    inlineData.flag_esms = 1;
+        //    inlineData.asset_reference = {};
+        //    inlineData.asset_reference.form_id = 1234;
+        //    inlineData.asset_reference.field_id = 1234;
+        //   inlineData.flag_remove_participant = 0;
         //     inlineData.flag_remove_lead = 1;
         //     inlineData.flag_remove_owner = 0;
         //     inlineData.flag_remove_creator_as_owner = 0;
 
-        //TEST CASE 2
-        let inlineData = {};
-           inlineData.flag_esms = 1;
-           inlineData.asset_reference = {};
-           inlineData.asset_reference.form_id = 1234;
-           inlineData.asset_reference.field_id = 1234;
-          inlineData.flag_remove_participant = 0;
-            inlineData.flag_remove_lead = 1;
-            inlineData.flag_remove_owner = 0;
-            inlineData.flag_remove_creator_as_owner = 0;
         await removeParticipant(request, inlineData);
         return [false, []];
     }
@@ -2138,9 +2139,11 @@ function BotService(objectCollection) {
     
         await rmBotService.activityListLeadUpdateV2(newReq, 0);
     
+
         if(leadAssetID !== 0)
         {
-            let leadAssetFirstName = '';
+            console.log("Remove lead asset inside if--------");
+            let leadAssetFirstName = '',leadOperatingAssetFirstName='';
             try {
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
@@ -2150,16 +2153,17 @@ function BotService(objectCollection) {
                 console.log('********************************');
                 console.log('LEAD ASSET DATA - ', assetData[0]);
                 console.log('********************************');
-                leadAssetFirstName = assetData[0].asset_first_name;
+                // leadAssetFirstName = assetData[0].asset_first_name;
+                leadOperatingAssetFirstName = assetData[0].operating_asset_first_name;
             } catch (error) {
                 console.log(error);
             }
         
             //Add a timeline entry
             let activityTimelineCollection =  JSON.stringify({                            
-                "content": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "content": `Tony removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 "subject": `Note - ${util.getCurrentDate()}.`,
-                "mail_body": `Tony removed ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "mail_body": `Tony removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 "activity_reference": [],
                 "asset_reference": [],
                 "attachments": [],
@@ -2167,11 +2171,12 @@ function BotService(objectCollection) {
             });
         
             let timelineReq = Object.assign({}, request);
+                timelineReq.activity_id = workflowActivityID;
                 timelineReq.activity_type_id = request.activity_type_id;
                 timelineReq.message_unique_id = util.getMessageUniqueId(100);
                 timelineReq.track_gps_datetime = util.getCurrentUTCTime();
-                timelineReq.activity_stream_type_id = 327;
-                timelineReq.timeline_stream_type_id = 327;
+                timelineReq.activity_stream_type_id = 717;
+                timelineReq.timeline_stream_type_id = 717;
                 timelineReq.activity_timeline_collection = activityTimelineCollection;
                 timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
         
