@@ -5127,9 +5127,14 @@ function ActivityService(objectCollection) {
         console.log('In activityActivityMappingInsertV1 - ', fieldData.field_data_type_id);
         let finalworkflowData;
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
+
+        console.log('request.form_id - ', request.form_id);
+        console.log('request.activity_form_id - ', request.activity_form_id);
+
+        const formID = request.form_id || request.activity_form_id;
         
         if(Number(request.activity_type_category_id) === 9) {            
-            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, formID);
             if (workflowError !== false || workflowData.length === 0) {
                 console.log('workflowError in activityActivityMappingInsertV1: ', workflowError);
                 console.log('workflowData in activityActivityMappingInsertV1: ', workflowData);
@@ -5165,9 +5170,11 @@ function ActivityService(objectCollection) {
         try{
             fieldValue = (typeof fieldData.field_value === 'string')? JSON.parse(fieldData.field_value) : fieldData.field_value;
             console.log('fieldValue : ', fieldValue);
+            let actID;
             switch(Number(fieldData.field_data_type_id)) {
                 case 68: for(const i of fieldValue) {
-                            await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
+                            actID = (i.hasOwnProperty('activity_id')) ? i.activity_id : i.workflow_activity_id;
+                            await activityCommonService.activityActivityMappingInsertV1(newReq, actID);
                         }
                         break;
 
