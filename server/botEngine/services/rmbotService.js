@@ -1077,7 +1077,10 @@ function RMBotService(objectCollection) {
 
             request.target_asset_id = leadAssetId;
             logger.info("duration_in_minutes :: "+request.duration_in_minutes);
-            let status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
+            let status_due_date = "";
+            if(!!request.duration_in_minutes){
+                status_due_date = await self.getWorkflowStatusDueDateBasedOnAssetBusinessHours(request, 1);
+            }
             request.global_array.push({"status_due_date":"DERIVED STATUS DUE DATE ON WORKFLOW "+request.activity_id+" FOR "+leadAssetId+" "+status_due_date});
 
             request.ai_bot_id = 1;
@@ -2233,6 +2236,7 @@ function RMBotService(objectCollection) {
             0,
             500
         );
+
         const queryString = util.getQueryString('ds_v1_asset_list_select_resource_asset_type_pool', paramsArr);
         if (queryString !== '') {
 
@@ -3452,7 +3456,44 @@ function RMBotService(objectCollection) {
         return rmInlineData;
     }
  
-        
+   
+    this.formSubmissionTrigger = async function (request) {
+
+        try{
+
+            let roleLinkedToStatus = 0;
+            let statusDuration = 0;
+
+            request.ai_bot_id = 1;
+            request.ai_bot_status_id = 3;
+            request.bot_mapping_inline_data = {};
+            request.timeline_stream_type_id = 719;
+
+            if(request.current_lead_asset_id > 0 ){
+                request.global_array.push({"REMOVE_LEAD":"REMOVING LEAD FROM WORKFLOW"});
+                await self.activityListLeadUpdateV1(request, 0);
+            }
+            
+            request.global_array.push({"UNALLOCATE_WORKFLOW ":"MAKING THE WORKLOW UNALLOCATED "});
+            await self.unallocatedWorkflowInsert(request);
+
+            request.global_array.push({"activity_type_flag_round_robin":request.activity_type_flag_round_robin});
+            if(request.activity_type_flag_round_robin == 1){ 
+                request.global_array.push({"ROUND_ROBIN_FLAG_SET":"HENCE EXECUTING ROUND ROBIN FEATURE"});
+                await self.TriggerRoundRobinV1(request);
+            }else{
+                request.global_array.push({"ROUND_ROBIN_FLAG_NOT_SET":"TRIGGER THE AssinWorkflow POOL"});
+                //await self.RMLoopInResoources(request);
+                await self.RMAssignWorkflow(request);
+            }
+
+        }catch(error){
+            logger.info("error :: "+error);
+        }
+        logger.info('request '+JSON.stringify(request, null,2));
+        return [false, {}];
+    };
+
     }
 
 module.exports = RMBotService;
