@@ -5757,10 +5757,18 @@ function FormConfigService(objCollection) {
         try{
             if(flag === 'multi') {
                 processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
-                let cartItems = processedOldFieldValue.cart_items;
-                for(const i_iterator of cartItems) {
-                    await activityCommonService.activityActivityMappingArchive(oldReq, i_iterator.product_variant_activity_id);
-                }
+                console.log(request.device_os_id);
+                //let cartItems = (typeof processedOldFieldValue.cart_items === 'string') ? JSON.parse(processedOldFieldValue.cart_items): processedOldFieldValue.cart_items;
+                //let productActId;
+                /*for(const i_iterator of cartItems) {
+                    //console.log('i_iterator.product_variant_activity_id - ', i_iterator.product_variant_activity_id);
+                    //console.log('processedOldFieldValue.product_activity_id - ', processedOldFieldValue.product_activity_id);
+
+                    //productActId = (Number(i_iterator.product_variant_activity_id) !== 0) ? i_iterator.product_variant_activity_id : processedOldFieldValue.product_activity_id;
+                    //console.log('productActId - ', productActId);
+                    await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
+                }*/
+                await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
             } else { //'Single'
                 processedOldFieldValue = oldFieldValue.split('|');
                 await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue[0]);
@@ -5800,10 +5808,13 @@ function FormConfigService(objCollection) {
                                 await activityCommonService.activityActivityMappingInsertV1(newReq, i.activity_id);
                              }
                              break;
-                    case 71: let childActivities = fieldValue.cart_items;
-                            for(const i of childActivities) {
-                                   await activityCommonService.activityActivityMappingInsertV1(newReq, i.product_variant_activity_id);
-                            }
+                    case 71: //let childActivities = (typeof fieldValue.cart_items === 'string') ? JSON.parse(fieldValue.cart_items): fieldValue.cart_items;
+                            //let productActId;
+                            //for(const i of childActivities) {
+                            //       productActId = (Number(i.product_variant_activity_id) !== 0) ? i.product_variant_activity_id : fieldValue.product_activity_id;
+                            //       await activityCommonService.activityActivityMappingInsertV1(newReq, productActId);
+                            //}
+                            await activityCommonService.activityActivityMappingInsertV1(newReq, fieldValue.product_activity_id);
                             break;                    
                 }
                 
@@ -6067,6 +6078,12 @@ function FormConfigService(objCollection) {
                 for(let row1 of dependentFormTransaction) {
                     let data = JSON.parse(row1.data_entity_inline);
                     let formSubmittedInfo = data.form_submitted;
+                    try {
+                        formSubmittedInfo = JSON.parse(formSubmittedInfo);
+                    } catch (e) {
+                        console.log("got formSubmittedInfo as string");
+                    }
+
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
                             response.push({
