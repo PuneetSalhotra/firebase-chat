@@ -550,7 +550,40 @@ function ActivityService(objectCollection) {
                                 console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
-                                    fieldData = formInlineData[i];                                   
+                                    fieldData = formInlineData[i]; 
+
+                                    if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){
+
+                                        let ARPRequest = Object.assign({}, request);
+
+                                        ARPRequest.field_id = fieldData.field_id;
+                                        ARPRequest.page_start = 0;
+                                        ARPRequest.page_limit = 1;
+                                        ARPRequest.bot_operation_type_id = 34;
+                                        let [errorARP, responseARP] = await checkARPBotOnAField(ARPRequest); 
+
+                                        if(responseARP.length > 0){
+                                            //Bot Exists
+                                            //Hit ARP Bot
+                                            console.log(" ARP Bot Exists for this Form and No Resource Selected");
+                                            ARPRequest.asset_type_id = JSON.parse(responseARP[0].bot_operation_inline_data).bot_operations.arp.asset_type_id;
+                                            ARPRequest.activity_type_flag_round_robin = JSON.parse(responseARP[0].bot_operation_inline_data).bot_operations.arp.activity_type_flag_round_robin;
+                                            ARPRequest.current_lead_asset_id = 0;
+                                            ARPRequest.duration_in_minutes = 0;
+                                            ARPRequest.global_array = [];
+                                            ARPRequest.ai_bot_trigger_key = "form_submission_arp_"+ARPRequest.activity_id+"_"+ARPRequest.form_id;
+                                            ARPRequest.ai_bot_trigger_asset_id = 0;
+                                            ARPRequest.ai_bot_trigger_activity_id = ARPRequest.activity_id;
+                                            ARPRequest.ai_bot_trigger_activity_status_id = 0;
+                                            ARPRequest.global_array.push({"arp_form_submission_":"No Medical Officer Selected :::  "+JSON.stringify(request)});
+
+                                            console.log(JSON.stringify(ARPRequest, null, 2));
+                                            rmbotService.formSubmissionTrigger(ARPRequest);                                            
+                                        } else{
+                                            console.log("No ARP Bot for this Form "+fieldData.field_id);
+                                        }
+                                    }
+                             
                                     
                                     if(
                                         Number(fieldData.field_data_type_id) === 57 ||
@@ -5408,6 +5441,34 @@ function ActivityService(objectCollection) {
 				});
 		}
 		return [error, responseData];
+    }
+
+    async function checkARPBotOnAField(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                request.organization_id,
+                request.bot_operation_type_id,
+                request.form_id,
+                request.field_id,
+                request.page_start,
+                request.page_limit
+            ];
+        const queryString = util.getQueryString('ds_v1_bot_operation_mapping_select_field', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
     }
 
 }
