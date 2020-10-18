@@ -1275,7 +1275,8 @@ function AnalyticsService(objectCollection)
                     case 62:
                     case 64: //participating single
                     case 66: //avg sales bar chart     
-                    case 67: //active fos users bar chart              
+                    case 67: //active fos users bar chart  
+                    case 68: //any field Value            
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1316,10 +1317,12 @@ function AnalyticsService(objectCollection)
                                         request.filter_product_activity_id || 0,
                                         request.filter_segment_id || 0,
                                         request.filter_account_activity_id || 0,
-                                        request.filter_asset_type_id || 0
+                                        request.filter_asset_type_id || 0,
+                                        request.filter_form_id || 0,
+                                        request.filter_field_id || 0
                                     );
                 
-                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
+                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_4_activity_list_select_widget_values', paramsArray, 1);
                                     console.log(tempResult);
                                         
                                     if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
@@ -1431,10 +1434,12 @@ function AnalyticsService(objectCollection)
                                 request.filter_product_activity_id || 0,
                                 request.filter_segment_id || 0,
                                 request.filter_account_activity_id || 0,
-                                request.filter_asset_type_id || 0
+                                request.filter_asset_type_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0                                
                             );
         
-                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_4_activity_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
 
                             results[iterator] =
@@ -1571,8 +1576,8 @@ function AnalyticsService(objectCollection)
                                 parseInt(arrayStatuses[iteratorZ].activity_status_id),                        
                                 request.bot_id || 0,
                                 request.bot_operation_id || 0,
-                                request.form_id || 0,
-                                request.field_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0,
                                 request.data_type_combo_id || 0,
                                 request.datetime_start,
                                 request.datetime_end,
@@ -1638,8 +1643,8 @@ function AnalyticsService(objectCollection)
                                 parseInt(arrayStatuses[iteratorZ].activity_status_id),                        
                                 request.bot_id || 0,
                                 request.bot_operation_id || 0,
-                                request.form_id || 0,
-                                request.field_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0,
                                 request.data_type_combo_id || 0,
                                 request.datetime_start,
                                 request.datetime_end,

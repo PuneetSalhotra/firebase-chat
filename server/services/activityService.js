@@ -552,7 +552,51 @@ function ActivityService(objectCollection) {
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
 
-                                    if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){
+                                    if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
+                                        processFieldWidgetData(request); // actiivty_widget_list
+                                    }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
+                                        prepareARP(request);
+                                    }
+
+                                    /*
+                                    if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){
+                                        let WidgetFieldRequest = Object.assign({}, request);
+
+                                        WidgetFieldRequest.field_id = fieldData.field_id;
+                                        WidgetFieldRequest.page_start = 0;
+                                        WidgetFieldRequest.page_limit = 1;
+                                        WidgetFieldRequest.widget_type_id = 68;
+                                        WidgetFieldRequest.field_value = fieldData.field_value;
+                                        let [errorWidget, responseWidget] = await checkFieldWidget(WidgetFieldRequest); 
+                                        if(responseWidget.length > 0){
+                                             console.log("FieldWidget exists for this Field :: "+fieldData.field_id);
+                                            if(activityTypeCategroyId === 48)
+                                            {   
+                                                console.log("Workflow submitted, hence widget data insert :: "+request.form_id);
+                                                activtyWidgetListInsert(WidgetFieldRequest);
+
+                                            }else if(activityTypeCategroyId === 9){
+
+                                                let formData = await activityCommonService.getFormDetails(request);
+                                                if(formData.length > 0){
+
+                                                    if(formData[0].form_flag_workflow_origin == 0){
+
+                                                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
+                                                        activtyWidgetListInsert(WidgetFieldRequest);
+
+                                                    }else{
+                                                        console.log("Origin Form submitted, hence no widget data insert:: true :: "+request.form_id);
+                                                    }
+                                                }else{
+                                                    console.log("No Form Exists with this FormId "+request.form_id);
+                                                }
+                                            }
+                                        } else{
+                                            WidgetFieldRequest = null;
+                                            console.log("No FieldWidget for this Field "+fieldData.field_id);
+                                        }
+                                    }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){
 
                                         let ARPRequest = Object.assign({}, request);
 
@@ -580,10 +624,11 @@ function ActivityService(objectCollection) {
                                             console.log(JSON.stringify(ARPRequest, null, 2));
                                             rmbotService.formSubmissionTrigger(ARPRequest);                                            
                                         } else{
+                                            ARPRequest = null;
                                             console.log("No ARP Bot for this Form "+fieldData.field_id);
                                         }
                                     }
-                             
+                                    */
                                     
                                     if(
                                         Number(fieldData.field_data_type_id) === 57 ||
@@ -5471,6 +5516,133 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
+    async function checkFieldWidget(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                request.organization_id,
+                request.widget_type_id,
+                request.form_id,
+                request.field_id,
+                request.page_start,
+                request.page_limit
+            ];
+        const queryString = util.getQueryString('ds_p1_widget_list_select_form_field_widget_type', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    function activtyWidgetListInsert(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: activtyWidgetListInsert  :::', {}, request);
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.activity_type_id,
+                request.activity_type_category_id,
+                request.form_id,
+                request.field_id,
+                request.field_value,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_widget_list_insert', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }
+
+   async function prepareARP (request){
+
+        let ARPRequest = Object.assign({}, request);
+
+        ARPRequest.field_id = fieldData.field_id;
+        ARPRequest.page_start = 0;
+        ARPRequest.page_limit = 1;
+        ARPRequest.bot_operation_type_id = 34;
+        let [errorARP, responseARP] = await checkARPBotOnAField(ARPRequest); 
+
+        if(responseARP.length > 0){
+            //Bot Exists
+            //Hit ARP Bot
+            console.log(" ARP Bot Exists for this Form and No Resource Selected");
+            ARPRequest.asset_type_id = JSON.parse(responseARP[0].bot_operation_inline_data).bot_operations.arp.asset_type_id;
+            ARPRequest.activity_type_flag_round_robin = JSON.parse(responseARP[0].bot_operation_inline_data).bot_operations.arp.activity_type_flag_round_robin;
+            ARPRequest.current_lead_asset_id = 0;
+            ARPRequest.duration_in_minutes = 0;
+            ARPRequest.global_array = [];
+            ARPRequest.ai_bot_trigger_key = "form_submission_arp_"+ARPRequest.activity_id+"_"+ARPRequest.form_id;
+            ARPRequest.ai_bot_trigger_asset_id = 0;
+            ARPRequest.ai_bot_trigger_activity_id = ARPRequest.activity_id;
+            ARPRequest.ai_bot_trigger_activity_status_id = 0;
+            ARPRequest.global_array.push({"arp_form_submission_":"No Medical Officer Selected :::  "+JSON.stringify(request)});
+
+            console.log(JSON.stringify(ARPRequest, null, 2));
+            rmbotService.formSubmissionTrigger(ARPRequest);                                            
+        } else{
+            ARPRequest = null;
+            console.log("No ARP Bot for this Form "+fieldData.field_id);
+        }
+    }
+
+
+    async function processFieldWidgetData(request){
+
+        let WidgetFieldRequest = Object.assign({}, request);
+
+        WidgetFieldRequest.field_id = fieldData.field_id;
+        WidgetFieldRequest.page_start = 0;
+        WidgetFieldRequest.page_limit = 1;
+        WidgetFieldRequest.widget_type_id = 68;
+        WidgetFieldRequest.field_value = fieldData.field_value;
+        let [errorWidget, responseWidget] = await checkFieldWidget(WidgetFieldRequest); 
+        if(responseWidget.length > 0){
+             console.log("FieldWidget exists for this Field :: "+fieldData.field_id);
+            if(activityTypeCategroyId === 48)
+            {   
+                console.log("Workflow submitted, hence widget data insert :: "+request.form_id);
+                activtyWidgetListInsert(WidgetFieldRequest);
+
+            }else if(activityTypeCategroyId === 9){
+
+                let formData = await activityCommonService.getFormDetails(request);
+                if(formData.length > 0){
+
+                    if(formData[0].form_flag_workflow_origin == 0){
+                        
+                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
+                        activtyWidgetListInsert(WidgetFieldRequest);
+
+                    }else{
+                        console.log("Origin Form submitted, hence no widget data insert:: true :: "+request.form_id);
+                    }
+                }else{
+                    console.log("No Form Exists with this FormId "+request.form_id);
+                }
+            }
+        } else{
+            WidgetFieldRequest = null;
+            console.log("No FieldWidget for this Field "+fieldData.field_id);
+        }
+    }
 }
 
 module.exports = ActivityService;
