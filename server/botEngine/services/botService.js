@@ -8616,6 +8616,14 @@ async function removeAsOwner(request,data)  {
                 correction_secondary: {
                     message: "Secondary FR creation cannot be corrected on the following opportunity IDs because their primary FRs don't exist:\n",
                     opportunity_ids: []
+                },
+                refeasibility_rejected_by_am: {
+                    message: "Rejection by Account Manager cannot be initiated on the following opportunity IDs:\n",
+                    opportunity_ids: []
+                },
+                refeasibility_rejected_by_fes: {
+                    message: "Resubmission cannot be initiated on the following opportunity IDs:\n",
+                    opportunity_ids: []
                 }
             }
         };
@@ -8716,6 +8724,66 @@ async function removeAsOwner(request,data)  {
                 }
 
                 childOpportunity.OppId = childOpportunityID;
+            }
+
+            if (childOpportunity.actionType === "refeasibility_rejected_by_am" ) {
+                if (childOpportunity.OppId === "") { continue; }
+
+                childOpportunityID = childOpportunity.OppId;
+
+                // Check if the child opportunity already exists
+                const [errorThree, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunityID
+                });
+                if (!(childOpportunityData.length > 0)) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.refeasibility_rejected_by_am.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                
+                if (
+                    (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
+                    (linkType === "secondary" && !String(secondaryFRID).startsWith("FR"))
+                ) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.refeasibility_rejected_by_am.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+            }
+
+            if (childOpportunity.actionType === "refeasibility_rejected_by_fes" ) {
+                if (childOpportunity.OppId === "") { continue; }
+
+                childOpportunityID = childOpportunity.OppId;
+
+                // Check if the child opportunity already exists
+                const [errorFour, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunityID
+                });
+                if (!(childOpportunityData.length > 0)) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                
+                if (
+                    (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
+                    (linkType === "secondary" && !String(secondaryFRID).startsWith("FR"))
+                ) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
             }
 
             const bulkJobRequest = {
