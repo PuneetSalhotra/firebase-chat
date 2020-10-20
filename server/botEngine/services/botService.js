@@ -8726,7 +8726,7 @@ async function removeAsOwner(request,data)  {
                 childOpportunity.OppId = childOpportunityID;
             }
 
-            if (childOpportunity.actionType === "refeasibility_rejected_by_am" ) {
+            if (childOpportunity.actionType === "refeasibility_rejected_by_am") {
                 if (childOpportunity.OppId === "") { continue; }
 
                 childOpportunityID = childOpportunity.OppId;
@@ -8745,7 +8745,7 @@ async function removeAsOwner(request,data)  {
                 }
                 const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
                 const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
-                
+
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
                     (linkType === "secondary" && !String(secondaryFRID).startsWith("FR"))
@@ -8756,7 +8756,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            if (childOpportunity.actionType === "refeasibility_rejected_by_fes" ) {
+            if (childOpportunity.actionType === "refeasibility_rejected_by_fes") {
                 if (childOpportunity.OppId === "") { continue; }
 
                 childOpportunityID = childOpportunity.OppId;
@@ -8775,7 +8775,7 @@ async function removeAsOwner(request,data)  {
                 }
                 const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
                 const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
-                
+
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
                     (linkType === "secondary" && !String(secondaryFRID).startsWith("FR"))
