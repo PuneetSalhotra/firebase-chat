@@ -8592,7 +8592,7 @@ async function removeAsOwner(request,data)  {
             "CodecRequired", "AudioCodecType", "VideoCodecType", "NumberOfAudioSession", "NumberOfVideoSession", "AdditionalBandwidth", "AdditionalBandwidthUnit",
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
-            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks"
+            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -8694,7 +8694,8 @@ async function removeAsOwner(request,data)  {
                 // Depend on the serial number explicitly entered by the user in the excel sheet
 
                 if (linkType === "primary") { childOpportunityID = `${opportunityID}-${serialNumber}`; }
-                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId; }
+                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId || ""; }
+                if (childOpportunityID === "") { continue; }
 
                 // Check if the child opportunity already exists
                 const [errorTwo, childOpportunityData] = await activityListSearchCUID({
