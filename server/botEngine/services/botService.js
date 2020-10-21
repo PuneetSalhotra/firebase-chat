@@ -2855,8 +2855,9 @@ async function removeAsOwner(request,data)  {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
+        let attachments = [];
         for (const comment of comments) {
-            let addCommentRequest = Object.assign(request, {});
+            let addCommentRequest = Object.assign(request, {});       
 
         
             if(comment.comment === "<<vf_frid_expire>>" && fridNotExists) {
@@ -2891,6 +2892,11 @@ async function removeAsOwner(request,data)  {
                 comment.comment = comment.comment.replace("<<activity_id>>",workflowActivityID);
             }
 
+            if(comment.comment.includes("<<contract>>"))
+            {
+                comment.comment = "Contract Template";
+                attachments = ["https://worlddesk-staging-2020-10.s3.amazonaws.com/868/1102/5918/34810/2020/10/103/1603209047434/MASTER-SUBSCRIPTION-AGREEMENT.docx"];
+            }
 
             console.log("comment ---------------------");
             console.log(comment.comment);
@@ -2904,7 +2910,7 @@ async function removeAsOwner(request,data)  {
                 "content": `${comment.comment}`,
                 "subject": `${comment.comment}`,
                 "mail_body": `${comment.comment}`,
-                "attachments": []
+                "attachments": attachments
             });
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
