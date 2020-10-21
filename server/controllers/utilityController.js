@@ -534,5 +534,10 @@ function UtilityController(objCollection) {
         }
         
     });
+
+    app.post('/'+global.config.version+'/veryify-token',async(req,res)=>{
+        console.log("In verifying Access token for socket io");
+        return res.send(responseWrapper.getResponse({}, {}, 200, {}));
+    });
 }
 module.exports = UtilityController;
