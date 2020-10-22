@@ -8559,14 +8559,14 @@ async function removeAsOwner(request,data)  {
         }
 
           // Fetch the solution document URL
-          const bulkUploadFieldData = await getFieldValue({
+          const solutionBulkUploadFieldData = await getFieldValue({
             form_transaction_id: bulkUploadFormTransactionID,
             form_id: solutionDocumentFormID,
             field_id: solutionDocumentFieldID,
             organization_id: request.organization_id
         });
-        if (bulkUploadFieldData.length > 0) {
-            solutionDocumentUrl = bulkUploadFieldData[0].data_entity_text_1
+        if (solutionBulkUploadFieldData.length > 0) {
+            solutionDocumentUrl = solutionBulkUploadFieldData[0].data_entity_text_1
         }
 
         // Fetch the excel URL
