@@ -8493,7 +8493,10 @@ async function removeAsOwner(request,data)  {
             bulkUploadFormTransactionID = 0,
             bulkUploadFormActivityID = 0,
             opportunityID = "",
-            sqsQueueUrl = "";
+            sqsQueueUrl = "",
+            solutionDocumentUrl = "",
+            solutionDocumentFormID = 0,
+            solutionDocumentFieldID = 0;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -8502,6 +8505,8 @@ async function removeAsOwner(request,data)  {
             // Form and Field for getting the excel file's 
             bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
             bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+            solutionDocumentFormID = botOperationInlineData.solution_document.form_id || 0,
+            solutionDocumentFieldID = botOperationInlineData.solution_document.field_id || 0;
 
         switch (process.env.mode) {
             case "local":
@@ -8551,6 +8556,17 @@ async function removeAsOwner(request,data)  {
 
         if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
             throw new Error("Form to bulk upload feasibility is not submitted");
+        }
+
+          // Fetch the solution document URL
+          const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: solutionDocumentFormID,
+            field_id: solutionDocumentFieldID,
+            organization_id: request.organization_id
+        });
+        if (bulkUploadFieldData.length > 0) {
+            solutionDocumentUrl = bulkUploadFieldData[0].data_entity_text_1
         }
 
         // Fetch the excel URL
@@ -8793,6 +8809,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            if(solutionDocumentUrl !== ""){childOpportunity.FilePath = solutionDocumentUrl}
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
