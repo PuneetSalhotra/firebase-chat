@@ -8494,9 +8494,7 @@ async function removeAsOwner(request,data)  {
             bulkUploadFormActivityID = 0,
             opportunityID = "",
             sqsQueueUrl = "",
-            solutionDocumentUrl = "",
-            solutionDocumentFormID = 0,
-            solutionDocumentFieldID = 0;
+            solutionDocumentUrl = "";
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -8614,7 +8612,8 @@ async function removeAsOwner(request,data)  {
             "CodecRequired", "AudioCodecType", "VideoCodecType", "NumberOfAudioSession", "NumberOfVideoSession", "AdditionalBandwidth", "AdditionalBandwidthUnit",
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
-            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor"
+            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
+            "SalesRemarks"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -8657,7 +8656,7 @@ async function removeAsOwner(request,data)  {
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction") ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am") ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
                 !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
