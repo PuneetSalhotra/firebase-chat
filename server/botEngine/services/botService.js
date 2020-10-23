@@ -8504,7 +8504,7 @@ async function removeAsOwner(request,data)  {
             triggerFieldName = request.trigger_field_name,
             // Form and Field for getting the excel file's 
             bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
-            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0,
             solutionDocumentFormID = botOperationInlineData.solution_document.form_id || 0,
             solutionDocumentFieldID = botOperationInlineData.solution_document.field_id || 0;
 
@@ -8558,8 +8558,8 @@ async function removeAsOwner(request,data)  {
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
-          // Fetch the solution document URL
-          const solutionBulkUploadFieldData = await getFieldValue({
+        // Fetch the solution document URL
+        const solutionBulkUploadFieldData = await getFieldValue({
             form_transaction_id: bulkUploadFormTransactionID,
             form_id: solutionDocumentFormID,
             field_id: solutionDocumentFieldID,
@@ -8809,7 +8809,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            if(solutionDocumentUrl !== ""){childOpportunity.FilePath = solutionDocumentUrl}
+            if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
