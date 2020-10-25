@@ -2122,6 +2122,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_is_direct_report),
                         parseInt(request.filter_is_datetime_considered),
                         parseInt(request.filter_asset_type_id),
+                        parseInt(request.workforce_tag_id),
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2133,7 +2134,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_3_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_4_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2148,7 +2149,7 @@ function AnalyticsService(objectCollection)
                     }else{
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_3_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_4_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                         if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
@@ -2317,12 +2318,13 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_asset_type_id),     
                     parseInt(request.filter_is_count) || 0,
                     parseInt(request.filter_is_search) || 0,
-                    request.filter_search_string || '',        
+                    request.filter_search_string || '',  
+                    parseInt(request.workforce_tag_id),                          
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_3_activity_search_list_select_widget_drilldown_search', paramsArray);
+                var queryString = util.getQueryString('ds_v1_4_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }

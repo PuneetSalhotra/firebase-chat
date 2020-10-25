@@ -5318,7 +5318,7 @@ this.getQrBarcodeFeeback = async(request) => {
                     .then((data) => {
                         //responseData = data;
                         error = false;
-                        console.log("DATA LENGTH ", data.length);
+                        console.log("assetAccessLevelMappingSelectFlagV2 :: Flag "+request.flag+" :: DATA LENGTH :: ", data.length);
                         if (request.flag == 2) {
                             console.log("request.cluster_tag_id :: "+request.cluster_tag_id);
                             if(request.cluster_tag_id == 0){ // cluster tag
@@ -5729,6 +5729,50 @@ this.getQrBarcodeFeeback = async(request) => {
                                     resolve(responseData);
                                 }
                             } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 26) {
+
+                            if (data.length == 0) {
+                                
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].workforce_tag_id == 0) {
+
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
