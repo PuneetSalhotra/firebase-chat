@@ -179,6 +179,10 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             req.body['module'] = 'asset';
                             next();
                             break;
+                        case '/' + global.config.version + '/vil/temp-credentials/fetch':
+                        case '/' + global.config.version + '/vil/s3-object/download':
+                            next();
+                            break;
 
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
