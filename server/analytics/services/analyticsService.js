@@ -2122,7 +2122,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_is_direct_report),
                         parseInt(request.filter_is_datetime_considered),
                         parseInt(request.filter_asset_type_id),
-                        parseInt(request.workforce_tag_id),
+                        parseInt(request.workforce_tag_id) || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2319,7 +2319,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_is_count) || 0,
                     parseInt(request.filter_is_search) || 0,
                     request.filter_search_string || '',  
-                    parseInt(request.workforce_tag_id),                          
+                    parseInt(request.workforce_tag_id) || 0,                          
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
