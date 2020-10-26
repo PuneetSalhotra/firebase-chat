@@ -8664,7 +8664,7 @@ async function removeAsOwner(request,data)  {
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am") ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am" || childOpportunity.actionType === "cloning") ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
                 !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
