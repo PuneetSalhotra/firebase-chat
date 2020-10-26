@@ -2855,8 +2855,9 @@ async function removeAsOwner(request,data)  {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
+        let attachments = [];
         for (const comment of comments) {
-            let addCommentRequest = Object.assign(request, {});
+            let addCommentRequest = Object.assign(request, {});       
 
         
             if(comment.comment === "<<vf_frid_expire>>" && fridNotExists) {
@@ -2891,6 +2892,11 @@ async function removeAsOwner(request,data)  {
                 comment.comment = comment.comment.replace("<<activity_id>>",workflowActivityID);
             }
 
+            if(comment.comment.includes("<<contract>>"))
+            {
+                comment.comment = "Contract Template";
+                attachments = ["https://worlddesk-staging-2020-10.s3.amazonaws.com/868/1102/5918/34810/2020/10/103/1603209047434/MASTER-SUBSCRIPTION-AGREEMENT.docx"];
+            }
 
             console.log("comment ---------------------");
             console.log(comment.comment);
@@ -2904,7 +2910,7 @@ async function removeAsOwner(request,data)  {
                 "content": `${comment.comment}`,
                 "subject": `${comment.comment}`,
                 "mail_body": `${comment.comment}`,
-                "attachments": []
+                "attachments": attachments
             });
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
@@ -8487,7 +8493,8 @@ async function removeAsOwner(request,data)  {
             bulkUploadFormTransactionID = 0,
             bulkUploadFormActivityID = 0,
             opportunityID = "",
-            sqsQueueUrl = "";
+            sqsQueueUrl = "",
+            solutionDocumentUrl = "";
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -8495,7 +8502,9 @@ async function removeAsOwner(request,data)  {
             triggerFieldName = request.trigger_field_name,
             // Form and Field for getting the excel file's 
             bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
-            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0,
+            solutionDocumentFormID = botOperationInlineData.solution_document.form_id || 0,
+            solutionDocumentFieldID = botOperationInlineData.solution_document.field_id || 0;
 
         switch (process.env.mode) {
             case "local":
@@ -8547,6 +8556,17 @@ async function removeAsOwner(request,data)  {
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
+        // Fetch the solution document URL
+        const solutionBulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: solutionDocumentFormID,
+            field_id: solutionDocumentFieldID,
+            organization_id: request.organization_id
+        });
+        if (solutionBulkUploadFieldData.length > 0) {
+            solutionDocumentUrl = solutionBulkUploadFieldData[0].data_entity_text_1
+        }
+
         // Fetch the excel URL
         const bulkUploadFieldData = await getFieldValue({
             form_transaction_id: bulkUploadFormTransactionID,
@@ -8592,7 +8612,8 @@ async function removeAsOwner(request,data)  {
             "CodecRequired", "AudioCodecType", "VideoCodecType", "NumberOfAudioSession", "NumberOfVideoSession", "AdditionalBandwidth", "AdditionalBandwidthUnit",
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
-            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks"
+            "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
+            "SalesRemarks"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -8635,7 +8656,7 @@ async function removeAsOwner(request,data)  {
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction") ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am") ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
                 !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
@@ -8694,7 +8715,8 @@ async function removeAsOwner(request,data)  {
                 // Depend on the serial number explicitly entered by the user in the excel sheet
 
                 if (linkType === "primary") { childOpportunityID = `${opportunityID}-${serialNumber}`; }
-                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId; }
+                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId || ""; }
+                if (childOpportunityID === "") { continue; }
 
                 // Check if the child opportunity already exists
                 const [errorTwo, childOpportunityData] = await activityListSearchCUID({
@@ -8786,6 +8808,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,

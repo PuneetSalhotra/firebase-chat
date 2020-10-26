@@ -1,10 +1,12 @@
-const request = require('request');
+//const request = require('request');
 /*
  *author: Sri Sai Venkatesh 
  * 
  */
 var AwsSss = require('../utils/s3Wrapper');
-//var fs = require('fs');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const FileType = require('file-type');
 
 function UtilityController(objCollection) {
 
@@ -14,6 +16,7 @@ function UtilityController(objCollection) {
     var sss = new AwsSss();
     const db = objCollection.db;
     const activityCommonService = objCollection.activityCommonService;
+    const privateKey = '>qu6#y&(7Qj}>edm!';
 
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
@@ -430,6 +433,111 @@ function UtilityController(objCollection) {
         } else {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
+    });
+
+    app.post('/'+global.config.version+'/vil/temp-credentials/fetch',async(req,res)=>{
+        //Give an Username & PWD        
+        if(req.body.user_name === 'nani' && req.body.password === 'kalyan') {
+            const token = jwt.sign({user_id: 'vil'}, privateKey, { expiresIn: '1h' }, { algorithm: 'RS256'});
+            res.status(200).send({'access_token': token, 'expires_in': '1 hour'});
+        } else {
+            res.status(401).send({'message': 'Invalid Username or password'});            
+        }        
+    });
+
+    
+    //For Vodafone S3 File downloads
+    app.post('/'+global.config.version+'/vil/s3-object/download',async(req,res)=>{        
+        
+        try {
+            //Do the JWT authentication
+            let token = req.headers.accesstoken;
+            token = token.split(' ')[1];
+
+            console.log('token - ', token);
+            if(token === null || token === undefined) {
+                res.status(401).send({'message': 'Invalid Access Token'});
+                    return;            
+            }        
+                
+            let decoded;
+            try{
+                decoded = jwt.verify(token, privateKey);
+                console.log('decoded : ', decoded);
+            } catch(err) {
+                res.status(401).send({'message': 'Access Token Expired'});
+                return;
+            }            
+
+            if(decoded === null) {             
+                res.status(401).send({'message': 'Invalid Access Token'});
+                return;
+            }
+
+            if(req.body.s3_url === null || req.body.s3_url === undefined) {
+                res.status(400).send({'message': 's3_url params is missing'});
+                return;
+            } else {
+                let filePath = await util.downloadS3ObjectVil(req.body, req.body.s3_url);
+                console.log('filePath in Controller - ', filePath);
+
+                if(filePath!== null) {
+                    //fs.createReadStream(filePath).pipe(res);
+                    //res.write(fs.createReadStream(filePath));
+                    //fs.unlink(filePath);
+                    //res.end();
+
+                    //res.contentType(filePath);
+                    //res.sendFile(filePath);
+                    
+                    //res.sendFile('/apistaging-data/one.png');
+                    //res.sendFile('/apistaging-data/MOJO0925005A16233330.pdf');
+
+                    //const buffer = new Buffer.from(filePath,'base64');
+                    //console.log(buffer);
+                    //console.log(buffer.toString('base64'));
+                    //res.send(buffer);                    
+
+                    const stat = fs.statSync(filePath);                   
+
+                    let mime;
+                    try {
+                        const {ext, mime} = await FileType.fromFile(filePath);
+                        console.log('ext - ', ext);
+                        console.log('mime - ', mime);
+                    } catch(err) {
+                        mime = 'application/pdf; image/png';
+                    }
+                    console.log('mime - ', mime);
+                    
+                    //res.writeHead(200, {
+                    //    'Content-Type': mime,
+                    //    'Content-Length': stat.size
+                    //});
+
+                    const readStream = fs.createReadStream(filePath);                    
+                    //readStream.pipe(res);
+
+                    res.sendFile(filePath);
+
+                    readStream.on('end', ()=>{                        
+                        //fs.unlink(filePath, ()=>{});
+                    });
+                    
+                } else {
+                    res.status(500).send({'message': 'Error in downloading the S3 Object'});
+                }   
+            }            
+        } catch(err) {
+            console.log(err);
+            res.status(500).send({'message': 'Error in downloading the S3 Object'});
+        }
+        
+    });
+
+    app.post('/'+global.config.version+'/veryify-token',async(req,res)=>{
+        console.log("In verifying Access token for socket io");
+        return res.send(responseWrapper.getResponse({}, {}, 200, {}));
     });
 }
 module.exports = UtilityController;

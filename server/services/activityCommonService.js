@@ -5814,6 +5814,21 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error,responseData];
     }
 
+    this.getFormDetails = async (request) => {        
+        var paramsArr = new Array(            
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id
+        );
+
+        let queryString = util.getQueryString('ds_v1_workforce_form_mapping_select', paramsArr);
+       
+        if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };    
+
 }
 
 
