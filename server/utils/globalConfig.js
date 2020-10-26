@@ -549,12 +549,13 @@ if(mode === 'sprint') {
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
     //config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     //config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';
-    // config.database = 'desker_staging';
-    config.database = 'worlddesk_staging';
+    config.dbUser = 'apiuser';    
+    config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
@@ -566,7 +567,7 @@ if(mode === 'sprint') {
     config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-demo.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push
@@ -604,8 +605,9 @@ if(mode === 'sprint') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 24;
-    config.TOPIC_NAME = 'sprint-desker-activities-msk'; //v1 is only one partition
+    config.TOPIC_ID = 45;
+    //config.TOPIC_NAME = 'sprint-desker-activities-msk'; //v1 is only one partition
+    config.TOPIC_NAME = 'desker-activities-partitiontest-topic';
     config.CONSUMER_GROUP_ID = 'sprint-desker-activities-msk-cg';
 
     //staging-desker-form-widgets-v2 - 1 partition

@@ -10,7 +10,13 @@ var pubnub = new PubNub({
 });
 
 const io = require('socket.io-client');
-const socket = io.connect(`http://localhost:${global.config.servicePort}`, {reconnect: true});
+const socket = io(`http://localhost:${global.config.socketPort}/socket-connect`, {reconnect: true});
+
+socket.on('connect', function(data){
+    socket.emit('authentication', "internalConnectionSkipAuthentication","emptyPhoneNumber");
+});
+
+
 
 function PubnubPush() {
 
@@ -36,9 +42,13 @@ function PubnubPush() {
 
         //Push to the socket
         try{
+            console.log("-----------------------------------Log for emitting message to client----------------------------------");
+            console.log("channelId "+channelId );
+            console.log("message",message);
+
             message = (typeof message === 'object') ? JSON.stringify(message): message;
             //console.log('IO - ', io);
-            io.emit(channelId, message);
+            socket.emit("emitMessageToChannel",channelId, message);
             console.log(`Emitted the message- ${message} to channel id - ${channelId}`);
         } catch(err) {
             console.log('In catch!');

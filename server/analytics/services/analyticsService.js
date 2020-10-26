@@ -1275,7 +1275,8 @@ function AnalyticsService(objectCollection)
                     case 62:
                     case 64: //participating single
                     case 66: //avg sales bar chart     
-                    case 67: //active fos users bar chart              
+                    case 67: //active fos users bar chart  
+                    case 68: //any field Value            
                         for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                         {
                             console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1316,10 +1317,12 @@ function AnalyticsService(objectCollection)
                                         request.filter_product_activity_id || 0,
                                         request.filter_segment_id || 0,
                                         request.filter_account_activity_id || 0,
-                                        request.filter_asset_type_id || 0
+                                        request.filter_asset_type_id || 0,
+                                        request.filter_form_id || 0,
+                                        request.filter_field_id || 0
                                     );
                 
-                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
+                                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_4_activity_list_select_widget_values', paramsArray, 1);
                                     console.log(tempResult);
                                         
                                     if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
@@ -1431,10 +1434,12 @@ function AnalyticsService(objectCollection)
                                 request.filter_product_activity_id || 0,
                                 request.filter_segment_id || 0,
                                 request.filter_account_activity_id || 0,
-                                request.filter_asset_type_id || 0
+                                request.filter_asset_type_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0                                
                             );
         
-                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_3_activity_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_4_activity_list_select_widget_values', paramsArray, 1);
                             console.log(tempResult);
 
                             results[iterator] =
@@ -1571,8 +1576,8 @@ function AnalyticsService(objectCollection)
                                 parseInt(arrayStatuses[iteratorZ].activity_status_id),                        
                                 request.bot_id || 0,
                                 request.bot_operation_id || 0,
-                                request.form_id || 0,
-                                request.field_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0,
                                 request.data_type_combo_id || 0,
                                 request.datetime_start,
                                 request.datetime_end,
@@ -1638,8 +1643,8 @@ function AnalyticsService(objectCollection)
                                 parseInt(arrayStatuses[iteratorZ].activity_status_id),                        
                                 request.bot_id || 0,
                                 request.bot_operation_id || 0,
-                                request.form_id || 0,
-                                request.field_id || 0,
+                                request.filter_form_id || 0,
+                                request.filter_field_id || 0,
                                 request.data_type_combo_id || 0,
                                 request.datetime_start,
                                 request.datetime_end,
@@ -2117,6 +2122,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_is_direct_report),
                         parseInt(request.filter_is_datetime_considered),
                         parseInt(request.filter_asset_type_id),
+                        parseInt(request.workforce_tag_id) || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2128,7 +2134,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_3_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_4_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2143,7 +2149,7 @@ function AnalyticsService(objectCollection)
                     }else{
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_3_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_4_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                         if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
@@ -2312,12 +2318,13 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_asset_type_id),     
                     parseInt(request.filter_is_count) || 0,
                     parseInt(request.filter_is_search) || 0,
-                    request.filter_search_string || '',        
+                    request.filter_search_string || '',  
+                    parseInt(request.workforce_tag_id) || 0,                          
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_3_activity_search_list_select_widget_drilldown_search', paramsArray);
+                var queryString = util.getQueryString('ds_v1_4_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
