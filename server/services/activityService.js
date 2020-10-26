@@ -610,7 +610,7 @@ function ActivityService(objectCollection) {
                             if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                 || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                 || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                                || request.activity_type_id == 149058 || request.activity_type_id == 151728)){
+                                || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
                                     console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
 
                                     let opportunityRequest = Object.assign({}, request);
