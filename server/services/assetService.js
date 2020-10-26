@@ -4188,6 +4188,12 @@ function AssetService(objectCollection) {
         const sheet_name_list = workbook.SheetNames;
         console.log("EXCEL WORKBOOK :: " + sheet_name_list);
 
+        if(sheet_name_list.length > 0) {
+            if(sheet_name_list[0] !== 'Sheet1') {
+                return ["error", "Unable to find the sheet with name Sheet1 in the excel sheet. please check and resubmit"];
+            }
+        }
+
         console.log('xlData :: ' + workbook.Sheets[sheet_name_list[0]]);
         var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
         console.log('xlData :: ' + xlData.length);
