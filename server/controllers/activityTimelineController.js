@@ -573,6 +573,18 @@ function ActivityTimelineController(objCollection) {
         }
     });
 
+
+    app.post('/' + global.config.version + '/activity/timeline/mentions/send_email/v1', async (req, res) => {
+        req.body.is_version_v1 = 1;
+        const [err, orgData] = await activityTimelineService.mentionsSendEmail(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/activity/timeline/mentions/send_email | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityTimelineController;

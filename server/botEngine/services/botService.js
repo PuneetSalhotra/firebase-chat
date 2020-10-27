@@ -8645,6 +8645,14 @@ async function removeAsOwner(request,data)  {
                 refeasibility_rejected_by_fes: {
                     message: "Resubmission cannot be initiated on the following opportunity IDs:\n",
                     opportunity_ids: []
+                },
+                cloning_primary: {
+                    message: "Cloning cannot be initiated on the following opportunity IDs, because their primary FRs don't exist:\n",
+                    opportunity_ids: []
+                },
+                cloning_secondary: {
+                    message: "Cloning cannot be initiated on the following opportunity IDs, because their secondary FRs don't exist:\n",
+                    opportunity_ids: []
                 }
             }
         };
@@ -8656,7 +8664,7 @@ async function removeAsOwner(request,data)  {
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am") ||
+                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am" || childOpportunity.actionType === "cloning") ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
                 !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
@@ -8804,6 +8812,39 @@ async function removeAsOwner(request,data)  {
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+            }
+
+            if (childOpportunity.actionType === "cloning") {
+                if (childOpportunity.OppId === "") { continue; }
+
+                childOpportunityID = childOpportunity.OppId;
+
+                // Check if the child opportunity already exists
+                const [errorFive, childOpportunityData] = await activityListSearchCUID({
+                    organization_id: request.organization_id,
+                    activity_type_category_id: workflowActivityCategoryTypeID,
+                    flag: 1,
+                    search_string: childOpportunityID
+                });
+                if (!(childOpportunityData.length > 0)) {
+                    errorMessageJSON.errorExists = true;
+                    // errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+
+                if (linkType === "primary" && !String(primaryFRID).startsWith("FR")) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.cloning_primary.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
+                if (linkType === "secondary" && !String(secondaryFRID).startsWith("FR")) {
+                    errorMessageJSON.errorExists = true;
+                    errorMessageJSON.action.cloning_secondary.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
             }
