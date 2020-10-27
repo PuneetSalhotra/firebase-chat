@@ -70,6 +70,8 @@ const pubnubWrapper = new PubnubWrapper();
 const EWS = require('node-ews');
 const { response } = require('express');
 
+const CryptoJS = require("crypto-js");
+
 // exchange server connection info
 /*const ewsConfig = {
     username: 'ESMSMails@vodafoneidea.com',
@@ -2140,13 +2142,26 @@ function Util(objectCollection) {
     };  
     
     this.sendEmailEWS = async(request, receiverEmailID, emailSubject, Template) => {
-        const pwd = await cacheWrapper.getESMSMailsPwd();
-        console.log('pwd : ', pwd);
-        const ewsConfig = {
-            username: 'ESMSMails@vodafoneidea.com',
-            password: pwd, //'Aug@2020',
-            host: 'https://webmail.vodafoneidea.com'    
-        };
+        let pwd;
+        let ewsConfig;
+        if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password, 'lp-n5^+8M@62');
+            console.log('decrypted PWD : ', decrypted);
+
+            ewsConfig = {
+                username: request.email_sender,
+                password: decrypted.toString(),
+                host: 'https://webmail.vodafoneidea.com'    
+            };
+        } else {
+            pwd = await cacheWrapper.getESMSMailsPwd();
+            console.log('pwd : ', pwd);
+            ewsConfig = {
+                username: 'ESMSMails@vodafoneidea.com',
+                password: pwd, //'Aug@2020',
+                host: 'https://webmail.vodafoneidea.com'    
+            };
+        }
 
         // initialize node-ews
         const ews = new EWS(ewsConfig);
@@ -2192,13 +2207,24 @@ function Util(objectCollection) {
         //console.log('Before ews.run : Template - ', Template);
         console.log('Before ews.run : receiverEmailID - ', receiverEmailID);
         
-        ews.run(ewsFunction, ewsArgs)
-        .then(result => {
-            console.log('EWS Email - Result : ', JSON.stringify(result));
-        })
-        .catch(err => {
-            console.log('EWS Email - error : ', err.stack);
+        return new Promise((resolve, reject)=>{
+            ews.run(ewsFunction, ewsArgs)
+            .then(result => {
+                console.log('EWS Email - Result : ', JSON.stringify(result));
+                resolve(false);
+            })
+            .catch(err => {            
+                console.log('EWS Email - error : ', err.stack);
+                console.log('EWS Email - message : ', err.message);
+    
+                if((err.message).includes('401') && (err.message).includes('Unauthorized')) {
+                    console.log('Invalid Password!');
+    
+                    resolve(true);
+                }
+            });
         });
+        
     };
 
     //This is to support ews
