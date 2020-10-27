@@ -6127,6 +6127,35 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+    this.assetEmailPwdSet  = async (request) => {
+        let responseData = [],
+            error = true;        
+
+        const paramsArr = [
+                            request.asset_id,                            
+                            request.organization_id,
+                            request.new_password,
+                            util.addDaysToGivenDate(util.getCurrentUTCTime(), 90, "YYYY-MM-DD HH:mm:ss"), //PWD expiry datetime,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                        ];
+        const queryString = util.getQueryString('ds_p1_asset_list_update_password', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data)=>{
+                    responseData = {'message': 'Password updated successfully!'};
+                    error = false;
+                })
+                .catch((err)=>{
+                        console.log('[Error] assetEmailPwdSet ',err);
+                        error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AssetService;
