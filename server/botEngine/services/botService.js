@@ -8619,7 +8619,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks"
+            "SalesRemarks", "ReasonForCloning"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
