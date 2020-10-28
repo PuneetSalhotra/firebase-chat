@@ -261,6 +261,24 @@ function AnalyticsController(objCollection)
             } 
         });      
     
+    app.post('/' + global.config.version + '/analytics/widget-type/add', async (req, res) => {        
+            try {
+                let result = await analyticsService.insertWidgetType(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch(err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                } 
+        });
+
+    app.post('/' + global.config.version + '/analytics/widget-type/list', async (req, res) => {        
+            try {
+                let result = await analyticsService.selectWidgetType(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch(err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                } 
+        });
+    
 }
 
 module.exports = AnalyticsController;
