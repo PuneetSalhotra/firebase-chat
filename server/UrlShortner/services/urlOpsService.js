@@ -100,7 +100,7 @@ function UrlOpsService(objectCollection) {
       ]
       const queryString = util.getQueryString('ds_v1_activity_url_lookup_transaction_insert', paramsArr);
       if (queryString !== '') {
-          await db.executeQueryPromise(1, queryString, request)
+          await db.executeQueryPromise(0, queryString, request)
             .then((data) => {        
                 err = false;
             })
@@ -121,7 +121,7 @@ function UrlOpsService(objectCollection) {
         ]
         const queryString = util.getQueryString('ds_v1_activity_url_lookup_transaction_select_activity', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
                   responseData = data;
                   error = false;
@@ -143,7 +143,7 @@ function UrlOpsService(objectCollection) {
         ]
         const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
                   responseData = data;
                   error = false;
