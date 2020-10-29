@@ -8856,6 +8856,14 @@ async function removeAsOwner(request,data)  {
             }
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
+
+            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
+            if (
+                LastMileOffNetVendor !== "" &&
+                LastMileOffNetVendor.includes(",")
+            ) {
+                childOpportunity.LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
+            }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
