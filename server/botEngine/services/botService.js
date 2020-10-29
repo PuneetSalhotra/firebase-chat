@@ -1168,7 +1168,7 @@ function BotService(objectCollection) {
         }
 
         logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
-
+        
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
@@ -1530,7 +1530,7 @@ function BotService(objectCollection) {
                     //Only if product variant is selected then only trigger the bot
                     let flag = 0;                    
                     let activityInlineData;
-
+                    let product_variant_activity_title=""
                     try {
                         if (!request.hasOwnProperty('activity_inline_data')) {                            
                             const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
@@ -1570,6 +1570,9 @@ function BotService(objectCollection) {
                                     if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
                                         (j.product_variant_activity_title).toLowerCase() == 'custom') {
                                         flag = 1
+                                    }
+                                    else{
+                                        product_variant_activity_title = j.product_variant_activity_title;
                                     }
                                 }
                             } //End of If
@@ -1665,6 +1668,8 @@ function BotService(objectCollection) {
                     } else {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
                         console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
+                        console.log('---------- TIMELINE ENTRY -----------');
+                        await addTimelineEntry({content:`BC Excel will not be generated for this opportunity because it is a ${product_variant_activity_title}`,subject:request.activity_title,mail_body:"{}",attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
                     }
                     
                     break;
@@ -8206,7 +8211,7 @@ async function removeAsOwner(request,data)  {
             switch(Number(i_iterator.reminder_type_id)) {
                 case 1: //Add timeline Entry
                         console.log('---------- TIMELINE ENTRY -----------');
-                        await addTimelineEntry(i_iterator);
+                        await addTimelineEntry(i_iterator,0);
                         break;
 
                 case 2: //Add Participant     
@@ -8369,7 +8374,8 @@ async function removeAsOwner(request,data)  {
         return [false, []];
     }
     
-    async function addTimelineEntry(request, flag = 0) {
+    async function addTimelineEntry(request, flag) {
+        
         let addCommentRequest = Object.assign(request, {});
 
         addCommentRequest.asset_id = 100;
@@ -8613,7 +8619,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks"
+            "SalesRemarks", "ReasonForCloning"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
