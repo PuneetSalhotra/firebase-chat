@@ -868,5 +868,15 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/process-management/flag/set', async(req, res) => {
+        const [err, data] = await assetService.updateFlagProcess(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/asset/process-management/flag/set  | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 module.exports = AssetController;

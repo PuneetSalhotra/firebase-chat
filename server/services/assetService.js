@@ -6156,6 +6156,33 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     };
 
+    this.updateFlagProcess = async function(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.organization_id,
+                      request.account_id,
+                      request.workforce_id,
+                      request.asset_id,
+                      request.asset_flag_process_mgmt  
+                    ];
+    const queryString = util.getQueryString('ds_p1_asset_list_update_flag_process_mgmt', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data)=>{
+                responseData = {'message': 'asset list flag process management updated successfully!'};
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset list flag process ',err);
+                    error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+
 }
 
 module.exports = AssetService;
