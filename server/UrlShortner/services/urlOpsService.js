@@ -91,7 +91,7 @@ function UrlOpsService(objectCollection) {
         url_form_data.activity_id,
         uuid,
         request.url_uuid,
-        JSON.stringify(request.url_form_data),
+        JSON.stringify(url_form_data),
         request.url_mail_sender,
         request.url_mail_receiver,
         request.url_datetime_sent,
