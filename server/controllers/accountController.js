@@ -476,6 +476,16 @@ function AccountController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/aws-bucket/name/list', async function (req, res) {
+        
+            const [err,result] = await accountService.fetchS3BucketByMonthYear(req.body);
+            if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        }else{            
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }        
+    });
+
 };
 
 module.exports = AccountController;
