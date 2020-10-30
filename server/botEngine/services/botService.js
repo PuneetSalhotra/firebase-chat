@@ -1155,10 +1155,11 @@ function BotService(objectCollection) {
         //console.log('wfSteps : ', wfSteps);
 
         //Print what are all the bots are there
-        for(const temp_iterator of wfSteps) {
+        for (const temp_iterator of wfSteps) {
             console.log('bot_operation_type_id : ', temp_iterator.bot_operation_type_id);
             console.table([{
-                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,                
+                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
+                bot_operation_id: temp_iterator.bot_operation_id,
                 bot_operation_type_name: temp_iterator.bot_operation_type_name,
                 form_id: temp_iterator.form_id,
                 field_id: temp_iterator.field_id,
@@ -8614,6 +8615,8 @@ async function removeAsOwner(request,data)  {
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
+        // const urlKey = `858/974/5353/31476/2018/11/103/1604082465622/OPP-C-000196-260820-_-Bulk-3.xlsx`;
+        // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-2020-10.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -8681,6 +8684,52 @@ async function removeAsOwner(request,data)  {
             }
         };
 
+        // PreProcessinf Stage 1
+        let groupedJobsMap = new Map();
+        let childOpportunityIDToDualFlagMap = new Map();
+        for (let i = 2; i < childOpportunitiesArray.length; i++) {
+            const childOpportunity = childOpportunitiesArray[i];
+            if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
+
+            const linkType = String(childOpportunity.LinkType).toLowerCase();
+            const serialNumber = childOpportunity.serialNum;
+            const childOpportunityID = `${opportunityID}-${serialNumber}`;
+            childOpportunityIDToDualFlagMap.set(childOpportunityID, false);
+
+            if (groupedJobsMap.has(childOpportunityID)) {
+                let jobInlineJSON = groupedJobsMap.get(childOpportunityID);
+                if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
+                if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
+
+                groupedJobsMap.set(childOpportunityID, jobInlineJSON)
+                childOpportunityIDToDualFlagMap.set(childOpportunityID, true);
+                dualBulkJobTransactionUpdate({
+                    child_opportunity_id: childOpportunityID,
+                    parent_workflow_activity_id: workflowActivityID,
+                    bulk_inline_data: JSON.stringify(jobInlineJSON),
+                    activity_flag_secondary: 1
+                })
+            } else {
+                let jobInlineJSON = {
+                    bulk_job: {
+                        metadata: {
+                            child_opportunity_id: childOpportunityID,
+                            opportunity_id: opportunityID,
+                            workflow_activity_id: workflowActivityID,
+                            workflow_activity_type_id: workflowActivityTypeID,
+                            feasibility_form_id: triggerFormID
+                        },
+                        primary: {},
+                        secondary: {}
+                    }
+                }
+                if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
+                if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
+                groupedJobsMap.set(childOpportunityID, jobInlineJSON)
+            }
+        }
+        // console.log("groupedJobsMap: ", groupedJobsMap);
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
@@ -8747,6 +8796,11 @@ async function removeAsOwner(request,data)  {
                 // Depend on the serial number explicitly entered by the user in the excel sheet
 
                 if (linkType === "primary") { childOpportunityID = `${opportunityID}-${serialNumber}`; }
+
+                // Skip pushing secondary creation job for dual creation cases to SQS
+                const isDualJob = childOpportunityIDToDualFlagMap.get(`${opportunityID}-${serialNumber}`);
+                if (linkType === "secondary" && isDualJob) { continue; }
+
                 if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId || ""; }
                 if (childOpportunityID === "") { continue; }
 
@@ -8891,6 +8945,8 @@ async function removeAsOwner(request,data)  {
                 feasibility_form_id: triggerFormID
             }
 
+            // console.log("bulkJobRequest: ", JSON.stringify(bulkJobRequest));
+            // continue;
             sqs.sendMessage({
                 // DelaySeconds: 5,
                 MessageBody: JSON.stringify(bulkJobRequest),
@@ -8915,15 +8971,11 @@ async function removeAsOwner(request,data)  {
         try {
             if (!errorMessageJSON.errorExists) { throw new Error("NoErrorsFound") };
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`
-            // New
-            if (errorMessageJSON.action.new.opportunity_ids.length > 0) {
-                formattedTimelineMessage += errorMessageJSON.action.new.message;
-                formattedTimelineMessage += `${errorMessageJSON.action.new.opportunity_ids.join(', ')}\n\n`;
-            }
-            // Correction
-            if (errorMessageJSON.action.correction.opportunity_ids.length > 0) {
-                formattedTimelineMessage += errorMessageJSON.action.correction.message;
-                formattedTimelineMessage += `${errorMessageJSON.action.correction.opportunity_ids.join(', ')}\n\n`;
+            for (const errorCategory of Object.keys(errorMessageJSON.action)) {
+                if (Number(errorMessageJSON.action[errorCategory].opportunity_ids.length) > 0) {
+                    formattedTimelineMessage += errorMessageJSON.action[errorCategory].message;
+                    formattedTimelineMessage += `${errorMessageJSON.action[errorCategory].opportunity_ids.join(', ')}\n\n`;
+                }
             }
 
             await addTimelineMessage(
@@ -8944,6 +8996,70 @@ async function removeAsOwner(request,data)  {
 
         return;
     }
+
+    async function dualBulkJobTransactionUpdate(request) {
+        try {
+            const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
+            if (errorOne && errorOne.code === "ER_DUP_ENTRY") {
+                const [errorTwo, _] = await vodafoneActivityBulkFeasibilityMappingUpdate(request);
+                if (errorTwo) { throw new Error(errorTwo) }
+            } else if (errorOne) {
+                throw errorOne;
+            }
+        } catch (error) {
+            logger.error("Error registering dual bulk job transaction", { type: "bulk_feasibility", error: serializeError(error) });
+        }
+    }
+
+    async function vodafoneActivityBulkFeasibilityMappingInsert(request) {
+        let error = true,
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.child_opportunity_id,
+            request.parent_workflow_activity_id,
+            request.bulk_inline_data || "{}",
+            request.activity_flag_secondary || 0
+        );
+        const queryString = util.getQueryString('ds_p1_vodafone_activity_bulk_feasibility_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    async function vodafoneActivityBulkFeasibilityMappingUpdate(request) {
+        let error = true,
+            responseData = [];
+
+        const paramsArr = new Array(
+            request.child_opportunity_id,
+            request.parent_workflow_activity_id,
+            request.bulk_inline_data || "{}",
+            request.activity_flag_secondary || 0
+        );
+        const queryString = util.getQueryString('ds_p1_vodafone_activity_bulk_feasibility_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 
     async function addTimelineMessage(request, workflowActivityID, timelineMessageObject = {}, streamTypeID = 325) {
         // Make a 705 timeline transaction entry in the workflow file
