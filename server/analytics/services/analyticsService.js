@@ -2479,6 +2479,33 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    this.deleteWidgetType = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [  
+              request.widget_type_id,   
+              request.organization_id,         
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = responseData = {'message': 'widget type deleted successfully!'};;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData]
+    }
+
 }
 
 module.exports = AnalyticsService;
