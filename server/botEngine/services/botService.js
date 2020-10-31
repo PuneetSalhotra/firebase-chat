@@ -8708,6 +8708,12 @@ async function removeAsOwner(request,data)  {
         let childOpportunityIDToDualFlagMap = new Map();
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
+
+            // Applies only to first upload and subsequent corrections
+            if (!(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction")) {
+                continue;
+            }
+
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
             const linkType = String(childOpportunity.LinkType).toLowerCase();
