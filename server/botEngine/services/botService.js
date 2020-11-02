@@ -214,35 +214,60 @@ function BotService(objectCollection) {
     this.alterBot =
         async (request) => {
             try {
-                let results = new Array();
+                // let results = new Array();
                 let paramsArray;
+                let error = true;
+                let responseData='';
+                // paramsArray =
+                //     new Array(
+                //         request.bot_id,
+                //         request.bot_level_id,
+                //         request.bot_trigger_id,
+                //         request.organization_id,
+                //         request.log_asset_id,
+                //         request.log_datetime,
+                //     );
 
-                paramsArray =
-                    new Array(
-                        request.bot_id,
-                        request.bot_level_id,
-                        request.bot_trigger_id,
-                        request.organization_id,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
+                 //Inline data update
+                 paramsArray =
+                 new Array(
+                     request.bot_operation_id,
+                     request.bot_id,
+                     request.bot_inline_data,
+                     request.organization_id,
+                     request.log_asset_id,
+                     request.log_datetime,
+                 );
 
-                paramsArray =
-                    new Array(
-                        request.bot_id,
-                        request.organization_id,
-                        global.botConfig.botAltered,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArr);
+                 if (queryString != '') {
+                     await db.executeQueryPromise(0, queryString, request)
+                       .then((data)=>{
+                             responseData = {'message': 'bot data updated successfully!'};
+                             error = false;
+                         })
+                         .catch((err)=>{
+                                 console.log('[Error] bot data update ',err);
+                                 error = err;
+                         });
+                 }
+                
+                // paramsArray =
+                //     new Array(
+                //         request.bot_id,
+                //         request.organization_id,
+                //         global.botConfig.botAltered,
+                //         request.log_asset_id,
+                //         request.log_datetime,
+                //     );
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+                // results[2] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
 
-                return results[0];
+                return [error,responseData];
             } catch (error) {
-                return Promise.reject(error);
+                return [true,[]]
             }
         };
 
