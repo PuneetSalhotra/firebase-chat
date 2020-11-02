@@ -235,7 +235,7 @@ function BotService(objectCollection) {
                  new Array(
                      request.bot_operation_id,
                      request.bot_id,
-                     request.bot_inline_data,
+                     JSON.stringify(request.bot_inline_data),
                      request.organization_id,
                      request.log_asset_id,
                      request.log_datetime,
