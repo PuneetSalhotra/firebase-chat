@@ -214,6 +214,7 @@ function BotService(objectCollection) {
     this.alterBot =
         async (request) => {
             try {
+                
                 // let results = new Array();
                 let paramsArray;
                 let error = true;
@@ -240,8 +241,7 @@ function BotService(objectCollection) {
                      request.log_asset_id,
                      request.log_datetime,
                  );
-
-                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArr);
+                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArray);
                  if (queryString != '') {
                      await db.executeQueryPromise(0, queryString, request)
                        .then((data)=>{
@@ -267,6 +267,7 @@ function BotService(objectCollection) {
 
                 return [error,responseData];
             } catch (error) {
+                // console.log(error)
                 return [true,[]]
             }
         };
