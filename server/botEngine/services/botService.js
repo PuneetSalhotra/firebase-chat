@@ -214,35 +214,61 @@ function BotService(objectCollection) {
     this.alterBot =
         async (request) => {
             try {
-                let results = new Array();
+                
+                // let results = new Array();
                 let paramsArray;
+                let error = true;
+                let responseData='';
+                // paramsArray =
+                //     new Array(
+                //         request.bot_id,
+                //         request.bot_level_id,
+                //         request.bot_trigger_id,
+                //         request.organization_id,
+                //         request.log_asset_id,
+                //         request.log_datetime,
+                //     );
 
-                paramsArray =
-                    new Array(
-                        request.bot_id,
-                        request.bot_level_id,
-                        request.bot_trigger_id,
-                        request.organization_id,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
+                 //Inline data update
+                 paramsArray =
+                 new Array(
+                     request.bot_operation_id,
+                     request.bot_id,
+                     JSON.stringify(request.bot_inline_data),
+                     request.organization_id,
+                     request.log_asset_id,
+                     request.log_datetime,
+                 );
+                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArray);
+                 if (queryString != '') {
+                     await db.executeQueryPromise(0, queryString, request)
+                       .then((data)=>{
+                             responseData = {'message': 'bot data updated successfully!'};
+                             error = false;
+                         })
+                         .catch((err)=>{
+                                 console.log('[Error] bot data update ',err);
+                                 error = err;
+                         });
+                 }
+                
+                // paramsArray =
+                //     new Array(
+                //         request.bot_id,
+                //         request.organization_id,
+                //         global.botConfig.botAltered,
+                //         request.log_asset_id,
+                //         request.log_datetime,
+                //     );
 
-                paramsArray =
-                    new Array(
-                        request.bot_id,
-                        request.organization_id,
-                        global.botConfig.botAltered,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                // results[2] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
-
-                return results[0];
+                return [error,responseData];
             } catch (error) {
-                return Promise.reject(error);
+                // console.log(error)
+                return [true,[]]
             }
         };
 
@@ -7255,7 +7281,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9415,6 +9441,7 @@ async function removeAsOwner(request,data)  {
     }
 
     async function checkMobility (request, inlineData) {
+        console.log("checkMobility----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
         console.log("dateFormData", JSON.stringify(originFormData));
@@ -9431,11 +9458,11 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
-        let totalLinks = [];
+        // let totalLinks = [];
         // validating COCP and IOIP
-        let result = validatingCocpAndIoip(fldFormData, totalLinks);
+        let totalLinks = validatingCocpAndIoip(fldFormData, []);
 
-        if(!result) {
+        if(!totalLinks.length) {
             console.log("Failed in Matching validatingCocpAndIoip");
             return;
         }
@@ -9447,48 +9474,51 @@ async function removeAsOwner(request,data)  {
             console.log("Failed in Matching validatingRentals");
             return;
         }
-
+        console.log("rentalResult", rentalResult, totalLinks);
         // validating No of Links
         let linkResponse = validatingNoOfLinks(rentalResult, totalLinks);
 
-        if(!linkResponse.length || linkResponse.length < 5) {
+        if(!linkResponse.length) {
             console.log("NO of Links are not matched");
             return;
         }
+        console.log("linkResponse",linkResponse);
 
         // validating the monthly Quota
         let monthlyQuota = validatingMonthlyQuota(fldFormData, linkResponse);
 
 
-        if(!monthlyQuota.length || monthlyQuota.length < 5) {
+        if(!monthlyQuota.length) {
             console.log("Conditions did not match in validatingMonthlyQuota");
             return;
         }
 
         let smsCount = validatingSMSValues(fldFormData, monthlyQuota);
 
-        if(!smsCount.length || smsCount.length < 5) {
+        if(!smsCount.length) {
             console.log("Conditions did not match in validatingSMSValues");
             return;
         }
+        try{
+            await addParticipantStep({
+                is_lead : 1,
+                workflow_activity_id : request.activity_id,
+                desk_asset_id : 0,
+                phone_number : inlineData.phone_number,
+                country_code : "",
+                organization_id : request.organization_id,
+                asset_id : request.asset_id
 
-
-        await addParticipantStep({
-            is_lead : 1,
-            workflow_activity_id : request.activity_id,
-            desk_asset_id : 0,
-            phone_number : inlineData.phone_number,
-            country_code : "",
-            organization_id : request.organization_id
-        });
-
-        await sleep(15*1000);
+            });
+        }catch(e) {console.log("Error while adding participant")}
+       await sleep(1*1000);
         // form submission
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : 868 }, request.activity_id);
 
         console.log("wfActivityDetails", request);
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
+
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
             {
                 form_id: 4355,
@@ -9557,40 +9587,62 @@ async function removeAsOwner(request,data)  {
                 message_unique_id: 1603968493603
             }
         ]);
+
         createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
         createWorkflowRequest.activity_type_category_id = 9;
-        createWorkflowRequest.activity_type_id          = 150506;
+       // createWorkflowRequest.activity_type_id          = 150506;
         //createWorkflowRequest.activity_title = workflowActivityTypeName;
         //createWorkflowRequest.activity_description = workflowActivityTypeName;
-        createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
+        //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
         // Child Orders
         createWorkflowRequest.activity_parent_id = 0;
+        createWorkflowRequest.activity_form_id    = 4355;
+        createWorkflowRequest.form_id    = 4355;
 
         createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        // delete createWorkflowRequest.activity_id;
+        createWorkflowRequest.device_os_id = 5;
 
+        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        createWorkflowRequest.activity_id = targetFormActivityID;
+        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+        createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
+
+        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
         console.log("activityInsertedDetails---->", activityInsertedDetails);
 
+
         let activityTimelineCollection =  JSON.stringify({
-            "content": `Status updated to BC Approved`,
-            "subject": `Note - ${util.getCurrentDate()}.`,
-            "mail_body": `Status updated to BC Approved`,
+            "content": `Form Submitted`,
+            "subject": `Final Approval for BC Closure`,
+            "mail_body": `Final Approval for BC Closure`,
             "activity_reference": [],
+            "form_id" : 4355,
+            "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
             "asset_reference": [],
             "attachments": [],
             "form_approval_field_reference": []
         });
 
-        let timelineReq = Object.assign({}, request);
-        timelineReq.activity_id = activityInsertedDetails.activity_id;
-        timelineReq.activity_type_id = request.activity_type_id;
+
+        // let timelineReq = Object.assign({}, request);
+        let timelineReq = Object.assign({}, createWorkflowRequest);
+
+        // timelineReq.activity_id = activityInsertedDetails.activity_id;
+        timelineReq.activity_id = request.workflow_activity_id;
+        // timelineReq.activity_type_id = request.activity_type_id;
         timelineReq.message_unique_id = util.getMessageUniqueId(100);
         timelineReq.track_gps_datetime = util.getCurrentUTCTime();
         timelineReq.activity_stream_type_id = 717;
-        timelineReq.timeline_stream_type_id = 717;
+              // timelineReq.timeline_stream_type_id = 717;
+        timelineReq.activity_stream_type_id = 705;
+        timelineReq.timeline_stream_type_id = 705;
+        timelineReq.activity_type_category_id = 48;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
@@ -9627,7 +9679,6 @@ async function removeAsOwner(request,data)  {
             }
         }
     };
-
     function validatingCocpAndIoip(formData, totalLinks) {
         let plans = [{
             303392 : 1, // COCP -New Activations (First PO)
@@ -9670,26 +9721,28 @@ async function removeAsOwner(request,data)  {
             }
         }
 
+
         let totalLink = [];
         for(let plan of plans) {
             let fieldIds = Object.keys(plan);
             console.log("fieldIds", fieldIds, plan);
-            if(plan[fieldIds[0]] && Number(plan[fieldIds[2]]) > 0  && plan[fieldIds[1]] && Number(plan[fieldIds[3]]) <= 0) {
+
+            if(Number(plan[fieldIds[0]]) != null && Number(plan[fieldIds[2]]) > 0  && Number(plan[fieldIds[1]]) != null  && Number(plan[fieldIds[3]]) <= 0) {
                 console.log("This is the success case for ", plan);
-            } else if((plan[fieldIds[0]] && Number(plan[fieldIds[2]]) > 0 && plan[fieldIds[1]] && Number(plan[fieldIds[3]]) > 0)
-            || (plan[fieldIds[0]] && plan[fieldIds[2]] <= 0 && plan[fieldIds[1]] && plan[fieldIds[3]] > 0)){
+            } else if((Number(plan[fieldIds[0]]) != null && Number(plan[fieldIds[2]]) > 0 && Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)
+              || (Number(plan[fieldIds[0]]) != null && plan[fieldIds[2]] <= 0 &&  Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)){
                 console.log("This is not success case for ", plan);
                 return 0;
             } else {
                 console.log("This is the unknown condition");
-                // break;
+                //          break;
             }
+            //       totalLink.push(Number(plan[fieldIds[0]]) + Number(plan[fieldIds[1]]) + Number(plan[fieldIds[2]]) + Number(plan[fieldIds[3]]) );
+            totalLink.push(Number(plan[fieldIds[0]]));
 
-
-            totalLink.push(Number(plan[fieldIds[0]]) + Number(plan[fieldIds[1]]) + Number(plan[fieldIds[2]]) + Number(plan[fieldIds[3]]) );
         }
         console.log("totalLinks", totalLink);
-        return 1;
+        return totalLink;
     }
 
     function validatingRentals(formData) {
@@ -9697,8 +9750,10 @@ async function removeAsOwner(request,data)  {
         let response = [];
         let mobiltiyFieldsValues = global.botConfig.mobiltiyFieldsValues;
         let rentalFieldIds = [303396, 303405, 303414, 303423, 303432];
+        console.log("validatingRentals mobiltiyFieldsValues",Object.keys(mobiltiyFieldsValues));
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
+                console.log("Getting this value to match in Rentals", row.field_value);
                 if(row.field_value) {
                     if(!mobiltiyFieldsValues[Number(row.field_value)]) {
                         console.log("Got empty value in validatingRentals");
@@ -9711,19 +9766,22 @@ async function removeAsOwner(request,data)  {
         return response;
     }
 
+
     function validatingNoOfLinks(rentalResponse, totalLinks) {
         console.log("Validating No of Links");
         let response = [];
         for(let i = 0; i < rentalResponse.length; i++) {
             let valuesObject = Object.keys(rentalResponse[i]);
-             if(valuesObject[0] < totalLinks[i]) {
-                 console.log("Condition get failed", rentalResponse[i], totalLinks[i]);
-                 return [];
-             }
+            console.log("valuesObject rental object", Number(valuesObject[0]), Number(totalLinks[i]), rentalResponse[i]);
+            //  if(valuesObject[0] < totalLinks[i]) {
+            if(!(totalLinks[i]  >= valuesObject[0])) {
+
+                console.log("Condition get failed", rentalResponse[i], totalLinks[i]);
+                return [];
+            }
 
             response.push(rentalResponse[i][valuesObject[0]]);
         }
-
         console.log("Response from validatingNoOfLinks", response);
         return response;
     }
@@ -9736,47 +9794,55 @@ async function removeAsOwner(request,data)  {
         let response = [];
         for(let row of formData) {
             for(let i =0; i < monthlyQuota.length; i++) {
-                let monthlyQuotaValue = Object.keys(linkResp[i]);
-                let monthlyQuotaFieldId = monthlyQuota[i];
+                if(linkResp[i] != null) {
+                    let monthlyQuotaValue = Object.keys(linkResp[i]);
+                    let monthlyQuotaFieldId = monthlyQuota[i];
 
-                if(Number(row.field_id) == monthlyQuotaFieldId) {
-                    if(Number(row.field_value) > monthlyQuotaValue[0]) {
-                        console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
-                        return response
+                    if(Number(row.field_id) == monthlyQuotaFieldId) {
+                        console.log("linkResp[i]", linkResp[i], i, row.field_id);
+                        if(Number(row.field_value) > monthlyQuotaValue[0]) {
+                            console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
+                            return response
+                        }
+                        console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
+                        response.push(linkResp[i][monthlyQuotaValue[0]]);
                     }
-                    console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
-                    response.push(linkResp[i][monthlyQuotaValue[0]]);
                 }
             }
         }
 
         console.log("Final Response in validatingMonthlyQuota", response);
         return response;
-
-
     }
+
 
     function validatingSMSValues(formData, monthlyQuota) {
         let smsFieldIds = [303398, 303407, 303416, 303425, 303434];
         let response = [];
         for(let row of formData) {
             for(let i =0; i < smsFieldIds.length; i++) {
-                let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
-                let smsFieldIdsFieldId = smsFieldIds[i];
+                if(monthlyQuota[i] != null) {
 
-                if(Number(row.field_id) == smsFieldIdsFieldId) {
-                    if(Number(row.field_value) > smsFieldIdsValue[0]) {
-                        console.log("Got invalid value validatingSMSValues", Number(row.field_value), smsFieldIdsValue);
-                        return response
+                    let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
+                    let smsFieldIdsFieldId = smsFieldIds[i];
+
+                    if(Number(row.field_id) == smsFieldIdsFieldId) {
+                        console.log("smsFieldIdsFieldId",row.field_id, smsFieldIdsFieldId);
+                        if(Number(row.field_value) > smsFieldIdsValue[0]) {
+                            console.log("Got invalid value validatingSMSValues", Number(row.field_value), smsFieldIdsValue);
+                            return response
+                        }
+                        response.push(monthlyQuota[i][smsFieldIdsValue[0]]);
                     }
-                    response.push(monthlyQuota[i][smsFieldIdsValue[0]]);
+
                 }
             }
         }
-
         console.log("Final Response in validatingSMSValues", response);
         return response;
     }
+
+
     async function checkSmeBot(request, inlineData) {
 
         request.form_id = 50264;
@@ -9895,7 +9961,8 @@ async function removeAsOwner(request,data)  {
             desk_asset_id : 0,
             phone_number : inlineData.phone_number,
             country_code : "",
-            organization_id : request.organization_id
+            organization_id : request.organization_id,
+            asset_id : request.asset_id
         });
 
         await sleep(15*1000)
@@ -9906,6 +9973,7 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", request);
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
+
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
             {
                 form_id: 4355,
@@ -9985,6 +10053,11 @@ async function removeAsOwner(request,data)  {
 
         createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+
+        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        createWorkflowRequest.activity_id = targetFormActivityID;
+        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
