@@ -9,12 +9,12 @@ var pubnub = new PubNub({
     subscribeKey: 'sub-c-d5a2bff8-2c13-11e3-9343-02ee2ddab7fe'
 });
 
-const io = require('socket.io-client');
-const socket = io(`http://localhost:${global.config.socketPort}/socket-connect`, {reconnect: true});
-
-socket.on('connect', function(data){
-    socket.emit('authentication', "internalConnectionSkipAuthentication","emptyPhoneNumber");
-});
+//const io = require('socket.io-client');
+//const socket = io(`http://localhost:${global.config.socketPort}/socket-connect`, {reconnect: true});
+//
+//socket.on('connect', function(data){
+//    socket.emit('authentication', "internalConnectionSkipAuthentication","emptyPhoneNumber");
+//});
 
 
 
@@ -41,7 +41,7 @@ function PubnubPush() {
         });
 
         //Push to the socket
-        try{
+        /*try{
             console.log("-----------------------------------Log for emitting message to client----------------------------------");
             console.log("channelId "+channelId );
             console.log("message",message);
@@ -56,7 +56,7 @@ function PubnubPush() {
             socket.emit('failedmessage', channelId, message);
             console.log(`Unable to emit the message- ${message} to channel id - ${channelId}`);
             console.log(err);
-        }
+        }*/
         
     };
 

@@ -585,6 +585,17 @@ function ActivityTimelineController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/timeline-transaction/form/list', async (req, res) => {
+        
+        const [err, data] = await activityTimelineService.timelineTxnFormList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/activity/timeline-transaction/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityTimelineController;
