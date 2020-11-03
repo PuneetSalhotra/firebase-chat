@@ -7281,7 +7281,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-        
+
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9451,16 +9451,21 @@ async function removeAsOwner(request,data)  {
         console.log("dateFormData1", JSON.stringify(fldFormData));
 
         // validating product and request type
-        let resultProductAndRequestType = validatingProductAndRequestType(originFormData);
+        let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
         if(!resultProductAndRequestType) {
             console.log("Product and Request type match failed");
             return;
         }
 
-        // let totalLinks = [];
+        let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
+        if(!checkingSegment) {
+            console.log("Segment is not matched");
+            return;
+        }
+
         // validating COCP and IOIP
-        let totalLinks = validatingCocpAndIoip(fldFormData, []);
+        let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
 
         if(!totalLinks.length) {
             console.log("Failed in Matching validatingCocpAndIoip");
@@ -9468,7 +9473,7 @@ async function removeAsOwner(request,data)  {
         }
 
         // Checking Rentals
-        let rentalResult = validatingRentals(fldFormData);
+        let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, inlineData.field_values_map);
 
         if(!rentalResult || !rentalResult.length) {
             console.log("Failed in Matching validatingRentals");
@@ -9485,7 +9490,7 @@ async function removeAsOwner(request,data)  {
         console.log("linkResponse",linkResponse);
 
         // validating the monthly Quota
-        let monthlyQuota = validatingMonthlyQuota(fldFormData, linkResponse);
+        let monthlyQuota = validatingMonthlyQuota(fldFormData, linkResponse, inlineData.monthly_quota);
 
 
         if(!monthlyQuota.length) {
@@ -9493,12 +9498,16 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
-        let smsCount = validatingSMSValues(fldFormData, monthlyQuota);
+        let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
 
         if(!smsCount.length) {
             console.log("Conditions did not match in validatingSMSValues");
             return;
         }
+
+        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
+        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+
         try{
             await addParticipantStep({
                 is_lead : 1,
@@ -9507,15 +9516,16 @@ async function removeAsOwner(request,data)  {
                 phone_number : inlineData.phone_number,
                 country_code : "",
                 organization_id : request.organization_id,
-                asset_id : request.asset_id
+                asset_id : wfActivityDetails[0].activity_creator_asset_id
 
             });
-        }catch(e) {console.log("Error while adding participant")}
-       await sleep(1*1000);
+        }catch(e) {
+            console.log("Error while adding participant")
+        }
+        await sleep((inlineData.form_trigger_time_in_min || 0) * 1000);
         // form submission
-        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : 868 }, request.activity_id);
 
-        console.log("wfActivityDetails", request);
+
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
 
@@ -9539,7 +9549,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'abc',
+                field_value: 'Approved',
                 message_unique_id: 1603968690920
             },
             {
@@ -9590,7 +9600,7 @@ async function removeAsOwner(request,data)  {
 
         createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
         createWorkflowRequest.activity_type_category_id = 9;
-       // createWorkflowRequest.activity_type_id          = 150506;
+        createWorkflowRequest.activity_type_id          = 150506;
         //createWorkflowRequest.activity_title = workflowActivityTypeName;
         //createWorkflowRequest.activity_description = workflowActivityTypeName;
         //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
@@ -9643,17 +9653,18 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
     }
 
-    function validatingProductAndRequestType(formData) {
+    function validatingProductAndRequestType(formData, originFormConfig) {
         let productMatchFlag = 0, requestTypeMatch = 0;
         for(let row of formData) {
-            if(Object.keys(global.botConfig.originFormConfig[0]).includes(row.field_id.toString())) {
-                let value = global.botConfig.originFormConfig[0][row.field_id];
+            if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
+                let value = originFormConfig[row.field_id];
                 console.log("Value from config", value, "Value from list" ,row.field_value);
                 if(!value) {
                     console.log("Value not found in validatingProductAndRequestType", row.field_id);
@@ -9679,34 +9690,24 @@ async function removeAsOwner(request,data)  {
             }
         }
     };
-    function validatingCocpAndIoip(formData, totalLinks) {
-        let plans = [{
-            303392 : 1, // COCP -New Activations (First PO)
-            303393 : 1, // IOIP -New Activations (First PO)
-            303394 : 1, //COCP -Retention
-            303395 : 1 // IOIP Retention
-        },{
-            303401 : 1, // COCP -New Activations (First PO)
-            303402 : 1, // IOIP -New Activations (First PO)
-            303403 : 1, //COCP -Retention
-            303404 : 1 // IOIP Retention
-        },{
-            303410 : 1, // COCP -New Activations (First PO)
-            303411 : 1, // IOIP -New Activations (First PO)
-            303412 : 1, //COCP -Retention
-            303413 : 1 // IOIP Retention
-        },{
-            303419 : 1, // COCP -New Activations (First PO)
-            303420 : 1, // IOIP -New Activations (First PO)
-            303421 : 1, //COCP -Retention
-            303422 : 1 // IOIP Retention
-        },{
-            303428 : 1, // COCP -New Activations (First PO)
-            303429 : 1, // IOIP -New Activations (First PO)
-            303430 : 1, //COCP -Retention
-            303431 : 1 // IOIP Retention
-        }];
 
+    function validatingSegment(formData, segment) {
+        for(let row of formData) {
+            if (segment[row.field_id]) {
+                console.log("Value found in Segment", segment[row.field_id], row.field_value);
+                if (!(segment[row.field_id].indexOf(row.field_value) > -1)) {
+                    console.log("Matching Failed in Segment");
+                    return false;
+                }
+
+            }
+
+        }
+
+        return true;
+    }
+
+    function validatingCocpAndIoip(formData, plans) {
         for(let row of formData) {
             for(let plan of plans) {
                 for(let key in plan) {
@@ -9745,11 +9746,9 @@ async function removeAsOwner(request,data)  {
         return totalLink;
     }
 
-    function validatingRentals(formData) {
+    function validatingRentals(formData, rentalFieldIds, mobiltiyFieldsValues) {
         console.log("Testing Rentals");
         let response = [];
-        let mobiltiyFieldsValues = global.botConfig.mobiltiyFieldsValues;
-        let rentalFieldIds = [303396, 303405, 303414, 303423, 303432];
         console.log("validatingRentals mobiltiyFieldsValues",Object.keys(mobiltiyFieldsValues));
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
@@ -9786,11 +9785,9 @@ async function removeAsOwner(request,data)  {
         return response;
     }
 
-    function validatingMonthlyQuota(formData, linkResp) {
+    function validatingMonthlyQuota(formData, linkResp, monthlyQuota) {
 
         console.log("Validating Monthly Quota");
-        let monthlyQuota = [303397, 303406, 303415, 303424, 303433];
-
         let response = [];
         for(let row of formData) {
             for(let i =0; i < monthlyQuota.length; i++) {
@@ -9816,8 +9813,7 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    function validatingSMSValues(formData, monthlyQuota) {
-        let smsFieldIds = [303398, 303407, 303416, 303425, 303434];
+    function validatingSMSValues(formData, monthlyQuota, smsFieldIds) {
         let response = [];
         for(let row of formData) {
             for(let i =0; i < smsFieldIds.length; i++) {
