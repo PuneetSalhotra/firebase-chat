@@ -897,7 +897,7 @@ function ActivityTimelineService(objectCollection) {
 
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
-
+     
             if (isAddToTimeline) {
                 let [err, data] = await activityCommonService.activityTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
                 if(!err) {

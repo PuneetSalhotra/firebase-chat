@@ -1696,7 +1696,8 @@ function BotService(objectCollection) {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
                         console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
                         console.log('---------- TIMELINE ENTRY -----------');
-                        await addTimelineEntry({content:`BC Excel will not be generated for this opportunity because it is a ${product_variant_activity_title}`,subject:request.activity_title,mail_body:"{}",attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
+                        
+                        await addTimelineEntry({...request,content:`BC excel mapping is not configured for this opportunity as it is a standard plan`,subject:"sample",mail_body:request.mail_body,attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
                     }
                     
                     break;
@@ -8447,17 +8448,19 @@ async function removeAsOwner(request,data)  {
         //addCommentRequest.activity_type_category_id = 48;
         //addCommentRequest.activity_type_id = workflowActivityTypeID;
         //addCommentRequest.activity_id = workflowActivityID;
-
         if(flag === 1) {
+            addCommentRequest = {...request};
             addCommentRequest.activity_timeline_collection = JSON.stringify({
                 "content": request.content,
                 "subject": request.subject,
-                "mail_body": request.mail_body,
+                "mail_body": "{}",
                 "attachments": []
             });
-
-            addCommentRequest.activity_stream_type_id = request.timeline_stream_type_id;
-            addCommentRequest.timeline_stream_type_id = request.timeline_stream_type_id;
+           
+            addCommentRequest.activity_stream_type_id = 325;
+            addCommentRequest.timeline_stream_type_id = 325;
+            
+            
         } else {
             addCommentRequest.activity_timeline_collection = JSON.stringify({
                 "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
@@ -8468,6 +8471,7 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
+        
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
         addCommentRequest.operating_asset_first_name = "TONY"
@@ -8478,7 +8482,7 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.message_unique_id = util.getMessageUniqueId(100);
         //addCommentRequest.attachment_type_id = 17;
         //addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
-
+        
         try {
             await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);        
         } catch (error) {
