@@ -897,7 +897,7 @@ function ActivityTimelineService(objectCollection) {
 
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
-
+     
             if (isAddToTimeline) {
                 let [err, data] = await activityCommonService.activityTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
                 if(!err) {
@@ -4176,6 +4176,32 @@ async function addFormEntriesAsync(request) {
         ];
 
         const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_preview_enable', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
+    this.timelineTxnFormList = async (request) => {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.activity_id,
+                    request.form_id,
+                    request.page_start || 0, // start_from
+                    request.page_limit || 1 // limit_value
+                );
+
+        const queryString = util.getQueryString('ds_p1_2_activity_timeline_transaction_select_activity_form', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
