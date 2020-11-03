@@ -9602,7 +9602,7 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         // delete createWorkflowRequest.activity_id;
-        createWorkflowRequest.device_os_id = 5;
+        createWorkflowRequest.device_os_id = 7;
 
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
@@ -9735,7 +9735,7 @@ async function removeAsOwner(request,data)  {
                 return [];
             } else {
                 console.log("This is the unknown condition");
-                return [];
+                // return [];
             }
 
             totalLink.push(Number(plan[fieldIds[0]]));
@@ -9754,7 +9754,7 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
                 console.log("Getting this value to match in Rentals", row.field_value);
-                if(row.field_value != null) {
+                if(row.field_value != null && row.field_value != '') {
                     if(mobiltiyFieldsValues[Number(row.field_value)] == null || mobiltiyFieldsValues[Number(row.field_value)] == undefined) {
                         console.log("Got empty value in validatingRentals");
                         return [];
