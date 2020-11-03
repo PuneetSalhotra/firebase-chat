@@ -24,7 +24,7 @@ botConfig.botOperationArchived = 1702;
 
 botConfig.originFormConfig = [{
   224835 : "Mobility",
-  225020 : ["MNP", "Acquisition"]
+  225020 : "MNP/Acquisition"
 }]
 
 botConfig.mobiltiyFieldsValues = {

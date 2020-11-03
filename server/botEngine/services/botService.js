@@ -9732,12 +9732,12 @@ async function removeAsOwner(request,data)  {
             } else if((Number(plan[fieldIds[0]]) != null && Number(plan[fieldIds[2]]) > 0 && Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)
               || (Number(plan[fieldIds[0]]) != null && plan[fieldIds[2]] <= 0 &&  Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)){
                 console.log("This is not success case for ", plan);
-                return 0;
+                return [];
             } else {
                 console.log("This is the unknown condition");
-                //          break;
+                return [];
             }
-            //       totalLink.push(Number(plan[fieldIds[0]]) + Number(plan[fieldIds[1]]) + Number(plan[fieldIds[2]]) + Number(plan[fieldIds[3]]) );
+
             totalLink.push(Number(plan[fieldIds[0]]));
 
         }
@@ -9754,8 +9754,8 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
                 console.log("Getting this value to match in Rentals", row.field_value);
-                if(row.field_value) {
-                    if(!mobiltiyFieldsValues[Number(row.field_value)]) {
+                if(row.field_value != null) {
+                    if(mobiltiyFieldsValues[Number(row.field_value)] == null || mobiltiyFieldsValues[Number(row.field_value)] == undefined) {
                         console.log("Got empty value in validatingRentals");
                         return [];
                     }
@@ -9802,7 +9802,7 @@ async function removeAsOwner(request,data)  {
                         console.log("linkResp[i]", linkResp[i], i, row.field_id);
                         if(Number(row.field_value) > monthlyQuotaValue[0]) {
                             console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
-                            return response
+                            return []
                         }
                         console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
                         response.push(linkResp[i][monthlyQuotaValue[0]]);
