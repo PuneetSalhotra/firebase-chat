@@ -746,6 +746,27 @@ function WorkbookOpsService(objectCollection) {
         return uploadDetails.Location;
     }
 
+    async function uploadWorkbookToS3AndGetURLV2(updatedWorkbookFileName, templateTypeXlsxOrXlsb, options={}) {
+        const bucketName = await util.getS3BucketNameV1(),
+            prefixPath = await util.getS3PrefixPath(options);
+
+        logger.silly("bucketName: %j", bucketName, { type: "bot_engine" });
+        logger.silly("prefixPath: %j", prefixPath, { type: "bot_engine" });
+
+        const uploadDetails = await util.uploadReadableStreamToS3(options, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/${options.workflow_activity_id}_${moment().utcOffset("+05:30").format("YYYY-MM-DD_hh-mm-A")}_workbook.${templateTypeXlsxOrXlsb}`,
+            Body: fs.createReadStream(updatedWorkbookFileName),
+            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ACL: 'public-read'
+        }, undefined);
+
+        // Delete the file
+        fs.unlinkSync(updatedWorkbookFileName);
+
+        return uploadDetails.Location;
+    }
+
     async function doTheTimelineEntry(request, timelineReq) {
         
         let updatedWorkbookS3URL = "";

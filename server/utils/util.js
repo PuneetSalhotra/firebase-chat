@@ -1938,7 +1938,7 @@ function Util(objectCollection) {
     };    
 
     this.uploadS3ObjectV1 = async (request, zipFile) => {
-        return new Promise((resolve)=>{
+        return new Promise(async (resolve)=>{
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
@@ -2044,6 +2044,11 @@ function Util(objectCollection) {
             bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
         }
         
+        return bucketName;
+    };
+
+    this.getS3BucketNameV1 = async function (request) {
+        let bucketName = await getDynamicBucketName();   
         return bucketName;
     };
 
@@ -2396,6 +2401,32 @@ function Util(objectCollection) {
     //Uploading XLSB file 
     //Added by Akshay Singh
     this.uploadExcelFileToS3 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
+            const params = {
+              Bucket: await this.getS3BucketName(request),
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    this.uploadExcelFileToS3V1 = async function(request,filePath){
         let error = false;
         let resposneData = [];
 
