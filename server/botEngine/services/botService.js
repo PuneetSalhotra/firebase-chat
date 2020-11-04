@@ -8740,9 +8740,9 @@ async function removeAsOwner(request,data)  {
             const childOpportunity = childOpportunitiesArray[i];
 
             // Applies only to first upload and subsequent corrections
-            if (!(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction")) {
-                continue;
-            }
+            // if (!(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction")) {
+            //     continue;
+            // }
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
