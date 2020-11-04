@@ -522,6 +522,46 @@ function Util(objectCollection) {
             });
     }
 
+    async function uploadJsonToS3V1(request, jsonObject, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const bucketName = await getDynamicBucketName();
+        const uploadParams = {
+            Body: JSON.stringify(jsonObject),
+            Bucket: bucketName,
+            Key: `${folderName}/${jsonFileName}.json`,
+            ContentType: 'application/json',
+            ACL: 'public-read'
+        };
+        const s3UploadPromise = s3.putObject(uploadParams).promise();
+        await s3UploadPromise
+            .then(function (data) {
+                console.log('uploadJsonToS3 | Success | data: ', data);
+            }).catch(function (err) {
+                console.log('uploadJsonToS3 | Error | err: ', err);
+            });
+    }
+
+    async function getDynamicBucketName(){
+        let responseData = []
+        let curDate = new Date();
+        let paramsArr = new Array(
+            curDate.getMonth()+1,
+            curDate.getFullYear()
+        );
+        let queryString = util.getQueryString('ds_v1_common_aws_s3_bucket_master_select_month_year', paramsArr);
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    
+                })
+                .catch((err) => {
+                   
+                })            
+            }  
+            return responseData;
+    }
+
     this.decodeSpecialChars = function (string) {
         if (typeof string === 'string') {
             string = string.replace(";sqt;", "'");
@@ -1897,6 +1937,45 @@ function Util(objectCollection) {
             });
     };    
 
+    this.uploadS3ObjectV1 = async (request, zipFile) => {
+        return new Promise((resolve)=>{
+            let filePath= global.config.efsPath; 
+            let environment = global.mode;
+            
+            let bucketName = await getDynamicBucketName();
+           
+
+            let prefixPath = request.organization_id + '/' + 
+                             request.account_id + '/' + 
+                             request.workforce_id + '/' + 
+                             request.asset_id + '/' + 
+                             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
+            console.log(bucketName);
+            console.log(prefixPath);
+
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fs.createReadStream(filePath + zipFile),
+                Bucket: bucketName,
+                Key: prefixPath + "/" + zipFile,
+                ContentType: 'application/zip',
+                //ContentEncoding: 'base64',
+                //ACL: 'public-read'
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                   
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
+            });
+    };    
+
     this.uploadReadableStreamToS3 = async (request, options, stream) => {
         const s3 = new AWS.S3();
         console.log('Uploading to S3...');
@@ -2325,7 +2404,7 @@ function Util(objectCollection) {
             const readStream = fs.createReadStream(filePath);
             let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
             const params = {
-              Bucket: await this.getS3BucketName(request),
+              Bucket: await getDynamicBucketName(),
               Key: fileKey,
               Body: readStream
             };
