@@ -5615,6 +5615,7 @@ async function removeAsOwner(request,data)  {
             });
             deskAssetData = dataResp[0];
         }
+
         global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData, {});
 
         if (assetData.desk_asset_id === 0) {
@@ -9510,8 +9511,16 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
+        let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
+
+        if(smsCount.length != minQuota.length) {
+            console.log("Condition failed in validate Mins");
+            return;
+        }
+
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+
 
         try{
             await addParticipantStep({
@@ -9522,15 +9531,28 @@ async function removeAsOwner(request,data)  {
                 country_code : "",
                 organization_id : request.organization_id,
                 asset_id : wfActivityDetails[0].activity_creator_asset_id
-
             });
         }catch(e) {
             console.log("Error while adding participant")
         }
+
+        let dataResp = await getAssetDetailsOfANumber({
+            country_code : inlineData.country_code || '',
+            phone_number : inlineData.phone_number,
+            organization_id : request.organization_id
+        });
+        let deskAssetData;
+        if (dataResp.length > 0) {
+            for (let i of dataResp) {
+                if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
+                    deskAssetData = i;
+                    break;
+                }
+            }
+        }
+
         await sleep((inlineData.form_trigger_time_in_min || 0) * 1000);
         // form submission
-
-
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
 
@@ -9565,7 +9587,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 4,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|'+  wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].asset_first_name,
+                field_value: wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|' + wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].asset_first_name,
                 message_unique_id: 1603968483792
             },
             {
@@ -9645,24 +9667,31 @@ async function removeAsOwner(request,data)  {
         });
 
 
-        // let timelineReq = Object.assign({}, request);
         let timelineReq = Object.assign({}, createWorkflowRequest);
 
-        // timelineReq.activity_id = activityInsertedDetails.activity_id;
         timelineReq.activity_id = request.workflow_activity_id;
-        // timelineReq.activity_type_id = request.activity_type_id;
         timelineReq.message_unique_id = util.getMessageUniqueId(100);
         timelineReq.track_gps_datetime = util.getCurrentUTCTime();
         timelineReq.activity_stream_type_id = 717;
-              // timelineReq.timeline_stream_type_id = 717;
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = 100;
+        timelineReq.asset_id = deskAssetData.asset_id;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+        try{
+            await addParticipantStep({
+                is_lead : 1,
+                workflow_activity_id : request.activity_id,
+                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+                organization_id : request.organization_id
+            });
+        }catch(e) {
+            console.log("Error while adding participant")
+        }
     }
 
     function validatingProductAndRequestType(formData, originFormConfig) {
@@ -9843,6 +9872,26 @@ async function removeAsOwner(request,data)  {
         return response;
     }
 
+    function validateMins(formData, minQuota, minFieldIds) {
+        let response = [];
+        for(let row of formData) {
+            for(let i = 0; i < minFieldIds.length; i++) {
+                if(minQuota[i]) {
+                    if(row.field_id == minFieldIds[i]) {
+                        console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
+                        if(!minQuota[i][row.field_value]) {
+                            console.log("Got nothing for ", minQuota[i], row.field_value);
+                           return [];
+                        } else {
+                            response.push(minQuota[i][row.field_value]);
+                        }
+                    }
+                }
+            }
+        }
+
+        return response;
+    }
 
     async function checkSmeBot(request, inlineData) {
 
@@ -10144,3 +10193,4 @@ async function removeAsOwner(request,data)  {
 }
 
 module.exports = BotService;
+
