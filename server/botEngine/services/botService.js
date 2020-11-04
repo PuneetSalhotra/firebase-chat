@@ -1868,7 +1868,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
                     try {
-                        await checkMobility(request, botOperationsJson.bot_operations.bot_inline);
+                        // await checkMobility(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing SME ILL Bot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -5620,9 +5620,9 @@ async function removeAsOwner(request,data)  {
             assetData.desk_asset_id = deskAssetData.asset_id;
         }
 
-        assetData.first_name = deskAssetData.operating_asset_first_name;
-        assetData.contact_phone_number = deskAssetData.operating_asset_phone_number;
-        assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code;
+        assetData.first_name = deskAssetData.operating_asset_first_name || deskAssetData.asset_first_name;
+        assetData.contact_phone_number = deskAssetData.operating_asset_phone_number || deskAssetData.asset_phone_number;
+        assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
 
         return await addDeskAsParticipant(request, assetData);
