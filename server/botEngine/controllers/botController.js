@@ -89,15 +89,15 @@ function BotController(objCollection) {
         '/' + global.config.version + '/bot/alter',
         async (req, res) => 
         {        
-            try 
-            {
-                let result = await botService.alterBot(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
-            } 
-            catch(err) 
-            {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-            } 
+            
+                let [error,data] = await botService.alterBot(req.body);
+                if(!error){
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                }
+            
+                 else {
+                res.send(responseWrapper.getResponse(true, {}, -9999, req.body));
+                  } 
         }
     )
 

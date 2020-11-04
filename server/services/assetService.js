@@ -4188,6 +4188,12 @@ function AssetService(objectCollection) {
         const sheet_name_list = workbook.SheetNames;
         console.log("EXCEL WORKBOOK :: " + sheet_name_list);
 
+        if(sheet_name_list.length > 0) {
+            if(sheet_name_list[0] !== 'Sheet1') {
+                return ["error", "Unable to find the sheet with name Sheet1 in the excel sheet. please check and resubmit"];
+            }
+        }
+
         console.log('xlData :: ' + workbook.Sheets[sheet_name_list[0]]);
         var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
         console.log('xlData :: ' + xlData.length);
@@ -6121,6 +6127,62 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+    this.assetEmailPwdSet  = async (request) => {
+        let responseData = [],
+            error = true;        
+
+        const paramsArr = [
+                            request.asset_id,                            
+                            request.organization_id,
+                            request.new_password,
+                            util.addDaysToGivenDate(util.getCurrentUTCTime(), 90, "YYYY-MM-DD HH:mm:ss"), //PWD expiry datetime,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                        ];
+        const queryString = util.getQueryString('ds_p1_asset_list_update_password', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data)=>{
+                    responseData = {'message': 'Password updated successfully!'};
+                    error = false;
+                })
+                .catch((err)=>{
+                        console.log('[Error] assetEmailPwdSet ',err);
+                        error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.updateFlagProcess = async function(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.organization_id,
+                      request.account_id,
+                      request.workforce_id,
+                      request.asset_id,
+                      request.asset_flag_process_mgmt  
+                    ];
+    const queryString = util.getQueryString('ds_p1_asset_list_update_flag_process_mgmt', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data)=>{
+                responseData = {'message': 'asset list flag process management updated successfully!'};
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset list flag process ',err);
+                    error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+
 }
 
 module.exports = AssetService;

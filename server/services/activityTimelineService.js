@@ -897,7 +897,7 @@ function ActivityTimelineService(objectCollection) {
 
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
-
+     
             if (isAddToTimeline) {
                 let [err, data] = await activityCommonService.activityTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
                 if(!err) {
@@ -3929,21 +3929,50 @@ async function addFormEntriesAsync(request) {
                     ///console.log(assetData[0].asset_encryption_token_id);
 
                     console.log('Number(request.organization_id === 868) : ', Number(request.organization_id));
-                    
-                    sendEmail({
-                        workflow_title: request.workflow_title,
-                        workflow_update: request.workflow_update,
-                        operating_asset_name: assetData[0].operating_asset_first_name,
-                        asset_email_id: assetData[0].operating_asset_email_id,
-                        email_receiver_name: assetData[0].operating_asset_first_name,
-                        email_sender_name: senderAssetData[0].operating_asset_first_name,                        
-                        //email_sender: senderAssetData[0].operating_asset_email_id
-                        email_sender: (Number(request.organization_id === 868)) ? 'ESMSMails@vodafoneidea.com' : request.email_sender,
-                        sender_asset_id: request.asset_id,
-                        receiver_asset_id: mentionedAssets[i],
-                        receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
-                        sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
-                    }, request);
+
+                    if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
+                        const senderEmail = (Number(request.organization_id === 868)) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
+                        const senderEmailPwd =  senderAssetData[0].asset_email_password;
+
+                        const [err, resp] = await sendEmail({
+                                            workflow_title: request.workflow_title,
+                                            workflow_update: request.workflow_update,
+                                            operating_asset_name: assetData[0].operating_asset_first_name,
+                                            asset_email_id: assetData[0].operating_asset_email_id,
+                                            email_receiver_name: assetData[0].operating_asset_first_name,
+                                            email_sender_name: senderAssetData[0].operating_asset_first_name,
+                                            email_sender_password: senderEmailPwd,
+                                            email_sender: senderEmail,
+                                            sender_asset_id: request.asset_id,
+                                            receiver_asset_id: mentionedAssets[i],
+                                            receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
+                                            sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
+                                        }, request);
+                        if(err) {
+                            error = true;
+                            responseData.push({'message': `${resp} for the mailId - ${senderEmail}`});
+                        }
+                    } else {
+                        const senderEmail = (Number(request.organization_id === 868)) ? 'ESMSMails@vodafoneidea.com' : request.email_sender;
+                        const [err, resp] = await sendEmail({
+                                                workflow_title: request.workflow_title,
+                                                workflow_update: request.workflow_update,
+                                                operating_asset_name: assetData[0].operating_asset_first_name,
+                                                asset_email_id: assetData[0].operating_asset_email_id,
+                                                email_receiver_name: assetData[0].operating_asset_first_name,
+                                                email_sender_name: senderAssetData[0].operating_asset_first_name,                        
+                                                //email_sender: senderAssetData[0].operating_asset_email_id
+                                                email_sender: senderEmail,
+                                                sender_asset_id: request.asset_id,
+                                                receiver_asset_id: mentionedAssets[i],
+                                                receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
+                                                sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
+                                            }, request);
+                        if(err) {
+                            error = true;
+                            responseData.push({'message': `${resp} for the mailId - ${senderEmail}`});
+                        }
+                    }
                 }
             } else {
                 console.log('No Asset Data for  : ', mentionedAssets[i].asset_id);
@@ -4035,7 +4064,12 @@ async function addFormEntriesAsync(request) {
         if(Number(requestObj.organization_id) === 868) {
             console.log('Sending mentions email to : ', request.asset_email_id);
             //console.log('Template : ', Template);
-            util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
+            const err = await util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
+            if(err) {
+                return [true, 'Invalid Password'];
+            } else {
+                return [false, 'Success'];
+            }
         } else {
             console.log('Non-Vodafone Organization!');
             console.log('Sending mentions email to : ', request.asset_email_id);
@@ -4127,6 +4161,32 @@ async function addFormEntriesAsync(request) {
         ];
 
         const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_preview_enable', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });            
+        }
+        return [error, responseData];
+    };
+
+    this.timelineTxnFormList = async (request) => {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.activity_id,
+                    request.form_id,
+                    request.page_start || 0, // start_from
+                    request.page_limit || 1 // limit_value
+                );
+
+        const queryString = util.getQueryString('ds_p1_2_activity_timeline_transaction_select_activity_form', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

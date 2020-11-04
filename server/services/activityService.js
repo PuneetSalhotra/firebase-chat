@@ -610,7 +610,7 @@ function ActivityService(objectCollection) {
                             if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                 || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                 || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                                || request.activity_type_id == 149058 || request.activity_type_id == 151728)){
+                                || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
                                     console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
 
                                     let opportunityRequest = Object.assign({}, request);
@@ -1554,7 +1554,7 @@ function ActivityService(objectCollection) {
                 botCreatedFlag = request.activity_flag_created_by_bot;
 
             paramsArr.push(botCreatedFlag);
-            
+
             var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -4116,6 +4116,9 @@ function ActivityService(objectCollection) {
     this.updateWorkflowQueueMapping = async function name(request) {
         request.flag = 0;
         let workflowActivityPercentage = 0, workflowActivityCreationTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        let workflowActivityTypeCategoryID;
+        let isGlobalWorkflow = false;
+
         try {
             await activityCommonService
                 .getActivityDetailsPromise(request, request.activity_id)
@@ -4123,6 +4126,12 @@ function ActivityService(objectCollection) {
                     if (workflowActivityData.length > 0) {
                         workflowActivityPercentage = Number(workflowActivityData[0].activity_workflow_completion_percentage);
                         workflowActivityCreationTime = moment(workflowActivityData[0].activity_datetime_created).format('YYYY-MM-DD HH:mm:ss');
+                        workflowActivityTypeCategoryID = Number(workflowActivityData[0].activity_type_category_id);
+
+                        if(workflowActivityTypeCategoryID === 59) {
+                           //this is a global workflow
+                           isGlobalWorkflow = true;
+                        }
                     }
                 })
                 .catch((error) => {
@@ -4133,7 +4142,20 @@ function ActivityService(objectCollection) {
         }
         try {
             request.page_limit = 100;
-            const queueMap = await activityListingService.getEntityQueueMapping(request);
+            let queueMap;
+
+            if(isGlobalWorkflow) {
+                //Flag 4 It will give all the queues in the 906 organization
+                let req = Object.assign({}, request);
+                req.flag = 4;
+                let queueMap1 = await activityListingService.getEntityQueueMapping(req);
+                let queueMap2 = await activityListingService.getEntityQueueMapping(request);
+
+                queueMap = [...queueMap1, ...queueMap2];
+            } else {
+                queueMap = await activityListingService.getEntityQueueMapping(request);
+            }
+
             if (queueMap.length > 0) {
                 // Iterate through each queue mapped to the activity type
                 for (const queue of queueMap) {

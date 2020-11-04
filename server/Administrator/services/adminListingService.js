@@ -298,6 +298,14 @@ function AdminListingService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    data[0].is_password_set = 'No';
+                    for(const i of data) {
+                        if((i.asset_email_password).length > 0) {
+                            //Password is Set
+                            data[0].is_password_set = 'Yes';
+                            break;
+                        }
+                    }
                     responseData = data;
                     error = false;
                 })

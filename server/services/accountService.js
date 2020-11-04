@@ -796,6 +796,28 @@ function AccountService(objectCollection) {
             }        
         };
 
+    this.fetchS3BucketByMonthYear = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.bucket_month,
+            request.bucket_year
+        );
+        let queryString = util.getQueryString('ds_v1_common_aws_s3_bucket_master_select_month_year', paramsArr);
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })            
+            }  
+            
+        return [error,responseData]
+    }
+
 }
 
 module.exports = AccountService;

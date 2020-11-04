@@ -2405,6 +2405,106 @@ function AnalyticsService(objectCollection)
         }
 
     };
+    this.insertWidgetType = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [              
+              request.widget_type_name,
+              request.widget_type_description,
+              request.widget_type_category_id,
+              request.widget_type_chart_id,
+              request.flag_mobile_enabled,
+              request.widget_type_flag_target,
+              request.widget_type_flag_sip_enabled,
+              request.widget_type_flag_role_enabled,
+              request.widget_type_sip_contribution_percentage,
+              request.asset_type_id,
+              request.activity_type_id,
+              request.tag_id,
+              request.workforce_type_id,
+              request.organization_id,
+              request.log_asset_id ,
+              request.log_datetime
+        ];
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.selectWidgetType = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,         
+              request.widget_type_category_id,
+              request.asset_type_id,
+              request.activity_type_id,
+              request.workforce_type_id,
+              request.tag_id,
+              request.tag_type_id,
+              request.flag||0,
+              request.device_os_id,
+              request.start_from,
+              request.limit_value || 50
+   
+        ];
+
+        const queryString = util.getQueryString('ds_p1_1_widget_type_master_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.deleteWidgetType = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [  
+              request.widget_type_id,   
+              request.organization_id,         
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = responseData = {'message': 'widget type deleted successfully!'};;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData]
+    }
 
 }
 

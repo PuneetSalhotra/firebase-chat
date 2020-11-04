@@ -18,6 +18,16 @@ function UrlOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/url/parameters/shorten/v2', async function (req, res) {
+        const [err, urlData] = await urlOpsService.urlParametersShortenV2(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, urlData, 200, req.body));
+        } else {
+            console.log("/url/parameters/shorten/v2 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, urlData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = UrlOpsController;

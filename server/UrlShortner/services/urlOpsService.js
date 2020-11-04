@@ -57,6 +57,104 @@ function UrlOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.urlParametersShortenV2 = async function (request) {
+        let err = true;
+        url_datetime_expiry = 72;
+        let uuid = "";
+        
+        const url_form_data = typeof request.url_form_data === "string" ? JSON.parse(request.url_form_data):request.url_form_data; 
+        //get previous entries on activity_id if there are any
+        
+        
+        let [selectErr,selectData] = await getDetailsByActivity(url_form_data);
+        if (selectErr) {
+            return [selectErr, {message: "Error shortening the URL parameters"}] 
+        }
+        if(selectData.length>0){
+        uuid =selectData[0].url_envelop_uuid;
+         
+        }
+        else{
+            uuid = uuidv4()
+        }
+     
+        //Get expiry time
+        let [expiryErr,expiryTime] = await getExpiryTime(url_form_data);
+        // console.log("expiry time",expiryTime)
+        if (expiryErr) {
+            return [expiryErr, {message: "Error shortening the URL parameters"}] 
+        }
+        
+        url_datetime_expiry  = expiryTime[0].ds_p1_organization_list_select?expiryTime[0].ds_p1_organization_list_select :72;
+        
+       let paramsArr = [
+        url_form_data.activity_id,
+        uuid,
+        request.url_uuid,
+        JSON.stringify(url_form_data),
+        request.url_mail_sender,
+        request.url_mail_receiver,
+        request.url_datetime_sent,
+        url_datetime_expiry||72,
+        util.getCurrentUTCTime()
+      ]
+      const queryString = util.getQueryString('ds_v1_activity_url_lookup_transaction_insert', paramsArr);
+      if (queryString !== '') {
+          await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {        
+                err = false;
+            })
+            .catch((err1) => {
+                err = err1;
+            })
+      }
+
+
+        return [err, []];
+    }
+
+    async function getDetailsByActivity(request) {
+        let error=true;
+        let responseData = []
+        const paramsArr = [
+            request.activity_id
+        ]
+        const queryString = util.getQueryString('ds_v1_activity_url_lookup_transaction_select_activity', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error,responseData]
+    }
+    async function getExpiryTime(request) {
+        let error=true;
+        let responseData = []
+        const paramsArr = [
+            request.organization_id
+        //    request.url_id,
+        //    request.flag||0,
+        //    util.getCurrentUTCTime()
+        ]
+        const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error,responseData]
+    }
+
 }
 
 module.exports = UrlOpsService;
