@@ -236,7 +236,8 @@ function BotService(objectCollection) {
                  new Array(
                      request.bot_operation_id,
                      request.bot_id,
-                     JSON.stringify(request.bot_inline_data),
+                     request.bot_inline_data,
+                     request.bot_inline_data,
                      request.organization_id,
                      request.log_asset_id,
                      request.log_datetime,
@@ -659,7 +660,7 @@ function BotService(objectCollection) {
                     );
 
                 results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
-
+                
                 if (sequenceCurrent < sequenceNew) {
                     for (let value of results[0]) {
                         //console.log(value.bot_operation_sequence_id);

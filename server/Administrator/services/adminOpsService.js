@@ -8171,6 +8171,34 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.assetAccessMappingUpdateState = async function(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.user_mapping_id,
+            request.user_asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_update_access_reset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
 }
 
 module.exports = AdminOpsService;
