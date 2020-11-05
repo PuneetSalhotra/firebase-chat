@@ -8469,7 +8469,7 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.activity_timeline_collection = JSON.stringify({
                 "content": request.content,
                 "subject": request.subject,
-                "mail_body": "{}",
+                "mail_body": request.content,
                 "attachments": []
             });
            
