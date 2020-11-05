@@ -8437,7 +8437,7 @@ async function removeAsOwner(request,data)  {
     }
 
     this.callAddTimelineEntry = async(request) => {        
-        await addTimelineEntry(request, 1);
+        await addTimelineEntry(request, 2);
         return [false, []];
     }
     
@@ -8463,7 +8463,22 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.timeline_stream_type_id = 325;
             
             
-        } else {
+        }
+        else if(flag === 2) {
+            addCommentRequest = {...request};
+            addCommentRequest.activity_timeline_collection = JSON.stringify({
+                "content": request.content,
+                "subject": request.subject,
+                "mail_body": "{}",
+                "attachments": []
+            });
+           
+            addCommentRequest.activity_stream_type_id = request.timeline_stream_type_id;
+            addCommentRequest.timeline_stream_type_id = request.timeline_stream_type_id;
+            
+            
+        }
+        else {
             addCommentRequest.activity_timeline_collection = JSON.stringify({
                 "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
                 "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
