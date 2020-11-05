@@ -7284,7 +7284,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9551,7 +9551,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        await sleep((inlineData.form_trigger_time_in_min || 0) * 1000);
+        await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
         // form submission
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
@@ -9695,7 +9695,7 @@ async function removeAsOwner(request,data)  {
     }
 
     function validatingProductAndRequestType(formData, originFormConfig) {
-        let productMatchFlag = 0, requestTypeMatch = 0;
+        let productMatchFlag = 0, requestTypeMatch = 0, reqularApproval = 0;
         for(let row of formData) {
             if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
                 let value = originFormConfig[row.field_id];
@@ -9705,18 +9705,21 @@ async function removeAsOwner(request,data)  {
                     break;
                 }
 
-                if(row.field_id == 224835 && row.field_value.indexOf(value) > -1) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.field_value);
+                if(row.field_id == 224835 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
                     productMatchFlag = 1;
-                } else if(row.field_id == 225020 && value.indexOf(row.field_value) > -1) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.field_value);
+                } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
                     requestTypeMatch = 1;
+                } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
+                    console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
+                    reqularApproval = 1;
                 } else {
                     console.log("Value did not matched in validatingProductAndRequestType");
                     break;
                 }
 
-                if(productMatchFlag && requestTypeMatch) {
+                if(productMatchFlag && requestTypeMatch && reqularApproval) {
                     console.log("Values Matched");
                     return true;
                 }
