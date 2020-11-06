@@ -549,7 +549,7 @@ function CommnElasticService(objectCollection) {
                 console.log('Customer Name - ', row._source.CustomerName);
 
                 finalResp.push(row._source);
-                break;
+                //break;
             }            
         }
 
