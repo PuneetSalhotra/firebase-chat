@@ -10,10 +10,13 @@
   ],
   "author": "venkatesh",
   "contributors": [],
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  },
   "scripts": {
     "start:main": "mode=local pm2 start main.js",
-    "start:consumer": "mode=local pm2 start consumer.js"
+    "start:consumer": "mode=local pm2 start consumer.js",
+    "start": "mode=local nodemon main.js"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.9.0",
