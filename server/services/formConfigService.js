@@ -3343,7 +3343,7 @@ function FormConfigService(objCollection) {
 
                     }
                     // Update next field ID, if needed
-                    if (option.hasOwnProperty("next_field_id") && (Number(option.next_field_id) > 0 || Number(option.next_field_id) === -1)) {
+                    if (option.hasOwnProperty("next_field_id") && (Number(option.next_field_id) >= 0 || Number(option.next_field_id) === -1)) {
                         try {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
@@ -3379,12 +3379,12 @@ function FormConfigService(objCollection) {
 
                 }
                 // Update next field ID, if needed
-                if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) > 0 || Number(field.next_field_id) === -1)) {
+                if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) >= 0 || Number(field.next_field_id) === -1)) {
                     try {
                         await workforceFormFieldMappingUpdateNextField(request, {
                             field_id: field.field_id,
                             data_type_combo_id: field.dataTypeComboId,
-                            next_field_id: field.next_field_id
+                            next_field_id: Number(field.next_field_id)
                         });
                     } catch (error) {
                         console.log("qwe Error: ", error);
