@@ -2110,12 +2110,12 @@ function BotService(objectCollection) {
 
             //console.log('type[0]: ', type[0]);
             //if(type[0] === 'flag_esms') {
-            if(type.includes('static')){                
+            if(type.includes('static')){
+                    assetID = Number(inlineData[type[0]].asset_id);
+                    console.log('STATIC - Asset ID : ', assetID);
+            } else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
-            } else if(type.includes('from_request')){
-                assetID = Number(inlineData[type[0]].asset_id);
-                console.log('STATIC - Asset ID : ', assetID);
             } else if(type.includes('asset_reference')) {
                 const formID = Number(inlineData["asset_reference"].form_id),
                       fieldID = Number(inlineData["asset_reference"].field_id);                      
