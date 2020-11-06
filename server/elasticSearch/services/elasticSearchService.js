@@ -516,6 +516,9 @@ function CommnElasticService(objectCollection) {
     };
 
     this.getVidmData = async(request) => {
+        const searchString = (request.search_string).toLowerCase();
+        console.log('Search Key - ', searchString);
+
         const result = await client.search({
             index: 'vidm',
             body: {
@@ -528,14 +531,29 @@ function CommnElasticService(objectCollection) {
                     }
                 }
             }
-        })
+        });
 
         let finalResp = [];
 
         for(let row of result.hits.hits) {
-            finalResp.push(row._source);
+            //console.log((row._source.account_code).toLowerCase());
+            //console.log((row._source.CustomerName).toLowerCase());
+            //console.log(' ');
+
+            if(searchString === (row._source.account_code).toLowerCase() ||
+               searchString === (row._source.CustomerName).toLowerCase()
+            ) {
+                //Element found
+                console.log(`${searchString} is found!`);
+                console.log('Account Code - ', row._source.account_code);
+                console.log('Customer Name - ', row._source.CustomerName);
+
+                finalResp.push(row._source);
+                break;
+            }            
         }
-        return [false, finalResp]
+
+        return [false, finalResp];
     };
 }
 
