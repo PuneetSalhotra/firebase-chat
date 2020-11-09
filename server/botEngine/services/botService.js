@@ -1754,6 +1754,7 @@ function BotService(objectCollection) {
                     }
                     try {
                         if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
+                        if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
                         await queueWrapper.raiseActivityEventToTopicPromise({
                             type: "VIL_ESMS_IBMMQ_INTEGRATION",
                             trigger_form_id: Number(request.trigger_form_id),
