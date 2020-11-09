@@ -7285,7 +7285,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-        
+
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9471,17 +9471,47 @@ async function removeAsOwner(request,data)  {
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
 
+        let dataResp = await getAssetDetailsOfANumber({
+            country_code : inlineData.country_code || '',
+            phone_number : inlineData.phone_number,
+            organization_id : request.organization_id
+        });
+        let deskAssetData;
+        if (dataResp.length > 0) {
+            for (let i of dataResp) {
+                if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
+                    deskAssetData = i;
+                    break;
+                }
+            }
+        }
+
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        if(!resultProductAndRequestType) {
-            console.log("Product and Request type match failed");
+        if(!resultProductAndRequestType.productMatchFlag) {
+            console.log("Product Match Failed");
+            submitRejectionForm(request, "Product Match Failed", deskAssetData);
             return;
         }
+
+        if(!resultProductAndRequestType.requestTypeMatch) {
+            console.log("Request type match failed");
+            submitRejectionForm(request, "Request type match failed", deskAssetData);
+            return;
+        }
+
+        if(!resultProductAndRequestType.reqularApproval) {
+            console.log("Regular approval match failed");
+            submitRejectionForm(request, "Regular approval match failed", deskAssetData);
+            return;
+        }
+
 
         let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
         if(!checkingSegment) {
             console.log("Segment is not matched");
+            submitRejectionForm(request, "Segment is not matched", deskAssetData);
             return;
         }
 
@@ -9490,6 +9520,7 @@ async function removeAsOwner(request,data)  {
 
         if(!totalLinks.length) {
             console.log("Failed in Matching validatingCocpAndIoip");
+            submitRejectionForm(request, "Failed in Matching validatingCocpAndIoip", deskAssetData);
             return;
         }
 
@@ -9498,6 +9529,7 @@ async function removeAsOwner(request,data)  {
 
         if(!rentalResult || !rentalResult.length) {
             console.log("Failed in Matching validatingRentals");
+            submitRejectionForm(request, "Failed in Matching validatingRentals", deskAssetData);
             return;
         }
         console.log("rentalResult", rentalResult, totalLinks);
@@ -9506,6 +9538,7 @@ async function removeAsOwner(request,data)  {
 
         if(!linkResponse.length) {
             console.log("NO of Links are not matched");
+            submitRejectionForm(request, "NO of Links are not matched", deskAssetData);
             return;
         }
         console.log("linkResponse",linkResponse);
@@ -9516,6 +9549,7 @@ async function removeAsOwner(request,data)  {
 
         if(!monthlyQuota.length) {
             console.log("Conditions did not match in validatingMonthlyQuota");
+            submitRejectionForm(request, "Conditions did not match in validatingMonthlyQuota", deskAssetData);
             return;
         }
 
@@ -9523,6 +9557,7 @@ async function removeAsOwner(request,data)  {
 
         if(!smsCount.length) {
             console.log("Conditions did not match in validatingSMSValues");
+            submitRejectionForm(request, "Conditions did not match in validatingSMSValues", deskAssetData);
             return;
         }
 
@@ -9530,6 +9565,7 @@ async function removeAsOwner(request,data)  {
 
         if(smsCount.length != minQuota.length) {
             console.log("Condition failed in validate Mins");
+            submitRejectionForm(request, "Condition failed in validate Mins", deskAssetData);
             return;
         }
 
@@ -9551,20 +9587,6 @@ async function removeAsOwner(request,data)  {
             console.log("Error while adding participant")
         }
 
-        let dataResp = await getAssetDetailsOfANumber({
-            country_code : inlineData.country_code || '',
-            phone_number : inlineData.phone_number,
-            organization_id : request.organization_id
-        });
-        let deskAssetData;
-        if (dataResp.length > 0) {
-            for (let i of dataResp) {
-                if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
-                    deskAssetData = i;
-                    break;
-                }
-            }
-        }
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
         // form submission
@@ -9729,17 +9751,11 @@ async function removeAsOwner(request,data)  {
                 } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
                     console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
                     reqularApproval = 1;
-                } else {
-                    console.log("Value did not matched in validatingProductAndRequestType");
-                    break;
-                }
-
-                if(productMatchFlag && requestTypeMatch && reqularApproval) {
-                    console.log("Values Matched");
-                    return true;
                 }
 
             }
+
+            return {productMatchFlag, requestTypeMatch, reqularApproval};
         }
     };
 
@@ -10208,6 +10224,98 @@ async function removeAsOwner(request,data)  {
         }
 
     }
+
+    async function submitRejectionForm(request, reason, deskAssetData) {
+        console.log("Processing Rejection Form ");
+        try {
+            let createWorkflowRequest                       = Object.assign({}, request);
+
+            createWorkflowRequest.activity_inline_data      = JSON.stringify([
+                {
+                    "form_id": 4430,
+                    "field_id": "220023",
+                    "field_name": "Reasons for Rejection",
+                    "field_value": reason,
+                    "message_unique_id": 1604647824383,
+                    "data_type_combo_id": 0,
+                    "field_data_type_id": 20,
+                    "data_type_combo_value": "0",
+                    "field_data_type_category_id": 7
+                },
+                {
+                    "form_id": 4430,
+                    "field_id": "225207",
+                    "field_name": "Document Upload",
+                    "field_value": "",
+                    "message_unique_id": 1604647846404,
+                    "data_type_combo_id": 0,
+                    "field_data_type_id": 72,
+                    "data_type_combo_value": "0",
+                    "field_data_type_category_id": 13
+                }
+            ]);
+
+            createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+            createWorkflowRequest.activity_type_category_id = 9;
+            createWorkflowRequest.activity_type_id          = 150506;
+            //createWorkflowRequest.activity_title = workflowActivityTypeName;
+            //createWorkflowRequest.activity_description = workflowActivityTypeName;
+            //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
+            // Child Orders
+            createWorkflowRequest.activity_parent_id = 0;
+            createWorkflowRequest.activity_form_id    = 4355;
+            createWorkflowRequest.form_id    = 4355;
+
+            createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            // delete createWorkflowRequest.activity_id;
+            createWorkflowRequest.device_os_id = 7;
+
+            const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+            const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            createWorkflowRequest.activity_id = targetFormActivityID;
+            createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+            createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
+
+            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+            let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+            console.log("activityInsertedDetails---->", activityInsertedDetails);
+
+
+            let activityTimelineCollection =  JSON.stringify({
+                "content": `Form Submitted`,
+                "subject": `Reject`,
+                "mail_body": `Reject`,
+                "activity_reference": [],
+                "form_id" : 4355,
+                "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+
+
+            let timelineReq = Object.assign({}, createWorkflowRequest);
+
+            timelineReq.activity_id = request.workflow_activity_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 717;
+            timelineReq.activity_stream_type_id = 705;
+            timelineReq.timeline_stream_type_id = 705;
+            timelineReq.activity_type_category_id = 48;
+            timelineReq.asset_id = deskAssetData.asset_id;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        } catch (e) {
+            console.log("Auto Rejection form Failed", e.stack);
+        }
+    }
+
 }
 
 module.exports = BotService;
