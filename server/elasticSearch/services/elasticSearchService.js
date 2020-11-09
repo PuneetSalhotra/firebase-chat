@@ -552,7 +552,7 @@ function CommnElasticService(objectCollection) {
                                     from : request.page_no,
                                         "query": {
                                             "match": {
-                                                "account_name": request.search_string,
+                                                "CustomerName": request.search_string,
                                             }
                                         }
                                     }
@@ -577,7 +577,7 @@ function CommnElasticService(objectCollection) {
                                 });
                     break;
         }
-
+console.log("res",result)
         /*const result = await client.search({
             index: 'vidm',
             body: {
