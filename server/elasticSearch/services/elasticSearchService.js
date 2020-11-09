@@ -517,9 +517,68 @@ function CommnElasticService(objectCollection) {
 
     this.getVidmData = async(request) => {
         const searchString = (request.search_string).toLowerCase();
-        console.log('Search Key - ', searchString);
+        console.log('Search Key - ', searchString);    
 
-        const result = await client.search({
+        const flag = Number(request.flag);
+        console.log('Flag - ', flag);
+
+        //Flag
+            //1: account code
+            //2: customer name
+            //3: date range
+
+        let result;
+        switch(flag) {
+            case 1: console.log('Searching Acount Code...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "match": {
+                                                "account_code": request.search_string,
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+
+            case 2: console.log('Searching Customer Name...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "match": {
+                                                "account_name": request.search_string,
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+            
+            case 3: console.log('Searching for Date Range...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "range": {                                                
+                                                "RequestInitiationDate": {
+                                                    lte:request.from_date,
+                                                    gte:request.to_date
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+        }
+
+        /*const result = await client.search({
             index: 'vidm',
             body: {
             size : request.page_size,
@@ -531,7 +590,10 @@ function CommnElasticService(objectCollection) {
                     }
                 }
             }
-        });
+        });*/
+
+        //console.log(result);
+        //console.log(result.hits.hits);
 
         let finalResp = [];
 
