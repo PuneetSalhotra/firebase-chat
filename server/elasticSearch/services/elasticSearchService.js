@@ -566,11 +566,8 @@ function CommnElasticService(objectCollection) {
                                     size : request.page_size,
                                     from : request.page_no,
                                         "query": {
-                                            "range": {                                                
-                                                "RequestInitiationDate": {
-                                                    lte:request.from_date,
-                                                    gte:request.to_date
-                                                }
+                                            "match": {                                                
+                                                "RequestInitiationDate": request.from_date
                                             }
                                         }
                                     }
