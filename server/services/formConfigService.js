@@ -1919,6 +1919,32 @@ function FormConfigService(objCollection) {
         });
     }
 
+    function formEntityMappingRemove(request) {
+        let responseData = [],
+		error = true;
+		const paramsArr = new Array(
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.form_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+		);
+		const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_delete', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+    }
+
     function workforceFormFieldMappingInsert(request, formFieldCollection) {
         return new Promise(async (resolve, reject) => {
             // IN p_field_id BIGINT(20), IN p_field_name VARCHAR(1200), IN p_field_description VARCHAR(150), 
@@ -4799,6 +4825,21 @@ function FormConfigService(objCollection) {
 
         return [error, workforceData];
     } 
+    
+    this.removeWorkforceAccess = async function(request){
+        let error = true;
+        let responseData = "";
+        let [err, data] = await formEntityMappingRemove(request);
+        if(err){
+        responseData = "Error removing access"
+        }
+        if(formFieldData.length==0){
+            error = false
+            responseData="No access"
+            
+        }
+       return [error,responseData]
+    }
 
     this.setMultipleWorkforceAccess =
         async (request) => {

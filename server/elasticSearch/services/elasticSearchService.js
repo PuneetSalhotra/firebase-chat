@@ -552,7 +552,7 @@ function CommnElasticService(objectCollection) {
                                     from : request.page_no,
                                         "query": {
                                             "match": {
-                                                "account_name": request.search_string,
+                                                "CustomerName": request.search_string,
                                             }
                                         }
                                     }
@@ -566,18 +566,15 @@ function CommnElasticService(objectCollection) {
                                     size : request.page_size,
                                     from : request.page_no,
                                         "query": {
-                                            "range": {                                                
-                                                "RequestInitiationDate": {
-                                                    lte:request.from_date,
-                                                    gte:request.to_date
-                                                }
+                                            "match": {                                                
+                                                "RequestInitiationDate": request.from_date
                                             }
                                         }
                                     }
                                 });
                     break;
         }
-
+console.log("res",result)
         /*const result = await client.search({
             index: 'vidm',
             body: {
