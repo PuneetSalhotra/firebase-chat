@@ -1933,7 +1933,7 @@ function FormConfigService(objCollection) {
 		);
 		const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_delete', paramsArr);
 		if (queryString !== '') {
-			await db.executeQueryPromise(1, queryString, request)
+			await db.executeQueryPromise(0, queryString, request)
 				.then(async (data) => {
 					responseData = data;
 					error = false;
