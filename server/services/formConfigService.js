@@ -1919,7 +1919,7 @@ function FormConfigService(objCollection) {
         });
     }
 
-    function formEntityMappingRemove(request) {
+    async function formEntityMappingRemove(request) {
         let responseData = [],
 		error = true;
 		const paramsArr = new Array(
@@ -4828,15 +4828,13 @@ function FormConfigService(objCollection) {
     
     this.removeWorkforceAccess = async function(request){
         let error = true;
-        let responseData = "";
+        let responseData = "Successfully removed access";
         let [err, data] = await formEntityMappingRemove(request);
         if(err){
         responseData = "Error removing access"
         }
-        if(formFieldData.length==0){
-            error = false
-            responseData="No access"
-            
+        else{
+            error= false;
         }
        return [error,responseData]
     }
