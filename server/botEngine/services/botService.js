@@ -9506,8 +9506,7 @@ async function removeAsOwner(request,data)  {
             submitRejectionForm(request, "Regular approval match failed", deskAssetData);
             return;
         }
-
-
+        
         let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
         if(!checkingSegment) {
             console.log("Segment is not matched");
@@ -10006,12 +10005,21 @@ async function removeAsOwner(request,data)  {
             303578, 303578
         ];
 
+        let opexFieldId = 224875, opexValue;
+        let capexFieldId = 224881, capexValue;
+
         let illFormDataWithLiks = [];
 
 
         // to push the first three entries for every link to test the flow in a one go
         let temp = [IllFormData[0], IllFormData[1], IllFormData[2]];
         for(let i = 0, j = 0; i < IllFormData.length; i++) {
+
+            if(IllFormData[i].field_id == opexFieldId) {
+                opexValue = IllFormData[i].field_value;
+            } else if(IllFormData[i].field_id == capexFieldId) {
+                capexValue = IllFormData[i].field_value;
+            }
 
             if(IllFormData[i].field_id == linkFieldIds[j]) {
                 if(j) {
@@ -10033,7 +10041,7 @@ async function removeAsOwner(request,data)  {
         console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
-            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0])) {
+            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue)) {
                 console.log("Criteria did not match");
                 break;
             }
@@ -10049,7 +10057,7 @@ async function removeAsOwner(request,data)  {
             asset_id : request.asset_id
         });
 
-        await sleep(15*1000)
+        // await sleep(15*1000)
 
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : 868 }, request.activity_id);
@@ -10172,10 +10180,11 @@ async function removeAsOwner(request,data)  {
 
 
 
-        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash) {
+        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue) {
 
+            let sheetSelected = [], phase1 = 0, phase2 = 0;
             for(let value of global.botConfig.smeConstants) {
-                let productF = 0, segementF = 0, orderTypeF = 0, bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
+                let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
                     console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
                     if(row.field_id == productFieldId) {
@@ -10187,11 +10196,53 @@ async function removeAsOwner(request,data)  {
                         value['2'].toLowerCase() == row.field_value.toLowerCase() ? segementF = 1 : 0;
                         continue;
                     } else if(row.field_id == orderTypeFieldId) {
-                        console.log("row.field_id == orderTypeFieldId && (row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'Upgrade with Capex/ Opex'.toLowerCase())", row.field_id == orderTypeFieldId
-                          && (row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'Upgrade with Capex/ Opex'.toLowerCase()));
-                        (row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'Upgrade with Capex/ Opex'.toLowerCase()) ? orderTypeF = 1 : 0;
+                        console.log("", row.field_value.toLowerCase());
+                        if(row.field_value.toLowerCase() == 'new' || row.field_value.toLowerCase() == 'upgrade') {
+                            orderTypeF = 1;
+
+                            if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
+                                console.log("Sheet Selected Sheet 1");
+                                sheetSelected = botConfig.smeSheet1;
+                            } else if(opexValue > 0){
+                                console.log("Sheet Selected Sheet 3");
+                                sheetSelected = botConfig.smeSheet2;
+                            }
+                        } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
+                            orderTypeF = 1;
+
+                            if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
+                                console.log("Sheet Selected Sheet 2");
+                                sheetSelected = botConfig.smeSheet2;
+                            } else if(opexValue > 0){
+                                console.log("Sheet Selected Sheet 4");
+                                sheetSelected = botConfig.smeSheet4;
+                            }
+                        }
                         continue;
-                    } else if(row.field_id == bwFieldId) {
+                    }
+                }
+
+                if(productF && segementF && orderTypeF){
+                    console.log("Got match in phase 1");
+                    phase1 = 1;
+                    break;
+                }
+                else {
+                    productF = 0, segementF = 0, orderTypeF = 0;
+                    console.log("Reset Params phase 1. Checking for new");
+                }
+
+            }
+
+            if(!phase1) {
+                console.log("Matching Failed in Product, Segment");
+                return false;
+            }
+
+            for(let value of sheetSelected) {
+                let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
+                for(let row of linkDetails) {
+                    if(row.field_id == bwFieldId) {
                         console.log("row.field_id == bwFieldId && Number(row.field_value) == Number(value['4'])", row.field_id == bwFieldId && Number(row.field_value) == Number(value['4']));
                         Number(row.field_value) == Number(value['4']) ? bwF = 1 : 0;
                         continue;
@@ -10205,7 +10256,7 @@ async function removeAsOwner(request,data)  {
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
                         console.log("row.field_id == contractTermsFieldId && Number(row.field_value) >= Number(value['7'])", row.field_id == contractTermsFieldId && Number(row.field_value) >= Number(value['7']));
-                        Number(row.field_value) >= Number(value['7']) ? contractF = 1 : 0;
+                        // Number(row.field_value) >= Number(value['7']) ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
                         console.log("row.field_id == netCash && Number(row.field_value) >= Number(value['8'])", row.field_id == netCash && Number(row.field_value) >= Number(value['8']));
@@ -10214,11 +10265,14 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                if(productF && segementF && orderTypeF && bwF && otcF && arcF && contractF && netCashF)
-                    return 1;
-                else
-                    productF = 0, segementF = 0, orderTypeF = 0, bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
-
+                if(bwF && otcF && arcF && contractF && netCashF) {
+                    console.log("Got match in phase 2");
+                    phase2 = 1;
+                    return true;
+                } else {
+                    console.log("Reset In phase 2. Checking for new");
+                    bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
+                }
             }
             return 0;
         }
