@@ -574,7 +574,7 @@ function CommnElasticService(objectCollection) {
                                 });
                     break;
         }
-console.log("res",result)
+        //console.log("res",result);
         /*const result = await client.search({
             index: 'vidm',
             body: {
@@ -594,23 +594,31 @@ console.log("res",result)
 
         let finalResp = [];
 
-        for(let row of result.hits.hits) {
-            //console.log((row._source.account_code).toLowerCase());
-            //console.log((row._source.CustomerName).toLowerCase());
-            //console.log(' ');
+        if(flag !== 3) {
+            for(let row of result.hits.hits) {
+                //console.log((row._source.account_code).toLowerCase());
+                //console.log((row._source.CustomerName).toLowerCase());
+                //console.log(' ');
+    
+                if(flag === 1 && searchString === (row._source.account_code).toLowerCase()) {
+                    console.log(`${searchString} is found!`);
+                    console.log('Account Code - ', row._source.account_code);
 
-            if(searchString === (row._source.account_code).toLowerCase() ||
-               searchString === (row._source.CustomerName).toLowerCase()
-            ) {
+                    finalResp.push(row._source);
+                } else if(flag === 2 && searchString === (row._source.CustomerName).toLowerCase()) {
+                    console.log(`${searchString} is found!`);
+                    console.log('Customer Name - ', row._source.CustomerName);
+
+                    finalResp.push(row._source);
+                }            
+            }
+        } else {
+            for(let row of result.hits.hits) {
                 //Element found
                 console.log(`${searchString} is found!`);
-                console.log('Account Code - ', row._source.account_code);
-                console.log('Customer Name - ', row._source.CustomerName);
-
-                finalResp.push(row._source);
-                //break;
-            }            
-        }
+                finalResp.push(row._source);                
+                }
+          }
 
         return [false, finalResp];
     };
