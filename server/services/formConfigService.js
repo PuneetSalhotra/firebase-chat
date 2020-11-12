@@ -1215,10 +1215,13 @@ function FormConfigService(objCollection) {
                         try {
                             let jsonData;
                             let amount;
+                            
+                            
                             (typeof row.field_value === 'object') ?
                                 jsonData = row.field_value :
                                 jsonData = JSON.parse(row.field_value);
 
+                             params[27] = JSON.stringify(jsonData);
                             let newAmount = Number(jsonData.transaction_data.transaction_amount);
                             let oldAmount = Number(activityInlineData[0].old_field_value);
 
@@ -1248,10 +1251,29 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 65: // Business Card DataType
-                        params[27] = row.field_value;
+                       
+                        if(typeof row.field_value === 'object') {
+                            
+                           params[27] = JSON.stringify(row.field_value);
+                           console.log(params[27])
+                        } else {
+                           params[27] = row.field_value;
+                        }
+                        console.log(params[27])
+                        break;
+                    case 66: // Document Repository
+                        if(typeof row.field_value === 'object') {
+                           params[27] = JSON.stringify(row.field_value);
+                        } else {
+                           params[27] = row.field_value;
+                        }
                         break;
                     case 67: // Reminder DataType
-                        params[27] = row.field_value;
+                        if(typeof row.field_value === 'object') {
+                           params[27] = JSON.stringify(row.field_value);
+                        } else {
+                           params[27] = row.field_value;
+                        }
                         break;
                     case 68: // contact DataType
                         params[27] = row.field_value;
