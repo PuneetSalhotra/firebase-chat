@@ -9928,85 +9928,31 @@ async function removeAsOwner(request,data)  {
 
     async function checkSmeBot(request, inlineData) {
 
+        await sleep(2 * 1000);
+
         request.form_id = 50264;
         let IllForm = await getFormInlineData(request, 1);
         let IllFormData = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
         console.log("----", JSON.stringify(IllFormData));
 
-        let segmentFieldIds = [303443];
-        let netCash = [303445];
-        let linkFieldIds = [
-                303446, 303453, 303460, 303467,
-                303474, 303481, 303488,
-                303495, 303502, 303509,
-                303516, 303523, 303530,
-                303537, 303544, 303551,
-                303558, 303565, 303572,
-                303579, 303579
-            ];
-        let productFieldIds = [
-            303447, 303454, 303461, 303468,
-            303475, 303482, 303489,
-            303496, 303503, 303510,
-            303517, 303524, 303531,
-            303538, 303545, 303552,
-            303559, 303566, 303573,
-            303580, 303587
-        ];
+        let segmentFieldIds =  inlineData.segmentFieldIds;
+        let netCash =  inlineData.netCash;;
+        let linkFieldIds = inlineData.linkFieldIds;
+        let productFieldIds = inlineData.productFieldIds;
 
-        let orderTypeFieldIds = [
-            303448, 303455, 303462, 303469,
-            303476, 303483, 303490,
-            303497, 303504, 303511,
-            303518, 303525, 303532,
-            303539, 303546, 303553,
-            303560, 303567, 303574,
-            303581, 303588
-        ];
+        let orderTypeFieldIds = inlineData.orderTypeFieldIds;
 
-        let bwFieldIds = [
-            303449, 303456, 303463, 303470,
-            303477, 303484, 303491,
-            303498, 303505, 303512,
-            303519, 303526, 303533,
-            303540, 303547, 303554,
-            303561, 303568, 303575,
-            303582, 303589, 303589
-        ];
+        let bwFieldIds = inlineData.bwFieldIds;
 
-        let otcFieldIds = [
-            303450, 303457, 303464, 303471,
-            303478, 303485, 303492,
-            303499, 303506, 303513,
-            303520, 303527, 303534,
-            303541, 303548, 303555,
-            303562, 303569, 303576,
-            303583, 303590, 303590
-        ];
+        let otcFieldIds = inlineData.otcFieldIds;
 
-        let arcFields = [
-            303451, 303458, 303465,
-            303472, 303479, 303486,
-            303493, 303500, 303507,
-            303514, 303521, 303528,
-            303535, 303542, 303549,
-            303556, 303563, 303570,
-            303577, 303584, 303591
-        ];
+        let arcFields = inlineData.arcFields;
 
-        let contractTermsFieldIds = [
-            303452, 303459, 303466,
-            303473, 303480, 303487,
-            303494, 303501, 303508,
-            303515, 303522, 303529,
-            303536, 303543, 303550,
-            303557, 303564, 303571,
-            303578, 303585, 303592
-        ];
+        let contractTermsFieldIds = inlineData.contractTermsFieldIds;
 
-        let opexFieldId = 304326, opexValue;
-        let capexFieldId = 304327, capexValue;
+        let opexFieldId =  inlineData.opexFieldId, opexValue;
+        let capexFieldId =  inlineData.capexFieldId, capexValue;
 
         let illFormDataWithLiks = [];
 
@@ -10041,7 +9987,7 @@ async function removeAsOwner(request,data)  {
         console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
-            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i)) {
+            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData)) {
                 console.error("Criteria did not match in SME ILL bot");
                 return;
             }
@@ -10228,10 +10174,10 @@ async function removeAsOwner(request,data)  {
 
 
 
-        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId) {
+        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData) {
 
             let sheetSelected = [], phase1 = 0, phase2 = 0;
-            for(let value of global.botConfig.smeConstants) {
+            for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
                     console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
@@ -10253,10 +10199,10 @@ async function removeAsOwner(request,data)  {
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 1");
-                                sheetSelected = global.botConfig.smeSheet1;
+                                sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
                                 console.log("Sheet Selected Sheet 3");
-                                sheetSelected = global.botConfig.smeSheet2;
+                                sheetSelected = inlineData.smeSheet2;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
                             console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
@@ -10264,18 +10210,18 @@ async function removeAsOwner(request,data)  {
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
-                                sheetSelected = global.botConfig.smeSheet2;
+                                sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
                                 console.log("Sheet Selected Sheet 4");
-                                sheetSelected = global.botConfig.smeSheet4;
+                                sheetSelected = inlineData.smeSheet4;
                             }
                         } else if(row.field_value == '') {
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
-                                sheetSelected = global.botConfig.smeSheet2;
+                                sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
                                 console.log("Sheet Selected Sheet 4");
-                                sheetSelected = global.botConfig.smeSheet4;
+                                sheetSelected = inlineData.smeSheet4;
                             }
                         }
                         continue;
