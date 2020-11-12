@@ -10323,28 +10323,28 @@ async function removeAsOwner(request,data)  {
                 "page_limit": 50
             });
 
-            let botData;
-            for(let row of botDetails) {
-                if(row.bot_operation_type_id == 1) {
-                    botData = row;
-                    break;
+            try {
+                let botData;
+                for(let row of botDetails) {
+                    if(row.bot_operation_type_id == 1) {
+                        botData = row;
+                        break;
+                    }
                 }
-            }
 
-            console.log("botData---", botData);
+                console.log("botData---", botData);
 
-            if(!botData) {
-                console.error("Bot data was not found so lead would not be added before form submission");
-            }
+                if(!botData) {
+                    console.error("Bot data was not found so lead would not be added before form submission");
+                }
 
-            botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
+                botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
 
-            console.log("Final=-----", botData);
-            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-            console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+                console.log("Final=-----", botData);
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
+                console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-            try{
                 await addParticipantStep({
                     is_lead : 1,
                     workflow_activity_id : request.activity_id,
@@ -10354,9 +10354,10 @@ async function removeAsOwner(request,data)  {
                     organization_id : request.organization_id,
                     asset_id : wfActivityDetails[0].activity_creator_asset_id
                 });
-            }catch(e) {
-                console.log("Error while adding participant")
+            } catch (e) {
+                console.log("Error while adding participant while form is rejected", e, e.stack);
             }
+
 
             await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
 
