@@ -10297,6 +10297,7 @@ async function removeAsOwner(request,data)  {
     }
 
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
+        return;        
         console.log("Processing Rejection Form ");
         try {
 
