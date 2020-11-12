@@ -10202,7 +10202,7 @@ async function removeAsOwner(request,data)  {
                                 sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
                                 console.log("Sheet Selected Sheet 3");
-                                sheetSelected = inlineData.smeSheet2;
+                                sheetSelected = inlineData.smeSheet3;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
                             console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
