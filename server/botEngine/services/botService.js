@@ -7285,7 +7285,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9463,6 +9463,8 @@ async function removeAsOwner(request,data)  {
 
     async function checkMobility (request, inlineData) {
         console.log("checkMobility----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
+        await sleep(5 * 1000);
+        request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
         console.log("dateFormData", JSON.stringify(originFormData));
@@ -9491,26 +9493,26 @@ async function removeAsOwner(request,data)  {
 
         if(!resultProductAndRequestType.productMatchFlag) {
             console.log("Product Match Failed");
-            submitRejectionForm(request, "Product Match Failed", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
         if(!resultProductAndRequestType.requestTypeMatch) {
             console.log("Request type match failed");
-            submitRejectionForm(request, "Request type match failed", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
         if(!resultProductAndRequestType.reqularApproval) {
             console.log("Regular approval match failed");
-            submitRejectionForm(request, "Regular approval match failed", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
         
         let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
         if(!checkingSegment) {
             console.log("Segment is not matched");
-            submitRejectionForm(request, "Segment is not matched", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
@@ -9519,7 +9521,7 @@ async function removeAsOwner(request,data)  {
 
         if(!totalLinks.length) {
             console.log("Failed in Matching validatingCocpAndIoip");
-            submitRejectionForm(request, "Failed in Matching validatingCocpAndIoip", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
@@ -9528,7 +9530,7 @@ async function removeAsOwner(request,data)  {
 
         if(!rentalResult || !rentalResult.length) {
             console.log("Failed in Matching validatingRentals");
-            submitRejectionForm(request, "Failed in Matching validatingRentals", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
         console.log("rentalResult", rentalResult, totalLinks);
@@ -9537,7 +9539,7 @@ async function removeAsOwner(request,data)  {
 
         if(!linkResponse.length) {
             console.log("NO of Links are not matched");
-            submitRejectionForm(request, "NO of Links are not matched", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
         console.log("linkResponse",linkResponse);
@@ -9548,7 +9550,7 @@ async function removeAsOwner(request,data)  {
 
         if(!monthlyQuota.length) {
             console.log("Conditions did not match in validatingMonthlyQuota");
-            submitRejectionForm(request, "Conditions did not match in validatingMonthlyQuota", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
@@ -9556,7 +9558,7 @@ async function removeAsOwner(request,data)  {
 
         if(!smsCount.length) {
             console.log("Conditions did not match in validatingSMSValues");
-            submitRejectionForm(request, "Conditions did not match in validatingSMSValues", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
@@ -9564,7 +9566,7 @@ async function removeAsOwner(request,data)  {
 
         if(smsCount.length != minQuota.length) {
             console.log("Condition failed in validate Mins");
-            submitRejectionForm(request, "Condition failed in validate Mins", deskAssetData);
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
@@ -9753,9 +9755,9 @@ async function removeAsOwner(request,data)  {
                 }
 
             }
-
-            return {productMatchFlag, requestTypeMatch, reqularApproval};
         }
+
+        return {productMatchFlag, requestTypeMatch, reqularApproval};
     };
 
     function validatingSegment(formData, segment) {
@@ -10294,9 +10296,70 @@ async function removeAsOwner(request,data)  {
 
     }
 
-    async function submitRejectionForm(request, reason, deskAssetData) {
+    async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
         console.log("Processing Rejection Form ");
         try {
+
+            const getBotworkflowStepsByFormV1 = async (request) => {
+                let paramsArr = new Array(
+                  request.organization_id,
+                  request.bot_id,
+                  request.form_id || 0,
+                  request.field_id || 0,
+                  request.page_start,
+                  util.replaceQueryLimit(request.page_limit)
+                );
+                let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_form', paramsArr);
+                if (queryString != '') {
+                    return await (db.executeQueryPromise(1, queryString, request));
+                }
+            };
+            let botDetails = await getBotworkflowStepsByFormV1({
+                "organization_id": request.organization_id,
+                "form_id": 4430,
+                "field_id": 0,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+
+            let botData;
+            for(let row of botDetails) {
+                if(row.bot_operation_type_id == 1) {
+                    botData = row;
+                    break;
+                }
+            }
+
+            console.log("botData---", botData);
+
+            if(!botData) {
+                console.error("Bot data was not found so lead would not be added before form submission");
+            }
+
+            botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
+
+            console.log("Final=-----", botData);
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
+            console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+
+
+            try{
+                await addParticipantStep({
+                    is_lead : 1,
+                    workflow_activity_id : request.activity_id,
+                    desk_asset_id : 0,
+                    phone_number : botData.phone_number,
+                    country_code : "",
+                    organization_id : request.organization_id,
+                    asset_id : wfActivityDetails[0].activity_creator_asset_id
+                });
+            }catch(e) {
+                console.log("Error while adding participant")
+            }
+
+            await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
+
             let createWorkflowRequest                       = Object.assign({}, request);
 
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
@@ -10332,8 +10395,8 @@ async function removeAsOwner(request,data)  {
             //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
             // Child Orders
             createWorkflowRequest.activity_parent_id = 0;
-            createWorkflowRequest.activity_form_id    = 4355;
-            createWorkflowRequest.form_id    = 4355;
+            createWorkflowRequest.activity_form_id    = 4430;
+            createWorkflowRequest.form_id    = 4430;
 
             createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
@@ -10358,7 +10421,7 @@ async function removeAsOwner(request,data)  {
                 "subject": `Reject`,
                 "mail_body": `Reject`,
                 "activity_reference": [],
-                "form_id" : 4355,
+                "form_id" : 4430,
                 "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
                 "asset_reference": [],
                 "attachments": [],
