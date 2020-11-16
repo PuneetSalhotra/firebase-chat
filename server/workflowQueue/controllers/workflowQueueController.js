@@ -67,7 +67,7 @@ function WorkflowQueueController(objCollection) {
         '/' + global.config.version + '/workflowQueue/access/set',
         async (req, res) => {
             try {
-                let result = await workflowQueueService.setMultipleAssetsQueueAccess(req.body);
+                let result = await workflowQueueService.setMultipleAssetsQueueAccessV1(req.body);
                 res.send(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
                 console.log("error ",err);
