@@ -15,7 +15,11 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
+var aspose = aspose || {};
+aspose.cells = require("aspose.cells");
 
+var license = new aspose.cells.License();
+license.setLicense(`${__dirname}/Aspose.Cells.lic`);
 //const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 //const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
@@ -1882,6 +1886,62 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
+                case 37: //PDF generation Bot
+                    console.log("entered 37");
+                    try{
+                    let pdf_json = JSON.parse(i.bot_operation_inline_data);
+                    let activity_inline_data_json = JSON.parse(request.activity_inline_data);
+                    
+                    let workbook_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.workbook_field_id);
+                    console.log("workbook",workbook_json)
+                    let combo_id_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.product_field_id);
+                    console.log("comboid json",combo_id_json)
+                    let workbook_file_path = await util.downloadS3ObjectVil(request,workbook_json[0].field_value);
+                    console.log("excel file path ",workbook_file_path);
+                    let sheetIndexes = pdf_json.bot_operations[combo_id_json[0].data_type_combo_id];
+                    await new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve();
+                        }, 5000);
+                    });
+                    let pathModify = workbook_file_path.replace("/\/","/")
+                    let workbookFile =  new aspose.cells.Workbook(pathModify);
+                    
+                    console.log("length of excel",workbookFile.getWorksheets().getCount());
+                     for (let i = 0; i < workbookFile.getWorksheets().getCount(); i++) {
+                         
+                         
+                         let index = sheetIndexes.indexOf(i);
+                         if (index == -1) {
+                         workbookFile.getWorksheets().get(i).setVisible(false);
+                          }
+                          else{
+                            console.log("index",i);
+                          }
+                     }
+                    //  workbookFile.save(workbook_file_path)
+                     var saveOptions = aspose.cells.PdfSaveOptions();
+                     saveOptions.setAllColumnsInOnePagePerSheet(true);
+                     
+                     let fileName = util.getCurrentUTCTimestamp();
+                     let filePath = global.config.efsPath;
+                     let pdfFilePath = `${filePath}${fileName}.pdf`;
+                     console.log("pdf file path",pdfFilePath);
+                     workbookFile.save(pdfFilePath,saveOptions);
+                    
+                     let [error,pdfS3Link] = await util.uploadPdfFileToS3(request,pdfFilePath);
+                     console.log(pdfS3Link);
+                     fs.unlink(pdfFilePath,()=>{});
+                     fs.unlink(workbook_file_path,()=>{})
+                     request.content = "pdf entry sample test";
+                     request.subject = 'pdf entry sample test';
+                     
+                     await addTimelineEntry(request,1,[pdfS3Link[0].location]);
+                    }
+                    catch(err){
+                        console.log("error while generation pdf",err)
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -1914,6 +1974,7 @@ function BotService(objectCollection) {
 
         return {};
     };
+
 
     async function isBotOperationConditionTrue(request, botOperationsJson, formInlineDataMap) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0;
@@ -8442,7 +8503,7 @@ async function removeAsOwner(request,data)  {
         return [false, []];
     }
     
-    async function addTimelineEntry(request, flag) {
+    async function addTimelineEntry(request, flag,attachment = []) {
         
         let addCommentRequest = Object.assign(request, {});
 
@@ -8457,7 +8518,7 @@ async function removeAsOwner(request,data)  {
                 "content": request.content,
                 "subject": request.subject,
                 "mail_body": "{}",
-                "attachments": []
+                "attachments": attachment
             });
            
             addCommentRequest.activity_stream_type_id = 325;
@@ -8470,7 +8531,7 @@ async function removeAsOwner(request,data)  {
                 "content": request.content,
                 "subject": request.subject,
                 "mail_body": request.mail_body,
-                "attachments": []
+                "attachments": attachment
             });
            
             addCommentRequest.activity_stream_type_id = request.timeline_stream_type_id;
