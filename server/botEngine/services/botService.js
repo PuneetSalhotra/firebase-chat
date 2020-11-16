@@ -15,11 +15,11 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
-var aspose = aspose || {};
-aspose.cells = require("aspose.cells");
-
-var license = new aspose.cells.License();
-license.setLicense(`${__dirname}/Aspose.Cells.lic`);
+//var aspose = aspose || {};
+//aspose.cells = require("aspose.cells");
+//
+//var license = new aspose.cells.License();
+//license.setLicense(`${__dirname}/Aspose.Cells.lic`);
 //const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 //const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
@@ -1886,7 +1886,7 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
-                case 37: //PDF generation Bot
+                /*case 37: //PDF generation Bot
                     console.log("entered 37");
                     try{
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
@@ -1941,7 +1941,7 @@ function BotService(objectCollection) {
                     catch(err){
                         console.log("error while generation pdf",err)
                     }
-                    break;
+                    break;*/
             }
 
             //botOperationTxnInsert(request, i);
