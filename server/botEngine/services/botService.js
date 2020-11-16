@@ -9529,11 +9529,6 @@ async function removeAsOwner(request,data)  {
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
         console.log("dateFormData", JSON.stringify(originFormData));
-        request.form_id = 50079; // NON FLD form
-        let fldForm = await getFormInlineData(request, 1);
-        let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
-        console.log("dateFormData1", JSON.stringify(fldFormData));
-
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
             phone_number : inlineData.phone_number,
@@ -9552,24 +9547,25 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        if(!resultProductAndRequestType.productMatchFlag) {
+        if(!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval) {
             console.log("Product Match Failed");
             submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
-        }
-
-        if(!resultProductAndRequestType.requestTypeMatch) {
+        } else if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
             console.log("Request type match failed");
             submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
-        }
-
-        if(!resultProductAndRequestType.reqularApproval) {
+        } else if(!resultProductAndRequestType.reqularApproval) {
             console.log("Regular approval match failed");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
-        
+
+        request.form_id = 50079; // NON FLD form
+        let fldForm = await getFormInlineData(request, 1);
+        let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
+        console.log("dateFormData1", JSON.stringify(fldFormData));
+
         let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
         if(!checkingSegment) {
             console.log("Segment is not matched");
@@ -9977,7 +9973,7 @@ async function removeAsOwner(request,data)  {
                         console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
                         if(!minQuota[i][row.field_value]) {
                             console.log("Got nothing for ", minQuota[i], row.field_value);
-                           return [];
+                            return [];
                         } else {
                             response.push(minQuota[i][row.field_value]);
                         }
