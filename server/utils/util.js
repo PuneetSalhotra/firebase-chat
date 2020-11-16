@@ -17,6 +17,7 @@ const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
 const path = require('path');
 const ip = require("ip");
+const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
 
@@ -541,14 +542,15 @@ function Util(objectCollection) {
             });
     }
 
-    async function getDynamicBucketName(){
+    this.getDynamicBucketName = async function(){
         let responseData = []
         let curDate = new Date();
         let paramsArr = new Array(
             curDate.getMonth()+1,
             curDate.getFullYear()
         );
-        let queryString = util.getQueryString('ds_v1_common_aws_s3_bucket_master_select_month_year', paramsArr);
+        
+        let queryString = this.getQueryString('ds_v1_common_aws_s3_bucket_master_select_month_year', paramsArr);
             if (queryString != '') {
                 await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -2048,7 +2050,7 @@ function Util(objectCollection) {
     };
 
     this.getS3BucketNameV1 = async function (request) {
-        let bucketName = await getDynamicBucketName();   
+        let bucketName = await this.getDynamicBucketName();   
         return bucketName;
     };
 
@@ -2452,6 +2454,33 @@ function Util(objectCollection) {
         }
     }
 
+    this.uploadPdfFileToS3 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "pdf-"+this.getcurrentTimeInMilliSecs()+".pdf";
+            let bucName = await this.getS3BucketNameV1(request);
+            const params = {
+              Bucket: bucName[0].bucket_name,
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
 
     this.downloadExcelFileFromS3 = async function(request,fileKey,pathToDownload,fileNameToCreate){
 
@@ -2523,9 +2552,10 @@ function Util(objectCollection) {
                 try{
                     let filePath = global.config.efsPath;
                     console.log('filePath in Service- ', filePath);
-                    
-                    let myFile = fs.createWriteStream(filePath + FileName);
                     let fileStream = s3.getObject(params).createReadStream();
+                    console.log("path",filePath)
+                    let myFile = fs.createWriteStream(filePath + FileName);
+                    
                     fileStream.pipe(myFile);
 
                     resolve(filePath+''+FileName);
