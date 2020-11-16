@@ -604,7 +604,8 @@ function ActivityConfigService(db,util,objCollection) {
                 request.activity_status_sequence_id,
                 request.is_cusotmer_exposed,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.parent_status_id || 0
             );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_update',paramsArr);
             if(queryString != '') {
