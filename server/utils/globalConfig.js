@@ -555,7 +555,8 @@ if(mode === 'sprint') {
     //config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';    
-    config.database = 'desker';
+    //config.database = 'desker';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
