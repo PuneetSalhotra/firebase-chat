@@ -250,6 +250,30 @@ function ActivityConfigService(db,util,objCollection) {
                         } catch(error) {
                             console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ",error);
                         }
+                        //update the activity_type_name
+                        try{
+                            const paramsArr1 = new Array(
+                                request.organization_id,
+                                request.account_id,
+                                request.workforce_id,
+                                request.activity_type_id,
+                                request.activity_type_name,
+                               
+                                request.asset_id,
+                                request.datetime_log,
+                                
+                            );
+                            const queryString1 = util.getQueryString('ds_p1_workforce_activity_type_name_update',paramsArr1);
+                            if(queryString1 != '') {
+                                db.executeQuery(0,queryString1,request,async (err,data) => {
+                                    if(err){
+                                        reject(err)
+                                    }
+                                })
+                            }
+                        } catch(error){
+                         console.log("[ERROR] update name")
+                        }
 
                         try {
                             if(request.tag_id && Number(request.tag_id) >= 0) {
