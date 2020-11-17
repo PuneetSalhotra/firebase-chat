@@ -10013,6 +10013,8 @@ async function removeAsOwner(request,data)  {
         let opexFieldId =  inlineData.opexFieldId, opexValue;
         let capexFieldId =  inlineData.capexFieldId, capexValue;
 
+        let activateDateFieldIds = inlineData.activateDateFieldIds;
+
         let illFormDataWithLiks = [];
 
 
@@ -10041,12 +10043,25 @@ async function removeAsOwner(request,data)  {
             }
         }
 
+        let j = 0, activationDataOfLinks = [];
+        for(let row of temp) {
+            if(activateDateFieldIds[j] == row.field_id) {
+                activationDataOfLinks.push(row);
+                j++
+            }
+
+            if(j == 20) {
+                break;
+            }
+        }
+
+        console.log("activationDataOfLinks", JSON.stringify(activationDataOfLinks));
         illFormDataWithLiks.push(temp);
 
         console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
-            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData)) {
+            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i])) {
                 console.error("Criteria did not match in SME ILL bot");
                 return;
             }
@@ -10233,9 +10248,9 @@ async function removeAsOwner(request,data)  {
 
 
 
-        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData) {
+        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks) {
 
-            let sheetSelected = [], phase1 = 0, phase2 = 0;
+            let sheetSelected = [], phase1 = 0, phase2 = 0, checkActivationDateFlag = 0;
             for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
@@ -10269,12 +10284,15 @@ async function removeAsOwner(request,data)  {
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
+                                checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
                                 console.log("Sheet Selected Sheet 4");
+                                checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet4;
                             }
                         } else if(row.field_value == '') {
+                            console.error("Got Empty values while checking capexValue opexValue");
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
                                 sheetSelected = inlineData.smeSheet2;
@@ -10300,7 +10318,7 @@ async function removeAsOwner(request,data)  {
             }
 
             if(!Object.keys(phase1)) {
-                console.log("Matching Failed in Product, Segment");
+                console.error("Matching Failed in Product, Segment");
                 return false;
             }
 
@@ -10327,7 +10345,14 @@ async function removeAsOwner(request,data)  {
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
                         console.log("contractF", row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7']));
-                        Number(row.field_value) >= Number(value['7']) ? contractF = 1 : 0;
+                        if(checkActivationDateFlag) {
+                            let monthsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'months', true);
+                            console.log("Months Difference is", monthsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
+                            monthsDiff >= (Number(value['7']) * 12 - 2) ? contractF = 1 : 0;
+
+                        } else {
+                            Number(row.field_value) >= Number(value['7']) ? contractF = 1 : 0;
+                        }
                         row.field_value == '' ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
@@ -10354,7 +10379,6 @@ async function removeAsOwner(request,data)  {
     }
 
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
-        return;        
         console.log("Processing Rejection Form ");
         try {
 
