@@ -2,7 +2,8 @@
  * author: V Nani Kalyan
  */
 
-mode = process.env.mode;
+//mode = process.env.mode;
+mode = process.env.NODE_ENV;
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 

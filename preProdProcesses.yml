@@ -1,28 +1,28 @@
 apps:
   - name : "PreProd_Main"
-    env: {mode: preprod, ENABLE_CUSTOM_EXCEL_BOT: 1}
+    env: {NODE_ENV: preprod, ENABLE_CUSTOM_EXCEL_BOT: 1}
     script   : ./main.js
     instances: max    
     out_file: '/dev/null'
     exec_mode: cluster
     
   - name : "PreProd_ConsumerZero"
-    env: {mode: preprod, partition: 0}
+    env: {NODE_ENV: preprod, partition: 0}
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork    
     
-  - name : "PreProd_Log_ConsumerZero"
-    env: {mode: preprod, partition: 0}
-    script   : ./logConsumer.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork    
-  
-  - name : "PreProd_Widget_ConsumerZero"
-    env: {mode: preprod, partition: 0}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+#  - name : "PreProd_Log_ConsumerZero"
+#    env: {NODE_ENV: preprod, partition: 0}
+#    script   : ./logConsumer.js
+#    out_file: '/dev/null'
+#    instances: 1
+#    exec_mode: fork    
+#  
+#  - name : "PreProd_Widget_ConsumerZero"
+#    env: {NODE_ENV: preprod, partition: 0}
+#    script   : ./consumerServices/widgetEngine/server.js
+#    out_file: '/dev/null'
+#    instances: 1
+#    exec_mode: fork
