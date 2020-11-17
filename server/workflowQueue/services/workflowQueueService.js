@@ -426,8 +426,9 @@ function WorkflowQueueService(objectCollection) {
                         request.target_asset_id,
                         request.workforce_id,
                         request.account_id,
-                        request.queue_flag_participating_only,
                         request.organization_id,
+                        request.queue_flag_participating_only,
+                        
                         request.asset_id,
                         request.log_datetime,
                     );
