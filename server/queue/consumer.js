@@ -31,7 +31,13 @@ const logger = require('../logger/winstonLogger');
 var Consumer = function () {
 
     var serviceObjectCollection = {};
-    var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
+    let redisClient;
+    if(global.mode === 'local') {
+        redisClient = redis.createClient(global.config.redisConfig);
+    } else {
+        redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
+    }
+    
     var cacheWrapper = new CacheWrapper(redisClient);
     var util = new Util({
         cacheWrapper
