@@ -365,6 +365,19 @@ function WorkflowQueueService(objectCollection) {
             }
         }
 
+    this.setMultipleAssetsQueueAccessV1 = 
+        async (request) => {
+            try{
+                let targetAssetInline = JSON.parse(request.target_assets);
+                for(let counter = 0; counter < targetAssetInline.length; counter++){
+                    request.target_asset_id = targetAssetInline[counter].target_asset_id;
+                    setWorkflowQueueAccessV1(request);
+                }
+            } catch (error) {
+                return Promise.reject(error);
+            }
+        }
+
     async function setWorkflowQueueAccess(request) {
             try {
                 let results = new Array();
@@ -400,6 +413,44 @@ function WorkflowQueueService(objectCollection) {
                 return Promise.reject(error);
             }
         };
+
+        async function setWorkflowQueueAccessV1(request) {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array(
+                        request.queue_id,
+                        request.access_level_id,
+                        request.target_asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.queue_flag_participating_only,
+                        
+                        request.asset_id,
+                        request.log_datetime,
+                    );
+
+                results[0] = await db.callDBProcedure(request, 'ds_p2_queue_access_mapping_insert', paramsArray, 0);
+
+                paramsArray =
+                    new Array(
+                        results[0][0].queue_access_id,
+                        request.organization_id,
+                        global.workflowQueueConfig.queueAccessSet,
+                        request.log_asset_id,
+                        request.log_datetime,
+                    );
+
+                results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+
+                return results[0];
+            } catch (error) {
+                return Promise.reject(error);
+            }
+        }
 
     //Reset Workflow Queue Access
     //Bharat Masimukku

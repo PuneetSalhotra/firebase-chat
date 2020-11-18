@@ -10,10 +10,13 @@
   ],
   "author": "venkatesh",
   "contributors": [],
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  },
   "scripts": {
     "start:main": "mode=local pm2 start main.js",
-    "start:consumer": "mode=local pm2 start consumer.js"
+    "start:consumer": "mode=local pm2 start consumer.js",
+    "start": "mode=local nodemon main.js"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.9.0",
@@ -22,6 +25,7 @@
     "@sheet/core": "^1.20200908.1",
     "@sheet/formula": "1.20200809.1",
     "archiver": "^3.1.1",
+    "aspose.cells": "^20.2.0",
     "async-lock": "^1.2.4",
     "aws-elasticsearch-connector": "^8.3.0",
     "aws-sdk": "^2.754.0",
@@ -76,8 +80,6 @@
     "request": "^2.88.2",
     "serialize-error": "^5.0.0",
     "sib-api-v3-sdk": "^7.2.4",
-    "socket.io": "^2.3.0",
-    "socket.io-client": "^2.3.1",
     "sqs-consumer": "^5.4.0",
     "stringstream": "^1.0.0",
     "tempy": "^0.5.0",

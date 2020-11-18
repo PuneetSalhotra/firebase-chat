@@ -553,7 +553,7 @@ function ActivityService(objectCollection) {
                                     fieldData = formInlineData[i]; 
 
                                     if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
-                                        processFieldWidgetData(request); // actiivty_widget_list
+                                        processFieldWidgetData(request, fieldData); // actiivty_widget_list
                                     }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
                                         prepareARP(request);
                                     }
@@ -5554,7 +5554,7 @@ function ActivityService(objectCollection) {
     }
 
 
-    async function processFieldWidgetData(request){
+    async function processFieldWidgetData(request, fieldData){
 
         let WidgetFieldRequest = Object.assign({}, request);
 

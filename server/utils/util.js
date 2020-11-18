@@ -17,6 +17,7 @@ const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
 const path = require('path');
 const ip = require("ip");
+const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
 
@@ -520,6 +521,47 @@ function Util(objectCollection) {
             }).catch(function (err) {
                 console.log('uploadJsonToS3 | Error | err: ', err);
             });
+    }
+
+    async function uploadJsonToS3V1(request, jsonObject, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const bucketName = await getDynamicBucketName();
+        const uploadParams = {
+            Body: JSON.stringify(jsonObject),
+            Bucket: bucketName,
+            Key: `${folderName}/${jsonFileName}.json`,
+            ContentType: 'application/json',
+            ACL: 'public-read'
+        };
+        const s3UploadPromise = s3.putObject(uploadParams).promise();
+        await s3UploadPromise
+            .then(function (data) {
+                console.log('uploadJsonToS3 | Success | data: ', data);
+            }).catch(function (err) {
+                console.log('uploadJsonToS3 | Error | err: ', err);
+            });
+    }
+
+    this.getDynamicBucketName = async function(){
+        let responseData = []
+        let curDate = new Date();
+        let paramsArr = new Array(
+            curDate.getMonth()+1,
+            curDate.getFullYear()
+        );
+        
+        let queryString = this.getQueryString('ds_v1_common_aws_s3_bucket_master_select_month_year', paramsArr);
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    
+                })
+                .catch((err) => {
+                   
+                })            
+            }  
+            return responseData;
     }
 
     this.decodeSpecialChars = function (string) {
@@ -1897,6 +1939,45 @@ function Util(objectCollection) {
             });
     };    
 
+    this.uploadS3ObjectV1 = async (request, zipFile) => {
+        return new Promise(async (resolve)=>{
+            let filePath= global.config.efsPath; 
+            let environment = global.mode;
+            
+            let bucketName = await getDynamicBucketName();
+           
+
+            let prefixPath = request.organization_id + '/' + 
+                             request.account_id + '/' + 
+                             request.workforce_id + '/' + 
+                             request.asset_id + '/' + 
+                             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
+            console.log(bucketName);
+            console.log(prefixPath);
+
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fs.createReadStream(filePath + zipFile),
+                Bucket: bucketName,
+                Key: prefixPath + "/" + zipFile,
+                ContentType: 'application/zip',
+                //ContentEncoding: 'base64',
+                //ACL: 'public-read'
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                   
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
+            });
+    };    
+
     this.uploadReadableStreamToS3 = async (request, options, stream) => {
         const s3 = new AWS.S3();
         console.log('Uploading to S3...');
@@ -1965,6 +2046,11 @@ function Util(objectCollection) {
             bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
         }
         
+        return bucketName;
+    };
+
+    this.getS3BucketNameV1 = async function (request) {
+        let bucketName = await this.getDynamicBucketName();   
         return bucketName;
     };
 
@@ -2342,6 +2428,59 @@ function Util(objectCollection) {
         }
     }
 
+    this.uploadExcelFileToS3V1 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
+            const params = {
+              Bucket: await getDynamicBucketName(),
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    this.uploadPdfFileToS3 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "pdf-"+this.getcurrentTimeInMilliSecs()+".pdf";
+            let bucName = await this.getS3BucketNameV1(request);
+            const params = {
+              Bucket: bucName[0].bucket_name,
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
 
     this.downloadExcelFileFromS3 = async function(request,fileKey,pathToDownload,fileNameToCreate){
 
@@ -2413,9 +2552,10 @@ function Util(objectCollection) {
                 try{
                     let filePath = global.config.efsPath;
                     console.log('filePath in Service- ', filePath);
-                    
-                    let myFile = fs.createWriteStream(filePath + FileName);
                     let fileStream = s3.getObject(params).createReadStream();
+                    console.log("path",filePath)
+                    let myFile = fs.createWriteStream(filePath + FileName);
+                    
                     fileStream.pipe(myFile);
 
                     resolve(filePath+''+FileName);

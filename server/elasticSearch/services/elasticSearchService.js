@@ -516,7 +516,66 @@ function CommnElasticService(objectCollection) {
     };
 
     this.getVidmData = async(request) => {
-        const result = await client.search({
+        const searchString = (request.search_string).toLowerCase();
+        console.log('Search Key - ', searchString);    
+
+        const flag = Number(request.flag);
+        console.log('Flag - ', flag);
+
+        //Flag
+            //1: account code
+            //2: customer name
+            //3: date range
+
+        let result;
+        switch(flag) {
+            case 1: console.log('Searching Acount Code...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "match": {
+                                                "account_code": request.search_string,
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+
+            case 2: console.log('Searching Customer Name...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "match": {
+                                                "CustomerName": request.search_string,
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+            
+            case 3: console.log('Searching for Date Range...');
+                    result = await client.search({
+                                    index: 'vidm',
+                                    body: {
+                                    size : request.page_size,
+                                    from : request.page_no,
+                                        "query": {
+                                            "match": {                                                
+                                                "RequestInitiationDate": request.from_date
+                                            }
+                                        }
+                                    }
+                                });
+                    break;
+        }
+        //console.log("res",result);
+        /*const result = await client.search({
             index: 'vidm',
             body: {
             size : request.page_size,
@@ -528,14 +587,40 @@ function CommnElasticService(objectCollection) {
                     }
                 }
             }
-        })
+        });*/
+
+        //console.log(result);
+        //console.log(result.hits.hits);
 
         let finalResp = [];
 
-        for(let row of result.hits.hits) {
-            finalResp.push(row._source);
-        }
-        return [false, finalResp]
+        if(flag !== 3) {
+            for(let row of result.hits.hits) {
+                //console.log((row._source.account_code).toLowerCase());
+                //console.log((row._source.CustomerName).toLowerCase());
+                //console.log(' ');
+    
+                if(flag === 1 && searchString === (row._source.account_code).toLowerCase()) {
+                    console.log(`${searchString} is found!`);
+                    console.log('Account Code - ', row._source.account_code);
+
+                    finalResp.push(row._source);
+                } else if(flag === 2 && searchString === (row._source.CustomerName).toLowerCase()) {
+                    console.log(`${searchString} is found!`);
+                    console.log('Customer Name - ', row._source.CustomerName);
+
+                    finalResp.push(row._source);
+                }            
+            }
+        } else {
+            for(let row of result.hits.hits) {
+                //Element found
+                console.log(`${searchString} is found!`);
+                finalResp.push(row._source);                
+                }
+          }
+
+        return [false, finalResp];
     };
 }
 

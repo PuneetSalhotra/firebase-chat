@@ -13,10 +13,10 @@ permissions:
     type:
       - directory  
 hooks:
-  BeforeInstall:
-    - location: deployment/install_dependencies.sh
-      timeout: 300
-      runas: root
+# BeforeInstall:
+#   - location: deployment/install_dependencies.sh
+#     timeout: 300
+#     runas: root
   ApplicationStart:
     - location: deployment/start_services_sprint.sh
       timeout: 300    

@@ -1215,10 +1215,13 @@ function FormConfigService(objCollection) {
                         try {
                             let jsonData;
                             let amount;
+                            
+                            
                             (typeof row.field_value === 'object') ?
                                 jsonData = row.field_value :
                                 jsonData = JSON.parse(row.field_value);
 
+                             params[27] = JSON.stringify(jsonData);
                             let newAmount = Number(jsonData.transaction_data.transaction_amount);
                             let oldAmount = Number(activityInlineData[0].old_field_value);
 
@@ -1248,10 +1251,29 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 65: // Business Card DataType
-                        params[27] = row.field_value;
+                       
+                        if(typeof row.field_value === 'object') {
+                            
+                           params[27] = JSON.stringify(row.field_value);
+                           console.log(params[27])
+                        } else {
+                           params[27] = row.field_value;
+                        }
+                        console.log(params[27])
+                        break;
+                    case 66: // Document Repository
+                        if(typeof row.field_value === 'object') {
+                           params[27] = JSON.stringify(row.field_value);
+                        } else {
+                           params[27] = row.field_value;
+                        }
                         break;
                     case 67: // Reminder DataType
-                        params[27] = row.field_value;
+                        if(typeof row.field_value === 'object') {
+                           params[27] = JSON.stringify(row.field_value);
+                        } else {
+                           params[27] = row.field_value;
+                        }
                         break;
                     case 68: // contact DataType
                         params[27] = row.field_value;
@@ -1917,6 +1939,32 @@ function FormConfigService(objCollection) {
                 });
             }
         });
+    }
+
+    async function formEntityMappingRemove(request) {
+        let responseData = [],
+		error = true;
+		const paramsArr = new Array(
+            0,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.form_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+		);
+		const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_delete', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
     }
 
     function workforceFormFieldMappingInsert(request, formFieldCollection) {
@@ -3343,7 +3391,7 @@ function FormConfigService(objCollection) {
 
                     }
                     // Update next field ID, if needed
-                    if (option.hasOwnProperty("next_field_id") && (Number(option.next_field_id) > 0 || Number(option.next_field_id) === -1)) {
+                    if (option.hasOwnProperty("next_field_id") && (Number(option.next_field_id) >= 0 || Number(option.next_field_id) === -1)) {
                         try {
                             await workforceFormFieldMappingUpdateNextField(request, {
                                 field_id: field.field_id,
@@ -3379,12 +3427,12 @@ function FormConfigService(objCollection) {
 
                 }
                 // Update next field ID, if needed
-                if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) > 0 || Number(field.next_field_id) === -1)) {
+                if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) >= 0 || Number(field.next_field_id) === -1)) {
                     try {
                         await workforceFormFieldMappingUpdateNextField(request, {
                             field_id: field.field_id,
                             data_type_combo_id: field.dataTypeComboId,
-                            next_field_id: field.next_field_id
+                            next_field_id: Number(field.next_field_id)
                         });
                     } catch (error) {
                         console.log("qwe Error: ", error);
@@ -4799,6 +4847,19 @@ function FormConfigService(objCollection) {
 
         return [error, workforceData];
     } 
+    
+    this.removeWorkforceAccess = async function(request){
+        let error = true;
+        let responseData = "Successfully removed access";
+        let [err, data] = await formEntityMappingRemove(request);
+        if(err){
+        responseData = "Error removing access"
+        }
+        else{
+            error= false;
+        }
+       return [error,responseData]
+    }
 
     this.setMultipleWorkforceAccess =
         async (request) => {
