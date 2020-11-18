@@ -334,7 +334,8 @@ if(mode === 'local') {
     //config.redisIp = '127.0.0.1';
     //config.redisPort = 6379;  
 
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'localhost';
     config.redisPort = 6379;
 
     config.redisConfig = {
