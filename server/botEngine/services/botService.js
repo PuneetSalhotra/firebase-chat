@@ -1851,14 +1851,14 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                case 35: //Mobility  Bot
+                case 35: //custom bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'Mobility Bot', {}, {});
+                    global.logger.write('conLog', 'checkCustomBot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
                     try {
-                        await checkMobility(request, botOperationsJson.bot_operations.bot_inline);
+                        await checkCustomBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing Mobility Bot Step', {}, {});
+                        global.logger.write('serverError', 'Error in executing checkCustomBot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
@@ -1874,7 +1874,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
                     try {
-                        await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
+                        // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing SME ILL Bot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -9522,8 +9522,9 @@ async function removeAsOwner(request,data)  {
 
     }
 
-    async function checkMobility (request, inlineData) {
-        console.log("checkMobility----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
+
+    async function checkCustomBot(request, inlineData) {
+        console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
         await sleep(5 * 1000);
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
@@ -9547,20 +9548,70 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        if(!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval) {
-            console.log("Product Match Failed");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+        // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
+        //     console.log("Request type match failed");
+        //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+        //     return;
+        // } else if(!resultProductAndRequestType.reqularApproval) {
+        //     console.log("Regular approval match failed");
+        //     // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+        //     return;
+        // }
+
+        if(resultProductAndRequestType.productMatchFlag == 1 && resultProductAndRequestType.reqularApproval) {
+            console.log("Got Product FLD Domestic");
+            inlineData.sme_config.phone_number = inlineData.phone_number;
+            checkSmeBot(request, inlineData.sme_config, deskAssetData)
             return;
-        } else if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
-            console.log("Request type match failed");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+        } else if((resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.reqularApproval)
+        || (resultProductAndRequestType.productMatchFlag == 3 &&
+          resultProductAndRequestType.requestTypeMatch &&
+          resultProductAndRequestType.reqularApproval)) {
+            console.log("Got Product Mobility");
+            inlineData.sme_config.phone_number = inlineData.phone_number;
+            checkMobility(request, inlineData.mobility_config, deskAssetData)
             return;
-        } else if(!resultProductAndRequestType.reqularApproval) {
-            console.log("Regular approval match failed");
+        } else if((!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval) ||
+          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
+          (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) ||
+          (!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval)) {
+            console.log("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
+        } 
+        submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+    }
+
+    function validatingProductAndRequestType(formData, originFormConfig) {
+        let productMatchFlag = 0, requestTypeMatch = 0, reqularApproval = 0;
+        for(let row of formData) {
+            if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
+                let value = originFormConfig[row.field_id];
+                console.log("Value from config", value, "Value from list" ,row.field_value);
+                if(!value) {
+                    console.log("Value not found in validatingProductAndRequestType", row.field_id);
+                    break;
+                }
+
+                if(row.field_id == 224835 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
+                    productMatchFlag = row.data_type_combo_id;
+                } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
+                    requestTypeMatch = 1;
+                } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
+                    console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
+                    reqularApproval = 1;
+                }
+
+            }
         }
 
+        return {productMatchFlag, requestTypeMatch, reqularApproval};
+    };
+
+
+    async function checkMobility (request, inlineData, deskAssetData) {
         request.form_id = 50079; // NON FLD form
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
@@ -9789,34 +9840,6 @@ async function removeAsOwner(request,data)  {
         }
     }
 
-    function validatingProductAndRequestType(formData, originFormConfig) {
-        let productMatchFlag = 0, requestTypeMatch = 0, reqularApproval = 0;
-        for(let row of formData) {
-            if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
-                let value = originFormConfig[row.field_id];
-                console.log("Value from config", value, "Value from list" ,row.field_value);
-                if(!value) {
-                    console.log("Value not found in validatingProductAndRequestType", row.field_id);
-                    break;
-                }
-
-                if(row.field_id == 224835 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
-                    productMatchFlag = 1;
-                } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
-                    requestTypeMatch = 1;
-                } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
-                    console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
-                    reqularApproval = 1;
-                }
-
-            }
-        }
-
-        return {productMatchFlag, requestTypeMatch, reqularApproval};
-    };
-
     function validatingSegment(formData, segment) {
         for(let row of formData) {
             if (segment[row.field_id]) {
@@ -9985,7 +10008,7 @@ async function removeAsOwner(request,data)  {
         return response;
     }
 
-    async function checkSmeBot(request, inlineData) {
+    async function checkSmeBot(request, inlineData, deskAssetData) {
 
         await sleep(2 * 1000);
 
@@ -10068,21 +10091,6 @@ async function removeAsOwner(request,data)  {
 
             console.error("Criteria matched for ", i + 1);
 
-        }
-
-        let dataResp = await getAssetDetailsOfANumber({
-            country_code : inlineData.country_code || '',
-            phone_number : inlineData.phone_number,
-            organization_id : request.organization_id
-        });
-        let deskAssetData;
-        if (dataResp.length > 0) {
-            for (let i of dataResp) {
-                if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
-                    deskAssetData = i;
-                    break;
-                }
-            }
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
