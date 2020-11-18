@@ -70,7 +70,14 @@ var KafkaProducer = kafka.Producer;
 var KeyedMessage = kafka.KeyedMessage;
 
 var redis = require('redis');   //using elasticache as redis
-var redisClient = redis.createClient(global.config.redisPort,global.config.redisIp);
+let redisClient;
+//console.log('global.mode - ', global.mode);
+if(global.mode === 'local') {
+    redisClient = redis.createClient(global.config.redisConfig);
+} else {
+    redisClient = redis.createClient(global.config.redisPort,global.config.redisIp);
+}
+
 var CacheWrapper = require('./server/utils/cacheWrapper');
 var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');

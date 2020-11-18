@@ -337,6 +337,18 @@ if(mode === 'local') {
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
+    config.redisConfig = {
+        "auth": "",
+        "host": "10.0.1.226",
+        "name": "staging server",
+        "port": 6379,
+        "ssh_host": "10.0.0.11",
+        "ssh_password": "vVg\"3XM{",
+        "ssh_user": "nanikalyan",
+        "timeout_connect": 60000,
+        "timeout_execute": 60000
+    };
+
     //IOS Push
     config.iosPushMode = 'dev';
 
@@ -695,7 +707,8 @@ if(mode === 'staging') {
     config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'localhost';
     config.redisPort = 6379;
 
     //IOS Push
