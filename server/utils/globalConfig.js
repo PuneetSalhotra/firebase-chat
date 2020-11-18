@@ -2,7 +2,8 @@
  * author: V Nani Kalyan
  */
 
-mode = process.env.mode;
+//mode = process.env.mode;
+mode = process.env.NODE_ENV;
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
@@ -336,6 +337,18 @@ if(mode === 'local') {
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
+    config.redisConfig = {
+        "auth": "",
+        "host": "10.0.1.226",
+        "name": "staging server",
+        "port": 6379,
+        "ssh_host": "10.0.0.11",
+        "ssh_password": "vVg\"3XM{",
+        "ssh_user": "nanikalyan",
+        "timeout_connect": 60000,
+        "timeout_execute": 60000
+    };
+
     //IOS Push
     config.iosPushMode = 'dev';
 
@@ -555,7 +568,8 @@ if(mode === 'sprint') {
     //config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';    
-    config.database = 'desker';
+    //config.database = 'desker';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
@@ -693,7 +707,8 @@ if(mode === 'staging') {
     config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'localhost';
     config.redisPort = 6379;
 
     //IOS Push

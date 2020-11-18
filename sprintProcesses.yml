@@ -1,6 +1,6 @@
 apps:
   - name : "Sprint_Main"
-    env: {mode: sprint}
+    env: {NODE_ENV: sprint}
     script   : ./main.js
     instances: max    
     out_file: '/dev/null'
@@ -8,7 +8,7 @@ apps:
     node_args: "--max_old_space_size=2048"
     
   - name : "Sprint_ConsumerZero"
-    env: {mode: sprint, partition:0}
+    env: {NODE_ENV: sprint, partition:0}
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
