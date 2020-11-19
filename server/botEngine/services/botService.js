@@ -9548,6 +9548,7 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
+        console.log("resultProductAndRequestType----", resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
         //     console.log("Request type match failed");
         //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
@@ -9558,27 +9559,27 @@ async function removeAsOwner(request,data)  {
         //     return;
         // }
 
-        if(resultProductAndRequestType.productMatchFlag == 1 && resultProductAndRequestType.reqularApproval) {
-            console.log("Got Product FLD Domestic");
+        resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
+        console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
+            console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
-            checkSmeBot(request, inlineData.sme_config, deskAssetData)
+            checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
-        } else if((resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.reqularApproval)
-        || (resultProductAndRequestType.productMatchFlag == 3 &&
+        } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           resultProductAndRequestType.requestTypeMatch &&
-          resultProductAndRequestType.reqularApproval)) {
-            console.log("Got Product Mobility");
-            inlineData.sme_config.phone_number = inlineData.phone_number;
+          resultProductAndRequestType.reqularApproval) {
+            console.log("Got Product Mobility, Triggering Mobility BOT");
+            inlineData.mobility_config.phone_number = inlineData.phone_number;
             checkMobility(request, inlineData.mobility_config, deskAssetData)
             return;
-        } else if((!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval) ||
-          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
-          (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) ||
-          (!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval)) {
+        } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
+          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)
+          (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
             console.log("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
-        } 
+        }
         submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
     }
 
@@ -9593,7 +9594,7 @@ async function removeAsOwner(request,data)  {
                     break;
                 }
 
-                if(row.field_id == 224835 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                if(row.field_id == 224835) {
                     console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
                     productMatchFlag = row.data_type_combo_id;
                 } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
