@@ -8,15 +8,15 @@
     "client",
     "browser"
   ],
-  "author": "venkatesh",
+  "author": "Grene Robotics",
   "contributors": [],
   "devDependencies": {
     "nodemon": "^2.0.6"
   },
   "scripts": {
-    "start:main": "mode=local pm2 start main.js",
-    "start:consumer": "mode=local pm2 start consumer.js",
-    "start": "mode=local nodemon main.js"
+    "start:main": "NODE_ENV=local pm2 start main.js",
+    "start:consumer": "NODE_ENV=local pm2 start consumer.js",
+    "start": "NODE_ENV=local nodemon main.js"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.9.0",
@@ -25,7 +25,6 @@
     "@sheet/core": "^1.20200908.1",
     "@sheet/formula": "1.20200809.1",
     "archiver": "^3.1.1",
-    "aspose.cells": "^20.2.0",
     "async-lock": "^1.2.4",
     "aws-elasticsearch-connector": "^8.3.0",
     "aws-sdk": "^2.754.0",
