@@ -8,7 +8,7 @@ function AnalyticsService(objectCollection)
     const makeRequest = require('request');    
     const nodeUtil = require('util');
     
-    const cacheWrapper = objectCollection.cacheWrapper;
+    //const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
     
