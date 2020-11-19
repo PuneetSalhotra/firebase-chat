@@ -9623,7 +9623,7 @@ async function removeAsOwner(request,data)  {
             checkMobility(request, inlineData.mobility_config, deskAssetData)
             return;
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
-          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)
+          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
             console.log("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
