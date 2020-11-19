@@ -582,7 +582,8 @@ if(mode === 'sprint') {
     config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
-    config.redisIp = 'cache-demo.7otgcu.0001.aps1.cache.amazonaws.com';
+    //config.redisIp = 'cache-demo.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'localhost';
     config.redisPort = 6379;
 
     //IOS Push
