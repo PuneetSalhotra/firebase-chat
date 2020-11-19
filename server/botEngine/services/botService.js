@@ -7129,7 +7129,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        return;
+        return [false, []];
     }
 
     async function activityListUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
