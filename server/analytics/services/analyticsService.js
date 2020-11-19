@@ -2506,6 +2506,46 @@ function AnalyticsService(objectCollection)
         return [error, responseData]
     }
 
+    this.addReport = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [  
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.report_type_id,
+            request.report_inline_data,
+            request.report_recursive_enabled || 0,
+            request.report_notified_enabled || 1,
+            request.report_recursive_type_id || 1,
+            request.report_access_level_id || 1,
+            request.activity_id || 0,
+            request.report_start_time || '18:30:00',
+            request.report_end_time || '18:29:00',
+            request.report_start_datetime,
+            request.report_end_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('dm_v1_report_list_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData]
+    }
+
 }
 
 module.exports = AnalyticsService;

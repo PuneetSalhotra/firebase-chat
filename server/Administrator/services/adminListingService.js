@@ -1803,6 +1803,32 @@ function AdminListingService(objectCollection) {
 
         return [error, responseData];
     }
+
+    this.setSuperAdminFlag = async (request) => {
+
+        let responseData = [],
+            error = false;
+        const paramsArr = [
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.asset_flag_super_admin || 0
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_super_admin', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then(() => {
+                responseData = {'message': 'Updated Successfully'};
+              })
+              .catch((err) => {
+                  error = true;
+              })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminListingService;
