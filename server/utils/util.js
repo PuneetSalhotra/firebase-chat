@@ -525,7 +525,7 @@ function Util(objectCollection) {
 
     async function uploadJsonToS3V1(request, jsonObject, folderName, jsonFileName) {
         const s3 = new AWS.S3();
-        const bucketName = await getDynamicBucketName();
+        const bucketName = await this.getDynamicBucketName();
         const uploadParams = {
             Body: JSON.stringify(jsonObject),
             Bucket: bucketName,
@@ -1944,7 +1944,7 @@ function Util(objectCollection) {
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
-            let bucketName = await getDynamicBucketName();
+            let bucketName = await this.getDynamicBucketName();
            
 
             let prefixPath = request.organization_id + '/' + 
@@ -2437,7 +2437,7 @@ function Util(objectCollection) {
             const readStream = fs.createReadStream(filePath);
             let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
             const params = {
-              Bucket: await getDynamicBucketName(),
+              Bucket: await this.getDynamicBucketName(),
               Key: fileKey,
               Body: readStream
             };
