@@ -94,6 +94,37 @@ function WorkflowQueueService(objectCollection) {
             }
         };
 
+    this.updateWorkflowAccess = async function(request){
+      let error = false;
+     let assets = typeof request.target_assets=="string"?JSON.parse(request.target_assets):request.target_assets;
+     for(asset of assets){
+        let paramsArray;
+        paramsArray =
+            new Array(
+                request.queue_id,
+                asset.target_asset_id,
+                request.queue_flag_participating_only,
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_p2_queue_access_mapping_update_queue_details', paramsArray);
+          
+            let data = await new Promise((resolve,reject)=>{
+               db.executeQuery(0,queryString,request,async (err,data) => {
+             if(!err){
+                resolve()
+             }
+             else{
+                error = true;
+             }
+            })  
+        
+        }) 
+     }
+     return [error,[]]
+    }
+
     //Alter Workflow Queue definition
     //Bharat Masimukku
     //2019-01-21
