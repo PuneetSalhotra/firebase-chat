@@ -2845,9 +2845,6 @@ function ActivityTimelineService(objectCollection) {
                 case 73: 
                     params[18] = row.field_value;
                     break;
-                case 74: 
-                    params[18] = row.field_value;
-                    break;
                 case 74: // Composite Online List
                     let fieldValue = row.field_value;
                     try {
@@ -2862,6 +2859,9 @@ function ActivityTimelineService(objectCollection) {
                     } catch (err) {
                         console.log('Data type 74 | Composite Online List: ', err);
                     }
+                    break;
+                case 76: //Drop box data type
+                    params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                     break;
             }
 
@@ -3609,13 +3609,16 @@ async function addFormEntriesAsync(request) {
                 }
                 break;
             case 72: //Multi Type File Attachment 
-            params[18] = row.field_value;
+                     params[18] = row.field_value;
                      break;
             case 73: //Zip File Attachment
-            params[18] = row.field_value;
+                     params[18] = row.field_value;
                      break;
             case 74: //Composite Online List
-            params[18] = row.field_value;
+                     params[18] = row.field_value;
+                     break;
+            case 76: //Drop box data type
+                     params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                      break;
             }
 

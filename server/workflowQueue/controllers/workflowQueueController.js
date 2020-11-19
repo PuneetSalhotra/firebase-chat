@@ -45,6 +45,20 @@ function WorkflowQueueController(objCollection) {
         }
     );
 
+    app.post(
+        '/' + global.config.version + '/workflowQueue/access/update',
+        async (req, res) => {
+           
+                let [err,result] = await workflowQueueService.updateWorkflowAccess(req.body);
+                
+                if(!err){
+                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
+
     //Archive Workflow Queue definition
     //Bharat Masimukku
     //2019-01-21

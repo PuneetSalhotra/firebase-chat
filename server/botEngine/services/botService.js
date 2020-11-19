@@ -15,11 +15,11 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
-var aspose = aspose || {};
-aspose.cells = require("aspose.cells");
-
-var license = new aspose.cells.License();
-license.setLicense(`${__dirname}/Aspose.Cells.lic`);
+//var aspose = aspose || {};
+//aspose.cells = require("aspose.cells");
+//
+//var license = new aspose.cells.License();
+//license.setLicense(`${__dirname}/Aspose.Cells.lic`);
 //const WorkbookOpsService = require('../../Workbook/services/workbookOpsService');
 //const WorkbookOpsService_VodafoneCustom = require('../../Workbook/services/workbookOpsService_VodafoneCustom');
 
@@ -1888,59 +1888,65 @@ function BotService(objectCollection) {
                     break;
                 case 37: //PDF generation Bot
                     console.log("entered 37");
-                    try{
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
-                    let activity_inline_data_json = JSON.parse(request.activity_inline_data);
+                    request.pdf_json = pdf_json;
+                    request.generate_pdf = 1;
+                    sendToSqsPdfGeneration(request);
                     
-                    let workbook_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.workbook_field_id);
-                    console.log("workbook",workbook_json)
-                    let combo_id_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.product_field_id);
-                    console.log("comboid json",combo_id_json)
-                    let workbook_file_path = await util.downloadS3ObjectVil(request,workbook_json[0].field_value);
-                    console.log("excel file path ",workbook_file_path);
-                    let sheetIndexes = pdf_json.bot_operations[combo_id_json[0].data_type_combo_id];
-                    await new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            resolve();
-                        }, 5000);
-                    });
-                    let pathModify = workbook_file_path.replace("/\/","/")
-                    let workbookFile =  new aspose.cells.Workbook(pathModify);
                     
-                    console.log("length of excel",workbookFile.getWorksheets().getCount());
-                     for (let i = 0; i < workbookFile.getWorksheets().getCount(); i++) {
+                    // try{
+                    // let pdf_json = JSON.parse(i.bot_operation_inline_data);
+                    // let activity_inline_data_json = JSON.parse(request.activity_inline_data);
+                    
+                    // let workbook_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.workbook_field_id);
+                    // console.log("workbook",workbook_json)
+                    // let combo_id_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.product_field_id);
+                    // console.log("comboid json",combo_id_json)
+                    // let workbook_file_path = await util.downloadS3ObjectVil(request,workbook_json[0].field_value);
+                    // console.log("excel file path ",workbook_file_path);
+                    // let sheetIndexes = pdf_json.bot_operations[combo_id_json[0].data_type_combo_id];
+                    // await new Promise((resolve, reject) => {
+                    //     setTimeout(() => {
+                    //         resolve();
+                    //     }, 5000);
+                    // });
+                    // let pathModify = workbook_file_path.replace("/\/","/")
+                    // let workbookFile =  new aspose.cells.Workbook(pathModify);
+                    
+                    // console.log("length of excel",workbookFile.getWorksheets().getCount());
+                    //  for (let i = 0; i < workbookFile.getWorksheets().getCount(); i++) {
                          
                          
-                         let index = sheetIndexes.indexOf(i);
-                         if (index == -1) {
-                         workbookFile.getWorksheets().get(i).setVisible(false);
-                          }
-                          else{
-                            console.log("index",i);
-                          }
-                     }
-                    //  workbookFile.save(workbook_file_path)
-                     var saveOptions = aspose.cells.PdfSaveOptions();
-                     saveOptions.setAllColumnsInOnePagePerSheet(true);
+                    //      let index = sheetIndexes.indexOf(i);
+                    //      if (index == -1) {
+                    //      workbookFile.getWorksheets().get(i).setVisible(false);
+                    //       }
+                    //       else{
+                    //         console.log("index",i);
+                    //       }
+                    //  }
+                    // //  workbookFile.save(workbook_file_path)
+                    //  var saveOptions = aspose.cells.PdfSaveOptions();
+                    //  saveOptions.setAllColumnsInOnePagePerSheet(true);
                      
-                     let fileName = util.getCurrentUTCTimestamp();
-                     let filePath = global.config.efsPath;
-                     let pdfFilePath = `${filePath}${fileName}.pdf`;
-                     console.log("pdf file path",pdfFilePath);
-                     workbookFile.save(pdfFilePath,saveOptions);
+                    //  let fileName = util.getCurrentUTCTimestamp();
+                    //  let filePath = global.config.efsPath;
+                    //  let pdfFilePath = `${filePath}${fileName}.pdf`;
+                    //  console.log("pdf file path",pdfFilePath);
+                    //  workbookFile.save(pdfFilePath,saveOptions);
                     
-                     let [error,pdfS3Link] = await util.uploadPdfFileToS3(request,pdfFilePath);
-                     console.log(pdfS3Link);
-                     fs.unlink(pdfFilePath,()=>{});
-                     fs.unlink(workbook_file_path,()=>{})
-                     request.content = "pdf entry sample test";
-                     request.subject = 'pdf entry sample test';
+                    //  let [error,pdfS3Link] = await util.uploadPdfFileToS3(request,pdfFilePath);
+                    //  console.log(pdfS3Link);
+                    //  fs.unlink(pdfFilePath,()=>{});
+                    //  fs.unlink(workbook_file_path,()=>{})
+                    //  request.content = "pdf entry sample test";
+                    //  request.subject = 'pdf entry sample test';
                      
-                     await addTimelineEntry(request,1,[pdfS3Link[0].location]);
-                    }
-                    catch(err){
-                        console.log("error while generation pdf",err)
-                    }
+                    //  await addTimelineEntry(request,1,[pdfS3Link[0].location]);
+                    // }
+                    // catch(err){
+                    //     console.log("error while generation pdf",err)
+                    // }
                     break;
             }
 
@@ -1975,7 +1981,50 @@ function BotService(objectCollection) {
         return {};
     };
 
-
+   async function sendToSqsPdfGeneration(request){
+    let baseURL = `http://localhost:7000`,
+    //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+    sqsQueueUrl = global.config.excelBotSQSQueue;
+    if (global.mode === "sprint" || global.mode === "staging") {
+        baseURL = `http://10.0.2.49:4000`;
+        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+        sqsQueueUrl = global.config.excelBotSQSQueue;
+    } else if (global.mode === "preprod") {
+        baseURL = null;
+        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+        sqsQueueUrl = global.config.excelBotSQSQueue;
+    } else if(global.mode === "prod") {
+        baseURL = null;
+        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+        sqsQueueUrl = global.config.excelBotSQSQueue;
+    }
+    sqs.sendMessage({
+        // DelaySeconds: 5,
+        MessageBody: JSON.stringify(request),
+        QueueUrl: sqsQueueUrl,
+        MessageGroupId: `excel-processing-job-queue-v1`,
+        MessageDeduplicationId: uuidv4(),
+        MessageAttributes: {
+            "Environment": {
+                DataType: "String",
+                StringValue: global.mode
+            },
+        }
+    }, (error, data) => {
+        if (error) {
+            logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+            // activityCommonService.workbookTrxUpdate({
+            //     activity_workbook_transaction_id: workbookTxnID,
+            //     flag_generated: -1, //Error pushing to SQS Queue
+            //     url: ''
+            // });
+        } else {
+            logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
+            console.log("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+        }                                    
+    });
+   }
     async function isBotOperationConditionTrue(request, botOperationsJson, formInlineDataMap) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0;
 
@@ -7129,7 +7178,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        return;
+        return [false, []];
     }
 
     async function activityListUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
@@ -9548,6 +9597,7 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
+        console.log("resultProductAndRequestType----", resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
         //     console.log("Request type match failed");
         //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
@@ -9558,27 +9608,27 @@ async function removeAsOwner(request,data)  {
         //     return;
         // }
 
-        if(resultProductAndRequestType.productMatchFlag == 1 && resultProductAndRequestType.reqularApproval) {
-            console.log("Got Product FLD Domestic");
+        resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
+        console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
+            console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
-            checkSmeBot(request, inlineData.sme_config, deskAssetData)
+            checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
-        } else if((resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.reqularApproval)
-        || (resultProductAndRequestType.productMatchFlag == 3 &&
+        } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           resultProductAndRequestType.requestTypeMatch &&
-          resultProductAndRequestType.reqularApproval)) {
-            console.log("Got Product Mobility");
-            inlineData.sme_config.phone_number = inlineData.phone_number;
+          resultProductAndRequestType.reqularApproval) {
+            console.log("Got Product Mobility, Triggering Mobility BOT");
+            inlineData.mobility_config.phone_number = inlineData.phone_number;
             checkMobility(request, inlineData.mobility_config, deskAssetData)
             return;
-        } else if((!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval) ||
-          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
-          (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) ||
-          (!resultProductAndRequestType.productMatchFlag && resultProductAndRequestType.reqularApproval)) {
+        } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
+          (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)
+          (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
             console.log("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
-        } 
+        }
         submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
     }
 
@@ -9593,7 +9643,7 @@ async function removeAsOwner(request,data)  {
                     break;
                 }
 
-                if(row.field_id == 224835 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                if(row.field_id == 224835) {
                     console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
                     productMatchFlag = row.data_type_combo_id;
                 } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {

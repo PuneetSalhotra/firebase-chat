@@ -1296,14 +1296,17 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 72: //Multi Type File Attachment 
-                    params[18] = row.field_value;
-                        break;
+                             params[18] = row.field_value;
+                             break;
                     case 73: //Zip File Attachment
-                    params[18] = row.field_value;
-                        break;
+                             params[18] = row.field_value;
+                             break;
                     case 74: //Composite Online List
-                    params[18] = row.field_value;
-                        break;
+                             params[18] = row.field_value;
+                             break;
+                    case 76: //Drop box data type
+                             params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
+                             break;
                 }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)

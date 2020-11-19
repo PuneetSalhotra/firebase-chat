@@ -334,14 +334,6 @@ function ActivityService(objectCollection) {
                                 self.activityUpdateExpression(request);
                             }
 
-                            if( activityTypeCategroyId === 48
-                             || activityTypeCategroyId === 53
-                             || activityTypeCategroyId === 54
-                             || activityTypeCategroyId === 55){
-                                
-                                activtySearchListInsert(request);
-                            }
-
                             if (request.activity_type_category_id == 48) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
                                 if(request.activity_type_id == 152184 && request.activity_form_id == 4353){
@@ -1559,6 +1551,12 @@ function ActivityService(objectCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
+
+                        if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 ||
+                           activityTypeCategroyId === 54 || activityTypeCategroyId === 55){                        
+                            activtySearchListInsert(request);
+                        }
+
                         //BETA                            
                         if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
                             var paramsArr1 = new Array(
