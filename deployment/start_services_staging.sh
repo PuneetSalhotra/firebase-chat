@@ -3,8 +3,8 @@ if [ "$DEPLOYMENT_GROUP_NAME" == "codeDeployOnStagingGroup" ]
 then
   cd /staging_desker_api/  
   #We are removing and freshly installing coz aspose java dependency
-  rm -rf node_modules
-  npm install --production
+  #rm -rf node_modules
+  #npm install --production
   pm2 delete /^Staging_Main/
   pm2 delete /^Staging_Consumer/
   pm2 delete /^Staging_Widget/
