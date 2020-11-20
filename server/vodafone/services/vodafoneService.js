@@ -6148,7 +6148,27 @@ function VodafoneService(objectCollection) {
             error = true, dbCall;            
         let paramsArr;
 
-        if(request.hasOwnProperty("activity_status_type_id")) {
+        if(request.flag_participating == 5) {
+            paramsArr = new Array(
+              request.organization_id,
+              request.account_id,
+              request.workforce_id,
+              request.asset_id,
+              request.entity_id,
+              request.activity_type_id,
+              request.activity_type_category_id,
+              request.activity_status_type_id,
+              request.tag_id,
+              request.tag_type_id,
+              request.search_string,
+              request.flag_status,
+              request.flag_participating,
+              request.page_start  || 0,
+              request.page_limit || 50
+            );
+            
+            dbCall = 'ds_p1_4_activity_list_search_workflow_reference';
+        } else if(request.hasOwnProperty("activity_status_type_id")) {
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
