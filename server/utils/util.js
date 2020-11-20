@@ -2513,6 +2513,37 @@ function Util(objectCollection) {
         }      
     }
 
+    this.downloadExcelFileFromS3V1 = async function(request,fileKey,pathToDownload,fileNameToCreate){
+
+        try{
+            const s3 = new AWS.S3();
+            
+            const params = {
+              Bucket: await this.getS3BucketNameV1(request),
+              Key: fileKey,
+            };
+          
+
+            let responseData = await s3.getObject(params).promise();
+            console.log(responseData);
+
+            const fs1 = require("fs").promises;
+            let error = await fs1.writeFile(pathToDownload+"\\"+fileNameToCreate, responseData.Body);
+            
+            if(error)
+            {
+                return [error,[{status :false ,message : "Unsuccessfull"}]];
+            }
+            else{
+                return [false,[{status : true,message : "File Created Successfully!"}]];
+            }
+
+        }catch(e)
+        {
+            return[e,[{}]];
+        }      
+    }
+
     this.downloadS3ObjectVil = async (request, url) => {
         return new Promise((resolve) => {
             var s3 = new AWS.S3();
