@@ -4,11 +4,11 @@
 
 function CommnTemplateService(objectCollection) 
 {
-    const moment = require('moment');
-    const makeRequest = require('request');
-    const TinyURL = require('tinyurl');
+    //const moment = require('moment');
+    //const makeRequest = require('request');
+    //const TinyURL = require('tinyurl');
     
-    const cacheWrapper = objectCollection.cacheWrapper;
+    //const cacheWrapper = objectCollection.cacheWrapper;
     //const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
     

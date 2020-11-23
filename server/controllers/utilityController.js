@@ -409,7 +409,8 @@ function UtilityController(objCollection) {
     app.post('/'+global.config.version+'/excel/s3/upload',async(req,res)=>{
         let filePath = req.body.filePath;
         console.log("File Path"+filePath);
-        let [err,data] = await util.uploadExcelFileToS3(req.body,filePath);
+        // let [err,data] = await util.uploadExcelFileToS3(req.body,filePath);
+        let [err,data] = await util.uploadExcelFileToS3V1(req.body,filePath);
         console.log(err);
         console.log(data);
         if (err) {
@@ -426,7 +427,8 @@ function UtilityController(objCollection) {
         let pathToDownload = req.body.pathToDownload;
         let fileNameToCreate = req.body.fileNameToCreate;
 
-        let [err,data] = await util.downloadExcelFileFromS3(req.body,fileKey,pathToDownload,fileNameToCreate);
+        // let [err,data] = await util.downloadExcelFileFromS3(req.body,fileKey,pathToDownload,fileNameToCreate);
+        let [err,data] = await util.downloadExcelFileFromS3V1(req.body,fileKey,pathToDownload,fileNameToCreate);
         console.log(err,data);
         if (err) {
             return res.send(responseWrapper.getResponse(err, data, -9999, req.body));

@@ -1552,8 +1552,8 @@ function ActivityService(objectCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
 
-                        if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 ||
-                           activityTypeCategroyId === 54 || activityTypeCategroyId === 55){                        
+                        if(activityTypeCategoryId === 48 || activityTypeCategoryId === 53 ||
+                            activityTypeCategoryId === 54 || activityTypeCategoryId === 55){                        
                             activtySearchListInsert(request);
                         }
 
@@ -1808,6 +1808,7 @@ function ActivityService(objectCollection) {
     }
     var assetActivityListInsertAddActivity = function (request, callback) {
 
+        console.log('assetActivityListInsertAddActivity -');
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var organisationId = 0;
