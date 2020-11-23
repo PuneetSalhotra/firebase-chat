@@ -397,7 +397,8 @@ function commonDocusignService(objectCollection) {
 
   async function uploadReadableStreamOnS3(request, readableStream, res) {
     try {
-      const bucketName = await util.getS3BucketName();
+      // const bucketName = await util.getS3BucketName();
+      const bucketName = await util.getS3BucketNameV1();
       const prefixPath = await util.getS3PrefixPath(request);
       const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
         Bucket: bucketName,
