@@ -1294,9 +1294,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const laPanNumber = await getFieldValueUsingFieldIdV1(request,formID,laPanFID);
                 const laGstNumber = await getFieldValueUsingFieldIdV1(request,formID,laGstFID);
                 console.log("pan and gst numbers",laPanNumber,laGstNumber)
-                const laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
+                let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
-
+                laCompanyName = util.removeSpecialCharecters(laCompanyName);
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
                 
                 console.log('laGroupCompany - ', laGroupCompany);
@@ -1349,9 +1349,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const getPanNumber = await getFieldValueUsingFieldIdV1(request,formID,gePanFID);
                 const getGstNumber = await getFieldValueUsingFieldIdV1(request,formID,geGstFID);
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
-                const geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
+                let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
-
+                geCompanyName = util.removeSpecialCharecters(geCompanyName);
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
                 
                 console.log('geGroupCompany - ', geGroupCompany);
@@ -1424,6 +1424,7 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
+                                                    smeCompanyName = util.removeSpecialCharecters(smeCompanyName);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1432,7 +1433,7 @@ function ActivityConfigService(db,util,objCollection) {
                                              
                                              smeSubIndustrySubFID = i.sub_industry_field_values[`${smeSubIndustrySubID}`];
                                              smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
-                                             
+                                             smeSubIndustryName = util.removeSpecialCharecters(smeSubIndustryName);
                                              break;
                         case 'pan_number': console.log(i.pan_number);
                                            smePanNumber = i.pan_number;
@@ -1509,9 +1510,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const govtPanId = Number(botInlineData.pan_number);
 
                 const govtPanNumber = await getFieldValueUsingFieldIdV1(request,formID,govtPanId);
-                const govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
+                let govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
-
+                govtCompanyName = await util.removeSpecialCharecters(govtCompanyName);
                 if(govtAccounType === 'SI') { //SI
                     //console.log('Inside SI');
 
@@ -1519,8 +1520,8 @@ function ActivityConfigService(db,util,objCollection) {
                     const siName = await getFieldValueUsingFieldIdV1(request,formID,siNameFID);
 
                     const departmentNameFID = Number(botInlineData.department_name);
-                    const departmentName = await getFieldValueUsingFieldIdV1(request,formID,departmentNameFID);
-
+                    let departmentName = await getFieldValueUsingFieldIdV1(request,formID,departmentNameFID);
+                    departmentName = await util.removeSpecialCharecters(departmentName);
                     accountCode += ((siName.substr(0,3)).padEnd(3,'0')).toUpperCase();
                     accountCode += '-';
                     accountCode += ((departmentName.substr(0,7)).padEnd(7,'0')).toUpperCase();
@@ -1552,7 +1553,7 @@ function ActivityConfigService(db,util,objCollection) {
                 hasSeqNo = 1;
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
-                
+                vicsCompanyName = util.removeSpecialCharecters(vicsCompanyName)
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
                 const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
                 const vicsPanFID = Number(botInlineData.pan_number);
@@ -1599,40 +1600,48 @@ function ActivityConfigService(db,util,objCollection) {
 
                 let sohoCompanyNameFID;
                 let sohoCompanyName;
-
+                let sohoSubIndustryFID;
+                let sohoSubIndustrySubID;
+                let sohoSubIndustrySubFID;
+                let sohoSubIndustryName;
                 let sohoTurnOverFID;
                 let sohoTurnOver;
                 let sohoGstNumber;
                 let sohoPanNumber;
 
-                for(const i of botInlineData){  
-                    console.log("each",botInlineData)                  
+                for(const i of botInlineData){
+                    //console.log(i);
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
-                                                    console.log('soho Company Name - ', sohoCompanyName);
+                                                    sohoCompanyName = util.removeSpecialCharecters(sohoCompanyName);
                                                     break;
-
-                        case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
-                                                        sohoTurnOverFID = Number(i.micro_segment_turn_over);                
-                                                        sohoTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoTurnOverFID);
-                                                        break;
-                                                       
-                                                         
-                                                             
-                        case 'gst_number': console.log(i.gst_number);
-                                           sohoGstNumber = i.gst_number;
-                                           console.log("gst number",sohoGstNumber)
-                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoGstNumber);
-                                                         
-                                           break;   
+                        
+                        case 'sub_industry': console.log(i.sub_industry);
+                                             sohoSubIndustryFID = Number(i.sub_industry);
+                                             sohoSubIndustrySubID = await getFieldDataComboIdUsingFieldIdV1(request,i.form_id,sohoSubIndustryFID);
+                                             
+                                             sohoSubIndustrySubFID = i.sub_industry_field_values[`${sohoSubIndustrySubID}`];
+                                             sohoSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoSubIndustrySubFID);
+                                             sohoSubIndustryName = util.removeSpecialCharecters(sohoSubIndustryName);
+                                             break;
                         case 'pan_number': console.log(i.pan_number);
                                            sohoPanNumber = i.pan_number;
-                                           console.log("pan number",sohoPanNumber)
                                            panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoPanNumber);
                                             
-                                           break;  
+                                           break;      
+                        case 'gst_number': console.log(i.gst_number);
+                                           sohoGstNumber = i.gst_number;
+                                           gstNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoGstNumber);
+                                            
+                                           break;                 
+                        
+                        case 'micro_segment_turn_over': console.log(i.micro_segment_turn_over);
+                                                        sohoTurnOverFID = Number(i.micro_segment_turn_over);
+                                                        sohoTurnOver = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoTurnOverFID);
+                                                        console.log('sohoTurnOver --- ', sohoTurnOver);
+                                                      break;
                     }
                 }
                 console.log("pan number",panNumber)
@@ -1640,34 +1649,28 @@ function ActivityConfigService(db,util,objCollection) {
                     hasAccountCode=false;
                 }
                 accountCode += 'D-';
-                accountCode += ((sohoCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
-                accountCode += '-';
+                accountCode += ((sohoCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
-                //sohoTurnOver = sohoTurnOver.toLowerCase();
-                console.log('sohoTurnOver - ', sohoTurnOver);
-                // if(sohoTurnOver < 3) {
-                //     sohoTurnOver = 1;
-                // } else if(sohoTurnOver < 6) {
-                //     sohoTurnOver = 2;
-                // } else if(sohoTurnOver < 11) {
-                //     sohoTurnOver = 3;
-                // } else {
-                //     sohoTurnOver = 0;
-                // }
+                //4 digit sequential number, gets reset to 0000 after 9999
+                let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
+                console.log('sohoSeqNumber : ',sohoSeqNumber);
 
+                if(Number(sohoSeqNumber) === 9999) {
+                    await cacheWrapper.getSohoSeqNumber(0);
+                    accountCode += '0000';
+                } else {
+                    accountCode += (sohoSeqNumber.toString()).padStart(4,'0');
+                }
+
+                accountCode += '-'
                 accountCode += sohoTurnOver // turnover
 
-                //5 digit sequential number, gets reset to 00000 after 99999
-                let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
-                console.log('from cache sohoSeqNumber : ',sohoSeqNumber);
-
-                if(Number(sohoSeqNumber) === 99999) {
-                    await cacheWrapper.setSohoSeqNumber(0);
-                    accountCode += '00000';
+                console.log('soho Sub Industry Name : ',sohoSubIndustryName);
+                if(sohoSubIndustryName.toLowerCase() === 'others') {
+                    accountCode += 'OTHERS'
                 } else {
-                    accountCode += (sohoSeqNumber.toString()).padStart(5,'0');
+                    accountCode += ((sohoSubIndustryName.substr(0,3)).padEnd(5,'0')).toUpperCase(); //subindustry
                 }
-                console.log('After processsing sohoSeqNumber : ',sohoSeqNumber);
                 break;
         }
 
