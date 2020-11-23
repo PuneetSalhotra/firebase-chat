@@ -461,6 +461,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+     app.post('/' + global.config.version + '/admin/category/tagtype/list', async (req, res) => {        
+        const [err, tagTypeData] = await adminListingService.tagEntityMappingTagTypeSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
+        } else {
+            console.log("/admin/category/tagtype/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
+        }
+    });       
 }
 
 module.exports = AdminListingController;

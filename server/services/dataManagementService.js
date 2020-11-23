@@ -92,7 +92,8 @@ module.exports = function DataManagementService(params) {
 
     async function pushStreamToS3(request,readableStream,res) {
         try {
-            const bucketName = await util.getS3BucketName();
+            // const bucketName = await util.getS3BucketName();
+            const bucketName = await util.getS3BucketNameV1();
             const prefixPath = await util.getS3PrefixPath(request.body);
             console.log('pushing to s3',prefixPath);
             const s3UploadUrlObj = await util.uploadReadableStreamToS3(request,{
