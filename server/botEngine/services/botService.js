@@ -2766,7 +2766,8 @@ async function removeAsOwner(request,data)  {
         
         // Generate PDF readable stream
         const readableStream = await generatePDFreadableStream(request, htmlTemplate, annexures);
-        const bucketName = await util.getS3BucketName();
+        // const bucketName = await util.getS3BucketName();
+        const bucketName = await util.getS3BucketNameV1();
         const prefixPath = await util.getS3PrefixPath(request);
         console.log("bucketName: ", bucketName);
         console.log("prefixPath: ", prefixPath);
@@ -2873,7 +2874,8 @@ async function removeAsOwner(request,data)  {
 
                 // Generate PDF readable stream
                 const readableStream = await generatePDFreadableStream(request, htmlTemplate);
-                const bucketName = await util.getS3BucketName();
+                // const bucketName = await util.getS3BucketName();
+                const bucketName = await util.getS3BucketNameV1();
                 const prefixPath = await util.getS3PrefixPath(request);
                 console.log("bucketName: ", bucketName);
                 console.log("prefixPath: ", prefixPath);
