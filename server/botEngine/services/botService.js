@@ -3663,7 +3663,7 @@ async function removeAsOwner(request,data)  {
                             request.organization_id,
                             request.asset_id,
                             request.datetime_log,
-                            request.bot_operation_debug_inline_data //Debug Info
+                            request.bot_operation_debug_inline_data || '{}' //Debug Info
                           ];
         //let queryString = util.getQueryString('ds_p1_1_bot_operation_log_transaction_insert', paramsArr);
         const queryString = util.getQueryString('ds_p1_2_bot_operation_log_transaction_insert', paramsArr);        
