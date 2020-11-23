@@ -833,7 +833,8 @@ function WorkbookOpsService(objectCollection) {
             compression: true,
         });
 
-        const bucketName = await util.getS3BucketName(),
+        // const bucketName = await util.getS3BucketName(),
+        const bucketName = await util.getS3BucketNameV1(),
             prefixPath = await util.getS3PrefixPath(options);
 
         logger.silly("tempXlsxFilePath: %j", tempXlsxFilePath, { type: "bot_engine" });

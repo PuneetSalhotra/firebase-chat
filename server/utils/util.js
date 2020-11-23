@@ -525,7 +525,7 @@ function Util(objectCollection) {
 
     async function uploadJsonToS3V1(request, jsonObject, folderName, jsonFileName) {
         const s3 = new AWS.S3();
-        const bucketName = await getDynamicBucketName();
+        const bucketName = await this.getDynamicBucketName();
         const uploadParams = {
             Body: JSON.stringify(jsonObject),
             Bucket: bucketName,
@@ -1944,7 +1944,7 @@ function Util(objectCollection) {
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
-            let bucketName = await getDynamicBucketName();
+            let bucketName = await this.getDynamicBucketName();
            
 
             let prefixPath = request.organization_id + '/' + 
@@ -2437,7 +2437,7 @@ function Util(objectCollection) {
             const readStream = fs.createReadStream(filePath);
             let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
             const params = {
-              Bucket: await getDynamicBucketName(),
+              Bucket: await this.getDynamicBucketName(),
               Key: fileKey,
               Body: readStream
             };
@@ -2489,6 +2489,37 @@ function Util(objectCollection) {
             
             const params = {
               Bucket: await this.getS3BucketName(request),
+              Key: fileKey,
+            };
+          
+
+            let responseData = await s3.getObject(params).promise();
+            console.log(responseData);
+
+            const fs1 = require("fs").promises;
+            let error = await fs1.writeFile(pathToDownload+"\\"+fileNameToCreate, responseData.Body);
+            
+            if(error)
+            {
+                return [error,[{status :false ,message : "Unsuccessfull"}]];
+            }
+            else{
+                return [false,[{status : true,message : "File Created Successfully!"}]];
+            }
+
+        }catch(e)
+        {
+            return[e,[{}]];
+        }      
+    }
+
+    this.downloadExcelFileFromS3V1 = async function(request,fileKey,pathToDownload,fileNameToCreate){
+
+        try{
+            const s3 = new AWS.S3();
+            
+            const params = {
+              Bucket: await this.getS3BucketNameV1(request),
               Key: fileKey,
             };
           
@@ -2568,6 +2599,11 @@ function Util(objectCollection) {
             }            
         });
     };
+
+    this.removeSpecialCharecters = async function(string){
+        let convertedString = string.replace(/[^a-zA-Z0-9 ]/g, "");
+        return convertedString;
+    }
 
 }
 
