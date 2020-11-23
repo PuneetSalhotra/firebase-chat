@@ -2600,6 +2600,11 @@ function Util(objectCollection) {
         });
     };
 
+    this.removeSpecialCharecters = async function(string){
+        let convertedString = string.replace(/[^a-zA-Z0-9 ]/g, "");
+        return convertedString;
+    }
+
 }
 
 module.exports = Util;
