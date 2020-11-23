@@ -3646,27 +3646,27 @@ async function removeAsOwner(request,data)  {
     }
 
     async function botOperationTxnInsertV1(request, botData) {
-        let paramsArr = new Array(
-            request.bot_transaction_id || 0,
-            botData.bot_operation_status_id || 1,
-            //botData.bot_operation_transaction_status_id || 0, 
-            botData.bot_operation_inline_data || '{}',
-            request.workflow_activity_id || 0,
-            request.form_activity_id || 0,
-            request.form_transaction_id || 0,
-            ///////////////////////////
-            botData.bot_operation_id,
-            botData.bot_id,
-            '{}',
-            //botData.bot_operation_inline_data, 
-            botData.bot_operation_status_id || 1,
-            request.workforce_id,
-            request.account_id,
-            request.organization_id,
-            request.asset_id,
-            request.datetime_log
-        );
-        let queryString = util.getQueryString('ds_p1_1_bot_operation_log_transaction_insert', paramsArr);
+        const paramsArr = [
+                            request.bot_transaction_id || 0,
+                            botData.bot_operation_status_id || 1,                            
+                            botData.bot_operation_inline_data || '{}', //p_bot_operation_transaction_inline_data
+                            request.workflow_activity_id || 0,
+                            request.form_activity_id || 0,
+                            request.form_transaction_id || 0,
+                            ///////////////////////////
+                            botData.bot_operation_id,
+                            botData.bot_id,
+                            '{}', //p_inline_data     
+                            botData.bot_operation_status_id || 1,
+                            request.workforce_id,
+                            request.account_id,
+                            request.organization_id,
+                            request.asset_id,
+                            request.datetime_log,
+                            request.bot_operation_debug_inline_data || '{}' //Debug Info
+                          ];
+        //let queryString = util.getQueryString('ds_p1_1_bot_operation_log_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_bot_operation_log_transaction_insert', paramsArr);        
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));
         }

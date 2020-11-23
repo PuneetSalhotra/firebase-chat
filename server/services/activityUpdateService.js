@@ -1404,7 +1404,7 @@ function ActivityUpdateService(objectCollection) {
             );
             let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_count_due_date_alter', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
                 });
             };
