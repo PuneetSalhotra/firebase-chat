@@ -1417,7 +1417,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeTurnOver;
                 let smePanNumber;
                 let smeGstNumber;
-
+                
                 for(const i of botInlineData){
                     //console.log(i);
                     switch(i.field_name){
@@ -1609,7 +1609,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let sohoTurnOver;
                 let sohoGstNumber;
                 let sohoPanNumber;
-
+                 
                 for(const i of botInlineData){
                     //console.log(i);
                     switch(i.field_name){
@@ -1997,6 +1997,7 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('*************************');
         return fieldValue;
     }
+    
 
 }
 
