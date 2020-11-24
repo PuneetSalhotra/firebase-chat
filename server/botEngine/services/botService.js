@@ -1743,7 +1743,7 @@ function BotService(objectCollection) {
                 case 26: // ESMS Integrations- Consume Part - Bot
                     logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
                     let esmsIntegrationsTopicName = "";
-                    switch (process.env.mode) {
+                    switch (global.mode) {
                         case "staging":
                             // Disabled for PreProd testing, because both staging and preprod
                             // share the same topic for integrations communication
@@ -8709,7 +8709,7 @@ async function removeAsOwner(request,data)  {
             solutionDocumentFormID = botOperationInlineData.solution_document.form_id || 0,
             solutionDocumentFieldID = botOperationInlineData.solution_document.field_id || 0;
 
-        switch (process.env.mode) {
+        switch (global.mode) {
             case "local":
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-vil-bulk-feasibility-jobs-queue.fifo"
                 break;
