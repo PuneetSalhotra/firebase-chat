@@ -2605,6 +2605,64 @@ function Util(objectCollection) {
         return convertedString;
     }
 
+    this.uploadExcelToS3V3 = async function(filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
+            const params = {
+              Bucket: "worlddesk-staging-d20kggbr",
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    this.retriveExcelFromS3V3 = async function(url){
+        return new Promise((resolve) => {
+            var s3 = new AWS.S3();
+            console.log('URL : ', url);
+        let KeyName = url.slice(63);
+        console.log(KeyName)
+        //    return 
+        let params = {
+            Bucket: "worlddesk-staging-d20kggbr",
+            Key: KeyName
+        };   
+        try{
+            const FileNameArr = url.split('/');
+            const FileName = FileNameArr[FileNameArr.length - 1];
+            
+            let filePath = global.config.efsPath;
+            console.log('filePath in Service- ', filePath);
+            let fileStream = s3.getObject(params).createReadStream();
+            console.log("path",filePath)
+            let myFile = fs.createWriteStream(filePath + FileName);
+            
+            fileStream.pipe(myFile);
+
+            resolve(filePath+''+FileName);
+        } catch(err) {
+            console.log(err);
+            resolve(null);
+        }
+    })
+    }
+
+
 }
 
 module.exports = Util;
