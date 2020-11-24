@@ -1296,7 +1296,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
-                laCompanyName = util.removeSpecialCharecters(laCompanyName);
+                laCompanyName = await util.removeSpecialCharecters(laCompanyName);
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
                 
                 console.log('laGroupCompany - ', laGroupCompany);
@@ -1351,7 +1351,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
-                geCompanyName = util.removeSpecialCharecters(geCompanyName);
+                geCompanyName = await util.removeSpecialCharecters(geCompanyName);
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
                 
                 console.log('geGroupCompany - ', geGroupCompany);
@@ -1424,7 +1424,7 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
-                                                    smeCompanyName = util.removeSpecialCharecters(smeCompanyName);
+                                                    smeCompanyName = await util.removeSpecialCharecters(smeCompanyName);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1433,7 +1433,8 @@ function ActivityConfigService(db,util,objCollection) {
                                              
                                              smeSubIndustrySubFID = i.sub_industry_field_values[`${smeSubIndustrySubID}`];
                                              smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
-                                             smeSubIndustryName = util.removeSpecialCharecters(smeSubIndustryName);
+                                             console.log("sme sub ind",smeSubIndustryName)
+                                             smeSubIndustryName = await util.removeSpecialCharecters(smeSubIndustryName);
                                              break;
                         case 'pan_number': console.log(i.pan_number);
                                            smePanNumber = i.pan_number;
@@ -1453,7 +1454,7 @@ function ActivityConfigService(db,util,objCollection) {
                                                       break;
                     }
                 }                
-
+                 
                 console.log('smeSubIndustryName - ', smeSubIndustryName);
                 console.log('smeTurnOver : ', smeTurnOver);
 
@@ -1553,7 +1554,7 @@ function ActivityConfigService(db,util,objCollection) {
                 hasSeqNo = 1;
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
-                vicsCompanyName = util.removeSpecialCharecters(vicsCompanyName)
+                vicsCompanyName = await util.removeSpecialCharecters(vicsCompanyName)
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
                 const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
                 const vicsPanFID = Number(botInlineData.pan_number);
@@ -1615,7 +1616,7 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
-                                                    sohoCompanyName = util.removeSpecialCharecters(sohoCompanyName);
+                                                    sohoCompanyName = await util.removeSpecialCharecters(sohoCompanyName);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1624,7 +1625,7 @@ function ActivityConfigService(db,util,objCollection) {
                                              
                                              sohoSubIndustrySubFID = i.sub_industry_field_values[`${sohoSubIndustrySubID}`];
                                              sohoSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoSubIndustrySubFID);
-                                             sohoSubIndustryName = util.removeSpecialCharecters(sohoSubIndustryName);
+                                             sohoSubIndustryName = await util.removeSpecialCharecters(sohoSubIndustryName);
                                              break;
                         case 'pan_number': console.log(i.pan_number);
                                            sohoPanNumber = i.pan_number;
