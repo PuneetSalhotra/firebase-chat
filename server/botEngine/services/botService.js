@@ -1016,6 +1016,7 @@ function BotService(objectCollection) {
     }
 
     this.initBotEngine = async (request) => {
+        debugInfo = {};
 
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
@@ -1214,6 +1215,14 @@ function BotService(objectCollection) {
                 data_type_combo_id: i.data_type_combo_id,
                 data_type_combo_name: i.data_type_combo_name
             }]);
+
+            debugInfo.bot_operation_type_id = debugInfo.bot_operation_type_id;
+            debugInfo.bot_operation_sequence_id = i.bot_operation_sequence_id;
+            debugInfo.bot_operation_type_name = i.bot_operation_type_name;
+            debugInfo.form_id =  i.form_id;
+            debugInfo.field_id =  i.field_id;
+            debugInfo.data_type_combo_id =  i.data_type_combo_id;
+            debugInfo.data_type_combo_name = i.data_type_combo_name;
             
             // Update bot trigger details
             request.trigger_form_id = Number(i.form_id);
@@ -1229,6 +1238,7 @@ function BotService(objectCollection) {
                     !formInlineDataMap.has(botOperationFieldID)
                 ) {
                     logger.silly("\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m");
+                    debugInfo.silly = 'This bot operation is field specific & cannot be applied.';
                     continue;
                 }
                 // 
@@ -1240,10 +1250,13 @@ function BotService(objectCollection) {
                     !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
                 ) {
                     logger.silly("\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m");
+                    debugInfo.silly = 'This bot operation is field and data_type_combo_id specific & cannot be applied.';
                     continue;
                 }
             } catch (error) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
+                debugInfo.error = 'Error checking field/data_type_combo_id trigger specificity';
+                debugInfo.error_info = error;
             }
 
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
@@ -1255,6 +1268,7 @@ function BotService(objectCollection) {
             //console.log('TWO');
             logger.silly("botSteps: %j", botSteps);
             //console.log('THREE');
+            debugInfo.bot_steps = botSteps;
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -1262,9 +1276,12 @@ function BotService(objectCollection) {
                 canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
             } catch (error) {
                 console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);
+                debugInfo.error = 'canPassthrough | isBotOperationConditionTrue | canPassthrough | Error:';
+                debugInfo.error_info = error;
             }
             if (!canPassthrough) {
                 console.log("The bot operation condition failed, so the bot operation will not be executed.");
+                debugInfo.info = 'The bot operation condition failed, so the bot operation will not be executed.';
                 continue;
             }
 
@@ -1274,12 +1291,14 @@ function BotService(objectCollection) {
             //    continue;
             //}
 
+            debugInfo.bot_operations_inline_json = i.bot_operation_inline_data;
+            //debugInfo.request_params = request;
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
+                    logger.silly("Request Params received from Request: %j", request);                    
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
@@ -1289,6 +1308,8 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        debugInfo.error = 'Error in executing addParticipant Step';
+                        debugInfo.error_info = err;
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1306,6 +1327,9 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
                             });
+
+                            debugInfo.error = 'Error in executing changeStatus Step';
+                            debugInfo.error_info = i.bot_operation_inline_data;
                         }
                     } catch (err) {
                         logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -1313,6 +1337,8 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        debugInfo.error = 'Error in executing changeStatus Step';
+                        debugInfo.error_info = err;
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1333,6 +1359,8 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        debugInfo.error = 'Error in executing copyFields Step';
+                        debugInfo.error_info = err;
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1951,7 +1979,7 @@ function BotService(objectCollection) {
             }
 
             //botOperationTxnInsert(request, i);
-            botOperationTxnInsertV1(request, i);
+            botOperationTxnInsertV1(request, i, debugInfo);
             await new Promise((resolve, reject) => {
                 setTimeout(() => {
                     resolve();
@@ -3645,7 +3673,13 @@ async function removeAsOwner(request,data)  {
         }
     }
 
-    async function botOperationTxnInsertV1(request, botData) {
+    async function botOperationTxnInsertV1(request, botData, debugInfo) {
+        console.log(' ');
+        console.log('***********************');
+        console.log('debugInfo - ', debugInfo);
+        console.log('***********************');
+        console.log(' ');
+        debugInfo = (typeof debugInfo === 'object') ? JSON.stringify(debugInfo) : debugInfo;
         const paramsArr = [
                             request.bot_transaction_id || 0,
                             botData.bot_operation_status_id || 1,                            
@@ -3663,12 +3697,17 @@ async function removeAsOwner(request,data)  {
                             request.organization_id,
                             request.asset_id,
                             request.datetime_log,
-                            request.bot_operation_debug_inline_data || '{}' //Debug Info
+                            debugInfo || '{}' //Debug Info
                           ];
         //let queryString = util.getQueryString('ds_p1_1_bot_operation_log_transaction_insert', paramsArr);
         const queryString = util.getQueryString('ds_p1_2_bot_operation_log_transaction_insert', paramsArr);        
         if (queryString != '') {
-            return await (db.executeQueryPromise(0, queryString, request));
+            try {
+                return await (db.executeQueryPromise(0, queryString, request));
+            } catch(err) {
+                console.log(err);
+                return;
+            }            
         }
     }
     
