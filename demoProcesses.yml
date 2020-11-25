@@ -1,0 +1,16 @@
+apps:
+  - name : "Demo_Main"
+    env: {NODE_ENV: demo}
+    script   : ./main.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+    node_args: "--max_old_space_size=2048"
+
+  - name : "Demo_ConsumerZero"
+    env: {NODE_ENV: demo, partition:0}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    node_args: "--max_old_space_size=2048"
