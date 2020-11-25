@@ -538,6 +538,119 @@ if(mode === 'dev') {
 
 }
 
+if(mode === 'demo') {
+
+    //Cognito
+    config.cognito_region = 'ap-south-1';
+    config.user_pool_id = 'ap-south-1_FS3ysb0GG';
+
+    //Ports Config
+    config.version = 'r0';
+    config.servicePort = 8000;
+    config.standAlonePamServicePort = 6100;
+
+    //Mysql Config
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+   
+    config.dbUser = 'apiuser';
+    config.database = 'worlddesk_demo';
+    config.dbPassword = 'apidbuser';
+
+    config.conLimit = 2;
+
+    //Log Mysql Config
+    // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logMasterIp = '10.0.0.169';
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
+
+    //Redis Config    
+    //config.redisIp = 'cache-demo.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'localhost';
+    config.redisPort = 6379;
+
+    //IOS Push
+    config.iosPushMode = 'dev'; // currently shouuld be in dev
+
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
+
+    //making twilio, Nexmo Calls
+    config.efsPath = "/apistaging-data/";
+
+    //Kafka Configuration
+    ////config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
+    config.TOPIC_ID = 46;
+    config.TOPIC_NAME = 'desker-activities-demo-topic';
+    config.CONSUMER_GROUP_ID = 'demo-desker-activities-msk-cg';
+
+    //staging-desker-form-widgets-v2 - 1 partition
+    config.WIDGET_TOPIC_NAME = 'demo-desker-form-widgets';
+    config.WIDGET_CONSUMER_GROUP_ID = 'demo-desker-form-widgets-cg';
+
+    //LOGS
+    //staging-desker-logs-v2 1 partition
+    config.LOGS_TOPIC_NAME = 'demo-desker-logs';
+    config.LOGS_CONSUMER_GROUP_ID = 'demo-desker-logs-cg';
+
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+
+    config.emailbaseUrlApprove = "https://demo.officedesk.app";
+    config.emailbaseUrlUpload = "https://demo.officedesk.app";
+
+    config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
+    config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+    config.whitelist = [
+        "https://demo.officedesk.app",
+        "https://demomanagement.officedesk.app",
+        "https://demoweb.officedesk.app",
+        "https://demodashboard2.officedesk.app",
+        "https://demodashboard.officedesk.app",
+        "https://demooffice.greneos.com",
+        "https://demoweb.greneos.com",
+        "https://demodashboard.greneos.com",
+        "https://demodashboard2.greneos.com",
+        "https://demooffice.greneos.com",
+        "https://sprintweb.greneos.com",
+        "https://sprintdashboard.greneos.com",
+        "https://sprintdashboard2.greneos.com",
+        'http://127.0.0.1',
+        'http://localhost:3000',
+    ];
+}
+
 if(mode === 'sprint') {
 
     //Cognito
