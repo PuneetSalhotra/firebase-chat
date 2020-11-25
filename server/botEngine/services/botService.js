@@ -1976,6 +1976,22 @@ function BotService(objectCollection) {
                     //     console.log("error while generation pdf",err)
                     // }
                     break;
+                case 38:  //Static copy field bot
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'Static copy field bot', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
+                    try {
+                        await staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
+                    } catch (err) {
+                        global.logger.write('serverError', 'Error in executing Static copy field bot Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -7428,6 +7444,7 @@ async function removeAsOwner(request,data)  {
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
+
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -10630,6 +10647,88 @@ async function removeAsOwner(request,data)  {
         }
     }
 
+    async function staticCopyField(request, inlineData) {
+        let formData = await getActivityIdBasedOnTransId({
+            organization_id : request.organization_id,
+            form_transaction_id : request.form_transaction_id
+        });
+
+
+        let activityInlineData = JSON.parse(formData[0].activity_inline_data);
+
+        let finalInlineData = [];
+        for(let formInline of activityInlineData) {
+            for(let row of inlineData) {
+                if(formInline.field_id == row.target_field_id) {
+                    if(row.target_field_data_type_id == formInline.field_data_type_id) {
+                        if(row.target_field_data_type_combo_id == formInline.data_type_combo_id) {
+                            formInline.data_type_combo_value = row.target_field_value;
+                        } else {
+                            formInline.field_value = row.target_field_value;
+                        }
+                        finalInlineData.push(formInline);
+                    }
+                }
+            }
+        }
+
+        console.log("After Alteration", formData[0].activity_inline_data, JSON.stringify(activityInlineData));
+
+        let formId = inlineData[0].target_form_id;
+
+        let createWorkflowRequest                       = Object.assign({}, request);
+        createWorkflowRequest.activity_inline_data      = JSON.stringify(finalInlineData);
+        createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+        createWorkflowRequest.activity_type_category_id = request.activity_type_category_id;
+        createWorkflowRequest.activity_type_id          = request.activity_type_id;
+        createWorkflowRequest.activity_parent_id        = 0;
+        createWorkflowRequest.activity_form_id          = formId;
+        createWorkflowRequest.form_id                   = formId;
+        createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        createWorkflowRequest.device_os_id              = 7;
+
+        const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
+        createWorkflowRequest.activity_id         = targetFormActivityID;
+        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+        createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
+
+        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+        console.log("activityInsertedDetails---->", activityInsertedDetails);
+
+
+        let activityTimelineCollection =  JSON.stringify({
+            "content"            : `Form Submitted`,
+            "subject"            : `Final Approval for BC Closure`,
+            "mail_body"          : `Final Approval for BC Closure`,
+            "activity_reference" : [],
+            "form_id"            : formId,
+            "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
+            "asset_reference"    : [],
+            "attachments"        : [],
+            "form_approval_field_reference": []
+        });
+
+
+        let timelineReq = Object.assign({}, createWorkflowRequest);
+
+        timelineReq.activity_id                  = request.workflow_activity_id;
+        timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+        timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+        timelineReq.activity_stream_type_id      = 705;
+        timelineReq.timeline_stream_type_id      = 705;
+        timelineReq.activity_type_category_id    = 48;
+        timelineReq.asset_id                     = 100;
+        timelineReq.activity_timeline_collection = activityTimelineCollection;
+        timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+    }
 }
 
 module.exports = BotService;
