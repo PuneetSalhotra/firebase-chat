@@ -2232,7 +2232,7 @@ function Util(objectCollection) {
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
             let decrypted = CryptoJS.AES.decrypt(request.email_sender_password, 'lp-n5^+8M@62');
-            console.log('decrypted PWD : ', decrypted);
+            // console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
                 username: request.email_sender,
@@ -2241,7 +2241,7 @@ function Util(objectCollection) {
             };
         } else {
             pwd = await cacheWrapper.getESMSMailsPwd();
-            console.log('pwd : ', pwd);
+            // console.log('pwd : ', pwd);
             ewsConfig = {
                 username: 'ESMSMails@vodafoneidea.com',
                 password: pwd, //'Aug@2020',
@@ -2334,7 +2334,7 @@ function Util(objectCollection) {
 
         const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
-        console.log('PWD : ', pwd);
+        // console.log('PWD : ', pwd);
         const ewsConfig = {
             //username: 'Poonam.Chavan3@vodafoneidea.com',
             //username: 'COR420930@vodafoneidea.com',
