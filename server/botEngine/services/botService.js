@@ -1738,8 +1738,19 @@ function BotService(objectCollection) {
                 case 19: // Update CUID Bot
                     logger.silly("Update CUID Bot");
                     logger.silly("Update CUID Bot Request: %j", request);
+                    let is_opportunity = false;
+                    if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                        || request.activity_type_id == 150229 || request.activity_type_id == 150192
+                        || request.activity_type_id == 149818 || request.activity_type_id == 149752
+                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
+                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+
+                            request.opportunity_update = true;
+                    }
                     try {
+                        
                         await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
+                        
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
