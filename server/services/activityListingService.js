@@ -3520,7 +3520,7 @@ async function processFormInlineDataV1(request, data){
 		const [errorZero, summaryData] = await self.getActBulkSummaryData(request);
 		if (errorZero) { error = errorZero };
 
-		// Get the sequencing and display name
+		// Get the sequencing & display name
 		try {
 			// headerMetadata = await cacheWrapper.getEmailProvider();
 			headerMetadata = bulkFeasibilitySummarySheetHeaderConfig;
