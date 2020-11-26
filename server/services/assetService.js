@@ -777,6 +777,7 @@ function AssetService(objectCollection) {
             'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management']),
             'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access']),
             'cluster_tag_id': util.replaceDefaultNumber(rowArray[0]['cluster_tag_id']),
+            'asset_flag_super_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_super_admin']),
             'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name']) ,
             'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data'])
         };

@@ -7453,7 +7453,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-        
+
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9830,7 +9830,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
                 message_unique_id: 1603968690920
             },
             {
@@ -10144,6 +10144,8 @@ async function removeAsOwner(request,data)  {
         let opexFieldId =  inlineData.opexFieldId, opexValue;
         let capexFieldId =  inlineData.capexFieldId, capexValue;
 
+        let paybackFieldId = inlineData.paybackFieldId;
+
         let activateDateFieldIds = inlineData.activateDateFieldIds;
 
         let illFormDataWithLiks = [];
@@ -10192,7 +10194,7 @@ async function removeAsOwner(request,data)  {
         console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
-            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i])) {
+            if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i], paybackFieldId)) {
                 console.error("Criteria did not match in SME ILL bot");
                 return;
             }
@@ -10245,7 +10247,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
                 message_unique_id: 1603968690920
             },
             {
@@ -10364,11 +10366,11 @@ async function removeAsOwner(request,data)  {
 
 
 
-        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks) {
+        function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
 
             let sheetSelected = [], phase1 = 0, phase2 = 0, checkActivationDateFlag = 0;
             for(let value of inlineData.smeConstants) {
-                let productF = 0, segementF = 0, orderTypeF = 0;
+                let productF = 0, segementF = 0, orderTypeF = 0, paybackF = 0;
                 for(let row of linkDetails) {
                     console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
                     if(row.field_id == productFieldId) {
@@ -10418,23 +10420,33 @@ async function removeAsOwner(request,data)  {
                             }
                         }
                         continue;
+                    } else if(row.field_id == paybackFieldId) {
+                        console.log("Checking for Pay back fields");
+
+                        if(row.field_value >= value['9']) {
+                            console.log("Value matched in pay back value");
+                            paybackF = 1;
+                        }
+                        row.field_value == '' ? paybackF = 1 : 0;
+                        continue;
                     }
                 }
 
-                if(productF && segementF && orderTypeF){
+                console.log("productF && segementF && orderTypeF && paybackF", productF, segementF,  orderTypeF, paybackF);
+                if(productF && segementF && orderTypeF && paybackF){
                     console.log("Got match in phase 1");
-                    phase1 = {productF, segementF, orderTypeF};
+                    phase1 = {productF, segementF, orderTypeF, paybackF};
                     break;
                 }
                 else {
-                    productF = 0, segementF = 0, orderTypeF = 0;
+                    productF = 0, segementF = 0, orderTypeF = 0, paybackF = 0;
                     console.log("Reset Params phase 1. Checking for new");
                 }
 
             }
 
-            if(!Object.keys(phase1)) {
-                console.error("Matching Failed in Product, Segment");
+            if(!Object.keys(phase1).length) {
+                console.error("Matching Failed in Product, Segment, orderTypeF, paybackF");
                 return false;
             }
 
@@ -10462,9 +10474,9 @@ async function removeAsOwner(request,data)  {
                     } else if(row.field_id == contractTermsFieldId) {
                         console.log("contractF", row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7']));
                         if(checkActivationDateFlag) {
-                            let monthsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'months', true);
-                            console.log("Months Difference is", monthsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
-                            monthsDiff >= (Number(value['7']) * 12 - 2) ? contractF = 1 : 0;
+                            let yearsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'years', true);
+                            console.log("Months Difference is", yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
+                            yearsDiff >= Number(value['7']) ? contractF = 1 : 0;
 
                         } else {
                             Number(row.field_value) >= Number(value['7']) ? contractF = 1 : 0;
@@ -10730,6 +10742,8 @@ async function removeAsOwner(request,data)  {
 
     }
 }
+
+
 
 module.exports = BotService;
 
