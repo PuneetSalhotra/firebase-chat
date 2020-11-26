@@ -2,6 +2,9 @@
  * author: Sri Sai Venkatesh
  */
 
+const { serializeError } = require("serialize-error");
+const logger = require("../logger/winstonLogger");
+
 function ActivityListingService(objCollection) {
 
 	var db = objCollection.db;
@@ -9,6 +12,8 @@ function ActivityListingService(objCollection) {
 	var activityCommonService = objCollection.activityCommonService;
 	var forEachAsync = objCollection.forEachAsync;
 	const moment = require("moment");
+
+	const self = this;
 
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
@@ -3481,18 +3486,18 @@ async function processFormInlineDataV1(request, data){
 		return [error, responseData];
 	};	
 
-	this.getActBulkSummaryData = async(request) => {
+	this.getActBulkSummaryData = async (request) => {
 		let responseData = [],
 			error = true;
 
 		const paramsArr = [request.parent_activity_id];
 		const queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_select', paramsArr);
-		
+
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
 				.then(async (data) => {
 					responseData = data;
-					for(eachResponse of responseData){
+					for (eachResponse of responseData) {
 						eachResponse.activity_feasibility_data = eachResponse.activity_feasibility_data == null ? "{}" : eachResponse.activity_feasibility_data;
 						eachResponse.activity_summary_data = eachResponse.activity_summary_data == null ? "{}" : eachResponse.activity_summary_data;
 					}
@@ -3503,6 +3508,31 @@ async function processFormInlineDataV1(request, data){
 				});
 		}
 		return [error, responseData];
+	};
+
+	const bulkFeasibilitySummarySheetHeaderConfig = require("../utils/bulkFeasibilitySummarySheetHeaderConfig.json");
+	
+	this.getActivityBulkSummaryDataV2 = async (request) => {
+		let headerMetadata = {},
+			error = false;
+
+		// Get the summary data
+		const [errorZero, summaryData] = await self.getActBulkSummaryData(request);
+		if (errorZero) { error = errorZero };
+
+		// Get the sequencing
+		try {
+			// headerMetadata = await cacheWrapper.getEmailProvider();
+			headerMetadata = bulkFeasibilitySummarySheetHeaderConfig;
+		} catch (errorTwo) {
+			logger.error("Error fetching the app_config:bulk_feasibility_summary_sheet_config: ", { error: serializeError(errorTwo) });
+			error = errorTwo;
+		}
+
+		return [error, {
+			bulk_summary_data: summaryData,
+			header_metadata: headerMetadata
+		}];
 	};
 }
 

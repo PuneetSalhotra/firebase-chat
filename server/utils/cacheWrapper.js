@@ -805,6 +805,19 @@ function CacheWrapper(client) {
         });        
     };
 
+    this.getBulkFeasibilitySummarySheetConfig = function () {
+        return new Promise((resolve, reject) => {
+            client.hget('APP_CONFIG', 'BULK_FEASIBILITY_SUMMARY_SHEET_CONFIG', function (err, reply) {
+                if (err) {
+                    logger.error(`HGET APP_CONFIG BULK_FEASIBILITY_SUMMARY_SHEET_CONFIG`, { type: 'redis', cache_response: reply, error: err });
+                    reject(0);
+                } else {
+                    logger.verbose(`HGET APP_CONFIG BULK_FEASIBILITY_SUMMARY_SHEET_CONFIG`, { type: 'redis', cache_response: reply, error: err });
+                    resolve(reply);
+                }
+            });
+        });
+    };
 }
 
 module.exports = CacheWrapper;

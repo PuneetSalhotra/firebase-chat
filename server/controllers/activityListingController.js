@@ -1068,6 +1068,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/bulk-summary/list/v2', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActBulkSummaryDataV2(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/bulk-summary/list/v2 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityListingController;

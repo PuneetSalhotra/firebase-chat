@@ -1,0 +1,346 @@
+{
+    "error_code": {
+        "sequence": 1,
+        "display_name": "error_code"
+    },
+    "description": {
+        "sequence": 2,
+        "display_name": "description"
+    },
+    "opportunity_id": {
+        "sequence": 3,
+        "display_name": "opportunity_id"
+    },
+    "transaction_id": {
+        "sequence": 4,
+        "display_name": "transaction_id"
+    },
+    "workflow_activity_id": {
+        "sequence": 5,
+        "display_name": "workflow_activity_id"
+    },
+    "primary_standard": {
+        "sequence": 6,
+        "display_name": "primary_standard"
+    },
+    "feasibility_primary_status": {
+        "sequence": 7,
+        "display_name": "feasibility_primary_status"
+    },
+    "feasibility_primary_description": {
+        "sequence": 8,
+        "display_name": "feasibility_primary_description"
+    },
+    "secondary_standard": {
+        "sequence": 9,
+        "display_name": "secondary_standard"
+    },
+    "feasibility_secondary_status": {
+        "sequence": 10,
+        "display_name": "feasibility_secondary_status"
+    },
+    "feasibility_secondary_description": {
+        "sequence": 11,
+        "display_name": "feasibility_secondary_description"
+    },
+    "primary_cloned": {
+        "sequence": 12,
+        "display_name": "primary_cloned"
+    },
+    "cloned_primary_status": {
+        "sequence": 13,
+        "display_name": "cloned_primary_status"
+    },
+    "cloned_primary_description": {
+        "sequence": 14,
+        "display_name": "cloned_primary_description"
+    },
+    "secondary_cloned": {
+        "sequence": 15,
+        "display_name": "secondary_cloned"
+    },
+    "cloned_secondary_status": {
+        "sequence": 16,
+        "display_name": "cloned_secondary_status"
+    },
+    "cloned_secondary_description": {
+        "sequence": 17,
+        "display_name": "cloned_secondary_description"
+    },
+    "refeasibility_primary_feasibility_status": {
+        "sequence": 18,
+        "display_name": "refeasibility_primary_feasibility_status"
+    },
+    "refeasibility_primary_feasibility_description": {
+        "sequence": 19,
+        "display_name": "refeasibility_primary_feasibility_description"
+    },
+    "refeasibility_primary_accountmanager_status": {
+        "sequence": 20,
+        "display_name": "refeasibility_primary_accountmanager_status"
+    },
+    "refeasibility_primary_accountmanager_description": {
+        "sequence": 21,
+        "display_name": "refeasibility_primary_accountmanager_description"
+    },
+    "refeasibility_secondary_feasibility_status": {
+        "sequence": 22,
+        "display_name": "refeasibility_secondary_feasibility_status"
+    },
+    "refeasibility_secondary_feasibility_description": {
+        "sequence": 23,
+        "display_name": "refeasibility_secondary_feasibility_description"
+    },
+    "refeasibility_secondary_accountmanager_status": {
+        "sequence": 24,
+        "display_name": "refeasibility_secondary_accountmanager_status"
+    },
+    "refeasibility_secondary_accountmanager_description": {
+        "sequence": 25,
+        "display_name": "refeasibility_secondary_accountmanager_description"
+    },
+    "feasibility_primary_last_raised": {
+        "sequence": 26,
+        "display_name": "feasibility_primary_last_raised"
+    },
+    "feasibility_secondary_last_raised": {
+        "sequence": 27,
+        "display_name": "feasibility_secondary_last_raised"
+    },
+    "onnetFeasibilityInfo_feasibilitystatusAEnd": {
+        "sequence": 28,
+        "display_name": "onnetFeasibilityInfo_feasibilitystatusAEnd"
+    },
+    "onnetFeasibilityInfo_feasibilitystatusBEnd": {
+        "sequence": 29,
+        "display_name": "onnetFeasibilityInfo_feasibilitystatusBEnd"
+    },
+    "onnetFeasibilityInfo_connectivityStatusAEnd": {
+        "sequence": 30,
+        "display_name": "onnetFeasibilityInfo_connectivityStatusAEnd"
+    },
+    "onnetFeasibilityInfo_connectivityStatusBEnd": {
+        "sequence": 31,
+        "display_name": "onnetFeasibilityInfo_connectivityStatusBEnd"
+    },
+    "onnetFeasibilityInfo_totalCAPEXAEnd": {
+        "sequence": 32,
+        "display_name": "onnetFeasibilityInfo_totalCAPEXAEnd"
+    },
+    "onnetFeasibilityInfo_totalCAPEXBEnd": {
+        "sequence": 33,
+        "display_name": "onnetFeasibilityInfo_totalCAPEXBEnd"
+    },
+    "onnetFeasibilityInfo_cftARemarks": {
+        "sequence": 34,
+        "display_name": "onnetFeasibilityInfo_cftARemarks"
+    },
+    "onnetFeasibilityInfo_cftBRemarks": {
+        "sequence": 35,
+        "display_name": "onnetFeasibilityInfo_cftBRemarks"
+    },
+    "onnetFeasibilityInfo_circleARemarks": {
+        "sequence": 36,
+        "display_name": "onnetFeasibilityInfo_circleARemarks"
+    },
+    "onnetFeasibilityInfo_circleBRemarks": {
+        "sequence": 37,
+        "display_name": "onnetFeasibilityInfo_circleBRemarks"
+    },
+    "onnetFeasibilityInfo_salesCapexEndA": {
+        "sequence": 38,
+        "display_name": "onnetFeasibilityInfo_salesCapexEndA"
+    },
+    "onnetFeasibilityInfo_salesCapexEndB": {
+        "sequence": 39,
+        "display_name": "onnetFeasibilityInfo_salesCapexEndB"
+    },
+    "onnetFeasibilityInfo_networkCapex": {
+        "sequence": 40,
+        "display_name": "onnetFeasibilityInfo_networkCapex"
+    },
+    "onnetFeasibilityInfo_otcA": {
+        "sequence": 41,
+        "display_name": "onnetFeasibilityInfo_otcA"
+    },
+    "onnetFeasibilityInfo_otcB": {
+        "sequence": 42,
+        "display_name": "onnetFeasibilityInfo_otcB"
+    },
+    "onnetFeasibilityInfo_arcA": {
+        "sequence": 43,
+        "display_name": "onnetFeasibilityInfo_arcA"
+    },
+    "onnetFeasibilityInfo_arcB": {
+        "sequence": 44,
+        "display_name": "onnetFeasibilityInfo_arcB"
+    },
+    "onnetFeasibilityInfo_progressStatus": {
+        "sequence": 45,
+        "display_name": "onnetFeasibilityInfo_progressStatus"
+    },
+    "onnetFeasibilityInfo_closeDate": {
+        "sequence": 46,
+        "display_name": "onnetFeasibilityInfo_closeDate"
+    },
+    "stage2UBRFeasibilityInfo_feasibilitystatusAEnd": {
+        "sequence": 47,
+        "display_name": "stage2UBRFeasibilityInfo_feasibilitystatusAEnd"
+    },
+    "stage2UBRFeasibilityInfo_feasibilitystatusBEnd": {
+        "sequence": 48,
+        "display_name": "stage2UBRFeasibilityInfo_feasibilitystatusBEnd"
+    },
+    "stage2UBRFeasibilityInfo_crossConnectA": {
+        "sequence": 49,
+        "display_name": "stage2UBRFeasibilityInfo_crossConnectA"
+    },
+    "stage2UBRFeasibilityInfo_crossConnectB": {
+        "sequence": 50,
+        "display_name": "stage2UBRFeasibilityInfo_crossConnectB"
+    },
+    "stage2UBRFeasibilityInfo_cftRemarksA": {
+        "sequence": 51,
+        "display_name": "stage2UBRFeasibilityInfo_cftRemarksA"
+    },
+    "stage2UBRFeasibilityInfo_cftRemarksB": {
+        "sequence": 52,
+        "display_name": "stage2UBRFeasibilityInfo_cftRemarksB"
+    },
+    "stage2UBRFeasibilityInfo_totalCapexA": {
+        "sequence": 53,
+        "display_name": "stage2UBRFeasibilityInfo_totalCapexA"
+    },
+    "stage2UBRFeasibilityInfo_totalCapexB": {
+        "sequence": 54,
+        "display_name": "stage2UBRFeasibilityInfo_totalCapexB"
+    },
+    "stage2UBRFeasibilityInfo_circleRemarksA": {
+        "sequence": 55,
+        "display_name": "stage2UBRFeasibilityInfo_circleRemarksA"
+    },
+    "stage2UBRFeasibilityInfo_circleRemarksB": {
+        "sequence": 56,
+        "display_name": "stage2UBRFeasibilityInfo_circleRemarksB"
+    },
+    "stage2UBRFeasibilityInfo_salesCapexEndA": {
+        "sequence": 57,
+        "display_name": "stage2UBRFeasibilityInfo_salesCapexEndA"
+    },
+    "stage2UBRFeasibilityInfo_salesCapexEndB": {
+        "sequence": 58,
+        "display_name": "stage2UBRFeasibilityInfo_salesCapexEndB"
+    },
+    "stage2UBRFeasibilityInfo_networkCapex": {
+        "sequence": 59,
+        "display_name": "stage2UBRFeasibilityInfo_networkCapex"
+    },
+    "stage2UBRFeasibilityInfo_progressStatus": {
+        "sequence": 60,
+        "display_name": "stage2UBRFeasibilityInfo_progressStatus"
+    },
+    "stage2UBRFeasibilityInfo_closeDate": {
+        "sequence": 61,
+        "display_name": "stage2UBRFeasibilityInfo_closeDate"
+    },
+    "stage23gFeasibilityInfo_feasibilitystatusAEnd": {
+        "sequence": 62,
+        "display_name": "stage23gFeasibilityInfo_feasibilitystatusAEnd"
+    },
+    "stage23gFeasibilityInfo_feasibilitystatusBEnd": {
+        "sequence": 63,
+        "display_name": "stage23gFeasibilityInfo_feasibilitystatusBEnd"
+    },
+    "stage23gFeasibilityInfo_cftRemarksA": {
+        "sequence": 64,
+        "display_name": "stage23gFeasibilityInfo_cftRemarksA"
+    },
+    "stage23gFeasibilityInfo_cftRemarksB": {
+        "sequence": 65,
+        "display_name": "stage23gFeasibilityInfo_cftRemarksB"
+    },
+    "stage23gFeasibilityInfo_crossConnectA": {
+        "sequence": 66,
+        "display_name": "stage23gFeasibilityInfo_crossConnectA"
+    },
+    "stage23gFeasibilityInfo_crossConnectB": {
+        "sequence": 67,
+        "display_name": "stage23gFeasibilityInfo_crossConnectB"
+    },
+    "stage23gFeasibilityInfo_circleRemarksA": {
+        "sequence": 68,
+        "display_name": "stage23gFeasibilityInfo_circleRemarksA"
+    },
+    "stage23gFeasibilityInfo_circleRemarksB": {
+        "sequence": 69,
+        "display_name": "stage23gFeasibilityInfo_circleRemarksB"
+    },
+    "stage23gFeasibilityInfo_vilFwaRequiredOnA": {
+        "sequence": 70,
+        "display_name": "stage23gFeasibilityInfo_vilFwaRequiredOnA"
+    },
+    "stage23gFeasibilityInfo_vilFwaRequiredOnB": {
+        "sequence": 71,
+        "display_name": "stage23gFeasibilityInfo_vilFwaRequiredOnB"
+    },
+    "stage23gFeasibilityInfo_progressStatus": {
+        "sequence": 72,
+        "display_name": "stage23gFeasibilityInfo_progressStatus"
+    },
+    "stage23gFeasibilityInfo_closeDate": {
+        "sequence": 73,
+        "display_name": "stage23gFeasibilityInfo_closeDate"
+    },
+    "offnetPartnetInfo_feasibilitystatusAEnd": {
+        "sequence": 74,
+        "display_name": "offnetPartnetInfo_feasibilitystatusAEnd"
+    },
+    "offnetPartnetInfo_feasibilitystatusBEnd": {
+        "sequence": 75,
+        "display_name": "offnetPartnetInfo_feasibilitystatusBEnd"
+    },
+    "offnetPartnetInfo_ConnectivityStatusAEnd": {
+        "sequence": 76,
+        "display_name": "offnetPartnetInfo_ConnectivityStatusAEnd"
+    },
+    "offnetPartnetInfo_ConnectivityStatusBEnd": {
+        "sequence": 77,
+        "display_name": "offnetPartnetInfo_ConnectivityStatusBEnd"
+    },
+    "offnetPartnetInfo_offnetPartnet": {
+        "sequence": 78,
+        "display_name": "offnetPartnetInfo_offnetPartnet"
+    },
+    "offnetPartnetInfo_opexAEnd": {
+        "sequence": 79,
+        "display_name": "offnetPartnetInfo_opexAEnd"
+    },
+    "offnetPartnetInfo_opexBEnd": {
+        "sequence": 80,
+        "display_name": "offnetPartnetInfo_opexBEnd"
+    },
+    "offnetPartnetInfo_cftARemarks": {
+        "sequence": 81,
+        "display_name": "offnetPartnetInfo_cftARemarks"
+    },
+    "offnetPartnetInfo_cftBRemarks": {
+        "sequence": 82,
+        "display_name": "offnetPartnetInfo_cftBRemarks"
+    },
+    "offnetPartnetInfo_otcA": {
+        "sequence": 83,
+        "display_name": "offnetPartnetInfo_otcA"
+    },
+    "offnetPartnetInfo_otcB": {
+        "sequence": 84,
+        "display_name": "offnetPartnetInfo_otcB"
+    },
+    "offnetPartnetInfo_arcA": {
+        "sequence": 85,
+        "display_name": "offnetPartnetInfo_arcA"
+    },
+    "offnetPartnetInfo_arcB": {
+        "sequence": 86,
+        "display_name": "offnetPartnetInfo_arcB"
+    }
+}
