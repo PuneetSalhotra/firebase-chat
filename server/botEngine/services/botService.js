@@ -10153,13 +10153,17 @@ async function removeAsOwner(request,data)  {
 
 
         // to push the first three entries for every link to test the flow in a one go
-        let temp = [IllFormData[0], IllFormData[1], IllFormData[2]];
+        let temp = [IllFormData[0], IllFormData[1], IllFormData[2]], paybackData;
         for(let i = 0, j = 0; i < IllFormData.length; i++) {
 
             if(IllFormData[i].field_id == opexFieldId) {
                 opexValue = IllFormData[i].field_value;
             } else if(IllFormData[i].field_id == capexFieldId) {
                 capexValue = IllFormData[i].field_value;
+            }
+
+            if(IllFormData[i].field_id == paybackFieldId) {
+                paybackData = IllFormData[i];
             }
 
             if(IllFormData[i].field_id == linkFieldIds[j]) {
@@ -10191,6 +10195,10 @@ async function removeAsOwner(request,data)  {
 
         console.log("activationDataOfLinks", JSON.stringify(activationDataOfLinks));
         illFormDataWithLiks.push(temp);
+
+        for(let row of illFormDataWithLiks) {
+            row.push(paybackData);
+        }
 
         console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
 
@@ -10371,7 +10379,7 @@ async function removeAsOwner(request,data)  {
 
             let sheetSelected = [], phase1 = 0, phase2 = 0, checkActivationDateFlag = 0;
             for(let value of inlineData.smeConstants) {
-                let productF = 0, segementF = 0, orderTypeF = 0, paybackF = 0;
+                let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
                     console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
                     if(row.field_id == productFieldId) {
@@ -10421,26 +10429,17 @@ async function removeAsOwner(request,data)  {
                             }
                         }
                         continue;
-                    } else if(row.field_id == paybackFieldId) {
-                        console.log("Checking for Pay back fields");
-
-                        if(row.field_value >= value['9']) {
-                            console.log("Value matched in pay back value");
-                            paybackF = 1;
-                        }
-                        row.field_value == '' ? paybackF = 1 : 0;
-                        continue;
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF && paybackF", productF, segementF,  orderTypeF, paybackF);
-                if(productF && segementF && orderTypeF && paybackF){
+                console.log("productF && segementF && orderTypeF && paybackF", productF, segementF,  orderTypeF);
+                if(productF && segementF && orderTypeF){
                     console.log("Got match in phase 1");
-                    phase1 = {productF, segementF, orderTypeF, paybackF};
+                    phase1 = {productF, segementF, orderTypeF};
                     break;
                 }
                 else {
-                    productF = 0, segementF = 0, orderTypeF = 0, paybackF = 0;
+                    productF = 0, segementF = 0, orderTypeF = 0;
                     console.log("Reset Params phase 1. Checking for new");
                 }
 
@@ -10454,7 +10453,7 @@ async function removeAsOwner(request,data)  {
             console.log("Executing new sheet", sheetSelected);
             for(let value of sheetSelected) {
 
-                let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
+                let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 for(let row of linkDetails) {
                     console.log("bwF && otcF && arcF && contractF && netCashF loop", row.field_id, row.field_name, row.field_value);
                     if(row.field_id == bwFieldId) {
@@ -10489,17 +10488,26 @@ async function removeAsOwner(request,data)  {
                         Number(row.field_value) >= Number(value['8']) ? netCashF = 1 : 0;
                         row.field_value == '' ? netCashF = 1 : 0;
                         continue;
+                    } else if(row.field_id == paybackFieldId) {
+                        console.log("Checking for Pay back fields");
+
+                        if(row.field_value >= value['9']) {
+                            console.log("Value matched in pay back value");
+                            paybackF = 1;
+                        }
+                        row.field_value == '' ? paybackF = 1 : 0;
+                        continue;
                     }
                 }
 
-                console.log("bwF && otcF && arcF && contractF && netCashF", bwF, otcF, arcF, contractF, netCashF);
-                if(bwF && otcF && arcF && contractF && netCashF) {
+                console.log("bwF && otcF && arcF && contractF && netCashF && paybackF", bwF, otcF, arcF, contractF, netCashF, paybackF);
+                if(bwF && otcF && arcF && contractF && netCashF && paybackF) {
                     console.log("Got match in phase 2 link" + linkId);
-                    phase2 = {bwF, otcF, arcF, contractF, netCashF};
+                    phase2 = {bwF, otcF, arcF, contractF, netCashF, paybackF};
                     return true;
                 } else {
                     console.log("Reset In phase 2. Checking for new");
-                    bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0;
+                    bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 }
             }
             return 0;
