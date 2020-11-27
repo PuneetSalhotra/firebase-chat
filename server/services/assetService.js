@@ -718,6 +718,15 @@ function AssetService(objectCollection) {
     };
 
     var formatAssetData = function (rowArray, callback) {
+        
+        let is_password_set = 'No';
+        for(const i of rowArray) {
+            if((i.asset_email_password).length > 0) {
+                //Password is Set
+                is_password_set = 'Yes';
+                break;
+            }
+        }
 
         var rowData = {
             'asset_id': util.replaceDefaultNumber(rowArray[0]['asset_id']),
@@ -778,7 +787,8 @@ function AssetService(objectCollection) {
             'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access']),
             'cluster_tag_id': util.replaceDefaultNumber(rowArray[0]['cluster_tag_id']),
             'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name']) ,
-            'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data'])
+            'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data']),
+            'is_password_set':is_password_set
         };
 
         callback(false, rowData);
