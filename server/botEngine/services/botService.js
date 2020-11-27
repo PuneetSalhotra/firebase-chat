@@ -2305,17 +2305,21 @@ function BotService(objectCollection) {
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
                     request.debug_info.push('from_request - Asset ID : '+ assetID);
-                }
-                
-                if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
-                        // Fetch the field value
-                        const fieldData = await getFieldValue({
-                            form_transaction_id: formTransactionID,
-                            form_id: formID,
-                            field_id: fieldID,
-                            organization_id: request.organization_id
-                        });
-                        assetID = Number(fieldData[0].data_entity_bigint_1);
+                } else if(type.includes('asset_reference'))
+                {
+                    const formID = Number(inlineData["asset_reference"].form_id),
+                    fieldID = Number(inlineData["asset_reference"].field_id);                      
+  
+                    let formTransactionID = 0, formActivityID = 0;    
+              
+                    const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                        organization_id: request.organization_id,
+                                        account_id: request.account_id
+                                        }, workflowActivityID, formID);
+  
+                    if (Number(formData.length) > 0) {
+                        formTransactionID = Number(formData[0].data_form_transaction_id);
+                        formActivityID = Number(formData[0].data_activity_id);
                     }
                     
                     if (Number(formTransactionID) > 0 && Number(formActivityID) > 0) {
