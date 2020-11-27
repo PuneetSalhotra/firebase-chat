@@ -1295,6 +1295,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {});
                     logger.silly("Request Params received from Request: %j", request);                    
+                    request.debug_info.push('PARTICIPANT ADD');
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
@@ -1340,6 +1341,7 @@ function BotService(objectCollection) {
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('form_field_copy | Request Params received by BOT ENGINE', request);
+                        request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
@@ -1358,6 +1360,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
+                    request.debug_info.push('WF PERCENTAGE ALTER ');
                     try {
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if (result[0]) {
@@ -1381,6 +1384,7 @@ function BotService(objectCollection) {
                 case 5: // External System Integration
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE API', {}, {});
+                    request.debug_info.push('FIRE API ');
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
                     } catch (err) {
@@ -1408,6 +1412,7 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE TEXT', {}, {});
+                    request.debug_info.push('FIRE TEXT');
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
                     } catch (err) {
@@ -1435,6 +1440,7 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE EMAIL', {}, {});
+                    request.debug_info.push('FIRE EMAIL ');
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                     } catch (err) {
@@ -1454,6 +1460,8 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     console.log('add_comment');
                     console.log('add_comment | Request Params received by BOT ENGINE', request);
+                    request.debug_info.push('add_comment');
+                    request.debug_info.push('add_comment | Request Params received by BOT ENGINE'+ request);
                     try {
                         await addComment(request, botOperationsJson.bot_operations.add_comment);
                     } catch (err) {
@@ -1486,6 +1494,8 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     console.log('add_attachment_with_attestation');
                     console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
+                    request.debug_info.push('add_attachment_with_attestation ');
+                    request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
                     try {
                         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
                     } catch (err) {
@@ -1518,6 +1528,7 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     console.log('form_pdf');
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('form_pdf');
                     try {
                         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
@@ -1597,6 +1608,7 @@ function BotService(objectCollection) {
 
                     console.log(' ');
                     console.log('activityInlineData : ', activityInlineData);
+                    request.debug_info.push('activityInlineData: ' + activityInlineData);
 
                     let activityProductSelection;
                     for(const i of activityInlineData) {
@@ -1607,13 +1619,17 @@ function BotService(objectCollection) {
                             let cartItems = fieldValue.cart_items;
                             console.log('typeof Cart Items : ', typeof cartItems);
                             console.log('Cart Items : ', cartItems);
+                            request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
+                            request.debug_info.push('Cart Items: ' + cartItems);
 
                             cartItems = (typeof cartItems === 'string') ? JSON.parse(cartItems) : cartItems;
 
                             if(cartItems.length > 0) {
                                 console.log('Searching for custom variant');
+                                request.debug_info.push('Searching for custom variant');
                                 for(j of cartItems) {
                                     console.log('product_variant_activity_title : ', (j.product_variant_activity_title).toLowerCase());
+                                    request.debug_info.push('product_variant_activity_title: ' + (j.product_variant_activity_title).toLowerCase());
                                     if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
                                         (j.product_variant_activity_title).toLowerCase() == 'custom') {
                                         flag = 1
@@ -1631,6 +1647,7 @@ function BotService(objectCollection) {
                     }
 
                     console.log('Number(request.parent_activity_id) - ', Number(request.parent_activity_id));
+                    request.debug_info.push('Number(request.parent_activity_id): ' + Number(request.parent_activity_id));
                     if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
                         flag = 0;
                     }
@@ -1639,6 +1656,7 @@ function BotService(objectCollection) {
                     request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
                     let[err, response] = await activityCommonService.workbookTrxInsert(request);
                     console.log(response);
+                    request.debug_info.push('response: ' + response);
                                 
                     let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
                     request.activity_workbook_transaction_id = workbookTxnID;
@@ -1647,6 +1665,8 @@ function BotService(objectCollection) {
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
                             console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
+                            request.debug_info.push('request.form_id: ' + request.form_id);
+                            request.debug_info.push('request.form_name: ' + request.form_name);
                         }
                         
                         try {
@@ -1716,6 +1736,8 @@ function BotService(objectCollection) {
                         console.log('Its not a custom Variant. Hence not triggering the Bot!');
                         console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
                         console.log('---------- TIMELINE ENTRY -----------');
+                        request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
+                        request.debug_info.push('OR It has non-zero parent activity ID: ' +  Number(request.parent_activity_id));
                         
                         await addTimelineEntry({...request,content:`BC excel mapping is not configured for this opportunity as it is a standard plan`,subject:"sample",mail_body:request.mail_body,attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
                     }
@@ -1731,6 +1753,8 @@ function BotService(objectCollection) {
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
                         || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
                             console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
+                            request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
+                            request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
                             request.opportunity_update = true;
                     }
@@ -1804,6 +1828,7 @@ function BotService(objectCollection) {
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
                             console.log('botOperationsJson in Arithmetic Bot: ', botOperationsJson);
+                            request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                         } catch (error) {
                             logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -1843,9 +1868,11 @@ function BotService(objectCollection) {
                 case 31: // workflow start bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('workflow start | Request Params received by BOT ENGINE', request);
+                        request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
@@ -1863,6 +1890,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
+                    request.debug_info.push('GLOBAL PARTICIPANT ADD');
                     try {
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
@@ -1881,6 +1909,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'checkCustomBot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
+                    request.debug_info.push('checkCustomBot');
                     try {
                         await checkCustomBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
@@ -1899,6 +1928,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
+                    request.debug_info.push('SME ILL Bot');
                     try {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
@@ -1978,6 +2008,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'Static copy field bot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
+                    request.debug_info.push('Static copy field bot ');
                     try {
                         await staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
                     } catch (err) {
@@ -2257,17 +2288,21 @@ function BotService(objectCollection) {
 
             console.log("Inline data");
             console.log(inlineData);
+            request.debug_info.push('inlineData: ' + inlineData);
 
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
+                request.debug_info.push('type: ' + type);
 
                 if(type.includes('static')){
                     assetID = Number(inlineData[type[0]].asset_id);
                     console.log('STATIC - Asset ID : ', assetID);
+                    request.debug_info.push('STATIC - Asset ID : '+ assetID);
                 }
                 else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
+                    request.debug_info.push('from_request - Asset ID : '+ assetID);
                 }
                 else if(type.includes('asset_reference'))
                 {
@@ -2297,6 +2332,7 @@ function BotService(objectCollection) {
                             assetID = Number(fieldData[0].data_entity_bigint_1);
                         }
                         console.log('Asset Reference - Asset ID : ', assetID);
+                        request.debug_info.push(' Asset ID: ' + assetID);
                 }
 
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -2308,16 +2344,21 @@ function BotService(objectCollection) {
                 console.log('Asset ID : ', assetID);
                 console.log('Lead Asset ID : ', leadAssetID);
                 console.log('Creator Asset ID : ', creatorAssetID);
+                request.debug_info.push('Asset ID : '+ assetID);
+                request.debug_info.push('Lead Asset ID : '+ leadAssetID);
+                request.debug_info.push('Creator Asset ID : '+ creatorAssetID);
 
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
                     console.log('Remove as lead');
+                    request.debug_info.push('Remove as lead');
                     await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
                 
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
 
                     console.log('Remove as Owner');
+                    request.debug_info.push('Remove as Owner');
                     let reqDataForRemovingAsOwner = { 
                         activity_id : workflowActivityID,
                         target_asset_id : assetID,
@@ -2329,6 +2370,7 @@ function BotService(objectCollection) {
                 }
                 else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
                     console.log("Remove Creator as owner");
+                    request.debug_info.push("Remove Creator as owner");
                     let reqDataForRemovingCreaterAsOwner = { 
                         activity_id : workflowActivityID,
                         target_asset_id : creatorAssetID,
@@ -2341,6 +2383,7 @@ function BotService(objectCollection) {
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
 
                     console.log("Remove Participant");
+                    request.debug_info.push("Remove Participant");
 
                     if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
                         //Unassign him as lead - Implicitly Add the creator or owner as the LEAD                        
@@ -2385,6 +2428,7 @@ function BotService(objectCollection) {
         if(leadAssetID !== 0)
         {
             console.log("Remove lead asset inside if--------");
+            request.debug_info.push("Remove lead asset inside if--------");
             let leadAssetFirstName = '',leadOperatingAssetFirstName='';
             try {
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
@@ -2395,6 +2439,7 @@ function BotService(objectCollection) {
                 console.log('********************************');
                 console.log('LEAD ASSET DATA - ', assetData[0]);
                 console.log('********************************');
+                request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
                 // leadAssetFirstName = assetData[0].asset_first_name;
                 leadOperatingAssetFirstName = assetData[0].operating_asset_first_name;
             } catch (error) {
@@ -2450,6 +2495,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
         console.log('********************************');
         console.log('LEAD ASSET DATA - ', assetData[0]);
         console.log('********************************');
+        request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
         leadAssetFirstName = assetData[0].asset_first_name;
     } catch (error) {
         console.log(error);
@@ -2508,6 +2554,7 @@ async function removeAsOwner(request,data)  {
 
     async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
         console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
+        request.debug_info.push("removeParticipant | formInlineDataMap: "+ formInlineDataMap);
         if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
             throw new Error("FlagFormSubmitter flag not set to 1");
         }
@@ -2648,6 +2695,7 @@ async function removeAsOwner(request,data)  {
                 asset_id: assetID
             });
             console.log("removeParticipant | error: ", error);
+            request.debug_info.push("removeParticipant | error: "+ error);
             if (assetData.length > 0) {
                 removeParticipantRequest.activity_participant_collection = JSON.stringify([
                     {
@@ -2692,6 +2740,7 @@ async function removeAsOwner(request,data)  {
         htmlTemplate = Buffer.from(htmlTemplate.Body).toString('ascii');
 
         console.log("htmlTemplate: ", htmlTemplate);
+        request.debug_info.push("htmlTemplate: "+ htmlTemplate);
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -2716,6 +2765,7 @@ async function removeAsOwner(request,data)  {
             placeholderMatches.set(match[1], {});
         }
         console.log("placeholderMatches: ", placeholderMatches);
+        request.debug_info.push('placeholderMatches: ' + placeholderMatches);
         
         let formAndFormTxnIDMap = new Map(),
         fieldDataMap = new Map();
@@ -2744,6 +2794,7 @@ async function removeAsOwner(request,data)  {
             // const formID = Number(placeholder[0].split("_")[0]);
             const fieldID = Number(placeholder[0]);
             console.log("fieldID: ", fieldID);
+            request.debug_info.push('fieldID: ' + fieldID);
             
             placeholderMatches.set(fieldID, {
                 form_id: formID,
@@ -2778,6 +2829,7 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("htmlTemplate: ", htmlTemplate);
+        request.debug_info.push('htmlTemplate: ' + htmlTemplate);
 
         let annexures = [];
         try {
@@ -2786,6 +2838,7 @@ async function removeAsOwner(request,data)  {
                 Array.isArray(templateData.annexures)
             ) {
                 console.log("templateData.annexures: ", templateData.annexures);
+                request.debug_info.push('templateData.annexures: ' + templateData.annexures);
 
                 for (const annexure of templateData.annexures) {
                     if (
@@ -2813,6 +2866,8 @@ async function removeAsOwner(request,data)  {
         const prefixPath = await util.getS3PrefixPath(request);
         console.log("bucketName: ", bucketName);
         console.log("prefixPath: ", prefixPath);
+        request.debug_info.push('bucketName: ' + bucketName);
+        request.debug_info.push('prefixPath: ' + prefixPath);
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
@@ -2828,6 +2883,7 @@ async function removeAsOwner(request,data)  {
 
         // 
         console.log("attachmentsList: ", attachmentsList);
+        request.debug_info.push('attachmentsList: ' + attachmentsList);
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -3038,6 +3094,8 @@ async function removeAsOwner(request,data)  {
 
                 console.log('typeof field_value: ', typeof fieldValue);
                 console.log('field_value: ', fieldValue);
+                request.debug_info.push('typeof field_value: '+ typeof fieldValue);
+                request.debug_info.push('field_value: '+ fieldValue);
                 
                 if(fieldValue === undefined || fieldValue === null || fieldValue === "") {
                     //fridNotExists = false;
@@ -3045,6 +3103,7 @@ async function removeAsOwner(request,data)  {
                 }
 
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
+                request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
                 } else if(Number(request.device_os_id) === 1) { //Android
@@ -3092,12 +3151,15 @@ async function removeAsOwner(request,data)  {
 
                 console.log('fridExpiryDate : ', fridExpiryDate);
                 console.log('currentDateArr : ', currentDateArr);
+                request.debug_info.push('fridExpiryDate : '+ fridExpiryDate);
+                request.debug_info.push('currentDateArr : '+ currentDateArr);
                 
                 let a = moment(fridExpiryDate, "YYYY-MM-DD");
                 let b = moment(currentDateArr, "YYYY-MM-DD");
                 
                 let difference = a.diff(b, 'days');
                 console.log('Difference : ', difference);
+                request.debug_info.push('Difference : '+ difference);
                 
                 fridExpiryDate = util.formatDate(fridExpiryDate, "DD MMM YYYY");
                 if(Math.sign(difference) === 1) { //Positive
@@ -3125,6 +3187,7 @@ async function removeAsOwner(request,data)  {
 
             console.log("comment ---------------------");
             console.log(comment.comment);
+            request.debug_info.push('comment: ' + comment.comment);
 
             addCommentRequest.asset_id = 100;
             addCommentRequest.device_os_id = 7;
@@ -3355,6 +3418,7 @@ async function removeAsOwner(request,data)  {
                 });
                 // console.log("documentFieldData: ", documentFieldData);
                 console.log("documentFieldData[0].data_entity_text_1: ", documentFieldData[0].data_entity_text_1);
+                request.debug_info.push("documentFieldData[0].data_entity_text_1: "+ documentFieldData[0].data_entity_text_1);
                 
                 // Fetch the Attestation URL
                 const attestationFieldData = await getFieldValue({
@@ -3366,6 +3430,7 @@ async function removeAsOwner(request,data)  {
 
                 // console.log("attestationFieldData: ", attestationFieldData);
                 console.log("attestationFieldData[0].data_entity_text_1: ", attestationFieldData[0].data_entity_text_1);
+                request.debug_info.push("attestationFieldData[0].data_entity_text_1: "+ attestationFieldData[0].data_entity_text_1);
 
                 if (
                     Number(documentFieldData.length) > 0 &&
@@ -3466,6 +3531,8 @@ async function removeAsOwner(request,data)  {
 
                     console.log("bucketName: ", bucketName);
                     console.log("prefixPath: ", prefixPath);
+                    request.debug_info.push('bucketName: ' + bucketName);
+                    request.debug_info.push('prefixPath: ' + prefixPath);
 
                     const uploadDetails = await util.uploadReadableStreamToS3(request, {
                         Bucket: bucketName || "demotelcoinc",
@@ -3495,6 +3562,7 @@ async function removeAsOwner(request,data)  {
 
         }
         console.log("attachmentsList: ", attachmentsList);
+        request.debug_info.push('attachmentsList: ' + attachmentsList);
 
         // Do not do anything if no attachments are to be added
         if (
@@ -4055,10 +4123,15 @@ async function removeAsOwner(request,data)  {
             console.log('isWorkflowEnabled : ', isWorkflowEnabled);
             console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
             console.log('workflowActivityTypeId : ', workflowActivityTypeId);            
+            request.debug_info.push('originFlagSet: ' + originFlagSet);
+            request.debug_info.push('isWorkflowEnabled: ' + isWorkflowEnabled);
+            request.debug_info.push('sourceFormActivityTypeID: ' + sourceFormActivityTypeID);
+            request.debug_info.push('workflowActivityTypeId: ' + workflowActivityTypeId);
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
                 console.log('Target Form Process is different from the Source form');
                 console.log('##################################');
+                request.debug_info.push('Target Form Process is different from the Source form');
 
                 esmsFlag = 1;
                 if(originFlagSet && isWorkflowEnabled) {
@@ -4089,10 +4162,14 @@ async function removeAsOwner(request,data)  {
                         console.log('Target Form Submitted!');
                         console.log(targetFormTransactionID);
                         console.log(targetFormActivityID);
+                        request.debug_info.push('Target Form Submitted!');
+                        request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
+                        request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
                     }
                 } else {
                     if(Number(esmsFlag) === 1) {
                         console.log('Target Form Not Submitted!');
+                        request.debug_info.push('Target Form Not Submitted!');
                     }
                 }
             } catch (error) {
@@ -4106,6 +4183,7 @@ async function removeAsOwner(request,data)  {
             REQUEST_FIELD_ID = 0;
 
         console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
+        request.debug_info.push('fieldCopyInlineData.length: ' +  fieldCopyInlineData.length);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
                 sourceFormTransactionData = [],
@@ -4151,6 +4229,9 @@ async function removeAsOwner(request,data)  {
                 const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
                 console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
                 console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                request.debug_info.push('sourceFieldData[0]: ' + sourceFieldData[0]);
+                request.debug_info.push('sourceFieldDataTypeID: ' + sourceFieldDataTypeID);
+                request.debug_info.push('getFielDataValueColumnNameNew(sourceFieldDataTypeID): ' + getFielDataValueColumnNameNew(sourceFieldDataTypeID));
                 const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
                 
                 activityInlineDataMap.set(sourceFieldID, {
@@ -4172,10 +4253,13 @@ async function removeAsOwner(request,data)  {
 
         activityInlineData = [...activityInlineDataMap.values()];
         console.log("copyFields | activityInlineData: ", activityInlineData);
+        request.debug_info.push('activityInlineData: ' + activityInlineData);
         request.activity_title = activityInlineData[0].field_value;
         
         console.log("targetFormTransactionID: ", targetFormTransactionID);
         console.log("targetFormActivityID: ", targetFormActivityID);
+        request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
+        request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
@@ -4196,6 +4280,7 @@ async function removeAsOwner(request,data)  {
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
             console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            request.debug_info.push('shouldSubmitTargetForm: ' + shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
                 //console.log('Request.activity_title : ', request);
@@ -4653,10 +4738,12 @@ async function removeAsOwner(request,data)  {
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
+        request.debug_info.push('inlineData: ' + inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let type = Object.keys(inlineData);
         global.logger.write('conLog', type, {}, {});
+        request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
@@ -4726,6 +4813,7 @@ async function removeAsOwner(request,data)  {
                     ) {
                         newReq.customer_name = i.field_value;
                         console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
+                        request.debug_info.push('BotEngine | addParticipant | From Form | newReq.customer_name: ' +  newReq.customer_name);
                     }
                 }
             }
@@ -4776,6 +4864,8 @@ async function removeAsOwner(request,data)  {
 
                     console.log('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ', fieldData[0].data_entity_bigint_1);
                     console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
+                    request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
+                    request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
                 }
             }
 
@@ -4785,11 +4875,13 @@ async function removeAsOwner(request,data)  {
                     asset_id: newReq.desk_asset_id
                 });
                 console.log('assetData.length - ', assetData.length);
+                request.debug_info.push('assetData.length: ' + assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
                     newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
 
                     console.log('newReq.phone_number - ', newReq.phone_number);
+                    request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
                 }
             }
         }
@@ -4797,6 +4889,7 @@ async function removeAsOwner(request,data)  {
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
             console.log('Customer Name is empty hence fetching from DB');
+            request.debug_info.push('Customer Name is empty hence fetching from DB');
             try {
                 let fieldData = await getFieldValue({
                     form_transaction_id: newReq.form_transaction_id,
@@ -4807,6 +4900,7 @@ async function removeAsOwner(request,data)  {
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
                     console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                    request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: " + newReq.customer_name);
                 }
             } catch (error) {
                 logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
@@ -4818,12 +4912,14 @@ async function removeAsOwner(request,data)  {
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
         console.log('newReq.phone_number : ', newReq.phone_number);
+        request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            request.debug_info.push("BotService | addParticipant | Message: " + newReq.phone_number + " | " + typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
             logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
@@ -4838,8 +4934,10 @@ async function removeAsOwner(request,data)  {
         let resp;
 
         global.logger.write('conLog', inlineData, {}, {});
+        request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
         global.logger.write('conLog', type, {}, {});
+        request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
             newReq.communication_id = inlineData[type[0]].template_id;
@@ -5262,8 +5360,10 @@ async function removeAsOwner(request,data)  {
         let resp;
 
         global.logger.write('conLog', inlineData, {}, {});
+        request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
         global.logger.write('conLog', type, {}, {});
+        request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
             newReq.communication_id = inlineData[type[0]].template_id;
@@ -5286,6 +5386,7 @@ async function removeAsOwner(request,data)  {
         newReq.line = retrievedCommInlineData.communication_template.text.link || "";
         newReq.form = retrievedCommInlineData.communication_template.text.form || 0;
         global.logger.write('conLog', newReq.smsText, {}, {});
+        request.debug_info.push('smsText: ' + newReq.smsText);
 
         if (newReq.line) {
             newReq.smsText = newReq.smsText + " " + newReq.line;
@@ -5383,6 +5484,7 @@ async function removeAsOwner(request,data)  {
         fire716OnWFOrderFileRequest.log_asset_id = 100;
 
         global.logger.write('conLog', 'fire716OnWFOrderFileRequest :', fire716OnWFOrderFileRequest, {});
+        request.debug_info.push('fire716OnWFOrderFileRequest: ' + fire716OnWFOrderFileRequest);
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp) => {
                 (err === false) ? resolve() : reject(err);
@@ -5396,8 +5498,10 @@ async function removeAsOwner(request,data)  {
         let resp;
 
         global.logger.write('conLog', inlineData, {}, {});
+        request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
         global.logger.write('conLog', type, {}, {});
+        request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
             newReq.endpoint = inlineData[type[0]].endpoint;
@@ -5418,6 +5522,7 @@ async function removeAsOwner(request,data)  {
                     "organization_id": newReq.organization_id
                 });
                 global.logger.write('conLog', resp, {}, {});
+                request.debug_info.push('resp: ' + resp);
                 i.parameter_value = resp[0].data_entity_text_1;
             }
         }
@@ -5485,11 +5590,13 @@ async function removeAsOwner(request,data)  {
 
         //newrequest.activity_id = request.workflow_activity_id;
         global.logger.write('conLog', inlineData.workflow_percentage_contribution, {}, {});
+        request.debug_info.push('inlineData.workflow_percentage_contribution: ' + inlineData.workflow_percentage_contribution);
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
         //let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
         let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
         global.logger.write('conLog', resp, {}, {});
+        request.debug_info.push('resp: ' + resp);
 
         if (Number(wfCompletionPercentage) !== 0) {
             // Update the workflow percentage in the activity_list table
@@ -5558,12 +5665,14 @@ async function removeAsOwner(request,data)  {
                 global.logger.write('conLog', 'queueActivityMappingData : ', {}, {});
                 global.logger.write('conLog', queueActivityMappingData, {}, {});
 
+                request.debug_info.push('queueActivityMappingData: ' + queueActivityMappingData);
                 if (queueActivityMappingData.length > 0) {
                     queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                     queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
                     let obj = {};
 
                     global.logger.write('conLog', 'queueActMapInlineData.length', Object.keys(queueActMapInlineData).length, {});
+                    request.debug_info.push('queueActMapInlineData.length: ' + Object.keys(queueActMapInlineData).length);
                     if (Object.keys(queueActMapInlineData).length === 0) {
                         obj.queue_sort = {};
                         obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
@@ -5574,9 +5683,11 @@ async function removeAsOwner(request,data)  {
                     }
                     global.logger.write('conLog', 'Updated Queue JSON : ', queueActMapInlineData, {});
 
+                    request.debug_info.push('Updated Queue JSON - queueActMapInlineData: ' + queueActMapInlineData);
                     data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
                     global.logger.write('conLog', 'Updating the Queue Json : ', data, {});
 
+                    request.debug_info.push('Updating the Queue Json -data: ' + data);
                     activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => { });
                     //return [false, {}];
                 }
@@ -6846,11 +6957,14 @@ async function removeAsOwner(request,data)  {
         const customerData = {};
         for (const key of Object.keys(createCustomerInlineData)) {
             console.log("key: ", key);
+            request.debug_info.push('key: ' + key);
             const fieldID = Number(createCustomerInlineData[key].field_id);
             console.log("fieldID: ", fieldID);
+            request.debug_info.push('fieldID: ' + fieldID);
             if (formInlineDataMap.has(fieldID)) {
                 customerData[key] = formInlineDataMap.get(fieldID).field_value;
                 console.log("formInlineDataMap.get(fieldID).field_value: ", formInlineDataMap.get(fieldID).field_value);
+                request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
 
@@ -7500,6 +7614,8 @@ async function removeAsOwner(request,data)  {
         oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
+        request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);
+        request.debug_info.push('dueDateEdit: ' + dueDateEdit);
 
         if(dueDateEdit.hasOwnProperty('form_id') && dueDateEdit.form_id > 0) {
             let dateReq = Object.assign({}, request);
@@ -7518,39 +7634,49 @@ async function removeAsOwner(request,data)  {
             if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
                 fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
                 console.log('fieldData : ', fieldData);
+                request.debug_info.push('fieldData: ' + fieldData);
 
                 newDate = fieldData.field_value;
                 console.log('New Date b4 converting - ', newDate);
                 console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
+                request.debug_info.push('newDate: ' + newDate);
+                request.debug_info.push('Number(request.device_os_id): ' + Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
 
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    request.debug_info.push('moment(newDate, YYYY-MM-DD, true): ' + moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
                     
                     console.log('Retrieved Date field value - ANDROID: ', newDate);
+                    request.debug_info.push('Retrieved Date field value - ANDROID: '+ newDate);
                 } else if(Number(request.device_os_id) === 2) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
 
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    request.debug_info.push('moment(newDate, YYYY-MM-DD, true) -: '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     }                   
                     
                     console.log('Retrieved Date field value - IOS: ', newDate);
+                    request.debug_info.push('Retrieved Date field value - IOS: '+ newDate);
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
                     console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    request.debug_info.push('moment(newDate, YYYY-MM-DD, true) - '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     
                     if(!(moment(newDate, 'YYYY-MM-DD', true).isValid() || moment(newDate, 'YYYY-MM-DD HH:mm:ss', true).isValid())) {
                         if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                             console.log('IN IF');
+                            request.debug_info.push('IN IF');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
                         } else {
                             console.log('IN ELSE');
+                            request.debug_info.push('IN ELSE');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                         }
                     }
@@ -7561,6 +7687,8 @@ async function removeAsOwner(request,data)  {
         
         console.log('OLD DATE : ', oldDate);
         console.log('NEW DATE : ', newDate);
+        request.debug_info.push('OLD DATE: ' + oldDate);
+        request.debug_info.push('NEW DATE: ' + newDate);
 
         //Alter the workflow due date
         //activity/cover/alter
@@ -7611,6 +7739,7 @@ async function removeAsOwner(request,data)  {
                 activityCoverData.duedate.new = newDate;
         
         console.log('activityCoverData : ', activityCoverData);
+        request.debug_info.push('activityCoverData: ' + activityCoverData);
         try{
             newReq.activity_cover_data = JSON.stringify(activityCoverData);
         } catch(err) {
@@ -7626,6 +7755,7 @@ async function removeAsOwner(request,data)  {
             payload: newReq
         };
         console.log('request.workflow_activity_id : ', request.workflow_activity_id);
+        request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
 
         //Timeline /activity/timeline/entry/add
@@ -8682,6 +8812,7 @@ async function removeAsOwner(request,data)  {
     
     async function unassignParticipantFunc(request, activityID, assetID) {
         console.log('Unassigning the participant!');
+        request.debug_info.push('Unassigning the participant!');
 
         let trackGpsDatetime = request.track_gps_datetime || util.getCurrentUTCTime();
 
@@ -8716,6 +8847,7 @@ async function removeAsOwner(request,data)  {
             });
 
             console.log("removeParticipant | error: ", error);
+            request.debug_info.push("removeParticipant | error: "+ error);
             if (assetData.length > 0) {
                 removeParticipantRequest.activity_participant_collection = JSON.stringify([
                     {
@@ -8853,6 +8985,7 @@ async function removeAsOwner(request,data)  {
         // const urlKey = `858/974/5353/31476/2018/11/103/1604082465622/OPP-C-000196-260820-_-Bulk-3.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-2020-10.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: "+ bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -9505,10 +9638,12 @@ async function removeAsOwner(request,data)  {
         
         global.logger.write('conLog', inlineData, {}, {});
         console.log(inlineData);
+        request.debug_info.push('inlineData: ' + inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let inlineKeys = Object.keys(inlineData);        
         console.log('inlineKeys - ', inlineKeys);
+        request.debug_info.push('inlineKeys: ' + inlineKeys);
 
         if(inlineKeys.includes('static')) {
             newReq.flag_asset = inlineData.static.flag_asset;
@@ -9604,6 +9739,7 @@ async function removeAsOwner(request,data)  {
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
                     console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                    request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: "+ newReq.customer_name);
                 }
             } catch (error) {
                 logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
@@ -9615,12 +9751,14 @@ async function removeAsOwner(request,data)  {
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
         console.log('newReq.phone_number : ', newReq.phone_number);
+        request.debug_info.push('newReq.phone_number : '+ newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            request.debug_info.push('phone_number: ' + newReq.phone_number);
             newReq.organization_id = 906;
             return await addParticipantStep(newReq);
         } else {
@@ -9633,11 +9771,15 @@ async function removeAsOwner(request,data)  {
 
     async function checkCustomBot(request, inlineData) {
         console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
+        request.debug_info.push('inlineData: ' + inlineData);
+        request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
+        request.debug_info.push('activity_id: ' + request.activity_id);
         await sleep(5 * 1000);
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
         console.log("dateFormData", JSON.stringify(originFormData));
+        request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
             phone_number : inlineData.phone_number,
@@ -9657,6 +9799,7 @@ async function removeAsOwner(request,data)  {
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
         console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
         //     console.log("Request type match failed");
         //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
@@ -9669,8 +9812,10 @@ async function removeAsOwner(request,data)  {
 
         resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
         console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        request.debug_info.push("final value resultProductAndRequestType.productMatchFlag : "+ resultProductAndRequestType.productMatchFlag);
         if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
             console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
+            request.debug_info.push("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
             checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
@@ -9678,6 +9823,7 @@ async function removeAsOwner(request,data)  {
           resultProductAndRequestType.requestTypeMatch &&
           resultProductAndRequestType.reqularApproval) {
             console.log("Got Product Mobility, Triggering Mobility BOT");
+            request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
             checkMobility(request, inlineData.mobility_config, deskAssetData)
             return;
@@ -9685,6 +9831,7 @@ async function removeAsOwner(request,data)  {
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
             console.log("Product Match Failed--- Manual Flow");
+            request.debug_info.push("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
@@ -10694,6 +10841,7 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("After Alteration", formData[0].activity_inline_data, JSON.stringify(activityInlineData));
+        request.debug_info.push('activity_inline_data: ' + formData[0].activity_inline_data);
 
         let formId = inlineData[0].target_form_id;
 
@@ -10716,10 +10864,12 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
 
         console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
         console.log("activityInsertedDetails---->", activityInsertedDetails);
+        request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
 
 
         let activityTimelineCollection =  JSON.stringify({
