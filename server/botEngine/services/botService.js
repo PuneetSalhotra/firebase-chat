@@ -10567,6 +10567,7 @@ async function removeAsOwner(request,data)  {
                             }
                         } else if(row.field_value == '') {
                             console.error("Got Empty values while checking capexValue opexValue");
+                            orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
                                 sheetSelected = inlineData.smeSheet2;
@@ -10579,7 +10580,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF && paybackF", productF, segementF,  orderTypeF);
+                console.log("productF && segementF && orderTypeF", productF, segementF,  orderTypeF);
                 if(productF && segementF && orderTypeF){
                     console.log("Got match in phase 1");
                     phase1 = {productF, segementF, orderTypeF};
