@@ -1015,8 +1015,8 @@ function BotService(objectCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    this.initBotEngine = async (request) => {
-        debugInfo = {};
+    this.initBotEngine = async (request) => {        
+        request.debug_info = [];
 
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
@@ -1076,6 +1076,8 @@ function BotService(objectCollection) {
             console.log('In form_field_alter');
             console.log("formInlineDataMap: ", formInlineDataMap);
             console.log(' ');
+            request.debug_info.push('In form_field_alter');
+            request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);            
             /*In case of Refill 
                 1) trigger all form level bots 
                 2) trigger bots on the respective field i.e. altered*/
@@ -1214,15 +1216,15 @@ function BotService(objectCollection) {
                 field_id: i.field_id,
                 data_type_combo_id: i.data_type_combo_id,
                 data_type_combo_name: i.data_type_combo_name
-            }]);
+            }]);            
 
-            debugInfo.bot_operation_type_id = debugInfo.bot_operation_type_id;
-            debugInfo.bot_operation_sequence_id = i.bot_operation_sequence_id;
-            debugInfo.bot_operation_type_name = i.bot_operation_type_name;
-            debugInfo.form_id =  i.form_id;
-            debugInfo.field_id =  i.field_id;
-            debugInfo.data_type_combo_id =  i.data_type_combo_id;
-            debugInfo.data_type_combo_name = i.data_type_combo_name;
+            request.debug_info.push("bot_operation_sequence_id - " + i.bot_operation_sequence_id);
+            request.debug_info.push("bot_operation_type_id - " + i.bot_operation_type_id);
+            request.debug_info.push("bot_operation_type_name - " + i.bot_operation_type_name);
+            request.debug_info.push("form_id - " + i.form_id);
+            request.debug_info.push("field_id - " + i.field_id);
+            request.debug_info.push("data_type_combo_id - " + i.data_type_combo_id);
+            request.debug_info.push("data_type_combo_name - " + i.data_type_combo_name);
             
             // Update bot trigger details
             request.trigger_form_id = Number(i.form_id);
@@ -1238,7 +1240,7 @@ function BotService(objectCollection) {
                     !formInlineDataMap.has(botOperationFieldID)
                 ) {
                     logger.silly("\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m");
-                    debugInfo.silly = 'This bot operation is field specific & cannot be applied.';
+                    request.debug_info.push('This bot operation is field specific & cannot be applied.');
                     continue;
                 }
                 // 
@@ -1250,13 +1252,13 @@ function BotService(objectCollection) {
                     !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
                 ) {
                     logger.silly("\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m");
-                    debugInfo.silly = 'This bot operation is field and data_type_combo_id specific & cannot be applied.';
+                    request.debug_info.push('This bot operation is field and data_type_combo_id specific & cannot be applied.');
                     continue;
                 }
             } catch (error) {
                 logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
-                debugInfo.error = 'Error checking field/data_type_combo_id trigger specificity';
-                debugInfo.error_info = error;
+                request.debug_info.push('Error checking field/data_type_combo_id trigger specificity');
+                request.debug_info.push(error);                
             }
 
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
@@ -1267,21 +1269,17 @@ function BotService(objectCollection) {
             botSteps = Object.keys(botOperationsJson.bot_operations);
             //console.log('TWO');
             logger.silly("botSteps: %j", botSteps);
-            //console.log('THREE');
-            debugInfo.bot_steps = botSteps;
+            //console.log('THREE');            
 
             // Check for condition, if any
             let canPassthrough = true;
             try {
                 canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
             } catch (error) {
-                console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);
-                debugInfo.error = 'canPassthrough | isBotOperationConditionTrue | canPassthrough | Error:';
-                debugInfo.error_info = error;
+                console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);               
             }
             if (!canPassthrough) {
-                console.log("The bot operation condition failed, so the bot operation will not be executed.");
-                debugInfo.info = 'The bot operation condition failed, so the bot operation will not be executed.';
+                console.log("The bot operation condition failed, so the bot operation will not be executed.");                
                 continue;
             }
 
@@ -1289,10 +1287,8 @@ function BotService(objectCollection) {
             //   i.bot_operation_type_id === 17 || 
             //   i.bot_operation_type_id === 28) {
             //    continue;
-            //}
-
-            debugInfo.bot_operations_inline_json = i.bot_operation_inline_data;
-            //debugInfo.request_params = request;
+            //}            
+            
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
@@ -1307,9 +1303,7 @@ function BotService(objectCollection) {
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });
-                        debugInfo.error = 'Error in executing addParticipant Step';
-                        debugInfo.error_info = err;
+                        });                        
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1326,19 +1320,14 @@ function BotService(objectCollection) {
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
-                            });
-
-                            debugInfo.error = 'Error in executing changeStatus Step';
-                            debugInfo.error_info = i.bot_operation_inline_data;
+                            });                            
                         }
                     } catch (err) {
                         logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });
-                        debugInfo.error = 'Error in executing changeStatus Step';
-                        debugInfo.error_info = err;
+                        });                        
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1358,9 +1347,7 @@ function BotService(objectCollection) {
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });
-                        debugInfo.error = 'Error in executing copyFields Step';
-                        debugInfo.error_info = err;
+                        });                        
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2006,7 +1993,7 @@ function BotService(objectCollection) {
             }
 
             //botOperationTxnInsert(request, i);
-            botOperationTxnInsertV1(request, i, debugInfo);
+            botOperationTxnInsertV1(request, i);
             await new Promise((resolve, reject) => {
                 setTimeout(() => {
                     resolve();
@@ -3700,12 +3687,15 @@ async function removeAsOwner(request,data)  {
         }
     }
 
-    async function botOperationTxnInsertV1(request, botData, debugInfo) {
+    async function botOperationTxnInsertV1(request, botData) {
         console.log(' ');
         console.log('***********************');
-        console.log('debugInfo - ', debugInfo);
+        console.log('request.debug_info - ', request.debug_info);
         console.log('***********************');
         console.log(' ');
+        let debugInfo = {
+            debug_info : request.debug_info
+        }
         debugInfo = (typeof debugInfo === 'object') ? JSON.stringify(debugInfo) : debugInfo;
         const paramsArr = [
                             request.bot_transaction_id || 0,
