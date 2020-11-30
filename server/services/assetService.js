@@ -789,7 +789,8 @@ function AssetService(objectCollection) {
             'asset_flag_super_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_super_admin']),
             'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name']) ,
             'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data']),
-            'is_password_set':is_password_set
+            'is_password_set':is_password_set,
+            'asset_encryption_token_id': util.replaceDefaultString(rowArray[0]['asset_encryption_token_id'])
         };
 
         callback(false, rowData);
