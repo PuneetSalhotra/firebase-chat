@@ -1186,6 +1186,7 @@ function ActivityConfigService(db,util,objCollection) {
             }
 
             //Update the same in ElastiSearch
+            console.log('hasAccountCode - ', hasAccountCode);
             if(!hasAccountCode) {
                 client.updateByQuery({
                     index: 'crawling_accounts',
@@ -1200,7 +1201,13 @@ function ActivityConfigService(db,util,objCollection) {
                             "lang": "painless",
                             "params": {
                                 "activity_cuid_1":panNumber,
-                                "activity_cuid_2":gstNumber
+                                "activity_cuid_2":gstNumber,
+                                "activity_cuid_3": accountCode,
+                                "activity_type_id": Number(request.activity_type_id),
+                                "workforce_id": Number(request.workforce_id),
+                                "account_id": Number(request.account_id),
+                                "activity_id": Number(request.workflow_activity_id),
+                                "asset_id": Number(request.asset_id)
                             }
                         }
                     }
