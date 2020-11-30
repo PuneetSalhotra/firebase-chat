@@ -3939,7 +3939,6 @@ async function addFormEntriesAsync(request) {
                     if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
                         const senderEmail = (Number(request.organization_id === 868)) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
                         const senderEmailPwd =  senderAssetData[0].asset_email_password;
-
                         const [err, resp] = await sendEmail({
                                             workflow_title: request.workflow_title,
                                             workflow_update: request.workflow_update,
@@ -3951,6 +3950,7 @@ async function addFormEntriesAsync(request) {
                                             email_sender: senderEmail,
                                             sender_asset_id: request.asset_id,
                                             receiver_asset_id: mentionedAssets[i],
+                                            is_version_v1:1,
                                             receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
                                             sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
                                         }, request);
@@ -4069,7 +4069,7 @@ async function addFormEntriesAsync(request) {
 
         if(Number(requestObj.organization_id) === 868) {
             console.log('Sending mentions email to : ', request.asset_email_id);
-            //console.log('Template : ', Template);
+            // console.log('Template : ', Template);
             const err = await util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
             if(err) {
                 return [true, 'Invalid Password'];
