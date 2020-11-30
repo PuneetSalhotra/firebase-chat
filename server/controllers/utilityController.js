@@ -87,7 +87,7 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/send/email/v3', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
-        let htmlTemplate = req.body.html_template
+        let htmlTemplate = req.body.html_template;
         let emailReceiver = req.body.email_receiver;
 
         util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
@@ -105,21 +105,25 @@ function UtilityController(objCollection) {
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template;
         let emailReceiver = req.body.email_receiver;
+        const emailSender = req.body.email_sender;
 
-        //util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
-        //    if (err === false) {
-        //        res.send(responseWrapper.getResponse(err, data, 200, req.body));
-        //    } else {
-        //        res.send(responseWrapper.getResponse(err, err, -100, req.body));
-        //    }
-        //});
-
-        let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
-        if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        if(emailSender === 'no_reply@grenerobotics.com') {
+            util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+                if (err === false) {
+                    res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                } else {
+                    res.send(responseWrapper.getResponse(err, err, -100, req.body));
+                }
+            });
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
+            if (err) {
+                return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            } else {
+                return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }
         }
+        
     });
 
     //VNK webhook
