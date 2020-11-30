@@ -2403,6 +2403,7 @@ function BotService(objectCollection) {
             try {
                 await removeParticipantBot(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
             } catch (error) {
+                request.debug_info.push("Error in processing remove participant Bot", " Error : "+ error, "Error Stack : " + error.stack );
                 throw new Error("Error in processing remove participant Bot");
             }
         }
@@ -10839,6 +10840,12 @@ async function removeAsOwner(request,data)  {
                     }
                 }
             }
+        }
+
+        if(!finalInlineData.length) {
+            console.log("Got No field to copy");
+            request.debug_info.push('Got No field to copy' + JSON.stringify(inlineData), "Data from db " + formData[0].activity_inline_data);
+            return;
         }
 
         console.log("After Alteration", formData[0].activity_inline_data, JSON.stringify(activityInlineData));
