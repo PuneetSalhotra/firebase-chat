@@ -10852,12 +10852,29 @@ async function removeAsOwner(request,data)  {
         request.debug_info.push('activity_inline_data: ' + formData[0].activity_inline_data);
 
         let formId = inlineData[0].target_form_id;
-
+        
         let createWorkflowRequest                       = Object.assign({}, request);
+        let targetFormctivityTypeID = 0;
+        const [workforceActivityTypeMappingError, workforceActivityTypeMappingData] = await workforceActivityTypeMappingSelect({
+            organization_id: createWorkflowRequest.organization_id,
+            account_id: createWorkflowRequest.account_id,
+            workforce_id: createWorkflowRequest.workforce_id,
+            activity_type_category_id: 9
+        });
+        if (
+          (workforceActivityTypeMappingError === false) &&
+          (Number(workforceActivityTypeMappingData.length) > 0)
+        ) {
+            targetFormctivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
+        }
+
+        if (targetFormctivityTypeID === 0) {
+            throw new Error("createTargetFormActivity | Error Fetching targetFormctivityTypeID");
+        }
+        createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
         createWorkflowRequest.activity_inline_data      = JSON.stringify(finalInlineData);
         createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
-        createWorkflowRequest.activity_type_category_id = request.activity_type_category_id;
-        createWorkflowRequest.activity_type_id          = request.activity_type_id;
+        createWorkflowRequest.activity_type_category_id = 9;
         createWorkflowRequest.activity_parent_id        = 0;
         createWorkflowRequest.activity_form_id          = formId;
         createWorkflowRequest.form_id                   = formId;
