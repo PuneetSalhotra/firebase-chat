@@ -2404,6 +2404,7 @@ function BotService(objectCollection) {
             try {
                 await removeParticipantBot(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
             } catch (error) {
+                request.debug_info.push("Error in processing remove participant Bot", " Error : "+ error, "Error Stack : " + error.stack );
                 throw new Error("Error in processing remove participant Bot");
             }
         }
@@ -7570,7 +7571,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -10569,6 +10570,7 @@ async function removeAsOwner(request,data)  {
                             }
                         } else if(row.field_value == '') {
                             console.error("Got Empty values while checking capexValue opexValue");
+                            orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
                                 console.log("Sheet Selected Sheet 2");
                                 sheetSelected = inlineData.smeSheet2;
@@ -10581,7 +10583,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF && paybackF", productF, segementF,  orderTypeF);
+                console.log("productF && segementF && orderTypeF", productF, segementF,  orderTypeF);
                 if(productF && segementF && orderTypeF){
                     console.log("Got match in phase 1");
                     phase1 = {productF, segementF, orderTypeF};
@@ -10818,89 +10820,123 @@ async function removeAsOwner(request,data)  {
     }
 
     async function staticCopyField(request, inlineData) {
-        let formData = await getActivityIdBasedOnTransId({
-            organization_id : request.organization_id,
-            form_transaction_id : request.form_transaction_id
-        });
 
+        for(let row of inlineData) {
+            let formData = await activityCommonService.getFormFieldMappings(request, row.target_form_id, 0, 50);
 
-        let activityInlineData = JSON.parse(formData[0].activity_inline_data);
+            let activityInlineData = [];
 
-        let finalInlineData = [];
-        for(let formInline of activityInlineData) {
-            for(let row of inlineData) {
-                if(formInline.field_id == row.target_field_id) {
-                    if(row.target_field_data_type_id == formInline.field_data_type_id) {
-                        if(row.target_field_data_type_combo_id == formInline.data_type_combo_id) {
-                            formInline.data_type_combo_value = row.target_field_value;
-                        } else {
-                            formInline.field_value = row.target_field_value;
+            for(let data of formData) {
+                activityInlineData.push({
+                    "form_id": data.form_id,
+                    "field_id": data.field_id,
+                    "field_name": data.field_name,
+                    "message_unique_id": data.message_unique_id,
+                    "data_type_combo_id": data.data_type_combo_id,
+                    "field_data_type_id": data.data_type_id,
+                    "data_type_combo_value": data.data_type_combo_value,
+                    "field_data_type_category_id": data.data_type_category_id
+                });
+            }
+
+            console.log("activityInlineData", JSON.stringify(activityInlineData));
+
+            let finalInlineData = [];
+            for(let formInline of activityInlineData) {
+                for(let row of inlineData) {
+                    if(formInline.field_id == row.target_field_id) {
+                        if(row.target_field_data_type_id == formInline.field_data_type_id) {
+                            if(row.target_field_data_type_combo_id == formInline.data_type_combo_id) {
+                                formInline.data_type_combo_value = row.target_field_value;
+                                formInline.field_value = row.target_field_value;
+                                finalInlineData.push(formInline);
+                            }
                         }
-                        finalInlineData.push(formInline);
                     }
                 }
             }
+
+            if(!finalInlineData.length) {
+                console.log("Got No field to copy");
+                request.debug_info.push('Got No field to copy' + JSON.stringify(inlineData), "Data from db " + formData[0].field_inline_data);
+                return;
+            }
+
+            console.log("After Alteration", finalInlineData);
+
+            let formId = row.target_form_id;
+
+            let createWorkflowRequest                       = Object.assign({}, request);
+            let targetFormctivityTypeID = 0;
+            const [workforceActivityTypeMappingError, workforceActivityTypeMappingData] = await workforceActivityTypeMappingSelect({
+                organization_id: createWorkflowRequest.organization_id,
+                account_id: createWorkflowRequest.account_id,
+                workforce_id: createWorkflowRequest.workforce_id,
+                activity_type_category_id: 9
+            });
+            if (
+              (workforceActivityTypeMappingError === false) &&
+              (Number(workforceActivityTypeMappingData.length) > 0)
+            ) {
+                targetFormctivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
+            }
+
+            if (targetFormctivityTypeID === 0) {
+                throw new Error("createTargetFormActivity | Error Fetching targetFormctivityTypeID");
+            }
+            createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
+            createWorkflowRequest.activity_inline_data      = JSON.stringify(finalInlineData);
+            createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+            createWorkflowRequest.activity_type_category_id = 9;
+            createWorkflowRequest.activity_parent_id        = 0;
+            createWorkflowRequest.activity_form_id          = formId;
+            createWorkflowRequest.form_id                   = formId;
+            createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.device_os_id              = 7;
+
+            const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
+            const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
+            createWorkflowRequest.activity_id         = targetFormActivityID;
+            createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+            createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
+
+            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
+            const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+            let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
+
+
+            let activityTimelineCollection =  JSON.stringify({
+                "content"            : `Form Submitted`,
+                "subject"            : `Final Approval for BC Closure`,
+                "mail_body"          : `Final Approval for BC Closure`,
+                "activity_reference" : [],
+                "form_id"            : formId,
+                "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
+                "asset_reference"    : [],
+                "attachments"        : [],
+                "form_approval_field_reference": []
+            });
+
+
+            let timelineReq = Object.assign({}, createWorkflowRequest);
+
+            timelineReq.activity_id                  = request.workflow_activity_id;
+            timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id      = 705;
+            timelineReq.timeline_stream_type_id      = 705;
+            timelineReq.activity_type_category_id    = 48;
+            timelineReq.asset_id                     = 100;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
-
-        console.log("After Alteration", formData[0].activity_inline_data, JSON.stringify(activityInlineData));
-        request.debug_info.push('activity_inline_data: ' + formData[0].activity_inline_data);
-
-        let formId = inlineData[0].target_form_id;
-
-        let createWorkflowRequest                       = Object.assign({}, request);
-        createWorkflowRequest.activity_inline_data      = JSON.stringify(finalInlineData);
-        createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
-        createWorkflowRequest.activity_type_category_id = request.activity_type_category_id;
-        createWorkflowRequest.activity_type_id          = request.activity_type_id;
-        createWorkflowRequest.activity_parent_id        = 0;
-        createWorkflowRequest.activity_form_id          = formId;
-        createWorkflowRequest.form_id                   = formId;
-        createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        createWorkflowRequest.device_os_id              = 7;
-
-        const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
-        const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
-        createWorkflowRequest.activity_id         = targetFormActivityID;
-        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
-        createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
-
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
-        request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
-        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-        let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
-
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
-        request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
-
-
-        let activityTimelineCollection =  JSON.stringify({
-            "content"            : `Form Submitted`,
-            "subject"            : `Final Approval for BC Closure`,
-            "mail_body"          : `Final Approval for BC Closure`,
-            "activity_reference" : [],
-            "form_id"            : formId,
-            "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
-            "asset_reference"    : [],
-            "attachments"        : [],
-            "form_approval_field_reference": []
-        });
-
-
-        let timelineReq = Object.assign({}, createWorkflowRequest);
-
-        timelineReq.activity_id                  = request.workflow_activity_id;
-        timelineReq.message_unique_id            = util.getMessageUniqueId(100);
-        timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
-        timelineReq.activity_stream_type_id      = 705;
-        timelineReq.timeline_stream_type_id      = 705;
-        timelineReq.activity_type_category_id    = 48;
-        timelineReq.asset_id                     = 100;
-        timelineReq.activity_timeline_collection = activityTimelineCollection;
-        timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
-
-        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
-
     }
 }
 

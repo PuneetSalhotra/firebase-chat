@@ -5387,7 +5387,9 @@ function ActivityService(objectCollection) {
         newReq.cuid_2 = gstNumber;
 
         //Update in Elasti-Search
-        await elasticService.updateAccountCode(newReq, generatedAccountCode, activityTitleExpression);
+        if(generatedAccountCode !== null) {
+            await elasticService.updateAccountCode(newReq, generatedAccountCode, activityTitleExpression);
+        }     
         return [false, []];
     }
 
