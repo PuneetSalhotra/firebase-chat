@@ -1186,45 +1186,43 @@ function ActivityConfigService(db,util,objCollection) {
             }
 
             //Update the same in ElastiSearch
-            if(!hasAccountCode){
-            client.updateByQuery({
-                index: 'crawling_accounts',
-                "body": {
-                    "query": {
-                        "match": {
-                            "activity_id": Number(request.workflow_activity_id)
-                        }
-                    },
-                    "script": {
-                        "source": "ctx._source = params",
-                        "lang": "painless",
-                        "params": {
-                            "activity_cuid_1":panNumber,
-                            "activity_cuid_2":gstNumber
+            if(!hasAccountCode) {
+                client.updateByQuery({
+                    index: 'crawling_accounts',
+                    "body": {
+                        "query": {
+                            "match": {
+                                "activity_id": Number(request.workflow_activity_id)
+                            }
+                        },
+                        "script": {
+                            "source": "ctx._source = params",
+                            "lang": "painless",
+                            "params": {
+                                "activity_cuid_1":panNumber,
+                                "activity_cuid_2":gstNumber
+                            }
                         }
                     }
-                }
-            });
-        }
-        else{
-            client.index({
-                index: 'crawling_accounts',
-                body: {
-                    activity_cuid_3: accountCode,
-                    activity_type_id: Number(request.activity_type_id),
-                    workforce_id: Number(request.workforce_id),
-                    account_id: Number(request.account_id),
-                    activity_id: Number(request.workflow_activity_id),
-                    asset_id: Number(request.asset_id)
-                    //operating_asset_first_name: "Sagar Pradhan",
-                    //activity_title: "GALAXY MEDICATION",
-                    //activity_type_name: "Account Management - SME",
-                    //asset_first_name: "Channel Head",
-                    //operating_asset_id: 44574,
-                }
-            });
-
-        }
+                });
+            } else {
+                client.index({
+                    index: 'crawling_accounts',
+                    body: {
+                        activity_cuid_3: accountCode,
+                        activity_type_id: Number(request.activity_type_id),
+                        workforce_id: Number(request.workforce_id),
+                        account_id: Number(request.account_id),
+                        activity_id: Number(request.workflow_activity_id),
+                        asset_id: Number(request.asset_id)
+                        //operating_asset_first_name: "Sagar Pradhan",
+                        //activity_title: "GALAXY MEDICATION",
+                        //activity_type_name: "Account Management - SME",
+                        //asset_first_name: "Channel Head",
+                        //operating_asset_id: 44574,
+                    }
+                });
+             }
 
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
         }       
