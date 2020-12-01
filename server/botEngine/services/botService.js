@@ -10862,6 +10862,7 @@ async function removeAsOwner(request,data)  {
 
             console.log("After Alteration", finalInlineData);
 
+            await sleep(5 * 1000);
             let formId = row.target_form_id;
 
             let createWorkflowRequest                       = Object.assign({}, request);
