@@ -2288,7 +2288,7 @@ function BotService(objectCollection) {
 
             console.log("Inline data");
             console.log(inlineData);
-            request.debug_info.push('inlineData: ' + inlineData);
+            request.debug_info.push('inlineData: ' + JSON.stringify(inlineData));
 
             let type = Object.keys(inlineData);
                 global.logger.write('conLog', type, {}, {});
@@ -4063,7 +4063,7 @@ async function removeAsOwner(request,data)  {
             return [false, {}];
         } else {
             logger.error("No workflow to queue mappings found", { type: 'bot_engine', request_body: request });
-            return [true, "Resp is Empty"];
+            return [true, "No workflow to queue mappings found"];
         }
     }
 
@@ -4073,7 +4073,7 @@ async function removeAsOwner(request,data)  {
             console.log('form_field_copy | Request Params received by BOT ENGINE', request);
             await copyFields(request, JSON.parse(request.form_field_copy));
         } catch (err) {
-         console.log('ERR : ', err);
+         console.log('ERR : ', err, error.stack);
         }
     }
     
@@ -10597,7 +10597,7 @@ async function removeAsOwner(request,data)  {
             }
 
             if(!Object.keys(phase1).length) {
-                console.error("Matching Failed in Product, Segment, orderTypeF, paybackF");
+                console.error("Matching Failed in Product, Segment, orderTypeF");
                 return false;
             }
 
@@ -10642,7 +10642,7 @@ async function removeAsOwner(request,data)  {
                     } else if(row.field_id == paybackFieldId) {
                         console.log("Checking for Pay back fields");
 
-                        if(row.field_value >= value['9']) {
+                        if(row.field_value <= value['9']) {
                             console.log("Value matched in pay back value");
                             paybackF = 1;
                         }
@@ -10864,6 +10864,7 @@ async function removeAsOwner(request,data)  {
 
             console.log("After Alteration", finalInlineData);
 
+            await sleep(5 * 1000);
             let formId = row.target_form_id;
 
             let createWorkflowRequest                       = Object.assign({}, request);
@@ -10943,4 +10944,3 @@ async function removeAsOwner(request,data)  {
 
 
 module.exports = BotService;
-
