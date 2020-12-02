@@ -1535,7 +1535,7 @@ function ActivityConfigService(db,util,objCollection) {
                 } else { //Govt Regular
                     //console.log('Inside ELSE');
 
-                    accountCode += ((govtCompanyName.substr(0,10)).padEnd(10,'0')).toUpperCase();
+                    accountCode += ((govtCompanyName.substr(0,11)).padEnd(9,'0')).toUpperCase();
                     accountCode += '-';
                     //accountCode += nameofgrouppcompany.padEnd(6, '0');
                 }
