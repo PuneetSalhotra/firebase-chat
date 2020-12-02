@@ -1073,7 +1073,7 @@ function ActivityConfigService(db,util,objCollection) {
         let botInlineData;
 
         if(botData.length > 0) {
-            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).account_code_dependent_fields;
+            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).bot_operations.account_code_dependent_fields;
             console.log('Account Code Dependent Fields: ',botInlineData);
         } else {
             error = true;
