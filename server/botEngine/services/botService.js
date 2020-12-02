@@ -2010,7 +2010,7 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('Static copy field bot ');
                     try {
-                        await staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
+                        staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing Static copy field bot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -10862,7 +10862,7 @@ async function removeAsOwner(request,data)  {
 
             console.log("After Alteration", finalInlineData);
 
-            await sleep(5 * 1000);
+            await sleep(30 * 1000);
             let formId = row.target_form_id;
 
             let createWorkflowRequest                       = Object.assign({}, request);
