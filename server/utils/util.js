@@ -2663,6 +2663,34 @@ function Util(objectCollection) {
     }
 
 
+    this.uploadXLSXToS3 = async (fileData,prefix) => {
+        return new Promise(async (resolve)=>{
+            
+            let bucketData = await this.getDynamicBucketName();
+            let bucketName = bucketData[0].bucket_encrypted_name;
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fileData,
+                Bucket: bucketName,
+                Key: prefix,
+                ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ContentEncoding: 'base64',
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
+            });
+    };    
+
+
+
 }
 
 module.exports = Util;

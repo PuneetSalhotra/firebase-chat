@@ -1,5 +1,5 @@
 const logger = require("../logger/winstonLogger");
-
+const moment = require("moment");
 function CacheWrapper(client) {
 
     this.getServiceId = function (url, callback) {
@@ -818,6 +818,56 @@ function CacheWrapper(client) {
             });
         });
     };
+
+    this.checkBulkFeasibilitySummaryJobRequestIDExists = function (request) {
+        return new Promise((resolve, reject) => {
+
+            const MODE = String(global.mode).toUpperCase()
+            const key = `${MODE}_BULK_FEASIBILITY_SUMMARY_REPORT_RATE_LIMIT::${request.asset_id}::${request.parent_activity_id}`;
+            client.exists(key, function (err, reply) {
+                if (err) {
+                    logger.error(`EXISTS ${key}`, { type: 'redis', cache_response: reply, error: err });
+                    reject(err);
+                } else {
+                    logger.verbose(`EXISTS ${key}`, { type: 'redis', cache_response: reply, error: err });
+                    resolve(reply);
+                }
+            });
+        });
+    };
+    
+    this.setBulkFeasibilitySummaryJobRequestIDWithExpiry = function (request, secondsToExpire = 300) {
+        return new Promise((resolve, reject) => {
+
+            const MODE = String(global.mode).toUpperCase()
+            const key = `${MODE}_BULK_FEASIBILITY_SUMMARY_REPORT_RATE_LIMIT::${request.asset_id}::${request.parent_activity_id}`;
+            const value = moment().utcOffset("+05:30").format("DD_MM_YYYY-hh_mm_A");
+            // Set the value of a key, only if the key does not exist.
+            client.setnx(key, value, function (err, reply) {
+                if (err) {
+                    logger.error(`SETNX ${key} ${value}`, { type: 'redis', cache_response: reply, error: err });
+                    reject(err);
+                } else {
+                    logger.verbose(`SETNX ${key} ${value}`, { type: 'redis', cache_response: reply, error: err });
+                    // Set a key's TTL in seconds, if the key was set in the previous step
+                    if (Number(reply) === 1) {
+                        client.expire(key, secondsToExpire, function (expireErr, expireReply) {
+                            if (expireErr) {
+                                logger.error(`EXPIRE ${key} ${secondsToExpire}`, { type: 'redis', cache_response: reply, error: err });
+                                return resolve(1);
+                            } else {
+                                logger.verbose(`EXPIRE ${key} ${secondsToExpire}`, { type: 'redis', cache_response: reply, error: err });
+                                return resolve(1);
+                            }
+                        });
+                    } else {
+                        return resolve(0);
+                    }
+                }
+            });
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;
