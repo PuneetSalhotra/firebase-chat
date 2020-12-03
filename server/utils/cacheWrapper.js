@@ -819,7 +819,7 @@ function CacheWrapper(client) {
         });
     };
 
-    this.checkBulkFeasibilitySummaryJobRequestIDExists = function (request) {
+    this.checkBulkFeasibilitySummaryReportRateLimitExists = function (request) {
         return new Promise((resolve, reject) => {
 
             const MODE = String(global.mode).toUpperCase()
@@ -836,7 +836,7 @@ function CacheWrapper(client) {
         });
     };
     
-    this.setBulkFeasibilitySummaryJobRequestIDWithExpiry = function (request, secondsToExpire = 300) {
+    this.setBulkFeasibilitySummaryReportRateLimitWithExpiry = function (request, secondsToExpire = 300) {
         return new Promise((resolve, reject) => {
 
             const MODE = String(global.mode).toUpperCase()

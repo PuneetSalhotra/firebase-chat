@@ -1070,18 +1070,14 @@ function ActivityListingController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/activity/bulk-summary/list/v2', async (req, res) => {
-        const [err, responseData] = await activityListingService.getActivityBulkSummaryDataV2(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
-        } else {
-            console.log("/activity/bulk-summary/list/v2 | Error: ", err);
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-        }
-    });
-
     app.post('/' + global.config.version + '/activity/bulk-summary/list/v1', async (req, res) => {
 
+        const rateLimitExists = await cacheWrapper.checkBulkFeasibilitySummaryReportRateLimitExists(req.body);
+        if (Number(rateLimitExists)) {
+            logger.debug(`${req.body.parent_activity_id} | Bulk feasibility summary request job in progress!`, { req, dupe_check: "RATE_LIMIT_EXISTS" });
+            res.send(responseWrapper.getResponse(false, [{ message: "Too many requests received. Please wait sometime to resubmit again." }], 200, req.body));
+            return;
+        }
 
         const bulkSummaryEvent = {
             name: "BulkSummaryData",
@@ -1093,15 +1089,15 @@ function ActivityListingController(objCollection) {
         queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, (err, resp) => {
             if (err) {
                 console.log("/activity/bulk-summary/list/v1 | Error: ", err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.send(responseWrapper.getResponse(err, [{
+                    message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
+                }], -9998, req.body));
                 return;
             } else {
-                res.send(responseWrapper.getResponse(false, [{message : "The summary is being generated and will be available on the timeline shortly!."}], 200, req.body));
+                const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 100);
+                res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!." }], 200, req.body));
             }
         });
-
-
-        // const jobRequestIDExists = await cacheWrapper.checkBulkFeasibilitySummaryJobRequestIDExists(req.body);
 
         // if (Number(jobRequestIDExists)) {
         //     logger.debug(`${req.body.parent_activity_id} | Bulk feasibility summary request job in progress!`, { req, dupe_check: "JRID_EXISTS" });
@@ -1135,9 +1131,6 @@ function ActivityListingController(objCollection) {
         //         });
         //     }
         // }
-
-
-
 
     });
 
