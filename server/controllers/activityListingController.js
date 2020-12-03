@@ -1086,7 +1086,7 @@ function ActivityListingController(objCollection) {
             payload: req.body
         };
 
-        queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, (err, resp) => {
+        queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, async (err, resp) => {
             if (err) {
                 console.log("/activity/bulk-summary/list/v1 | Error: ", err);
                 res.send(responseWrapper.getResponse(err, [{
@@ -1094,43 +1094,10 @@ function ActivityListingController(objCollection) {
                 }], -9998, req.body));
                 return;
             } else {
-                const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 100);
+                const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
                 res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!." }], 200, req.body));
             }
         });
-
-        // if (Number(jobRequestIDExists)) {
-        //     logger.debug(`${req.body.parent_activity_id} | Bulk feasibility summary request job in progress!`, { req, dupe_check: "JRID_EXISTS" });
-        //     res.send(responseWrapper.getResponse(false, [{ message: "Too many requests received. Please wait sometime to resubmit again." }], 200, req.body));
-        //     return;
-        // } else {
-
-        //     const isJRIDSet = await cacheWrapper.setBulkFeasibilitySummaryJobRequestIDWithExpiry(req.body, 100);
-        //     if (Number(isJRIDSet) === 0) {
-        //         logger.debug(`${req.body.parent_activity_id} | Bulk feasibility request job in progress!`, { req, dupe_check: "JRID_NOT_SET" });
-        //         res.send(responseWrapper.getResponse(false, [{ message: "Too many requests received. Please wait sometime to resubmit again." }], 200, req.body));
-        //         return;
-        //     }
-        //     else {
-        //         console.log("Request Job Id Set properly");
-        //         const bulkSummaryEvent = {
-        //             name: "BulkSummaryData",
-        //             service: "activityListingService",
-        //             method: "getActivityBulkSummaryDataV1",
-        //             payload: req.body
-        //         };
-
-        //         queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, (err, resp) => {
-        //             if (err) {
-        //                 console.log("/activity/bulk-summary/list/v1 | Error: ", err);
-        //                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-        //                 return;
-        //             } else {
-        //                 res.send(responseWrapper.getResponse(false, [{message : "The summary is being generated and will be available on the timeline shortly!."}], 200, req.body));
-        //             }
-        //         });
-        //     }
-        // }
 
     });
 
