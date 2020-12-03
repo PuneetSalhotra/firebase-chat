@@ -1719,7 +1719,7 @@ function Util(objectCollection) {
         let [bucketName,keyName,fileName]= await new Promise((resolve) => {
             try {
             let urlParts;
-            if (url.indexOf('ap-south') > 1) {
+            if (S3Url.indexOf('ap-south') > 1) {
             urlParts = S3Url.split('.s3.ap-south-1.amazonaws.com/');
             } else {
             urlParts = S3Url.split('.s3.amazonaws.com/');
