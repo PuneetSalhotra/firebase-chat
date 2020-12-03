@@ -3583,20 +3583,23 @@ function ActivityListingService(objCollection) {
 			return currentNumber;
 		}
 
-		const headerContent = [["parent_opportunity_id", "child_opportunity_id", "primary_standard", "feasibility_primary_status", "feasibility_primary_description", "secondary_standard", "feasibility_secondary_status", "feasibility_secondary_description",
-			"onnetFeasibilityInfo", "", "", "", "", "", "", "", "", "", "",
-			"stage2UBRFeasibilityInfo", "", "", "", "", "", "", "", "", "", "",
-			"stage23gFeasibilityInfo", "", "", "", "", "", "", "",
-			"offnetPartnetInfo", "", "", "", "", "", "", "", "", "", "",
-			"stage2MicrowaveFeasibilityInfo", "", "", "", "", "", "", "", "", "", "",
-			"superWifiFeasibilityInfo", "", "", "", "", "", ""],
-			["", "", "", "", "", "", "", "", "feasibilitystatusAEnd", "feasibilitystatusBEnd", "circleARemarks", "circleBRemarks", "cftARemarks", "cftBRemarks", "salesCapexEndA", "salesCapexEndB", "networkCapex",
-			"progressStatus", "closeDate", "feasibilitystatusAEnd", "feasibilitystatusBEnd", "circleRemarksA", "circleRemarksB", "cftRemarksA", "cftRemarksB", "salesCapexEndA",
-			"salesCapexEndB", "networkCapex", "progressStatus", "closeDate", "feasibilitystatusAEnd", "feasibilitystatusBEnd", "circleRemarksA", "circleRemarksB", "cftRemarksA",
-			"cftRemarksB", "progressStatus", "closeDate", "offnetPartnetInfo", "feasibilitystatusAEnd", "feasibilitystatusBEnd", "cftARemarks", "cftBRemarks", "otcA", "otcB", "arcA",
-			"arcB", "salesCapexEndA", "salesCapexEndB", "feasibilitystatusAEnd", "feasibilitystatusBEnd", "circleRemarksA", "circleRemarksB", "cftRemarksA", "cftRemarksB",
-			"salesCapexEndA", "salesCapexEndB", "networkCapex", "progressStatus", "closeDate", "wifiFlavor", "siteSurveryStatus", "totalSalesOpex", "totalCapex",
-			"noOfAccessPoints", "progressStatus", "closeDate"]];
+		const headerContent = [["Parent Oppty Id", "Child Oppty ID", "Primary FR ID", "Primary FR ID status", "feasibility_primary_description", "Secondary FR ID", "Secondary FR ID status", "feasibility_secondary_description",
+			"Onnet Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 UBR Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 3G Feasibility Info", "", "", "", "", "", "", "",
+			"Offnet Partnet Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 Microwave Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Super WiFi Feasibility Info", "", "", "", "", "", ""],
+			["", "", "", "", "", "", "", "", "Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A end", "CFT Remarks B end", "Sales Capex A End", "Sales Capex B End", "Network Capex",
+			"Progress Status", "Feasibility Close Date", "Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A End", "CFT Remarks B End", "Sales Capex A End","Sales Capex B End", "Network Capex", "Progress Status", "Feasibility Close Date", 
+			"Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A End", "Circle Remarks B End", "CFT Remarks A End",
+			"CFT Remarks B End", "Progress Status", "Feasibility Close Date",			
+			"Off-net Partner Name", "Feasibility Status A end", "Feasibility Status B end", "CFT Remarks A end", "CFT Remarks B end", "OTC A End", "OTC B End", "ARC A End",
+			"ARC B End", "Sales Capex A End", "Sales Capex B End",
+			"Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A end", "CFT Remarks B end",
+			"Sales Capex A End", "Sales Capex B End", "Network Capex", "Progress Status", "Feasibility Close Date", 
+			"Wifi flavor", "Site Survery Status", "Total Sales Opex", "Total Capex",
+			"No.of access points", "Progress Status", "Feasibility Close Date"]];
 
 		const ws = XLSX.utils.aoa_to_sheet(headerContent)
 
