@@ -1716,24 +1716,41 @@ function Util(objectCollection) {
 
     this.getXlsxWorkbookFromS3Url = async function (request, S3Url) {
         const s3 = new AWS.S3();
-
+        let [bucketName,keyName,fileName]= await new Promise((resolve) => {
+            try {
+            let urlParts;
+            if (S3Url.indexOf('ap-south') > 1) {
+            urlParts = S3Url.split('.s3.ap-south-1.amazonaws.com/');
+            } else {
+            urlParts = S3Url.split('.s3.amazonaws.com/');
+            }
+            
+            let keyParts = urlParts[1].split('/');
+            let BucketName = urlParts[0].replace('https://', '');
+            let KeyName = urlParts[1];
+            let FileName = keyParts[keyParts.length - 1];
+            resolve([BucketName, KeyName, FileName]);
+            } catch (err) {
+            resolve(['', '', '']);
+            }
+            });
         // const bucketName = S3Url.slice(8, 25);
         // const keyName = S3Url.slice(43);
-        let bucketName = S3Url.slice(8, 25);
-        let keyName = S3Url.slice(43);
+        // let bucketName = S3Url.slice(8, 25);
+        // let keyName = S3Url.slice(43);
 
-        if (S3Url.includes('ap-south-1')) {
-            keyName = S3Url.slice(54);
-        }
+        // if (S3Url.includes('ap-south-1')) {
+        //     keyName = S3Url.slice(54);
+        // }
 
-        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
-            bucketName = S3Url.slice(8, 33);
-            keyName = S3Url.slice(51);
+        // if (S3Url.includes('staging') || S3Url.includes('preprod')) {
+        //     bucketName = S3Url.slice(8, 33);
+        //     keyName = S3Url.slice(51);
 
-            if (S3Url.includes('ap-south-1')) {
-                keyName = S3Url.slice(62);
-            }
-        }
+        //     if (S3Url.includes('ap-south-1')) {
+        //         keyName = S3Url.slice(62);
+        //     }
+        // }
 
         const getObjectParams = {
             Bucket: bucketName,
@@ -2661,6 +2678,34 @@ function Util(objectCollection) {
         }
     })
     }
+
+
+    this.uploadXLSXToS3 = async (fileData,prefix) => {
+        return new Promise(async (resolve)=>{
+            
+            let bucketData = await this.getDynamicBucketName();
+            let bucketName = bucketData[0].bucket_encrypted_name;
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fileData,
+                Bucket: bucketName,
+                Key: prefix,
+                ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ContentEncoding: 'base64',
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
+            });
+    };    
+
 
 
 }

@@ -5384,8 +5384,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             
         return [error, responseData];
     };
-
-
+    
     this.getMappedBotSteps = async (request, flag) => {
         //flag = 0 = ALL bots
         //flag = 1 = Only Field based bots
