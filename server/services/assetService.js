@@ -3136,22 +3136,27 @@ function AssetService(objectCollection) {
 
     function updatePushToken(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = [
                 assetId,
                 request.organization_id,
                 request.asset_token_push,
                 request.asset_push_arn,
                 request.asset_id,
                 request.datetime_log
-            );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_push_token', paramsArr);
+            ];
+            
+            let dbCall = 'ds_v1_asset_list_update_push_token';            
+            if(request.hasOwnProperty('flag_switching') && Number(request.flag_switching) === 1) {                
+                dbCall = 'ds_p1_asset_list_update_push_token';
+            }
+            
+            const queryString = util.getQueryString(dbCall, paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(false, data) : reject(true, err);
                 });
-            }
+            }            
         });
-
     };
 
     // Retrieve asset's monthly summary params
