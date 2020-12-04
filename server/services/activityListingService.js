@@ -12,9 +12,13 @@ function ActivityListingService(objCollection) {
 	var activityCommonService = objCollection.activityCommonService;
 	var forEachAsync = objCollection.forEachAsync;
 	const moment = require("moment");
-
+	const XLSX = require("xlsx");
+	const nodeUtil = require('util');
+	const path = require('path');
 	const self = this;
 
+	const ActivityTimelineService = require('../services/activityTimelineService');
+    const activityTimelineService = new ActivityTimelineService(objCollection);
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
 		var queryString = '';
@@ -414,7 +418,7 @@ function ActivityListingService(objCollection) {
 	this.getActivityInlineCollection = function (request, callback) {
 		var logDatetime = util.getCurrentUTCTime();
 		request['datetime_log'] = logDatetime;
-		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
 		activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
 			if (err === false) {
 				formatActivityInlineCollection(activityData, {}, function (err, responseData) {
@@ -439,7 +443,7 @@ function ActivityListingService(objCollection) {
 	this.getActivityCoverCollection = function (request, callback) {
 		var logDatetime = util.getCurrentUTCTime();
 		request['datetime_log'] = logDatetime;
-		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
 		var paramsArr = new Array(
 			request.activity_id,
 			request.asset_id,
@@ -487,7 +491,7 @@ function ActivityListingService(objCollection) {
 		monthly_summary.unread_update_response_rate = -1;
 		monthly_summary.average_value = -1;
 		request['datetime_log'] = logDatetime;
-		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
 		var paramsArr = new Array(
 			request.activity_id,
 			request.operating_asset_id,
@@ -867,7 +871,7 @@ function ActivityListingService(objCollection) {
 		var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
-				activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+				activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
 				if (err === false) {
 					callback(false, {
 						data: data
@@ -1070,7 +1074,7 @@ function ActivityListingService(objCollection) {
 					// console.log('Data of pending count : ', data);
 					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
-					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
+					(data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
 						resp.push({
 							count: taskCnt,
@@ -1122,7 +1126,7 @@ function ActivityListingService(objCollection) {
 					// console.log('Data of pending count : ', data);
 					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
-					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
+					(data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
 
 						forEachAsync(resp, (next, row) => {
@@ -1152,7 +1156,7 @@ function ActivityListingService(objCollection) {
 										count: response[0].count || 0,
 										activity_type_category_id: 11,
 										activity_type_category_name: 'Project'
-									}): taskCnt = 0;
+									}) : taskCnt = 0;
 									//resp.push(response);                            
 									callback(false, responseArray, 200);
 								}).catch((err) => {
@@ -1268,7 +1272,7 @@ function ActivityListingService(objCollection) {
 					// console.log('Inmail pending count : ', data);
 					global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
-					(data.length > 0) ? callback(false, data, 200): callback(false, {}, 200);
+					(data.length > 0) ? callback(false, data, 200) : callback(false, {}, 200);
 				} else {
 					callback(err, false, -9999);
 				}
@@ -1420,14 +1424,14 @@ function ActivityListingService(objCollection) {
 			);
 			const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_counts', paramsArr);
 			if (queryString != '') {
-				db.executeQuery(1, queryString, request, async (err, resp) =>{
+				db.executeQuery(1, queryString, request, async (err, resp) => {
 					if (err === false) {
 						// console.log('Data of group counts : ', resp);
-						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});						
+						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});
 
-						let [err, data] = await getMentionsCount(request);				
-						for(let i=0;i <resp.length; i++) {
-							if(Number(resp[i].activity_type_category_id) === 48) {
+						let [err, data] = await getMentionsCount(request);
+						for (let i = 0; i < resp.length; i++) {
+							if (Number(resp[i].activity_type_category_id) === 48) {
 								resp[i].mentions_count = (data.length > 0) ? data[0].count : 0;
 							}
 						}
@@ -1522,19 +1526,19 @@ function ActivityListingService(objCollection) {
 			var activityCreatorAssetImagePath;
 
 			(util.replaceDefaultNumber(rowData['activity_creator_asset_id']) == 0) ?
-			activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_lead_asset_id']):
+				activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_lead_asset_id']) :
 				activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_creator_asset_id']);
 
 			(util.replaceDefaultString(rowData['activity_creator_asset_first_name']) == "") ?
-			activityCreatorAssetFirstName = util.replaceDefaultString(rowData['activity_lead_asset_first_name']):
+				activityCreatorAssetFirstName = util.replaceDefaultString(rowData['activity_lead_asset_first_name']) :
 				activityCreatorAssetFirstName = util.replaceDefaultString(rowData['activity_creator_asset_first_name']);
 
 			(util.replaceDefaultString(rowData['activity_creator_asset_last_name']) == "") ?
-			activityCreatorAssetLastName = util.replaceDefaultString(rowData['activity_lead_asset_last_name']):
+				activityCreatorAssetLastName = util.replaceDefaultString(rowData['activity_lead_asset_last_name']) :
 				activityCreatorAssetLastName = util.replaceDefaultString(rowData['activity_creator_asset_last_name']);
 
 			(util.replaceDefaultString(rowData['activity_creator_asset_image_path']) == "") ?
-			activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_lead_asset_image_path']):
+				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_lead_asset_image_path']) :
 				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_creator_asset_image_path']);
 
 			var rowDataArr = {
@@ -1642,13 +1646,13 @@ function ActivityListingService(objCollection) {
 				"widget_type_id": parseInt(util.replaceDefaultNumber(rowData['widget_type_id'])),
 				"widget_type_name": parseInt(util.replaceDefaultString(rowData['widget_type_name'])),
 				"activity_status_description": util.replaceDefaultString(rowData['activity_status_description']),
-				"activity_status_flag_tracking_enabled" : parseInt(util.replaceDefaultNumber(rowData['activity_status_flag_tracking_enabled'])),
- 				"activity_lead_asset_id" : parseInt(util.replaceDefaultNumber(rowData['activity_lead_asset_id'])),
- 				"activity_lead_asset_first_name" : util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
- 				"activity_lead_operating_asset_id": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_id'])),
- 				"activity_lead_operating_asset_first_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_first_name']),
- 				"activity_lead_operating_asset_last_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_last_name']),
- 				"activity_lead_operating_asset_phone_number": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_number'])), 
+				"activity_status_flag_tracking_enabled": parseInt(util.replaceDefaultNumber(rowData['activity_status_flag_tracking_enabled'])),
+				"activity_lead_asset_id": parseInt(util.replaceDefaultNumber(rowData['activity_lead_asset_id'])),
+				"activity_lead_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+				"activity_lead_operating_asset_id": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_id'])),
+				"activity_lead_operating_asset_first_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_first_name']),
+				"activity_lead_operating_asset_last_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_last_name']),
+				"activity_lead_operating_asset_phone_number": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_number'])),
 				"activity_lead_operating_asset_phone_country_code": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_country_code'])),
 				"activity_datetime_end_status": util.replaceDefaultString(rowData['activity_datetime_end_status']),
 				"activity_flag_status_rollback": util.replaceDefaultNumber(rowData['activity_flag_status_rollback']),
@@ -1658,9 +1662,9 @@ function ActivityListingService(objCollection) {
 				"activity_cuid_1": util.replaceDefaultString(rowData['activity_cuid_1']),
 				"activity_cuid_2": util.replaceDefaultString(rowData['activity_cuid_2']),
 				"activity_cuid_3": util.replaceDefaultString(rowData['activity_cuid_3']),
-				"asset_unread_mention_count":util.replaceDefaultNumber(rowData['asset_unread_mention_count']),
-				"parent_status_id":util.replaceDefaultNumber(rowData['parent_status_id']),
-				"parent_status_name":util.replaceDefaultString(rowData['parent_status_name']),
+				"asset_unread_mention_count": util.replaceDefaultNumber(rowData['asset_unread_mention_count']),
+				"parent_status_id": util.replaceDefaultNumber(rowData['parent_status_id']),
+				"parent_status_name": util.replaceDefaultString(rowData['parent_status_name']),
 				"activity_type_tag_id": util.replaceDefaultNumber(rowData['activity_type_tag_id']),
 				"activity_type_tag_name": util.replaceDefaultString(rowData['activity_type_tag_name']),
 				"tag_type_id": util.replaceDefaultNumber(rowData['tag_type_id']),
@@ -1762,13 +1766,13 @@ function ActivityListingService(objCollection) {
 	this.getOrganizationsOfANumber = function (requestHeaders, request, callback) {
 		var queryString = '';
 		let phoneNumber;
-		let countryCode;		
+		let countryCode;
 
-		if((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
+		if ((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
 			phoneNumber = request.phone_number;
 			countryCode = request.country_code;
 		} else {
-			if(requestHeaders.hasOwnProperty('x-grene-p-code-flag') && (Number(requestHeaders['x-grene-p-code-flag']) === 1)) {
+			if (requestHeaders.hasOwnProperty('x-grene-p-code-flag') && (Number(requestHeaders['x-grene-p-code-flag']) === 1)) {
 				phoneNumber = request.phone_number;
 				countryCode = request.country_code;
 			} else {
@@ -1776,16 +1780,16 @@ function ActivityListingService(objCollection) {
 				countryCode = requestHeaders['x-grene-c-code'];
 			}
 		}
-		
+
 		const paramsArr = new Array(
 			request.organization_id || 0,
 			phoneNumber, //request.phone_number,
 			countryCode  //request.country_code
 		);
 
-		if(request.hasOwnProperty("allow_temp_organization")){
+		if (request.hasOwnProperty("allow_temp_organization")) {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
-		}else{
+		} else {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all_filter', paramsArr);
 		}
 
@@ -1959,37 +1963,37 @@ function ActivityListingService(objCollection) {
 			});
 		}
 	};
-	
-	
+
+
 	this.getActivityFormFieldValidationData = function (request) {
-		return new Promise((resolve, reject)=>{
-			activityCommonService.getActivityByFormTransaction(request).then((data)=>{
-			if(data.length > 0) {
-				processFormInlineDataV1(request, data).then(async (finalData)=>{
-					//console.log("finalData : "+finalData);									
-					resolve(finalData);
-				});
-	   		} else {
-				resolve(data);
+		return new Promise((resolve, reject) => {
+			activityCommonService.getActivityByFormTransaction(request).then((data) => {
+				if (data.length > 0) {
+					processFormInlineDataV1(request, data).then(async (finalData) => {
+						//console.log("finalData : "+finalData);									
+						resolve(finalData);
+					});
+				} else {
+					resolve(data);
 				}
 			});
 		});
 	};
 
-	this.downloadZipFile = async (request) =>{		
+	this.downloadZipFile = async (request) => {
 		try {
 			let inlineData = request.attachments;
 			//let inlineData = JSON.parse(request.attachments);		
 			//console.log('inlineDAta : ', inlineData);
 			let files = [];
-			for(let i=0; i< inlineData.length; i++) {									
+			for (let i = 0; i < inlineData.length; i++) {
 				console.log(inlineData[i]);
 				let fileName = await util.downloadS3Object(request, inlineData[i]);
 				files.push(fileName);
 			}
-			
-			await new Promise((resolve)=>{
-				setTimeout(()=>{
+
+			await new Promise((resolve) => {
+				setTimeout(() => {
 					resolve();
 				}, 2000);
 			});
@@ -1997,57 +2001,57 @@ function ActivityListingService(objCollection) {
 			let zipFile = await util.zipTheFiles(request, files);
 			let url = await util.uploadS3Object(request, zipFile);
 			return [false, url];
-		} catch(err) {
+		} catch (err) {
 			console.log(err);
 			return [true, err];
 		}
-		
+
 	};
-		
-   /* 
-	this.getActivityFormFieldValidationData = function (request) {
-		return new Promise((resolve, reject)=>{
-			var paramsArr = new Array(	        		
-					request.activity_id,
-					request.form_transaction_id,
-					request.organization_id
-					);
-	
-			var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
-			if (queryString != '') {
-				db.executeQuery(0, queryString, request, function (err, data) {
-					//console.log("err "+err);
-				   if(err === false) {
-				   		//console.log('data: '+data.length);
-				   		if(data.length > 0)
-				   			{
-						   		processFormInlineData(request, data).then((finalData)=>{
-		  				   			//console.log("finalData : "+finalData);
-		  				   			resolve(finalData);
-		  				   		});
-				   			}else{
-				   				
-				   				resolve(data);
-				   			}
-				   													  			  
-					} else {
-					   reject(err);
-				   }
-				});
-	   	}
-		});
-	}; */
-	
-	function processFormInlineData(request, data){
+
+	/* 
+	 this.getActivityFormFieldValidationData = function (request) {
+		 return new Promise((resolve, reject)=>{
+			 var paramsArr = new Array(	        		
+					 request.activity_id,
+					 request.form_transaction_id,
+					 request.organization_id
+					 );
+ 	
+			 var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+			 if (queryString != '') {
+				 db.executeQuery(0, queryString, request, function (err, data) {
+					 //console.log("err "+err);
+					if(err === false) {
+								 //console.log('data: '+data.length);
+								 if(data.length > 0)
+									 {
+										 processFormInlineData(request, data).then((finalData)=>{
+												 //console.log("finalData : "+finalData);
+												 resolve(finalData);
+											 });
+									 }else{
+									 	
+										 resolve(data);
+									 }
+																							   
+					 } else {
+						reject(err);
+					}
+				 });
+			   }
+		 });
+	 }; */
+
+	function processFormInlineData(request, data) {
 		return new Promise(async (resolve, reject) => {
 			var array = [];
 			let inlineData = JSON.parse(data[0].activity_inline_data);
 			//console.log('inline DATA : ', inlineData);
 
-			for(let i=0; i<inlineData.length;i++) {
+			for (let i = 0; i < inlineData.length; i++) {
 				let fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
-				if(fieldData !== true) {
-					if(fieldData.length > 0) {
+				if (fieldData !== true) {
+					if (fieldData.length > 0) {
 						//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
 						inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
 					} else {
@@ -2057,10 +2061,10 @@ function ActivityListingService(objCollection) {
 					inlineData[i].field_value_edit_enabled = 1;
 				}
 
-				if(JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")){					
+				if (JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")) {
 					array.push(inlineData[i]);
 				}
-				else {									
+				else {
 					inlineData[i].field_validated = 0;
 					array.push(inlineData[i]);
 				}
@@ -2068,7 +2072,7 @@ function ActivityListingService(objCollection) {
 
 			data[0].activity_inline_data = array;
 			resolve(data);
-			
+
 			//forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
 			//	//console.log('fieldData : '+JSON.stringify(fieldData));
 			//	if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
@@ -2083,7 +2087,7 @@ function ActivityListingService(objCollection) {
 			//		next();
 			//		
 			//	}              
-	//
+			//
 			//}).then(()=>{
 			//	//console.log("DATA : "+JSON.stringify(data));
 			//	data[0].activity_inline_data = array;
@@ -2093,80 +2097,79 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getFormList = function (request) {
-		return new Promise((resolve, reject)=>{
-			var paramsArr = new Array(	        		
-					request.organization_id,
-					request.account_id,
-					request.workforce_id,
-					0,
-					0,
-					50
-					);
-	
+		return new Promise((resolve, reject) => {
+			var paramsArr = new Array(
+				request.organization_id,
+				request.account_id,
+				request.workforce_id,
+				0,
+				0,
+				50
+			);
+
 			var queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(0, queryString, request, function (err, data) {
 					//console.log("err "+err);
-				   if(err === false) {
-				   		//console.log('data: '+data.length);
-				   		if(data.length > 0)
-			   			{
-					   		processFormListData(request, data).then((finalData)=>{
-	  				   			//console.log("finalData : "+finalData);
-	  				   			resolve(finalData);
-	  				   		});
-			   			}else{
-			   				
-			   				resolve(data);
-			   			}
+					if (err === false) {
+						//console.log('data: '+data.length);
+						if (data.length > 0) {
+							processFormListData(request, data).then((finalData) => {
+								//console.log("finalData : "+finalData);
+								resolve(finalData);
+							});
+						} else {
+
+							resolve(data);
+						}
 					} else {
-					   reject(err);
-				   }
+						reject(err);
+					}
 				});
-	   		}
+			}
 		});
 	};
-	
-	function processFormListData(request, data){
+
+	function processFormListData(request, data) {
 		return new Promise((resolve, reject) => {
 			var obj = {};
 			forEachAsync(data, function (next, fieldData) {
 				//console.log('fieldData : '+JSON.stringify(fieldData));
-				obj[fieldData.form_name]=fieldData.form_id;       
-					next();
-			}).then(()=>{
+				obj[fieldData.form_name] = fieldData.form_id;
+				next();
+			}).then(() => {
 				console.log(obj);
 				resolve(obj);
-			});	    		
+			});
 		});
 	};
 
-	
+
 	this.getMyQueueActivities = function (request) {
 		return new Promise((resolve, reject) => {
-			
+
 			var paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
 				request.target_asset_id,
 				request.page_start,
-				request.page_limit	            
+				request.page_limit
 			);
 			var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_activities', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
-					if (err === false) {	                	
-						resolve(data);	                   
-					} else {	                    
-						reject(err);	                    
+					if (err === false) {
+						resolve(data);
+					} else {
+						reject(err);
 					}
 				});
 			}
 		});
 	};
-	
+
 	this.getMyQueueActivitiesV2 = function (request) {
 		//flag - 0 && activity_status_id = 0
 		// -->you will get all orders
@@ -2202,34 +2205,34 @@ function ActivityListingService(objCollection) {
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
-						try{
-							if(Number(request.flag) == -1 || Number(request.flag) == -2) {
+						try {
+							if (Number(request.flag) == -1 || Number(request.flag) == -2) {
 								let finalObj = {};
 								let tempObj = {};
 
-								for(let i=0; i<data.length;i++){
+								for (let i = 0; i < data.length; i++) {
 									finalObj = {};
 									tempObj = {};
-										tempObj.current_status_id = data[i].activity_status_id;
-										tempObj.file_creation_time = "";
-										tempObj.queue_mapping_time = "";
-										tempObj.current_status_name = data[i].activity_status_name;
-										tempObj.last_status_alter_time = "";
-										tempObj.caf_completion_percentage = data[i].activity_workflow_completion_percentage;
-									
+									tempObj.current_status_id = data[i].activity_status_id;
+									tempObj.file_creation_time = "";
+									tempObj.queue_mapping_time = "";
+									tempObj.current_status_name = data[i].activity_status_name;
+									tempObj.last_status_alter_time = "";
+									tempObj.caf_completion_percentage = data[i].activity_workflow_completion_percentage;
+
 									finalObj.queue_sort = tempObj;
 
 									data[i].queue_activity_mapping_inline_data = JSON.stringify(finalObj);
 									data[i].queue_id = 0;
 								}
-							}							
+							}
 
-							if(Number(request.flag) === 3) {
+							if (Number(request.flag) === 3) {
 								resolve(data);
 							} else {
 								let dataWithParticipant = await appendParticipantList(request, data);
 								resolve(dataWithParticipant);
-							}						
+							}
 						} catch (error) {
 							console.log("getMyQueueActivitiesV2 | Error", error);
 							resolve(data);
@@ -2321,56 +2324,56 @@ function ActivityListingService(objCollection) {
 		for (const activity of activityList) {
 			participantMap.set(Number(activity.activity_id), activity);
 			// participantMap.set(Number(activity.activity_id), {});
-			
+
 			fetchParticipantListPromises.push(
 				activityCommonService
-				.getAllParticipantsPromise({
-					organization_id: request.organization_id,
-					activity_id: activity.activity_id
-				})
-				.then((participantData) => {
-					// Iterate through each participant and filter out the data you need
-					if (participantData.length > 0) {
-						let formattedParticipantList = [];
-						for (const participant of participantData) {
-							formattedParticipantList.push({
-								'asset_id': participant.asset_id,
-								'asset_first_name': participant.asset_first_name,
-								'asset_last_name': participant.asset_last_name,
-								'asset_phone_number': participant.asset_phone_number,
-								'asset_phone_number_code': participant.asset_phone_country_code,
-								'operating_asset_phone_number': participant.operating_asset_phone_number,
-								'operating_asset_phone_country_code': participant.operating_asset_phone_country_code,
-								'operating_asset_id': participant.operating_asset_id,
-								'operating_asset_first_name': participant.operating_asset_first_name,
-								'operating_asset_last_name': participant.operating_asset_last_name,
-								'activity_creator_operating_asset_first_name': participant.activity_creator_operating_asset_first_name,
-								'asset_datetime_last_seen': participant.asset_datetime_last_seen
-							});
+					.getAllParticipantsPromise({
+						organization_id: request.organization_id,
+						activity_id: activity.activity_id
+					})
+					.then((participantData) => {
+						// Iterate through each participant and filter out the data you need
+						if (participantData.length > 0) {
+							let formattedParticipantList = [];
+							for (const participant of participantData) {
+								formattedParticipantList.push({
+									'asset_id': participant.asset_id,
+									'asset_first_name': participant.asset_first_name,
+									'asset_last_name': participant.asset_last_name,
+									'asset_phone_number': participant.asset_phone_number,
+									'asset_phone_number_code': participant.asset_phone_country_code,
+									'operating_asset_phone_number': participant.operating_asset_phone_number,
+									'operating_asset_phone_country_code': participant.operating_asset_phone_country_code,
+									'operating_asset_id': participant.operating_asset_id,
+									'operating_asset_first_name': participant.operating_asset_first_name,
+									'operating_asset_last_name': participant.operating_asset_last_name,
+									'activity_creator_operating_asset_first_name': participant.activity_creator_operating_asset_first_name,
+									'asset_datetime_last_seen': participant.asset_datetime_last_seen
+								});
+							}
+							activity.participant_list = formattedParticipantList;
+							participantMap.set(Number(activity.activity_id), activity);
+							// participantMap.set(Number(activity.activity_id), formattedParticipantList);
+						} else {
+							activity.participant_list = [];
 						}
-						activity.participant_list = formattedParticipantList;
-						participantMap.set(Number(activity.activity_id), activity);
-						// participantMap.set(Number(activity.activity_id), formattedParticipantList);
-					} else {
-						activity.participant_list = [];
-					}
 
-					// Formatting date time to YYYY-MM-DD HH:mm:ss format
-					// console.log("activity.activity_datetime_created: ", activity.activity_datetime_created);
-					activity.activity_datetime_created = moment(activity.activity_datetime_created).format("YYYY-MM-DD HH:mm:ss");
-					activity.activity_datetime_end_deferred = moment(activity.activity_datetime_end_deferred).format("YYYY-MM-DD HH:mm:ss");
-					activity.activity_datetime_end_expected = moment(activity.activity_datetime_end_expected).format("YYYY-MM-DD HH:mm:ss");
-					activity.activity_datetime_start_expected = moment(activity.activity_datetime_start_expected).format("YYYY-MM-DD HH:mm:ss");
-					activity.log_datetime = moment(activity.log_datetime).format("YYYY-MM-DD HH:mm:ss");
+						// Formatting date time to YYYY-MM-DD HH:mm:ss format
+						// console.log("activity.activity_datetime_created: ", activity.activity_datetime_created);
+						activity.activity_datetime_created = moment(activity.activity_datetime_created).format("YYYY-MM-DD HH:mm:ss");
+						activity.activity_datetime_end_deferred = moment(activity.activity_datetime_end_deferred).format("YYYY-MM-DD HH:mm:ss");
+						activity.activity_datetime_end_expected = moment(activity.activity_datetime_end_expected).format("YYYY-MM-DD HH:mm:ss");
+						activity.activity_datetime_start_expected = moment(activity.activity_datetime_start_expected).format("YYYY-MM-DD HH:mm:ss");
+						activity.log_datetime = moment(activity.log_datetime).format("YYYY-MM-DD HH:mm:ss");
 
-					return {
-						success: true,
-						activity_id: Number(activity.activity_id)
-					};
-				})
-				.catch((error) => {
-					console.log(`appendParticipantList | Error fetching participants for ${activity.activity_id}: `, error)
-				})
+						return {
+							success: true,
+							activity_id: Number(activity.activity_id)
+						};
+					})
+					.catch((error) => {
+						console.log(`appendParticipantList | Error fetching participants for ${activity.activity_id}: `, error)
+					})
 			);
 		}
 		await Promise.all(fetchParticipantListPromises)
@@ -2380,10 +2383,10 @@ function ActivityListingService(objCollection) {
 			.catch((error) => {
 				console.log("appendParticipantList | Promise.all | Error: ", error);
 			});
-		
+
 		return [...participantMap.values()];
 	}
-	
+
 	this.getMyQueueActivitiesDifferential = function (request) {
 		return new Promise((resolve, reject) => {
 
@@ -2420,7 +2423,7 @@ function ActivityListingService(objCollection) {
 			}
 		});
 	};
-		
+
 	function processMyQueueData(request, data) {
 		return new Promise((resolve, reject) => {
 			var array = [];
@@ -2443,46 +2446,46 @@ function ActivityListingService(objCollection) {
 			});
 		});
 	}
-	
-   function getQueueActivity(request,idActivity) {
+
+	function getQueueActivity(request, idActivity) {
 		return new Promise((resolve, reject) => {
-			
+
 			var paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
-				idActivity	            
+				idActivity
 			);
 			var queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
-					if (err === false) {	                	
-						resolve(data);	                   
-					} else {	                    
-						reject(err);	                    
+					if (err === false) {
+						resolve(data);
+					} else {
+						reject(err);
 					}
 				});
 			}
 		});
 	}
-	
-	
+
+
 	this.fetchActivityDetails = function (request) {
-		return new Promise((resolve, reject)=>{
-			let paramsArr = new Array(                
-				request.organization_id,                
+		return new Promise((resolve, reject) => {
+			let paramsArr = new Array(
+				request.organization_id,
 				request.activity_id
 			);
 			const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_activity', paramsArr);
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
-					(err) ? reject(err): resolve(data);
-			});
+					(err) ? reject(err) : resolve(data);
+				});
 			}
-		});        
+		});
 	};
-	
+
 	this.getEntityQueueMapping = function (request) {
 		let flag = 2;
 		if (request.hasOwnProperty("flag")) {
@@ -2506,7 +2509,7 @@ function ActivityListingService(objCollection) {
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log("err "+err);
-					if (err === false) {                        
+					if (err === false) {
 						global.logger.write('conLog', 'data: ', data.length, {});
 						resolve(data);
 					} else {
@@ -2645,15 +2648,15 @@ function ActivityListingService(objCollection) {
 		});
 	};
 
-	
-	this.getWidgetValues = async (request) =>{
 
-		console.log("request :: ",JSON.stringify(request,null,2));
-        let responseData = [],
-            error = true;
+	this.getWidgetValues = async (request) => {
 
-        const paramsArr = new Array(
-            request.widget_type_id,
+		console.log("request :: ", JSON.stringify(request, null, 2));
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.widget_type_id,
 			request.flag_datetime,
 			request.timeline_id,
 			request.timezone_id,
@@ -2678,52 +2681,52 @@ function ActivityListingService(objCollection) {
 			request.data_type_combo_id,
 			request.datetime_start,
 			request.datetime_end,
-			request.page_start ,
+			request.page_start,
 			request.page_limit
-        );
-        const queryString = util.getQueryString('ds_p1_1_activity_list_select_widget_values', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_1_activity_list_select_widget_values', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
-	
-	this.getWorkflowReferenceBots = async (request) =>{
-        let responseData = [],
-            error = true;
 
-        const paramsArr = new Array(
-            request.organization_id,
-            request.activity_type_id,
-            request.operation_type_id,            
-            request.start_from || 0,
-            request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_operation_type', paramsArr);
+	this.getWorkflowReferenceBots = async (request) => {
+		let responseData = [],
+			error = true;
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_type_id,
+			request.operation_type_id,
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+		const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_operation_type', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
-	
+
 	this.getParticipantsList = async (request) => {
-		return new Promise((resolve, reject)=>{
+		return new Promise((resolve, reject) => {
 			const paramsArr = new Array(
 				request.organization_id,
 				request.activity_id,
@@ -2736,140 +2739,140 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					if (err === false) {
 						formatParticipantList(data, function (err, response) {
-							(err === false) ? resolve(response) : reject();							
+							(err === false) ? resolve(response) : reject();
 						});
-					} else {                    
+					} else {
 						reject();
 					}
 				});
 			}
 		});
-    };
+	};
 
-    var formatParticipantList = function (data, callback) {
-        var responseData = new Array();
-        data.forEach(function (rowData, index) {
-            var rowDataArr = {
-                'activity_id': util.replaceDefaultNumber(rowData['activity_id']),
-                'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
-                'account_id': util.replaceDefaultNumber(rowData['account_id']),
-                'organization_id': util.replaceDefaultNumber(rowData['organization_id']),
-                'workforce_id': util.replaceDefaultNumber(rowData['workforce_id']),
-                'workforce_name': util.replaceDefaultString(rowData['workforce_name']),
-                'account_name': util.replaceDefaultString(rowData['account_name']),
-                'asset_first_name': util.replaceDefaultString(rowData['asset_first_name']),
-                'asset_last_name': util.replaceDefaultString(rowData['asset_last_name']),
-                'asset_type_id': util.replaceDefaultNumber(rowData['asset_type_id']),
-                'asset_type_name': util.replaceDefaultString(rowData['asset_type_name']),
-                'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
-                'field_id': util.replaceDefaultNumber(rowData['field_id']),
-                'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
-                'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
-                'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
-                'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
-                'operating_asset_phone_number': util.replaceDefaultString(rowData['operating_asset_phone_number']),
-                'operating_asset_phone_country_code': util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
-                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
-                'log_state': util.replaceDefaultNumber(rowData['log_state']),
-                'log_active': util.replaceDefaultNumber(rowData['log_active']),
-                "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
-                "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
-                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
-                "activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
-                "asset_datetime_last_seen": util.replaceDefaultDatetime(rowData['asset_datetime_last_seen']),
-                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
-                "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
-                "operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path'])
-            };
-            responseData.push(rowDataArr);
-        }, this);
-        callback(false, responseData);
+	var formatParticipantList = function (data, callback) {
+		var responseData = new Array();
+		data.forEach(function (rowData, index) {
+			var rowDataArr = {
+				'activity_id': util.replaceDefaultNumber(rowData['activity_id']),
+				'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
+				'account_id': util.replaceDefaultNumber(rowData['account_id']),
+				'organization_id': util.replaceDefaultNumber(rowData['organization_id']),
+				'workforce_id': util.replaceDefaultNumber(rowData['workforce_id']),
+				'workforce_name': util.replaceDefaultString(rowData['workforce_name']),
+				'account_name': util.replaceDefaultString(rowData['account_name']),
+				'asset_first_name': util.replaceDefaultString(rowData['asset_first_name']),
+				'asset_last_name': util.replaceDefaultString(rowData['asset_last_name']),
+				'asset_type_id': util.replaceDefaultNumber(rowData['asset_type_id']),
+				'asset_type_name': util.replaceDefaultString(rowData['asset_type_name']),
+				'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
+				'field_id': util.replaceDefaultNumber(rowData['field_id']),
+				'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
+				'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
+				'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
+				'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
+				'operating_asset_phone_number': util.replaceDefaultString(rowData['operating_asset_phone_number']),
+				'operating_asset_phone_country_code': util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
+				'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
+				'log_state': util.replaceDefaultNumber(rowData['log_state']),
+				'log_active': util.replaceDefaultNumber(rowData['log_active']),
+				"operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
+				"operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
+				"operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+				"activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+				"asset_datetime_last_seen": util.replaceDefaultDatetime(rowData['asset_datetime_last_seen']),
+				"activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
+				"activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
+				"operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path'])
+			};
+			responseData.push(rowDataArr);
+		}, this);
+		callback(false, responseData);
 	};
 
 	//Get the asset_type_id(ROLE) for a given status_id - RM
 	this.getAssetTypeIDForAStatusID = async (request, activityStatusId) => {
-        let responseData = [],
-            error = true;
+		let responseData = [],
+			error = true;
 
-        let paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            activityStatusId
-        );
-        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
-        if (queryString != '') {
-            //return await db.executeQueryPromise(1, queryString, request);
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
+		let paramsArr = new Array(
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			activityStatusId
+		);
+		let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+		if (queryString != '') {
+			//return await db.executeQueryPromise(1, queryString, request);
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
 
-        return [error, responseData];
-    };
-	
+		return [error, responseData];
+	};
+
 	//Get the asset for a given asset_type_id(ROLE) - RM
-	this.getAssetForAssetTypeID = async (request) =>{
-        let responseData = [],
-            error = true;
+	this.getAssetForAssetTypeID = async (request) => {
+		let responseData = [],
+			error = true;
 
-        const paramsArr = new Array(
-            request.activity_id,
-            request.asset_type_id,
-            request.organization_id
-        );
-        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role_participant', paramsArr);
+		const paramsArr = new Array(
+			request.activity_id,
+			request.asset_type_id,
+			request.organization_id
+		);
+		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role_participant', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
 	//Set the rollback count for a given asset_id
-	this.setAssetRollBackCnt = async (request) =>{
-        let responseData = [],
-            error = true;
+	this.setAssetRollBackCnt = async (request) => {
+		let responseData = [],
+			error = true;
 
-        const paramsArr = new Array(
-            request.activity_id,
-            request.asset_id,
-            request.organization_id
-        );
-        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_rollback_count', paramsArr);
+		const paramsArr = new Array(
+			request.activity_id,
+			request.asset_id,
+			request.organization_id
+		);
+		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_rollback_count', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
 	//Get the rollback count for a given asset_id
-	this.getAssetRollBackCnt = async (request) =>{
-        let responseData = [],
-            error = true;
+	this.getAssetRollBackCnt = async (request) => {
+		let responseData = [],
+			error = true;
 
-        const paramsArr = new Array(
-            request.organization_id,
+		const paramsArr = new Array(
+			request.organization_id,
 			request.account_id,
 			request.workforce_id,
 			request.asset_id,
@@ -2880,196 +2883,196 @@ function ActivityListingService(objCollection) {
 			request.end_datetime, //Sunday
 			request.start_from || 0,
 			request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_rollback', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_rollback', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
-	
+
 
 	//Get the workload of lead asset
 	//IF p_flag = 0 THEN RETURNS COUNT of OPEN workflows which are lead by the owner in the given duration
 	//IF p_flag = 1 THEN RETURNS LIST of OPEN workflows which are lead by the owner in the given duration
-	this.getLeadAssetWorkload = async (request) =>{
-        let responseData = [],
-            error = true;
+	this.getLeadAssetWorkload = async (request) => {
+		let responseData = [],
+			error = true;
 
-        const paramsArr = new Array(
-            request.organization_id,			
+		const paramsArr = new Array(
+			request.organization_id,
 			request.asset_id,
 			request.flag || 0,
 			request.start_datetime, //Monday
 			request.end_datetime, //Sunday
 			request.start_from || 0,
 			request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
 
-async function processFormInlineDataV1(request, data){
-	var array = [];
-	let inlineData = JSON.parse(data[0].activity_inline_data);
-	//console.log('inline DATA : ', inlineData);
+	async function processFormInlineDataV1(request, data) {
+		var array = [];
+		let inlineData = JSON.parse(data[0].activity_inline_data);
+		//console.log('inline DATA : ', inlineData);
 
-	for(let i=0; i<inlineData.length;i++) {
-		let fieldData;
-		try{
-			fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
-		} catch(err) {
-			console.log('err in processFormInlineDataV1 : ', err);
-		}
-		
-		if(fieldData !== true) {
-			if(fieldData.length > 0) {
-				//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
-				inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
-				inlineData[i].field_inline_data = fieldData[0].field_inline_data;
+		for (let i = 0; i < inlineData.length; i++) {
+			let fieldData;
+			try {
+				fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+			} catch (err) {
+				console.log('err in processFormInlineDataV1 : ', err);
+			}
+
+			if (fieldData !== true) {
+				if (fieldData.length > 0) {
+					//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
+					inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
+					inlineData[i].field_inline_data = fieldData[0].field_inline_data;
+				} else {
+					inlineData[i].field_value_edit_enabled = 1;
+					inlineData[i].field_inline_data = '{}';
+				}
 			} else {
 				inlineData[i].field_value_edit_enabled = 1;
 				inlineData[i].field_inline_data = '{}';
 			}
-		} else {
-			inlineData[i].field_value_edit_enabled = 1;
-			inlineData[i].field_inline_data = '{}';
-		}		
 
-		if(JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")){					
-			array.push(inlineData[i]);
+			if (JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")) {
+				array.push(inlineData[i]);
+			}
+			else {
+				inlineData[i].field_validated = 0;
+				array.push(inlineData[i]);
+			}
 		}
-		else {									
-			inlineData[i].field_validated = 0;
-			array.push(inlineData[i]);
-		}
-	}
 
-	data[0].activity_inline_data = array;
-	return data;
-		
+		data[0].activity_inline_data = array;
+		return data;
+
 	}
 
 	async function getMentionsCount(request) {
 		let responseData = [],
-            error = true;
+			error = true;
 
-        const paramsArr = new Array(            
-            request.asset_id,
-            request.workforce_id,
+		const paramsArr = new Array(
+			request.asset_id,
+			request.workforce_id,
 			request.account_id,
 			request.organization_id
-        );        
-        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_mcounts', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_mcounts', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	}
 
-	this.getActivitySubStatuses =  async (request) => {
+	this.getActivitySubStatuses = async (request) => {
 		let responseData = [],
-            error = true, finalResponse = [];
+			error = true, finalResponse = [];
 
-        const paramsArr = new Array(            
-            request.organization_id,
-            request.activity_id,
-            request.activity_status_id,
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_id,
+			request.activity_status_id,
 			request.page_start,
 			request.page_limit
-        );        
-        const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select_activity', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select_activity', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                    let self = this;
-                    console.log('responseData :: '+JSON.stringify(responseData));
-                    let [error1, configData] = await self.getSubStatusUsingParentStatus(request);
-                    console.log('configData :: '+JSON.stringify(configData));
-                    finalResponse = await self.formatSubStatusData(responseData, configData);
-                    console.log('finalResponse :: '+JSON.stringify(finalResponse));
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, finalResponse];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+					let self = this;
+					console.log('responseData :: ' + JSON.stringify(responseData));
+					let [error1, configData] = await self.getSubStatusUsingParentStatus(request);
+					console.log('configData :: ' + JSON.stringify(configData));
+					finalResponse = await self.formatSubStatusData(responseData, configData);
+					console.log('finalResponse :: ' + JSON.stringify(finalResponse));
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, finalResponse];
 	};
 
 
-	this.getSubStatusUsingParentStatus =  async function (request) {
+	this.getSubStatusUsingParentStatus = async function (request) {
 		let responseData = [],
-            error = true;
+			error = true;
 
-        const paramsArr = new Array(            
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.activity_status_id,
+		const paramsArr = new Array(
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.activity_status_id,
 			request.page_start,
 			request.page_limit
-        );        
-        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_sub_status', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_sub_status', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
 	this.formatSubStatusData = async function (data, configData) {
 		var responseData = new Array();
 		let dataJson = {};
-		console.log("data1 :"+JSON.stringify(data));
+		console.log("data1 :" + JSON.stringify(data));
 
-		for(let j = 0; j < data.length; j++){
-			dataJson[data[j].sub_status_id] = {"sub_status_name":data[j].sub_status_name, "triggered_datetime":data[j].sub_status_trigger_time, "achieved_datetime":data[j].sub_status_achieved_time};
+		for (let j = 0; j < data.length; j++) {
+			dataJson[data[j].sub_status_id] = { "sub_status_name": data[j].sub_status_name, "triggered_datetime": data[j].sub_status_trigger_time, "achieved_datetime": data[j].sub_status_achieved_time };
 		}
-		console.log('dataJson ::: '+JSON.stringify(dataJson));
-		
+		console.log('dataJson ::: ' + JSON.stringify(dataJson));
+
 		configData.forEach(function (rowData, index) {
 			let statusId = rowData['activity_status_id'];
-			console.log('dataJson.statusId.triggered_datetime :: '+util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00'));
-			let triggerDatetime = util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].triggered_datetime:'1970-01-01 00:00:00');
-			let achievedDatetime = util.replaceDefaultDatetime(dataJson[statusId]?dataJson[statusId].achieved_datetime:'1970-01-01 00:00:00');
+			console.log('dataJson.statusId.triggered_datetime :: ' + util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].triggered_datetime : '1970-01-01 00:00:00'));
+			let triggerDatetime = util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].triggered_datetime : '1970-01-01 00:00:00');
+			let achievedDatetime = util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].achieved_datetime : '1970-01-01 00:00:00');
 			var rowDataArr = {
 				"activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
 				"activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
@@ -3082,41 +3085,41 @@ async function processFormInlineDataV1(request, data){
 			responseData.push(rowDataArr);
 		}, this);
 
-		console.log('responseData :::2 '+JSON.stringify(responseData));
+		console.log('responseData :::2 ' + JSON.stringify(responseData));
 		return responseData;
 	};
 
-	
-	this.getActActChildActivities =  async (request) => {
-		let responseData = [],
-            error = true;
 
-        const paramsArr = new Array(            
-            request.workflow_activity_id,
-            request.activity_type_id,
-            request.activity_type_category_id,
+	this.getActActChildActivities = async (request) => {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.workflow_activity_id,
+			request.activity_type_id,
+			request.activity_type_category_id,
 			request.organization_id,
 			request.flag,
 			request.page_start || 0,
 			request.page_limit
-        );        
-        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
-	
-	this.actAssetMappingNewFiltersList =  async (request) => {
+
+	this.actAssetMappingNewFiltersList = async (request) => {
 		//p_flag = 1 -- MY FOCUS
 		//p_flag = 2 -- MY UPDATES
 		//p_flag = 3 -- MY WORKFLOWS
@@ -3134,11 +3137,11 @@ async function processFormInlineDataV1(request, data){
 		//p_is_sort = 4 -- log_datetime
 
 		//p_next_datetime = current_datetime + 2 days (used only in flag = 1)
-		
-		let responseData = [],
-            error = true;
 
-        const paramsArr = new Array(    
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -3158,57 +3161,57 @@ async function processFormInlineDataV1(request, data){
 			request.tag_type_id,
 			request.page_start || 0,
 			request.page_limit
-        );        
-        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_new_filters', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_new_filters', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
-	this.getActivityDetails =  async (request) => {	
+	this.getActivityDetails = async (request) => {
 		let responseData = [],
-            error = true;
+			error = true;
 
-        const paramsArr = new Array(    
+		const paramsArr = new Array(
 			request.activity_id,
 			request.activity_type_id,
-			request.organization_id			
-        );        
-        const queryString = util.getQueryString('ds_v1_1_activity_list_select', paramsArr);
+			request.organization_id
+		);
+		const queryString = util.getQueryString('ds_v1_1_activity_list_select', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
-	this.getActReferenceList = async(request) => {
+	this.getActReferenceList = async (request) => {
 		let responseData = [],
-            error = true;
+			error = true;
 
-        const paramsArr = new Array(    
+		const paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
 			request.asset_id,
 			request.activity_type_id,
-			request.activity_type_category_id, 
+			request.activity_type_category_id,
 			request.tag_id,
 			request.tag_type_id,
 			request.search_string,
@@ -3216,59 +3219,59 @@ async function processFormInlineDataV1(request, data){
 			request.flag_participating,
 			request.start_from,
 			request.limit_value
-        );        
-        const queryString = util.getQueryString('ds_p1_activity_list_select_product_reference', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_activity_list_select_product_reference', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];		
-    };
-    
-    this.getChildProductsList = async(request) => {
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
+
+	this.getChildProductsList = async (request) => {
 		//flag = 0 - Count
 		//flag = 1 - Data
-		
+
 		let responseData = [],
-        error = true;
+			error = true;
 
-        const paramsArr = new Array(    
-            request.organization_id,
-            request.parent_activity_id,
-            request.flag,
-            request.sort_flag,
-            request.datetime_start || '1970-01-01 00:00:00',
-            request.datetime_end || util.getCurrentUTCTime(),
-            request.start_from,
-            request.limit_value
-        );        
-        const queryString = util.getQueryString('ds_p1_activity_list_select_child_products', paramsArr);
+		const paramsArr = new Array(
+			request.organization_id,
+			request.parent_activity_id,
+			request.flag,
+			request.sort_flag,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.start_from,
+			request.limit_value
+		);
+		const queryString = util.getQueryString('ds_p1_activity_list_select_child_products', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];	
-    }
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	}
 
-    this.getActivityCategorySearch =  async (request) => {	
+	this.getActivityCategorySearch = async (request) => {
 		let responseData = [],
-            error = true;
+			error = true;
 
-        const paramsArr = new Array(    
+		const paramsArr = new Array(
 			request.organization_id,
 			request.target_asset_id,
 			request.target_account_id,
@@ -3278,31 +3281,31 @@ async function processFormInlineDataV1(request, data){
 			request.is_search,
 			request.search_string,
 			request.page_start,
-			request.page_limit			
-        );        
-        const queryString = util.getQueryString('ds_v1_activity_list_select_category_search', paramsArr);
+			request.page_limit
+		);
+		const queryString = util.getQueryString('ds_v1_activity_list_select_category_search', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
-	
-	this.getActActChildActivitiesV1 =  async (request) => {
-		let responseData = [],
-            error = true;
 
-        const paramsArr = new Array(            
-            request.workflow_activity_id,
-            request.activity_type_id,
+	this.getActActChildActivitiesV1 = async (request) => {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.workflow_activity_id,
+			request.activity_type_id,
 			request.activity_type_category_id,
 			request.tag_id,
 			request.tag_type_id,
@@ -3310,25 +3313,25 @@ async function processFormInlineDataV1(request, data){
 			request.flag,
 			request.page_start || 0,
 			request.page_limit
-        );        
-        const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_select_child_activities', paramsArr);
+		);
+		const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_select_child_activities', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {                    
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
 	};
 
 	this.getActivityFocusList = async (request) => {
 		let responseData = [],
-		error = true;
+			error = true;
 		const paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
@@ -3355,7 +3358,7 @@ async function processFormInlineDataV1(request, data){
 
 	this.getActivityFocusListV1 = async (request) => {
 		let responseData = [],
-		error = true;
+			error = true;
 		/*
 		 due asc = 0
 		 create asc = 1
@@ -3391,7 +3394,7 @@ async function processFormInlineDataV1(request, data){
 
 	this.getActivitySearchList = async (request) => {
 		let responseData = [],
-		error = true;
+			error = true;
 		const paramsArr = new Array(
 			request.organization_id,
 			request.tag_type_id,
@@ -3427,7 +3430,7 @@ async function processFormInlineDataV1(request, data){
 
 		let responseData = [],
 			error = true;
-		
+
 		const paramsArr = new Array(
 			request.organization_id,
 			request.asset_id,
@@ -3444,28 +3447,28 @@ async function processFormInlineDataV1(request, data){
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-                    .then((data) => {
-						//console.log('DATA : ', data);
-						for(const i of data) {
-							let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
-														
-							i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
-							i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
-						}
-                        responseData = data;
-                        error = false;
-                    })
-                    .catch((err) => {
-                        error = err;
-                    });
+				.then((data) => {
+					//console.log('DATA : ', data);
+					for (const i of data) {
+						let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
+
+						i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
+						i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
+					}
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
 		}
-		
+
 		return [error, responseData];
 	};
 
 	this.getChatWithAResource = async (request) => {
 		let responseData = [],
-		error = true;
+			error = true;
 		const paramsArr = new Array(
 			request.organization_id,
 			request.activity_type_category_id,
@@ -3484,7 +3487,7 @@ async function processFormInlineDataV1(request, data){
 				});
 		}
 		return [error, responseData];
-	};	
+	};
 
 	this.getActBulkSummaryData = async (request) => {
 		let responseData = [],
@@ -3509,31 +3512,301 @@ async function processFormInlineDataV1(request, data){
 		}
 		return [error, responseData];
 	};
-
-	const bulkFeasibilitySummarySheetHeaderConfig = require("../utils/bulkFeasibilitySummarySheetHeaderConfig.json");
 	
-	this.getActivityBulkSummaryDataV2 = async (request) => {
-		let headerMetadata = {},
-			error = false;
+	function isObject(obj) {
+		return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
+	}
 
+	this.getActivityBulkSummaryDataV1 = async (request) => {
+		error = false;
+		let opportunityId = ""; 
 		// Get the summary data
 		const [errorZero, summaryData] = await self.getActBulkSummaryData(request);
 		if (errorZero) { error = errorZero };
 
-		// Get the sequencing & display name
-		try {
-			// headerMetadata = await cacheWrapper.getEmailProvider();
-			headerMetadata = bulkFeasibilitySummarySheetHeaderConfig;
-		} catch (errorTwo) {
-			logger.error("Error fetching the app_config:bulk_feasibility_summary_sheet_config: ", { error: serializeError(errorTwo) });
-			error = errorTwo;
+		let finalSummaryData = [];
+		for (rowData of summaryData) {
+			let activitySummaryData = JSON.parse(rowData.activity_summary_data);
+			let activityFeasibilityData = JSON.parse(rowData.activity_feasibility_data);
+
+			if (activitySummaryData.hasOwnProperty("primary")) {
+
+				let mergedObject = { ...activitySummaryData.primary, ...activityFeasibilityData };
+				opportunityId = rowData.parent_activity_cuid_1;
+				mergedObject["parent_opportunity_id"] = rowData.parent_activity_cuid_1;
+				mergedObject["child_opportunity_id"] = rowData.activity_cuid_1;
+				mergedObject["secondary_standard"] = "";
+				mergedObject["feasibility_secondary_status"] = "";
+				mergedObject["feasibility_secondary_description"] = "";
+
+				finalSummaryData.push(mergedObject);
+
+				if (activitySummaryData.hasOwnProperty("secondary") && Object.keys(activitySummaryData.secondary).length > 0) {
+
+					mergedObject = { ...activitySummaryData.secondary, ...activityFeasibilityData };
+					mergedObject["parent_opportunity_id"] = rowData.parent_activity_cuid_1;
+					mergedObject["child_opportunity_id"] = rowData.activity_cuid_1;
+					mergedObject["primary_standard"] = "";
+					mergedObject["feasibility_primary_status"] = "";
+					mergedObject["feasibility_primary_description"] = "";
+					finalSummaryData.push(mergedObject);
+				}
+			}
+			else {
+				activityFeasibilityData["parent_opportunity_id"] = rowData.parent_activity_cuid_1;
+				activityFeasibilityData["child_opportunity_id"] = rowData.activity_cuid_1;
+				activityFeasibilityData["offnetPartnetInfo"] = [{
+					offnetPartnet: "",
+					feasibilitystatusAEnd: "",
+					feasibilitystatusBEnd: "",
+					cftARemarks: "",
+					cftBRemarks: "",
+					otcA: "",
+					otcB: "",
+					arcA: "",
+					arcB: "",
+					salesCapexEndA: "",
+					salesCapexEndB: ""
+				}];
+
+				finalSummaryData.push(activityFeasibilityData);
+			}
 		}
 
-		return [error, {
-			bulk_summary_data: summaryData,
-			header_metadata: headerMetadata
-		}];
+		let keyCount = 0;
+		let positionsofOffnet = [];
+
+		function getIncrementedCount(storeNumberInArray = false) {
+			let currentNumber = keyCount++;
+			if (storeNumberInArray)
+				positionsofOffnet.push(currentNumber);
+			return currentNumber;
+		}
+
+		const headerContent = [["Parent Oppty Id", "Child Oppty ID", "Primary FR ID", "Primary FR ID status", "feasibility_primary_description", "Secondary FR ID", "Secondary FR ID status", "feasibility_secondary_description",
+			"Onnet Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 UBR Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 3G Feasibility Info", "", "", "", "", "", "", "",
+			"Offnet Partnet Info", "", "", "", "", "", "", "", "", "", "",
+			"Stage 2 Microwave Feasibility Info", "", "", "", "", "", "", "", "", "", "",
+			"Super WiFi Feasibility Info", "", "", "", "", "", ""],
+			["", "", "", "", "", "", "", "", "Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A end", "CFT Remarks B end", "Sales Capex A End", "Sales Capex B End", "Network Capex",
+			"Progress Status", "Feasibility Close Date", "Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A End", "CFT Remarks B End", "Sales Capex A End","Sales Capex B End", "Network Capex", "Progress Status", "Feasibility Close Date", 
+			"Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A End", "Circle Remarks B End", "CFT Remarks A End",
+			"CFT Remarks B End", "Progress Status", "Feasibility Close Date",			
+			"Off-net Partner Name", "Feasibility Status A end", "Feasibility Status B end", "CFT Remarks A end", "CFT Remarks B end", "OTC A End", "OTC B End", "ARC A End",
+			"ARC B End", "Sales Capex A End", "Sales Capex B End",
+			"Feasibility Status A end", "Feasibility Status B end", "Circle Remarks A end", "Circle Remarks B end", "CFT Remarks A end", "CFT Remarks B end",
+			"Sales Capex A End", "Sales Capex B End", "Network Capex", "Progress Status", "Feasibility Close Date", 
+			"Wifi flavor", "Site Survery Status", "Total Sales Opex", "Total Capex",
+			"No.of access points", "Progress Status", "Feasibility Close Date"]];
+
+		const ws = XLSX.utils.aoa_to_sheet(headerContent)
+
+		const contentSequence = {
+			parent_opportunity_id: getIncrementedCount(),
+			child_opportunity_id: getIncrementedCount(),
+			primary_standard: getIncrementedCount(),
+			feasibility_primary_status: getIncrementedCount(),
+			feasibility_primary_description: getIncrementedCount(),
+			secondary_standard: getIncrementedCount(),
+			feasibility_secondary_status: getIncrementedCount(),
+			feasibility_secondary_description: getIncrementedCount(),
+			onnetFeasibilityInfo: {
+				feasibilitystatusAEnd: getIncrementedCount(),
+				feasibilitystatusBEnd: getIncrementedCount(),
+				circleARemarks: getIncrementedCount(),
+				circleBRemarks: getIncrementedCount(),
+				cftARemarks: getIncrementedCount(),
+				cftBRemarks: getIncrementedCount(),
+				salesCapexEndA: getIncrementedCount(),
+				salesCapexEndB: getIncrementedCount(),
+				networkCapex: getIncrementedCount(),
+				progressStatus: getIncrementedCount(),
+				closeDate: getIncrementedCount(),
+			},
+			stage2UBRFeasibilityInfo: {
+				feasibilitystatusAEnd: getIncrementedCount(),
+				feasibilitystatusBEnd: getIncrementedCount(),
+				circleRemarksA: getIncrementedCount(),
+				circleRemarksB: getIncrementedCount(),
+				cftRemarksA: getIncrementedCount(),
+				cftRemarksB: getIncrementedCount(),
+				salesCapexEndA: getIncrementedCount(),
+				salesCapexEndB: getIncrementedCount(),
+				networkCapex: getIncrementedCount(),
+				progressStatus: getIncrementedCount(),
+				closeDate: getIncrementedCount()
+			},
+			stage23gFeasibilityInfo: {
+				feasibilitystatusAEnd: getIncrementedCount(),
+				feasibilitystatusBEnd: getIncrementedCount(),
+				circleRemarksA: getIncrementedCount(),
+				circleRemarksB: getIncrementedCount(),
+				cftRemarksA: getIncrementedCount(),
+				cftRemarksB: getIncrementedCount(),
+				progressStatus: getIncrementedCount(),
+				closeDate: getIncrementedCount()
+			},
+			offnetPartnetInfo: {
+				offnetPartnet: getIncrementedCount(true),
+				feasibilitystatusAEnd: getIncrementedCount(true),
+				feasibilitystatusBEnd: getIncrementedCount(true),
+				cftARemarks: getIncrementedCount(true),
+				cftBRemarks: getIncrementedCount(true),
+				otcA: getIncrementedCount(true),
+				otcB: getIncrementedCount(true),
+				arcA: getIncrementedCount(true),
+				arcB: getIncrementedCount(true),
+				salesCapexEndA: getIncrementedCount(true),
+				salesCapexEndB: getIncrementedCount(true)
+			},
+			stage2MicrowaveFeasibilityInfo: {
+				feasibilitystatusAEnd: getIncrementedCount(),
+				feasibilitystatusBEnd: getIncrementedCount(),
+				circleRemarksA: getIncrementedCount(),
+				circleRemarksB: getIncrementedCount(),
+				cftRemarksA: getIncrementedCount(),
+				cftRemarksB: getIncrementedCount(),
+				salesCapexEndA: getIncrementedCount(),
+				salesCapexEndB: getIncrementedCount(),
+				networkCapex: getIncrementedCount(),
+				progressStatus: getIncrementedCount(),
+				closeDate: getIncrementedCount()
+			},
+			superWifiFeasibilityInfo: {
+				wifiFlavor: getIncrementedCount(),
+				siteSurveryStatus: getIncrementedCount(),
+				totalSalesOpex: getIncrementedCount(),
+				totalCapex: getIncrementedCount(),
+				noOfAccessPoints: getIncrementedCount(),
+				progressStatus: getIncrementedCount(),
+				closeDate: getIncrementedCount()
+			}
+		}
+
+		ws["!merges"] = [];
+
+		//merge header row
+		ws["!merges"].push({ s: { c: 0, r: 0 }, e: { c: 0, r: 1 } });
+		ws["!merges"].push({ s: { c: 1, r: 0 }, e: { c: 1, r: 1 } });
+		ws["!merges"].push({ s: { c: 2, r: 0 }, e: { c: 2, r: 1 } });
+		ws["!merges"].push({ s: { c: 3, r: 0 }, e: { c: 3, r: 1 } });
+		ws["!merges"].push({ s: { c: 4, r: 0 }, e: { c: 4, r: 1 } });
+		ws["!merges"].push({ s: { c: 5, r: 0 }, e: { c: 5, r: 1 } });
+		ws["!merges"].push({ s: { c: 6, r: 0 }, e: { c: 6, r: 1 } });
+		ws["!merges"].push({ s: { c: 7, r: 0 }, e: { c: 7, r: 1 } });
+
+		// Merge column 
+		ws["!merges"].push({ s: { c: 8, r: 0 }, e: { c: 18, r: 0 } });
+		ws["!merges"].push({ s: { c: 19, r: 0 }, e: { c: 29, r: 0 } });
+		ws["!merges"].push({ s: { c: 30, r: 0 }, e: { c: 37, r: 0 } });
+		ws["!merges"].push({ s: { c: 38, r: 0 }, e: { c: 48, r: 0 } });
+		ws["!merges"].push({ s: { c: 49, r: 0 }, e: { c: 59, r: 0 } });
+		ws["!merges"].push({ s: { c: 60, r: 0 }, e: { c: 66, r: 0 } });
+
+		for (const rowData of finalSummaryData) {
+			let placeholder = Array(keyCount).fill("");
+
+			const oldRange = XLSX.utils.decode_range(ws["!ref"]);
+			for (const contentKey of Object.keys(contentSequence)) {
+				// regular
+				if (!isObject(contentSequence[contentKey])) {
+					placeholder[contentSequence[contentKey]] = rowData[contentKey] || "";
+
+				} else if (contentKey !== "offnetPartnetInfo") {
+					for (const childContentKey of Object.keys(contentSequence[contentKey])) {
+						if (rowData.hasOwnProperty(contentKey)) {
+							placeholder[contentSequence[contentKey][childContentKey]] = rowData[contentKey][childContentKey];
+						}
+						else {
+							placeholder[contentSequence[contentKey][childContentKey]] = "";
+						}
+
+					}
+				}
+			}
+
+			const aoaData = [];
+
+			// offnetPartnetInfo
+			const offnetVendors = rowData.offnetPartnetInfo || [];
+			for (let i = 0; i < offnetVendors.length; i++) {
+				if (i === 0) {
+					for (const offnetKey of Object.keys(offnetVendors[i])) {
+						placeholder[contentSequence["offnetPartnetInfo"][offnetKey]] = offnetVendors[i][offnetKey]
+					}
+					aoaData.push(placeholder)
+				} else {
+					let childPlaceholder = Array(keyCount).fill("");
+					for (const offnetKey of Object.keys(offnetVendors[i])) {
+						childPlaceholder[contentSequence["offnetPartnetInfo"][offnetKey]] = offnetVendors[i][offnetKey]
+					}
+					aoaData.push(childPlaceholder);
+				}
+
+			}
+			XLSX.utils.sheet_add_aoa(ws, aoaData, { origin: -1 });
+
+			const newRange = XLSX.utils.decode_range(ws["!ref"]);
+
+			// Merge the relevant rows
+			for (let i = 0; i < keyCount; i++) {
+				if (!positionsofOffnet.includes(i)) {
+					ws["!merges"].push({ s: { c: i, r: oldRange.e.r + 1 }, e: { c: i, r: newRange.e.r } });
+				}
+			}
+
+		}
+
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, "sheet_1");
+
+		var fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: "xlsx" });
+		const timestampIST = moment().utcOffset("+05:30").format("DD_MM_YYYY-hh_mm_A");
+		let fileName = "bulk_summary_sheet_"+opportunityId+"_"+timestampIST+".xlsx";
+		let s3Url = await util.uploadXLSXToS3(fileBuffer,fileName);
+
+		let attachmentsList = [];
+        attachmentsList.push(s3Url);
+		let addCommentRequest = Object.assign(request, {});
+
+        addCommentRequest.asset_id = 100;
+        addCommentRequest.device_os_id = 7;
+        addCommentRequest.activity_type_category_id = 48;
+        addCommentRequest.activity_type_id = request.parent_activity_id;
+        addCommentRequest.activity_id = request.parent_activity_id;
+        addCommentRequest.activity_timeline_collection = JSON.stringify({
+            "content": `Tony has added Bulk Summary Data attachment(s).`,
+            "subject": `Tony has added Bulk Summary Data attachment(s).`,
+            "mail_body": `Tony has added Bulk Summary Data attachment(s).`,
+            "attachments": attachmentsList
+        });
+        addCommentRequest.activity_stream_type_id = 325;
+        addCommentRequest.timeline_stream_type_id = 325;
+        addCommentRequest.activity_timeline_text = "";
+        addCommentRequest.activity_access_role_id = 27;
+        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.datetime_log = util.getCurrentUTCTime();
+        addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+        addCommentRequest.flag_timeline_entry = 1;
+        addCommentRequest.log_asset_id = 100;
+        addCommentRequest.attachment_type_id = 17;
+        addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
+
+		const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+		
+        try {
+            await addTimelineTransactionAsync(addCommentRequest);
+        } catch (error) {
+            console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+            throw new Error(error);
+		}
+		
+		return [error, finalSummaryData];
+
 	};
+
 }
 
 module.exports = ActivityListingService;
