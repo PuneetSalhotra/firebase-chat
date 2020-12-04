@@ -1638,7 +1638,7 @@ function Util(objectCollection) {
                         Key: KeyName
                         };
 
-        
+         let fileName = "";
         // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
         switch(global.mode) {            
             case 'staging': fileName = '/apistaging-data/';
@@ -1650,7 +1650,7 @@ function Util(objectCollection) {
             default: fileName = '/api-data/'; 
                      break;
         }
-        let fileName = "";
+        
         fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
      
         let file = require('fs').createWriteStream(fileName);
