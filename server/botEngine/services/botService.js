@@ -8988,7 +8988,7 @@ async function removeAsOwner(request,data)  {
         // const urlKey = `858/974/5353/31476/2018/11/103/1604082465622/OPP-C-000196-260820-_-Bulk-3.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-2020-10.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
-        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: "+ bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
             throw new Error(xlsxDataBodyError);
@@ -9055,6 +9055,8 @@ async function removeAsOwner(request,data)  {
             }
         };
 
+        const errorMessagesArray = [];
+
         // PreProcessinf Stage 1
         let groupedJobsMap = new Map();
         let childOpportunityIDToDualFlagMap = new Map();
@@ -9068,6 +9070,7 @@ async function removeAsOwner(request,data)  {
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
+            const actionType = String(childOpportunity.actionType).toLowerCase();
             const linkType = String(childOpportunity.LinkType).toLowerCase();
             const serialNumber = childOpportunity.serialNum;
             const childOpportunityID = `${opportunityID}-${serialNumber}`;
@@ -9076,6 +9079,7 @@ async function removeAsOwner(request,data)  {
             if (groupedJobsMap.has(childOpportunityID)) {
                 let jobInlineJSON = groupedJobsMap.get(childOpportunityID);
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
+                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
 
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
@@ -9097,10 +9101,12 @@ async function removeAsOwner(request,data)  {
                             feasibility_form_id: triggerFormID
                         },
                         primary: {},
+                        second_primary: {},
                         secondary: {}
                     }
                 }
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
+                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
             }
@@ -9304,6 +9310,37 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            if (childOpportunity.actionType === "mplsl2_second_primary") {
+                // Check for child opportunity
+                if (childOpportunity.OppId === "") {
+                    errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
+                    continue;
+
+                } else {
+                    childOpportunityID = childOpportunity.OppId;
+                    // Check if the child opportunity already exists
+                    const [errorSix, childOpportunityData] = await activityListSearchCUID({
+                        organization_id: request.organization_id,
+                        activity_type_category_id: workflowActivityCategoryTypeID,
+                        flag: 1,
+                        search_string: childOpportunityID
+                    });
+                    if (childOpportunityData.length === 0) {
+                        errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
+                        continue;
+                    }
+                }
+                // Second primary must be of linkType primary
+                if (linkType === "secondary") {
+                    errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
+                    continue;
+                }
+
+                // Skip pushing second primary job for dual creation cases to SQS
+                const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
+                if (linkType === "primary" && isDualJob) { continue; }
+            }
+
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
             const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
@@ -9352,6 +9389,13 @@ async function removeAsOwner(request,data)  {
                 if (Number(errorMessageJSON.action[errorCategory].opportunity_ids.length) > 0) {
                     formattedTimelineMessage += errorMessageJSON.action[errorCategory].message;
                     formattedTimelineMessage += `${errorMessageJSON.action[errorCategory].opportunity_ids.join(', ')}\n\n`;
+                }
+            }
+
+            if (errorMessagesArray.length > 0) {
+                formattedTimelineMessage += "\nOther errors: \n";
+                for (const errorMessage of errorMessagesArray) {
+                    formattedTimelineMessage += `# ${errorMessage}\n`;
                 }
             }
 
@@ -9981,7 +10025,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
+                field_value: 'Approved considering MNP acquisition requirement',
                 message_unique_id: 1603968690920
             },
             {

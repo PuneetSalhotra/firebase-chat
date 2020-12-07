@@ -1875,6 +1875,7 @@ function Util(objectCollection) {
     };
 
     this.downloadS3Object = async (request, url) => {
+        console.log("came here",url)
         return new Promise(async (resolve) => {
             var s3 = new AWS.S3();
             console.log('URL : ', url);
@@ -1918,12 +1919,14 @@ function Util(objectCollection) {
     };
 
     this.uploadS3Object = async (request, zipFile) => {
-        return new Promise((resolve)=>{
+        return new Promise(async (resolve)=>{
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
-            let bucketName = this.getDynamicBucketName();
+            let bucketName = await this.getDynamicBucketName();
+           
             // if (environment === 'prod') {
+
             //     bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
 
             // } else {
@@ -1935,7 +1938,7 @@ function Util(objectCollection) {
                              request.workforce_id + '/' + 
                              request.asset_id + '/' + 
                              this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
-            console.log(bucketName);
+            console.log(bucketName[0].bucket_name);
             console.log(prefixPath);
 
             var s3 = new AWS.S3();
