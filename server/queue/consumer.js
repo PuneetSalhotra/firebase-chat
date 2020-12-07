@@ -2,8 +2,8 @@
  * author Nani Kalyan V
  */
 const tracer = require('dd-trace').init({
-    service: `${process.env.mode}_desker_api`,
-    env: process.env.mode,
+    service: `${process.env.NODE_ENV}_desker_api`,
+    env: process.env.NODE_ENV,
     logInjection: true
 });
 const tracerScope = tracer.scope();
