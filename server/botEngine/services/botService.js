@@ -9815,6 +9815,12 @@ async function removeAsOwner(request,data)  {
 
 
     async function checkCustomBot(request, inlineData) {
+
+        if(request.flag_past_data_processing == 1) {
+            console.error("got flag_past_data_processing key as " + request.flag_past_data_processing + " so skipping Custom bot 35 SME and Mobility");
+            return;
+        }
+
         console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
