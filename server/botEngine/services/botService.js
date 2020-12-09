@@ -9053,7 +9053,7 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        const errorMessagesArray = [];
+        
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9087,6 +9087,7 @@ async function removeAsOwner(request,data)  {
         }
 
         // PreProcessinf Stage 1
+        const errorMessagesArray = [];
         let groupedJobsMap = new Map();
         let childOpportunityIDToDualFlagMap = new Map();
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
