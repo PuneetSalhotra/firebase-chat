@@ -9054,6 +9054,37 @@ async function removeAsOwner(request,data)  {
         };
 
         const errorMessagesArray = [];
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 2; i < childOpportunitiesArray.length; i++) {
+            const childOpportunity = childOpportunitiesArray[i];
+            for (const [key, value] of Object.entries(childOpportunity)) {
+
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
+                }
+
+            }
+        }
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
 
         // PreProcessinf Stage 1
         let groupedJobsMap = new Map();
