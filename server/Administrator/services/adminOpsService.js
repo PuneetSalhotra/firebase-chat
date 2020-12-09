@@ -7250,6 +7250,14 @@ function AdminOpsService(objectCollection) {
                 return [true, [{ message : "Something went wrong!"}]];
             }
 
+            if(!formEnable.length) {
+                response.push({
+                    isActive : true,
+                    form_id  : formId
+                });
+                continue;
+            }
+
             for(let mainRow of formEnable) {
                 let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
                 let condition = botInlineDataParsed.conditions;
@@ -7273,13 +7281,14 @@ function AdminOpsService(objectCollection) {
                         console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                     }
                 }
+
                 try {
                     console.log("condition", condition);
                     result = eval(condition);
                     console.log("result------------>", result);
                     response.push({
                         isActive : result == 1 ? true : false,
-                        form_id  : request.form_id
+                        form_id  : formId
                     })
                 } catch (err) {
                     console.log("Error occured while processing the expression ", err);
@@ -8223,3 +8232,4 @@ function AdminOpsService(objectCollection) {
 }
 
 module.exports = AdminOpsService;
+

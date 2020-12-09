@@ -4996,9 +4996,19 @@ function VodafoneService(objectCollection) {
         let targetFieldsUpdated = [],
             REQUEST_FIELD_ID = 0;
 
-    if(SOURCE_FORM_FIELD_MAPPING_DATA !== null) {
-        for (const sourceField of sourceFieldsUpdated) {
+    console.log('typeof sourceFieldsUpdated', typeof sourceFieldsUpdated);
+    sourceFieldsUpdated = (typeof sourceFieldsUpdated === 'string') ? JSON.parse(sourceFieldsUpdated) : sourceFieldsUpdated;
+
+    if(SOURCE_FORM_FIELD_MAPPING_DATA !== null) {        
+        for (const sourceField of sourceFieldsUpdated) {            
+            //console.log('typeof sourceField', typeof sourceField);
+            //console.log('sourceField - ', sourceField);
+            //console.log(' ');
             let sourceFieldID = String(sourceField.field_id);
+            //console.log('typeof sourceFieldID', typeof sourceFieldID);
+            //console.log('sourceFieldID - ', sourceFieldID);
+            //console.log('*****************************');
+            //console.log(' ');
             if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
                 console.log("Mapping Exists: ", sourceFieldID, " => ", SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
 

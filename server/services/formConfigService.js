@@ -6115,13 +6115,20 @@ function FormConfigService(objCollection) {
             if(err) {
                 return [err, fieldLevelBots];
             }
-
+            
             let botInlineData = [];
-
+            let referenceShortTextFields = [];
             if(fieldLevelBots.length) {
                 for(let row of fieldLevelBots) {
                     if(row.bot_operation_type_id == 32) {
+                        console.log("row",JSON.parse(row.bot_operation_inline_data));
+                        dummy = JSON.parse(row.bot_operation_inline_data);
+                        
                         botInlineData = botInlineData.concat(JSON.parse(row.bot_operation_inline_data).bot_operations.form_field_copy);
+                        if(JSON.parse(row.bot_operation_inline_data).bot_operations.hasOwnProperty("short_text_fields")){
+                            
+                            referenceShortTextFields = JSON.parse(row.bot_operation_inline_data).bot_operations.short_text_fields;
+                        }
                     }
                 }
             }
@@ -6131,6 +6138,8 @@ function FormConfigService(objCollection) {
             }
 
             console.log("botInlineData", JSON.stringify(botInlineData));
+            console.log("reference short text feilds",referenceShortTextFields);
+            
             let response = [];
             for(let row of botInlineData) {
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -6150,6 +6159,15 @@ function FormConfigService(objCollection) {
 
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
+                            
+                            if(referenceShortTextFields.findIndex((eachField)=>eachField == row.target_field_id)!=-1){
+                                let tempVal = newRow.field_value.split('|');
+                                const finalVal = tempVal[1];
+                                response.push({
+                                    [row.target_field_id]: finalVal
+                                });
+                                break;
+                            }
                             response.push({
                                 [row.target_field_id]: newRow.field_value
                             });

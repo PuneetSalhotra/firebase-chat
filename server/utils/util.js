@@ -1614,32 +1614,31 @@ function Util(objectCollection) {
         let url = request.bucket_url;
         // const BucketName = url.slice(8, 25);
         // const KeyName = url.slice(43);      
-        let BucketName = url.slice(8, 25);
-        let KeyName = url.slice(43);
-
-        if (url.includes('ap-south-1')) {
-            KeyName = url.slice(54);
-        }
-
-        if (url.includes('staging') || url.includes('preprod')) {
-            BucketName = url.slice(8, 33);
-            KeyName = url.slice(51);
-
-            if (url.includes('ap-south-1')) {
-                KeyName = url.slice(62);
+        let [BucketName,KeyName,FileName]= await new Promise((resolve) => {
+            try {
+            let urlParts;
+            if (url.indexOf('ap-south') > 1) {
+            urlParts = url.split('.s3.ap-south-1.amazonaws.com/');
+            } else {
+            urlParts = url.split('.s3.amazonaws.com/');
             }
-        }
-        
-        console.log('request.bucket_url : ', url);
-        console.log('BucketName : ', BucketName);
-        console.log('KeyName : ', KeyName);
+            
+            let keyParts = urlParts[1].split('/');
+            let BucketName = urlParts[0].replace('https://', '');
+            let KeyName = urlParts[1];
+            let FileName = keyParts[keyParts.length - 1];
+            resolve([BucketName, KeyName, FileName]);
+            } catch (err) {
+            resolve(['', '', '']);
+            }
+            });
         
         let params =  {
                         Bucket: BucketName, 
                         Key: KeyName
                         };
 
-        let fileName = '';
+         let fileName = "";
         // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
         switch(global.mode) {            
             case 'staging': fileName = '/apistaging-data/';
@@ -1651,7 +1650,7 @@ function Util(objectCollection) {
             default: fileName = '/api-data/'; 
                      break;
         }
-
+        
         fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
      
         let file = require('fs').createWriteStream(fileName);
@@ -1789,21 +1788,24 @@ function Util(objectCollection) {
 
         // const bucketName = S3Url.slice(8, 25);
         // const keyName = S3Url.slice(43);
-        let bucketName = S3Url.slice(8, 25);
-        let keyName = S3Url.slice(43);
-
-        if (S3Url.includes('ap-south-1')) {
-            keyName = S3Url.slice(54);
-        }
-
-        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
-            bucketName = S3Url.slice(8, 33);
-            keyName = S3Url.slice(51);
-
-            if (S3Url.includes('ap-south-1')) {
-                keyName = S3Url.slice(62);
+        let [bucketName,keyName,fileName]= await new Promise((resolve) => {
+            try {
+            let urlParts;
+            if (S3Url.indexOf('ap-south') > 1) {
+            urlParts = S3Url.split('.s3.ap-south-1.amazonaws.com/');
+            } else {
+            urlParts = S3Url.split('.s3.amazonaws.com/');
             }
-        }
+            
+            let keyParts = urlParts[1].split('/');
+            let BucketName = urlParts[0].replace('https://', '');
+            let KeyName = urlParts[1];
+            let FileName = keyParts[keyParts.length - 1];
+            resolve([BucketName, KeyName, FileName]);
+            } catch (err) {
+            resolve(['', '', '']);
+            }
+            });
 
         const getObjectParams = {
             Bucket: bucketName,
@@ -1831,21 +1833,24 @@ function Util(objectCollection) {
     this.getFileDataFromS3Url = async function (request, S3Url) {
         const s3 = new AWS.S3();
 
-        let bucketName = S3Url.slice(8, 25);
-        let keyName = S3Url.slice(43);
-
-        if (S3Url.includes('ap-south-1')) {
-            keyName = S3Url.slice(54);
-        }
-
-        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
-            bucketName = S3Url.slice(8, 33);
-            keyName = S3Url.slice(51);
-
-            if (S3Url.includes('ap-south-1')) {
-                keyName = S3Url.slice(62);
+        let [bucketName,keyName,fileName]= await new Promise((resolve) => {
+            try {
+            let urlParts;
+            if (S3Url.indexOf('ap-south') > 1) {
+            urlParts = S3Url.split('.s3.ap-south-1.amazonaws.com/');
+            } else {
+            urlParts = S3Url.split('.s3.amazonaws.com/');
             }
-        }
+            
+            let keyParts = urlParts[1].split('/');
+            let BucketName = urlParts[0].replace('https://', '');
+            let KeyName = urlParts[1];
+            let FileName = keyParts[keyParts.length - 1];
+            resolve([BucketName, KeyName, FileName]);
+            } catch (err) {
+            resolve(['', '', '']);
+            }
+            });
 
         const getObjectParams = {
             Bucket: bucketName,
@@ -1870,31 +1875,32 @@ function Util(objectCollection) {
     };
 
     this.downloadS3Object = async (request, url) => {
-        return new Promise((resolve) => {
+        console.log("came here",url)
+        return new Promise(async (resolve) => {
             var s3 = new AWS.S3();
             console.log('URL : ', url);
 
-            let BucketName = url.slice(8, 25);
-            let KeyName = url.slice(43);
-
-            if (url.includes('ap-south-1')) {
-                KeyName = url.slice(54);
-            }
-
-            if (url.includes('staging') || url.includes('preprod')) {
-                BucketName = url.slice(8, 33);
-                KeyName = url.slice(51);
-
-                if (url.includes('ap-south-1')) {
-                    KeyName = url.slice(62);
+            let [BucketName,KeyName,FileName]= await new Promise((resolve) => {
+                try {
+                let urlParts;
+                if (url.indexOf('ap-south') > 1) {
+                urlParts = url.split('.s3.ap-south-1.amazonaws.com/');
+                } else {
+                urlParts = url.split('.s3.amazonaws.com/');
                 }
-            }
+                console.log("url parts",urlParts)
+                let keyParts = urlParts[1].split('/');
+                let BucketName = urlParts[0].replace('https://', '');
+                let KeyName = urlParts[1];
+                let FileName = keyParts[keyParts.length - 1];
+                resolve([BucketName, KeyName, FileName]);
+                } catch (err) {
+                resolve(['', '', '']);
+                }
+                });
 
             console.log('BucketName : ', BucketName);
             console.log('KeyName : ', KeyName);
-
-            const FileNameArr = url.split('/');
-            const FileName = FileNameArr[FileNameArr.length - 1];
 
             console.log('FILENAME : ', FileName);
 
@@ -1905,38 +1911,40 @@ function Util(objectCollection) {
 
             let filePath = global.config.efsPath;
             let myFile = fs.createWriteStream(filePath + FileName);
+            
             let fileStream = s3.getObject(params).createReadStream();
             fileStream.pipe(myFile);
-
             resolve(FileName);
         });
     };
 
     this.uploadS3Object = async (request, zipFile) => {
-        return new Promise((resolve)=>{
+        return new Promise(async (resolve)=>{
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
-            let bucketName = '';
-            if (environment === 'prod') {
-                bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+            let bucketName = await this.getDynamicBucketName();
+           
+            // if (environment === 'prod') {
 
-            } else {
-                bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
-            }
+            //     bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+
+            // } else {
+            //     bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+            // }
 
             let prefixPath = request.organization_id + '/' + 
                              request.account_id + '/' + 
                              request.workforce_id + '/' + 
                              request.asset_id + '/' + 
                              this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
-            console.log(bucketName);
+            console.log(bucketName[0].bucket_name);
             console.log(prefixPath);
 
             var s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
-                Bucket: bucketName,
+                Bucket: bucketName[0].bucket_name,
                 Key: prefixPath + "/" + zipFile,
                 ContentType: 'application/zip',
                 //ContentEncoding: 'base64',
@@ -1951,7 +1959,7 @@ function Util(objectCollection) {
                     console.log('ERROR', err);
                     console.log(data);
                    
-                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                    resolve(`https://${bucketName[0].bucket_name}.s3.ap-south-1.amazonaws.com/${params.Key}`);
                 });
             });
     };    
