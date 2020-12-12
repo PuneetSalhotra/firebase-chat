@@ -7238,44 +7238,66 @@ function AdminOpsService(objectCollection) {
 
     this.dependedFormCheckWrapper = async (request) => {
 
-        let err = false, dependedFormCheckResult, result = [], formEnable;
+        let err = false, dependedFormCheckResult, result = 0, response  = [];
         request.bot_operation_type_id = 20;
-        request.activity_type_id = 153706;
-        [err, formEnable] = await adminListingService.botOperationMappingSelectOperationType(request);
-        if(err) {
-            return [true, [{ message : "Something went wrong!"}]];
-        }
+        let formList = JSON.parse(request.form_id_list);
 
-        for(let mainRow of formEnable) {
-            let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
-            let condition = botInlineDataParsed.conditions;
-            let formEnableData = botInlineDataParsed.form_enable;
-            for(let row of formEnableData) {
+        for(let formId of formList) {
+            request.form_id = formId;
+            let [err, formEnable] = await adminListingService.botOperationMappingSelectOperationType(request);
+            // [err, formEnable] = await adminListingService.botOperationMappingSelectID(request);
+            if(err) {
+                return [true, [{ message : "Something went wrong!"}]];
+            }
 
-                for(let key in row) {
-                    request.version = 2;
-                    request.form_id = row[key].form_id;
-                    request.botsData = [{
-                        bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
-                    }];
-                    [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
-                    if(err) {
-                        return [err, dependedFormCheckResult];
+            if(!formEnable.length) {
+                response.push({
+                    isActive : true,
+                    form_id  : formId
+                });
+                continue;
+            }
+
+            for(let mainRow of formEnable) {
+                let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
+                let condition = botInlineDataParsed.conditions;
+                let formEnableData = botInlineDataParsed.form_enable;
+                for(let row of formEnableData) {
+
+                    for(let key in row) {
+                        request.version = 2;
+                        request.form_id = row[key].form_id;
+                        request.botsData = [{
+                            bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
+                        }];
+
+                        console.log("request", JSON.stringify(request));
+                        [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
+                        if(err) {
+                            console.log("Processing next got false from one");
+                        }
+
+                        eval('var ' + key + '=' + dependedFormCheckResult + ';' );
+                        console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                     }
-                    console.log('var ' + key + '=' + dependedFormCheckResult + ';');
-                    eval('var ' + key + '=' + dependedFormCheckResult + ';' );
+                }
+
+                try {
+                    console.log("condition", condition);
+                    result = eval(condition);
+                    console.log("result------------>", result);
+                    response.push({
+                        isActive : result == 1 ? true : false,
+                        form_id  : formId
+                    })
+                } catch (err) {
+                    console.log("Error occured while processing the expression ", err);
+                    result = [{ message : "Error while processing expression", expression : condition }];
                 }
             }
-            try {
-                result = eval(condition);
-                console.log("result------------>", result);
-            } catch (err) {
-                console.log("Error occured while processing the expression ", err);
-                result = [{ message : "Error while processing expression", expression : condition }];
-            }
         }
 
-        return [err, result]
+        return [err, response ]
         
     }
     
@@ -7297,7 +7319,7 @@ function AdminOpsService(objectCollection) {
                 //console.log(inlineData.form_enable);
 
                 tempFormsArr = inlineData.form_enable?inlineData.form_enable:[];
-                console.log('tempFormsArr : ', tempFormsArr);
+                console.log('tempFormsArr : ', JSON.stringify(tempFormsArr));
 
                 if(tempFormsArr.length == 0){
                     error = false;
@@ -7308,7 +7330,7 @@ function AdminOpsService(objectCollection) {
                     console.log(tempFormsArr[j].form_id);
                     conditions = tempFormsArr[j].conditions;
 
-                    console.log('Conditions: ', conditions);
+                    console.log('Conditions: ', JSON.stringify(conditions));
 
                     if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
 
@@ -7422,6 +7444,7 @@ function AdminOpsService(objectCollection) {
         request.bot_operation_type_id = 20;
         botsData = request.botsData;
 
+        let responseFlag = 0;
         if(botsData.length > 0) {
             let inlineData,tempFormsArr,conditions,dependentFormTransactionData;
             let i, j, k , l;
@@ -7436,14 +7459,15 @@ function AdminOpsService(objectCollection) {
 
                 if(tempFormsArr.length == 0){
                     error = false;
-                    responseData.push({"message": "No Dependent Forms defined for this Form!"});
+                    responseFlag = 1;
+                    console.log("No Dependent Forms defined for this Form!");
                 }
 
                 for(let j=0; j<tempFormsArr.length; j++) { //Looping on the each form
                     console.log(tempFormsArr[j].form_id);
                     conditions = tempFormsArr[j].conditions;
 
-                    console.log('Conditions: ', conditions, tempFormsArr[j].form_id);
+                        console.log('Conditions: ', conditions, tempFormsArr[j].form_id);
 
                     if(Number(request.form_id) === Number(tempFormsArr[j].form_id)) { //Checking for the given specific form
 
@@ -7470,15 +7494,17 @@ function AdminOpsService(objectCollection) {
                                     if(!conditions[k].hasOwnProperty('field_id')) {
                                         if(conditions[k].join_condition == 'OR') {
                                             error = false;
+                                            responseFlag = 1;
                                             console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            // responseData.push({"message": "dependent form conditions passed!"});
                                             break;
                                         } else if (conditions[k].join_condition == 'AND') {
                                             continue;
                                         } else { // EOJ
                                             error = false;
+                                            responseFlag = 1;
                                             console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
-                                            responseData.push({"message": "dependent form conditions passed!"});
+                                            // responseData.push({"message": "dependent form conditions passed!"});
                                             break;
                                         }
                                     } else {
@@ -7496,7 +7522,8 @@ function AdminOpsService(objectCollection) {
                                             if(proceed === 0 || conditionStatus === 0) {
                                                 if(conditionStatus === 1){
                                                     error = false;
-                                                    responseData.push({"message": "dependent form conditions passed!"});
+                                                    responseFlag = 1;
+                                                    // responseData.push({"message": "dependent form conditions passed!"});
                                                     console.log(`dependent form ${conditions[k].form_id} conditions passed!`);
 
                                                     breakFlag = 1;
@@ -7504,10 +7531,12 @@ function AdminOpsService(objectCollection) {
                                                 } else {
                                                     if(conditions[k].join_condition == 'OR') {
                                                         error = false;
+                                                        responseFlag = 1;
                                                         responseData = 0;
                                                         console.log('As the condition is OR proceeding to check the next form');
                                                     } else {
                                                         error = false;
+                                                        responseFlag = 1;
                                                         responseData = 0;
                                                         console.log(`dependent form ${conditions[k].form_id} conditions failed!`);
                                                         breakFlag = 1;
@@ -7535,20 +7564,20 @@ function AdminOpsService(objectCollection) {
                                 }
                             } catch (error) {
                                 console.log("Fetch Dependent Form Data | Error: ", error);
-                                throw new Error(error);
+                                // throw new Error(error);
                             }
                         } //End of Conditions Array
                     } else { //If the form_enable form is different from the request.form_id
-                        responseData.push({"message": `No Dependent forms for form_id - ${request.form_id}`});
+                        console.log(`No Dependent forms for form_id - ${request.form_id}`);
                     }
                 } // Looping on a Single Form
             } //Looping on all the bot_enabled forms
         } else {
             error = false;
+            responseFlag = 1;
             console.log('No Dependent Forms defined for this Form!');
-            responseData.push({"message": "No Dependent Forms defined for this Form!"});
         }
-        return [error, responseData];
+        return [error, responseFlag];
     }
 
     this.tagupdate = async (request) => {
@@ -7650,7 +7679,8 @@ function AdminOpsService(objectCollection) {
             error = false;
 
         console.log('formData in evaluateJoinCondition: ', formData);
-        
+
+        console.log("conditionData--->", conditionData);
         switch(Number(conditionData.data_type_id)) {
             case 5: let operation = conditionData.field_value_condition_operator;
                     let ifStatement;
@@ -8202,3 +8232,4 @@ function AdminOpsService(objectCollection) {
 }
 
 module.exports = AdminOpsService;
+

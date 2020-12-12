@@ -718,6 +718,15 @@ function AssetService(objectCollection) {
     };
 
     var formatAssetData = function (rowArray, callback) {
+        
+        let is_password_set = 'No';
+        for(const i of rowArray) {
+            if((i.asset_email_password).length > 0) {
+                //Password is Set
+                is_password_set = 'Yes';
+                break;
+            }
+        }
 
         var rowData = {
             'asset_id': util.replaceDefaultNumber(rowArray[0]['asset_id']),
@@ -777,8 +786,11 @@ function AssetService(objectCollection) {
             'asset_flag_process_management': util.replaceDefaultNumber(rowArray[0]['asset_flag_process_management']),
             'workforce_flag_enable_web_access': util.replaceDefaultNumber(rowArray[0]['workforce_flag_enable_web_access']),
             'cluster_tag_id': util.replaceDefaultNumber(rowArray[0]['cluster_tag_id']),
+            'asset_flag_super_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_super_admin']),
             'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name']) ,
-            'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data'])
+            'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data']),
+            'is_password_set':is_password_set,
+            'asset_encryption_token_id': util.replaceDefaultString(rowArray[0]['asset_encryption_token_id'])
         };
 
         callback(false, rowData);
@@ -3124,22 +3136,27 @@ function AssetService(objectCollection) {
 
     function updatePushToken(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            const paramsArr = [
                 assetId,
                 request.organization_id,
                 request.asset_token_push,
                 request.asset_push_arn,
                 request.asset_id,
                 request.datetime_log
-            );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_push_token', paramsArr);
+            ];
+            
+            let dbCall = 'ds_v1_asset_list_update_push_token';            
+            if(request.hasOwnProperty('flag_switching') && Number(request.flag_switching) === 1) {                
+                dbCall = 'ds_p1_asset_list_update_push_token';
+            }
+            
+            const queryString = util.getQueryString(dbCall, paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(false, data) : reject(true, err);
                 });
-            }
+            }            
         });
-
     };
 
     // Retrieve asset's monthly summary params

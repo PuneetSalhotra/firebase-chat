@@ -1073,7 +1073,7 @@ function ActivityConfigService(db,util,objCollection) {
         let botInlineData;
 
         if(botData.length > 0) {
-            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).account_code_dependent_fields;
+            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).bot_operations.account_code_dependent_fields;
             console.log('Account Code Dependent Fields: ',botInlineData);
         } else {
             error = true;
@@ -1186,45 +1186,50 @@ function ActivityConfigService(db,util,objCollection) {
             }
 
             //Update the same in ElastiSearch
-            if(!hasAccountCode){
-            client.updateByQuery({
-                index: 'crawling_accounts',
-                "body": {
-                    "query": {
-                        "match": {
-                            "activity_id": Number(request.workflow_activity_id)
-                        }
-                    },
-                    "script": {
-                        "source": "ctx._source = params",
-                        "lang": "painless",
-                        "params": {
-                            "activity_cuid_1":panNumber,
-                            "activity_cuid_2":gstNumber
+            console.log('hasAccountCode - ', hasAccountCode);
+            if(!hasAccountCode) {
+                client.updateByQuery({
+                    index: 'crawling_accounts',
+                    "body": {
+                        "query": {
+                            "match": {
+                                "activity_id": Number(request.workflow_activity_id)
+                            }
+                        },
+                        "script": {
+                            "source": "ctx._source = params",
+                            "lang": "painless",
+                            "params": {
+                                "activity_cuid_1":panNumber,
+                                "activity_cuid_2":gstNumber,
+                                "activity_cuid_3": accountCode,
+                                "activity_type_id": Number(request.activity_type_id),
+                                "workforce_id": Number(request.workforce_id),
+                                "account_id": Number(request.account_id),
+                                "activity_id": Number(request.workflow_activity_id),
+                                "asset_id": Number(request.asset_id)
+                            }
                         }
                     }
-                }
-            });
-        }
-        else{
-            client.index({
-                index: 'crawling_accounts',
-                body: {
-                    activity_cuid_3: accountCode,
-                    activity_type_id: Number(request.activity_type_id),
-                    workforce_id: Number(request.workforce_id),
-                    account_id: Number(request.account_id),
-                    activity_id: Number(request.workflow_activity_id),
-                    asset_id: Number(request.asset_id)
-                    //operating_asset_first_name: "Sagar Pradhan",
-                    //activity_title: "GALAXY MEDICATION",
-                    //activity_type_name: "Account Management - SME",
-                    //asset_first_name: "Channel Head",
-                    //operating_asset_id: 44574,
-                }
-            });
-
-        }
+                });
+            } else {
+                client.index({
+                    index: 'crawling_accounts',
+                    body: {
+                        activity_cuid_3: accountCode,
+                        activity_type_id: Number(request.activity_type_id),
+                        workforce_id: Number(request.workforce_id),
+                        account_id: Number(request.account_id),
+                        activity_id: Number(request.workflow_activity_id),
+                        asset_id: Number(request.asset_id)
+                        //operating_asset_first_name: "Sagar Pradhan",
+                        //activity_title: "GALAXY MEDICATION",
+                        //activity_type_name: "Account Management - SME",
+                        //asset_first_name: "Channel Head",
+                        //operating_asset_id: 44574,
+                    }
+                });
+             }
 
             //2) Update in one of the target Fields? I dont what is it? //Target field take it from Ben
         }       
@@ -1296,7 +1301,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log("pan and gst numbers",laPanNumber,laGstNumber)
                 let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
-                laCompanyName = util.removeSpecialCharecters(laCompanyName);
+                laCompanyName = await util.removeSpecialCharecters(laCompanyName);
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
                 
                 console.log('laGroupCompany - ', laGroupCompany);
@@ -1351,7 +1356,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log("pan and gst numbers",getPanNumber,getGstNumber)
                 let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
-                geCompanyName = util.removeSpecialCharecters(geCompanyName);
+                geCompanyName = await util.removeSpecialCharecters(geCompanyName);
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
                 
                 console.log('geGroupCompany - ', geGroupCompany);
@@ -1417,14 +1422,14 @@ function ActivityConfigService(db,util,objCollection) {
                 let smeTurnOver;
                 let smePanNumber;
                 let smeGstNumber;
-
+                
                 for(const i of botInlineData){
                     //console.log(i);
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
-                                                    smeCompanyName = util.removeSpecialCharecters(smeCompanyName);
+                                                    smeCompanyName = await util.removeSpecialCharecters(smeCompanyName);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1433,7 +1438,8 @@ function ActivityConfigService(db,util,objCollection) {
                                              
                                              smeSubIndustrySubFID = i.sub_industry_field_values[`${smeSubIndustrySubID}`];
                                              smeSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeSubIndustrySubFID);
-                                             smeSubIndustryName = util.removeSpecialCharecters(smeSubIndustryName);
+                                             console.log("sme sub ind",smeSubIndustryName)
+                                             smeSubIndustryName = await util.removeSpecialCharecters(smeSubIndustryName);
                                              break;
                         case 'pan_number': console.log(i.pan_number);
                                            smePanNumber = i.pan_number;
@@ -1453,7 +1459,7 @@ function ActivityConfigService(db,util,objCollection) {
                                                       break;
                     }
                 }                
-
+                 
                 console.log('smeSubIndustryName - ', smeSubIndustryName);
                 console.log('smeTurnOver : ', smeTurnOver);
 
@@ -1529,7 +1535,7 @@ function ActivityConfigService(db,util,objCollection) {
                 } else { //Govt Regular
                     //console.log('Inside ELSE');
 
-                    accountCode += ((govtCompanyName.substr(0,10)).padEnd(10,'0')).toUpperCase();
+                    accountCode += ((govtCompanyName.substr(0,11)).padEnd(11,'0')).toUpperCase();
                     accountCode += '-';
                     //accountCode += nameofgrouppcompany.padEnd(6, '0');
                 }
@@ -1553,7 +1559,7 @@ function ActivityConfigService(db,util,objCollection) {
                 hasSeqNo = 1;
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
-                vicsCompanyName = util.removeSpecialCharecters(vicsCompanyName)
+                vicsCompanyName = await util.removeSpecialCharecters(vicsCompanyName)
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
                 const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
                 const vicsPanFID = Number(botInlineData.pan_number);
@@ -1608,14 +1614,14 @@ function ActivityConfigService(db,util,objCollection) {
                 let sohoTurnOver;
                 let sohoGstNumber;
                 let sohoPanNumber;
-
+                 
                 for(const i of botInlineData){
                     //console.log(i);
                     switch(i.field_name){
                         case 'name_of_the_company': console.log(i.name_of_the_company);
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
-                                                    sohoCompanyName = util.removeSpecialCharecters(sohoCompanyName);
+                                                    sohoCompanyName = await util.removeSpecialCharecters(sohoCompanyName);
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1624,7 +1630,7 @@ function ActivityConfigService(db,util,objCollection) {
                                              
                                              sohoSubIndustrySubFID = i.sub_industry_field_values[`${sohoSubIndustrySubID}`];
                                              sohoSubIndustryName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoSubIndustrySubFID);
-                                             sohoSubIndustryName = util.removeSpecialCharecters(sohoSubIndustryName);
+                                             sohoSubIndustryName = await util.removeSpecialCharecters(sohoSubIndustryName);
                                              break;
                         case 'pan_number': console.log(i.pan_number);
                                            sohoPanNumber = i.pan_number;
@@ -1996,6 +2002,7 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('*************************');
         return fieldValue;
     }
+    
 
 }
 
