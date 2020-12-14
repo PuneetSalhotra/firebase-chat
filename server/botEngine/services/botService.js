@@ -7571,7 +7571,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-        
+
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -9055,9 +9055,41 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        const errorMessagesArray = [];
+        
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 2; i < childOpportunitiesArray.length; i++) {
+            const childOpportunity = childOpportunitiesArray[i];
+            for (const [key, value] of Object.entries(childOpportunity)) {
+
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
+                }
+
+            }
+        }
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
 
         // PreProcessinf Stage 1
+        const errorMessagesArray = [];
         let groupedJobsMap = new Map();
         let childOpportunityIDToDualFlagMap = new Map();
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9874,11 +9906,11 @@ async function removeAsOwner(request,data)  {
             return;
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           resultProductAndRequestType.requestTypeMatch &&
-          resultProductAndRequestType.reqularApproval) {
+          ([1,2,4].indexOf(resultProductAndRequestType.reqularApproval) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
             console.log("Got Product Mobility, Triggering Mobility BOT");
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
-            checkMobility(request, inlineData.mobility_config, deskAssetData)
+            checkMobility(request, inlineData.mobility_config, deskAssetData, requestTypeMatch)
             return;
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
@@ -9905,9 +9937,9 @@ async function removeAsOwner(request,data)  {
                 if(row.field_id == 224835) {
                     console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
                     productMatchFlag = row.data_type_combo_id;
-                } else if(row.field_id == 225020 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)) {
+                } else if(row.field_id == 225020) {
                     console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
-                    requestTypeMatch = 1;
+                    requestTypeMatch = row.data_type_combo_id;
                 } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
                     console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
                     reqularApproval = 1;
@@ -9920,49 +9952,86 @@ async function removeAsOwner(request,data)  {
     };
 
 
-    async function checkMobility (request, inlineData, deskAssetData) {
+    async function checkMobility (request, inlineData, deskAssetData, requestTypeComboId) {
         request.form_id = 50079; // NON FLD form
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
 
-        let checkingSegment = validatingSegment(fldFormData, inlineData.segment_config);
-        if(!checkingSegment) {
-            console.log("Segment is not matched");
+    
+        let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
+
+        console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
+
+        let sheets = [], connectionType = '';
+        if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].ioip == 0) {
+            sheets.push(1,2);
+            connectionType = 'COCP';
+        } else  if(totalCOCPAndIOIP[0].ioip > 0 && totalCOCPAndIOIP[0].cocp >= 0) {
+            sheets.push(3);
+            connectionType = 'IOIP';
+        }
+
+        console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
+
+        let configSheets =  inlineData.field_values_map[connectionType];
+
+        if(!configSheets) {
+            console.log("No Sheet Selected");
+            return;
+        }
+
+        console.log("configSheets", JSON.stringify(configSheets));
+
+        let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
+        if(!checkingSegmentResult) {
+            console.error("Segment is not matched");
             submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
+        
+        console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
+
+        if(!(checkingSegmentResult.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
+            console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
+            return;
+        }
+
+        checkingSegmentResult = checkingSegmentResult.value.value; // taking inner value for next execution
 
         // validating COCP and IOIP
         let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
 
         if(!totalLinks.length) {
-            console.log("Failed in Matching validatingCocpAndIoip");
+            console.error("Failed in Matching validatingCocpAndIoip");
             submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
 
+        // validating No of Links
+        let linkResponse = validatingNoOfLinks(checkingSegmentResult, totalLinks);
+
+        if(!linkResponse) {
+            console.log("NO of Links are not matched");
+            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            return;
+        }
+
+        console.log("linkResponse",linkResponse);
+
         // Checking Rentals
-        let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, inlineData.field_values_map);
+        let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
         if(!rentalResult || !rentalResult.length) {
             console.log("Failed in Matching validatingRentals");
             submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
         }
-        console.log("rentalResult", rentalResult, totalLinks);
-        // validating No of Links
-        let linkResponse = validatingNoOfLinks(rentalResult, totalLinks);
-
-        if(!linkResponse.length) {
-            console.log("NO of Links are not matched");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-        console.log("linkResponse",linkResponse);
+        console.log("rentalResult", rentalResult, inlineData.monthly_quota);
+    
 
         // validating the monthly Quota
-        let monthlyQuota = validatingMonthlyQuota(fldFormData, linkResponse, inlineData.monthly_quota);
+        let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
 
 
         if(!monthlyQuota.length) {
@@ -10149,20 +10218,19 @@ async function removeAsOwner(request,data)  {
         }
     }
 
-    function validatingSegment(formData, segment) {
+    function validatingSegment(formData, segment, configSheets, sheets) {
         for(let row of formData) {
             if (segment[row.field_id]) {
                 console.log("Value found in Segment", segment[row.field_id], row.field_value);
-                if (!(segment[row.field_id].indexOf(row.field_value) > -1)) {
-                    console.log("Matching Failed in Segment");
-                    return false;
+                for(let config of configSheets) {
+                    if(config.key.indexOf(row.field_value) > -1 && sheets.indexOf(config.sheet) > -1) {
+                        return config;
+                    }
                 }
-
             }
-
         }
 
-        return true;
+        return false;
     }
 
     function validatingCocpAndIoip(formData, plans) {
@@ -10224,23 +10292,28 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    function validatingNoOfLinks(rentalResponse, totalLinks) {
-        console.log("Validating No of Links");
-        let response = [];
-        for(let i = 0; i < rentalResponse.length; i++) {
-            let valuesObject = Object.keys(rentalResponse[i]);
-            console.log("valuesObject rental object", Number(valuesObject[0]), Number(totalLinks[i]), rentalResponse[i]);
-            //  if(valuesObject[0] < totalLinks[i]) {
-            if(!(totalLinks[i]  >= valuesObject[0])) {
-
-                console.log("Condition get failed", rentalResponse[i], totalLinks[i]);
-                return [];
+    function validatingNoOfLinks(configSheet, totalLinks) {
+        console.log("Validating No of Links ", totalLinks);
+        
+        for(let i = 0; i < totalLinks.length; i++) {
+            for(let row of configSheet) {
+                console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i] > row.LOWER, totalLinks[i] < row.UPPER, row.value);
+                if(row.LOWER) {
+                    if(totalLinks[i] > row.LOWER) {
+                        if(row.UPPER) {
+                            if(totalLinks[i] < row.UPPER) {
+                                return row.value;
+                                break;
+                            }
+                            console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                            continue;
+                        }
+                        return row.value;    
+                    }
+                }
             }
-
-            response.push(rentalResponse[i][valuesObject[0]]);
         }
-        console.log("Response from validatingNoOfLinks", response);
-        return response;
+        return ;
     }
 
     function validatingMonthlyQuota(formData, linkResp, monthlyQuota) {
@@ -10317,6 +10390,22 @@ async function removeAsOwner(request,data)  {
         return response;
     }
 
+    function countCOCPAndIOIP(formData, COCPFieldIds) {
+
+        let COCPAndIOIPTotal = [{cocp : 0, ioip : 0}];
+        for(let i = 0; i < COCPFieldIds.length; i++) {
+            let fieldIds = Object.keys(COCPFieldIds[i]);
+            for(let row of formData) { 
+                if(row.field_id == fieldIds[0] || row.field_id == fieldIds[2]) {
+                    COCPAndIOIPTotal[0].cocp = COCPAndIOIPTotal[0].cocp + Number(row.field_value);
+                } else if(row.field_id == fieldIds[1] || row.field_id == fieldIds[3]) {
+                    COCPAndIOIPTotal[0].ioip = COCPAndIOIPTotal[0].ioip + Number(row.field_value);
+                }
+            }
+        }
+
+        return COCPAndIOIPTotal;
+    }
     async function checkSmeBot(request, inlineData, deskAssetData) {
 
         await sleep(2 * 1000);
@@ -10994,3 +11083,4 @@ async function removeAsOwner(request,data)  {
 
 
 module.exports = BotService;
+
