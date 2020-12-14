@@ -5801,6 +5801,38 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 20) {
+
+                            if (data.length == 0/* || (data.length == 1 && data[0].tag_type_id == 0)*/) {
+                                
+                                    tagTypesforApplication(request).then((resData) => {
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+                                    });
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].tag_type_id == 0) {
+
+                                    tagTypesforApplication(request).then((resData) => {
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -6200,6 +6232,21 @@ this.getQrBarcodeFeeback = async(request) => {
 
     return [error, responseData];
     }
+
+    function tagTypesforApplication(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.application_id,
+                request.organization_id
+            );
+            var queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };    
 
 }
 
