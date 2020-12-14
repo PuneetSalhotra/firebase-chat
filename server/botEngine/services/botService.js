@@ -9903,12 +9903,11 @@ async function removeAsOwner(request,data)  {
             checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
-          resultProductAndRequestType.requestTypeMatch &&
-          ([1,2,4].indexOf(resultProductAndRequestType.reqularApproval) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
+          ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
             console.log("Got Product Mobility, Triggering Mobility BOT");
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
-            checkMobility(request, inlineData.mobility_config, deskAssetData, requestTypeMatch)
+            checkMobility(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch, resultProductAndRequestType.reqularApproval);
             return;
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
@@ -9950,8 +9949,9 @@ async function removeAsOwner(request,data)  {
     };
 
 
-    async function checkMobility (request, inlineData, deskAssetData, requestTypeComboId) {
+    async function checkMobility (request, inlineData, deskAssetData, requestTypeComboId, workflowType) {
         request.form_id = 50079; // NON FLD form
+        let submitRejectionFormFlag = 0;
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
@@ -9982,75 +9982,86 @@ async function removeAsOwner(request,data)  {
         console.log("configSheets", JSON.stringify(configSheets));
 
         let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
-        if(!checkingSegmentResult) {
+        if(!checkingSegmentResult.length) {
             console.error("Segment is not matched");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
+            submitRejectionFormFlag = 1;
         }
-        
+
         console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
-        if(!(checkingSegmentResult.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
-            console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
-            return;
+        for(let row of checkingSegmentResult) {
+            console.log("row.key---->", JSON.stringify(row.key));
+            if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
+                console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
+                submitRejectionFormFlag = 1;
+                continue;
+            } else {
+                submitRejectionFormFlag = 0;
+            }
+            
+            // validating COCP and IOIP
+            let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
+            
+            if(!totalLinks.length) {
+                console.error("Failed in Matching validatingCocpAndIoip");
+                submitRejectionFormFlag = 1;
+                break;
+            }
+
+            // validating No of Links
+            let linkResponse = validatingNoOfLinks(row.value.value, totalLinks);
+
+            if(!linkResponse) {
+                console.log("NO of Links are not matched");
+                submitRejectionFormFlag = 1;
+                break;
+            }
+
+            console.log("linkResponse",linkResponse);
+
+            // Checking Rentals
+            let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
+
+            if(!rentalResult || !rentalResult.length) {
+                console.log("Failed in Matching validatingRentals");
+                submitRejectionFormFlag = 1;
+                break;
+            }
+            console.log("rentalResult", rentalResult, inlineData.monthly_quota);
+
+
+            // validating the monthly Quota
+            let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
+
+
+            if(!monthlyQuota.length) {
+                console.log("Conditions did not match in validatingMonthlyQuota");
+                submitRejectionFormFlag = 1;
+                break;
+            }
+
+            let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
+
+            if(!smsCount.length) {
+                console.log("Conditions did not match in validatingSMSValues");
+                submitRejectionFormFlag = 1;
+                break;
+            }
+
+            let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
+
+            if(smsCount.length != minQuota.length) {
+                console.log("Condition failed in validate Mins");
+                submitRejectionFormFlag = 1;
+                break;
+            }
         }
 
-        checkingSegmentResult = checkingSegmentResult.value.value; // taking inner value for next execution
+        if(submitRejectionFormFlag) {
 
-        // validating COCP and IOIP
-        let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
-
-        if(!totalLinks.length) {
-            console.error("Failed in Matching validatingCocpAndIoip");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-
-        // validating No of Links
-        let linkResponse = validatingNoOfLinks(checkingSegmentResult, totalLinks);
-
-        if(!linkResponse) {
-            console.log("NO of Links are not matched");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-
-        console.log("linkResponse",linkResponse);
-
-        // Checking Rentals
-        let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
-
-        if(!rentalResult || !rentalResult.length) {
-            console.log("Failed in Matching validatingRentals");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-        console.log("rentalResult", rentalResult, inlineData.monthly_quota);
-    
-
-        // validating the monthly Quota
-        let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
-
-
-        if(!monthlyQuota.length) {
-            console.log("Conditions did not match in validatingMonthlyQuota");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-
-        let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
-
-        if(!smsCount.length) {
-            console.log("Conditions did not match in validatingSMSValues");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
-            return;
-        }
-
-        let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
-
-        if(smsCount.length != minQuota.length) {
-            console.log("Condition failed in validate Mins");
-            submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            if(workflowType == 1) {
+                submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            }
             return;
         }
 
@@ -10217,18 +10228,19 @@ async function removeAsOwner(request,data)  {
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
+        let response = [];
         for(let row of formData) {
             if (segment[row.field_id]) {
                 console.log("Value found in Segment", segment[row.field_id], row.field_value);
                 for(let config of configSheets) {
                     if(config.key.indexOf(row.field_value) > -1 && sheets.indexOf(config.sheet) > -1) {
-                        return config;
+                        response.push(config);
                     }
                 }
             }
         }
 
-        return false;
+        return response;
     }
 
     function validatingCocpAndIoip(formData, plans) {
@@ -10251,17 +10263,6 @@ async function removeAsOwner(request,data)  {
         for(let plan of plans) {
             let fieldIds = Object.keys(plan);
             console.log("fieldIds", fieldIds, plan);
-
-            if(Number(plan[fieldIds[0]]) != null && Number(plan[fieldIds[2]]) > 0  && Number(plan[fieldIds[1]]) != null  && Number(plan[fieldIds[3]]) <= 0) {
-                console.log("This is the success case for ", plan);
-            } else if((Number(plan[fieldIds[0]]) != null && Number(plan[fieldIds[2]]) > 0 && Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)
-              || (Number(plan[fieldIds[0]]) != null && plan[fieldIds[2]] <= 0 &&  Number(plan[fieldIds[1]]) != null && Number(plan[fieldIds[3]]) > 0)){
-                console.log("This is not success case for ", plan);
-                return [];
-            } else {
-                console.log("This is the unknown condition");
-                // return [];
-            }
 
             totalLink.push(Number(plan[fieldIds[0]]));
 
@@ -10325,10 +10326,10 @@ async function removeAsOwner(request,data)  {
                     let monthlyQuotaFieldId = monthlyQuota[i];
 
                     if(Number(row.field_id) == monthlyQuotaFieldId) {
-                        console.log("linkResp[i]", linkResp[i], i, row.field_id);
-                        if(Number(row.field_value) > monthlyQuotaValue[0]) {
+                        console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), monthlyQuotaValue[0]);
+                        if(Number(monthlyQuotaValue[0]) && Number(row.field_value) > monthlyQuotaValue[0]) {
                             console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
-                            return []
+                            return [];
                         }
                         console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
                         response.push(linkResp[i][monthlyQuotaValue[0]]);
