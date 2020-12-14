@@ -9903,12 +9903,12 @@ async function removeAsOwner(request,data)  {
             checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
-          resultProductAndRequestType.requestTypeMatch &&
-          ([1,2,4].indexOf(resultProductAndRequestType.reqularApproval) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
+          resultProductAndRequestType.reqularApproval &&
+          ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
             console.log("Got Product Mobility, Triggering Mobility BOT");
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
-            checkMobility(request, inlineData.mobility_config, deskAssetData, requestTypeMatch)
+            checkMobility(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch)
             return;
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
