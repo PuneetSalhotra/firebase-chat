@@ -790,7 +790,8 @@ function AssetService(objectCollection) {
             'cluster_tag_name': util.replaceDefaultString(rowArray[0]['cluster_tag_name']) ,
             'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data']),
             'is_password_set':is_password_set,
-            'asset_encryption_token_id': util.replaceDefaultString(rowArray[0]['asset_encryption_token_id'])
+            'asset_encryption_token_id': util.replaceDefaultString(rowArray[0]['asset_encryption_token_id']),
+            'organization_flag_email_integration_enabled': util.replaceDefaultNumber(rowArray[0]['organization_flag_email_integration_enabled'])
         };
 
         callback(false, rowData);
