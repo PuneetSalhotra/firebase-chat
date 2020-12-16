@@ -9053,7 +9053,7 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        
+
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9188,8 +9188,9 @@ async function removeAsOwner(request,data)  {
                 });
                 // Primary
                 if (childOpportunityData.length === 0) {
-                    errorMessageJSON.errorExists = true;
-                    errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
+                    // errorMessageJSON.errorExists = true;
+                    // errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
+                    errorMessagesArray.push(`Child opportunity ${childOpportunity.OppId} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
                 // Secondary
