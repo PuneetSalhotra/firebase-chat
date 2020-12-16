@@ -8983,7 +8983,7 @@ async function removeAsOwner(request,data)  {
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
-        // const urlKey = `868/984/5648/35156/2020/12/103/1608039244933/OPP-S-002333-151220-_-3.xlsx`;
+        // const urlKey = `868/984/5648/35156/2020/12/103/1608140463463/OPP-V-002337-161220-_-004.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-preprod-d20kggbr.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
@@ -9109,7 +9109,7 @@ async function removeAsOwner(request,data)  {
             if (groupedJobsMap.has(childOpportunityID)) {
                 let jobInlineJSON = groupedJobsMap.get(childOpportunityID);
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
-                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
+                if (linkType === "mplsl2_second_primary" && actionType === "new") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
 
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
@@ -9136,7 +9136,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
-                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
+                if (linkType === "mplsl2_second_primary" && actionType === "new") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
             }
@@ -9156,11 +9156,14 @@ async function removeAsOwner(request,data)  {
                     childOpportunity.actionType === "correction" ||
                     childOpportunity.actionType === "refeasibility_rejected_by_fes" ||
                     childOpportunity.actionType === "refeasibility_rejected_by_am" ||
-                    childOpportunity.actionType === "cloning" ||
-                    childOpportunity.actionType === "mplsl2_second_primary"
+                    childOpportunity.actionType === "cloning"
                 ) ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
-                !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
+                !(
+                    String(childOpportunity.LinkType).toLowerCase() === "primary" ||
+                    String(childOpportunity.LinkType).toLowerCase() === "secondary" ||
+                    String(childOpportunity.LinkType).toLowerCase() === "mplsl2_second_primary"
+                ) ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
@@ -9172,6 +9175,7 @@ async function removeAsOwner(request,data)  {
             // If actionType === correction, assert that OppId is populated. Otherwise
             // just move to the next row 
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId === "") {
+                errorMessagesArray.push(`Child opportunity is empty in row #${i} for correction.`);
                 continue;
             }
             // If actionType === correction, assert that the child opportunity exists
@@ -9221,9 +9225,13 @@ async function removeAsOwner(request,data)  {
                 // Skip pushing secondary creation job for dual creation cases to SQS
                 const isDualJob = childOpportunityIDToDualFlagMap.get(`${opportunityID}-${serialNumber}`);
                 if (linkType === "secondary" && isDualJob) { continue; }
+                if (linkType === "mplsl2_second_primary" && isDualJob) { continue; }
 
-                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId || ""; }
-                if (childOpportunityID === "") { continue; }
+                if (linkType === "secondary" || linkType === "mplsl2_second_primary") { childOpportunityID = childOpportunity.OppId || ""; }
+                if (childOpportunityID === "") {
+                    errorMessagesArray.push(`Child opportunity is empty in row #${i}.`);
+                    continue;
+                }
 
                 // Check if the child opportunity already exists
                 const [errorTwo, childOpportunityData] = await activityListSearchCUID({
@@ -9249,6 +9257,14 @@ async function removeAsOwner(request,data)  {
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new_secondary.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
+                if (
+                    linkType === "mplsl2_second_primary" &&
+                    childOpportunityData.length === 0
+                ) {
+                    errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
 
