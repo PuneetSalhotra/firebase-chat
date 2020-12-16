@@ -9365,36 +9365,36 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            if (childOpportunity.actionType === "mplsl2_second_primary") {
-                // Check for child opportunity
-                if (childOpportunity.OppId === "") {
-                    errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
-                    continue;
+            // if (childOpportunity.actionType === "mplsl2_second_primary") {
+            //     // Check for child opportunity
+            //     if (childOpportunity.OppId === "") {
+            //         errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
+            //         continue;
 
-                } else {
-                    childOpportunityID = childOpportunity.OppId;
-                    // Check if the child opportunity already exists
-                    const [errorSix, childOpportunityData] = await activityListSearchCUID({
-                        organization_id: request.organization_id,
-                        activity_type_category_id: workflowActivityCategoryTypeID,
-                        flag: 1,
-                        search_string: childOpportunityID
-                    });
-                    if (childOpportunityData.length === 0) {
-                        errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
-                        continue;
-                    }
-                }
-                // Second primary must be of linkType primary
-                if (linkType === "secondary") {
-                    errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
-                    continue;
-                }
+            //     } else {
+            //         childOpportunityID = childOpportunity.OppId;
+            //         // Check if the child opportunity already exists
+            //         const [errorSix, childOpportunityData] = await activityListSearchCUID({
+            //             organization_id: request.organization_id,
+            //             activity_type_category_id: workflowActivityCategoryTypeID,
+            //             flag: 1,
+            //             search_string: childOpportunityID
+            //         });
+            //         if (childOpportunityData.length === 0) {
+            //             errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
+            //             continue;
+            //         }
+            //     }
+            //     // Second primary must be of linkType primary
+            //     if (linkType === "secondary") {
+            //         errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
+            //         continue;
+            //     }
 
-                // Skip pushing second primary job for dual creation cases to SQS
-                const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
-                if (linkType === "primary" && isDualJob) { continue; }
-            }
+            //     // Skip pushing second primary job for dual creation cases to SQS
+            //     const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
+            //     if (linkType === "primary" && isDualJob) { continue; }
+            // }
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
