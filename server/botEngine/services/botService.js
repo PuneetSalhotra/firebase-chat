@@ -8983,8 +8983,8 @@ async function removeAsOwner(request,data)  {
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
-        // const urlKey = `858/974/5353/31476/2018/11/103/1604082465622/OPP-C-000196-260820-_-Bulk-3.xlsx`;
-        // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-2020-10.s3.amazonaws.com/${urlKey}`;
+        // const urlKey = `868/984/5648/35156/2020/12/103/1608039244933/OPP-S-002333-151220-_-3.xlsx`;
+        // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-preprod-d20kggbr.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
@@ -9141,6 +9141,7 @@ async function removeAsOwner(request,data)  {
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
             }
         }
+        // console.log("childOpportunityIDToDualFlagMap: ", childOpportunityIDToDualFlagMap);
         // console.log("groupedJobsMap: ", groupedJobsMap);
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9150,7 +9151,14 @@ async function removeAsOwner(request,data)  {
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
                 !childOpportunity.hasOwnProperty("actionType") ||
-                !(childOpportunity.actionType === "new" || childOpportunity.actionType === "correction" || childOpportunity.actionType === "refeasibility_rejected_by_fes" || childOpportunity.actionType === "refeasibility_rejected_by_am" || childOpportunity.actionType === "cloning") ||
+                !(
+                    childOpportunity.actionType === "new" ||
+                    childOpportunity.actionType === "correction" ||
+                    childOpportunity.actionType === "refeasibility_rejected_by_fes" ||
+                    childOpportunity.actionType === "refeasibility_rejected_by_am" ||
+                    childOpportunity.actionType === "cloning" ||
+                    childOpportunity.actionType === "mplsl2_second_primary"
+                ) ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
                 !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
@@ -9413,7 +9421,7 @@ async function removeAsOwner(request,data)  {
         }
 
         try {
-            if (!errorMessageJSON.errorExists) { throw new Error("NoErrorsFound") };
+            if (!errorMessageJSON.errorExists && errorMessagesArray.length === 0) { throw new Error("NoErrorsFound") };
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`
             for (const errorCategory of Object.keys(errorMessageJSON.action)) {
                 if (Number(errorMessageJSON.action[errorCategory].opportunity_ids.length) > 0) {
