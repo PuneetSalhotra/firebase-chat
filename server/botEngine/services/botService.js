@@ -9999,11 +9999,10 @@ async function removeAsOwner(request,data)  {
 
         console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
-        let configSheets =  inlineData.field_values_map[connectionType];
+        let configSheets =  inlineData.field_values_map[connectionType] || [];
 
-        if(!configSheets) {
+        if(!configSheets.length) {
             console.log("No Sheet Selected");
-            return;
         }
 
         console.log("configSheets", JSON.stringify(configSheets));

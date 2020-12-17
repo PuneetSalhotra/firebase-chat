@@ -3541,14 +3541,29 @@ function ActivityListingService(objCollection) {
 
 				finalSummaryData.push(mergedObject);
 
-				if (activitySummaryData.hasOwnProperty("secondary") && Object.keys(activitySummaryData.secondary).length > 0) {
-
-					mergedObject = { ...activitySummaryData.secondary, ...activityFeasibilityData };
+				if ((activitySummaryData.hasOwnProperty("secondary") && Object.keys(activitySummaryData.secondary).length > 0) || (activityFeasibilityData.hasOwnProperty("secondary_standard"))) {
+					mergedObject = { ...activitySummaryData.secondary || {}, ...activityFeasibilityData };
 					mergedObject["parent_opportunity_id"] = rowData.parent_activity_cuid_1;
 					mergedObject["child_opportunity_id"] = rowData.activity_cuid_1;
 					mergedObject["primary_standard"] = "";
 					mergedObject["feasibility_primary_status"] = "";
 					mergedObject["feasibility_primary_description"] = "";
+
+					if(!mergedObject.hasOwnProperty("offnetPartnetInfo")){
+						mergedObject["offnetPartnetInfo"] = [{
+							offnetPartnet: "",
+							feasibilitystatusAEnd: "",
+							feasibilitystatusBEnd: "",
+							cftARemarks: "",
+							cftBRemarks: "",
+							otcA: "",
+							otcB: "",
+							arcA: "",
+							arcB: "",
+							salesCapexEndA: "",
+							salesCapexEndB: ""
+						}];
+					}
 					finalSummaryData.push(mergedObject);
 				}
 			}
@@ -3569,7 +3584,19 @@ function ActivityListingService(objCollection) {
 					salesCapexEndB: ""
 				}];
 
-				finalSummaryData.push(activityFeasibilityData);
+				let primaryRow = {...activityFeasibilityData};
+				primaryRow["secondary_standard"] = "";
+				primaryRow["feasibility_secondary_status"] = "";
+				primaryRow["feasibility_secondary_description"] = "";
+				finalSummaryData.push(primaryRow);
+
+				if(activityFeasibilityData.hasOwnProperty("secondary_standard")){
+					let seconadryRow = {...activityFeasibilityData};
+					seconadryRow["primary_standard"] = "";
+					seconadryRow["feasibility_primary_status"] = "";
+					seconadryRow["feasibility_primary_description"] = "";
+					finalSummaryData.push(seconadryRow);
+				}
 			}
 		}
 

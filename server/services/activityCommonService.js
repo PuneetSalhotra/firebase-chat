@@ -807,9 +807,10 @@ this.getAllParticipantsAsync = async (request) => {
             request.trigger_form_transaction_id || 0
         );
         //let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
-        let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
+        //let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
+        let queryString = util.getQueryString("ds_v1_7_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
-            global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            global.logger.write('conLog', `ds_v1_7_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
             callback(false, true);
         }
         else {
@@ -4464,9 +4465,10 @@ case 729: // Report form BC Edit
             request.trigger_form_id || 0,
             request.trigger_form_transaction_id || 0
         );
-        let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
+        //let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
+        let queryString = util.getQueryString("ds_v1_7_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
-            global.logger.write('conLog', `ds_v1_6_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            global.logger.write('conLog', `ds_v1_7_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
             responseData = [];
             error = false;
         }
