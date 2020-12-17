@@ -1079,25 +1079,57 @@ function ActivityListingController(objCollection) {
             return;
         }
 
-        const bulkSummaryEvent = {
-            name: "BulkSummaryData",
-            service: "activityListingService",
-            method: "getActivityBulkSummaryDataV1",
-            payload: req.body
-        };
+        let bulkSummaryExtractTopicName = "";
+        switch (global.mode) {
+            case "local":
+                bulkSummaryExtractTopicName = "local-vil-bulk-summary-v1";
+                break;
+            case "staging":
+                // Disabled for PreProd testing, because both staging and preprod
+                // share the same topic for integrations communication
+                // bulkSummaryExtractTopicName = "staging-vil-esms-ibmmq-v2";
+                break;
+            case "preprod":
+                bulkSummaryExtractTopicName = "staging-vil-bulk-summary-v1";
+                break;
+            case "prod":
+                bulkSummaryExtractTopicName = "production-vil-bulk-summary-v1";
+                break;
+        }
 
-        queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, async (err, resp) => {
-            if (err) {
-                console.log("/activity/bulk-summary/list/v1 | Error: ", err);
-                res.send(responseWrapper.getResponse(err, [{
-                    message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
-                }], -9998, req.body));
-                return;
-            } else {
-                const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
-                res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!." }], 200, req.body));
-            }
-        });
+        // const bulkSummaryEvent = {
+        //     name: "BulkSummaryData",
+        //     service: "activityListingService",
+        //     method: "getActivityBulkSummaryDataV1",
+        //     payload: req.body
+        // };
+
+        try {
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "BULK_SUMMARY_DATA",
+                service_name: "EXTRACT_BULK_SUMMARY_DATA",
+                payload: req.body
+            }, bulkSummaryExtractTopicName, req.body.parent_activity_id);
+            const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
+            res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
+        } catch (error) {
+            res.send(responseWrapper.getResponse(err, [{
+                message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
+            }], -9998, req.body));
+        }
+
+        // queueWrapper.raiseActivityEvent(bulkSummaryEvent, req.body.parent_activity_id, async (err, resp) => {
+        //     if (err) {
+        //         console.log("/activity/bulk-summary/list/v1 | Error: ", err);
+        //         res.send(responseWrapper.getResponse(err, [{
+        //             message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
+        //         }], -9998, req.body));
+        //         return;
+        //     } else {
+        //         const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
+        //         res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!." }], 200, req.body));
+        //     }
+        // });
 
     });
 
