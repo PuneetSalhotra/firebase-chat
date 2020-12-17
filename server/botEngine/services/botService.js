@@ -7560,7 +7560,7 @@ async function removeAsOwner(request,data)  {
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
-
+        
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -9976,7 +9976,7 @@ async function removeAsOwner(request,data)  {
 
     async function checkMobility (request, inlineData, deskAssetData, requestTypeComboId, workflowType) {
         request.form_id = 50079; // NON FLD form
-        let submitRejectionFormFlag = 0;
+        let submitRejectionFormFlag = 0, comment = '';
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
@@ -9987,10 +9987,10 @@ async function removeAsOwner(request,data)  {
         console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
-        if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].ioip == 0) {
+        if((totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
             sheets.push(1,2);
             connectionType = 'COCP';
-        } else  if(totalCOCPAndIOIP[0].ioip > 0 && totalCOCPAndIOIP[0].cocp >= 0) {
+        } else  if((totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) > 0 && (totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) >= 0) {
             sheets.push(3);
             connectionType = 'IOIP';
         }
@@ -10015,31 +10015,35 @@ async function removeAsOwner(request,data)  {
         console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         for(let row of checkingSegmentResult) {
+            submitRejectionFormFlag = 0;
+            comment = row.comment;
             console.log("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 submitRejectionFormFlag = 1;
                 continue;
-            } else {
-                submitRejectionFormFlag = 0;
             }
             
-            // validating COCP and IOIP
-            let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
-            
-            if(!totalLinks.length) {
-                console.error("Failed in Matching validatingCocpAndIoip");
-                submitRejectionFormFlag = 1;
-                break;
-            }
+            // // validating COCP and IOIP
+            // let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
+            //
+            // if(!totalLinks.length) {
+            //     console.error("Failed in Matching validatingCocpAndIoip");
+            //     submitRejectionFormFlag = 1;
+            //     continue;
+            // }
 
             // validating No of Links
-            let linkResponse = validatingNoOfLinks(row.value.value, totalLinks);
+
+            // selecting Comments for approval
+
+
+            let linkResponse = validatingNoOfLinks(row.value.value, totalCOCPAndIOIP, row.sheet);
 
             if(!linkResponse) {
                 console.log("NO of Links are not matched");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             console.log("linkResponse",linkResponse);
@@ -10050,7 +10054,7 @@ async function removeAsOwner(request,data)  {
             if(!rentalResult || !rentalResult.length) {
                 console.log("Failed in Matching validatingRentals");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
             console.log("rentalResult", rentalResult, inlineData.monthly_quota);
 
@@ -10062,7 +10066,7 @@ async function removeAsOwner(request,data)  {
             if(!monthlyQuota.length) {
                 console.log("Conditions did not match in validatingMonthlyQuota");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
@@ -10070,7 +10074,7 @@ async function removeAsOwner(request,data)  {
             if(!smsCount.length) {
                 console.log("Conditions did not match in validatingSMSValues");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
@@ -10078,6 +10082,11 @@ async function removeAsOwner(request,data)  {
             if(smsCount.length != minQuota.length) {
                 console.log("Condition failed in validate Mins");
                 submitRejectionFormFlag = 1;
+                continue;
+            }
+
+            if(!submitRejectionFormFlag) {
+                console.log("First condition got matched so getting out from loop");
                 break;
             }
         }
@@ -10086,6 +10095,8 @@ async function removeAsOwner(request,data)  {
 
             if(workflowType == 1) {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            } else {
+                console.log("Not Rejection because workflowType did not matched to current value");
             }
             return;
         }
@@ -10134,7 +10145,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: comment,
                 message_unique_id: 1603968690920
             },
             {
@@ -10316,23 +10327,50 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    function validatingNoOfLinks(configSheet, totalLinks) {
-        console.log("Validating No of Links ", totalLinks);
+    function validatingNoOfLinks(configSheet, totalLinks, sheet) {
+        console.log("Validating No of Links ", totalLinks, sheet);
         
         for(let i = 0; i < totalLinks.length; i++) {
             for(let row of configSheet) {
-                console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i] > row.LOWER, totalLinks[i] < row.UPPER, row.value);
                 if(row.LOWER) {
-                    if(totalLinks[i] > row.LOWER) {
-                        if(row.UPPER) {
-                            if(totalLinks[i] < row.UPPER) {
-                                return row.value;
-                                break;
+
+                    if(sheet == 1) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocpr > row.LOWER, totalLinks[i].cocpr < row.UPPER, row.value);
+                        if(totalLinks[i].cocpr > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].cocpr < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
                             }
-                            console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
-                            continue;
+                            return row.value;
                         }
-                        return row.value;    
+                    } else if(sheet == 2) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocp > row.LOWER, totalLinks[i].cocp < row.UPPER, row.value);
+                        if(totalLinks[i].cocp > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].cocp < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
+                            }
+                            return row.value;
+                        }
+                    } else if(sheet == 3) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].ioip > row.LOWER, totalLinks[i].ioip < row.UPPER, row.value);
+
+                        if(totalLinks[i].ioip > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].ioip < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
+                            }
+                            return row.value;
+                        }
                     }
                 }
             }
@@ -10398,7 +10436,7 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             for(let i = 0; i < minFieldIds.length; i++) {
                 if(minQuota[i]) {
-                    if(row.field_id == minFieldIds[i]) {
+                    if(row.field_id == minFieldIds[i] && Number(row.field_value)) {
                         console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
                         if(!minQuota[i][row.field_value]) {
                             console.log("Got nothing for ", minQuota[i], row.field_value);
@@ -10416,14 +10454,18 @@ async function removeAsOwner(request,data)  {
 
     function countCOCPAndIOIP(formData, COCPFieldIds) {
 
-        let COCPAndIOIPTotal = [{cocp : 0, ioip : 0}];
+        let COCPAndIOIPTotal = [{cocp : 0, ioip : 0, cocpr : 0, ioipr : 0}];
         for(let i = 0; i < COCPFieldIds.length; i++) {
             let fieldIds = Object.keys(COCPFieldIds[i]);
             for(let row of formData) { 
-                if(row.field_id == fieldIds[0] || row.field_id == fieldIds[2]) {
+                if(row.field_id == fieldIds[0]) {
                     COCPAndIOIPTotal[0].cocp = COCPAndIOIPTotal[0].cocp + Number(row.field_value);
-                } else if(row.field_id == fieldIds[1] || row.field_id == fieldIds[3]) {
+                } else if(row.field_id == fieldIds[1]) {
                     COCPAndIOIPTotal[0].ioip = COCPAndIOIPTotal[0].ioip + Number(row.field_value);
+                } else if(row.field_id == fieldIds[2]) {
+                    COCPAndIOIPTotal[0].cocpr = COCPAndIOIPTotal[0].cocpr + Number(row.field_value);
+                } else if(row.field_id == fieldIds[3]) {
+                    COCPAndIOIPTotal[0].ioipr = COCPAndIOIPTotal[0].ioipr + Number(row.field_value);
                 }
             }
         }
@@ -11107,4 +11149,5 @@ async function removeAsOwner(request,data)  {
 
 
 module.exports = BotService;
+
 
