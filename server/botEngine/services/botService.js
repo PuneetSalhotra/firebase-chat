@@ -2021,6 +2021,22 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
+                case 39:  //Asset approval
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'Static copy field bot', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
+                    let approveJson = {
+                        "rejected": 0,
+                        "approved": 1
+                    }
+                    if(approveJson.hasOwnProperty("rejected")&&approveJson.rejected==1){
+                      addParticipantCreatorOwner(request)
+                    }
+                    else{
+                        //update approval flag
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
             }
 
             //botOperationTxnInsert(request, i);

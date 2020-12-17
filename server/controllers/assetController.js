@@ -722,7 +722,37 @@ function AssetController(objCollection) {
             console.log("/asset/swipe | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
-    });   
+    }); 
+    
+    app.post('/' + global.config.version + '/asset/swipe/in', async (req, res) => {
+        const [err, responseData] = await assetService.assetSwipeIn(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/asset/swipe | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
+
+    app.post('/' + global.config.version + '/asset/swipe/out', async (req, res) => {
+        const [err, responseData] = await assetService.assetswipeOut(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/asset/swipe | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
+
+    app.post('/' + global.config.version + '/asset/swipe/update', async (req, res) => {
+        const [err, responseData] = await assetService.updateAssetSwipeDetails(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+        } else {
+            console.log("/asset/swipe | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });  
 
     app.post('/' + global.config.version + '/phone_number/verify/invite', async (req, res) => {
         const [err, responseData] = await assetService.getAssetUsingPhoneNumber(req.body);
