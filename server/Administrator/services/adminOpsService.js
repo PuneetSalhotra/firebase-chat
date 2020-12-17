@@ -394,7 +394,7 @@ function AdminOpsService(objectCollection) {
     }
 
     // Create Activity Service
-    async function createActivity(request, workforceID, organizationID, accountID) {
+    async function createActivity(request, workforceID, organizationID, accountID,leadManager={}) {
 
         const addActivityRequest = {
             organization_id: organizationID,
@@ -418,7 +418,7 @@ function AdminOpsService(objectCollection) {
             flag_pin: 0,
             flag_priority: 0,
             activity_flag_file_enabled: -1,
-            activity_form_id: 0,
+            activity_form_id: request.activity_form_id||0,
             flag_offline: 0,
             flag_retry: 0,
             message_unique_id: util.getMessageUniqueId(31993),
@@ -433,7 +433,8 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5
+            device_os_id: 5,
+            ...leadManager
         };
 
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
@@ -792,7 +793,29 @@ function AdminOpsService(objectCollection) {
         } catch (error) {
             console.log("createAssetBundle | Asset List History Insert | Error: ", error);
         }
+        
+        //Check role has flag to add approval workflow
+        if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+        request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
+        request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
+        request.form_id = roleData[0].asset_type_approval_origin_form_id;
+        let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.asset_id,organization_id:organizationID});
+        let leadCreator;
+        if(!errAsset && creatorAssetData.length>0){
+             leadCreator = {
+            activity_lead_asset_id:creatorAssetData[0].manager_asset_id,
+            activity_owner_asset_id:creatorAssetData[0].asset_id
+            }
+            
+        }
+        //add approval workflow activity
+        let [errActivity,newActivityData] = await createActivity(request,workforceID,organizationID,accountID,leadCreator);
+        //make manager as lead
 
+        //make user who is adding asset as creator
+
+        }
+        
         // Update Desk Position
         const [errTwo, workforceAssetCountData] = await adminListingService.assetListSelectCountAssetTypeWorkforce({
             organization_id: organizationID,

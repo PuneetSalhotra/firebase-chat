@@ -2260,7 +2260,7 @@ function AssetService(objectCollection) {
      };*/
 
     //PAM
-    this.removeAsset = function (request, callback) {
+    this.removeAsset = async function (request, callback) {
         console.log('util : ' + util);
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
