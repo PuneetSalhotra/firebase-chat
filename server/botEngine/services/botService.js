@@ -2021,6 +2021,17 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
+                case 39:  //Asset approval
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'Asset approval workflow bot', {}, {});
+                    logger.silly("Request Params received from Request: %j", request);
+                    //JSON.parse(i.bot_operation_inline_data)
+                    let approveJson = JSON.parse(i.bot_operation_inline_data)
+                    
+                    let [err1,data]=await assetApprovalWorkflow(request,approveJson)
+                   
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -2098,6 +2109,60 @@ function BotService(objectCollection) {
         }                                    
     });
    }
+
+   async function assetApprovalWorkflow(request,bot_data){
+    let responseData = [];
+    let error = false;
+    let workflowActivityID = request.workflow_activity_id;
+    let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+    let creatorAssetID;
+    if(wfActivityDetails.length>0){
+     creatorAssetID = wfActivityDetails[0].activity_creator_asset_id
+    }
+     // let tagetAsset_id = 
+    
+     if(bot_data.hasOwnProperty("rejected")&&bot_data.rejected==1){
+       await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,creatorAssetID)
+     }
+     else{
+         
+         let activity_inline_data_json = typeof wfActivityDetails[0].activity_inline_data =="string"?JSON.parse(wfActivityDetails[0].activity_inline_data):wfActivityDetails[0].activity_inline_data;
+         let target_asset_id = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id).field_value;
+        //  const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+        //     organization_id: request.organization_id,
+        //     asset_id: target_asset_id
+        // });
+        // ds_p1_asset_list_update_flag_asset_approval`(
+        //     IN p_organization_id BIGINT(20),
+        //     IN p_account_id BIGINT(20),
+        //     IN p_workforce_id BIGINT(20),
+        //     IN p_asset_id BIGINT(20),
+        //     IN p_asset_flag_approval TINYINT(4));
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            target_asset_id,
+            1
+        );
+
+        var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                // await callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        // let target_asset_id = 
+         //update approval flag
+     }
+     return [error,[]]
+   }
+
     async function isBotOperationConditionTrue(request, botOperationsJson, formInlineDataMap) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0;
 

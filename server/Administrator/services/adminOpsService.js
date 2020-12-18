@@ -5,6 +5,9 @@ const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
 const { serializeError } = require('serialize-error');
 
+const RMBotService = require('../../botEngine/services/rmbotService');
+var ActivityTimelineService = require('../../services/activityTimelineService.js');
+
 const AWS_Cognito = require('aws-sdk');
 AWS_Cognito.config.update({
     "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
@@ -19,6 +22,8 @@ function AdminOpsService(objectCollection) {
     const db = objectCollection.db;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
+    const rmBotService = new RMBotService(objectCollection);
+    const activityTimelineService = new ActivityTimelineService(objectCollection)
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -99,12 +104,12 @@ function AdminOpsService(objectCollection) {
 
         // 1. Asset List Insert
         // const [errOne, assetData] = await assetListInsert(request, workforceID, organizationID, accountID);
-        const [errOne, assetData] = await assetListInsertV1(request, workforceID, organizationID, accountID);
+        const [errOne, assetData] = await assetListInsertV2(request, workforceID, organizationID, accountID);
         if (errOne || Number(assetData.length) === 0) {
-            console.log("createAssetBundle | assetListInsertV1 | assetData: ", assetData);
+            console.log("createAssetBundle | assetListInsertV2 | assetData: ", assetData);
             console.log("createAssetBundle | Error: ", errOne);
             return [true, {
-                message: "Error at assetListInsertV1"
+                message: "Error at assetListInsertV2"
             }]
         }
 
@@ -269,6 +274,57 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    // Asset List Insert v2: With provision to add Aadhar and work location
+    async function assetListInsertV2(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_first_name || '',
+            request.asset_last_name || '',
+            request.asset_description || '',
+            request.gender_id || 4,
+            request.customer_unique_id || '',
+            request.asset_image_path || '',
+            
+            request.country_code || 1,
+            request.phone_number || 0,
+            request.email_id || '',
+            request.password || '',
+            request.timezone_id || 22,
+            request.asset_type_id,
+            request.operating_asset_id || 0,
+            request.manager_asset_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id || 1,
+            util.getCurrentUTCTime(),
+            request.joined_datetime || util.getCurrentUTCTime(),
+            request.asset_flag_account_admin || 0,
+            request.asset_flag_organization_admin || 0,
+            request.industry_id || 0,
+            request.work_location_latitude || 0,
+            request.work_location_longitude || 0,
+            request.work_location_address || '',
+            request.asset_identification_number || "",
+            request.asset_manual_work_location_address || ""
+        );
+        const queryString = util.getQueryString('ds_p1_4_asset_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Asset List History Insert
     async function assetListHistoryInsert(request, organizationID) {
         let responseData = [],
@@ -343,7 +399,7 @@ function AdminOpsService(objectCollection) {
     }
 
     // Create Activity Service
-    async function createActivity(request, workforceID, organizationID, accountID) {
+    async function createActivity(request, workforceID, organizationID, accountID,leadManager={}) {
 
         const addActivityRequest = {
             organization_id: organizationID,
@@ -367,7 +423,7 @@ function AdminOpsService(objectCollection) {
             flag_pin: 0,
             flag_priority: 0,
             activity_flag_file_enabled: -1,
-            activity_form_id: 0,
+            activity_form_id: request.activity_form_id||0,
             flag_offline: 0,
             flag_retry: 0,
             message_unique_id: util.getMessageUniqueId(31993),
@@ -382,7 +438,71 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5
+            device_os_id: 5,
+            ...leadManager
+        };
+
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addActivityRequest
+        };
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createActivity | addActivityAsync | Body: ", body);
+                return [false, body];
+            }
+        } catch (error) {
+            console.log("createActivity | addActivityAsync | Error: ", error);
+            return [true, {}];
+        }
+    }
+
+    // Create Activity Service
+    async function createActivityV1(request, workforceID, organizationID, accountID,assetID) {
+
+        const addActivityRequest = {
+            organization_id: organizationID,
+            account_id: accountID,
+            workforce_id: workforceID,
+            asset_id: assetID,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            asset_message_counter: 0,
+            activity_title: request.activity_title || '',
+            activity_description: request.activity_description || '',
+            activity_inline_data: JSON.stringify(request.activity_inline_data) || '{}',
+            data_entity_inline:JSON.stringify(request.activity_inline_data) || '{}',
+            activity_datetime_start: util.getCurrentUTCTime(),
+            activity_datetime_end: util.getCurrentUTCTime(),
+            activity_type_category_id: request.activity_type_category_id || 0,
+            activity_sub_type_id: 0,
+            activity_type_id: request.activity_type_id,
+            activity_access_role_id: request.activity_access_role_id,
+            asset_participant_access_id: 0,
+            activity_parent_id: request.activity_parent_id || 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: request.activity_form_id||0,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: 0,
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5,
+            
         };
 
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
@@ -704,7 +824,9 @@ function AdminOpsService(objectCollection) {
             contact_operating_asset_name: '',
             contact_operating_asset_id: '',
             contact_manager_asset_id: request.manager_asset_id || 0,
-            contact_manager_asset_first_name: request.manager_asset_first_name || ''
+            contact_manager_asset_first_name: request.manager_asset_first_name || '',
+            contact_identification_number: request.asset_identification_number || '',
+            contact_manual_work_location_address: request.asset_manual_work_location_address || ''
         });
 
         // Create the asset
@@ -739,7 +861,7 @@ function AdminOpsService(objectCollection) {
         } catch (error) {
             console.log("createAssetBundle | Asset List History Insert | Error: ", error);
         }
-
+        
         // Update Desk Position
         const [errTwo, workforceAssetCountData] = await adminListingService.assetListSelectCountAssetTypeWorkforce({
             organization_id: organizationID,
@@ -904,7 +1026,9 @@ function AdminOpsService(objectCollection) {
             employee_asset_type_id: request.asset_type_id,
             employee_asset_type_name: request.asset_type_name,
             employee_manager_asset_id: request.manager_asset_id || 0,
-            employee_manager_asset_first_name: request.manager_asset_first_name || ''
+            employee_manager_asset_first_name: request.manager_asset_first_name || '',
+            employee_identification_number: request.asset_identification_number || '',
+            employee_manual_work_location_address: request.asset_manual_work_location_address || ''
         });
 
         // Create the asset
@@ -916,6 +1040,7 @@ function AdminOpsService(objectCollection) {
             }]
         }
 
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData)
 
         const deskAssetID = Number(request.desk_asset_id),
             operatingAssetID = Number(assetData.asset_id),
@@ -1148,6 +1273,118 @@ function AdminOpsService(objectCollection) {
             id_card_activity_id: idCardActivityID
         }];
 
+    }
+
+    //Add Activity for approval workflow
+    async function addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,assetID){
+       let responseData = [];
+       let error =false;
+        //Check role has flag to add approval workflow
+        if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+            request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
+            request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
+            request.form_id = roleData[0].asset_type_approval_origin_form_id;
+            let activity_inline_data = [
+                {
+                    
+                        "form_id": roleData[0].asset_type_approval_origin_form_id,
+                        "field_id": roleData[0].asset_type_approval_field_id,
+                        "field_name": "Asset Info",
+                        "field_data_type_id": 59,
+                        "field_data_type_category_id": 4,
+                        "data_type_combo_id": 0,
+                        "data_type_combo_value": 0,
+                        "field_value": assetId,
+                        "message_unique_id": 1608213215926
+                      
+                }
+            ];
+
+            let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
+            let managerAssetId = creatorAssetData[0].manager_asset_id;
+            //add approval workflow activity
+            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
+            
+            //make manager as lead
+            await addParticipantasLead(request,newActivityData[0].workflow_activity_id,managerAssetId,managerAssetId)
+    
+            //make user who is adding asset as creator
+    
+            }
+            else{
+                let paramsArr = new Array(
+                    organizationID,
+                    accountID,
+                    workforceID,
+                    assetID,
+                    -1
+                );
+        
+                var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
+                if(queryString !== '') {
+                    try {
+                        const data = await db.executeQueryPromise(0,queryString,request);
+                        // await callAddTimelineEntry(request);
+                        responseData = data;
+                        error = false;
+                    } catch(e) {
+                        error = e;
+                    }
+                }
+            }
+            return[error,responseData]
+    }
+
+    async function addParticipantasLead(request,workflowActivityID,mangerAssetID,mangerAssetID){
+        let newReq = {};
+        newReq.organization_id = request.organization_id;
+        newReq.account_id = request.account_id;
+        newReq.workforce_id = request.workforce_id;
+        newReq.asset_id = 100;
+        newReq.activity_id = workflowActivityID;
+        newReq.lead_asset_id = mangerAssetID;
+        newReq.timeline_stream_type_id = 718;
+        newReq.datetime_log = util.getCurrentUTCTime();
+    
+        await rmBotService.activityListLeadUpdateV2(newReq, mangerAssetID);
+    
+        let leadAssetFirstName = '';
+        try {
+            const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: leadAssetID
+            });
+    
+            console.log('********************************');
+            console.log('LEAD ASSET DATA - ', assetData[0]);
+            console.log('********************************');
+            request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
+            leadAssetFirstName = assetData[0].asset_first_name;
+        } catch (error) {
+            console.log(error);
+        }
+    
+        //Add a timeline entry
+        let activityTimelineCollection =  JSON.stringify({                            
+            "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "subject": `Note - ${util.getCurrentDate()}.`,
+            "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "activity_reference": [],
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+    
+        let timelineReq = Object.assign({}, request);
+            timelineReq.activity_type_id = request.activity_type_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 711;
+            timelineReq.timeline_stream_type_id = 711;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
     }
 
     // Give access to a specific queue
@@ -3789,6 +4026,51 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+    
+    //adding aadhar and location updates
+    async function assetListUpdateDetailsV1(request, employeeAssetID = 0, logAssetID = 0) {
+        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
+        // IN p_description VARCHAR(150), IN p_cuid VARCHAR(50), 
+        // IN p_old_phone_number VARCHAR(20), IN p_old_country_code SMALLINT(6), 
+        // IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_joining_datetime DATETIME, IN p_gender_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            employeeAssetID || request.asset_id,
+            request.organization_id,
+            request.asset_first_name,
+            request.asset_last_name,
+            request.description || "",
+            request.cuid,
+            request.old_phone_number,
+            request.old_country_code,
+            request.phone_number,
+            request.country_code,
+            logAssetID || request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+            request.joining_datetime,
+            request.gender_id,
+            request.email_id,
+            request.asset_identification_number,
+            request.asset_manual_work_location_address
+        );
+        const queryString = util.getQueryString('ds_p1_6_asset_list_update_details', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
     this.updateActivityTypeDefaultDuration = async function (request) {
         const organizationID = Number(request.organization_id),
@@ -4106,9 +4388,9 @@ function AdminOpsService(objectCollection) {
 
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
-            const [errOne, employeeAssetData] = await assetListUpdateDetails(request, employeeAssetID, Number(request.asset_id));
+            const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
             if (errOne) {
-                logger.error(`upateDeskAndEmployeeAsset.assetListUpdateDetails_EMPLOYEE`, { type: 'admin_ops', request_body: request, error: errOne });
+                logger.error(`upateDeskAndEmployeeAsset.assetListUpdateDetailsV1_EMPLOYEE`, { type: 'admin_ops', request_body: request, error: errOne });
                 return [errOne, []]
             }
 
@@ -4172,7 +4454,7 @@ function AdminOpsService(objectCollection) {
 
         if (deskAssetID !== 0) {
             // Update the Employee's details in the asset_list table
-            const [errThree, employeeAssetData] = await assetListUpdateDetailsV3({
+            const [errThree, employeeAssetData] = await assetListUpdateDetailsV4({
 
                 ...request,
                 description: request.desk_title,
@@ -4183,7 +4465,7 @@ function AdminOpsService(objectCollection) {
 
             }, deskAssetID, Number(request.asset_id));
             if (errThree) {
-                logger.error(`upateDeskAndEmployeeAsset.assetListUpdateDetailsV3_DESK`, { type: 'admin_ops', request_body: request, error: errThree });
+                logger.error(`upateDeskAndEmployeeAsset.assetListUpdateDetailsV4_DESK`, { type: 'admin_ops', request_body: request, error: errThree });
                 return [errThree, []]
             }
 
@@ -4336,9 +4618,54 @@ function AdminOpsService(objectCollection) {
             request.joining_datetime,
             request.gender_id,
             request.email_id,
-            request.asset_type_id
+            request.asset_type_id,
+            request.asset_identification_number,
+            request.asset_manual_work_location_address
         );
         const queryString = util.getQueryString('ds_p1_4_asset_list_update_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    updateRoleINRoundRobinQueue(request);
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    // Asset List Insert For Employee Desk v4 with aadhar and location crud
+    async function assetListUpdateDetailsV4(request, deskAssetID = 0, logAssetID = 0) {
+        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_asset_first_name VARCHAR(50), 
+        // IN p_asset_last_name VARCHAR(50), IN p_operating_asset_first_name VARCHAR(50), 
+        // IN p_operating_asset_last_name VARCHAR(50), IN p_description VARCHAR(150), IN p_cuid VARCHAR(50), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME, IN p_joining_datetime DATETIME, 
+        // IN p_gender_id TINYINT(4), IN p_email VARCHAR(100)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            deskAssetID || request.asset_id,
+            request.organization_id,
+            request.asset_first_name || request.description || "",
+            request.asset_last_name || "",
+            request.operating_asset_first_name || "",
+            request.operating_asset_last_name || "",
+            request.description || "",
+            request.cuid,
+            logAssetID || request.asset_id,
+            util.getCurrentUTCTime(),
+            request.joining_datetime,
+            request.gender_id,
+            request.email_id,
+            request.asset_type_id,
+            request.asset_identification_number,
+            request.asset_manual_work_location_address
+        );
+        const queryString = util.getQueryString('ds_p1_5_asset_list_update_details', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -4782,7 +5109,7 @@ function AdminOpsService(objectCollection) {
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
-        const [error, assetTypeData] = await workforceAssetTypeMappingInsertRole(request, organizationID, accountID, workforceID);
+        const [error, assetTypeData] = await workforceAssetTypeMappingInsertRoleV1(request, organizationID, accountID, workforceID);
         if (error) {
             return [error, { message: "Error creating role" }];
         }
@@ -4807,6 +5134,47 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Aseet Type Mapping Insert V1
+    async function workforceAssetTypeMappingInsertRoleV1(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_name || '',
+            request.asset_type_description || '',
+            request.asset_type_category_id || 0,
+            request.asset_type_level_id || 0,
+            request.asset_type_flag_organization_specific,
+            request.asset_type_flag_enable_approval,
+            request.asset_type_approval_max_levels,
+            request.asset_type_approval_wait_duration ,
+            request.asset_type_approval_activity_type_id ,
+            request.asset_type_approval_activity_type_name ,
+            request.asset_type_approval_origin_form_id ,
+            request.asset_type_approval_field_id ,
+            request.asset_type_attendance_type_id ,
+            request.asset_type_attendance_type_name ,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_2_workforce_asset_type_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -4848,6 +5216,43 @@ function AdminOpsService(objectCollection) {
             request.asset_id
         );
         const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Aseet Type Mapping Update V1
+    async function workforceAssetTypeMappingUpdateRoleV1(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.asset_type_name,
+            request.asset_type_flag_enable_approval ,
+            request.asset_type_approval_max_levels ,
+            request.asset_type_approval_wait_duration ,
+            request.asset_type_approval_activity_type_id ,
+            request.asset_type_approval_activity_type_name ,
+            request.asset_type_approval_origin_form_id ,
+            request.asset_type_approval_field_id ,
+            request.asset_type_attendance_type_id ,
+            request.asset_type_attendance_type_name ,
+            organizationID,
+            request.flag || 0,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -7258,28 +7663,35 @@ function AdminOpsService(objectCollection) {
                 continue;
             }
 
+            let isNewStructure = 0;
             for(let mainRow of formEnable) {
                 let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
                 let condition = botInlineDataParsed.conditions;
-                let formEnableData = botInlineDataParsed.form_enable;
-                for(let row of formEnableData) {
 
-                    for(let key in row) {
-                        request.version = 2;
-                        request.form_id = row[key].form_id;
-                        request.botsData = [{
-                            bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
-                        }];
+                if(condition) {
+                    let formEnableData = botInlineDataParsed.form_enable;
+                    for(let row of formEnableData) {
 
-                        console.log("request", JSON.stringify(request));
-                        [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
-                        if(err) {
-                            console.log("Processing next got false from one");
+                        for(let key in row) {
+                            request.version = 2;
+                            request.form_id = row[key].form_id;
+                            request.botsData = [{
+                                bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
+                            }];
+
+                            console.log("request for new structure", JSON.stringify(request));
+                            [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
+                            if(err) {
+                                console.log("Processing next got false from one");
+                            }
+
+                            eval('var ' + key + '=' + dependedFormCheckResult + ';' );
+                            console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                         }
-
-                        eval('var ' + key + '=' + dependedFormCheckResult + ';' );
-                        console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                     }
+                } else {
+                    isNewStructure = 1;
+                    break;
                 }
 
                 try {
@@ -7294,6 +7706,20 @@ function AdminOpsService(objectCollection) {
                     console.log("Error occured while processing the expression ", err);
                     result = [{ message : "Error while processing expression", expression : condition }];
                 }
+            }
+
+            if(isNewStructure) {
+                let formJson = {};
+                request.form_id = formId;
+                formJson.form_id = request.form_id;
+                console.log("request for old structure");
+                let [err, responseData] = await self.dependedFormCheck(request);
+                if(!err){
+                    formJson.isActive = true;
+                }else{
+                    formJson.isActive = false;
+                }
+                response.push(formJson);
             }
         }
 
@@ -8229,6 +8655,41 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }    
+
+    this.updateApprovalDetails = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.asset_type_id,
+        request.asset_type_name,
+        request.asset_type_flag_enable_approval,
+        request.asset_type_approval_max_levels,
+        request.asset_type_approval_wait_duration,
+        request.asset_type_approval_activity_type_id,
+        request.asset_type_approval_activity_type_name,
+        request.asset_type_attendance_type_id ,
+        request.asset_type_attendance_type_name,
+        request.organization_id,
+        1,
+        util.getCurrentUTCTime(),
+        request.asset_id,
+        
+    );
+    const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

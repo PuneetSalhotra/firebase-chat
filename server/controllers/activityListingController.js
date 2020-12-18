@@ -1106,7 +1106,7 @@ function ActivityListingController(objCollection) {
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
         } catch (error) {
-            res.send(responseWrapper.getResponse(err, [{
+            res.send(responseWrapper.getResponse(error, [{
                 message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
             }], -9998, req.body));
         }
