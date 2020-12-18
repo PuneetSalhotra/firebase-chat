@@ -7663,28 +7663,35 @@ function AdminOpsService(objectCollection) {
                 continue;
             }
 
+            let isNewStructure = 0;
             for(let mainRow of formEnable) {
                 let botInlineDataParsed = JSON.parse(mainRow.bot_operation_inline_data);
                 let condition = botInlineDataParsed.conditions;
-                let formEnableData = botInlineDataParsed.form_enable;
-                for(let row of formEnableData) {
 
-                    for(let key in row) {
-                        request.version = 2;
-                        request.form_id = row[key].form_id;
-                        request.botsData = [{
-                            bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
-                        }];
+                if(condition) {
+                    let formEnableData = botInlineDataParsed.form_enable;
+                    for(let row of formEnableData) {
 
-                        console.log("request", JSON.stringify(request));
-                        [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
-                        if(err) {
-                            console.log("Processing next got false from one");
+                        for(let key in row) {
+                            request.version = 2;
+                            request.form_id = row[key].form_id;
+                            request.botsData = [{
+                                bot_operation_inline_data : JSON.stringify({ form_enable : [row[key]] })
+                            }];
+
+                            console.log("request for new structure", JSON.stringify(request));
+                            [err, dependedFormCheckResult] = await this.dependedFormCheckV2(request);
+                            if(err) {
+                                console.log("Processing next got false from one");
+                            }
+
+                            eval('var ' + key + '=' + dependedFormCheckResult + ';' );
+                            console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                         }
-
-                        eval('var ' + key + '=' + dependedFormCheckResult + ';' );
-                        console.log('var ' + key + '=' + dependedFormCheckResult + ';');
                     }
+                } else {
+                    isNewStructure = 1;
+                    break;
                 }
 
                 try {
@@ -7699,6 +7706,20 @@ function AdminOpsService(objectCollection) {
                     console.log("Error occured while processing the expression ", err);
                     result = [{ message : "Error while processing expression", expression : condition }];
                 }
+            }
+
+            if(isNewStructure) {
+                let formJson = {};
+                request.form_id = formId;
+                formJson.form_id = request.form_id;
+                console.log("request for old structure");
+                let [err, responseData] = await self.dependedFormCheck(request);
+                if(!err){
+                    formJson.isActive = true;
+                }else{
+                    formJson.isActive = false;
+                }
+                response.push(formJson);
             }
         }
 
