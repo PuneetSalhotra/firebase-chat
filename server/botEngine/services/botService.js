@@ -7625,7 +7625,7 @@ async function removeAsOwner(request,data)  {
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
-
+        
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -9048,7 +9048,7 @@ async function removeAsOwner(request,data)  {
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
-        // const urlKey = `868/984/5648/35156/2020/12/103/1608039244933/OPP-S-002333-151220-_-3.xlsx`;
+        // const urlKey = `868/984/5648/35156/2020/12/103/1608140463463/OPP-V-002337-161220-_-004.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-preprod-d20kggbr.s3.amazonaws.com/${urlKey}`;
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
@@ -9118,7 +9118,7 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        
+
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9174,7 +9174,7 @@ async function removeAsOwner(request,data)  {
             if (groupedJobsMap.has(childOpportunityID)) {
                 let jobInlineJSON = groupedJobsMap.get(childOpportunityID);
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
-                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
+                if (linkType === "mplsl2_second_primary" && actionType === "new") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
 
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
@@ -9201,7 +9201,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
                 if (linkType === "primary") { jobInlineJSON.bulk_job.primary = childOpportunity }
-                if (linkType === "primary" && actionType === "mplsl2_second_primary") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
+                if (linkType === "mplsl2_second_primary" && actionType === "new") { jobInlineJSON.bulk_job.second_primary = childOpportunity }
                 if (linkType === "secondary") { jobInlineJSON.bulk_job.secondary = childOpportunity }
                 groupedJobsMap.set(childOpportunityID, jobInlineJSON)
             }
@@ -9221,11 +9221,14 @@ async function removeAsOwner(request,data)  {
                     childOpportunity.actionType === "correction" ||
                     childOpportunity.actionType === "refeasibility_rejected_by_fes" ||
                     childOpportunity.actionType === "refeasibility_rejected_by_am" ||
-                    childOpportunity.actionType === "cloning" ||
-                    childOpportunity.actionType === "mplsl2_second_primary"
+                    childOpportunity.actionType === "cloning"
                 ) ||
                 !childOpportunity.hasOwnProperty("LinkType") ||
-                !(String(childOpportunity.LinkType).toLowerCase() === "primary" || String(childOpportunity.LinkType).toLowerCase() === "secondary") ||
+                !(
+                    String(childOpportunity.LinkType).toLowerCase() === "primary" ||
+                    String(childOpportunity.LinkType).toLowerCase() === "secondary" ||
+                    String(childOpportunity.LinkType).toLowerCase() === "mplsl2_second_primary"
+                ) ||
                 !childOpportunity.hasOwnProperty("serialNum") ||
                 Number(childOpportunity.serialNum) <= 0
             ) {
@@ -9237,6 +9240,7 @@ async function removeAsOwner(request,data)  {
             // If actionType === correction, assert that OppId is populated. Otherwise
             // just move to the next row 
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId === "") {
+                errorMessagesArray.push(`Child opportunity is empty in row #${i} for correction.`);
                 continue;
             }
             // If actionType === correction, assert that the child opportunity exists
@@ -9249,8 +9253,9 @@ async function removeAsOwner(request,data)  {
                 });
                 // Primary
                 if (childOpportunityData.length === 0) {
-                    errorMessageJSON.errorExists = true;
-                    errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
+                    // errorMessageJSON.errorExists = true;
+                    // errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
+                    errorMessagesArray.push(`Child opportunity ${childOpportunity.OppId} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
                 // Secondary
@@ -9286,9 +9291,13 @@ async function removeAsOwner(request,data)  {
                 // Skip pushing secondary creation job for dual creation cases to SQS
                 const isDualJob = childOpportunityIDToDualFlagMap.get(`${opportunityID}-${serialNumber}`);
                 if (linkType === "secondary" && isDualJob) { continue; }
+                if (linkType === "mplsl2_second_primary" && isDualJob) { continue; }
 
-                if (linkType === "secondary") { childOpportunityID = childOpportunity.OppId || ""; }
-                if (childOpportunityID === "") { continue; }
+                if (linkType === "secondary" || linkType === "mplsl2_second_primary") { childOpportunityID = childOpportunity.OppId || ""; }
+                if (childOpportunityID === "") {
+                    errorMessagesArray.push(`Child opportunity is empty in row #${i}.`);
+                    continue;
+                }
 
                 // Check if the child opportunity already exists
                 const [errorTwo, childOpportunityData] = await activityListSearchCUID({
@@ -9314,6 +9323,14 @@ async function removeAsOwner(request,data)  {
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new_secondary.opportunity_ids.push(childOpportunityID);
+                    continue;
+                }
+
+                if (
+                    linkType === "mplsl2_second_primary" &&
+                    childOpportunityData.length === 0
+                ) {
+                    errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
 
@@ -9413,36 +9430,36 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            if (childOpportunity.actionType === "mplsl2_second_primary") {
-                // Check for child opportunity
-                if (childOpportunity.OppId === "") {
-                    errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
-                    continue;
+            // if (childOpportunity.actionType === "mplsl2_second_primary") {
+            //     // Check for child opportunity
+            //     if (childOpportunity.OppId === "") {
+            //         errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
+            //         continue;
 
-                } else {
-                    childOpportunityID = childOpportunity.OppId;
-                    // Check if the child opportunity already exists
-                    const [errorSix, childOpportunityData] = await activityListSearchCUID({
-                        organization_id: request.organization_id,
-                        activity_type_category_id: workflowActivityCategoryTypeID,
-                        flag: 1,
-                        search_string: childOpportunityID
-                    });
-                    if (childOpportunityData.length === 0) {
-                        errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
-                        continue;
-                    }
-                }
-                // Second primary must be of linkType primary
-                if (linkType === "secondary") {
-                    errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
-                    continue;
-                }
+            //     } else {
+            //         childOpportunityID = childOpportunity.OppId;
+            //         // Check if the child opportunity already exists
+            //         const [errorSix, childOpportunityData] = await activityListSearchCUID({
+            //             organization_id: request.organization_id,
+            //             activity_type_category_id: workflowActivityCategoryTypeID,
+            //             flag: 1,
+            //             search_string: childOpportunityID
+            //         });
+            //         if (childOpportunityData.length === 0) {
+            //             errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
+            //             continue;
+            //         }
+            //     }
+            //     // Second primary must be of linkType primary
+            //     if (linkType === "secondary") {
+            //         errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
+            //         continue;
+            //     }
 
-                // Skip pushing second primary job for dual creation cases to SQS
-                const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
-                if (linkType === "primary" && isDualJob) { continue; }
-            }
+            //     // Skip pushing second primary job for dual creation cases to SQS
+            //     const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
+            //     if (linkType === "primary" && isDualJob) { continue; }
+            // }
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
@@ -10024,7 +10041,7 @@ async function removeAsOwner(request,data)  {
 
     async function checkMobility (request, inlineData, deskAssetData, requestTypeComboId, workflowType) {
         request.form_id = 50079; // NON FLD form
-        let submitRejectionFormFlag = 0;
+        let submitRejectionFormFlag = 0, comment = '';
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
@@ -10035,21 +10052,20 @@ async function removeAsOwner(request,data)  {
         console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
-        if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].ioip == 0) {
+        if((totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
             sheets.push(1,2);
             connectionType = 'COCP';
-        } else  if(totalCOCPAndIOIP[0].ioip > 0 && totalCOCPAndIOIP[0].cocp >= 0) {
+        } else  if((totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) > 0 && (totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) >= 0) {
             sheets.push(3);
             connectionType = 'IOIP';
         }
 
         console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
-        let configSheets =  inlineData.field_values_map[connectionType];
+        let configSheets =  inlineData.field_values_map[connectionType] || [];
 
-        if(!configSheets) {
+        if(!configSheets.length) {
             console.log("No Sheet Selected");
-            return;
         }
 
         console.log("configSheets", JSON.stringify(configSheets));
@@ -10063,31 +10079,35 @@ async function removeAsOwner(request,data)  {
         console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         for(let row of checkingSegmentResult) {
+            submitRejectionFormFlag = 0;
+            comment = row.comment;
             console.log("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 submitRejectionFormFlag = 1;
                 continue;
-            } else {
-                submitRejectionFormFlag = 0;
             }
             
-            // validating COCP and IOIP
-            let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
-            
-            if(!totalLinks.length) {
-                console.error("Failed in Matching validatingCocpAndIoip");
-                submitRejectionFormFlag = 1;
-                break;
-            }
+            // // validating COCP and IOIP
+            // let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
+            //
+            // if(!totalLinks.length) {
+            //     console.error("Failed in Matching validatingCocpAndIoip");
+            //     submitRejectionFormFlag = 1;
+            //     continue;
+            // }
 
             // validating No of Links
-            let linkResponse = validatingNoOfLinks(row.value.value, totalLinks);
+
+            // selecting Comments for approval
+
+
+            let linkResponse = validatingNoOfLinks(row.value.value, totalCOCPAndIOIP, row.sheet);
 
             if(!linkResponse) {
                 console.log("NO of Links are not matched");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             console.log("linkResponse",linkResponse);
@@ -10098,7 +10118,7 @@ async function removeAsOwner(request,data)  {
             if(!rentalResult || !rentalResult.length) {
                 console.log("Failed in Matching validatingRentals");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
             console.log("rentalResult", rentalResult, inlineData.monthly_quota);
 
@@ -10110,7 +10130,7 @@ async function removeAsOwner(request,data)  {
             if(!monthlyQuota.length) {
                 console.log("Conditions did not match in validatingMonthlyQuota");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
@@ -10118,7 +10138,7 @@ async function removeAsOwner(request,data)  {
             if(!smsCount.length) {
                 console.log("Conditions did not match in validatingSMSValues");
                 submitRejectionFormFlag = 1;
-                break;
+                continue;
             }
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
@@ -10126,6 +10146,11 @@ async function removeAsOwner(request,data)  {
             if(smsCount.length != minQuota.length) {
                 console.log("Condition failed in validate Mins");
                 submitRejectionFormFlag = 1;
+                continue;
+            }
+
+            if(!submitRejectionFormFlag) {
+                console.log("First condition got matched so getting out from loop");
                 break;
             }
         }
@@ -10134,6 +10159,8 @@ async function removeAsOwner(request,data)  {
 
             if(workflowType == 1) {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
+            } else {
+                console.log("Not Rejection because workflowType did not matched to current value");
             }
             return;
         }
@@ -10182,7 +10209,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: comment,
                 message_unique_id: 1603968690920
             },
             {
@@ -10364,23 +10391,50 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    function validatingNoOfLinks(configSheet, totalLinks) {
-        console.log("Validating No of Links ", totalLinks);
+    function validatingNoOfLinks(configSheet, totalLinks, sheet) {
+        console.log("Validating No of Links ", totalLinks, sheet);
         
         for(let i = 0; i < totalLinks.length; i++) {
             for(let row of configSheet) {
-                console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i] > row.LOWER, totalLinks[i] < row.UPPER, row.value);
                 if(row.LOWER) {
-                    if(totalLinks[i] > row.LOWER) {
-                        if(row.UPPER) {
-                            if(totalLinks[i] < row.UPPER) {
-                                return row.value;
-                                break;
+
+                    if(sheet == 1) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocpr > row.LOWER, totalLinks[i].cocpr < row.UPPER, row.value);
+                        if(totalLinks[i].cocpr > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].cocpr < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
                             }
-                            console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
-                            continue;
+                            return row.value;
                         }
-                        return row.value;    
+                    } else if(sheet == 2) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocp > row.LOWER, totalLinks[i].cocp < row.UPPER, row.value);
+                        if(totalLinks[i].cocp > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].cocp < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
+                            }
+                            return row.value;
+                        }
+                    } else if(sheet == 3) {
+                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].ioip > row.LOWER, totalLinks[i].ioip < row.UPPER, row.value);
+
+                        if(totalLinks[i].ioip > row.LOWER) {
+                            if(row.UPPER) {
+                                if(totalLinks[i].ioip < row.UPPER) {
+                                    return row.value;
+                                }
+                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                continue;
+                            }
+                            return row.value;
+                        }
                     }
                 }
             }
@@ -10446,7 +10500,7 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             for(let i = 0; i < minFieldIds.length; i++) {
                 if(minQuota[i]) {
-                    if(row.field_id == minFieldIds[i]) {
+                    if(row.field_id == minFieldIds[i] && Number(row.field_value)) {
                         console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
                         if(!minQuota[i][row.field_value]) {
                             console.log("Got nothing for ", minQuota[i], row.field_value);
@@ -10464,14 +10518,18 @@ async function removeAsOwner(request,data)  {
 
     function countCOCPAndIOIP(formData, COCPFieldIds) {
 
-        let COCPAndIOIPTotal = [{cocp : 0, ioip : 0}];
+        let COCPAndIOIPTotal = [{cocp : 0, ioip : 0, cocpr : 0, ioipr : 0}];
         for(let i = 0; i < COCPFieldIds.length; i++) {
             let fieldIds = Object.keys(COCPFieldIds[i]);
             for(let row of formData) { 
-                if(row.field_id == fieldIds[0] || row.field_id == fieldIds[2]) {
+                if(row.field_id == fieldIds[0]) {
                     COCPAndIOIPTotal[0].cocp = COCPAndIOIPTotal[0].cocp + Number(row.field_value);
-                } else if(row.field_id == fieldIds[1] || row.field_id == fieldIds[3]) {
+                } else if(row.field_id == fieldIds[1]) {
                     COCPAndIOIPTotal[0].ioip = COCPAndIOIPTotal[0].ioip + Number(row.field_value);
+                } else if(row.field_id == fieldIds[2]) {
+                    COCPAndIOIPTotal[0].cocpr = COCPAndIOIPTotal[0].cocpr + Number(row.field_value);
+                } else if(row.field_id == fieldIds[3]) {
+                    COCPAndIOIPTotal[0].ioipr = COCPAndIOIPTotal[0].ioipr + Number(row.field_value);
                 }
             }
         }
@@ -11155,4 +11213,5 @@ async function removeAsOwner(request,data)  {
 
 
 module.exports = BotService;
+
 
