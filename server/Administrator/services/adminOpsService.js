@@ -2690,7 +2690,7 @@ function AdminOpsService(objectCollection) {
         // if (!errOne && Number(deskAssetDataFromDB.length) > 0) {
 
         // }
-
+        
         // Check if the target workforce has exceeded the maximum number of desks allowed
         const [errTwo, workforceAssetCountData] = await adminListingService.assetListSelectCountAssetTypeWorkforce({
             organization_id: organizationID,
@@ -2705,6 +2705,11 @@ function AdminOpsService(objectCollection) {
                 }];
             }
         }
+        let newWorkforceDeskAssetTypeID;
+        if(request.hasOwnProperty('asset_type_id')){
+            newWorkforceDeskAssetTypeID = request.asset_type_id;
+        }
+        else{
         // Fetch asset type for the new workforce
         const [errThree, newWorkforceAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
             organization_id: organizationID,
@@ -2718,8 +2723,8 @@ function AdminOpsService(objectCollection) {
                 message: "Unable to fetch desk asset type ID for the new workforce"
             }];
         }
-        const newWorkforceDeskAssetTypeID = newWorkforceAssetTypeData[0].asset_type_id;
-
+        newWorkforceDeskAssetTypeID = newWorkforceAssetTypeData[0].asset_type_id
+       }
         // Update the workforce
         const [errFour, _] = await assetListUpdateWorkforce({
             asset_id: deskAssetID,
