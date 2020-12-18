@@ -4805,6 +4805,7 @@ async function removeAsOwner(request,data)  {
         
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
+        request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let type = Object.keys(inlineData);
