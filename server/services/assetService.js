@@ -2277,7 +2277,7 @@ function AssetService(objectCollection) {
                 responseDataCollection.asset_id = AssetId;
                 callback(false, responseDataCollection, 200);
             } else {
-                
+                callback(err, {}, -9998);
             }
         });
     };
