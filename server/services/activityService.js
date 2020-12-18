@@ -5657,7 +5657,7 @@ function ActivityService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_workforce_activity_type_search_mapping_select', paramsArr);
     
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
                 error = false;
