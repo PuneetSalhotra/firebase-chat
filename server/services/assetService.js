@@ -14,6 +14,7 @@ let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_ap
 
 const RMBotService = require('../botEngine/services/rmbotService');
 
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -791,7 +792,12 @@ function AssetService(objectCollection) {
             'organization_inline_data': util.replaceDefaultString(rowArray[0]['organization_inline_data']),
             'is_password_set':is_password_set,
             'asset_encryption_token_id': util.replaceDefaultString(rowArray[0]['asset_encryption_token_id']),
-            'organization_flag_email_integration_enabled': util.replaceDefaultNumber(rowArray[0]['organization_flag_email_integration_enabled'])
+            'organization_flag_email_integration_enabled': util.replaceDefaultNumber(rowArray[0]['organization_flag_email_integration_enabled']),
+            'asset_flag_approval':util.replaceDefaultNumber(rowArray[0]['asset_flag_approval']),
+            'asset_last_attendance_swipe_type_id':util.replaceDefaultNumber(rowArray[0]['asset_last_attendance_swipe_type_id']),
+            'asset_last_attendance_swipe_type_name':util.replaceDefaultString(rowArray[0]['asset_last_attendance_swipe_type_name']),
+            'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime']),
+            'organization_flag_enable_manager_proxy':util.replaceDefaultString(row['organization_flag_enable_manager_proxy'])
         };
 
         callback(false, rowData);
@@ -1746,6 +1752,27 @@ function AssetService(objectCollection) {
         }
     };
 
+    var archiveAsset = function (request){
+        var paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            3,
+            util.getCurrentUTCTime(),
+            request.target_asset_id,
+            request.datetime_log
+        );
+        var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    return[false, assetData];
+                } else {
+                    return[true, err];
+                }
+            });
+        }
+    }
+
     var deleteAsset = function (request, callback) {
         var paramsArr = new Array(
             request.target_asset_id,
@@ -2234,11 +2261,16 @@ function AssetService(objectCollection) {
      };*/
 
     //PAM
-    this.removeAsset = function (request, callback) {
+    this.removeAsset = async function (request, callback) {
         console.log('util : ' + util);
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-
+        
+        //archive asset data
+        let [archiveErr,_]=await archiveAsset(request)
+        if(archiveErr){
+            callback(err, {}, -9998);
+        }
         deleteAsset(request, function (err, AssetId) {
             if (err === false) {
                 assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
@@ -6247,6 +6279,137 @@ this.getQrBarcodeFeeback = async(request) => {
             }
         });
     };    
+
+    this.assetSwipeIn = async function(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.asset_id,
+                      request.organization_id,
+                      request.swipein_datetime,
+                      request.swipein_latitude,
+                      request.swipein_longitude,
+                      request.swipein_address,
+                      request.asset_id,
+                      util.getCurrentUTCTime() 
+                    ];
+    const queryString = util.getQueryString('ds_p1_asset_attendance_transaction_insert', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data)=>{
+                responseData = {'message': 'asset attendance updated successfully!'};
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset attendence process ',err);
+                    error = err;
+            });
+    }
+//     let [err,assetDetails] = await getAssetDetails(request);
+// //Add a timeline entry
+// let activityTimelineCollection =  JSON.stringify({                            
+//     "content": `${assetDetails[0].first_name} swiped in at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+//     "subject": `Note - ${util.getCurrentDate()}.`,
+//     "mail_body": `${assetDetails[0].first_name} swiped in at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+//     "activity_reference": [],
+//     "asset_reference": [],
+//     "attachments": [],
+//     "form_approval_field_reference": []
+// });
+
+// let timelineReq = Object.assign({}, request);
+//     timelineReq.activity_type_id = request.activity_type_id;
+//     timelineReq.message_unique_id = util.getMessageUniqueId(100);
+//     timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+//     timelineReq.activity_stream_type_id = 112;
+//     timelineReq.timeline_stream_type_id = 112;
+//     timelineReq.activity_timeline_collection = activityTimelineCollection;
+//     timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+// await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+    return [error, responseData];
+    }
+
+    this.assetSwipeOut = async function(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.attendance_transaction_id ,
+                      request.asset_id,
+                      request.organization_id,
+                      request.swipeout_datetime,
+                      request.swipeout_latitude,
+                      request.swipeout_longitude,
+                      request.swipeout_address,
+                      request.asset_id,
+                      util.getCurrentUTCTime() 
+                    ];
+    const queryString = util.getQueryString('ds_p1_asset_attendance_transaction_update', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data)=>{
+                responseData = {'message': 'asset attendance updated successfully!'};
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset attendence process ',err);
+                    error = err;
+            });
+    }
+    // let [err,assetDetails] = await getAssetDetails(request);
+    // //Add a timeline entry
+    // let activityTimelineCollection =  JSON.stringify({                            
+    //     "content": `${assetDetails[0].first_name} swiped out at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+    //     "subject": `Note - ${util.getCurrentDate()}.`,
+    //     "mail_body": `${assetDetails[0].first_name} swiped out at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+    //     "activity_reference": [],
+    //     "asset_reference": [],
+    //     "attachments": [],
+    //     "form_approval_field_reference": []
+    // });
+    
+    // let timelineReq = Object.assign({}, request);
+    //     timelineReq.activity_type_id = request.activity_type_id;
+    //     timelineReq.message_unique_id = util.getMessageUniqueId(100);
+    //     timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+    //     timelineReq.activity_stream_type_id = 113;
+    //     timelineReq.timeline_stream_type_id = 113;
+    //     timelineReq.activity_timeline_collection = activityTimelineCollection;
+    //     timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+    // await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+    return [error, responseData];
+    }
+
+    this.updateAssetSwipeDetails = async function(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.asset_id,
+                      request.organization_id,
+                      request.asset_last_attendance_swipe_type_id,
+                      request.asset_last_attendance_swipe_type_name,
+                      request.asset_last_attendance_swipe_type_datetime
+                    ];
+    const queryString = util.getQueryString('ds_v1_asset_list_update_swipe', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data)=>{
+                responseData = {'message': 'asset last attendance updated successfully!'};
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset last attendence process ',err);
+                    error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
 
 }
 

@@ -4199,7 +4199,7 @@ function ActivityService(objectCollection) {
                                     console.log('*******************************************************');
                                     
                                     //do this only for activity_type_category_id= 48
-                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53) {
+                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53 || Number(request.activity_type_category_id) === 60) {
 
                                         // Insert activity to the queue in the queue_activity_mapping table
                                         await activityCommonService
