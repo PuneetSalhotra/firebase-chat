@@ -871,6 +871,35 @@ function ActivityController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/search/mapping/insert', async function (req, res) {
+        
+        const [err,result] = await activityService.activityTypeMappingInsert(req.body);
+        if(!err){
+        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    }else{            
+        res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+    }        
+   });
+
+   app.post('/' + global.config.version + '/activity/search/mapping/delete', async function (req, res) {
+        
+    const [err,result] = await activityService.activityTypeMappingDelete(req.body);
+    if(!err){
+    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+     }else{            
+    res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+    }        
+    });
+   app.post('/' + global.config.version + '/activity/search/mapping/select', async function (req, res) {
+        
+    const [err,result] = await activityService.activityTypeMappingSearch(req.body);
+    if(!err){
+    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    }else{            
+    res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+    }        
+    });
 }
 
 
