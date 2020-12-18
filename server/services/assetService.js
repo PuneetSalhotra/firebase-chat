@@ -13,7 +13,7 @@ const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
 
 const RMBotService = require('../botEngine/services/rmbotService');
-const archiver = require('archiver');
+
 
 function AssetService(objectCollection) {
 
