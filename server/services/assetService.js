@@ -796,7 +796,8 @@ function AssetService(objectCollection) {
             'asset_flag_approval':util.replaceDefaultNumber(rowArray[0]['asset_flag_approval']),
             'asset_last_attendance_swipe_type_id':util.replaceDefaultNumber(rowArray[0]['asset_last_attendance_swipe_type_id']),
             'asset_last_attendance_swipe_type_name':util.replaceDefaultString(rowArray[0]['asset_last_attendance_swipe_type_name']),
-            'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime'])
+            'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime']),
+            'organization_flag_enable_manager_proxy':util.replaceDefaultString(row['organization_flag_enable_manager_proxy'])
         };
 
         callback(false, rowData);
