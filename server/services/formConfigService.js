@@ -176,19 +176,34 @@ function FormConfigService(objCollection) {
     };
 
     this.getSpecifiedForm = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr;
+        let queryString = '';
 
-        paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.form_id,
-            '1970-01-01 00:00:00',
-            request.page_start,
-            request.page_limit
-        );
-        queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if(request.hasOwnProperty('activity_type_category_id') && request.activity_type_category_id > 0) {
+            paramsArr = [
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.form_id,
+                            request.activity_type_category_id,
+                            '1970-01-01 00:00:00',
+                            request.page_start,
+                            request.page_limit
+                        ];
+            queryString = util.getQueryString('ds_v1_1_workforce_form_field_mapping_select', paramsArr);
+        } else {
+            paramsArr = [
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.form_id,
+                            '1970-01-01 00:00:00',
+                            request.page_start,
+                            request.page_limit
+                        ];
+            queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        }        
+        
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
