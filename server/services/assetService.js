@@ -6305,7 +6305,28 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
             });
     }
+//     let [err,assetDetails] = await getAssetDetails(request);
+// //Add a timeline entry
+// let activityTimelineCollection =  JSON.stringify({                            
+//     "content": `${assetDetails[0].first_name} swiped in at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+//     "subject": `Note - ${util.getCurrentDate()}.`,
+//     "mail_body": `${assetDetails[0].first_name} swiped in at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+//     "activity_reference": [],
+//     "asset_reference": [],
+//     "attachments": [],
+//     "form_approval_field_reference": []
+// });
 
+// let timelineReq = Object.assign({}, request);
+//     timelineReq.activity_type_id = request.activity_type_id;
+//     timelineReq.message_unique_id = util.getMessageUniqueId(100);
+//     timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+//     timelineReq.activity_stream_type_id = 112;
+//     timelineReq.timeline_stream_type_id = 112;
+//     timelineReq.activity_timeline_collection = activityTimelineCollection;
+//     timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+// await activityTimelineService.addTimelineTransactionAsync(timelineReq);
     return [error, responseData];
     }
 
@@ -6336,6 +6357,28 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
             });
     }
+    // let [err,assetDetails] = await getAssetDetails(request);
+    // //Add a timeline entry
+    // let activityTimelineCollection =  JSON.stringify({                            
+    //     "content": `${assetDetails[0].first_name} swiped out at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+    //     "subject": `Note - ${util.getCurrentDate()}.`,
+    //     "mail_body": `${assetDetails[0].first_name} swiped out at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+    //     "activity_reference": [],
+    //     "asset_reference": [],
+    //     "attachments": [],
+    //     "form_approval_field_reference": []
+    // });
+    
+    // let timelineReq = Object.assign({}, request);
+    //     timelineReq.activity_type_id = request.activity_type_id;
+    //     timelineReq.message_unique_id = util.getMessageUniqueId(100);
+    //     timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+    //     timelineReq.activity_stream_type_id = 113;
+    //     timelineReq.timeline_stream_type_id = 113;
+    //     timelineReq.activity_timeline_collection = activityTimelineCollection;
+    //     timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+    // await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
     return [error, responseData];
     }

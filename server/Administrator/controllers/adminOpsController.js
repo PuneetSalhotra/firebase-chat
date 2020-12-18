@@ -735,6 +735,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/asset/role/approval/update', async function (req, res) {
+        const [err, responseData] = await adminOpsService.updateApprovalDetails(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/asset/access/reset | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

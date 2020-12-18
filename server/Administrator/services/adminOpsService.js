@@ -5,6 +5,9 @@ const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
 const { serializeError } = require('serialize-error');
 
+const RMBotService = require('../../botEngine/services/rmbotService');
+var ActivityTimelineService = require('../../services/activityTimelineService.js');
+
 const AWS_Cognito = require('aws-sdk');
 AWS_Cognito.config.update({
     "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
@@ -19,6 +22,8 @@ function AdminOpsService(objectCollection) {
     const db = objectCollection.db;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
+    const rmBotService = new RMBotService(objectCollection);
+    const activityTimelineService = new ActivityTimelineService(objectCollection)
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -455,6 +460,69 @@ function AdminOpsService(objectCollection) {
         }
     }
 
+    // Create Activity Service
+    async function createActivityV1(request, workforceID, organizationID, accountID,assetID) {
+
+        const addActivityRequest = {
+            organization_id: organizationID,
+            account_id: accountID,
+            workforce_id: workforceID,
+            asset_id: assetID,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            asset_message_counter: 0,
+            activity_title: request.activity_title || '',
+            activity_description: request.activity_description || '',
+            activity_inline_data: JSON.stringify(request.activity_inline_data) || '{}',
+            data_entity_inline:JSON.stringify(request.activity_inline_data) || '{}',
+            activity_datetime_start: util.getCurrentUTCTime(),
+            activity_datetime_end: util.getCurrentUTCTime(),
+            activity_type_category_id: request.activity_type_category_id || 0,
+            activity_sub_type_id: 0,
+            activity_type_id: request.activity_type_id,
+            activity_access_role_id: request.activity_access_role_id,
+            asset_participant_access_id: 0,
+            activity_parent_id: request.activity_parent_id || 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: request.activity_form_id||0,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: 0,
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5,
+            
+        };
+
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addActivityRequest
+        };
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createActivity | addActivityAsync | Body: ", body);
+                return [false, body];
+            }
+        } catch (error) {
+            console.log("createActivity | addActivityAsync | Error: ", error);
+            return [true, {}];
+        }
+    }
+
     // Append AssetTypes to WorkforceData
     function appendAssetTypesToWorkforceData(workforceData, assetType, assetTypeData) {
         switch (Number(assetType.asset_type_category_id)) {
@@ -794,28 +862,6 @@ function AdminOpsService(objectCollection) {
             console.log("createAssetBundle | Asset List History Insert | Error: ", error);
         }
         
-        //Check role has flag to add approval workflow
-        if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
-        request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
-        request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
-        request.form_id = roleData[0].asset_type_approval_origin_form_id;
-        let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.asset_id,organization_id:organizationID});
-        let leadCreator;
-        if(!errAsset && creatorAssetData.length>0){
-             leadCreator = {
-            activity_lead_asset_id:creatorAssetData[0].manager_asset_id,
-            activity_owner_asset_id:creatorAssetData[0].asset_id
-            }
-            
-        }
-        //add approval workflow activity
-        let [errActivity,newActivityData] = await createActivity(request,workforceID,organizationID,accountID,leadCreator);
-        //make manager as lead
-
-        //make user who is adding asset as creator
-
-        }
-        
         // Update Desk Position
         const [errTwo, workforceAssetCountData] = await adminListingService.assetListSelectCountAssetTypeWorkforce({
             organization_id: organizationID,
@@ -994,6 +1040,7 @@ function AdminOpsService(objectCollection) {
             }]
         }
 
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData)
 
         const deskAssetID = Number(request.desk_asset_id),
             operatingAssetID = Number(assetData.asset_id),
@@ -1226,6 +1273,118 @@ function AdminOpsService(objectCollection) {
             id_card_activity_id: idCardActivityID
         }];
 
+    }
+
+    //Add Activity for approval workflow
+    async function addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,assetID){
+       let responseData = [];
+       let error =false;
+        //Check role has flag to add approval workflow
+        if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+            request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
+            request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
+            request.form_id = roleData[0].asset_type_approval_origin_form_id;
+            let activity_inline_data = [
+                {
+                    
+                        "form_id": roleData[0].asset_type_approval_origin_form_id,
+                        "field_id": roleData[0].asset_type_approval_field_id,
+                        "field_name": "Asset Info",
+                        "field_data_type_id": 59,
+                        "field_data_type_category_id": 4,
+                        "data_type_combo_id": 0,
+                        "data_type_combo_value": 0,
+                        "field_value": assetId,
+                        "message_unique_id": 1608213215926
+                      
+                }
+            ];
+
+            let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
+            let managerAssetId = creatorAssetData[0].manager_asset_id;
+            //add approval workflow activity
+            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
+            
+            //make manager as lead
+            await addParticipantasLead(request,newActivityData[0].workflow_activity_id,managerAssetId,managerAssetId)
+    
+            //make user who is adding asset as creator
+    
+            }
+            else{
+                let paramsArr = new Array(
+                    organizationID,
+                    accountID,
+                    workforceID,
+                    assetID,
+                    -1
+                );
+        
+                var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
+                if(queryString !== '') {
+                    try {
+                        const data = await db.executeQueryPromise(0,queryString,request);
+                        // await callAddTimelineEntry(request);
+                        responseData = data;
+                        error = false;
+                    } catch(e) {
+                        error = e;
+                    }
+                }
+            }
+            return[error,responseData]
+    }
+
+    async function addParticipantasLead(request,workflowActivityID,mangerAssetID,mangerAssetID){
+        let newReq = {};
+        newReq.organization_id = request.organization_id;
+        newReq.account_id = request.account_id;
+        newReq.workforce_id = request.workforce_id;
+        newReq.asset_id = 100;
+        newReq.activity_id = workflowActivityID;
+        newReq.lead_asset_id = mangerAssetID;
+        newReq.timeline_stream_type_id = 718;
+        newReq.datetime_log = util.getCurrentUTCTime();
+    
+        await rmBotService.activityListLeadUpdateV2(newReq, mangerAssetID);
+    
+        let leadAssetFirstName = '';
+        try {
+            const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: leadAssetID
+            });
+    
+            console.log('********************************');
+            console.log('LEAD ASSET DATA - ', assetData[0]);
+            console.log('********************************');
+            request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
+            leadAssetFirstName = assetData[0].asset_first_name;
+        } catch (error) {
+            console.log(error);
+        }
+    
+        //Add a timeline entry
+        let activityTimelineCollection =  JSON.stringify({                            
+            "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "subject": `Note - ${util.getCurrentDate()}.`,
+            "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "activity_reference": [],
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+    
+        let timelineReq = Object.assign({}, request);
+            timelineReq.activity_type_id = request.activity_type_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 711;
+            timelineReq.timeline_stream_type_id = 711;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
     }
 
     // Give access to a specific queue
@@ -8475,6 +8634,41 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }    
+
+    this.updateApprovalDetails = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.asset_type_id,
+        request.asset_type_name,
+        request.asset_type_flag_enable_approval,
+        request.asset_type_approval_max_levels,
+        request.asset_type_approval_wait_duration,
+        request.asset_type_approval_activity_type_id,
+        request.asset_type_approval_activity_type_name,
+        request.asset_type_attendance_type_id ,
+        request.asset_type_attendance_type_name,
+        request.organization_id,
+        1,
+        util.getCurrentUTCTime(),
+        request.asset_id,
+        
+    );
+    const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
