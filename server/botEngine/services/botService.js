@@ -4813,6 +4813,7 @@ async function removeAsOwner(request,data)  {
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
+            request.debug_info.push('Inside Static');
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
@@ -4837,6 +4838,7 @@ async function removeAsOwner(request,data)  {
             }
 
         } else if (type[0] === 'dynamic') {
+            request.debug_info.push('Inside dynamic');
             newReq.desk_asset_id = 0;
             // Phone number
             newReq.form_id = inlineData[type[0]].form_id;
@@ -4885,6 +4887,8 @@ async function removeAsOwner(request,data)  {
                 }
             }
         } else if (type[0] === 'asset_reference') {
+            request.debug_info.push('Inside asset_reference');
+
             const formID = Number(inlineData["asset_reference"].form_id),
                 fieldID = Number(inlineData["asset_reference"].field_id),
                 workflowActivityID = Number(request.workflow_activity_id);
@@ -4901,6 +4905,7 @@ async function removeAsOwner(request,data)  {
             }
 
             if (!formInlineDataMap.has(fieldID)) {
+                request.debug_info.push('Inside !formInlineDataMap.has(fieldID)');
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
                 // newReq.desk_asset_id = fieldValue[0];
                 // newReq.customer_name = fieldValue[1]
