@@ -745,6 +745,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/manger/assets/list/V1', async (req, res) => {
+        const [err, data] = await adminOpsService.getUsersByManger(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/manager/assets/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
