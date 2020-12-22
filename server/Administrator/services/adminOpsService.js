@@ -292,7 +292,7 @@ function AdminOpsService(objectCollection) {
             request.email_id || '',
             request.password || '',
             request.timezone_id || 22,
-            request.asset_type_id,
+            request.asset_type_id||0,
             request.operating_asset_id || 0,
             request.manager_asset_id || 0,
             workforceID,
@@ -1296,19 +1296,20 @@ function AdminOpsService(objectCollection) {
                         "field_data_type_category_id": 4,
                         "data_type_combo_id": 0,
                         "data_type_combo_value": 0,
-                        "field_value": assetId,
+                        "field_value": assetID,
                         "message_unique_id": 1608213215926
                       
                 }
+                
             ];
-
+            request.activity_inline_data = JSON.stringify(activity_inline_data)
             let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
             let managerAssetId = creatorAssetData[0].manager_asset_id;
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
-            
+            let newActivity_id = newActivityData.response.activity_id;
             //make manager as lead
-            await addParticipantasLead(request,newActivityData[0].workflow_activity_id,managerAssetId,managerAssetId)
+            await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
     
             //make user who is adding asset as creator
     
