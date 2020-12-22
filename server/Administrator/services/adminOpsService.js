@@ -286,7 +286,7 @@ function AdminOpsService(objectCollection) {
             request.gender_id || 4,
             request.customer_unique_id || '',
             request.asset_image_path || '',
-            
+            request.asset_inline_data || '',
             request.country_code || 1,
             request.phone_number || 0,
             request.email_id || '',
@@ -307,6 +307,8 @@ function AdminOpsService(objectCollection) {
             request.work_location_latitude || 0,
             request.work_location_longitude || 0,
             request.work_location_address || '',
+            request.asset_flag_approval || 0,
+            request.asset_master_data || "",
             request.asset_identification_number || "",
             request.asset_manual_work_location_address || ""
         );
