@@ -5649,7 +5649,7 @@ function ActivityService(objectCollection) {
 
     const paramsArr = [
             
-            request.workflow_id,
+            request.workforce_id,
             request.flag_participating,
             request.start_from,
             request.limit_value

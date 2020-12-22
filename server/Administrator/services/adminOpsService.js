@@ -288,13 +288,13 @@ function AdminOpsService(objectCollection) {
             request.gender_id || 4,
             request.customer_unique_id || '',
             request.asset_image_path || '',
-            
+            request.activity_inline_data || '{}',
             request.country_code || 1,
             request.phone_number || 0,
             request.email_id || '',
             request.password || '',
             request.timezone_id || 22,
-            request.asset_type_id,
+            request.asset_type_id||0,
             request.operating_asset_id || 0,
             request.manager_asset_id || 0,
             workforceID,
@@ -309,6 +309,8 @@ function AdminOpsService(objectCollection) {
             request.work_location_latitude || 0,
             request.work_location_longitude || 0,
             request.work_location_address || '',
+            request.asset_flag_approval || 0,
+            request.asset_master_data || "{}",
             request.asset_identification_number || "",
             request.asset_manual_work_location_address || ""
         );
@@ -1296,19 +1298,20 @@ function AdminOpsService(objectCollection) {
                         "field_data_type_category_id": 4,
                         "data_type_combo_id": 0,
                         "data_type_combo_value": 0,
-                        "field_value": assetId,
+                        "field_value": assetID,
                         "message_unique_id": 1608213215926
                       
                 }
+                
             ];
-
+            request.activity_inline_data = JSON.stringify(activity_inline_data)
             let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
             let managerAssetId = creatorAssetData[0].manager_asset_id;
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
-            
+            let newActivity_id = newActivityData.response.activity_id;
             //make manager as lead
-            await addParticipantasLead(request,newActivityData[0].workflow_activity_id,managerAssetId,managerAssetId)
+            await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
     
             //make user who is adding asset as creator
     
@@ -5176,16 +5179,21 @@ function AdminOpsService(objectCollection) {
             request.asset_type_description || '',
             request.asset_type_category_id || 0,
             request.asset_type_level_id || 0,
-            request.asset_type_flag_organization_specific,
-            request.asset_type_flag_enable_approval,
-            request.asset_type_approval_max_levels,
-            request.asset_type_approval_wait_duration ,
-            request.asset_type_approval_activity_type_id ,
-            request.asset_type_approval_activity_type_name ,
-            request.asset_type_approval_origin_form_id ,
-            request.asset_type_approval_field_id ,
-            request.asset_type_attendance_type_id ,
-            request.asset_type_attendance_type_name ,
+            request.asset_type_flag_organization_specific||0,
+            request.asset_type_flag_enable_approval||0,
+            request.asset_type_approval_max_levels||0,
+            request.asset_type_approval_wait_duration||0 ,
+            request.asset_type_approval_activity_type_id||0 ,
+            request.asset_type_approval_activity_type_name||"" ,
+            request.asset_type_approval_origin_form_id ||"0",
+            request.asset_type_approval_field_id ||"0",
+            request.asset_type_attendance_type_id || "0",
+            request.asset_type_attendance_type_name ||"",
+            request.asset_type_flag_enable_suspension||0,
+            request.asset_type_suspension_activity_type_id||0,
+            request.asset_type_suspension_activity_type_name||"",
+            request.asset_type_suspension_wait_duration||0,
+            request.asset_type_flag_hide_organization_details||"",
             workforceID,
             accountID,
             organizationID,
@@ -5212,7 +5220,7 @@ function AdminOpsService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
 
-        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID);
+        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleV1(request, organizationID, accountID, workforceID);
         if (error) {
             return [error, { message: "Error updating role's name" }];
         }
@@ -5264,7 +5272,12 @@ function AdminOpsService(objectCollection) {
             request.asset_type_approval_origin_form_id ,
             request.asset_type_approval_field_id ,
             request.asset_type_attendance_type_id ,
-            request.asset_type_attendance_type_name ,
+            request.asset_type_attendance_type_name||"" ,
+            request.asset_type_flag_enable_suspension||0,
+            request.asset_type_suspension_activity_type_id||0,
+            request.asset_type_suspension_activity_type_name||"",
+            request.asset_type_suspension_wait_duration||0,
+            request.asset_type_flag_hide_organization_details||"",
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
