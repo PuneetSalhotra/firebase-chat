@@ -5206,7 +5206,7 @@ function AdminOpsService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
 
-        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID);
+        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleV1(request, organizationID, accountID, workforceID);
         if (error) {
             return [error, { message: "Error updating role's name" }];
         }
@@ -5258,7 +5258,12 @@ function AdminOpsService(objectCollection) {
             request.asset_type_approval_origin_form_id ,
             request.asset_type_approval_field_id ,
             request.asset_type_attendance_type_id ,
-            request.asset_type_attendance_type_name ,
+            request.asset_type_attendance_type_name||"" ,
+            request.asset_type_flag_enable_suspension||0,
+            request.asset_type_suspension_activity_type_id||0,
+            request.asset_type_suspension_activity_type_name||"",
+            request.asset_type_suspension_wait_duration||0,
+            request.asset_type_flag_hide_organization_details||"",
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
