@@ -8695,6 +8695,32 @@ function AdminOpsService(objectCollection) {
     }
     return [error, responseData];
     }
+
+    this.getUsersByManger = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.organization_id,
+        request.manager_asset_id,
+        request.flag,
+        start_from,
+        50  
+    );
+    const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
