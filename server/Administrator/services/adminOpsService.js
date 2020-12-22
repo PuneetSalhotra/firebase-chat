@@ -1,4 +1,5 @@
 const AdminListingService = require("../services/adminListingService");
+const AssetService = require("../../services/assetService");
 const logger = require('../../logger/winstonLogger');
 const XLSX = require('xlsx');
 const excelToJson = require('convert-excel-to-json');
@@ -22,6 +23,7 @@ function AdminOpsService(objectCollection) {
     const db = objectCollection.db;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
+    const assetService = new AssetService(objectCollection);
     const rmBotService = new RMBotService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection)
     const moment = require('moment');
@@ -3778,6 +3780,15 @@ function AdminOpsService(objectCollection) {
                                     set_admin_flag: 1,
                                     set_organization_admin_flag: request.asset_flag_organization_admin || 1
                                 });
+                                
+                                await assetService.updateFlagProcess({
+                                    organization_id : request.organization_id,
+                                    account_id: accountID,
+                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                    asset_id: employeeAssetID,
+                                    asset_flag_process_mgmt : 1
+                                })
+
                             } catch (error) {
                                 logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
                             }
@@ -3808,6 +3819,8 @@ function AdminOpsService(objectCollection) {
             });
 
         }
+
+
 
         return [false, {
             message: "Created account and workforces.",
