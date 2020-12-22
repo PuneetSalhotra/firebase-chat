@@ -430,7 +430,8 @@ function LedgerOpsService(objectCollection) {
             request.trigger_form_id || 0,
             request.trigger_form_transaction_id || 0,
         );
-        const queryString = util.getQueryString('ds_v1_6_activity_timeline_transaction_insert', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_6_activity_timeline_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_v1_7_activity_timeline_transaction_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

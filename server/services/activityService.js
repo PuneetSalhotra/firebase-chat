@@ -4199,7 +4199,7 @@ function ActivityService(objectCollection) {
                                     console.log('*******************************************************');
                                     
                                     //do this only for activity_type_category_id= 48
-                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53) {
+                                    if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53 || Number(request.activity_type_category_id) === 60) {
 
                                         // Insert activity to the queue in the queue_activity_mapping table
                                         await activityCommonService
@@ -5593,6 +5593,79 @@ function ActivityService(objectCollection) {
             WidgetFieldRequest = null;
             console.log("No FieldWidget for this Field "+fieldData.field_id);
         }
+    }
+    this.activityTypeMappingInsert = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+            request.activity_type_id,
+            request.workflow_id,
+            request.flag_participating,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+    const queryString = util.getQueryString('ds_p1_workforce_activity_type_search_mapping_insert', paramsArr);
+    
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    }
+
+    this.activityTypeMappingDelete = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+            request.activity_type_id,
+            request.workflow_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+    const queryString = util.getQueryString('ds_p1_workforce_activity_type_search_mapping_delete', paramsArr);
+    
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    }
+
+    this.activityTypeMappingSearch = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+            
+            request.workforce_id,
+            request.flag_participating,
+            request.start_from,
+            request.limit_value
+        ];
+    const queryString = util.getQueryString('ds_p1_workforce_activity_type_search_mapping_select', paramsArr);
+    
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
     }
 }
 
