@@ -8387,10 +8387,11 @@ function AdminOpsService(objectCollection) {
 
         // get all the workforces under the given account
        [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
-
+       
        if(!(formErr && workforceErr)){
             if(workflowFormsData.length > 0 && workforceData.length > 0){
                 workforceData.forEach(workforceEle => {
+                    console.log(workforceEle)
                     workflowFormsData.forEach(formEle => {
                         // execute form entity mapping
                         request.target_form_id = formEle.form_id;
@@ -8400,12 +8401,12 @@ function AdminOpsService(objectCollection) {
                     })
                 })
             }else{
-                return "formData or workforceData Length = 0"
+                return [true,"formData or workforceData Length = 0"]
             }
        }else{
-            return "error in retrieving form data or workforce data"
+            return [true,"error in retrieving form data or workforce data"]
        }
-        return "success";
+        return [false,"success"];
     }
 
     this.formEntityMappingInsert = async (request)=> {
