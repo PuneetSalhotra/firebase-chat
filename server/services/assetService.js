@@ -6291,7 +6291,7 @@ this.getQrBarcodeFeeback = async(request) => {
                       request.swipein_latitude,
                       request.swipein_longitude,
                       request.swipein_address,
-                      request.asset_id,
+                      request.log_asset_id,
                       util.getCurrentUTCTime() 
                     ];
     const queryString = util.getQueryString('ds_p1_asset_attendance_transaction_insert', paramsArr);
