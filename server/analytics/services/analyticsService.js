@@ -2182,6 +2182,20 @@ function AnalyticsService(objectCollection)
                                     "result": tempResult,
                                 }
                             );
+                        } else if 
+                        (
+                            parseInt(request.widget_type_id) >= 69 && parseInt(request.widget_type_id)<= 122
+                        )
+                        {
+                            results[iterator] =
+                            (
+                                {
+                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "status_type_id": request.filter_activity_status_type_id,
+                                    "result": tempResult[0].value,
+                                    "target": tempResult[0].target
+                                }
+                            );
                         }else{
                             let totalValue = 0;
                              //console.log("request.widget_type_id :: "+request.widget_type_id);
