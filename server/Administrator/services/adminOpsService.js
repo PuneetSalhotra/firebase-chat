@@ -3788,7 +3788,7 @@ function AdminOpsService(objectCollection) {
                                     organization_id : request.organization_id,
                                     account_id: accountID,
                                     workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: employeeAssetID,
+                                    asset_id: deskAssetID,
                                     asset_flag_process_mgmt : 1
                                 })
 
