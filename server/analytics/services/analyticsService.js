@@ -2168,6 +2168,20 @@ function AnalyticsService(objectCollection)
                                 }
                             );
 
+                        } else if 
+                        (
+                            parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_volume_distribution || 
+                            parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_value_distribution
+                        )
+                        {
+                            results[iterator] =
+                            (
+                                {
+                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "status_type_id": request.filter_activity_status_type_id,
+                                    "result": tempResult,
+                                }
+                            );
                         }else{
                             let totalValue = 0;
                              //console.log("request.widget_type_id :: "+request.widget_type_id);
