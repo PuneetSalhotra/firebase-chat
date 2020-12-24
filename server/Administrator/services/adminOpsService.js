@@ -8392,15 +8392,12 @@ function AdminOpsService(objectCollection) {
     }
 
     this.formAccessSegmentOrgLevel =  async (request)=>{
-        let workforceErr = true, workforceData = [],
-            formErr = true, workflowFormsData = [];
-
+        
         // get all th forms under the process
-       [formErr, workflowFormsData] = await adminListingService.workforceFormMappingSelectWorkflowForms(request);
+      const [formErr, workflowFormsData] = await adminListingService.workforceFormMappingSelectWorkflowForms(request);
 
         // get all the workforces under the given account
-       [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
-       
+       const [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
        if(!(formErr && workforceErr)){
             if(workflowFormsData.length > 0 && workforceData.length > 0){
                 workforceData.forEach(workforceEle => {
