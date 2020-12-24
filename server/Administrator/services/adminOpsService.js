@@ -8711,6 +8711,7 @@ function AdminOpsService(objectCollection) {
     }
 
     this.getUsersByManger = async function(request){
+        console.log("came here")
         let responseData = [],
         error = true;
 
@@ -8718,13 +8719,13 @@ function AdminOpsService(objectCollection) {
         request.organization_id,
         request.manager_asset_id,
         request.flag,
-        start_from,
+        request.start_from,
         50  
     );
     const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
 
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
                 responseData = data;
                 error = false;

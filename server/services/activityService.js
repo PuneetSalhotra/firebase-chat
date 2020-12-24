@@ -5648,7 +5648,6 @@ function ActivityService(objectCollection) {
         error = true;
 
     const paramsArr = [
-            
             request.workforce_id,
             request.flag_participating,
             request.start_from,
@@ -5666,6 +5665,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 }
 

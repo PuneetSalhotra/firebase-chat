@@ -751,7 +751,7 @@ function AdminOpsController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/admin/manager/assets/list | Error: ", err);
+            console.log("/admin/manager/assets/list/V1 | Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
