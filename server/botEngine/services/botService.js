@@ -4805,6 +4805,7 @@ async function removeAsOwner(request,data)  {
         
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
+        request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let type = Object.keys(inlineData);
@@ -4812,6 +4813,7 @@ async function removeAsOwner(request,data)  {
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
+            request.debug_info.push('Inside Static');
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
@@ -4836,6 +4838,7 @@ async function removeAsOwner(request,data)  {
             }
 
         } else if (type[0] === 'dynamic') {
+            request.debug_info.push('Inside dynamic');
             newReq.desk_asset_id = 0;
             // Phone number
             newReq.form_id = inlineData[type[0]].form_id;
@@ -4884,6 +4887,8 @@ async function removeAsOwner(request,data)  {
                 }
             }
         } else if (type[0] === 'asset_reference') {
+            request.debug_info.push('Inside asset_reference');
+
             const formID = Number(inlineData["asset_reference"].form_id),
                 fieldID = Number(inlineData["asset_reference"].field_id),
                 workflowActivityID = Number(request.workflow_activity_id);
@@ -4900,6 +4905,7 @@ async function removeAsOwner(request,data)  {
             }
 
             if (!formInlineDataMap.has(fieldID)) {
+                request.debug_info.push('Inside !formInlineDataMap.has(fieldID)');
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
                 // newReq.desk_asset_id = fieldValue[0];
                 // newReq.customer_name = fieldValue[1]
@@ -10384,6 +10390,9 @@ async function removeAsOwner(request,data)  {
                         return [];
                     }
                     response.push(mobiltiyFieldsValues[Number(row.field_value)]);
+                } else {
+                    console.log("Got Empty Value in validatingRentals for plan", rentalFieldIds.indexOf(row.field_id) + 1);
+                    response.push('');
                 }
             }
         }
@@ -10449,10 +10458,17 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             for(let i =0; i < monthlyQuota.length; i++) {
                 if(linkResp[i] != null) {
-                    let monthlyQuotaValue = Object.keys(linkResp[i]);
+
                     let monthlyQuotaFieldId = monthlyQuota[i];
 
                     if(Number(row.field_id) == monthlyQuotaFieldId) {
+                        if(linkResp[i] == '') {
+                            response.push('');
+                            console.log("Got Empty Value in validatingMonthlyQuota for plan", i + 1);
+                            continue;
+                        }
+                        let monthlyQuotaValue = Object.keys(linkResp[i]);
+
                         console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), monthlyQuotaValue[0]);
                         if(Number(monthlyQuotaValue[0]) && Number(row.field_value) > monthlyQuotaValue[0]) {
                             console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
@@ -10475,11 +10491,16 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             for(let i =0; i < smsFieldIds.length; i++) {
                 if(monthlyQuota[i] != null) {
-
-                    let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
                     let smsFieldIdsFieldId = smsFieldIds[i];
 
                     if(Number(row.field_id) == smsFieldIdsFieldId) {
+                        if(monthlyQuota[i] == '' ) {
+                            response.push('');
+                            console.log("Got Empty Value in validatingSMSValues for plan", i + 1);
+                            continue;
+                        }
+                        let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
+
                         console.log("smsFieldIdsFieldId",row.field_id, smsFieldIdsFieldId);
                         if(Number(row.field_value) > smsFieldIdsValue[0]) {
                             console.log("Got invalid value validatingSMSValues", Number(row.field_value), smsFieldIdsValue);
@@ -10499,8 +10520,13 @@ async function removeAsOwner(request,data)  {
         let response = [];
         for(let row of formData) {
             for(let i = 0; i < minFieldIds.length; i++) {
-                if(minQuota[i]) {
-                    if(row.field_id == minFieldIds[i] && Number(row.field_value)) {
+                if(minQuota[i] != null) {
+                    if(row.field_id == minFieldIds[i]) {
+                        if(minQuota[i] == '' ) {
+                            response.push('');
+                            console.log("Got Empty Value in validateMins for plan", i + 1);
+                            continue;
+                        }
                         console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
                         if(!minQuota[i][row.field_value]) {
                             console.log("Got nothing for ", minQuota[i], row.field_value);
