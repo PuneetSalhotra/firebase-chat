@@ -2619,7 +2619,32 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }      
+    this.getAssetTargetList = async (request) => {
 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.widget_type_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_target_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  	
+    
 }
 
 module.exports = AnalyticsService;
