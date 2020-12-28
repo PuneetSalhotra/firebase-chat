@@ -755,6 +755,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/form/access/share/V1', async (req, res) => {
+        const [err, data] = await adminOpsService.formEntityMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/form/access/shareV1 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

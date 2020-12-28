@@ -5649,6 +5649,8 @@ function ActivityService(objectCollection) {
 
     const paramsArr = [
             request.workforce_id,
+            request.activity_type_id,
+            request.flag,
             request.flag_participating,
             request.start_from,
             request.limit_value

@@ -8401,7 +8401,6 @@ function AdminOpsService(objectCollection) {
        if(!(formErr && workforceErr)){
             if(workflowFormsData.length > 0 && workforceData.length > 0){
                 workforceData.forEach(workforceEle => {
-                    console.log(workforceEle)
                     workflowFormsData.forEach(formEle => {
                         // execute form entity mapping
                         request.target_form_id = formEle.form_id;
@@ -8436,7 +8435,7 @@ function AdminOpsService(objectCollection) {
 
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     formEntityData = data;
                     error = false;
@@ -8445,7 +8444,7 @@ function AdminOpsService(objectCollection) {
                     error = err;
                 });
         }
-        return formEntityData;
+        return [error,formEntityData];
     };  
 
 
@@ -8721,7 +8720,6 @@ function AdminOpsService(objectCollection) {
     }
 
     this.getUsersByManger = async function(request){
-        console.log("came here")
         let responseData = [],
         error = true;
 
