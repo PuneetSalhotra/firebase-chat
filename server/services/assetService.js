@@ -798,7 +798,7 @@ function AssetService(objectCollection) {
             'asset_last_attendance_swipe_type_name':util.replaceDefaultString(rowArray[0]['asset_last_attendance_swipe_type_name']),
             'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime']),
             'organization_flag_enable_manager_proxy':util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_manager_proxy']),
-            "asset_manual_work_location_address":util.replaceDefaultNumber(rowArray[0]['asset_manual_work_location_address'])
+            "asset_manual_work_location_address":util.replaceDefaultString(rowArray[0]['asset_manual_work_location_address'])
         };
 
         callback(false, rowData);
