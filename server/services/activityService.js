@@ -602,7 +602,8 @@ function ActivityService(objectCollection) {
                             if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                 || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                 || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                                || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
+                                || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727 
+                                || request.activity_type_id == 151729 || request.activity_type_id == 151730 || request.activity_type_id == 151728)){
                                     console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
 
                                     let opportunityRequest = Object.assign({}, request);
@@ -5648,8 +5649,9 @@ function ActivityService(objectCollection) {
         error = true;
 
     const paramsArr = [
-            
             request.workforce_id,
+            request.activity_type_id,
+            request.flag,
             request.flag_participating,
             request.start_from,
             request.limit_value
@@ -5666,6 +5668,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 }
 

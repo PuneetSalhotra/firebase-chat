@@ -797,7 +797,14 @@ function AssetService(objectCollection) {
             'asset_last_attendance_swipe_type_id':util.replaceDefaultNumber(rowArray[0]['asset_last_attendance_swipe_type_id']),
             'asset_last_attendance_swipe_type_name':util.replaceDefaultString(rowArray[0]['asset_last_attendance_swipe_type_name']),
             'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime']),
-            'organization_flag_enable_manager_proxy':util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_manager_proxy'])
+            'organization_flag_enable_manager_proxy':util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_manager_proxy']),
+            "asset_manual_work_location_address":util.replaceDefaultString(rowArray[0]['asset_manual_work_location_address']),
+            "asset_flag_suspended":util.replaceDefaultNumber(rowArray[0]['asset_flag_suspended']),
+            "asset_master_data":util.replaceDefaultString(rowArray[0]['asset_master_data']),
+            "asset_suspension_datetime":util.replaceDefaultString(rowArray[0]['asset_suspension_datetime']),
+            "asset_suspension_activity_id":util.replaceDefaultString(rowArray[0]['asset_suspension_activity_id']),
+            "asset_type_attendance_type_id":util.replaceDefaultNumber(rowArray[0]['asset_type_attendance_type_id']),
+            "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name'])
         };
 
         callback(false, rowData);
@@ -6303,9 +6310,20 @@ this.getQrBarcodeFeeback = async(request) => {
             })
             .catch((err)=>{
                     console.log('[Error] asset attendence process ',err);
-                    error = err;
+                    return [true,[]]
             });
     }
+    let [updateErr,updateData] = await this.updateAssetSwipeDetails(request);
+    if(updateErr){
+        return [true,[]]
+    }
+    
+    // ds_p1_asset_attendance_transaction_select`(IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20))
+    let [listErr,listData] = await getLatestAttendenceTransactionDetails(request);
+    if(listErr){
+        return [true,[]]
+    }
+    responseData = listData;
 //     let [err,assetDetails] = await getAssetDetails(request);
 // //Add a timeline entry
 // let activityTimelineCollection =  JSON.stringify({                            
@@ -6355,8 +6373,12 @@ this.getQrBarcodeFeeback = async(request) => {
             })
             .catch((err)=>{
                     console.log('[Error] asset attendence process ',err);
-                    error = err;
+                    return [true,[]]
             });
+    }
+    let [updateErr,updateData] = await this.updateAssetSwipeDetails(request);
+    if(updateErr){
+        error=true;
     }
     // let [err,assetDetails] = await getAssetDetails(request);
     // //Add a timeline entry
@@ -6384,6 +6406,32 @@ this.getQrBarcodeFeeback = async(request) => {
     return [error, responseData];
     }
 
+   async function getLatestAttendenceTransactionDetails(request){
+        let responseData = [],
+        error = true;        
+
+    const paramsArr = [
+                      request.asset_id,
+                      request.organization_id
+                    ];
+    const queryString = util.getQueryString('ds_p1_asset_attendance_transaction_select', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data)=>{
+              if(data && data.length>0){
+                responseData = data[0];
+              }
+                error = false;
+            })
+            .catch((err)=>{
+                    console.log('[Error] asset last attendence process ',err);
+                    error = err;
+            });
+    }
+
+    return [error, responseData];
+    } 
+
     this.updateAssetSwipeDetails = async function(request){
         let responseData = [],
         error = true;        
@@ -6391,9 +6439,9 @@ this.getQrBarcodeFeeback = async(request) => {
     const paramsArr = [
                       request.asset_id,
                       request.organization_id,
-                      request.asset_last_attendance_swipe_type_id,
-                      request.asset_last_attendance_swipe_type_name,
-                      request.asset_last_attendance_swipe_type_datetime
+                      request.asset_type_attendance_type_id,
+                      request.asset_attendance_swipe_type_name,
+                      request.asset_attendance_swipe_type_datetime
                     ];
     const queryString = util.getQueryString('ds_v1_asset_list_update_swipe', paramsArr);
     if (queryString != '') {
