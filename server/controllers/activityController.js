@@ -900,6 +900,16 @@ function ActivityController(objCollection) {
     res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
     }        
     });
+
+    app.post('/' + global.config.version + '/activity/search/mapping/select/V1', async function (req, res) {
+        
+        const [err,result] = await activityService.activityTypeMappingSearchV1(req.body);
+        if(!err){
+        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        }else{            
+        res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }        
+        });
 }
 
 
