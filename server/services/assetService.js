@@ -802,7 +802,9 @@ function AssetService(objectCollection) {
             "asset_flag_suspended":util.replaceDefaultNumber(rowArray[0]['asset_flag_suspended']),
             "asset_master_data":util.replaceDefaultString(rowArray[0]['asset_master_data']),
             "asset_suspension_datetime":util.replaceDefaultString(rowArray[0]['asset_suspension_datetime']),
-            "asset_suspension_activity_id":util.replaceDefaultString(rowArray[0]['asset_suspension_activity_id'])
+            "asset_suspension_activity_id":util.replaceDefaultString(rowArray[0]['asset_suspension_activity_id']),
+            "asset_type_attendance_type_id":util.replaceDefaultNumber(rowArray[0]['asset_type_attendance_type_id']),
+            "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name'])
         };
 
         callback(false, rowData);
