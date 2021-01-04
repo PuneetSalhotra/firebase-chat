@@ -5676,6 +5676,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 
     this.activityTypeMappingDelete = async function(request){
@@ -5700,6 +5701,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 
     this.activityTypeMappingSearch = async function(request){
