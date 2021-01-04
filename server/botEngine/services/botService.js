@@ -10058,10 +10058,16 @@ async function removeAsOwner(request,data)  {
         console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
-        if((totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
+        if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].cocpr > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
             sheets.push(1,2);
             connectionType = 'COCP';
-        } else  if((totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) > 0 && (totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) >= 0) {
+        } else if(totalCOCPAndIOIP[0].cocp > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
+            sheets.push(2);
+            connectionType = 'COCP';
+        } else  if(totalCOCPAndIOIP[0].cocpr > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
+            sheets.push(1);
+            connectionType = 'COCP';
+        } else if((totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) > 0 && (totalCOCPAndIOIP[0].cocp + totalCOCPAndIOIP[0].cocpr) >= 0) {
             sheets.push(3);
             connectionType = 'IOIP';
         }
