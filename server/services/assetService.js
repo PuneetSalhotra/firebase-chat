@@ -797,7 +797,14 @@ function AssetService(objectCollection) {
             'asset_last_attendance_swipe_type_id':util.replaceDefaultNumber(rowArray[0]['asset_last_attendance_swipe_type_id']),
             'asset_last_attendance_swipe_type_name':util.replaceDefaultString(rowArray[0]['asset_last_attendance_swipe_type_name']),
             'asset_last_attendance_swipe_type_datetime':util.replaceDefaultDatetime(rowArray[0]['asset_last_attendance_swipe_type_datetime']),
-            'organization_flag_enable_manager_proxy':util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_manager_proxy'])
+            'organization_flag_enable_manager_proxy':util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_manager_proxy']),
+            "asset_manual_work_location_address":util.replaceDefaultString(rowArray[0]['asset_manual_work_location_address']),
+            "asset_flag_suspended":util.replaceDefaultNumber(rowArray[0]['asset_flag_suspended']),
+            "asset_master_data":util.replaceDefaultString(rowArray[0]['asset_master_data']),
+            "asset_suspension_datetime":util.replaceDefaultString(rowArray[0]['asset_suspension_datetime']),
+            "asset_suspension_activity_id":util.replaceDefaultString(rowArray[0]['asset_suspension_activity_id']),
+            "asset_type_attendance_type_id":util.replaceDefaultNumber(rowArray[0]['asset_type_attendance_type_id']),
+            "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name'])
         };
 
         callback(false, rowData);

@@ -8392,19 +8392,15 @@ function AdminOpsService(objectCollection) {
     }
 
     this.formAccessSegmentOrgLevel =  async (request)=>{
-        let workforceErr = true, workforceData = [],
-            formErr = true, workflowFormsData = [];
-
+        
         // get all th forms under the process
-       [formErr, workflowFormsData] = await adminListingService.workforceFormMappingSelectWorkflowForms(request);
+      const [formErr, workflowFormsData] = await adminListingService.workforceFormMappingSelectWorkflowForms(request);
 
         // get all the workforces under the given account
-       [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
-       
+       const [workforceErr, workforceData] = await adminListingService.workforceListSelectWorkforceTypeAll(request);
        if(!(formErr && workforceErr)){
             if(workflowFormsData.length > 0 && workforceData.length > 0){
                 workforceData.forEach(workforceEle => {
-                    console.log(workforceEle)
                     workflowFormsData.forEach(formEle => {
                         // execute form entity mapping
                         request.target_form_id = formEle.form_id;
@@ -8439,7 +8435,7 @@ function AdminOpsService(objectCollection) {
 
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     formEntityData = data;
                     error = false;
@@ -8448,7 +8444,7 @@ function AdminOpsService(objectCollection) {
                     error = err;
                 });
         }
-        return formEntityData;
+        return [error,formEntityData];
     };  
 
 
@@ -8731,13 +8727,13 @@ function AdminOpsService(objectCollection) {
         request.organization_id,
         request.manager_asset_id,
         request.flag,
-        start_from,
+        request.start_from,
         50  
     );
     const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
 
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
                 responseData = data;
                 error = false;
