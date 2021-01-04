@@ -6313,7 +6313,7 @@ this.getQrBarcodeFeeback = async(request) => {
                     return [true,[]]
             });
     }
-    let [updateErr,updateData] = await updateAssetSwipeDetails(request);
+    let [updateErr,updateData] = await this.updateAssetSwipeDetails(request);
     if(updateErr){
         return [true,[]]
     }
@@ -6376,7 +6376,7 @@ this.getQrBarcodeFeeback = async(request) => {
                     return [true,[]]
             });
     }
-    let [updateErr,updateData] = await updateAssetSwipeDetails(request);
+    let [updateErr,updateData] = await this.updateAssetSwipeDetails(request);
     if(updateErr){
         error=true;
     }
