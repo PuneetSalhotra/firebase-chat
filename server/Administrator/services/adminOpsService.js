@@ -481,7 +481,7 @@ function AdminOpsService(objectCollection) {
             data_entity_inline:JSON.stringify(request.activity_inline_data) || '{}',
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
-            activity_type_category_id: request.activity_type_category_id || 0,
+            activity_type_category_id: 60,
             activity_sub_type_id: 0,
             activity_type_id: request.activity_type_id,
             activity_access_role_id: request.activity_access_role_id,
@@ -490,7 +490,7 @@ function AdminOpsService(objectCollection) {
             flag_pin: 0,
             flag_priority: 0,
             activity_flag_file_enabled: -1,
-            activity_form_id: request.activity_form_id||0,
+            activity_form_id: request.form_id||0,
             flag_offline: 0,
             flag_retry: 0,
             message_unique_id: util.getMessageUniqueId(31993),
@@ -1285,7 +1285,7 @@ function AdminOpsService(objectCollection) {
        let error =false;
         //Check role has flag to add approval workflow
         if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
-            request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
+            request.activity_type_id = roleData[0].asset_type_approval_activity_type_id;
             request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
             request.form_id = roleData[0].asset_type_approval_origin_form_id;
             let activity_inline_data = [
@@ -1341,6 +1341,8 @@ function AdminOpsService(objectCollection) {
     }
 
     async function addParticipantasLead(request,workflowActivityID,mangerAssetID,mangerAssetID){
+        request.workflow_activity_id = workflowActivityID;
+        request.activity_id = workflowActivityID;
         let newReq = {};
         newReq.organization_id = request.organization_id;
         newReq.account_id = request.account_id;
@@ -1357,7 +1359,7 @@ function AdminOpsService(objectCollection) {
         try {
             const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                 organization_id: request.organization_id,
-                asset_id: leadAssetID
+                asset_id: mangerAssetID
             });
     
             console.log('********************************');
