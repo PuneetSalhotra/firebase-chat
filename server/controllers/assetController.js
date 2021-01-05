@@ -735,7 +735,7 @@ function AssetController(objCollection) {
     });  
 
     app.post('/' + global.config.version + '/asset/swipe/out', async (req, res) => {
-        const [err, responseData] = await assetService.assetswipeOut(req.body);
+        const [err, responseData] = await assetService.assetSwipeOut(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
