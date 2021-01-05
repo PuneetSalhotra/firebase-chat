@@ -466,12 +466,17 @@ function AdminOpsService(objectCollection) {
 
     // Create Activity Service
     async function createActivityV1(request, workforceID, organizationID, accountID,assetID) {
+        // const activityID = await cacheWrapper.getActivityIdPromise();
+        const formTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
         const addActivityRequest = {
+            // activity_id: activityID,
+            form_transaction_id: formTransactionID,
             organization_id: organizationID,
             account_id: accountID,
             workforce_id: workforceID,
             asset_id: assetID,
+            // activity_type_name:"FOS Approval",
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
@@ -481,16 +486,16 @@ function AdminOpsService(objectCollection) {
             data_entity_inline:JSON.stringify(request.activity_inline_data) || '{}',
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
-            activity_type_category_id: request.activity_type_category_id || 0,
+            activity_type_category_id: 9,
             activity_sub_type_id: 0,
             activity_type_id: request.activity_type_id,
             activity_access_role_id: request.activity_access_role_id,
             asset_participant_access_id: 0,
-            activity_parent_id: request.activity_parent_id || 0,
+            activity_parent_id:0,
             flag_pin: 0,
             flag_priority: 0,
             activity_flag_file_enabled: -1,
-            activity_form_id: request.activity_form_id||0,
+            activity_form_id: request.form_id||0,
             flag_offline: 0,
             flag_retry: 0,
             message_unique_id: util.getMessageUniqueId(31993),
@@ -505,10 +510,9 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5,
-            
+            device_os_id: 5   
         };
-
+        console.log(JSON.stringify(addActivityRequest))
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
             form: addActivityRequest
@@ -518,7 +522,54 @@ function AdminOpsService(objectCollection) {
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                console.log("createActivity | addActivityAsync | Body: ", body);
+                console.log("createActivityV1 | addActivityAsync | Body: ", body);
+                // const childActivityID = await cacheWrapper.getActivityIdPromise();
+                const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
+                // createChildWorkflowRequest.activity_id = childActivityID;
+                createChildWorkflowRequest.activity_type_category_id = 60;
+                createChildWorkflowRequest.activity_type_id = request.activity_type_id;
+                createChildWorkflowRequest.activity_parent_id = body.response.activity_id;
+    
+                const addActivityAsyncChild = nodeUtil.promisify(makeRequest.post);
+               const makeRequestOptionsChild = {
+                  form: createChildWorkflowRequest
+                  };
+                  console.log(createChildWorkflowRequest)
+                  const response1 = await addActivityAsyncChild(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptionsChild);
+                  console.log("createActivityV1 | addActivityAsync | Body: ", JSON.parse(response1.body));
+                  let body1 = JSON.parse(response1.body);
+                //   updateWorkflowSubType({organization_id: organizationID,
+                //     account_id: accountID,
+                //     workforce_id: workforceID,
+                //     asset_id: assetID},body1.response.activity_id)
+                  let activityTimelineCollection =  JSON.stringify({                            
+                    "content": `Tony assigned shankar as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                    "subject": `Note - ${util.getCurrentDate()}.`,
+                    "mail_body": `Tony assigned shankar as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                    "activity_reference": [],
+                    "asset_reference": [],
+                    "attachments": [],
+                    "form_approval_field_reference": []
+                });
+                  const childWorkflow705Request = Object.assign({}, addActivityRequest);
+            childWorkflow705Request.activity_id = body1.response.activity_id;
+            childWorkflow705Request.data_activity_id = body.response.activity_id;
+            childWorkflow705Request.activity_type_category_id = 60;
+            childWorkflow705Request.message_unique_id = util.getMessageUniqueId(31993);
+            childWorkflow705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            childWorkflow705Request.device_os_id = 5;
+            childWorkflow705Request.auth_asset_id = assetID;
+            childWorkflow705Request.asset_token_auth = "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95";
+            childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
+            childWorkflow705Request.activity_stream_type_id = 705;
+            childWorkflow705Request.timeline_stream_type_id = 705;
+            childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
+           console.log(childWorkflow705Request)
+            // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            // await addTimelineTransactionAsync(childWorkflow705Request);
+
+            await activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
+            await sleep(3000);
                 return [false, body];
             }
         } catch (error) {
@@ -1285,7 +1336,7 @@ function AdminOpsService(objectCollection) {
        let error =false;
         //Check role has flag to add approval workflow
         if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
-            request.activity_type_category_id = roleData[0].asset_type_approval_activity_type_id;
+            request.activity_type_id = roleData[0].asset_type_approval_activity_type_id;
             request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
             request.form_id = roleData[0].asset_type_approval_origin_form_id;
             let activity_inline_data = [
@@ -1341,6 +1392,8 @@ function AdminOpsService(objectCollection) {
     }
 
     async function addParticipantasLead(request,workflowActivityID,mangerAssetID,mangerAssetID){
+        request.workflow_activity_id = workflowActivityID;
+        request.activity_id = workflowActivityID;
         let newReq = {};
         newReq.organization_id = request.organization_id;
         newReq.account_id = request.account_id;
@@ -1357,7 +1410,7 @@ function AdminOpsService(objectCollection) {
         try {
             const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                 organization_id: request.organization_id,
-                asset_id: leadAssetID
+                asset_id: mangerAssetID
             });
     
             console.log('********************************');
