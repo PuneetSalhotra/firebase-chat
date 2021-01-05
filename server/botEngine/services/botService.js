@@ -2026,7 +2026,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', 'Asset approval workflow bot', {}, {});
                     logger.silly("Request Params received from Request: %j", request);
                     //JSON.parse(i.bot_operation_inline_data)
-                    let approveJson = JSON.parse(i.bot_operation_inline_data)
+                    let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
 
                     let [err1,data]=await assetApprovalWorkflow(request,approveJson)
 
@@ -2125,9 +2125,14 @@ function BotService(objectCollection) {
        await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,creatorAssetID)
      }
      else{
-
+        // console.log(wfActivityDetails[0]);
          let activity_inline_data_json = typeof wfActivityDetails[0].activity_inline_data =="string"?JSON.parse(wfActivityDetails[0].activity_inline_data):wfActivityDetails[0].activity_inline_data;
-         let target_asset_id = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id).field_value;
+         activity_inline_data_json = typeof activity_inline_data_json == "string" ? JSON.parse(activity_inline_data_json):activity_inline_data_json;
+         let target_asset_id_form = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id);
+         console.log(target_asset_id_form);
+         let target_asset_id = target_asset_id_form.field_value;
+        //  console.log(assetfeildDetails)
+        //  let target_asset_id = assetfeildDetails.field_value;
         //  const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
         //     asset_id: target_asset_id
