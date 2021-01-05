@@ -2027,9 +2027,9 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     //JSON.parse(i.bot_operation_inline_data)
                     let approveJson = JSON.parse(i.bot_operation_inline_data)
-                    
+
                     let [err1,data]=await assetApprovalWorkflow(request,approveJson)
-                   
+
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
             }
@@ -2119,13 +2119,13 @@ function BotService(objectCollection) {
     if(wfActivityDetails.length>0){
      creatorAssetID = wfActivityDetails[0].activity_creator_asset_id
     }
-     // let tagetAsset_id = 
-    
+     // let tagetAsset_id =
+
      if(bot_data.hasOwnProperty("rejected")&&bot_data.rejected==1){
        await removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,creatorAssetID)
      }
      else{
-         
+
          let activity_inline_data_json = typeof wfActivityDetails[0].activity_inline_data =="string"?JSON.parse(wfActivityDetails[0].activity_inline_data):wfActivityDetails[0].activity_inline_data;
          let target_asset_id = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id).field_value;
         //  const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
@@ -2157,7 +2157,7 @@ function BotService(objectCollection) {
                 error = e;
             }
         }
-        // let target_asset_id = 
+        // let target_asset_id =
          //update approval flag
      }
      return [error,[]]
@@ -7631,7 +7631,7 @@ async function removeAsOwner(request,data)  {
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
-        
+
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -10052,7 +10052,7 @@ async function removeAsOwner(request,data)  {
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
 
-    
+
         let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
         console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
@@ -10090,22 +10090,30 @@ async function removeAsOwner(request,data)  {
 
         console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
+        let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
-            submitRejectionFormFlag = 0;
+            console.log("Processing Sheet ", row.sheet);
             comment = row.comment;
+
+            if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
+                console.log("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
+                continue;
+            }
+
             console.log("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
-                submitRejectionFormFlag = 1;
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
+            } else {
+                sheetMatchFlag[row.sheet] = '0';
             }
-            
+
             // // validating COCP and IOIP
             // let totalLinks = validatingCocpAndIoip(fldFormData, inlineData.plans_field_ids);
             //
             // if(!totalLinks.length) {
             //     console.error("Failed in Matching validatingCocpAndIoip");
-            //     submitRejectionFormFlag = 1;
             //     continue;
             // }
 
@@ -10117,57 +10125,77 @@ async function removeAsOwner(request,data)  {
             let linkResponse = validatingNoOfLinks(row.value.value, totalCOCPAndIOIP, row.sheet);
 
             if(!linkResponse) {
-                console.log("NO of Links are not matched");
-                submitRejectionFormFlag = 1;
+                console.error("NO of Links are not matched");
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
-            console.log("linkResponse",linkResponse);
+            console.error("linkResponse",linkResponse);
 
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
             if(!rentalResult || !rentalResult.length) {
-                console.log("Failed in Matching validatingRentals");
-                submitRejectionFormFlag = 1;
+                console.error("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
-            console.log("rentalResult", rentalResult, inlineData.monthly_quota);
+            console.error("rentalResult", rentalResult, inlineData.monthly_quota);
 
 
             // validating the monthly Quota
             let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
 
-
             if(!monthlyQuota.length) {
-                console.log("Conditions did not match in validatingMonthlyQuota");
-                submitRejectionFormFlag = 1;
+                console.error("Conditions did not match in validatingMonthlyQuota");
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
-            let smsCount = validatingSMSValues(fldFormData, monthlyQuota, inlineData.sme_field_ids);
+            let dailyQuota = validatingDailyQuota(fldFormData, monthlyQuota, inlineData.daily_quota);
+
+            if(!dailyQuota.length) {
+                console.error("Conditions did not match in validatingDailyQuota");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
+
+            let smsCount = validatingSMSValues(fldFormData, dailyQuota, inlineData.sme_field_ids);
 
             if(!smsCount.length) {
-                console.log("Conditions did not match in validatingSMSValues");
-                submitRejectionFormFlag = 1;
+                console.error("Conditions did not match in validatingSMSValues");
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
             if(smsCount.length != minQuota.length) {
-                console.log("Condition failed in validate Mins");
-                submitRejectionFormFlag = 1;
+                console.error("Condition failed in validate Mins");
+                sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
-            if(!submitRejectionFormFlag) {
-                console.log("First condition got matched so getting out from loop");
-                break;
+            if(!sheetMatchFlag[row.sheet]) {
+                console.error("First condition got matched so getting out from loop");
+                sheetMatchFlag[row.sheet] = '0';
+                // break;
             }
+            console.log("sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
         }
 
-        if(submitRejectionFormFlag) {
+        // processing sheet Match Flags
+
+        let arrayOut = [];
+        for(let key in sheetMatchFlag) {
+            arrayOut.push(sheetMatchFlag[key]);
+        }
+
+        let result = arrayOut.join('+');
+
+        result ? result = eval(result) : '';
+
+        if(submitRejectionFormFlag || result) {
 
             if(workflowType == 1) {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
@@ -10390,15 +10418,19 @@ async function removeAsOwner(request,data)  {
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
                 console.log("Getting this value to match in Rentals", row.field_value);
-                if(row.field_value != null && row.field_value != '') {
+
+                if(row.field_value == '') {
+                    console.log("Got Empty Value in validatingRentals for plan", rentalFieldIds.indexOf(row.field_id) + 1);
+                    response.push('');
+                    continue;
+                }
+
+                if(row.field_value != null) {
                     if(mobiltiyFieldsValues[Number(row.field_value)] == null || mobiltiyFieldsValues[Number(row.field_value)] == undefined) {
                         console.log("Got empty value in validatingRentals");
                         return [];
                     }
                     response.push(mobiltiyFieldsValues[Number(row.field_value)]);
-                } else {
-                    console.log("Got Empty Value in validatingRentals for plan", rentalFieldIds.indexOf(row.field_id) + 1);
-                    response.push('');
                 }
             }
         }
@@ -10408,14 +10440,14 @@ async function removeAsOwner(request,data)  {
 
     function validatingNoOfLinks(configSheet, totalLinks, sheet) {
         console.log("Validating No of Links ", totalLinks, sheet);
-        
+
         for(let i = 0; i < totalLinks.length; i++) {
             for(let row of configSheet) {
                 if(row.LOWER) {
 
                     if(sheet == 1) {
-                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocpr > row.LOWER, totalLinks[i].cocpr < row.UPPER, row.value);
-                        if(totalLinks[i].cocpr > row.LOWER) {
+                        console.log("row sheet 1->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocpr > row.LOWER, totalLinks[i].cocpr < row.UPPER, row.value);
+                        if(totalLinks[i].cocpr >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocpr < row.UPPER) {
                                     return row.value;
@@ -10426,8 +10458,8 @@ async function removeAsOwner(request,data)  {
                             return row.value;
                         }
                     } else if(sheet == 2) {
-                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocp > row.LOWER, totalLinks[i].cocp < row.UPPER, row.value);
-                        if(totalLinks[i].cocp > row.LOWER) {
+                        console.log("row sheet 2->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocp > row.LOWER, totalLinks[i].cocp < row.UPPER, row.value);
+                        if(totalLinks[i].cocp >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocp < row.UPPER) {
                                     return row.value;
@@ -10438,9 +10470,9 @@ async function removeAsOwner(request,data)  {
                             return row.value;
                         }
                     } else if(sheet == 3) {
-                        console.log("row->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].ioip > row.LOWER, totalLinks[i].ioip < row.UPPER, row.value);
+                        console.log("row 3->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].ioip > row.LOWER, totalLinks[i].ioip < row.UPPER, row.value);
 
-                        if(totalLinks[i].ioip > row.LOWER) {
+                        if(totalLinks[i].ioip >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].ioip < row.UPPER) {
                                     return row.value;
@@ -10454,6 +10486,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         }
+        console.log("Response from validatingNoOfLinks", response);
         return ;
     }
 
@@ -10476,9 +10509,9 @@ async function removeAsOwner(request,data)  {
                         let monthlyQuotaValue = Object.keys(linkResp[i]);
 
                         console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), monthlyQuotaValue[0]);
-                        if(Number(monthlyQuotaValue[0]) && Number(row.field_value) > monthlyQuotaValue[0]) {
+                        if(Number(row.field_value) > Number(monthlyQuotaValue[0])) {
                             console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
-                            return [];
+                            return []
                         }
                         console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
                         response.push(linkResp[i][monthlyQuotaValue[0]]);
@@ -10488,6 +10521,40 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("Final Response in validatingMonthlyQuota", response);
+        return response;
+    }
+
+    function validatingDailyQuota(formData, linkResp, dailyQuota) {
+
+        console.log("Validating Daily Quota");
+        let response = [];
+        for(let row of formData) {
+            for(let i =0; i < dailyQuota.length; i++) {
+                if(linkResp[i] != null) {
+
+                    let dailyQuotaFieldId = dailyQuota[i];
+
+                    if(Number(row.field_id) == dailyQuotaFieldId) {
+                        if(linkResp[i] == '') {
+                            response.push('');
+                            console.log("Got Empty Value in validatingDailyQuota for plan", i + 1);
+                            continue;
+                        }
+                        let dailyQuotaValue = Object.keys(linkResp[i]);
+
+                        console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), dailyQuotaValue[0]);
+                        if(Number(row.field_value) > Number(dailyQuotaValue[0])) {
+                            console.log("Got invalid value", Number(row.field_value), dailyQuotaValue);
+                            return [];
+                        }
+                        console.log("linkResp[i][dailyQuotaValue[0]]", linkResp[i][dailyQuotaValue[0]]);
+                        response.push(linkResp[i][dailyQuotaValue[0]]);
+                    }
+                }
+            }
+        }
+
+        console.log("Final Response in validatingDailyQuota", response);
         return response;
     }
 
@@ -10553,7 +10620,7 @@ async function removeAsOwner(request,data)  {
         let COCPAndIOIPTotal = [{cocp : 0, ioip : 0, cocpr : 0, ioipr : 0}];
         for(let i = 0; i < COCPFieldIds.length; i++) {
             let fieldIds = Object.keys(COCPFieldIds[i]);
-            for(let row of formData) { 
+            for(let row of formData) {
                 if(row.field_id == fieldIds[0]) {
                     COCPAndIOIPTotal[0].cocp = COCPAndIOIPTotal[0].cocp + Number(row.field_value);
                 } else if(row.field_id == fieldIds[1]) {
@@ -10568,6 +10635,7 @@ async function removeAsOwner(request,data)  {
 
         return COCPAndIOIPTotal;
     }
+
     async function checkSmeBot(request, inlineData, deskAssetData) {
 
         await sleep(2 * 1000);
@@ -10707,7 +10775,8 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
+                //field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
+                field_value: 'Approved considering MNP acquisition requirement',
                 message_unique_id: 1603968690920
             },
             {
@@ -11245,5 +11314,3 @@ async function removeAsOwner(request,data)  {
 
 
 module.exports = BotService;
-
-
