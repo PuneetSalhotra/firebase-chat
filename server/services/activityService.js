@@ -19,6 +19,9 @@ function ActivityService(objectCollection) {
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
+    const ActivityParticipantService = require("../services/activityParticipantService");
+    const activityParticipantService = new ActivityParticipantService(objectCollection);
+
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
@@ -4984,10 +4987,65 @@ function ActivityService(objectCollection) {
         console.log('assetsData : ', assetsData);
 
         for(i=0;i<assetsData.length;i++){
+           let [checkParticipantErr]= await checkIsAParticipant(request,assetsData[i]);
+           if(!checkParticipantErr){
+            let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+             const [assetError, newAssetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: assetsData[i]
+            });
+            let message = `Tony added ${newAssetData[0].asset_first_name} to this Conversation`
+            //adding participant
+              let newParticipantParams = {
+                "organization_id":activityDetails[0].organization_id,
+                "account_id":activityDetails[0].account_id,
+                "workforce_id":activityDetails[0].workforce_id,
+                "asset_id":assetsData[i],
+                "activity_id":request.activity_id,
+                "activity_participant_collection":JSON.stringify(newAssetData),
+                "activity_type_category_id":activityDetails[0].activity_type_category_id,
+                "activity_type_id":activityDetails[0].activity_type_id,
+                "flag_pin":0,
+                "flag_offline":0,
+                "flag_retry":0,
+                "message_unique_id":1609767172271,
+                "track_latitude":"0.0",
+                "track_longitude":"0.0",
+                "track_gps_datetime":util.getCurrentUTCTime(),
+                "track_altitude":0,
+                "track_gps_accuracy":"0",
+                "track_gps_status":0,
+                "activity_timeline_collection":`{\"content\":${message},\"subject\":${message},\"mail_body\":${message},\"attachments\":[],\"participant_added\":${message},\"activity_reference\":[{\"activity_title\":\"\",\"activity_id\":\"\"}],\"asset_reference\":[{}],\"form_approval_field_reference\":[]}`
+              }
+             let addParticipantError =  await new Promise((resolve)=>{ activityParticipantService.assignCoworker(newParticipantParams,function (err,data){
+                resolve(err)
+             });
+            });
+             if(addParticipantError){
+                 return [true,[]]
+             }
+            
+           }
             await updateMentionsCnt(request, assetsData[i]);
         }
 
         return [error, responseData];
+    }
+
+    async function checkIsAParticipant(request,assetID){
+        let assetDetails = {
+            asset_id:assetID,
+            organization_id:request.organization_id
+        }
+        
+      let error =  await new Promise((resolve)=>{ activityCommonService.isParticipantAlreadyAssigned(assetDetails, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
+           if(!err && !alreadyAssignedStatus){
+               resolve(false)
+           }
+           resolve(true)
+       })
+    })
+       return [error]
     }
 
     async function updateMentionsCnt(request, assetID) {
@@ -5618,6 +5676,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 
     this.activityTypeMappingDelete = async function(request){
@@ -5642,6 +5701,7 @@ function ActivityService(objectCollection) {
                 error = err;
             });
     }
+    return [error,responseData]
     }
 
     this.activityTypeMappingSearch = async function(request){
@@ -5657,6 +5717,35 @@ function ActivityService(objectCollection) {
             request.limit_value
         ];
     const queryString = util.getQueryString('ds_p1_workforce_activity_type_search_mapping_select', paramsArr);
+    
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    return [error,responseData]
+    }
+
+    this.activityTypeMappingSearchV1 = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+            request.level_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.search_string,
+            request.start_from,
+            request.limit_value
+        ];
+    const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select_search', paramsArr);
     
     if (queryString !== '') {
         await db.executeQueryPromise(1, queryString, request)

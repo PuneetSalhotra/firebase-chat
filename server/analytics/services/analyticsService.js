@@ -2157,9 +2157,11 @@ function AnalyticsService(objectCollection)
                         paramsArray.push(0)
                         tempResult = await db.callDBProcedureR2(request, 'ds_v1_4_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
+                     //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54];
+                     //   if(widgetTypes.includes(request.widget_type_id)){
                         if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
-                         || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67){
+                         || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54){
                             results[iterator] =
                             (
                                 {

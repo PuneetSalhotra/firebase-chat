@@ -840,7 +840,26 @@ function AdminListingService(objectCollection) {
         // IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
         let responseData = [],
             error = true;
-
+        if(request.hasOwnProperty("flag")&&request.flag==1){
+            const paramsArr = new Array(
+                request.organization_id,
+                request.asset_id
+            );
+            // const queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+            const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_account', paramsArr);
+    
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+        }
+        else{
         const paramsArr = new Array(
             request.organization_id,
             request.account_id || 0,
@@ -863,6 +882,7 @@ function AdminListingService(objectCollection) {
                     error = err;
                 })
         }
+    }
         return [error, responseData];
     }
 
