@@ -431,6 +431,15 @@ function ActivityUpdateService(objectCollection) {
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
+
+                                //Update into activity asset table for account search
+                                console.log('\nAccount Search - updating the account asset table');
+                                activityCommonService.actAssetSearchMappingUpdate({
+                                    activity_id: request.activity_id,
+                                    asset_id: rowData.asset_id,
+                                    organization_id: request.organization_id
+                                    //flag: 0                                    
+                                });
                                 //callback(true, false);
                             } else {
                                 // some thing is wrong and have to be dealt
