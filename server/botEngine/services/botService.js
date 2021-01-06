@@ -2130,7 +2130,7 @@ function BotService(objectCollection) {
          activity_inline_data_json = typeof activity_inline_data_json == "string" ? JSON.parse(activity_inline_data_json):activity_inline_data_json;
          let target_asset_id_form = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id);
          console.log(target_asset_id_form);
-         let target_asset_id = target_asset_id_form.field_value;
+         let target_asset_id = target_asset_id_form[0].field_value;
         //  console.log(assetfeildDetails)
         //  let target_asset_id = assetfeildDetails.field_value;
         //  const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
@@ -10177,6 +10177,7 @@ async function removeAsOwner(request,data)  {
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
+            console.log("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
                 console.error("Condition failed in validate Mins");
                 sheetMatchFlag[row.sheet] = '1';
@@ -10378,9 +10379,9 @@ async function removeAsOwner(request,data)  {
         let response = [];
         for(let row of formData) {
             if (segment[row.field_id]) {
-                console.log("Value found in Segment", segment[row.field_id], row.field_value);
+                console.log("Value found in Segment", segment[row.field_id], row.field_value.toUpperCase());
                 for(let config of configSheets) {
-                    if(config.key.indexOf(row.field_value) > -1 && sheets.indexOf(config.sheet) > -1) {
+                    if(config.key.indexOf(row.field_value.toUpperCase()) > -1 && sheets.indexOf(config.sheet) > -1) {
                         response.push(config);
                     }
                 }
@@ -10607,12 +10608,13 @@ async function removeAsOwner(request,data)  {
                             console.log("Got Empty Value in validateMins for plan", i + 1);
                             continue;
                         }
-                        console.log("Field ids", row.field_id, minFieldIds[i], row.field_value, minQuota[i][row.field_value]);
-                        if(!minQuota[i][row.field_value]) {
+                        let minValue = Object.keys(minQuota[i]);
+                        console.log("Field ids", row.field_id, minFieldIds[i], minValue, row.field_value, minQuota[i][row.field_value]);
+                        if(row.field_value < Number(minValue[0])) {
                             console.log("Got nothing for ", minQuota[i], row.field_value);
                             return [];
                         } else {
-                            response.push(minQuota[i][row.field_value]);
+                            response.push(minQuota[i]);
                         }
                     }
                 }

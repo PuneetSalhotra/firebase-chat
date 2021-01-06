@@ -5830,6 +5830,87 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
     };    
 
+    this.actAssetSearchMappingInsert = async request => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                            request.activity_id,
+                            request.asset_id,
+                            request.organization_id                            
+                          ];
+        const queryString = util.getQueryString('ds_v1_activity_asset_search_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+
+    this.actAssetSearchMappingUpdate = async request => {
+        //p_flag = 0, Update Activity Details
+        //p_flag = 1, Update Access
+        //p_flag = 2, Update Owner Flag
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                            request.activity_id,
+                            0,
+                            request.organization_id,
+                            //request.flag || 0,
+                            //request.asset_participant_access_id || 0,
+                            //request.asset_flag_is_owner || 0
+                          ];
+        const queryString = util.getQueryString('ds_v1_activity_asset_search_mapping_update', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    
+    this.actAssetSearchMappingArchive = async request => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                            request.activity_id,
+                            request.asset_id,
+                            request.organization_id                            
+                          ];
+        const queryString = util.getQueryString('ds_v1_activity_asset_search_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 
 
