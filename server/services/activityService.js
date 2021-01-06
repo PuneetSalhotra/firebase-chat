@@ -1848,6 +1848,16 @@ function ActivityService(objectCollection) {
 
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
+                    setTimeout(()=>{
+                        //Inserting into activity asset table for account search                    
+                        console.log('Account Search - Inserting into the activity asset table');
+                        activityCommonService.actAssetSearchMappingInsert({
+                            activity_id: request.activity_id,
+                            asset_id: request.asset_id,
+                            organization_id: request.organization_id
+                        });
+                    }, 1000); 
+                    
                     callback(false, true);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -1941,6 +1951,17 @@ function ActivityService(objectCollection) {
                     );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
                     db.executeQuery(0, queryString, request, function (error, queryResponse) {});
+
+                    //Updating the activity asset table for account search
+                    console.log('\nAccount Search - Updating the activity asset table');
+                    activityCommonService.actAssetSearchMappingUpdate({
+                        activity_id: request.activity_id,
+                        asset_id: rowData['asset_id'],
+                        organization_id: request.organization_id
+                        //flag: 1,
+                        //asset_participant_access_id: Number(request.asset_participant_access_id),
+                        //asset_flag_is_owner: 0
+                    });
                 }, this);
                 callback(false, true);
                 return;

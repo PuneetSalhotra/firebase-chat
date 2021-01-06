@@ -954,6 +954,15 @@ function ActivityParticipantService(objectCollection) {
                         console.log('SMS text : \n', smsText);
                         util.pamSendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
                     }*/
+
+                    //Inserting into activity asset table for account search
+                    console.log('\n Account Search :- Updating Activity Asset Table');
+                    activityCommonService.actAssetSearchMappingInsert({
+                        activity_id: request.activity_id,
+                        asset_id: request.asset_id,
+                        organization_id: request.organization_id
+                    });
+
                     callback(false, true);
                     return;
                 } else {
@@ -985,6 +994,14 @@ function ActivityParticipantService(objectCollection) {
 
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
+                    //Inserting into activity asset table for account search
+                    console.log('\n Account Search :- Updating Activity Asset Table');
+                    activityCommonService.actAssetSearchMappingInsert({
+                        activity_id: request.activity_id,
+                        asset_id: request.asset_id,
+                        organization_id: request.organization_id
+                    });
+
                     callback(false, true);
                     return;
                 } else {
@@ -1014,6 +1031,15 @@ function ActivityParticipantService(objectCollection) {
 
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
+
+                    //Deleting from activity asset table for account search
+                    console.log('\nAccount Search - Deleting from activity asset table');
+                    activityCommonService.actAssetSearchMappingArchive({
+                        activity_id: request.activity_id,
+                        asset_id: request.asset_id,
+                        organization_id: request.organization_id
+                    });
+                    
                     callback(false, true);
                     return;
                 } else {
