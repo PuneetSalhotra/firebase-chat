@@ -2130,7 +2130,7 @@ function BotService(objectCollection) {
          activity_inline_data_json = typeof activity_inline_data_json == "string" ? JSON.parse(activity_inline_data_json):activity_inline_data_json;
          let target_asset_id_form = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id);
          console.log(target_asset_id_form);
-         let target_asset_id = target_asset_id_form.field_value;
+         let target_asset_id = target_asset_id_form[0].field_value;
         //  console.log(assetfeildDetails)
         //  let target_asset_id = assetfeildDetails.field_value;
         //  const [error, assetData] = await activityCommonService.getAssetDetailsAsync({

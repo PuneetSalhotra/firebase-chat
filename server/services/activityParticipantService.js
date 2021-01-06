@@ -923,7 +923,7 @@ function ActivityParticipantService(objectCollection) {
             participantData.account_id,
             participantData.organization_id,
             participantData.access_role_id,
-            participantData.message_unique_id,
+            participantData.message_unique_id||util.getMessageUniqueId(31993),
             request.flag_retry || 0,
             request.flag_offline || 0,
             request.asset_id,
