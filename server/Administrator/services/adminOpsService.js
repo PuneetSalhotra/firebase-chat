@@ -540,16 +540,16 @@ function AdminOpsService(objectCollection) {
                 // const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             await addActivityAsync(createChildWorkflowRequest);
                        let activityTimelineCollection =  JSON.stringify({                            
-                    "content": `Tony assigned shankar as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                    "content": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                     "subject": `Note - ${util.getCurrentDate()}.`,
-                    "mail_body": `Tony assigned shankar as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                    "mail_body": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                     "activity_reference": [],
                     "asset_reference": [],
                     "attachments": [],
                     "form_approval_field_reference": []
                 });
             const childWorkflow705Request = Object.assign({}, addActivityRequest);
-            childWorkflow705Request.activity_id = childActivityID;
+            childWorkflow705Request.activity_id = activityID;
             childWorkflow705Request.data_activity_id = activityID;
             childWorkflow705Request.activity_type_category_id = 60;
             childWorkflow705Request.message_unique_id = util.getMessageUniqueId(31993);
@@ -565,15 +565,22 @@ function AdminOpsService(objectCollection) {
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
-            // await activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
+            await activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
             await sleep(3000);
             // request.activity_type_category_id=60;
             // request.organization_id=organizationID;
             // request.account_id=accountID;
             // request.workforce_id=workforceID;
             // await addParticipantasLead(request,activityID,39264,39264);
-            // console.log(activityID,childActivityID)
-
+            // console.log(activityID,childActivityID);
+            let reqDataForRemovingCreaterAsOwner = { 
+                activity_id : activityID,
+                target_asset_id : assetID,
+                organization_id : organizationID,
+                owner_flag : 0,
+                asset_id:assetID
+            };
+           await removeAsOwner(reqDataForRemovingCreaterAsOwner)
 
 
         // try {
@@ -636,6 +643,33 @@ function AdminOpsService(objectCollection) {
         //     return [true, {}];
         // }
         return [false,activityID]
+    }
+
+    async function removeAsOwner(request,data)  {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            data.activity_id,
+            data.target_asset_id,
+            data.organization_id,
+            data.owner_flag || 0,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                // await callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
     }
 
     // Append AssetTypes to WorkforceData
@@ -1117,6 +1151,18 @@ function AdminOpsService(objectCollection) {
             }]
         }
 
+        //check if an Employee with the given Aadhar number exists
+        const [errZero_7, checkAadhar] = await assetListSelectAadharUniqueID({
+            organization_id:request.organization_id,
+            asset_identification_number: String(request.asset_identification_number),
+        }, organizationID);
+        if (errZero_7 || Number(checkAadhar.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
+            return [true, {
+                message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
+            }]
+        }
+
         request.activity_inline_data = JSON.stringify({
             employee_profile_picture: "",
             employee_first_name: request.asset_first_name,
@@ -1422,9 +1468,31 @@ function AdminOpsService(objectCollection) {
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
             let newActivity_id = newActivityData;
+
             //make manager as lead
             await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
+            
+            //adding activity data for asset
+            let paramsArrLead = new Array(
+                organizationID,
+                accountID,
+                workforceID,
+                assetID,
+                0,
+                util.getCurrentUTCTime(),
+                newActivity_id
+            );
     
+            var queryStringLead = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArrLead);
+            if(queryString !== '') {
+                try {
+                    const data = await db.executeQueryPromise(0,queryStringLead,request);
+                    // await callAddTimelineEntry(request);
+                    
+                } catch(e) {
+                    console.log(e)
+                }
+            }
             //make user who is adding asset as creator
     
             }
@@ -1677,6 +1745,32 @@ function AdminOpsService(objectCollection) {
             request.customer_unique_id
         );
         const queryString = util.getQueryString('ds_p1_asset_list_select_customer_unique_id', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+     // Fetch all assets with the given customer Aadhar ID
+     async function assetListSelectAadharUniqueID(request, organizationID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_customer_unique_id VARCHAR(50)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.asset_identification_number
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_identification_number', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -8890,6 +8984,29 @@ function AdminOpsService(objectCollection) {
             })
     }
     return [error, responseData];
+    }
+
+    this.addAssetAsLead = async function(request){
+        let activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        console.log('activityData.length : ', activityData.length);
+        if(activityData.length>0){
+        request.activity_type_category_id = activityData[0].activity_type_category_id;
+        request.activity_type_id = activityData[0].activity_type_id;
+        request.organization_id = activityData[0].organization_id;
+        request.account_id = activityData[0].account_id;
+        request.workforce_id = activityData[0].workforce_id;
+        try{
+        await addParticipantasLead(request,request.activity_id,request.target_asset_id,request.target_asset_id);
+        return [false,[]]
+        }
+        catch(e){
+            console.log(e);
+            return [true,[]]
+        }
+        }
+        else{
+            return [true,[]]
+        }
     }
 }
 
