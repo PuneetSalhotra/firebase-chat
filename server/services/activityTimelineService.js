@@ -195,7 +195,8 @@ function ActivityTimelineService(objectCollection) {
                                 activityTypeCategoryId === 48 ||
                                 activityTypeCategoryId === 50 ||
                                 activityTypeCategoryId === 51 ||
-                                activityTypeCategoryId === 53
+                                activityTypeCategoryId === 53 ||
+                                activityTypeCategoryId === 60
                             ) && request.device_os_id !== 9) {
                                 await fireBotEngineInitWorkflow(request);
                             }
@@ -247,7 +248,8 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
            (activityTypeCategoryId === 48 && activityStreamTypeId === 726) ||
            (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
-           (activityTypeCategoryId === 55 && activityStreamTypeId === 705)
+           (activityTypeCategoryId === 55 && activityStreamTypeId === 705) ||
+           (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -372,7 +374,8 @@ function ActivityTimelineService(objectCollection) {
                 activityTypeCategoryId === 53 ||
                 activityTypeCategoryId === 54 ||
                 activityTypeCategoryId === 55 ||
-                activityTypeCategoryId === 59
+                activityTypeCategoryId === 59 ||
+                activityTypeCategoryId === 60
             ) &&
             (
                 activityStreamTypeId === 713 ||
@@ -416,7 +419,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 51 ||
                     activityTypeCategoryId === 53 ||
                     activityTypeCategoryId === 54 ||
-                    activityTypeCategoryId === 59
+                    activityTypeCategoryId === 59 ||
+                    activityTypeCategoryId === 60
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
                 }
