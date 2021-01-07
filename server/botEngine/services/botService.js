@@ -2148,7 +2148,9 @@ function BotService(objectCollection) {
             request.account_id,
             request.workforce_id,
             target_asset_id,
-            1
+            1,
+            util.getCurrentUTCTime(),
+            request.workflow_activity_id
         );
 
         var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);

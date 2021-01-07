@@ -804,7 +804,9 @@ function AssetService(objectCollection) {
             "asset_suspension_datetime":util.replaceDefaultString(rowArray[0]['asset_suspension_datetime']),
             "asset_suspension_activity_id":util.replaceDefaultString(rowArray[0]['asset_suspension_activity_id']),
             "asset_type_attendance_type_id":util.replaceDefaultNumber(rowArray[0]['asset_type_attendance_type_id']),
-            "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name'])
+            "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name']),
+            "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
+            "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id'])
         };
 
         callback(false, rowData);
@@ -6324,6 +6326,7 @@ this.getQrBarcodeFeeback = async(request) => {
         return [true,[]]
     }
     responseData = listData;
+    console.log(listData)
 //     let [err,assetDetails] = await getAssetDetails(request);
 // //Add a timeline entry
 // let activityTimelineCollection =  JSON.stringify({                            

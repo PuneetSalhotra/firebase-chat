@@ -562,8 +562,8 @@ function AdminOpsService(objectCollection) {
             childWorkflow705Request.message_unique_id = util.getMessageUniqueId(31993);
             childWorkflow705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             childWorkflow705Request.device_os_id = 5;
-            childWorkflow705Request.auth_asset_id = assetID;
-            childWorkflow705Request.asset_token_auth = "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95";
+            childWorkflow705Request.auth_asset_id = 100;
+            childWorkflow705Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
             // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
             console.log("timeline entry",childWorkflow705Request)
@@ -586,7 +586,40 @@ function AdminOpsService(objectCollection) {
                 asset_id:assetID
             };
            await removeAsOwner(request,reqDataForRemovingCreaterAsOwner)
-
+          //add 325 timeline
+          let details =`Fos Details :\n
+          Name : ${request.activity_title}
+          Designation : ${request.activity_title}
+          Gender: "N/A"
+          Phone: ${request.phone_number}
+          Email: ${request.email_id}
+          CUID: ${''}
+          Aadhar: "N/A"`;
+         let activityTimelineCollection =  JSON.stringify({                            
+                    "content": details,
+                    "subject": details,
+                    "mail_body": details,
+                    "activity_reference": [],
+                    "asset_reference": [],
+                    "attachments": [],
+                    "form_approval_field_reference": []
+                });
+          const childWorkflow325Request = Object.assign({}, addActivityRequest);
+          childWorkflow325Request.activity_id = activityID;
+          childWorkflow325Request.data_activity_id = activityID;
+          childWorkflow325Request.activity_type_category_id = 60;
+          childWorkflow325Request.activity_stream_type_id = 325;
+          childWorkflow325Request.activity_timeline_collection = 
+             childWorkflow325Request.data_entity_inline=activityTimelineCollection;
+          childWorkflow325Request.activity_timeline_collection=activityTimelineCollection;
+          childWorkflow325Request.activity_timeline_text=details;
+          childWorkflow325Request.message_unique_id = util.getMessageUniqueId(31993);
+          childWorkflow325Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+          childWorkflow325Request.device_os_id = 5;
+          childWorkflow325Request.auth_asset_id = 100;
+          childWorkflow325Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
+          childWorkflow325Request.track_gps_datetime = util.getCurrentUTCTime();
+          activityTimelineService.addTimelineTransactionAsync(childWorkflow325Request);
 
         // try {
         //     // global.config.mobileBaseUrl + global.config.version
@@ -1775,7 +1808,8 @@ function AdminOpsService(objectCollection) {
 
         const paramsArr = new Array(
             organizationID,
-            request.asset_identification_number
+            request.asset_identification_number,
+            2
         );
         const queryString = util.getQueryString('ds_p1_asset_list_select_identification_number', paramsArr);
 
