@@ -521,6 +521,13 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
+            activity_timeline_collection :JSON.stringify({
+                "mail_body": `Approval Form - ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `Approval Form`,
+                "content": `Approval Form`,
+                "form_submitted": request.activity_inline_data,
+                "attachments": []
+            }),
             // api_version: 1,
             device_os_id: 5,
             activity_stream_type_id: 705,
@@ -539,15 +546,15 @@ function AdminOpsService(objectCollection) {
                 createChildWorkflowRequest.activity_parent_id = activityID;
                 // const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             await addActivityAsync(createChildWorkflowRequest);
-                       let activityTimelineCollection =  JSON.stringify({                            
-                    "content": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                    "subject": `Note - ${util.getCurrentDate()}.`,
-                    "mail_body": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
-                    "activity_reference": [],
-                    "asset_reference": [],
-                    "attachments": [],
-                    "form_approval_field_reference": []
-                });
+                //        let activityTimelineCollection =  JSON.stringify({                            
+                //     "content": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                //     "subject": `Note - ${util.getCurrentDate()}.`,
+                //     "mail_body": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                //     "activity_reference": [],
+                //     "asset_reference": [],
+                //     "attachments": [],
+                //     "form_approval_field_reference": []
+                // });
             const childWorkflow705Request = Object.assign({}, addActivityRequest);
             childWorkflow705Request.activity_id = activityID;
             childWorkflow705Request.data_activity_id = activityID;
@@ -558,10 +565,8 @@ function AdminOpsService(objectCollection) {
             childWorkflow705Request.auth_asset_id = assetID;
             childWorkflow705Request.asset_token_auth = "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95";
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
-            childWorkflow705Request.activity_stream_type_id = 705;
-            childWorkflow705Request.timeline_stream_type_id = 705;
-            childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
-           console.log("timeline entry",childWorkflow705Request)
+            // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
+            console.log("timeline entry",childWorkflow705Request)
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
@@ -580,7 +585,7 @@ function AdminOpsService(objectCollection) {
                 owner_flag : 0,
                 asset_id:assetID
             };
-           await removeAsOwner(reqDataForRemovingCreaterAsOwner)
+           await removeAsOwner(request,reqDataForRemovingCreaterAsOwner)
 
 
         // try {
@@ -1502,7 +1507,9 @@ function AdminOpsService(objectCollection) {
                     accountID,
                     workforceID,
                     assetID,
-                    -1
+                    -1,
+                    util.getCurrentUTCTime(),
+                    0
                 );
         
                 var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
