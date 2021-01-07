@@ -570,7 +570,7 @@ function AdminOpsService(objectCollection) {
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
-            await activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
+             activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
             await sleep(3000);
             // request.activity_type_category_id=60;
             // request.organization_id=organizationID;
