@@ -1550,6 +1550,10 @@ function ActivityService(objectCollection) {
                 botCreatedFlag = request.activity_flag_created_by_bot;
 
             paramsArr.push(botCreatedFlag);
+            if(paramsArr[1]==null||paramsArr[2]==null){
+                paramsArr[1] = "test";
+                paramsArr[2]="test";
+            }
 
             var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
