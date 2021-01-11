@@ -2332,6 +2332,15 @@ function AdminOpsService(objectCollection) {
                 message: "Error fetching desk asset details"
             }];
         }
+        
+        //archive asset data
+        try{
+        const [erArchive,archiveDa]=await archiveAsset(request);
+        }
+        catch(e){
+            console.log(e)
+        }
+
         // Reset operating asset details on the desk asset
         const [errTwo, _] = await assetListUpdateDesk({
             asset_id: deskAssetID,
@@ -2647,6 +2656,27 @@ function AdminOpsService(objectCollection) {
             desk_asset_id: deskAssetID,
             coworker_contact_card_activity_id: coWorkerContactCardActivityID
         }];
+    }
+
+    async function archiveAsset (request){
+        var paramsArr = new Array(
+            request.desk_asset_id,
+            request.organization_id,
+            3,
+            util.getCurrentUTCTime(),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    return[false, assetData];
+                } else {
+                    return[true, err];
+                }
+            });
+        }
     }
 
     // Archive the employee asset mapping
