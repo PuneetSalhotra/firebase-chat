@@ -10058,11 +10058,13 @@ async function removeAsOwner(request,data)  {
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
         console.log("dateFormData1", JSON.stringify(fldFormData));
+        request.debug_info.push("dateFormData1", JSON.stringify(fldFormData));
 
 
         let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
         console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
+        request.debug_info.push("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
         if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].cocpr > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
@@ -10080,36 +10082,45 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
+        request.debug_info.push("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
         let configSheets =  inlineData.field_values_map[connectionType] || [];
 
         if(!configSheets.length) {
             console.log("No Sheet Selected");
+            request.debug_info.push("No Sheet Selected");
         }
 
         console.log("configSheets", JSON.stringify(configSheets));
+        request.debug_info.push("configSheets", JSON.stringify(configSheets));
 
         let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
         if(!checkingSegmentResult.length) {
             console.error("Segment is not matched");
+            request.debug_info.push("Segment is not matched");
             submitRejectionFormFlag = 1;
         }
 
         console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
+        request.debug_info.push("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
             console.log("Processing Sheet ", row.sheet);
+            request.debug_info.push("Processing Sheet ", row.sheet);
             comment = row.comment;
 
             if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
                 console.log("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
+                request.debug_info.push("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 continue;
             }
 
             console.log("row.key---->", JSON.stringify(row.key));
+            request.debug_info.push("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
+                request.debug_info.push("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             } else {
@@ -10121,6 +10132,7 @@ async function removeAsOwner(request,data)  {
             //
             // if(!totalLinks.length) {
             //     console.error("Failed in Matching validatingCocpAndIoip");
+            //     request.debug_info.push("Failed in Matching validatingCocpAndIoip");
             //     continue;
             // }
 
@@ -10133,21 +10145,25 @@ async function removeAsOwner(request,data)  {
 
             if(!linkResponse) {
                 console.error("NO of Links are not matched");
+                request.debug_info.push("NO of Links are not matched");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             console.error("linkResponse",linkResponse);
+            request.debug_info.push("linkResponse",linkResponse);
 
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
             console.error("rentalResult", rentalResult, inlineData.monthly_quota);
+            request.debug_info.push("rentalResult", rentalResult, inlineData.monthly_quota);
 
 
             // validating the monthly Quota
@@ -10155,6 +10171,7 @@ async function removeAsOwner(request,data)  {
 
             if(!monthlyQuota.length) {
                 console.error("Conditions did not match in validatingMonthlyQuota");
+                request.debug_info.push("Conditions did not match in validatingMonthlyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
@@ -10163,6 +10180,7 @@ async function removeAsOwner(request,data)  {
 
             if(!dailyQuota.length) {
                 console.error("Conditions did not match in validatingDailyQuota");
+                request.debug_info.push("Conditions did not match in validatingDailyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
@@ -10171,6 +10189,7 @@ async function removeAsOwner(request,data)  {
 
             if(!smsCount.length) {
                 console.error("Conditions did not match in validatingSMSValues");
+                request.debug_info.push("Conditions did not match in validatingSMSValues");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
@@ -10178,18 +10197,22 @@ async function removeAsOwner(request,data)  {
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
             console.log("minQuota", JSON.stringify(minQuota));
+            request.debug_info.push("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
                 console.error("Condition failed in validate Mins");
+                request.debug_info.push("Condition failed in validate Mins");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             if(!sheetMatchFlag[row.sheet]) {
                 console.error("First condition got matched so getting out from loop");
+                request.debug_info.push("First condition got matched so getting out from loop");
                 sheetMatchFlag[row.sheet] = '0';
                 // break;
             }
             console.log("sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
+            request.debug_info.push("sheetMatchFlag-- " + JSON.stringify(sheetMatchFlag));
         }
 
         // processing sheet Match Flags
@@ -10209,12 +10232,14 @@ async function removeAsOwner(request,data)  {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             } else {
                 console.log("Not Rejection because workflowType did not matched to current value");
+                request.debug_info.push("Not Rejection because workflowType did not matched to current value");
             }
             return;
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        request.debug_info.push("wfActivityDetails "+ JSON.stringify(wfActivityDetails));
 
 
         try{
@@ -10229,6 +10254,7 @@ async function removeAsOwner(request,data)  {
             });
         }catch(e) {
             console.log("Error while adding participant")
+            request.debug_info.push("Error while adding participant")
         }
 
 
