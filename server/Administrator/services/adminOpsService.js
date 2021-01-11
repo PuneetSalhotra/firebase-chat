@@ -571,7 +571,7 @@ function AdminOpsService(objectCollection) {
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
              activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
-            await sleep(3000);
+            
             // request.activity_type_category_id=60;
             // request.organization_id=organizationID;
             // request.account_id=accountID;
@@ -587,14 +587,15 @@ function AdminOpsService(objectCollection) {
             };
            await removeAsOwner(request,reqDataForRemovingCreaterAsOwner)
           //add 325 timeline
-          let details =`Fos Details :\n
+          let details =`${request.asset_type_name} :\n
           Name : ${request.activity_title}
-          Designation : ${request.activity_title}
-          Gender: "N/A"
+          Designation : ${request.asset_first_name}
           Phone: ${request.phone_number}
           Email: ${request.email_id}
-          CUID: ${''}
-          Aadhar: "N/A"`;
+          CUID: ${request.customer_unique_id}
+          Aadhar: ${request.asset_identification_number}
+          Workforce Name: ${request.workforce_name}
+          Account Name: ${request.account_name}`;
          let activityTimelineCollection =  JSON.stringify({                            
                     "content": details,
                     "subject": details,
@@ -620,7 +621,7 @@ function AdminOpsService(objectCollection) {
           childWorkflow325Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
           childWorkflow325Request.track_gps_datetime = util.getCurrentUTCTime();
           activityTimelineService.addTimelineTransactionAsync(childWorkflow325Request);
-
+          await sleep(3500);
         // try {
         //     // global.config.mobileBaseUrl + global.config.version
         //     // const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
@@ -2331,6 +2332,15 @@ function AdminOpsService(objectCollection) {
                 message: "Error fetching desk asset details"
             }];
         }
+        
+        //archive asset data
+        try{
+        const [erArchive,archiveDa]=await archiveAsset(request);
+        }
+        catch(e){
+            console.log(e)
+        }
+
         // Reset operating asset details on the desk asset
         const [errTwo, _] = await assetListUpdateDesk({
             asset_id: deskAssetID,
@@ -2646,6 +2656,27 @@ function AdminOpsService(objectCollection) {
             desk_asset_id: deskAssetID,
             coworker_contact_card_activity_id: coWorkerContactCardActivityID
         }];
+    }
+
+    async function archiveAsset (request){
+        var paramsArr = new Array(
+            request.desk_asset_id,
+            request.organization_id,
+            3,
+            util.getCurrentUTCTime(),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    return[false, assetData];
+                } else {
+                    return[true, err];
+                }
+            });
+        }
     }
 
     // Archive the employee asset mapping
