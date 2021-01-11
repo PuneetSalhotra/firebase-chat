@@ -341,7 +341,7 @@ function ActivityService(objectCollection) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
                                 if(request.activity_type_id == 152184 && request.activity_form_id == 4353){
                                     logger.info("HITTING CPQ RoundRobin Allocation Algorithm");
-                                    rmbotService.BCCPQAllocation(request);
+                                    //rmbotService.BCCPQAllocation(request);
                                 }
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
@@ -571,9 +571,11 @@ function ActivityService(objectCollection) {
                                         case 57: //Fire the Bot
                                                 await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
+                                                await processFieldWidgetData(request, fieldData);
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
+                                                await processFieldWidgetData(request, fieldData);
                                                 if(fieldData.field_reference_id > 0){
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
@@ -5638,19 +5640,37 @@ function ActivityService(objectCollection) {
     async function processFieldWidgetData(request, fieldData){
 
         let WidgetFieldRequest = Object.assign({}, request);
-
+        let activityTypeCategroyId = parseInt(request.activity_type_category_id);
         WidgetFieldRequest.field_id = fieldData.field_id;
+        WidgetFieldRequest.field_name = fieldData.field_name;
+        //WidgetFieldRequest.form_id = fieldData.form_id;
+        WidgetFieldRequest.data_type_id = fieldData.field_data_type_id;
         WidgetFieldRequest.page_start = 0;
         WidgetFieldRequest.page_limit = 1;
-        WidgetFieldRequest.widget_type_id = 68;
+        //WidgetFieldRequest.widget_type_id = 68;
         WidgetFieldRequest.field_value = fieldData.field_value;
-        let [errorWidget, responseWidget] = await checkFieldWidget(WidgetFieldRequest); 
+
+        if(fieldData.field_data_type_id === 57){
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
+            WidgetFieldRequest.mapping_type_id = 1;
+        }else if(fieldData.field_data_type_id == 33){
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 2;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        }else{
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 3;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        }
+
+        let [errorWidget, responseWidget] = await checkFieldOrReferenceWidget(WidgetFieldRequest); 
         if(responseWidget.length > 0){
              console.log("FieldWidget exists for this Field :: "+fieldData.field_id);
-            if(activityTypeCategroyId === 48)
+            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54)
             {   
                 console.log("Workflow submitted, hence widget data insert :: "+request.form_id);
-                activtyWidgetListInsert(WidgetFieldRequest);
+                activtyReferenceFieldInsert(WidgetFieldRequest);
 
             }else if(activityTypeCategroyId === 9){
 
@@ -5660,7 +5680,7 @@ function ActivityService(objectCollection) {
                     if(formData[0].form_flag_workflow_origin == 0){
                         
                         WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
-                        activtyWidgetListInsert(WidgetFieldRequest);
+                        activtyReferenceFieldInsert(WidgetFieldRequest);
 
                     }else{
                         console.log("Origin Form submitted, hence no widget data insert:: true :: "+request.form_id);
@@ -5780,6 +5800,64 @@ function ActivityService(objectCollection) {
     }
     return [error,responseData]
     }
+
+    async function checkFieldOrReferenceWidget(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                request.organization_id,
+                request.form_id,
+                request.field_id,
+                request.data_type_id,                
+                request.page_start,
+                request.page_limit
+            ];
+        const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }   
+    
+    function activtyReferenceFieldInsert(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: activtyReferenceFieldInsert  :::', {}, request);
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.activity_type_id,
+                request.activity_type_category_id,
+                request.form_id,
+                request.field_id,
+                request.field_name,
+                request.field_value,
+                request.form_transaction_id,
+                request.mapping_activity_id,
+                request.mapping_type_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_reference_field_mapping_insert', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }  
 }
 
 module.exports = ActivityService;
