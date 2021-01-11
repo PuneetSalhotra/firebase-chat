@@ -5801,6 +5801,34 @@ function ActivityService(objectCollection) {
     return [error,responseData]
     }
 
+    async function checkFieldOrReferenceWidget(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+                request.organization_id,
+                request.form_id,
+                request.field_id,
+                request.data_type_id,                
+                request.page_start,
+                request.page_limit
+            ];
+        const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }   
+    
     function activtyReferenceFieldInsert(request) {
         return new Promise((resolve, reject) => {
             global.logger.write('DEBUG', '::: activtyReferenceFieldInsert  :::', {}, request);
@@ -5829,7 +5857,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-            
+    }  
 }
 
 module.exports = ActivityService;
