@@ -499,6 +499,7 @@ function AdminOpsService(objectCollection) {
             activity_description:request.activity_title ,
             activity_form_id:request.form_id ,
             track_gps_datetime:util.getCurrentUTCTime() ,
+            activity_datetime_end:util.getCurrentUTCTime(),
             activity_sub_type_id: 0,
             activity_status_type_category_id: 1,
             asset_participant_access_id: 0,
@@ -542,8 +543,12 @@ function AdminOpsService(objectCollection) {
                  const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
                 createChildWorkflowRequest.activity_id = childActivityID;
                 createChildWorkflowRequest.activity_type_category_id = 60;
+                createChildWorkflowRequest.activity_stream_type_id = 701;
                 createChildWorkflowRequest.activity_type_id = request.activity_type_id;
                 createChildWorkflowRequest.activity_parent_id = activityID;
+                createChildWorkflowRequest.activity_datetime_start= util.getCurrentUTCTime();
+                createChildWorkflowRequest.track_gps_datetime=util.getCurrentUTCTime();
+                createChildWorkflowRequest.activity_datetime_end=util.getCurrentUTCTime();
                 // const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             await addActivityAsync(createChildWorkflowRequest);
                 //        let activityTimelineCollection =  JSON.stringify({                            
@@ -565,6 +570,7 @@ function AdminOpsService(objectCollection) {
             childWorkflow705Request.auth_asset_id = 100;
             childWorkflow705Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
+            childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
             // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
             console.log("timeline entry",childWorkflow705Request)
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
@@ -593,9 +599,9 @@ function AdminOpsService(objectCollection) {
           Phone: ${request.phone_number}
           Email: ${request.email_id}
           CUID: ${request.customer_unique_id}
-          Aadhar: ${request.asset_identification_number}
+          Aadhar: ${request.asset_identification_number?request.asset_identification_number:""}
           Workforce Name: ${request.workforce_name}
-          Account Name: ${request.account_name}`;
+          Account Name: ${request.account_name?request.account_name:""}`;
          let activityTimelineCollection =  JSON.stringify({                            
                     "content": details,
                     "subject": details,
@@ -610,8 +616,7 @@ function AdminOpsService(objectCollection) {
           childWorkflow325Request.data_activity_id = activityID;
           childWorkflow325Request.activity_type_category_id = 60;
           childWorkflow325Request.activity_stream_type_id = 325;
-          childWorkflow325Request.activity_timeline_collection = 
-             childWorkflow325Request.data_entity_inline=activityTimelineCollection;
+          childWorkflow325Request.data_entity_inline=activityTimelineCollection;
           childWorkflow325Request.activity_timeline_collection=activityTimelineCollection;
           childWorkflow325Request.activity_timeline_text=details;
           childWorkflow325Request.message_unique_id = util.getMessageUniqueId(31993);
@@ -619,7 +624,6 @@ function AdminOpsService(objectCollection) {
           childWorkflow325Request.device_os_id = 5;
           childWorkflow325Request.auth_asset_id = 100;
           childWorkflow325Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
-          childWorkflow325Request.track_gps_datetime = util.getCurrentUTCTime();
           activityTimelineService.addTimelineTransactionAsync(childWorkflow325Request);
           await sleep(3500);
         // try {
