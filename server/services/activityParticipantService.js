@@ -1038,7 +1038,8 @@ function ActivityParticipantService(objectCollection) {
                     console.log('\nAccount Search - Deleting from activity asset table');
                     activityCommonService.actAssetSearchMappingArchive({
                         activity_id: request.activity_id,
-                        asset_id: request.asset_id,
+                        //asset_id: request.asset_id,
+                        asset_id: participantData.asset_id,
                         organization_id: request.organization_id
                     });
                     
