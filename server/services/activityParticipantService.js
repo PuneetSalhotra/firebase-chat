@@ -959,7 +959,8 @@ function ActivityParticipantService(objectCollection) {
                     console.log('\n Account Search :- Updating Activity Asset Table');
                     activityCommonService.actAssetSearchMappingInsert({
                         activity_id: request.activity_id,
-                        asset_id: request.asset_id,
+                        //asset_id: request.asset_id,
+                        asset_id: participantData.asset_id,
                         organization_id: request.organization_id
                     });
 
@@ -998,7 +999,8 @@ function ActivityParticipantService(objectCollection) {
                     console.log('\n Account Search :- Updating Activity Asset Table');
                     activityCommonService.actAssetSearchMappingInsert({
                         activity_id: request.activity_id,
-                        asset_id: request.asset_id,
+                        //asset_id: request.asset_id,
+                        asset_id: participantData.asset_id,
                         organization_id: request.organization_id
                     });
 
