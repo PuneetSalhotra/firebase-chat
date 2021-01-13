@@ -600,8 +600,8 @@ function CommnElasticService(objectCollection) {
                 //console.log((row._source.CustomerName).toLowerCase());
                 //console.log(' ');
     
-                //if(flag === 1 && searchString === (row._source.account_code).toLowerCase()) {
-                if(flag === 1) {
+                if(flag === 1 && searchString === (row._source.account_code).toLowerCase()) {
+                //if(flag === 1) {
                     console.log(`${searchString} is found!`);
                     console.log('Account Code - ', row._source.account_code);
 
