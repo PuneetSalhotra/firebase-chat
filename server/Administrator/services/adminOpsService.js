@@ -594,8 +594,8 @@ function AdminOpsService(objectCollection) {
            await removeAsOwner(request,reqDataForRemovingCreaterAsOwner)
           //add 325 timeline
           let details =`${request.asset_type_name} :\n
-          Name : ${request.activity_title}
-          Designation : ${request.asset_first_name}
+          Name : ${request.asset_first_name}
+          Designation : ${request.desk_asset_first_name?request.desk_asset_first_name:""}
           Phone: ${request.phone_number}
           Email: ${request.email_id}
           CUID: ${request.customer_unique_id}
@@ -975,7 +975,7 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewDeskToWorkforce = async function (request) {
-
+        request.asset_identification_number = "";
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
@@ -1199,13 +1199,14 @@ function AdminOpsService(objectCollection) {
             organization_id:request.organization_id,
             asset_identification_number: String(request.asset_identification_number),
         }, organizationID);
+        console.log(checkAadhar)
         if (errZero_7 || Number(checkAadhar.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
             return [true, {
                 message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
             }]
         }
-
+        
         request.activity_inline_data = JSON.stringify({
             employee_profile_picture: "",
             employee_first_name: request.asset_first_name,
@@ -1243,12 +1244,15 @@ function AdminOpsService(objectCollection) {
                 message: "Error creating a new employee in the workforce"
             }]
         }
-
-        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
-
         const deskAssetID = Number(request.desk_asset_id),
             operatingAssetID = Number(assetData.asset_id),
             idCardActivityID = Number(assetData.activity_id);
+        const [errTwo, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+            organization_id: organizationID,
+            asset_id: deskAssetID
+        });
+        request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
 
         request.operating_asset_id = Number(assetData.asset_id);
         // Add a new access mapping for employee asset to the desk asset 
@@ -1264,10 +1268,7 @@ function AdminOpsService(objectCollection) {
         }
 
         // Update ID Card of the Employee
-        const [errTwo, deskAssetDataFromDB] = await adminListingService.assetListSelect({
-            organization_id: organizationID,
-            asset_id: deskAssetID
-        });
+        
         if (!errTwo && Number(deskAssetDataFromDB.length) > 0) {
             // Update Inline Data
             let activityInlineData = JSON.parse(request.activity_inline_data);
