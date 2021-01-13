@@ -470,7 +470,7 @@ function AdminOpsService(objectCollection) {
     }
 
     // Create Activity Service
-    async function createActivityV1(request, workforceID, organizationID, accountID,assetID) {
+    async function createActivityV1(request, workforceID, organizationID, accountID,assetID,inline) {
         const activityID = await cacheWrapper.getActivityIdPromise();
         const formTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
@@ -482,7 +482,7 @@ function AdminOpsService(objectCollection) {
             // activity_id: activityID,
             form_transaction_id: formTransactionID,
             form_id:request.form_id,
-            activity_type_category_id: 9,
+            activity_type_category_id: 60,
             activity_title:request.activity_title,
             asset_id:assetID,
             activity_type_id: request.activity_type_id,
@@ -490,12 +490,12 @@ function AdminOpsService(objectCollection) {
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_inline_data: JSON.stringify(request.activity_inline_data),
+            activity_inline_data: JSON.stringify(inline),
             // activity_timeline_collection: "",
             // is_child_order: true,
             // child_order_activity_parent_id: Number(options.parent_activity_id),
             activity_datetime_start: util.getCurrentUTCTime(),
-            data_entity_inline:JSON.stringify(request.activity_inline_data) ,
+            data_entity_inline:JSON.stringify(inline) ,
             activity_description:request.activity_title ,
             activity_form_id:request.form_id ,
             track_gps_datetime:util.getCurrentUTCTime() ,
@@ -505,7 +505,7 @@ function AdminOpsService(objectCollection) {
             asset_participant_access_id: 0,
             activity_access_role_id: 21,
             activity_status_type_id: 22,
-            activity_flag_file_enabled: -1,
+            activity_flag_file_enabled: 1,
             activity_parent_id: 0,
             asset_message_counter: 0,
             flag_pin: 0,
@@ -526,7 +526,7 @@ function AdminOpsService(objectCollection) {
                 "mail_body": `Approval Form - ${moment().utcOffset('+05:30').format('LLLL')}`,
                 "subject": `Approval Form`,
                 "content": `Approval Form`,
-                "form_submitted": request.activity_inline_data,
+                "form_submitted": inline,
                 "attachments": []
             }),
             // api_version: 1,
@@ -539,18 +539,18 @@ function AdminOpsService(objectCollection) {
         console.log(JSON.stringify(addActivityRequest))
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(addActivityRequest);
-        const childActivityID = await cacheWrapper.getActivityIdPromise();
-                 const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
-                createChildWorkflowRequest.activity_id = childActivityID;
-                createChildWorkflowRequest.activity_type_category_id = 60;
-                createChildWorkflowRequest.activity_stream_type_id = 701;
-                createChildWorkflowRequest.activity_type_id = request.activity_type_id;
-                createChildWorkflowRequest.activity_parent_id = activityID;
-                createChildWorkflowRequest.activity_datetime_start= util.getCurrentUTCTime();
-                createChildWorkflowRequest.track_gps_datetime=util.getCurrentUTCTime();
-                createChildWorkflowRequest.activity_datetime_end=util.getCurrentUTCTime();
+        // const childActivityID = await cacheWrapper.getActivityIdPromise();
+        //          const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
+        //         createChildWorkflowRequest.activity_id = childActivityID;
+        //         createChildWorkflowRequest.activity_type_category_id = 60;
+        //         createChildWorkflowRequest.activity_stream_type_id = 701;
+        //         createChildWorkflowRequest.activity_type_id = request.activity_type_id;
+        //         createChildWorkflowRequest.activity_parent_id = activityID;
+        //         createChildWorkflowRequest.activity_datetime_start= util.getCurrentUTCTime();
+        //         createChildWorkflowRequest.track_gps_datetime=util.getCurrentUTCTime();
+        //         createChildWorkflowRequest.activity_datetime_end=util.getCurrentUTCTime();
                 // const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-            await addActivityAsync(createChildWorkflowRequest);
+            // await addActivityAsync(createChildWorkflowRequest);
                 //        let activityTimelineCollection =  JSON.stringify({                            
                 //     "content": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 //     "subject": `Note - ${util.getCurrentDate()}.`,
@@ -1505,11 +1505,11 @@ function AdminOpsService(objectCollection) {
                 }
                 
             ];
-            request.activity_inline_data = JSON.stringify(activity_inline_data)
+            let activityInlineData = JSON.stringify(activity_inline_data)
             let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
             let managerAssetId = creatorAssetData[0].manager_asset_id;
             //add approval workflow activity
-            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
+            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
 
             //make manager as lead
