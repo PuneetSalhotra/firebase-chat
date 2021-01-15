@@ -601,11 +601,13 @@ function CommnElasticService(objectCollection) {
                 //console.log(' ');
     
                 if(flag === 1 && searchString === (row._source.account_code).toLowerCase()) {
+                //if(flag === 1) {
                     console.log(`${searchString} is found!`);
                     console.log('Account Code - ', row._source.account_code);
 
                     finalResp.push(row._source);
-                } else if(flag === 2 && searchString === (row._source.CustomerName).toLowerCase()) {
+                } //else if(flag === 2 && searchString === (row._source.CustomerName).toLowerCase()) {
+                else if(flag === 2) {
                     console.log(`${searchString} is found!`);
                     console.log('Customer Name - ', row._source.CustomerName);
 

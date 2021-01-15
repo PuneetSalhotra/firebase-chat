@@ -470,7 +470,7 @@ function AdminOpsService(objectCollection) {
     }
 
     // Create Activity Service
-    async function createActivityV1(request, workforceID, organizationID, accountID,assetID) {
+    async function createActivityV1(request, workforceID, organizationID, accountID,assetID,inline) {
         const activityID = await cacheWrapper.getActivityIdPromise();
         const formTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
@@ -482,7 +482,7 @@ function AdminOpsService(objectCollection) {
             // activity_id: activityID,
             form_transaction_id: formTransactionID,
             form_id:request.form_id,
-            activity_type_category_id: 9,
+            activity_type_category_id: 60,
             activity_title:request.activity_title,
             asset_id:assetID,
             activity_type_id: request.activity_type_id,
@@ -490,21 +490,22 @@ function AdminOpsService(objectCollection) {
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_inline_data: JSON.stringify(request.activity_inline_data),
+            activity_inline_data: JSON.stringify(inline),
             // activity_timeline_collection: "",
             // is_child_order: true,
             // child_order_activity_parent_id: Number(options.parent_activity_id),
             activity_datetime_start: util.getCurrentUTCTime(),
-            data_entity_inline:JSON.stringify(request.activity_inline_data) ,
+            data_entity_inline:JSON.stringify(inline) ,
             activity_description:request.activity_title ,
             activity_form_id:request.form_id ,
             track_gps_datetime:util.getCurrentUTCTime() ,
+            activity_datetime_end:util.getCurrentUTCTime(),
             activity_sub_type_id: 0,
             activity_status_type_category_id: 1,
             asset_participant_access_id: 0,
             activity_access_role_id: 21,
             activity_status_type_id: 22,
-            activity_flag_file_enabled: -1,
+            activity_flag_file_enabled: 1,
             activity_parent_id: 0,
             asset_message_counter: 0,
             flag_pin: 0,
@@ -525,7 +526,7 @@ function AdminOpsService(objectCollection) {
                 "mail_body": `Approval Form - ${moment().utcOffset('+05:30').format('LLLL')}`,
                 "subject": `Approval Form`,
                 "content": `Approval Form`,
-                "form_submitted": request.activity_inline_data,
+                "form_submitted": inline,
                 "attachments": []
             }),
             // api_version: 1,
@@ -538,14 +539,18 @@ function AdminOpsService(objectCollection) {
         console.log(JSON.stringify(addActivityRequest))
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(addActivityRequest);
-        const childActivityID = await cacheWrapper.getActivityIdPromise();
-                 const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
-                createChildWorkflowRequest.activity_id = childActivityID;
-                createChildWorkflowRequest.activity_type_category_id = 60;
-                createChildWorkflowRequest.activity_type_id = request.activity_type_id;
-                createChildWorkflowRequest.activity_parent_id = activityID;
+        // const childActivityID = await cacheWrapper.getActivityIdPromise();
+        //          const createChildWorkflowRequest = Object.assign({}, addActivityRequest);
+        //         createChildWorkflowRequest.activity_id = childActivityID;
+        //         createChildWorkflowRequest.activity_type_category_id = 60;
+        //         createChildWorkflowRequest.activity_stream_type_id = 701;
+        //         createChildWorkflowRequest.activity_type_id = request.activity_type_id;
+        //         createChildWorkflowRequest.activity_parent_id = activityID;
+        //         createChildWorkflowRequest.activity_datetime_start= util.getCurrentUTCTime();
+        //         createChildWorkflowRequest.track_gps_datetime=util.getCurrentUTCTime();
+        //         createChildWorkflowRequest.activity_datetime_end=util.getCurrentUTCTime();
                 // const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-            await addActivityAsync(createChildWorkflowRequest);
+            // await addActivityAsync(createChildWorkflowRequest);
                 //        let activityTimelineCollection =  JSON.stringify({                            
                 //     "content": `Fos approval form is submitted at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 //     "subject": `Note - ${util.getCurrentDate()}.`,
@@ -565,6 +570,7 @@ function AdminOpsService(objectCollection) {
             childWorkflow705Request.auth_asset_id = 100;
             childWorkflow705Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
+            childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
             // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
             console.log("timeline entry",childWorkflow705Request)
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
@@ -588,14 +594,14 @@ function AdminOpsService(objectCollection) {
            await removeAsOwner(request,reqDataForRemovingCreaterAsOwner)
           //add 325 timeline
           let details =`${request.asset_type_name} :\n
-          Name : ${request.activity_title}
-          Designation : ${request.asset_first_name}
+          Name : ${request.asset_first_name}
+          Designation : ${request.desk_asset_first_name?request.desk_asset_first_name:""}
           Phone: ${request.phone_number}
           Email: ${request.email_id}
           CUID: ${request.customer_unique_id}
-          Aadhar: ${request.asset_identification_number}
+          Aadhar: ${request.asset_identification_number?request.asset_identification_number:""}
           Workforce Name: ${request.workforce_name}
-          Account Name: ${request.account_name}`;
+          Account Name: ${request.account_name?request.account_name:""}`;
          let activityTimelineCollection =  JSON.stringify({                            
                     "content": details,
                     "subject": details,
@@ -610,8 +616,7 @@ function AdminOpsService(objectCollection) {
           childWorkflow325Request.data_activity_id = activityID;
           childWorkflow325Request.activity_type_category_id = 60;
           childWorkflow325Request.activity_stream_type_id = 325;
-          childWorkflow325Request.activity_timeline_collection = 
-             childWorkflow325Request.data_entity_inline=activityTimelineCollection;
+          childWorkflow325Request.data_entity_inline=activityTimelineCollection;
           childWorkflow325Request.activity_timeline_collection=activityTimelineCollection;
           childWorkflow325Request.activity_timeline_text=details;
           childWorkflow325Request.message_unique_id = util.getMessageUniqueId(31993);
@@ -619,7 +624,6 @@ function AdminOpsService(objectCollection) {
           childWorkflow325Request.device_os_id = 5;
           childWorkflow325Request.auth_asset_id = 100;
           childWorkflow325Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
-          childWorkflow325Request.track_gps_datetime = util.getCurrentUTCTime();
           activityTimelineService.addTimelineTransactionAsync(childWorkflow325Request);
           await sleep(3500);
         // try {
@@ -971,13 +975,26 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewDeskToWorkforce = async function (request) {
-
+        // request.asset_identification_number = "";
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
             request.asset_type_name = roleData[0].asset_type_name;
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
+
+//check if an Employee with the given Aadhar number exists
+const [errZero_7, checkAadhar] = await assetListSelectAadharUniqueID({
+    organization_id:request.organization_id,
+    asset_identification_number: String(request.asset_identification_number),
+}, request.organization_id);
+console.log(checkAadhar)
+if (errZero_7 || Number(checkAadhar.length) > 0) {
+    console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
+    return [true, {
+        message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
+    }]
+}
 
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
@@ -1189,19 +1206,7 @@ function AdminOpsService(objectCollection) {
                 message: `An employee with the CUID ${request.customer_unique_id} already exists.`
             }]
         }
-
-        //check if an Employee with the given Aadhar number exists
-        const [errZero_7, checkAadhar] = await assetListSelectAadharUniqueID({
-            organization_id:request.organization_id,
-            asset_identification_number: String(request.asset_identification_number),
-        }, organizationID);
-        if (errZero_7 || Number(checkAadhar.length) > 0) {
-            console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
-            return [true, {
-                message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
-            }]
-        }
-
+        
         request.activity_inline_data = JSON.stringify({
             employee_profile_picture: "",
             employee_first_name: request.asset_first_name,
@@ -1239,12 +1244,15 @@ function AdminOpsService(objectCollection) {
                 message: "Error creating a new employee in the workforce"
             }]
         }
-
-        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
-
         const deskAssetID = Number(request.desk_asset_id),
             operatingAssetID = Number(assetData.asset_id),
             idCardActivityID = Number(assetData.activity_id);
+        const [errTwo, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+            organization_id: organizationID,
+            asset_id: deskAssetID
+        });
+        request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
 
         request.operating_asset_id = Number(assetData.asset_id);
         // Add a new access mapping for employee asset to the desk asset 
@@ -1260,10 +1268,7 @@ function AdminOpsService(objectCollection) {
         }
 
         // Update ID Card of the Employee
-        const [errTwo, deskAssetDataFromDB] = await adminListingService.assetListSelect({
-            organization_id: organizationID,
-            asset_id: deskAssetID
-        });
+        
         if (!errTwo && Number(deskAssetDataFromDB.length) > 0) {
             // Update Inline Data
             let activityInlineData = JSON.parse(request.activity_inline_data);
@@ -1501,11 +1506,11 @@ function AdminOpsService(objectCollection) {
                 }
                 
             ];
-            request.activity_inline_data = JSON.stringify(activity_inline_data)
+            let activityInlineData = JSON.stringify(activity_inline_data)
             let [errAsset, creatorAssetData] = await activityCommonService.getAssetDetailsAsync({asset_id:request.log_asset_id,organization_id:organizationID});
             let managerAssetId = creatorAssetData[0].manager_asset_id;
             //add approval workflow activity
-            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id);
+            let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
 
             //make manager as lead
