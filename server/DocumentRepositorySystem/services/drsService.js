@@ -136,10 +136,10 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_organization_id,
-            request.p_document_repository_id,
-            request.p_tag_id,
-            request.p_log_asset_id,
+            request.organization_id,
+            request.document_repository_id,
+            request.tag_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_update_tag', paramsArr);
@@ -163,14 +163,14 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_organization_id,
-            request.p_activity_type_category_id,
-            request.p_document_repository_id,
-            request.p_repository_sub_type_id,
-            request.p_asset_id,
-            request.p_flag,
-            request.p_start_from,
-            request.p_limit_value
+            request.organization_id,
+            request.activity_type_category_id,
+            request.document_repository_id,
+            request.repository_sub_type_id,
+            request.asset_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
         ];
         const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
         if (queryString !== '') {
@@ -193,14 +193,14 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_organization_id,
-            request.p_activity_type_category_id,
-            request.p_parent_repository_id,
-            request.p_repository_sub_type_id,
-            request.p_activity_type_id,
-            request.p_flag,
-            request.p_start_from,
-            request.p_limit_value
+            request.organization_id,
+            request.activity_type_category_id,
+            request.parent_repository_id,
+            request.repository_sub_type_id,
+            request.activity_type_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
         ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_select', paramsArr);
         if (queryString !== '') {
@@ -222,14 +222,14 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
         let paramsArr = [
-            request.p_organization_id,
-            request.p_activity_type_category_id,
-            request.p_document_repository_id,
-            request.p_repository_sub_type_id,
-            request.p_asset_id,
+            request.organization_id,
+            request.activity_type_category_id,
+            request.document_repository_id,
+            request.repository_sub_type_id,
+            request.asset_id,
             1,
-            request.p_start_from,
-            request.p_limit_value
+            request.page_start,
+            request.page_limit
         ];
         const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
         if (queryString !== '') {
@@ -252,16 +252,16 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_organization_id,
-            request.p_activity_type_category_id,
-            request.p_document_repository_id,
-            request.p_repository_sub_type_id,
-            request.p_activity_type_id,
-            request.p_tag_id,
-            request.p_search_string,
-            request.p_flag,
-            request.p_start_from,
-            request.p_limit_value
+            request.organization_id,
+            request.activity_type_category_id,
+            request.document_repository_id,
+            request.repository_sub_type_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.search_string,
+            request.flag,
+            request.page_start,
+            request.page_limit
         ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_search', paramsArr);
         if (queryString !== '') {
@@ -284,26 +284,26 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_asset_type_id,
-            request.p_asset_type_name,
-            request.p_asset_type_flag_enable_approval,
-            request.p_asset_type_approval_max_levels,
-            request.p_asset_type_approval_wait_duration,
-            request.p_asset_type_approval_activity_type_id,
-            request.p_asset_type_approval_activity_type_name,
-            request.p_asset_type_approval_origin_form_id,
-            request.p_asset_type_approval_field_id,
-            request.p_asset_type_attendance_type_id,
-            request.p_asset_type_attendance_type_name,
-            request.p_asset_type_flag_enable_suspension,
-            request.p_asset_type_suspension_activity_type_id,
-            request.p_asset_type_suspension_activity_type_name,
-            request.p_asset_type_suspension_wait_duration,
-            request.p_asset_type_flag_hide_organization_details,
-            request.p_organization_id,
-            request.p_flag,
-            request.p_log_datetime,
-            request.p_log_asset_id
+            request.asset_type_id,
+            request.asset_type_name,
+            request.asset_type_flag_enable_approval,
+            request.asset_type_approval_max_levels,
+            request.asset_type_approval_wait_duration,
+            request.asset_type_approval_activity_type_id,
+            request.asset_type_approval_activity_type_name,
+            request.asset_type_approval_origin_form_id,
+            request.asset_type_approval_field_id,
+            request.asset_type_attendance_type_id,
+            request.asset_type_attendance_type_name,
+            request.asset_type_flag_enable_suspension,
+            request.asset_type_suspension_activity_type_id,
+            request.asset_type_suspension_activity_type_name,
+            request.asset_type_suspension_wait_duration,
+            request.asset_type_flag_hide_organization_details,
+            request.organization_id,
+            request.flag,
+            util.getCurrentUTCTime(),
+            request.asset_id
         ];
         const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
         if (queryString !== '') {
@@ -325,12 +325,12 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
         let paramsArr = [
-            request.p_asset_id,
-            request.p_organization_id,
-            request.p_asset_flag_suspended,
-            request.p_asset_suspension_datetime,
-            request.p_asset_suspension_activity_id,
-            request.p_log_asset_id,
+            request.target_asset_id,
+            request.organization_id,
+            request.asset_flag_suspended,
+            request.asset_suspension_datetime,
+            request.asset_suspension_activity_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         ];
         const queryString = util.getQueryString('ds_p1_asset_list_update_suspension', paramsArr);
@@ -354,12 +354,12 @@ function DrsService(objectCollection) {
             error = true;
 
         let paramsArr = [
-            request.p_organization_id,
-            request.p_asset_id,
-            request.p_manager_asset_id,
-            request.p_flag,
-            request.p_start_from,
-            request.p_limit_value
+            request.organization_id,
+            request.asset_id,
+            request.manager_asset_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
         ];
         const queryString = util.getQueryString('ds_p2_asset_manager_mapping_select', paramsArr);
         if (queryString !== '') {
