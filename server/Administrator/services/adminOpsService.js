@@ -975,13 +975,26 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewDeskToWorkforce = async function (request) {
-        request.asset_identification_number = "";
+        // request.asset_identification_number = "";
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
             request.asset_type_name = roleData[0].asset_type_name;
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
+
+//check if an Employee with the given Aadhar number exists
+const [errZero_7, checkAadhar] = await assetListSelectAadharUniqueID({
+    organization_id:request.organization_id,
+    asset_identification_number: String(request.asset_identification_number),
+}, request.organization_id);
+console.log(checkAadhar)
+if (errZero_7 || Number(checkAadhar.length) > 0) {
+    console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
+    return [true, {
+        message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
+    }]
+}
 
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
@@ -1191,19 +1204,6 @@ function AdminOpsService(objectCollection) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCustomerUniqueID | Error: ", errZero_2);
             return [true, {
                 message: `An employee with the CUID ${request.customer_unique_id} already exists.`
-            }]
-        }
-
-        //check if an Employee with the given Aadhar number exists
-        const [errZero_7, checkAadhar] = await assetListSelectAadharUniqueID({
-            organization_id:request.organization_id,
-            asset_identification_number: String(request.asset_identification_number),
-        }, organizationID);
-        console.log(checkAadhar)
-        if (errZero_7 || Number(checkAadhar.length) > 0) {
-            console.log("addNewEmployeeToExistingDesk | assetListSelectAadharUniqueID | Error: ", errZero_7);
-            return [true, {
-                message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
             }]
         }
         
