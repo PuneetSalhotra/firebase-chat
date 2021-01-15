@@ -68,6 +68,9 @@ const DataManagementController = require('../controllers/dataManagementControlle
 // Ledger Services
 const WorkbookOpsController_VodafoneCustom = require('../Workbook/controllers/workbookOpsController_VodafoneCustom');
 
+//Document Repository System
+const DrsController = require('../DocumentRepositorySystem/controllers/drsController');
+
 function ControlInterceptor(objCollection) {
 
     new UtilityController(objCollection);
@@ -136,6 +139,9 @@ function ControlInterceptor(objCollection) {
     if(process.env.ENABLE_CUSTOM_EXCEL_BOT) {
         new WorkbookOpsController_VodafoneCustom(objCollection);
     }
-};
+
+    //Document Repository System
+    new DrsController(objCollection);
+}
 
 module.exports = ControlInterceptor;
