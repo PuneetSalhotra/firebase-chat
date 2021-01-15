@@ -321,5 +321,62 @@ function DrsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.updateAssetListSuspension = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = [
+            request.p_asset_id,
+            request.p_organization_id,
+            request.p_asset_flag_suspended,
+            request.p_asset_suspension_datetime,
+            request.p_asset_suspension_activity_id,
+            request.p_log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_p1_asset_list_update_suspension', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.selectAssetManager = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = [
+            request.p_organization_id,
+            request.p_asset_id,
+            request.p_manager_asset_id,
+            request.p_flag,
+            request.p_start_from,
+            request.p_limit_value
+        ];
+        const queryString = util.getQueryString('ds_p2_asset_manager_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+
 }
 module.exports = DrsService;
