@@ -135,13 +135,13 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_organization_id,
             request.p_document_repository_id,
             request.p_tag_id,
             request.p_log_asset_id,
             util.getCurrentUTCTime()
-        );
+        ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_update_tag', paramsArr);
         if (queryString !== '') {
 
@@ -162,7 +162,7 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_organization_id,
             request.p_activity_type_category_id,
             request.p_document_repository_id,
@@ -171,7 +171,7 @@ function DrsService(objectCollection) {
             request.p_flag,
             request.p_start_from,
             request.p_limit_value
-        );
+        ];
         const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
         if (queryString !== '') {
 
@@ -192,7 +192,7 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_organization_id,
             request.p_activity_type_category_id,
             request.p_parent_repository_id,
@@ -201,7 +201,7 @@ function DrsService(objectCollection) {
             request.p_flag,
             request.p_start_from,
             request.p_limit_value
-        );
+        ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_select', paramsArr);
         if (queryString !== '') {
 
@@ -221,7 +221,7 @@ function DrsService(objectCollection) {
     this.selectDRSTypesAccessible = async (request) => {
         let responseData = [],
             error = true;
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_organization_id,
             request.p_activity_type_category_id,
             request.p_document_repository_id,
@@ -230,7 +230,7 @@ function DrsService(objectCollection) {
             request.p_flag || 1,
             request.p_start_from,
             request.p_limit_value
-        );
+        ];
         const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
         if (queryString !== '') {
 
@@ -251,7 +251,7 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_organization_id,
             request.p_activity_type_category_id,
             request.p_document_repository_id,
@@ -262,7 +262,7 @@ function DrsService(objectCollection) {
             request.p_flag || 1,
             request.p_start_from,
             request.p_limit_value
-        );
+        ];
         const queryString = util.getQueryString('ds_p1_document_repository_list_search', paramsArr);
         if (queryString !== '') {
 
@@ -283,7 +283,7 @@ function DrsService(objectCollection) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = [
             request.p_asset_type_id,
             request.p_asset_type_name,
             request.p_asset_type_flag_enable_approval,
@@ -304,7 +304,7 @@ function DrsService(objectCollection) {
             request.p_flag,
             request.p_log_datetime,
             request.p_log_asset_id
-        );
+        ];
         const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
         if (queryString !== '') {
 
