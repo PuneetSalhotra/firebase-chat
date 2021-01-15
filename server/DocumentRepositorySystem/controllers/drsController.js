@@ -15,7 +15,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
 
@@ -27,7 +26,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     //Service to remove sharing of a document repository to a specific role
@@ -38,7 +36,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     
@@ -50,7 +47,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
 
@@ -62,7 +58,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     // Service to list document repository types accessible to the user
@@ -73,7 +68,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     // Service to list folders for a selected document repository type
@@ -84,7 +78,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     // Service to list document repository types accessible to the user
@@ -95,7 +88,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     //To search document repository list for specified type or tag
@@ -106,7 +98,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     // Service to set/alter/reset suspension fields for a role 
@@ -117,7 +108,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     //Service to set/reset suspension for an asset
@@ -128,7 +118,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
     //Service to return reporting users with provision to filter following criteria
@@ -139,7 +128,6 @@ function DrsController(objCollection)
         } else {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
 }
