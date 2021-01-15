@@ -227,7 +227,7 @@ function DrsService(objectCollection) {
             request.p_document_repository_id,
             request.p_repository_sub_type_id,
             request.p_asset_id,
-            request.p_flag || 1,
+            1,
             request.p_start_from,
             request.p_limit_value
         ];
@@ -259,7 +259,7 @@ function DrsService(objectCollection) {
             request.p_activity_type_id,
             request.p_tag_id,
             request.p_search_string,
-            request.p_flag || 1,
+            request.p_flag,
             request.p_start_from,
             request.p_limit_value
         ];
