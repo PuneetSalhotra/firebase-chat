@@ -131,5 +131,195 @@ function DrsService(objectCollection) {
     return [error, responseData];
   };
 
+    this.updateDRSForTag = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.p_organization_id,
+            request.p_document_repository_id,
+            request.p_tag_id,
+            request.p_log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_document_repository_list_update_tag', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.selectDRSAsset = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.p_organization_id,
+            request.p_activity_type_category_id,
+            request.p_document_repository_id,
+            request.p_repository_sub_type_id,
+            request.p_asset_id,
+            request.p_flag,
+            request.p_start_from,
+            request.p_limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.selectDRSList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.p_organization_id,
+            request.p_activity_type_category_id,
+            request.p_parent_repository_id,
+            request.p_repository_sub_type_id,
+            request.p_activity_type_id,
+            request.p_flag,
+            request.p_start_from,
+            request.p_limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_document_repository_list_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.selectDRSTypesAccessible = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.p_organization_id,
+            request.p_activity_type_category_id,
+            request.p_document_repository_id,
+            request.p_repository_sub_type_id,
+            request.p_asset_id,
+            request.p_flag || 1,
+            request.p_start_from,
+            request.p_limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.dRSListSearch = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.p_organization_id,
+            request.p_activity_type_category_id,
+            request.p_document_repository_id,
+            request.p_repository_sub_type_id,
+            request.p_activity_type_id,
+            request.p_tag_id,
+            request.p_search_string,
+            request.p_flag || 1,
+            request.p_start_from,
+            request.p_limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_document_repository_list_search', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+    this.updateWorkforceAssetType = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.p_asset_type_id,
+            request.p_asset_type_name,
+            request.p_asset_type_flag_enable_approval,
+            request.p_asset_type_approval_max_levels,
+            request.p_asset_type_approval_wait_duration,
+            request.p_asset_type_approval_activity_type_id,
+            request.p_asset_type_approval_activity_type_name,
+            request.p_asset_type_approval_origin_form_id,
+            request.p_asset_type_approval_field_id,
+            request.p_asset_type_attendance_type_id,
+            request.p_asset_type_attendance_type_name,
+            request.p_asset_type_flag_enable_suspension,
+            request.p_asset_type_suspension_activity_type_id,
+            request.p_asset_type_suspension_activity_type_name,
+            request.p_asset_type_suspension_wait_duration,
+            request.p_asset_type_flag_hide_organization_details,
+            request.p_organization_id,
+            request.p_flag,
+            request.p_log_datetime,
+            request.p_log_asset_id
+        );
+        const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
 }
 module.exports = DrsService;
