@@ -806,7 +806,13 @@ function AssetService(objectCollection) {
             "asset_type_attendance_type_id":util.replaceDefaultNumber(rowArray[0]['asset_type_attendance_type_id']),
             "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name']),
             "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
-            "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id'])
+            "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id']),
+
+            //Returning the following data - Document Repository System
+            "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
+            "asset_doc_repo_access_type_name":util.replaceDefaultString(rowArray[0]['asset_doc_repo_access_type_name']),
+            "organization_flag_document_repository_enabled":util.replaceDefaultString(rowArray[0]['organization_flag_document_repository_enabled']),
+            "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url'])
         };
 
         callback(false, rowData);
