@@ -340,15 +340,6 @@ function AnalyticsController(objCollection)
         } 
     });
 
-    app.post('/' + global.config.version + '/analytics/drilldown/mapping/list', async (req, res) => {        
-        let [err,result] = await analyticsService.getDrilldownMappingList(req.body);
-        if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-        } 
-    });
-
     }
 
 module.exports = AnalyticsController;
