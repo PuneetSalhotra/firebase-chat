@@ -2998,7 +2998,7 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
-    }    
+    };
 
 
     this.activityListLeadUpdateV2 = async function (request, lead_asset_id) {

@@ -99,30 +99,11 @@ function DrsController(objCollection)
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+    
 
-    // Service to set/alter/reset suspension fields for a role 
-    app.post('/' + global.config.version + '/drs/doc-repo/WorkforceAssetType/update', async (req, res) => {
-        const [err, data] = await drsService.updateWorkforceAssetType(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
-        } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
-        }
-    });
-
-    //Service to set/reset suspension for an asset
-    app.post('/' + global.config.version + '/drs/doc-repo/asset-list/suspension/update', async (req, res) => {
-        const [err, data] = await drsService.updateAssetListSuspension(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
-        } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
-        }
-    });
-
-    //Service to return reporting users with provision to filter following criteria
-    app.post('/' + global.config.version + '/drs/doc-repo/asset-manager/select', async (req, res) => {
-        const [err, data] = await drsService.selectAssetManager(req.body);
+    //Service to update(reset) the access to document repository
+    app.post('/' + global.config.version + '/drs/doc-repo/access/reset', async (req, res) => {        
+        const [err, data] = await drsService.resetAccessToDocRepo(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
