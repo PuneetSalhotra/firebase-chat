@@ -2669,6 +2669,30 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }  	
+
+    this.getDrilldownMappingList = async (request) => {
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.tag_type_id,
+              request.organization_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
     
 }
 
