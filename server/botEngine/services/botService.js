@@ -1264,12 +1264,17 @@ function BotService(objectCollection) {
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
-            //console.log('ONE: ', botOperationsJson);
-            botSteps = Object.keys(botOperationsJson.bot_operations);
-            //console.log('TWO');
-            logger.silly("botSteps: %j", botSteps);
-            //console.log('THREE');            
+            try {
+                botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            } catch (error) {
+                logger.error("[botOperationsJson] Error parsing bot_operation_inline_data", { type: "bot_engine", request_body: request, error: serializeError(error) });
+            }
+            try {
+                botSteps = Object.keys(botOperationsJson.bot_operations);
+                logger.silly("botSteps: %j", botSteps);
+            } catch (error) {
+                logger.error("[botSteps] Error listing bot_operations keys", { type: "bot_engine", request_body: request, error: serializeError(error) });
+            }      
 
             // Check for condition, if any
             let canPassthrough = true;
@@ -6252,11 +6257,23 @@ async function removeAsOwner(request,data)  {
 
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
+                        //Get the asset Details of the requestor
+                        const dataResp = await getAssetDetails({
+                            "organization_id": request.organization_id,
+                            "asset_id": request.asset_id
+                        });
+
+                        let requestAssetName = 'Tony';
+                        if(dataResp.length > 0) {
+                            requestorAssetData = dataResp[0];
+                            requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
+
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
