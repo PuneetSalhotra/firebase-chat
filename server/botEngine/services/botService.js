@@ -1266,7 +1266,6 @@ function BotService(objectCollection) {
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
-                continue;
             } catch (error) {
                 logger.error("[botOperationsJson] Error parsing bot_operation_inline_data", { type: "bot_engine", request_body: request, error: serializeError(error) });
             }
