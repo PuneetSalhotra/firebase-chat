@@ -1264,12 +1264,18 @@ function BotService(objectCollection) {
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
-            //console.log('ONE: ', botOperationsJson);
-            botSteps = Object.keys(botOperationsJson.bot_operations);
-            //console.log('TWO');
-            logger.silly("botSteps: %j", botSteps);
-            //console.log('THREE');            
+            try {
+                botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+                continue;
+            } catch (error) {
+                logger.error("[botOperationsJson] Error parsing bot_operation_inline_data", { type: "bot_engine", request_body: request, error: serializeError(error) });
+            }
+            try {
+                botSteps = Object.keys(botOperationsJson.bot_operations);
+                logger.silly("botSteps: %j", botSteps);
+            } catch (error) {
+                logger.error("[botSteps] Error listing bot_operations keys", { type: "bot_engine", request_body: request, error: serializeError(error) });
+            }      
 
             // Check for condition, if any
             let canPassthrough = true;
