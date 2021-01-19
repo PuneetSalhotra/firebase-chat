@@ -7,6 +7,7 @@ mode = process.env.NODE_ENV;
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
+
 config = {};
 
 config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinfini
