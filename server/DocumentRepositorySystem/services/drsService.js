@@ -402,7 +402,31 @@ function DrsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.repositoryFileFolderDelete = async (request) => {
+        let responseData = [],
+            error = true;
 
+        let paramsArr = [
+            request.organization_id,
+            request.document_repository_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_p1_document_repository_list_delete', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
 
 
 }
