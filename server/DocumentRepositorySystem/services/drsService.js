@@ -42,6 +42,7 @@ function DrsService(objectCollection) {
     const paramsArr = [
                         request.activity_type_id,
                         request.asset_type_id,
+                        request.access_type_id,
                         request.workforce_id,
                         request.account_id,
                         request.organization_id,
@@ -164,7 +165,7 @@ function DrsService(objectCollection) {
 
         let paramsArr = [
             request.organization_id,
-            request.activity_type_category_id,
+            request.activity_type_id,
             request.document_repository_id,
             request.repository_sub_type_id,
             request.asset_id,
@@ -223,7 +224,7 @@ function DrsService(objectCollection) {
             error = true;
         let paramsArr = [
             request.organization_id,
-            request.activity_type_category_id,
+            request.activity_type_id,
             request.document_repository_id,
             request.repository_sub_type_id,
             request.asset_id,
@@ -376,6 +377,32 @@ function DrsService(objectCollection) {
 
         return [error, responseData];
     }
+
+    this.repositoryAccessMasterSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = [
+            request.page_start,
+            request.page_limit
+        ];
+        const queryString = util.getQueryString('ds_v1_common_document_repository_access_master_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+
 
 
 }
