@@ -17,10 +17,16 @@ function VodafoneService(objectCollection) {
     const makeRequest = require('request');
     //const uuid = require('uuid');
     const moment = require('moment');
+    const mysql = require('mysql');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
     const nodeUtil = require('util');
     const self = this;
+    var elasticsearch = require('elasticsearch');
+    var client = new elasticsearch.Client({
+        hosts: [global.config.elastiSearchNode]
+    });
+
 
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
@@ -6237,7 +6243,417 @@ function VodafoneService(objectCollection) {
         }
         return [error, responseData];
     };
-    
+
+    this.searchWFBasedOnActivityTypeV2 = async (request) => {
+        let responseData = [],
+            error = true;
+        try {
+            let [query, sqlQuery] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping')
+            if (Number(request.flag_participating) != 5 && Number(request.flag_participating) != 6) {
+                if (sqlQuery !== '') {
+                    query = setPagination(request, query)
+                    console.log('Query ', query)
+                    const result = await client.transport.request({
+                        method: "POST",
+                        path: "/_opendistro/_sql",
+                        body: {
+                            query: String(query)
+                        }
+                    })
+                    responseData = setQueryResponse(result)
+                }
+                return [false, responseData];
+            } else {
+                if (sqlQuery !== '') {
+                    sqlQuery = setPagination(request, sqlQuery)
+                    sqlQuery += " ;"
+                    let queryString = mysql.format(sqlQuery, []);
+                    console.log('Query ', queryString)
+                    await db.executeRawQueryPromise(0, queryString, {})
+                        .then((data) => {
+                            responseData = data;
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = true;
+                            console.error(err)
+                        })
+                }
+                return [false, responseData];
+            }
+        } catch (error) {
+            return [error, []];
+        }
+    };
+
+    function setQueryResponse(result) {
+        let responseData = []
+        let k = 0;
+        if (result.datarows.length > 0) {
+            while (k < result.datarows.length) {
+                let responseObj = {}
+                for (var i = 0; i < result.datarows[0].length; i++) {
+                    responseObj[result.schema[i]['name']] = result.datarows[k][i]
+                }
+                responseData.push(responseObj)
+                k++;
+            }
+        }
+        return (responseData)
+    }
+
+    function setPagination(request, query) {
+        let paginationFlag = false
+        if (request.page_start || request.page_limit) {
+            query += ' LIMIT '
+        }
+        if (request.page_start) {
+            query += Number(request.page_start)
+            paginationFlag = true
+        }
+        if (request.page_limit) {
+            if (paginationFlag)
+                query += ' , '
+            query += Number(request.page_limit)
+        }
+        return (query)
+    }
+
+    async function setDynamicQueryArrayV1(request, tableName) {
+        let flagParticipating = request.flag_participating || 0
+        let appendedAnd = false;
+        let query = " "
+        let baseQuery = "";
+        let paramsArr = []
+        let queryString = ""
+        let responseData = []
+        let idRoleAsset = 0
+        let sqlQuery = " "
+
+        switch (Number(flagParticipating)) {
+            case 0: //
+                query += "SELECT * FROM " + tableName + " "
+                if (Number(flagParticipating) >= 0) {
+                    query += ' WHERE '
+                }
+                [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                if (request.asset_flag_is_owner) {
+                    if (appendedAnd)
+                        query += " AND ";
+                    query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
+                    appendedAnd = true;
+                }
+                query += " ORDER BY activity_title";
+                break;
+            case 2: //
+                // query = "SELECT  DISTINCT cd FROM " + tableName + " AS cd "
+                query = "SELECT  DISTINCT (activity_id) FROM " + tableName + " "
+                if (Number(flagParticipating) >= 0) {
+                    query += ' WHERE '
+                }
+                [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                if (request.asset_flag_is_owner) {
+                    if (appendedAnd)
+                        query += " AND ";
+                    query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
+                    appendedAnd = true;
+                }
+                if (request.activity_status_type_id) {
+                    if (appendedAnd)
+                        query += " AND ";
+                    query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
+                    appendedAnd = true;
+                }
+                query += " ORDER BY activity_title";
+                break;
+            case 3: //
+                paramsArr.push(request.asset_id)
+                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
+                queryString = mysql.format(baseQuery, paramsArr);
+                console.log('Query ', queryString)
+                if (queryString !== '') {
+                    await db.executeRawQueryPromise(0, queryString, {})
+                        .then((data) => {
+                            responseData = data;
+                            idRoleAsset = responseData[0]['asset_type_id'] || 0
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = err;
+                        })
+                }
+
+                query = "SELECT * FROM " + tableName + " where "
+                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                    query += ' asset_participant_access_id = ' + Number(152)
+                    appendedAnd = true;
+                    [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    query += " ORDER BY activity_title";
+                } else {
+                    [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.asset_flag_is_owner) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
+                        appendedAnd = true;
+                    }
+                    query += " ORDER BY activity_title";
+                }
+                break;
+
+            case 4: //
+                paramsArr.push(request.asset_id)
+                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
+                queryString = mysql.format(baseQuery, paramsArr);
+                console.log('Query ', queryString)
+                if (queryString !== '') {
+                    await db.executeRawQueryPromise(0, queryString, {})
+                        .then((data) => {
+                            responseData = data;
+                            idRoleAsset = responseData[0]['asset_type_id'] || 0
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = err;
+                        })
+                }
+
+                query = "SELECT * FROM " + tableName + " where "
+                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                    [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.activity_type_category_id) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
+                        appendedAnd = true;
+                    }
+                    if (request.asset_participant_access_id) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' asset_participant_access_id =  ' + Number(request.asset_participant_access_id)
+                        appendedAnd = true;
+                    }
+                    query += " ORDER BY activity_title";
+                } else {
+                    [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.activity_type_category_id) {
+                        query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
+                        appendedAnd = true;
+                    }
+                    query += " ORDER BY activity_title";
+                }
+                break;
+
+            case 5: //
+                // activity_id,  activity_title
+                sqlQuery = "SELECT * FROM activity_activity_mapping where "
+                if (request.parent_activity_id) {
+                    sqlQuery += ' parent_activity_id =  ' + Number(request.parent_activity_id)
+                    appendedAnd = true;
+                }
+                if (request.activity_type_id && request.activity_type_id >= 0) {
+                    if (appendedAnd)
+                        sqlQuery += " AND ";
+                    sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
+                    appendedAnd = true;
+                }
+                if (request.activity_title) {
+                    if (appendedAnd)
+                        sqlQuery += " AND ";
+                    sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                    appendedAnd = true;
+                }
+                if (request.log_active) {
+                    if (appendedAnd)
+                        sqlQuery += " AND ";
+                    sqlQuery += ' log_active = ' + Number(request.log_active)
+                    appendedAnd = true;
+                }
+                if (request.log_state) {
+                    if (appendedAnd)
+                        sqlQuery += " AND ";
+                    sqlQuery += " log_state < " + Number(request.log_state)
+                    appendedAnd = true;
+                }
+                sqlQuery += " ORDER BY activity_title";
+
+                break;
+
+            case 6: //
+                paramsArr.push(request.asset_id)
+                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
+                queryString = mysql.format(baseQuery, paramsArr);
+                console.log('Query ', queryString)
+                if (queryString !== '') {
+                    await db.executeRawQueryPromise(0, queryString, {})
+                        .then((data) => {
+                            responseData = data;
+                            idRoleAsset = responseData[0]['asset_type_id'] || 0
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = err;
+                        })
+                }
+
+                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                    sqlQuery = "SELECT * FROM activity_asset_search_mapping where "
+                    if (request.organization_id) {
+                        sqlQuery += ' organization_id =  ' + Number(request.organization_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_id = ( SELECT activity_id FROM activity_activity_mapping WHERE activity_type_category_id = 48 AND parent_activity_type_id IN (149809,150444) AND log_state < 3 ANd log_active = 1)'
+                        appendedAnd = true;
+                    }
+                    if (request.activity_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.asset_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' asset_id = ' + Number(request.asset_id)
+                        appendedAnd = true;
+                    }
+                    if (request.tag_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' tag_type_id =  ' + Number(request.tag_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_status_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_title) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                        appendedAnd = true;
+                    }
+                    if (request.log_active) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' log_active = ' + Number(request.log_active)
+                        appendedAnd = true;
+                    }
+                    if (request.log_state) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += " log_state < " + Number(request.log_state)
+                        appendedAnd = true;
+                    }
+                    sqlQuery += " ORDER BY activity_title";
+                    break;
+                } else {
+                    sqlQuery = "SELECT DISTINCT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name  FROM activity_asset_search_mapping where "
+                    if (request.organization_id) {
+                        sqlQuery += ' organization_id =  ' + Number(request.organization_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.tag_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' tag_type_id =  ' + Number(request.tag_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_status_type_id) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_title) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                        appendedAnd = true;
+                    }
+                    if (request.log_active) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += ' log_active = ' + Number(request.log_active)
+                        appendedAnd = true;
+                    }
+                    if (request.log_state) {
+                        if (appendedAnd)
+                            sqlQuery += " AND ";
+                        sqlQuery += " log_state < " + Number(request.log_state)
+                        appendedAnd = true;
+                    }
+                    sqlQuery += " ORDER BY activity_title";
+
+                }
+                break;
+        }
+        return [query, sqlQuery];
+    }
+
+    function setCommonParam(request, query, appendedAnd) {
+        if (request.organization_id) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' organization_id =  ' + Number(request.organization_id)
+            appendedAnd = true;
+        }
+        if (request.asset_id) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' asset_id = ' + Number(request.asset_id)
+            appendedAnd = true;
+        }
+        if (request.activity_type_id) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' activity_type_id = ' + Number(request.activity_type_id)
+            appendedAnd = true;
+        }
+        if (request.tag_type_id) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' tag_type_id =  ' + Number(request.tag_type_id)
+            appendedAnd = true;
+        }
+        if (request.activity_status_type_id) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
+            appendedAnd = true;
+        }
+        if (request.activity_title) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+            appendedAnd = true;
+        }
+        if (request.log_active) {
+            if (appendedAnd)
+                query += " AND ";
+            query += ' log_active = ' + Number(request.log_active)
+            appendedAnd = true;
+        }
+        if (request.log_state) {
+            if (appendedAnd)
+                query += " AND ";
+            query += " log_state < " + Number(request.log_state)
+            appendedAnd = true;
+        }
+        return [query, appendedAnd]
+    }
+
 }
 
 
