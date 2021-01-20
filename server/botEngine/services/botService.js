@@ -11545,7 +11545,11 @@ async function removeAsOwner(request,data)  {
                 type: "VIL_ESMS_IBMMQ_INTEGRATION",
                 trigger_form_id: Number(triggerFormID),
                 form_transaction_id: Number(request.form_transaction_id),
-                payload: { opportunity_details: OpportunitiesArray[i] }
+                payload: { 
+                    workflow_activity_id: request.workflow_activity_id,
+                    account_id : request.account_id,
+                    opportunity_details: OpportunitiesArray[i] 
+                }
             }, esmsIntegrationsTopicName, Number(workflowActivityID));
         }
 
