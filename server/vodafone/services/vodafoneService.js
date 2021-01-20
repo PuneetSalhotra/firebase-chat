@@ -6246,41 +6246,25 @@ function VodafoneService(objectCollection) {
 
     this.searchWFBasedOnActivityTypeV2 = async (request) => {
         let responseData = [],
-            error = true;
+            error = true,
+            pageLimit = request.page_limit || 50,
+            pageStart = request.page_start || 0,
+            query = "";
         try {
-            let [query, sqlQuery] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping')
-            if (Number(request.flag_participating) != 5 && Number(request.flag_participating) != 6) {
-                if (sqlQuery !== '') {
-                    query = setPagination(request, query)
-                    console.log('Query ', query)
-                    const result = await client.transport.request({
-                        method: "POST",
-                        path: "/_opendistro/_sql",
-                        body: {
-                            query: String(query)
-                        }
-                    })
-                    responseData = setQueryResponse(result)
-                }
-                return [false, responseData];
-            } else {
-                if (sqlQuery !== '') {
-                    sqlQuery = setPagination(request, sqlQuery)
-                    sqlQuery += " ;"
-                    let queryString = mysql.format(sqlQuery, []);
-                    console.log('Query ', queryString)
-                    await db.executeRawQueryPromise(0, queryString, {})
-                        .then((data) => {
-                            responseData = data;
-                            error = false;
-                        })
-                        .catch((err) => {
-                            error = true;
-                            console.error(err)
-                        })
-                }
-                return [false, responseData];
+            [query, error, responseData] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping')
+            if (query !== '') {
+                query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
+                console.log('Query ', query)
+                const result = await client.transport.request({
+                    method: "POST",
+                    path: "/_opendistro/_sql",
+                    body: {
+                        query: String(query)
+                    }
+                })
+                responseData = setQueryResponse(result)
             }
+            return [false, responseData];
         } catch (error) {
             return [error, []];
         }
@@ -6302,35 +6286,14 @@ function VodafoneService(objectCollection) {
         return (responseData)
     }
 
-    function setPagination(request, query) {
-        let paginationFlag = false
-        if (request.page_start || request.page_limit) {
-            query += ' LIMIT '
-        }
-        if (request.page_start) {
-            query += Number(request.page_start)
-            paginationFlag = true
-        }
-        if (request.page_limit) {
-            if (paginationFlag)
-                query += ' , '
-            query += Number(request.page_limit)
-        }
-        return (query)
-    }
-
     async function setDynamicQueryArrayV1(request, tableName) {
-        let flagParticipating = request.flag_participating || 0
-        let appendedAnd = false;
-        let query = " "
-        let baseQuery = "";
-        let paramsArr = []
-        let queryString = ""
-        let responseData = []
-        let idRoleAsset = 0
-        let sqlQuery = " "
-        let assetData = [];
-        error = false;
+        let flagParticipating = request.flag_participating || 0,
+            appendedAnd = false,
+            query = "",
+            paramsArr = [],
+            idRoleAsset = 0,
+            resultData = [],
+            error = false;
 
         switch (Number(flagParticipating)) {
             case 0: //
@@ -6361,8 +6324,10 @@ function VodafoneService(objectCollection) {
                 query += " ORDER BY activity_title";
                 break;
             case 3: //
-                [error, assetData] = await self.assetTypeIdSelect(request);
-                idRoleAsset = assetData[0].asset_type_id
+                paramsArr = [request.asset_id]
+                dbCall = 'ds_p1_asset_list_select_asset';
+                [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
+                idRoleAsset = resultData[0].asset_type_id
 
                 query = "SELECT * FROM " + tableName + " where "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
@@ -6393,10 +6358,11 @@ function VodafoneService(objectCollection) {
                     query += " ORDER BY activity_title";
                 }
                 break;
-
             case 4: //
-                [error, assetData] = await self.assetTypeIdSelect(request);
-                idRoleAsset = assetData[0].asset_type_id
+                paramsArr = [request.asset_id]
+                dbCall = 'ds_p1_asset_list_select_asset';
+                [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
+                idRoleAsset = resultData[0].asset_type_id
 
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + tableName + " where ";
@@ -6431,170 +6397,47 @@ function VodafoneService(objectCollection) {
                     query += " ORDER BY activity_title";
                 }
                 break;
-
             case 5: //
                 // activity_id,  activity_title
-                sqlQuery = "SELECT * FROM activity_activity_mapping where "
-                if (request.parent_activity_id) {
-                    sqlQuery += ' parent_activity_id =  ' + Number(request.parent_activity_id)
-                    appendedAnd = true;
-                }
-                if (request.activity_type_id && request.activity_type_id >= 0) {
-                    if (appendedAnd)
-                        sqlQuery += " AND ";
-                    sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
-                    appendedAnd = true;
-                }
-                if (request.activity_title) {
-                    if (appendedAnd)
-                        sqlQuery += " AND ";
-                    sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
-                    appendedAnd = true;
-                }
-                if (request.log_active) {
-                    if (appendedAnd)
-                        sqlQuery += " AND ";
-                    sqlQuery += ' log_active = ' + Number(request.log_active)
-                    appendedAnd = true;
-                }
-                if (request.log_state) {
-                    if (appendedAnd)
-                        sqlQuery += " AND ";
-                    sqlQuery += " log_state < " + Number(request.log_state)
-                    appendedAnd = true;
-                }
-                sqlQuery += " ORDER BY activity_title";
-
+                paramsArr = [
+                    request.parent_activity_id,
+                    request.activity_type_id,
+                    request.activity_title,
+                    request.organization_id,
+                    request.page_start || 0,
+                    request.page_limit || 50
+                ]
+                dbCall = 'ds_p1_activity_activity_mapping_select_child_activities_search';
+                [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 break;
-
             case 6: //
-                paramsArr.push(request.asset_id)
-                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
-                queryString = mysql.format(baseQuery, paramsArr);
-                console.log('Query ', queryString)
-                if (queryString !== '') {
-                    await db.executeRawQueryPromise(0, queryString, {})
-                        .then((data) => {
-                            responseData = data;
-                            idRoleAsset = responseData[0]['asset_type_id'] || 0
-                            error = false;
-                        })
-                        .catch((err) => {
-                            error = err;
-                        })
-                }
-
-                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
-                    sqlQuery = "SELECT * FROM activity_asset_search_mapping where "
-                    if (request.organization_id) {
-                        sqlQuery += ' organization_id =  ' + Number(request.organization_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_id = ( SELECT activity_id FROM activity_activity_mapping WHERE activity_type_category_id = 48 AND parent_activity_type_id IN (149809,150444) AND log_state < 3 ANd log_active = 1)'
-                        appendedAnd = true;
-                    }
-                    if (request.activity_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.asset_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' asset_id = ' + Number(request.asset_id)
-                        appendedAnd = true;
-                    }
-                    if (request.tag_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' tag_type_id =  ' + Number(request.tag_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_status_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_title) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
-                        appendedAnd = true;
-                    }
-                    if (request.log_active) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' log_active = ' + Number(request.log_active)
-                        appendedAnd = true;
-                    }
-                    if (request.log_state) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += " log_state < " + Number(request.log_state)
-                        appendedAnd = true;
-                    }
-                    sqlQuery += " ORDER BY activity_title";
-                    break;
-                } else {
-                    sqlQuery = "SELECT DISTINCT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name  FROM activity_asset_search_mapping where "
-                    if (request.organization_id) {
-                        sqlQuery += ' organization_id =  ' + Number(request.organization_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_type_id = ' + Number(request.activity_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.tag_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' tag_type_id =  ' + Number(request.tag_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_status_type_id) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
-                        appendedAnd = true;
-                    }
-                    if (request.activity_title) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
-                        appendedAnd = true;
-                    }
-                    if (request.log_active) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += ' log_active = ' + Number(request.log_active)
-                        appendedAnd = true;
-                    }
-                    if (request.log_state) {
-                        if (appendedAnd)
-                            sqlQuery += " AND ";
-                        sqlQuery += " log_state < " + Number(request.log_state)
-                        appendedAnd = true;
-                    }
-                    sqlQuery += " ORDER BY activity_title";
-
-                }
+                paramsArr = [
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.asset_id,
+                    request.activity_type_id,
+                    request.activity_type_category_id,
+                    request.activity_status_type_id,
+                    request.tag_id,
+                    request.tag_type_id,
+                    request.activity_title,
+                    request.flag_status,
+                    request.flag_participating || 6,
+                    request.page_start || 0,
+                    request.page_limit || 50
+                ]
+                dbCall = 'ds_p1_3_activity_list_search_workflow_reference';
+                [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 break;
         }
-        return [query, sqlQuery];
+        return [query, error, resultData];
     }
 
-    this.assetTypeIdSelect = async function (request) {
+    this.executeSqlQuery = async function (request, dbCall, paramsArr) {
         let responseData = [],
             error = true;
-        const paramsArr = [request.asset_id]
-        const queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
+        const queryString = util.getQueryString(dbCall, paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
