@@ -10051,7 +10051,7 @@ async function removeAsOwner(request,data)  {
 
 
 
-        let fieldIdValuesMap = {};
+        let fieldIdValuesMap = {}, aovValue = '';
 
         for(let row of largeDoaData) {
             fieldIdValuesMap[row.field_id] = row.field_value;
@@ -10068,7 +10068,7 @@ async function removeAsOwner(request,data)  {
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
-            if(currentExecution.serial_no == 5) {
+            if(currentExecution.key_number == 1) {
                 console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
@@ -10081,20 +10081,6 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-
-
-
-            // if(connectionTypeValue && currentExecution.serial_no == 4) {
-            //
-            //     continue;
-            // }
-            //
-            // if(opexValue && capexValue && currentExecution.serial_no == 9) {
-            //
-            //     continue;
-            // }
-
-
             for(let fieldId of currentExecution.field_ids) {
 
                 let fieldValue = fieldIdValuesMap[fieldId];
@@ -10103,7 +10089,11 @@ async function removeAsOwner(request,data)  {
                     console.log("Got Empty Value ", fieldId, fieldValue);
                     continue;
                 }
-                console.log("columnNumber before update", columnNumber, " and the value is ", fieldValue, " and type is ", currentExecution.type);
+                console.log("columnNumber before update", columnNumber, " and the value is ", fieldValue, " and type is ", currentExecution.type, " and field id is", fieldId);
+
+                if(currentExecution.key_number == 2) {
+                    aovValue = fieldValue;
+                }
 
                 for(let columnDetails of valuesToBeChecked) {
                     console.log("columnDetails-----", columnDetails);
@@ -10168,16 +10158,29 @@ async function removeAsOwner(request,data)  {
         console.log("Selected column is ", columnNumber);
         if(columnNumber.column) {
             //need timeline entry
-            let planConfig = {};
+            let planConfig = {}, activityDetails = '', activityTypeId = '';
 
             let requestInlineData = JSON.parse(request.activity_inline_data)
             for(let row of requestInlineData) {
                 if(parseInt(row.field_id) == 308742) {
                     planConfig = row;
-                    break;
+                }
+
+                if(parseInt(row.field_id) == 218728) {
+                    activityDetails = row;
                 }
             }
 
+            let activityDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
+
+            if(activityDetails.length) {
+                activityTypeId = activityDetails[0].activity_type_id;
+                // return;
+            } else {
+                console.error("activityDetails found empty");
+            }
+
+            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid/Tender' : 'Other workflow');
             console.log("Will be assigned to the required team");
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
             console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
@@ -10199,12 +10202,12 @@ async function removeAsOwner(request,data)  {
                     form_id: 50476,
                     field_id: '309279',
                     field_name: 'Decision Type',
-                    field_data_type_id: planConfig.field_data_type_id,
-                    field_data_type_category_id: planConfig.field_data_type_category_id,
-                    data_type_combo_id: planConfig.data_type_combo_id,
-                    data_type_combo_value: planConfig.data_type_combo_value,
-                    field_value: planConfig.field_value,
-                    message_unique_id: 1611037993575
+                    field_data_type_id: 33,
+                    field_data_type_category_id: 14,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: fieldValue,
+                    field_value : fieldValue,
+                    message_unique_id : 1611037993575
                 },
                 {
                     form_id: 50476,
@@ -10213,8 +10216,8 @@ async function removeAsOwner(request,data)  {
                     field_data_type_id: 6,
                     field_data_type_category_id: 2,
                     data_type_combo_id: 0,
-                    data_type_combo_value: '0',
-                    field_value: '67777',
+                    data_type_combo_value: aovValue,
+                    field_value: aovValue,
                     message_unique_id: 1611037843535
                 }
             ]);
@@ -10279,6 +10282,18 @@ async function removeAsOwner(request,data)  {
             return
         }
 
+    }
+
+
+    async function getActivityTypeIdBasedOnActivityId(organization_id, activity_id) {
+        let paramsArr = new Array(
+          activity_id,
+          organization_id
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_select', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
     }
 
     async function checkCustomBot(request, inlineData) {

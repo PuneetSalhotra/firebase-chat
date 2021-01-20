@@ -369,6 +369,39 @@ function DrsService(objectCollection) {
         return [error, responseData];
     }
 
+    //get all roles who have access to repository
+    this.listOfAccessableRoles = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.asset_type_id||"",
+            request.level_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
+        ];
+        const queryString = util.getQueryString('ds_p1_activity_type_asset_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
 
 }
 module.exports = DrsService;
