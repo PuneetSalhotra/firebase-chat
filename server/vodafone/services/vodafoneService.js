@@ -6337,6 +6337,12 @@ function VodafoneService(objectCollection) {
                     query += ' WHERE '
                 }
                 [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                if (request.asset_id) {
+                    if (appendedAnd)
+                        query += " AND ";
+                    query += ' asset_id = ' + Number(request.asset_id)
+                    appendedAnd = true;
+                }
                 if (request.asset_flag_is_owner) {
                     if (appendedAnd)
                         query += " AND ";
@@ -6346,24 +6352,10 @@ function VodafoneService(objectCollection) {
                 query += " ORDER BY activity_title";
                 break;
             case 2: //
-                // query = "SELECT  DISTINCT cd FROM " + tableName + " AS cd "
-                query = "SELECT  DISTINCT (activity_id) FROM " + tableName + " "
-                if (Number(flagParticipating) >= 0) {
+                tableName = 'activity_search_mapping'; // for distinct result mapping
+                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " "
                     query += ' WHERE '
-                }
                 [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                if (request.asset_flag_is_owner) {
-                    if (appendedAnd)
-                        query += " AND ";
-                    query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
-                    appendedAnd = true;
-                }
-                if (request.activity_status_type_id) {
-                    if (appendedAnd)
-                        query += " AND ";
-                    query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
-                    appendedAnd = true;
-                }
                 query += " ORDER BY activity_title";
                 break;
             case 3: //
@@ -6388,9 +6380,21 @@ function VodafoneService(objectCollection) {
                     query += ' asset_participant_access_id = ' + Number(152)
                     appendedAnd = true;
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.asset_id) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' asset_id = ' + Number(request.asset_id)
+                        appendedAnd = true;
+                    }
                     query += " ORDER BY activity_title";
                 } else {
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.asset_id) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' asset_id = ' + Number(request.asset_id)
+                        appendedAnd = true;
+                    }
                     if (request.asset_flag_is_owner) {
                         if (appendedAnd)
                             query += " AND ";
@@ -6418,9 +6422,15 @@ function VodafoneService(objectCollection) {
                         })
                 }
 
-                query = "SELECT * FROM " + tableName + " where "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                    query = "SELECT * FROM " + tableName + " where ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
+                    if (request.asset_id) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' asset_id = ' + Number(request.asset_id)
+                        appendedAnd = true;
+                    }
                     if (request.activity_type_category_id) {
                         if (appendedAnd)
                             query += " AND ";
@@ -6435,6 +6445,8 @@ function VodafoneService(objectCollection) {
                     }
                     query += " ORDER BY activity_title";
                 } else {
+                    tableName = 'activity_search_mapping'; // for distinct result mapping
+                    query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " where ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     if (request.activity_type_category_id) {
                         query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
@@ -6607,12 +6619,6 @@ function VodafoneService(objectCollection) {
             if (appendedAnd)
                 query += " AND ";
             query += ' organization_id =  ' + Number(request.organization_id)
-            appendedAnd = true;
-        }
-        if (request.asset_id) {
-            if (appendedAnd)
-                query += " AND ";
-            query += ' asset_id = ' + Number(request.asset_id)
             appendedAnd = true;
         }
         if (request.activity_type_id) {
