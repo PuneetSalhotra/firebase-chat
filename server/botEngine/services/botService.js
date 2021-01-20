@@ -10157,13 +10157,13 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            let activityDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
+            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
 
-            if(activityDetails.length) {
-                activityTypeId = activityDetails[0].activity_type_id;
+            if(activityTypeDetails.length) {
+                activityTypeId = activityTypeDetails[0].activity_type_id;
                 // return;
             } else {
-                console.error("activityDetails found empty");
+                console.error("activityTypeDetails found empty");
             }
 
             let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid/Tender' : 'Other workflow');
