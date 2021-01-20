@@ -6329,6 +6329,8 @@ function VodafoneService(objectCollection) {
         let responseData = []
         let idRoleAsset = 0
         let sqlQuery = " "
+        let assetData = [];
+        error = false;
 
         switch (Number(flagParticipating)) {
             case 0: //
@@ -6354,26 +6356,13 @@ function VodafoneService(objectCollection) {
             case 2: //
                 tableName = 'activity_search_mapping'; // for distinct result mapping
                 query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " "
-                    query += ' WHERE '
+                query += ' WHERE '
                 [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                 query += " ORDER BY activity_title";
                 break;
             case 3: //
-                paramsArr.push(request.asset_id)
-                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
-                queryString = mysql.format(baseQuery, paramsArr);
-                console.log('Query ', queryString)
-                if (queryString !== '') {
-                    await db.executeRawQueryPromise(0, queryString, {})
-                        .then((data) => {
-                            responseData = data;
-                            idRoleAsset = responseData[0]['asset_type_id'] || 0
-                            error = false;
-                        })
-                        .catch((err) => {
-                            error = err;
-                        })
-                }
+                [error, assetData] = await self.assetTypeIdSelect(request);
+                idRoleAsset = assetData[0].asset_type_id
 
                 query = "SELECT * FROM " + tableName + " where "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
@@ -6406,21 +6395,8 @@ function VodafoneService(objectCollection) {
                 break;
 
             case 4: //
-                paramsArr.push(request.asset_id)
-                baseQuery = `SELECT asset_type_id FROM asset_list WHERE asset_id = ? AND log_state < 3;`;
-                queryString = mysql.format(baseQuery, paramsArr);
-                console.log('Query ', queryString)
-                if (queryString !== '') {
-                    await db.executeRawQueryPromise(0, queryString, {})
-                        .then((data) => {
-                            responseData = data;
-                            idRoleAsset = responseData[0]['asset_type_id'] || 0
-                            error = false;
-                        })
-                        .catch((err) => {
-                            error = err;
-                        })
-                }
+                [error, assetData] = await self.assetTypeIdSelect(request);
+                idRoleAsset = assetData[0].asset_type_id
 
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + tableName + " where ";
@@ -6612,6 +6588,24 @@ function VodafoneService(objectCollection) {
                 break;
         }
         return [query, sqlQuery];
+    }
+
+    this.assetTypeIdSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = [request.asset_id]
+        const queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     function setCommonParam(request, query, appendedAnd) {
