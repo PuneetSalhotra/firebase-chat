@@ -805,6 +805,36 @@ function RMBotService(objectCollection) {
             self.addParticipantMakeRequest(request);
         }
    }
+
+   this.TriggerRoundRobinV2 = async function (request) {
+        let assetData = [], err = false;
+
+        if(request.target_asset_id === 0)
+            [err, assetData] = await self.getNextRoundRobinAsset(request);
+        else if(request.target_asset_id > 0){
+            let targetAssetJsonData =   {"asset_id": request.target_asset_id,
+                                        "operating_asset_first_name": request.target_asset_first_name
+                                        }
+            assetData.push(targetAssetJsonData) ;               
+        }
+
+        if(assetData.length == 0){
+            request.debug_info.push("NO ASSET RETURNED IN ROUND ROBIN");
+            return [false,{}];
+        }else{
+            request.debug_info.push("AFTER_EXECUTING_ROUND_ROBIN, TARGET RESOURCE IS "+assetData[0].asset_id);
+            request.target_status_lead_asset_id = assetData[0].asset_id;
+            request.target_status_lead_asset_name = assetData[0].operating_asset_first_name;
+            request.res_account_id = 0;
+            request.res_workforce_id = 0;
+            request.res_asset_type_id = 0;
+            request.res_asset_category_id = 0;
+            request.res_asset_id = assetData[0].asset_id;
+        
+            self.addParticipantMakeRequest(request);
+        }
+    }
+
    this.RMAssignWorkflow = async function (request) {
     let [err, assetData] = await self.getAvailableResourcePoolAssetType(request);
         let resources_exists = false;
@@ -3090,7 +3120,13 @@ function RMBotService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset_json', paramsArr);
         
         if (queryString !== '') {
+
+            if(request.hasOwnProperty("global_array"))
             request.global_array.push({"getNextRoundRobinAsset":queryString});
+
+            if(request.hasOwnProperty("debug_info"))
+            request.debug_info.push("getNextRoundRobinAsset "+queryString);
+
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {                    
                     responseData = data;
