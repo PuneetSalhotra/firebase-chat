@@ -6307,7 +6307,7 @@ function VodafoneService(objectCollection) {
 
         switch (Number(flagParticipating)) {
             case 0: //
-                query += "SELECT * FROM " + tableName + " WHERE "
+                query += "SELECT * FROM " + tableName + " WHERE " ;
                 [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                 if (request.asset_id && request.asset_id > 0) {
                     if (appendedAnd)
