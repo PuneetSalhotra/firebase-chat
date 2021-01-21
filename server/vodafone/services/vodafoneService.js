@@ -6328,7 +6328,8 @@ function VodafoneService(objectCollection) {
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
-                idRoleAsset = resultData[0].asset_type_id
+                if(resultData.length>0)
+                    idRoleAsset = resultData[0].asset_type_id
                 query = "SELECT * FROM " + tableName + " where "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query += ' asset_participant_access_id = ' + Number(152)
@@ -6362,7 +6363,8 @@ function VodafoneService(objectCollection) {
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
-                idRoleAsset = resultData[0].asset_type_id
+                if(resultData.length>0)
+                    idRoleAsset = resultData[0].asset_type_id
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + tableName + " where ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
