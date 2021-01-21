@@ -3,7 +3,10 @@ function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
     const self = this;
     const nodeUtil = require('util');
-
+    var elasticsearch = require('elasticsearch');
+    var client = new elasticsearch.Client({
+        hosts: [global.config.elastiSearchNode]
+    });
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -5845,6 +5848,25 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    client.index({
+                        index: 'activity_asset_search_mapping',
+                        body: {
+                            activity_id: Number(request.activity_id),
+                            organization_id: Number(request.organization_id),
+                            asset_id: Number(request.asset_id),
+                            
+                        }
+                    });
+                    client.index({
+                        index: 'activity_search_mapping',
+                        body: {
+                            activity_id: Number(request.activity_id),
+                           
+                            organization_id: Number(request.organization_id),
+                            asset_id: Number(request.asset_id),
+                            
+                        }
+                    });
                 })
                 .catch((err) => {
                     error = err;
@@ -5877,6 +5899,44 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    client.updateByQuery({
+                        index: 'activity_asset_search_mapping',
+                        "body": {
+                            "query": {
+                                "match": {
+                                    "activity_id": Number(request.activity_id)
+                                }
+                            },
+                            "script": {
+                                "source": "ctx._source = params",
+                                "lang": "painless",
+                                "params": {
+                                    "activity_id": Number(request.activity_id),
+                                    "asset_id": 0,
+                                    "organization_id":Number(request.organization_id)
+                                }
+                            }
+                        }
+                    });
+                    client.updateByQuery({
+                        index: 'activity_search_mapping',
+                        "body": {
+                            "query": {
+                                "match": {
+                                    "activity_id": Number(request.activity_id)
+                                }
+                            },
+                            "script": {
+                                "source": "ctx._source = params",
+                                "lang": "painless",
+                                "params": {
+                                    "activity_id": Number(request.activity_id),
+                                    "asset_id": 0,
+                                    "organization_id":Number(request.organization_id)
+                                }
+                            }
+                        }
+                    });
                 })
                 .catch((err) => {
                     error = err;
@@ -5902,6 +5962,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    client.delete({
+                        index:'activity_asset_search_mapping',
+                        activity_id:Number(request.activity_id)
+                    })
+                    client.delete({
+                        index:'activity_search_mapping',
+                        activity_id:Number(request.activity_id)
+                    })
                 })
                 .catch((err) => {
                     error = err;
