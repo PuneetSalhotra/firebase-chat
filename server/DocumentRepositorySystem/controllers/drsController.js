@@ -61,7 +61,7 @@ function DrsController(objCollection)
     });
 
     // Service to list document repository types accessible to the user
-    app.post('/' + global.config.version + '/drs/doc-repo/accessible', async (req, res) => {
+    app.post('/' + global.config.version + '/drs/doc-repo/user/access/list', async (req, res) => {
         const [err, data] = await drsService.selectDRSAsset(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
@@ -131,6 +131,42 @@ function DrsController(objCollection)
 
     app.post('/' + global.config.version + '/drs/doc-repo/roles/access/list', async (req, res) => {
         const [err, data] = await drsService.listOfAccessableRoles(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/drs/doc-repo/set/super-admin', async (req, res) => {
+        const [err, data] = await drsService.updateDocSuperAdmin(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/drs/doc-repo/users/list', async (req, res) => {
+        const [err, data] = await drsService.getDocsAssetList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/drs/doc-repo/add/user/access', async (req, res) => {
+        const [err, data] = await drsService.shareDocToAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/drs/doc-repo/remove/user/access', async (req, res) => {
+        const [err, data] = await drsService.removeDocToAsset(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
