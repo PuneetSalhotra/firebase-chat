@@ -6320,15 +6320,15 @@ function VodafoneService(objectCollection) {
                 tableName = 'activity_search_mapping'; // for distinct result mapping
                 query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " "
                 query += ' WHERE '
-                [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                query += " ORDER BY activity_title";
+                let [queryOne, appendedAndOne] = setCommonParam(request, query, appendedAnd)
+                queryOne += " ORDER BY activity_title";
+                query = queryOne;
                 break;
             case 3: //
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 idRoleAsset = resultData[0].asset_type_id
-
                 query = "SELECT * FROM " + tableName + " where "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query += ' asset_participant_access_id = ' + Number(152)
@@ -6363,7 +6363,6 @@ function VodafoneService(objectCollection) {
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 idRoleAsset = resultData[0].asset_type_id
-
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + tableName + " where ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
