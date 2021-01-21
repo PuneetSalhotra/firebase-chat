@@ -1908,13 +1908,15 @@ function BotService(objectCollection) {
                 case 34: // ARP
                 global.logger.write('conLog', '****************************************************************', {}, {});
                 global.logger.write('conLog', 'ARPBot', {}, {});
-                logger.silly("ARP: Request Params received from Request: %j", request);
-                request.debug_info.push('ARPBot');
+                logger.info("ARP: Request Params received from Request: "+request);
+                
+                request.debug_info.push("case 34: ARPBot");
                 try{
                     await arpBot(request, botOperationsJson.bot_operations);
                 }catch(err){
                     global.logger.write('serverError', 'Error in executing ARPBot Step', {}, {});
                     global.logger.write('serverError', err, {}, {});
+                    logger.error("serverError | Error in executing ARPBot Step", { type: 'bot_engine', error: serializeError(error), request_body: request });                  
                     i.bot_operation_status_id = 2;
                     i.bot_operation_inline_data = JSON.stringify({
                         "err": err
@@ -11368,21 +11370,19 @@ async function removeAsOwner(request,data)  {
         logger.silly("arpBot: Bot Inline data: %j", inlineData);
         let key = "_1";
         let isEnd = false;
-        
-       // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
-       // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
-       // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
 
         while(!isEnd){
             isEnd = true;
             logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
             let conditionData = inlineData[key];
+            request.debug_info.push("key : "+key);
+            request.debug_info.push("operation_type : "+conditionData.operation_type);
             if(conditionData.operation_type === 'check'){
-                // get the field value here
-                logger.silly("arpBot: conditionData.condition: %j", conditionData.condition);
-                logger.silly("arpBot: conditionData.data_type: %j", conditionData.data_type);
+                logger.info("arpBot: conditionData.condition: "+conditionData.condition);
+                logger.info("arpBot: conditionData.data_type: "+conditionData.data_type);
                 let fieldValue = await getFormFieldValue(request, conditionData.field_id);
-                logger.silly("arpBot: getFormFieldValue fieldValue: %j", fieldValue);
+                request.debug_info.push(conditionData.field_id+" : "+fieldValue);
+                logger.info("arpBot: conditionData.field_id: "+conditionData.field_id);
                 if(conditionData.condition == 'eq'){
                     if(conditionData.data_type === 'int'){
                         if(fieldValue === Number(conditionData.compare_value)){
@@ -11434,6 +11434,7 @@ async function removeAsOwner(request,data)  {
                 request.target_asset_id = conditionData.asset_id;
                 request.target_asset_first_name = conditionData.operating_asset_first_name || '';
                 request.asset_type_id = conditionData.asset_type_id;
+                logger.info("Triggeringing RoundRobin :: ");
                 rmBotService.TriggerRoundRobinV2(request);
                 key = conditionData.next_key;
                 isEnd = conditionData.isEnd;
@@ -11449,8 +11450,8 @@ async function removeAsOwner(request,data)  {
                 key = '-3';
             }  
             
-            logger.silly("arpBot: nextKey: %j", key);
-            logger.silly("arpBot: isEnd: %j", isEnd);
+            logger.info("arpBot: nextKey: "+key);
+            logger.info("arpBot: isEnd: "+isEnd);
         }
     }
 
@@ -11460,8 +11461,8 @@ async function removeAsOwner(request,data)  {
         let fieldValue = '';
        
         for(let counter = 0; counter < formInlineData.length; counter++){
-            if(Number(formInlineData[counter].field_id) === Number(idField)){
-                logger.silly("arpBot: Field Matched: %j", formInlineData[counter].field_value);
+            if(Number(formInlineData[counter].field_id) === Number(idField)){                
+                logger.info("arpBot: Field Matched: "+formInlineData[counter].field_value);
                 fieldValue = formInlineData[counter].field_value;
                 break;
             }
