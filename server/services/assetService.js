@@ -812,7 +812,8 @@ function AssetService(objectCollection) {
             "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
             "asset_doc_repo_access_type_name":util.replaceDefaultString(rowArray[0]['asset_doc_repo_access_type_name']),
             "organization_flag_document_repository_enabled":util.replaceDefaultString(rowArray[0]['organization_flag_document_repository_enabled']),
-            "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url'])
+            "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url']),
+            "asset_flag_document_repo_super_admin":util.replaceDefaultNumber(rowArray[0]['asset_flag_document_repo_super_admin'])
         };
 
         callback(false, rowData);
