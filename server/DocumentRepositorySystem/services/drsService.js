@@ -33,7 +33,63 @@ function DrsService(objectCollection) {
     return [error, responseData];
   };
 
-  
+  //Service to give doc access to asset
+  this.shareDocToAsset = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+                        request.document_repository_id,
+                        request.target_asset_id,
+                        request.target_access_id,
+                        request.organization_id,
+                        request.asset_id,
+                        util.getCurrentUTCTime()
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_insert', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+              responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
+
+  //Service to remove doc access to asset
+  this.removeDocToAsset = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+                        request.organization_id,
+                        request.document_repository_id,
+                        request.target_asset_id,
+                        request.asset_id,
+                        util.getCurrentUTCTime()
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_delete', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+              responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
+
   //Service to share document repository to a specific role
   this.shareDRSToASpecificRole = async (request) => {
     let responseData = [],
@@ -66,6 +122,7 @@ function DrsService(objectCollection) {
   };
 
   
+
   //Service to remove sharing of a document repository to a specific role
   this.removeDRSToASpecificRole = async (request) => {
     let responseData = [],
@@ -427,6 +484,129 @@ function DrsService(objectCollection) {
 
         return [error, responseData];
     }
+
+    //get all roles who have access to repository
+    this.listOfAccessableRoles = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.asset_type_id||"",
+            request.level_id,
+            request.flag||0,
+            request.page_start,
+            request.page_limit
+        ];
+        const queryString = util.getQueryString('ds_p1_activity_type_asset_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    }
+
+  //Service to update doc super admin
+  this.updateDocSuperAdmin = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.target_asset_id,
+                        request.asset_flag_document_repo_super_admin
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_asset_list_update_flag_document_repo_super_admin', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+              responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
+
+  //Service to get all assets who has access to doc
+  this.getDocsAssetList = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+                        request.organization_id,
+                        request.activity_type_id,
+                        request.document_repository_id,
+                        request.repository_sub_type_id,
+                        request.asset_id,
+                        request.flag,
+                        request.page_start,
+                        request.page_limit
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_select_doc_repository', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+              responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
+
+  //Service to get all assets who has access to doc
+//   this.getDocsAssetList = async (request) => {
+//     let responseData = [],
+//         error = true;
+    
+//     const paramsArr = [
+//                         request.organization_id,
+//                         request.activity_type_id,
+//                         request.document_repository_id,
+//                         request.repository_sub_type_id,
+//                         request.asset_id,
+//                         request.flag,
+//                         request.page_start,
+//                         request.page_limit
+//                       ];
+
+//     const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_history_insert', paramsArr);
+//     if (queryString !== '') {
+//         await db.executeQueryPromise(0, queryString, request)
+//             .then((data) => {
+//               responseData = data;
+//                 error = false;
+//             })
+//             .catch((err) => {
+//                 error = err;
+//             });
+//     }
+
+//     return [error, responseData];
+//   };
 
 
 }
