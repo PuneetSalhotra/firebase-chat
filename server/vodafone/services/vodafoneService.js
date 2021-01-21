@@ -6247,12 +6247,22 @@ function VodafoneService(objectCollection) {
     this.searchWFBasedOnActivityTypeV2 = async (request) => {
         let responseData = [],
             error = true,
-            pageLimit = request.page_limit || 50,
-            pageStart = request.page_start || 0,
+            pageLimit = 50,
+            pageStart = 0,
             query = "";
+        if (request.page_limit && request.page_limit > 0)
+            pageLimit = request.page_limit;
+        if (request.page_limit && request.page_limit > 0)
+            pageStart = request.page_start;
+
         try {
             [query, error, responseData] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping')
             if (query !== '') {
+                if (query.split("WHERE").length > 1) {
+                    if (!query.split("WHERE")[1].trim().match(".*[a-zA-Z]+.*")) {
+                        query = query.replace("WHERE", "");
+                    }
+                }
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query)
                 const result = await client.transport.request({
@@ -6297,18 +6307,15 @@ function VodafoneService(objectCollection) {
 
         switch (Number(flagParticipating)) {
             case 0: //
-                query += "SELECT * FROM " + tableName + " "
-                if (Number(flagParticipating) >= 0) {
-                    query += ' WHERE '
-                }
+                query += "SELECT * FROM " + tableName + " WHERE "
                 [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                if (request.asset_id) {
+                if (request.asset_id && request.asset_id > 0) {
                     if (appendedAnd)
                         query += " AND ";
                     query += ' asset_id = ' + Number(request.asset_id)
                     appendedAnd = true;
                 }
-                if (request.asset_flag_is_owner) {
+                if (request.asset_flag_is_owner && request.asset_flag_is_owner > 0) {
                     if (appendedAnd)
                         query += " AND ";
                     query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
@@ -6328,13 +6335,14 @@ function VodafoneService(objectCollection) {
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
-                idRoleAsset = resultData[0].asset_type_id
-                query = "SELECT * FROM " + tableName + " where "
+                if (resultData.length > 0)
+                    idRoleAsset = resultData[0].asset_type_id
+                query = "SELECT * FROM " + tableName + " WHERE "
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
                     query += ' asset_participant_access_id = ' + Number(152)
                     appendedAnd = true;
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                    if (request.asset_id) {
+                    if (request.asset_id && request.asset_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_id = ' + Number(request.asset_id)
@@ -6343,13 +6351,13 @@ function VodafoneService(objectCollection) {
                     query += " ORDER BY activity_title";
                 } else {
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                    if (request.asset_id) {
+                    if (request.asset_id && request.asset_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_id = ' + Number(request.asset_id)
                         appendedAnd = true;
                     }
-                    if (request.asset_flag_is_owner) {
+                    if (request.asset_flag_is_owner && request.asset_flag_is_owner > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
@@ -6362,23 +6370,24 @@ function VodafoneService(objectCollection) {
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
-                idRoleAsset = resultData[0].asset_type_id
+                if (resultData.length > 0)
+                    idRoleAsset = resultData[0].asset_type_id
                 if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
-                    query = "SELECT * FROM " + tableName + " where ";
+                    query = "SELECT * FROM " + tableName + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                    if (request.asset_id) {
+                    if (request.asset_id && request.asset_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_id = ' + Number(request.asset_id)
                         appendedAnd = true;
                     }
-                    if (request.activity_type_category_id) {
+                    if (request.activity_type_category_id && request.activity_type_category_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
                         appendedAnd = true;
                     }
-                    if (request.asset_participant_access_id) {
+                    if (request.asset_participant_access_id && request.asset_participant_access_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_participant_access_id =  ' + Number(request.asset_participant_access_id)
@@ -6387,9 +6396,9 @@ function VodafoneService(objectCollection) {
                     query += " ORDER BY activity_title";
                 } else {
                     tableName = 'activity_search_mapping'; // for distinct result mapping
-                    query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " where ";
+                    query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                    if (request.activity_type_category_id) {
+                    if (request.activity_type_category_id && request.activity_type_category_id > 0) {
                         query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
                         appendedAnd = true;
                     }
@@ -6451,43 +6460,43 @@ function VodafoneService(objectCollection) {
     }
 
     function setCommonParam(request, query, appendedAnd) {
-        if (request.organization_id) {
+        if (request.organization_id && request.organization_id > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += ' organization_id =  ' + Number(request.organization_id)
             appendedAnd = true;
         }
-        if (request.activity_type_id) {
+        if (request.activity_type_id && request.activity_type_id > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += ' activity_type_id = ' + Number(request.activity_type_id)
             appendedAnd = true;
         }
-        if (request.tag_type_id) {
+        if (request.tag_type_id && request.tag_type_id > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += ' tag_type_id =  ' + Number(request.tag_type_id)
             appendedAnd = true;
         }
-        if (request.activity_status_type_id) {
+        if (request.activity_status_type_id && request.activity_status_type_id > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
             appendedAnd = true;
         }
-        if (request.activity_title) {
+        if (request.activity_title && request.activity_title != '') {
             if (appendedAnd)
                 query += " AND ";
             query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
             appendedAnd = true;
         }
-        if (request.log_active) {
+        if (request.log_active && request.log_active > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += ' log_active = ' + Number(request.log_active)
             appendedAnd = true;
         }
-        if (request.log_state) {
+        if (request.log_state && request.log_state > 0) {
             if (appendedAnd)
                 query += " AND ";
             query += " log_state < " + Number(request.log_state)
