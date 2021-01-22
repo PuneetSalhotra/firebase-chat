@@ -7683,7 +7683,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -10127,9 +10127,7 @@ async function removeAsOwner(request,data)  {
                                         continue;
                                     }
                                 }
-                            }
-
-                            if(eval(exp1)) {
+                            } else if(eval(exp1)) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
                                     console.log("columnNumber is updated to", columnNumber);
@@ -10166,11 +10164,12 @@ async function removeAsOwner(request,data)  {
                 }
 
                 if(parseInt(row.field_id) == 218728) {
-                    activityDetails = row;
+                    activityDetails = row.field_value;
                 }
             }
 
-            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
+            console.log("activityDetails----", activityDetails);
+            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
             if(activityTypeDetails.length) {
                 activityTypeId = activityTypeDetails[0].activity_type_id;
@@ -10179,7 +10178,7 @@ async function removeAsOwner(request,data)  {
                 console.error("activityTypeDetails found empty");
             }
 
-            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid/Tender' : 'Other workflow');
+            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
             console.log("Will be assigned to the required team");
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
             console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
@@ -10284,7 +10283,7 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    async function getActivityTypeIdBasedOnActivityId(organization_id, activity_id) {
+    async function getActivityTypeIdBasedOnActivityId(request, organization_id, activity_id) {
         let paramsArr = new Array(
           activity_id,
           organization_id
