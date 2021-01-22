@@ -484,6 +484,7 @@ function CommnElasticService(objectCollection) {
                 activity_id: request.workflow_activity_id
             }
         });
+        let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [error, responseData];
     };
 
@@ -511,9 +512,87 @@ function CommnElasticService(objectCollection) {
                 //operating_asset_id: 44574,                
             }
         });
-
+        let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
     };
+
+    async function addintoActivitySearchMapping (request){
+        // try{
+        //    let ss = await client.search({
+        //         index: 'activity_search_mapping',
+        //         body: {
+        //             query: {
+        //                 bool: {
+        //                     must: [
+        //                       {
+        //                         match: {
+        //                           activity_id:request.workflow_activity_id
+        //                         }
+        //                       },
+        //                       {
+        //                         match: {
+        //                           asset_id:request.asset_id
+        //                         }
+        //                       }
+        //                     ],
+                    
+        //                 }
+        //             }
+        //         }
+        //     })
+        //     console.log(ss.hits.hits[0]._source)
+        // client.updateByQuery({
+        //     index: 'activity_search_mapping',
+        //     "body": {
+        //         "query": {
+        //             "match": {
+        //                 "activity_id": request.workflow_activity_id
+        //             }
+        //         },
+        //         "script": {
+        //             "source": "ctx._source = params",
+        //             "lang": "painless",
+        //             "params": {
+        //                 "activity_id":request.workflow_activity_id,
+        //                 "asset_id": request.asset_id,
+        //                 activity_cuid_3: "accountCode",
+        //             }
+        //         }
+        //     }
+        // });
+    
+          
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+                        request.workflow_activity_id,
+                        request.asset_id,
+                        0                           
+                      ];
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                if(data.length>0){
+                let dataTobeSent = responseData[0];
+                client.index({
+                    index: 'activity_search_mapping',
+                    body: {
+                       ...dataTobeSent              
+                    }
+                })
+            }
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
 
     this.getVidmData = async(request) => {
         const searchString = (request.search_string).toLowerCase();
