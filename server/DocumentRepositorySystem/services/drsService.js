@@ -50,8 +50,9 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_insert', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2406)
                 error = false;
             })
             .catch((err) => {
@@ -78,8 +79,9 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_delete', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2407)
                 error = false;
             })
             .catch((err) => {
@@ -177,8 +179,10 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_list_insert', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+
+              let [historyErr,historyData] = await docHistoryInsert({...request,document_repository_id:data[0].document_repository_id},2403)
                 error = false;
             })
             .catch((err) => {
@@ -188,6 +192,55 @@ function DrsService(objectCollection) {
 
     return [error, responseData];
   };
+
+  async function docHistoryInsert(request,update_type_id){
+      let responseData=[];
+      let error = true;
+    let paramsArr = [
+        request.organization_id,
+        request.document_repository_id,
+        update_type_id||0,
+        util.getCurrentUTCTime()
+    ];
+    const queryString = util.getQueryString('ds_p1_document_repository_list_history_insert', paramsArr);
+    if (queryString !== '') {
+
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    return [responseData,error]
+  }
+
+  async function assetHistoryInsert(request,update_type_id){
+    let responseData=[];
+    let error = true;
+  let paramsArr = [
+      request.organization_id,
+      request.document_repository_id,
+      request.target_asset_id,
+      update_type_id||0,
+      util.getCurrentUTCTime()
+  ];
+  const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_history_insert', paramsArr);
+  if (queryString !== '') {
+
+      await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          });
+  }
+  return [responseData,error]
+}
 
     this.updateDRSForTag = async (request) => {
         let responseData = [],
@@ -204,8 +257,9 @@ function DrsService(objectCollection) {
         if (queryString !== '') {
 
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
+                .then(async(data) => {
                     responseData = data;
+                    let [historyErr,historyData] = await docHistoryInsert(request,2405)
                     error = false;
                 })
                 .catch((err) => {
@@ -473,8 +527,9 @@ function DrsService(objectCollection) {
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
+                    let [historyErr,historyData] = await docHistoryInsert(request,2404)
                     error = false;
                 })
                 .catch((err) => {

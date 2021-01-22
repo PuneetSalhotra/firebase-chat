@@ -5845,28 +5845,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_v1_activity_asset_search_mapping_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
-                    client.index({
-                        index: 'activity_asset_search_mapping',
-                        body: {
-                            activity_id: Number(request.activity_id),
-                            organization_id: Number(request.organization_id),
-                            asset_id: Number(request.asset_id),
-                            
-                        }
-                    });
-                    client.index({
-                        index: 'activity_search_mapping',
-                        body: {
-                            activity_id: Number(request.activity_id),
-                           
-                            organization_id: Number(request.organization_id),
-                            asset_id: Number(request.asset_id),
-                            
-                        }
-                    });
+                   let [addToElasticErr,addToElasticData] = await this.insertAssetMappingsinElastic(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -5896,47 +5878,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_v1_activity_asset_search_mapping_update', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
-                    client.updateByQuery({
-                        index: 'activity_asset_search_mapping',
-                        "body": {
-                            "query": {
-                                "match": {
-                                    "activity_id": Number(request.activity_id)
-                                }
-                            },
-                            "script": {
-                                "source": "ctx._source = params",
-                                "lang": "painless",
-                                "params": {
-                                    "activity_id": Number(request.activity_id),
-                                    "asset_id": 0,
-                                    "organization_id":Number(request.organization_id)
-                                }
-                            }
-                        }
-                    });
-                    client.updateByQuery({
-                        index: 'activity_search_mapping',
-                        "body": {
-                            "query": {
-                                "match": {
-                                    "activity_id": Number(request.activity_id)
-                                }
-                            },
-                            "script": {
-                                "source": "ctx._source = params",
-                                "lang": "painless",
-                                "params": {
-                                    "activity_id": Number(request.activity_id),
-                                    "asset_id": 0,
-                                    "organization_id":Number(request.organization_id)
-                                }
-                            }
-                        }
-                    });
+                    let [addToElasticErr,addToElasticData] = await this.insertManyAssetMappingsinElastic(request);
+                    let [addToActElasticErr,addToActElasticData] = await this.insertActivityMappingsinElastic(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -5962,14 +5908,32 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    client.delete({
+                    client.deleteByQuery({
                         index:'activity_asset_search_mapping',
-                        activity_id:Number(request.activity_id)
+                        "body": {
+                            "query": {
+                                bool: {
+                                    must: [
+                                      {
+                                        match: {
+                                          activity_id:request.activity_id
+                                        }
+                                      },
+                                      {
+                                        match: {
+                                          asset_id:request.asset_id
+                                        }
+                                      }
+                                    ],
+                            
+                                }
+                            }
+                        }
                     })
-                    client.delete({
-                        index:'activity_search_mapping',
-                        activity_id:Number(request.activity_id)
-                    })
+                    // client.delete({
+                    //     index:'activity_search_mapping',
+                    //     activity_id:Number(request.activity_id)
+                    // })
                 })
                 .catch((err) => {
                     error = err;
@@ -5978,6 +5942,288 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         return [error, responseData];
     };
+
+    this.insertAssetMappingsinElastic=async function (request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+                        request.activity_id,
+                        request.asset_id,
+                        1                           
+                      ];
+    
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    console.log(queryString)
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                console.log(data)
+                if(data.length>0){
+                let dataTobeSent = responseData[0];
+                   let resultData = await client.search({
+                index: 'activity_asset_search_mapping',
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              },
+                              {
+                                match: {
+                                  asset_id:request.asset_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    }
+                }
+            });
+            // console.log(resultData.hits.hits);
+            // return
+            if(resultData.hits.hits.length>0){
+             let previousData = resultData.hits.hits[0]._source;
+             let dataToBeUpdated = {...previousData,...dataTobeSent};
+            //  dataToBeUpdated.operating_asset_first_name = "esha"
+             client.updateByQuery({
+                index: 'activity_asset_search_mapping',
+                "body": {
+                    "query": {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              },
+                              {
+                                match: {
+                                  asset_id:request.asset_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {...dataToBeUpdated
+                        }
+                    }
+                }
+            });
+            }
+            else{
+             client.index({
+                 index:"activity_asset_search_mapping",
+                 body:{
+                     ...dataTobeSent
+                 }
+             })
+            }
+            }
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+
+    this.insertManyAssetMappingsinElastic=async function (request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+                        request.activity_id,
+                        request.asset_id,
+                        1                           
+                      ];
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                if(data.length>0){
+                let dataTobeSent = responseData[0];
+                   let resultData = await client.search({
+                index: 'activity_asset_search_mapping',
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    }
+                }
+            });
+            // console.log(resultData.hits.hits);
+            // return;
+            for(let i=0;i<resultData.hits.hits.length;i++){
+                // console.log("came inside",resultData.hits.hits[i],i);
+             let previousData = resultData.hits.hits[i]._source;
+             previousData.activity_status_id = dataTobeSent.activity_status_id;
+             previousData.activity_status_type_id = dataTobeSent.activity_status_type_id;
+             previousData.activity_title = dataTobeSent.activity_title;
+            //  let dd ={ activity_title: 'FR01621483',
+            //  activity_cuid_1: null,
+            //  activity_cuid_2: null,
+            //  activity_cuid_3: null,
+            //  activity_status_id: 282557,
+            //  activity_status_type_id: 155,
+            //  activity_type_id: 134562,
+            //  activity_type_name: 'New FLD - MPLS CAF',
+            //  activity_type_category_id: 48,
+            //  activity_type_tag_id: 1,
+            //  tag_type_id: 8,
+            //  organization_id: 868,
+            //  asset_id: 33240,
+            //  asset_first_name: 'Account Manager',
+            //  operating_asset_first_name: 'Esha Pant',
+            //  activity_creator_asset_id: 33240,
+            //  activity_creator_asset_first_name: 'Account Manager',
+            //  activity_creator_operating_asset_first_name: 'Esha Pant',
+            //  asset_participant_access_id: 21,
+            //  asset_flag_is_owner: 1,
+            //  log_state: 2,
+            //  log_active: 1}
+            //  console.log(dataToBeUpdated)
+             
+             client.updateByQuery({
+                index: 'activity_asset_search_mapping',
+                "body": {
+                    "query": {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              },
+                              {
+                                match: {
+                                  asset_id:previousData.asset_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {...previousData
+                        }
+                    }
+                }
+            });
+            }
+            }
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+
+    this.insertActivityMappingsinElastic=async function (request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = [
+                        request.activity_id,
+                        request.asset_id,
+                        0                           
+                      ];
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                if(data.length>0){
+                let dataTobeSent = responseData[0];
+                   let resultData = await client.search({
+                index: 'activity_search_mapping',
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              },
+                              {
+                                match: {
+                                  asset_id:request.asset_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    }
+                }
+            })
+            if(resultData.hits.hits.length>0){
+             let previousData = resultData.hits.hits[0]._source;
+             let dataToBeUpdated = {...previousData,...dataTobeSent};
+             client.updateByQuery({
+                index: 'activity_search_mapping',
+                "body": {
+                    "query": {
+                        bool: {
+                            must: [
+                              {
+                                match: {
+                                  activity_id:request.activity_id
+                                }
+                              },
+                              {
+                                match: {
+                                  asset_id:request.asset_id
+                                }
+                              }
+                            ],
+                    
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {...dataToBeUpdated
+                        }
+                    }
+                }
+            });
+            }
+        }
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+           
 
 }
 
