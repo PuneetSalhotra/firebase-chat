@@ -830,7 +830,8 @@ function RMBotService(objectCollection) {
             request.res_asset_type_id = 0;
             request.res_asset_category_id = 0;
             request.res_asset_id = assetData[0].asset_id;
-        
+            
+            if(assetData[0].asset_id > 0)
             self.addParticipantMakeRequest(request);
         }
     }

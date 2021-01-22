@@ -326,6 +326,9 @@ function AdminOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    console.log("assetListInsertV2 : "+JSON.stringify(data,2,null));
+                    request.created_asset_id = data[0].asset_id;
+                    roleAssetMappingInsert(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -9098,6 +9101,33 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         else{
             return [true,[]]
         }
+    }
+
+    // Role asset Mapping Insert
+    async function roleAssetMappingInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_id,
+            request.created_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        console.log("roleAssetMappingInsert : "+JSON.stringify(responseData,2,null));
+        return [error, responseData];
     }
 }
 
