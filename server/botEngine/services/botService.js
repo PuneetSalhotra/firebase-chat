@@ -10004,29 +10004,37 @@ async function removeAsOwner(request,data)  {
 
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
-            console.log("Mobility is to be triggered");
-            request.form_id = 50079; // NON FLD form
-            let fldForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
+            try {
+                console.log("Mobility is to be triggered");
+                request.form_id = 50079;
+                let fldForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
 
-            connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+                connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+            } catch(e) {
+                console.log("Data not fetched for 50079 mobility");
+            }
 
         } else {
-            request.form_id = 50264; // ill DOA a form
-            let IllForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
+            try {
+                request.form_id = 50264;
+                let IllForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-            for(let row of formInputToProcess) {
+                for(let row of formInputToProcess) {
 
-                if(row.field_id == inlineData.opexFieldId) {
-                    opexValue = row.field_value;
-                } else if(row.field_id == inlineData.capexFieldId) {
-                    capexValue = row.field_value;
+                    if(row.field_id == inlineData.opexFieldId) {
+                        opexValue = row.field_value;
+                    } else if(row.field_id == inlineData.capexFieldId) {
+                        capexValue = row.field_value;
+                    }
+
+                    if(opexValue && capexValue) {
+                        break;
+                    }
                 }
-
-                if(opexValue && capexValue) {
-                    break;
-                }
+            } catch (e) {
+                console.log("Data for found for 50264");
             }
         }
 
@@ -10036,7 +10044,6 @@ async function removeAsOwner(request,data)  {
         largerDoaDataToProcess.sort((a, b) => (a.priority > b.priority
         ) ? 1 : -1);
 
-        console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
         request.form_id = 50403;
         let largeDoa = await getFormInlineData(request, 1);
         let largeDoaData = JSON.parse(largeDoa.data_entity_inline).form_submitted;
@@ -10068,6 +10075,7 @@ async function removeAsOwner(request,data)  {
 
 
             if(currentExecution.key_number == 1) {
+                console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
                 console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
