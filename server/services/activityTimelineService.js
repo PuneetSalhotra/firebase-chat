@@ -2643,7 +2643,7 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = phone[1];  //phone number
                     break;*/
                     let phone;
-                    if ((row.field_value).includes('||')) {
+                    if (String(row.field_value).includes('||')) {
                         phone = row.field_value.split('||');
                         params[13] = phone[0]; // country code
                         params[18] = phone[1]; // phone number
@@ -2849,8 +2849,20 @@ function ActivityTimelineService(objectCollection) {
                 case 73: 
                     params[18] = row.field_value;
                     break;
-                case 74: 
-                    params[18] = row.field_value;
+                case 74: // Composite Online List
+                    let fieldValue = row.field_value;
+                    try {
+                        if (typeof fieldValue === 'string') {
+                            params[18] = fieldValue;
+                            params[27] = fieldValue;
+                        }
+                        if (typeof fieldValue === 'object') {
+                            params[18] = JSON.stringify(fieldValue);
+                            params[27] = JSON.stringify(fieldValue);
+                        }
+                    } catch (err) {
+                        console.log('Data type 74 | Composite Online List: ', err);
+                    }
                     break;
                 case 76: //Drop box data type
                     params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
@@ -3392,7 +3404,7 @@ async function addFormEntriesAsync(request) {
                 params[18] = phone[1];  //phone number
                 break;*/
                 let phone;
-                if ((row.field_value).includes('||')) {
+                if (String(row.field_value).includes('||')) {
                     phone = row.field_value.split('||');
                     params[13] = phone[0]; // country code
                     params[18] = phone[1]; // phone number

@@ -6288,11 +6288,23 @@ async function removeAsOwner(request,data)  {
 
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
+                        //Get the asset Details of the requestor
+                        const dataResp = await getAssetDetails({
+                            "organization_id": request.organization_id,
+                            "asset_id": request.asset_id
+                        });
+
+                        let requestAssetName = 'Tony';
+                        if(dataResp.length > 0) {
+                            requestorAssetData = dataResp[0];
+                            requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
+
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
