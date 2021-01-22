@@ -6078,7 +6078,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              let previousData = resultData.hits.hits[i]._source;
              previousData.activity_status_id = dataTobeSent.activity_status_id;
              previousData.activity_status_type_id = dataTobeSent.activity_status_type_id;
-
+             previousData.activity_title = dataTobeSent.activity_title;
             //  let dd ={ activity_title: 'FR01621483',
             //  activity_cuid_1: null,
             //  activity_cuid_2: null,
