@@ -807,6 +807,7 @@ function AssetService(objectCollection) {
             "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name']),
             "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
             "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id']),
+            "asset_type_flag_enable_suspension":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_suspension']),
 
             //Returning the following data - Document Repository System
             "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
