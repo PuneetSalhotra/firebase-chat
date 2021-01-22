@@ -6288,11 +6288,23 @@ async function removeAsOwner(request,data)  {
 
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
+                        //Get the asset Details of the requestor
+                        const dataResp = await getAssetDetails({
+                            "organization_id": request.organization_id,
+                            "asset_id": request.asset_id
+                        });
+
+                        let requestAssetName = 'Tony';
+                        if(dataResp.length > 0) {
+                            requestorAssetData = dataResp[0];
+                            requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
+
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -7683,7 +7695,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -10004,29 +10016,37 @@ async function removeAsOwner(request,data)  {
 
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
-            console.log("Mobility is to be triggered");
-            request.form_id = 50079; // NON FLD form
-            let fldForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
+            try {
+                console.log("Mobility is to be triggered");
+                request.form_id = 50079;
+                let fldForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
 
-            connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+                connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+            } catch(e) {
+                console.log("Data not fetched for 50079 mobility");
+            }
 
         } else {
-            request.form_id = 50264; // ill DOA a form
-            let IllForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
+            try {
+                request.form_id = 50264;
+                let IllForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-            for(let row of formInputToProcess) {
+                for(let row of formInputToProcess) {
 
-                if(row.field_id == inlineData.opexFieldId) {
-                    opexValue = row.field_value;
-                } else if(row.field_id == inlineData.capexFieldId) {
-                    capexValue = row.field_value;
+                    if(row.field_id == inlineData.opexFieldId) {
+                        opexValue = row.field_value;
+                    } else if(row.field_id == inlineData.capexFieldId) {
+                        capexValue = row.field_value;
+                    }
+
+                    if(opexValue && capexValue) {
+                        break;
+                    }
                 }
-
-                if(opexValue && capexValue) {
-                    break;
-                }
+            } catch (e) {
+                console.log("Data for found for 50264");
             }
         }
 
@@ -10036,7 +10056,6 @@ async function removeAsOwner(request,data)  {
         largerDoaDataToProcess.sort((a, b) => (a.priority > b.priority
         ) ? 1 : -1);
 
-        console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
         request.form_id = 50403;
         let largeDoa = await getFormInlineData(request, 1);
         let largeDoaData = JSON.parse(largeDoa.data_entity_inline).form_submitted;
@@ -10068,6 +10087,7 @@ async function removeAsOwner(request,data)  {
 
 
             if(currentExecution.key_number == 1) {
+                console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
                 console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
@@ -10127,9 +10147,7 @@ async function removeAsOwner(request,data)  {
                                         continue;
                                     }
                                 }
-                            }
-
-                            if(eval(exp1)) {
+                            } else if(eval(exp1)) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
                                     console.log("columnNumber is updated to", columnNumber);
@@ -10166,11 +10184,12 @@ async function removeAsOwner(request,data)  {
                 }
 
                 if(parseInt(row.field_id) == 218728) {
-                    activityDetails = row;
+                    activityDetails = row.field_value;
                 }
             }
 
-            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
+            console.log("activityDetails----", activityDetails);
+            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
             if(activityTypeDetails.length) {
                 activityTypeId = activityTypeDetails[0].activity_type_id;
@@ -10179,7 +10198,7 @@ async function removeAsOwner(request,data)  {
                 console.error("activityTypeDetails found empty");
             }
 
-            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid/Tender' : 'Other workflow');
+            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
             console.log("Will be assigned to the required team");
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
             console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
@@ -10284,7 +10303,7 @@ async function removeAsOwner(request,data)  {
     }
 
 
-    async function getActivityTypeIdBasedOnActivityId(organization_id, activity_id) {
+    async function getActivityTypeIdBasedOnActivityId(request, organization_id, activity_id) {
         let paramsArr = new Array(
           activity_id,
           organization_id

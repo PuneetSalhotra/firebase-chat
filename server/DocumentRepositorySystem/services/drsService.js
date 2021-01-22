@@ -10,6 +10,12 @@ function DrsService(objectCollection) {
     let responseData = [],
         error = true;
 
+    //p_asset_doc_repo_access_type_id
+      //0 No access
+      //1 Super Admin
+      //2 Admin
+      //3 Viewer
+
     const paramsArr = [
                         request.target_asset_id,
                         request.organization_id,
@@ -50,8 +56,9 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_insert', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2406)
                 error = false;
             })
             .catch((err) => {
@@ -78,8 +85,9 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_delete', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2407)
                 error = false;
             })
             .catch((err) => {
@@ -177,8 +185,10 @@ function DrsService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_document_repository_list_insert', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
               responseData = data;
+
+              let [historyErr,historyData] = await docHistoryInsert({...request,document_repository_id:data[0].document_repository_id},2403)
                 error = false;
             })
             .catch((err) => {
@@ -189,7 +199,56 @@ function DrsService(objectCollection) {
     return [error, responseData];
   };
 
-    this.updateDRSForTag = async (request) => {
+  async function docHistoryInsert(request,update_type_id){
+      let responseData=[];
+      let error = true;
+    let paramsArr = [
+        request.organization_id,
+        request.document_repository_id,
+        update_type_id||0,
+        util.getCurrentUTCTime()
+    ];
+    const queryString = util.getQueryString('ds_p1_document_repository_list_history_insert', paramsArr);
+    if (queryString !== '') {
+
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    return [responseData,error]
+  }
+
+  async function assetHistoryInsert(request,update_type_id){
+    let responseData=[];
+    let error = true;
+    let paramsArr = [
+        request.organization_id,
+        request.document_repository_id,
+        request.target_asset_id,
+        update_type_id||0,
+        util.getCurrentUTCTime()
+    ];
+    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_history_insert', paramsArr);
+    if (queryString !== '') {
+  
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+    return [responseData,error]
+  }
+
+  this.updateDRSForTag = async (request) => {
         let responseData = [],
             error = true;
 
@@ -204,8 +263,9 @@ function DrsService(objectCollection) {
         if (queryString !== '') {
 
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
+                .then(async(data) => {
                     responseData = data;
+                    let [historyErr,historyData] = await docHistoryInsert(request,2405)
                     error = false;
                 })
                 .catch((err) => {
@@ -214,7 +274,8 @@ function DrsService(objectCollection) {
         }
 
         return [error, responseData];
-    }
+  };
+
 
     this.selectDRSAsset = async (request) => {
         let responseData = [],
@@ -244,7 +305,8 @@ function DrsService(objectCollection) {
         }
 
         return [error, responseData];
-    }
+    };
+
 
     this.selectDRSList = async (request) => {
         let responseData = [],
@@ -274,7 +336,8 @@ function DrsService(objectCollection) {
         }
 
         return [error, responseData];
-    }
+    };
+
 
     this.selectDRSTypesAccessible = async (request) => {
         let responseData = [],
@@ -303,7 +366,8 @@ function DrsService(objectCollection) {
         }
 
         return [error, responseData];
-    }
+    };
+
 
     this.dRSListSearch = async (request) => {
         let responseData = [],
@@ -335,105 +399,35 @@ function DrsService(objectCollection) {
         }
 
         return [error, responseData];
-    }
+    };
 
-    this.updateWorkforceAssetType = async (request) => {
-        let responseData = [],
-            error = true;
 
-        let paramsArr = [
-            request.asset_type_id,
-            request.asset_type_name,
-            request.asset_type_flag_enable_approval,
-            request.asset_type_approval_max_levels,
-            request.asset_type_approval_wait_duration,
-            request.asset_type_approval_activity_type_id,
-            request.asset_type_approval_activity_type_name,
-            request.asset_type_approval_origin_form_id,
-            request.asset_type_approval_field_id,
-            request.asset_type_attendance_type_id,
-            request.asset_type_attendance_type_name,
-            request.asset_type_flag_enable_suspension,
-            request.asset_type_suspension_activity_type_id,
-            request.asset_type_suspension_activity_type_name,
-            request.asset_type_suspension_wait_duration,
-            request.asset_type_flag_hide_organization_details,
-            request.organization_id,
-            request.flag,
-            util.getCurrentUTCTime(),
-            request.asset_id
-        ];
-        const queryString = util.getQueryString('ds_p2_workforce_asset_type_mapping_update', paramsArr);
-        if (queryString !== '') {
+    this.resetAccessToDocRepo = async (request) => {
+      let responseData = [],
+          error = true;
 
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
+      const paramsArr = [
+                          request.organization_id,
+                          request.document_repository_id,
+                          request.target_asset_id,
+                          request.asset_id,
+                          util.getCurrentUTCTime()
+                        ];
 
-        return [error, responseData];
-    }
+      const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_update_reset', paramsArr);
+      if (queryString !== '') {
+          await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              });
+      }
 
-    this.updateAssetListSuspension = async (request) => {
-        let responseData = [],
-            error = true;
-        let paramsArr = [
-            request.target_asset_id,
-            request.organization_id,
-            request.asset_flag_suspended,
-            request.asset_suspension_datetime,
-            request.asset_suspension_activity_id,
-            request.asset_id,
-            util.getCurrentUTCTime()
-        ];
-        const queryString = util.getQueryString('ds_p1_asset_list_update_suspension', paramsArr);
-        if (queryString !== '') {
-
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-
-        return [error, responseData];
-    }
-
-    this.selectAssetManager = async (request) => {
-        let responseData = [],
-            error = true;
-
-        let paramsArr = [
-            request.organization_id,
-            request.asset_id,
-            request.manager_asset_id,
-            request.flag,
-            request.page_start,
-            request.page_limit
-        ];
-        const queryString = util.getQueryString('ds_p2_asset_manager_mapping_select', paramsArr);
-        if (queryString !== '') {
-
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-
-        return [error, responseData];
-    }
+      return [error, responseData];
+    };
 
     this.repositoryAccessMasterSelect = async (request) => {
         let responseData = [],
@@ -473,8 +467,9 @@ function DrsService(objectCollection) {
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
+                    let [historyErr,historyData] = await docHistoryInsert(request,2404)
                     error = false;
                 })
                 .catch((err) => {
