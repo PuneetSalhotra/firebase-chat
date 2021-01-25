@@ -90,4 +90,4 @@ const vendorsList = {
     ]
 }
 
-module.exports = vendorList;
+module.exports = vendorsList;
