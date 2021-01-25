@@ -9183,14 +9183,31 @@ async function removeAsOwner(request,data)  {
             }
 
             // Invalid vendor check
-            // const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
-            // if (
-            //     LastMileOffNetVendor !== "" &&
-            //     LastMileOffNetVendor.includes(",")
-            // ) {
+            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
 
-            //     childOpportunitiesArray[i].LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
-            // }
+            if (
+                LastMileOffNetVendor !== "" &&
+                LastMileOffNetVendor.includes(",")
+            ) {
+                let enteredVendorList = LastMileOffNetVendor.split(",");
+                for (vendorIndex = 0; vendorIndex < enteredVendorList.length; vendorIndex++) {
+                    enteredVendorList[vendorIndex] = enteredVendorList[vendorIndex].trim();
+                    let vendor = enteredVendorList[vendorIndex];
+                    if (!vilVendorsList["vendorsList"].includes(vendor)) {
+                        invalidVendorFound = true;
+                        errorMessageForInvalidVendor += `Invalid vendor found in Row ${i + 1}\n`;
+                    }
+                }
+                if (!invalidVendorFound) { childOpportunitiesArray[i].LastMileOffNetVendor = enteredVendorList.join("|") }
+
+            }
+            else if (LastMileOffNetVendor !== "") {
+                if (!vilVendorsList["vendorsList"].includes(LastMileOffNetVendor)) {
+                    invalidVendorFound = true;
+                    errorMessageForInvalidVendor += `Invalid vendor found in Row ${i + 1}\n`;
+                }
+
+            }
 
         }
 
@@ -9198,6 +9215,7 @@ async function removeAsOwner(request,data)  {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
+            if (invalidVendorFound) { formattedTimelineMessage += errorMessageForInvalidVendor }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -9494,13 +9512,6 @@ async function removeAsOwner(request,data)  {
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
-            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
-            if (
-                LastMileOffNetVendor !== "" &&
-                LastMileOffNetVendor.includes(",")
-            ) {
-                childOpportunity.LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
-            }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
