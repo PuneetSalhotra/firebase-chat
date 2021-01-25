@@ -1874,6 +1874,29 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }   
+
+    this.rolesCountbySipFlag = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_sip_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }  
         
 }
 
