@@ -9149,7 +9149,7 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-
+        let unsupportedProductForSecondaryFound = "";
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9163,10 +9163,18 @@ async function removeAsOwner(request,data)  {
                 }
 
             }
+            let linkType = childOpportunity.LinkType;
+            let serviceType = childOpportunity.ServiceType;
+
+            if(linkType ==="Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2") ) {
+                unsupportedProductForSecondaryFound += `Un Supported Product for secondary form found in Row ${i + 1}`;
+            }
+
         }
-        if (nonAsciiErroFound) {
+
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound.length > 0) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
-            formattedTimelineMessage += errorMessageForNonAscii;
+            formattedTimelineMessage += errorMessageForNonAscii + unsupportedProductForSecondaryFound;
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -11466,8 +11474,8 @@ async function removeAsOwner(request,data)  {
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
 
-        const headersArray = ["SerialNo", "OpportunityID", "CircuitID", "FRID", "SRType", "SRSubType"];
-
+        const headersArray = ["SerialNo", "OpportunityID", "roms_order_id", "CircuitID", "FRID", "SRType", "SRSubType"];
+        const mandatoryHeaders = ["SerialNo", "OpportunityID", "CircuitID", "FRID", "SRType", "SRSubType"];
         const OpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
@@ -11506,7 +11514,7 @@ async function removeAsOwner(request,data)  {
         for (let i = 1; i < OpportunitiesArray.length; i++) {
             const Opportunity = OpportunitiesArray[i];
             console.log(`NewCreateSR: serialNum: ${Opportunity.serialNumber}`);
-            for (const header of headersArray) {
+            for (const header of mandatoryHeaders) {
                 if (!Opportunity.hasOwnProperty(header)) {
                     // log error requiured headers not present
                     errorMessage = "Invalid Headers"
@@ -11514,9 +11522,34 @@ async function removeAsOwner(request,data)  {
 
             }
             if (errorMessage === "") {
-                for (const header of headersArray) {
+                for (const header of mandatoryHeaders) {
+                    let errorFoundForCurrentRow = false;
                     if (Opportunity[header] === "") {
+                        errorFoundForCurrentRow = true;
                         errorMessage += `${header} is empty in row ${i + 1} \n`;
+                    }
+                    if (!errorFoundForCurrentRow) {
+                        let cuidRequestData = {
+                            organization_id : 868,
+                            activity_type_category_id : 48,
+                            activity_type_id : 0,
+                            flag : 0,
+                            search_string : Opportunity.OpportunityID,
+                            start_from : 0,
+                            limit_value : 10
+                        }
+                        const [errorOne, opportunityDataFromDb] = await activityListSearchCUID(cuidRequestData);
+                        if(errorOne || opportunityDataFromDb.length === 0) {
+                            errorMessage += `The entered Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
+                        }
+                        else {
+                            let FRID = Opportunity.FRID;
+                            let primaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_2 || "";
+                            let secondaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_3 || "";
+                            if (primaryFeasibilityRequestID !== FRID && secondaryFeasibilityRequestID !== FRID) {
+                                errorMessage += `The entered FRID ${Opportunity.FRID} doesn't belong to the mentioned Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
+                            }
+                        }
                     }
                 }
             }
