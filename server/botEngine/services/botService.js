@@ -9149,11 +9149,13 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        let unsupportedProductForSecondaryFound = "";
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
+        let unsupportedProductForSecondaryFound = false;
         let nonAsciiErroFound = false;
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
+            // Non ASCII check
             for (const [key, value] of Object.entries(childOpportunity)) {
 
                 let indexOfNonAscii = String(value).search(/[^ -~]+/g);
@@ -9163,18 +9165,22 @@ async function removeAsOwner(request,data)  {
                 }
 
             }
+
+            // service type compatibility check for secondary
             let linkType = childOpportunity.LinkType;
             let serviceType = childOpportunity.ServiceType;
 
-            if(linkType ==="Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2") ) {
-                unsupportedProductForSecondaryFound += `Un Supported Product for secondary form found in Row ${i + 1}`;
+            if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
+                unsupportedProductForSecondaryFound = true;
+                errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
             }
 
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound.length > 0) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
-            formattedTimelineMessage += errorMessageForNonAscii + unsupportedProductForSecondaryFound;
+            if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
+            if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
