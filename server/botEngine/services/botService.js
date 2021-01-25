@@ -9184,31 +9184,24 @@ async function removeAsOwner(request,data)  {
 
             // Invalid vendor check
             const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
-
             if (
                 LastMileOffNetVendor !== "" &&
                 LastMileOffNetVendor.includes(",")
             ) {
-                let enteredVendorList = LastMileOffNetVendor.split(",");
-                for (vendorIndex = 0; vendorIndex < enteredVendorList.length; vendorIndex++) {
-                    enteredVendorList[vendorIndex] = enteredVendorList[vendorIndex].trim();
-                    let vendor = enteredVendorList[vendorIndex];
-                    if (!vilVendorsList["vendorsList"].includes(vendor)) {
-                        invalidVendorFound = true;
-                        errorMessageForInvalidVendor += `Invalid vendor found in Row ${i + 1}\n`;
-                    }
-                }
-                if (!invalidVendorFound) { childOpportunitiesArray[i].LastMileOffNetVendor = enteredVendorList.join("|") }
+                let processedVendorList = LastMileOffNetVendor
+                    .split(",")
+                    .map(vendor => {
+                        vendor = vendor.trim();
+                        if (!vilVendorsList["vendorsList"].includes(vendor)) {
+                            invalidVendorFound = true;
+                            errorMessageForInvalidVendor += `Invalid vendor ${vendor} found in Row ${i + 1}\n`;
+                        }
+                        return vendor;
+                    })
+                    .join("|")
 
+                childOpportunitiesArray[i].LastMileOffNetVendor = processedVendorList;
             }
-            else if (LastMileOffNetVendor !== "") {
-                if (!vilVendorsList["vendorsList"].includes(LastMileOffNetVendor)) {
-                    invalidVendorFound = true;
-                    errorMessageForInvalidVendor += `Invalid vendor found in Row ${i + 1}\n`;
-                }
-
-            }
-
         }
 
         if (nonAsciiErroFound || unsupportedProductForSecondaryFound) {
