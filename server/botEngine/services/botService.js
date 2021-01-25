@@ -1265,6 +1265,12 @@ function BotService(objectCollection) {
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+            // Skipping form enable bot because it is causing other to fail
+            if(Number(i.bot_operation_type_id) === 20 ) {
+               continue;
+            }       
+
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             } catch (error) {
