@@ -54,6 +54,7 @@ function BotService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const botConfig = require('../utils/botConfig.js');
+    const vilVendorsList = require('../utils/vilVendorsList');
 
     const activityCommonService = objectCollection.activityCommonService;
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
@@ -9149,10 +9150,16 @@ async function removeAsOwner(request,data)  {
             }
         };
 
-        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        // Error containers
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in:\n";
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
+        let errorMessageForInvalidVendor = "\nInvalid vendor(s) found in:\n";
+
+        // Error flags
         let unsupportedProductForSecondaryFound = false;
         let nonAsciiErroFound = false;
+        let invalidVendorFound = false; // vilVendorsList
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
@@ -9174,6 +9181,16 @@ async function removeAsOwner(request,data)  {
                 unsupportedProductForSecondaryFound = true;
                 errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
             }
+
+            // Invalid vendor check
+            // const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
+            // if (
+            //     LastMileOffNetVendor !== "" &&
+            //     LastMileOffNetVendor.includes(",")
+            // ) {
+
+            //     childOpportunitiesArray[i].LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
+            // }
 
         }
 
@@ -9474,37 +9491,6 @@ async function removeAsOwner(request,data)  {
                     continue;
                 }
             }
-
-            // if (childOpportunity.actionType === "mplsl2_second_primary") {
-            //     // Check for child opportunity
-            //     if (childOpportunity.OppId === "") {
-            //         errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
-            //         continue;
-
-            //     } else {
-            //         childOpportunityID = childOpportunity.OppId;
-            //         // Check if the child opportunity already exists
-            //         const [errorSix, childOpportunityData] = await activityListSearchCUID({
-            //             organization_id: request.organization_id,
-            //             activity_type_category_id: workflowActivityCategoryTypeID,
-            //             flag: 1,
-            //             search_string: childOpportunityID
-            //         });
-            //         if (childOpportunityData.length === 0) {
-            //             errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
-            //             continue;
-            //         }
-            //     }
-            //     // Second primary must be of linkType primary
-            //     if (linkType === "secondary") {
-            //         errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
-            //         continue;
-            //     }
-
-            //     // Skip pushing second primary job for dual creation cases to SQS
-            //     const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
-            //     if (linkType === "primary" && isDualJob) { continue; }
-            // }
 
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
