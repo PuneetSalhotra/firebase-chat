@@ -9193,7 +9193,7 @@ async function removeAsOwner(request,data)  {
                     attachments: []
                 }
             );
-            throw new Error("NonAsciiCharacterFound");
+            throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
         // PreProcessinf Stage 1
