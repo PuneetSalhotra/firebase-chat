@@ -226,29 +226,29 @@ function DrsService(objectCollection) {
   async function assetHistoryInsert(request,update_type_id){
     let responseData=[];
     let error = true;
-    let paramsArr = [
-        request.organization_id,
-        request.document_repository_id,
-        request.target_asset_id,
-        update_type_id||0,
-        util.getCurrentUTCTime()
-    ];
-    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_history_insert', paramsArr);
-    if (queryString !== '') {
-  
-        await db.executeQueryPromise(1, queryString, request)
-            .then((data) => {
-                responseData = data;
-                error = false;
-            })
-            .catch((err) => {
-                error = err;
-            });
-    }
-    return [responseData,error]
-  }
+  let paramsArr = [
+      request.organization_id,
+      request.document_repository_id,
+      request.target_asset_id,
+      update_type_id||0,
+      util.getCurrentUTCTime()
+  ];
+  const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_history_insert', paramsArr);
+  if (queryString !== '') {
 
-  this.updateDRSForTag = async (request) => {
+      await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          });
+  }
+  return [responseData,error]
+}
+
+    this.updateDRSForTag = async (request) => {
         let responseData = [],
             error = true;
 
