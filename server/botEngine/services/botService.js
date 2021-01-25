@@ -9204,7 +9204,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidVendorFound) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
@@ -11518,33 +11518,33 @@ async function removeAsOwner(request,data)  {
 
             }
             if (errorMessage === "") {
+                let errorFoundForAnyColumn = false;
                 for (const header of mandatoryHeaders) {
-                    let errorFoundForCurrentRow = false;
                     if (Opportunity[header] === "") {
-                        errorFoundForCurrentRow = true;
+                        errorFoundForAnyColumn = true;
                         errorMessage += `${header} is empty in row ${i + 1} \n`;
                     }
-                    if (!errorFoundForCurrentRow) {
-                        let cuidRequestData = {
-                            organization_id : 868,
-                            activity_type_category_id : 48,
-                            activity_type_id : 0,
-                            flag : 0,
-                            search_string : Opportunity.OpportunityID,
-                            start_from : 0,
-                            limit_value : 10
-                        }
-                        const [errorOne, opportunityDataFromDb] = await activityListSearchCUID(cuidRequestData);
-                        if(errorOne || opportunityDataFromDb.length === 0) {
-                            errorMessage += `The entered Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
-                        }
-                        else {
-                            let FRID = Opportunity.FRID;
-                            let primaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_2 || "";
-                            let secondaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_3 || "";
-                            if (primaryFeasibilityRequestID !== FRID && secondaryFeasibilityRequestID !== FRID) {
-                                errorMessage += `The entered FRID ${Opportunity.FRID} doesn't belong to the mentioned Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
-                            }
+                }
+                if (!errorFoundForAnyColumn) {
+                    let cuidRequestData = {
+                        organization_id : 868,
+                        activity_type_category_id : 48,
+                        activity_type_id : 0,
+                        flag : 0,
+                        search_string : Opportunity.OpportunityID,
+                        start_from : 0,
+                        limit_value : 10
+                    }
+                    const [errorOne, opportunityDataFromDb] = await activityListSearchCUID(cuidRequestData);
+                    if(errorOne || opportunityDataFromDb.length === 0) {
+                        errorMessage += `The entered Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
+                    }
+                    else {
+                        let FRID = Opportunity.FRID;
+                        let primaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_2 || "";
+                        let secondaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_3 || "";
+                        if (primaryFeasibilityRequestID !== FRID && secondaryFeasibilityRequestID !== FRID) {
+                            errorMessage += `The entered FRID ${Opportunity.FRID} doesn't belong to the mentioned Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1}\n`;
                         }
                     }
                 }
