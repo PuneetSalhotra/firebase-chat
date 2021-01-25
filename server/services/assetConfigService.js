@@ -79,6 +79,7 @@ function AssetConfigService() {
             request.asset_type_suspension_activity_type_name,
             request.asset_type_suspension_wait_duration,
             request.asset_type_flag_hide_organization_details,
+            request.asset_type_flag_sip_enabled,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
