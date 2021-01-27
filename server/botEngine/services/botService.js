@@ -9573,9 +9573,25 @@ async function removeAsOwner(request,data)  {
                 }
             );
         } catch (error) {
-            logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
-        }
+            if (error.message === "NoErrorsFound") {
+                await addTimelineMessage(
+                    {
+                        activity_timeline_text: "",
+                        organization_id: request.organization_id
+                    }, workflowActivityID || 0,
+                    {
+                        subject: 'Bulk Operation Notifictaion',
+                        content: "Excel has been submitted for processing successfully",
+                        mail_body: "Excel has been submitted for processing successfully",
+                        attachments: []
+                    }
+                );
+            }
+            else {
+                logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+            }
 
+        }
         return;
     }
 
@@ -11587,6 +11603,19 @@ async function removeAsOwner(request,data)  {
                 }
             }, esmsIntegrationsTopicName, Number(workflowActivityID));
         }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
 
         return;
     }
