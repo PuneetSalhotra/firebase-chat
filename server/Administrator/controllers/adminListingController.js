@@ -470,7 +470,17 @@ function AdminListingController(objCollection) {
             console.log("/admin/category/tagtype/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
-    });       
+    });    
+    
+    app.post('/' + global.config.version + '/admin/workforce/roles/countbySip', async (req, res) => {        
+        const [err, tagTypeData] = await adminListingService.rolesCountbySipFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/roles/countbySip | Error: ", err);
+            res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
