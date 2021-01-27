@@ -5613,6 +5613,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_activity_type_name||"",
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
+            request.asset_type_flag_sip_enabled,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
