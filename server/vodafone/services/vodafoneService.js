@@ -6424,6 +6424,7 @@ function VodafoneService(objectCollection) {
                     request.account_id,
                     request.workforce_id,
                     request.asset_id,
+                    request.entity_id,
                     request.activity_type_id,
                     request.activity_type_category_id,
                     request.activity_status_type_id,
@@ -6435,7 +6436,7 @@ function VodafoneService(objectCollection) {
                     request.page_start || 0,
                     request.page_limit || 50
                 ]
-                dbCall = 'ds_p1_3_activity_list_search_workflow_reference';
+                dbCall = 'ds_p1_4_activity_list_search_workflow_reference';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 break;
         }
