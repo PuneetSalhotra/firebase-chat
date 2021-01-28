@@ -401,6 +401,19 @@ function FormConfigController(objCollection) {
 
     });
 
+    // Service for form feilds validation bot
+    app.post('/' + global.config.version + '/form/field/bot/validation', async function (req, res) {
+
+        const [err, response] = await formConfigService.formFieldbotValidation(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, response, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, response, -9999, req.body));
+        }
+
+    });
+
     // Service for updating the form name
     app.post('/' + global.config.version + '/form/field/form_name/update', async function (req, res) {
 
