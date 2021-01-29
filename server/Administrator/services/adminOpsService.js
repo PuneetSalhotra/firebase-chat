@@ -1171,6 +1171,14 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
 
+        //get the role details of desk
+        let [err22, roleDataDesk] = await adminListingService.listRolesByAccessLevels({...request,asset_type_id:request.desk_asset_type_id});
+        if (!err22 && roleDataDesk.length > 0) {
+            // request.asset_type_name = roleData[0].asset_type_name;
+            console.log('ROLE NAME for desk', roleDataDesk[0].asset_type_id, 'is : ', roleDataDesk[0].asset_type_name);
+        }
+        // console.log(roleDataDesk);
+
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
@@ -1239,7 +1247,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             employee_manual_work_location_address: request.asset_manual_work_location_address || ''
         });
 
-        // Create the asset
+        //Create the asset
         const [errOne, assetData] = await createAssetBundle(request, workforceID, organizationID, accountID);
         if (errOne) {
             console.log("addNewEmployeeToExistingDesk | createAssetBundle | Error: ", errOne);
@@ -1255,7 +1263,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             asset_id: deskAssetID
         });
         request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
-        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleDataDesk,request.desk_asset_id)
 
         request.operating_asset_id = Number(assetData.asset_id);
         // Add a new access mapping for employee asset to the desk asset 

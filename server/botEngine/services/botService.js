@@ -10089,6 +10089,9 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
+        request.fldAovValue = fieldIdValuesMap[308731]
+        request.mobilityAovValue = fieldIdValuesMap[308694]; 
+        
         for(let currentExecution of largerDoaDataToProcess) {
 
             console.log("columnNumber----", columnNumber, currentExecution.name);
@@ -10316,6 +10319,109 @@ async function removeAsOwner(request,data)  {
 
     }
 
+    async function triggerArpForm(request) {
+        try {
+            let createWorkflowRequest                       = Object.assign({}, request);
+
+            createWorkflowRequest.activity_inline_data      = JSON.stringify([
+                {
+                    form_id: 50476,
+                    field_id: '309277',
+                    field_name: 'Derived DOA',
+                    field_data_type_id: 19,
+                    field_data_type_category_id: 7,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: '0',
+                    field_value: request.team_title || "",
+                    message_unique_id: 1611037456814
+                },
+                {
+                    form_id: 50476,
+                    field_id: '309279',
+                    field_name: 'Decision Type',
+                    field_data_type_id: 33,
+                    field_data_type_category_id: 14,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: request.decision_type_value || "",
+                    field_value : request.decision_type_value || "",
+                    message_unique_id : 1611037993575
+                },
+                {
+                    form_id: 50476,
+                    field_id: '309278',
+                    field_name: 'AOV',
+                    field_data_type_id: 6,
+                    field_data_type_category_id: 2,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: request.aovValue || "",
+                    field_value: request.aovValue || "",
+                    message_unique_id: 1611037843535
+                }
+            ]);
+
+            createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+            createWorkflowRequest.activity_type_category_id = 9;
+            createWorkflowRequest.activity_type_id          = 150506;
+            //createWorkflowRequest.activity_title = workflowActivityTypeName;
+            //createWorkflowRequest.activity_description = workflowActivityTypeName;
+            //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
+            // Child Orders
+            createWorkflowRequest.activity_parent_id = 0;
+            createWorkflowRequest.activity_form_id    = 50476;
+            createWorkflowRequest.form_id    = 50476;
+
+            createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            // delete createWorkflowRequest.activity_id;
+            createWorkflowRequest.device_os_id = 7;
+
+            const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+            const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            createWorkflowRequest.activity_id = targetFormActivityID;
+            createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+            createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
+
+            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+            let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+            console.log("activityInsertedDetails---->", activityInsertedDetails);
+
+
+            let activityTimelineCollection =  JSON.stringify({
+                "content": `Form Submitted`,
+                "subject": `ARP Trigger`,
+                "mail_body": `ARP Trigger`,
+                "activity_reference": [],
+                "form_id" : 50476,
+                "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+
+
+            let timelineReq = Object.assign({}, createWorkflowRequest);
+
+            timelineReq.activity_id = request.workflow_activity_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            // timelineReq.activity_stream_type_id = 717;
+            timelineReq.activity_stream_type_id = 705;
+            timelineReq.timeline_stream_type_id = 705;
+            timelineReq.activity_type_category_id = 48;
+            timelineReq.asset_id = 100;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+            return 1;
+        } catch(e) {
+            console.log("Error-->", e.stack, e);
+            return 0;
+        }
+    }
 
     async function getActivityTypeIdBasedOnActivityId(request, organization_id, activity_id) {
         let paramsArr = new Array(
@@ -11034,19 +11140,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -11180,16 +11286,47 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
         }
+
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.mobilityAovValue;
+        triggerArpForm(request);
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
@@ -11960,19 +12097,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -12107,17 +12244,36 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+
+
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
         }
 
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.fldAovValue;
+        triggerArpForm(request);
 
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
