@@ -10091,6 +10091,8 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
+        request.aovValue = fieldIdValuesMap[308731] || fieldIdValuesMap[308694]; // mobility || FLD
+        
         for(let currentExecution of largerDoaDataToProcess) {
 
             console.log("columnNumber----", columnNumber, currentExecution.name);
@@ -11285,18 +11287,45 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
         }
 
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
         request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
         triggerArpForm(request);
     }
 
@@ -12215,20 +12244,34 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+
+
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
         }
 
-
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
 
         request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
         triggerArpForm(request);
 
 
