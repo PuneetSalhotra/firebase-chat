@@ -346,7 +346,7 @@ function ActivityConfigService(db,util,objCollection) {
                 request.organization_id,
                 request.activity_type_id,
                 0,
-                2,
+                3,
                 request.asset_id,
                 request.datetime_log || util.getCurrentUTCTime()
             );

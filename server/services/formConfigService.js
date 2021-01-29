@@ -2528,18 +2528,14 @@ function FormConfigService(objCollection) {
             error = true;
 
         let paramsArr = new Array(
-            request.flag,
-            request.activity_type_id,
-            request.is_workflow,
-            request.form_sequence_id,
-            request.is_workflow_origin,
-            request.workflow_percentage,
             request.form_id,
+            request.activity_status_id,
             request.organization_id,
+            3,
             request.asset_id,
             util.getCurrentUTCTime(),
         );
-        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_workflow', paramsArr);
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_update_log_state', paramsArr);
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
@@ -6268,6 +6264,35 @@ function FormConfigService(objCollection) {
         }
 
         return [error, responseData];       
+    }
+
+    this.formFieldbotValidation = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.bot_id||0,
+            request.form_id,
+            request.field_id,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_validation', paramsArr);
+
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                   
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }    
+
+        return [error, responseData]; 
     }
 }
 

@@ -2068,6 +2068,20 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+
+                case 42 : //Leave Aplication
+                    logger.silly("Leave Aplication Bot params received from request: %j", request);
+                    try {
+                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+                        await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                    } catch (error) {
+                        logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                        "error": error
+                        });
+                    }
+                break;                    
             }
 
             //botOperationTxnInsert(request, i);
@@ -10302,6 +10316,109 @@ async function removeAsOwner(request,data)  {
 
     }
 
+    async function triggerArpForm(request) {
+        try {
+            let createWorkflowRequest                       = Object.assign({}, request);
+
+            createWorkflowRequest.activity_inline_data      = JSON.stringify([
+                {
+                    form_id: 50476,
+                    field_id: '309277',
+                    field_name: 'Derived DOA',
+                    field_data_type_id: 19,
+                    field_data_type_category_id: 7,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: '0',
+                    field_value: request.team_title || "",
+                    message_unique_id: 1611037456814
+                },
+                {
+                    form_id: 50476,
+                    field_id: '309279',
+                    field_name: 'Decision Type',
+                    field_data_type_id: 33,
+                    field_data_type_category_id: 14,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: request.decision_type_value || "",
+                    field_value : request.decision_type_value || "",
+                    message_unique_id : 1611037993575
+                },
+                {
+                    form_id: 50476,
+                    field_id: '309278',
+                    field_name: 'AOV',
+                    field_data_type_id: 6,
+                    field_data_type_category_id: 2,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: request.aovValue || "",
+                    field_value: request.aovValue || "",
+                    message_unique_id: 1611037843535
+                }
+            ]);
+
+            createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+            createWorkflowRequest.activity_type_category_id = 9;
+            createWorkflowRequest.activity_type_id          = 150506;
+            //createWorkflowRequest.activity_title = workflowActivityTypeName;
+            //createWorkflowRequest.activity_description = workflowActivityTypeName;
+            //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
+            // Child Orders
+            createWorkflowRequest.activity_parent_id = 0;
+            createWorkflowRequest.activity_form_id    = 50476;
+            createWorkflowRequest.form_id    = 50476;
+
+            createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            // delete createWorkflowRequest.activity_id;
+            createWorkflowRequest.device_os_id = 7;
+
+            const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+            const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+            createWorkflowRequest.activity_id = targetFormActivityID;
+            createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+            createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
+
+            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+            let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+            console.log("activityInsertedDetails---->", activityInsertedDetails);
+
+
+            let activityTimelineCollection =  JSON.stringify({
+                "content": `Form Submitted`,
+                "subject": `ARP Trigger`,
+                "mail_body": `ARP Trigger`,
+                "activity_reference": [],
+                "form_id" : 50476,
+                "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
+                "asset_reference": [],
+                "attachments": [],
+                "form_approval_field_reference": []
+            });
+
+
+            let timelineReq = Object.assign({}, createWorkflowRequest);
+
+            timelineReq.activity_id = request.workflow_activity_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            // timelineReq.activity_stream_type_id = 717;
+            timelineReq.activity_stream_type_id = 705;
+            timelineReq.timeline_stream_type_id = 705;
+            timelineReq.activity_type_category_id = 48;
+            timelineReq.asset_id = 100;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+            return 1;
+        } catch(e) {
+            console.log("Error-->", e.stack, e);
+            return 0;
+        }
+    }
 
     async function getActivityTypeIdBasedOnActivityId(request, organization_id, activity_id) {
         let paramsArr = new Array(
@@ -11020,19 +11137,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -11176,6 +11293,9 @@ async function removeAsOwner(request,data)  {
         }catch(e) {
             console.log("Error while adding participant")
         }
+
+        request.team_title = "commercial L1";
+        triggerArpForm(request);
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
@@ -11946,19 +12066,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -12104,6 +12224,10 @@ async function removeAsOwner(request,data)  {
             console.log("Error while adding participant")
         }
 
+
+
+        request.team_title = "commercial L1";
+        triggerArpForm(request);
 
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
@@ -12820,6 +12944,20 @@ async function removeAsOwner(request,data)  {
 
         return;
     }
+
+    async function applyLeave(request, leave_flag,leave_date) {
+        let paramsArr = [
+            request.organization_id,
+            request.asset_id,
+            leave_date,
+            leave_flag,
+            util.getCurrentUTCTime()
+        ];
+        let queryString = util.getQueryString('ds_v1_role_asset_mapping_update_leave', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }    
 
 }
 
