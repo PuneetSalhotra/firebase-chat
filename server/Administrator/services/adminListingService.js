@@ -343,6 +343,33 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.workforceActivityTypeMappingSelectCategoryV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id||0,
+            request.workforce_id||0,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p2_workforce_activity_type_mapping_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
     this.assetListSelectCountAssetTypeWorkforce = async function (request) {
         let responseData = [],
             error = true;
