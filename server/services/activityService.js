@@ -550,7 +550,7 @@ function ActivityService(objectCollection) {
                                     if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
                                         processFieldWidgetData(request, fieldData); // actiivty_widget_list
                                     }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
-                                        prepareARP(request);
+                                        prepareARP(request, fieldData);
                                     }
                                     
                                     if(
@@ -5607,14 +5607,14 @@ function ActivityService(objectCollection) {
         });
     }
 
-   async function prepareARP (request){
+   async function prepareARP (request, fieldData){
 
         let ARPRequest = Object.assign({}, request);
 
         ARPRequest.field_id = fieldData.field_id;
         ARPRequest.page_start = 0;
         ARPRequest.page_limit = 1;
-        ARPRequest.bot_operation_type_id = 34;
+        ARPRequest.bot_operation_type_id = 43;
         let [errorARP, responseARP] = await checkARPBotOnAField(ARPRequest); 
 
         if(responseARP.length > 0){

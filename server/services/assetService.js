@@ -4524,15 +4524,16 @@ this.getQrBarcodeFeeback = async(request) => {
     this.assetAvailableUpdate = async (request) => {
         let responseData = {},
             error = true;
-
+        request.global_array = [];
+        /*
         request.ai_bot_trigger_key = "asset_"+request.target_asset_id;
         request.ai_bot_trigger_asset_id = request.target_asset_id;
         request.ai_bot_trigger_activity_id = 0;
         request.ai_bot_trigger_activity_status_id = 0;
 
-        request.global_array = [];
+        
         request.global_array.push({"asset_available_set_":request.target_asset_id+" "+JSON.stringify(request, null, 2)});
-
+        */
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
@@ -4547,7 +4548,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then(async (data) => {
                     responseData = data;
                     error = false;
-
+                /*
                     let ai_bot_transaction_id = 0;
 
                     request.ai_trace_insert_location = "assetAvailableUpdate, AFTER SETTING THE RESOURCE TO AVAILBALE";
@@ -4586,12 +4587,12 @@ this.getQrBarcodeFeeback = async(request) => {
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
                         request.global_array.push({"assetAvailableUpdate":"RESOURCE IS NOT ACTIVE, aiTransactionId"+request.ai_bot_transaction_id})
                         rmbotService.AIEventTransactionInsert(request);
-                    }
+                    } */
                 })
                 .catch((err) => {
                     error = err;
-                    request.global_array.push({"assetAvailableUpdaten Exception":error})
-                    rmbotService.AIEventTransactionInsert(request);                    
+                   // request.global_array.push({"assetAvailableUpdaten Exception":error})
+                   // rmbotService.AIEventTransactionInsert(request);                    
                 });
         }
         return [error, responseData];
