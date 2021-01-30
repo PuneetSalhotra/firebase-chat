@@ -722,10 +722,12 @@ function AssetService(objectCollection) {
         
         let is_password_set = 'No';
         for(const i of rowArray) {
-            if((i.asset_email_password).length > 0) {
-                //Password is Set
-                is_password_set = 'Yes';
-                break;
+            if(!!i.asset_email_password){
+                //if((i.asset_email_password).length > 0) {
+                    //Password is Set
+                    is_password_set = 'Yes';
+                    break;
+               // }
             }
         }
 
