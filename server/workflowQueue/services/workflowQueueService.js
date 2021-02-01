@@ -141,7 +141,7 @@ function WorkflowQueueService(objectCollection) {
                     flag = 2;
                 }
             }            
-
+            
             try {
                 if(flag === 1) {
                     let results = new Array();
@@ -152,12 +152,14 @@ function WorkflowQueueService(objectCollection) {
                             request.queue_id,
                             request.queue_name,
                             request.queue_flag_participating_only,
+                            request.queue_inline_data,//added for v1
                             request.organization_id,
                             request.asset_id,
                             request.log_datetime
                         );
-
-                    results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update', paramsArray, 0);
+                     //adding v1 to update inline in same call
+                    // results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update', paramsArray, 0);
+                    results[0] = await db.callDBProcedure(request, 'ds_p2_queue_list_update', paramsArray, 0);
 
                     paramsArray =
                         new Array(
