@@ -12991,11 +12991,11 @@ async function removeAsOwner(request,data)  {
         return;
     }
 
-    async function applyLeave(request, leave_flag,leave_date) {
+    async function applyLeave(request, leave_flag, leave_date) {
         let paramsArr = [
             request.organization_id,
             request.asset_id,
-            leave_date,
+            util.ISTtoUTC(leave_date),
             leave_flag,
             util.getCurrentUTCTime()
         ];
