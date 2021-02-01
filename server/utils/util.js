@@ -2714,7 +2714,11 @@ function Util(objectCollection) {
             });
     };    
 
-
+    this.ISTtoUTC = function (date) {
+        //var value = moment(date).utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
+        var value = moment(date).add(-330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
+        return value;
+    };
 
 }
 

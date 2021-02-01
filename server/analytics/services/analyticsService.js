@@ -2693,7 +2693,39 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }
-    
+
+    //Functionality to modify the target at product level
+    this.updateWidgetTargetValue = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_id,
+            request.target_asset_id,
+            request.widget_target_value,
+            request.year_month
+        ];
+
+        const queryString = util.getQueryString('ds_v1_activity_list_update_widget_target_value', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                    const activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+                    //console.log("activityData ",activityData);
+                    request.message = "Your target for the month "+request.year_month+" is revised to "+request.widget_target_value;
+                    util.sendCustomPushNotification(request, activityData);
+
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AnalyticsService;
