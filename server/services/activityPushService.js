@@ -223,6 +223,15 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_unread';
 
+                                attachments = [], content = "";
+                                try {
+                                    const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    attachments = activityTimelineCollection.attachments;
+                                    content = activityTimelineCollection.content;
+
+                                } catch (error) { }
+
+
                                 // pushString.title = senderName;
                                 try {
                                     let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
@@ -234,10 +243,48 @@ function ActivityPushService(objectCollection) {
                                 pushString.subtitle = message;
                                 pushString.body = senderName;
                                 pushString.description = 'Has added an update to - ' + activityTitle;
+
+                                if (Number(attachments.length) === 1) {
+                                    const fileExtension = path.extname(attachments[0]);
+                                    switch (fileExtension) {
+                                        // Images
+                                        case ".jpg":
+                                        case ".jpeg":
+                                        case ".png":
+                                            pushString.subtitle = `Added a new image update`;
+                                            break;
+                                        // PDF Document
+                                        case ".pdf":
+                                            pushString.subtitle = `Added a new PDF document`;
+                                            break;
+                                        // Word Document
+                                        case ".doc":
+                                        case ".docx":
+                                            pushString.subtitle = `Added a new word document`;
+                                            break;
+                                        // Excel Sheet
+                                        case ".xls":
+                                        case ".xlsx":
+                                            pushString.subtitle = `Added a new excel sheet`;
+                                            break;
+                                        default:
+                                            pushString.description = `Added attachment(s)`;
+                                            pushString.subtitle = `Added attachment(s)`;
+                                            break;
+                                    }
+                                    pushString.description = `${pushString.subtitle} - ${senderName}`;
+
+                                } else if (Number(attachments.length) > 0) {
+                                    msg.description = `Added attachment in ${activityTitle}.`;
+
+                                    pushString.description = `Added attachment(s)`;
+                                    pushString.subtitle = `Added attachment(s)`;
+                                }
+
                                 if (Number(request.activity_sub_type_id) === 1)
                                     smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 else
-                                    smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
+                                    smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';        
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
                                 break;
