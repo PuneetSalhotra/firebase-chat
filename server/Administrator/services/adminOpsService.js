@@ -1584,7 +1584,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 asset_id: mangerAssetID
             });
         
-        let message = `Tony added ${assetData[0].asset_first_name} to this Conversation`
+        let message = `Tony added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
                 "organization_id":request.organization_id,
@@ -1634,7 +1634,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             console.log('LEAD ASSET DATA - ', assetData[0]);
             console.log('********************************');
             // request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
-            leadAssetFirstName = assetData[0].asset_first_name;
+            leadAssetFirstName = assetData[0].operating_asset_first_name;
         
     
         //Add a timeline entry

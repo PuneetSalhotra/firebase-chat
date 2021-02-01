@@ -10091,7 +10091,8 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
-        request.aovValue = fieldIdValuesMap[308731] || fieldIdValuesMap[308694]; // mobility || FLD
+        request.fldAovValue = fieldIdValuesMap[308731]
+        request.mobilityAovValue = fieldIdValuesMap[308694]; 
         
         for(let currentExecution of largerDoaDataToProcess) {
 
@@ -11326,6 +11327,7 @@ async function removeAsOwner(request,data)  {
 
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
+        request.aovValue = request.mobilityAovValue;
         triggerArpForm(request);
     }
 
@@ -12272,6 +12274,7 @@ async function removeAsOwner(request,data)  {
 
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
+        request.aovValue = request.fldAovValue;
         triggerArpForm(request);
 
 
@@ -12990,11 +12993,11 @@ async function removeAsOwner(request,data)  {
         return;
     }
 
-    async function applyLeave(request, leave_flag,leave_date) {
+    async function applyLeave(request, leave_flag, leave_date) {
         let paramsArr = [
             request.organization_id,
             request.asset_id,
-            leave_date,
+            util.ISTtoUTC(leave_date),
             leave_flag,
             util.getCurrentUTCTime()
         ];
