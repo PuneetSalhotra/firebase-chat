@@ -550,7 +550,7 @@ function ActivityService(objectCollection) {
                                     if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
                                         processFieldWidgetData(request, fieldData); // actiivty_widget_list
                                     }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
-                                        prepareARP(request);
+                                        prepareARP(request, fieldData);
                                     }
                                     
                                     if(
@@ -2482,9 +2482,9 @@ function ActivityService(objectCollection) {
                             if(request.hasOwnProperty("insufficient_data")){
                                 //request.global_array = [];
                                 logger.info("activityService insufficient_data CALLING callAddParticipant");
-                                rmbotService.callAddParticipant(request);
+                                //rmbotService.callAddParticipant(request);
                             }else{
-                                
+                                /*
                                 request.global_array = [];
                                 request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
                                 request.ai_bot_trigger_asset_id = 0;
@@ -2492,7 +2492,7 @@ function ActivityService(objectCollection) {
                                 request.ai_bot_trigger_activity_status_id = request.activity_status_id;
                                 request.global_array.push({"status_change_":"NonMobile triggering ai in after status change "+JSON.stringify(request)});
 
-                                rmbotService.triggerAIOnStatusChange(request);
+                                rmbotService.triggerAIOnStatusChange(request); */
                             }
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
@@ -2508,16 +2508,16 @@ function ActivityService(objectCollection) {
                         if(request.hasOwnProperty("insufficient_data")){
                             logger.info("activityService insufficient_data CALLING callAddParticipant");
                             //request.global_array = [];
-                            rmbotService.callAddParticipant(request);
+                            //rmbotService.callAddParticipant(request);
                         }else{
-                            
+                            /*
                             request.global_array = [];
                             request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
                             request.ai_bot_trigger_asset_id = 0;
                             request.ai_bot_trigger_activity_id = request.activity_id;
                             request.ai_bot_trigger_activity_status_id = request.activity_status_id;                            
                             request.global_array.push({"status_change_":"Mobile: triggering ai in after status change with no existing status "+JSON.stringify(request)});                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
-                            rmbotService.triggerAIOnStatusChange(request);
+                            rmbotService.triggerAIOnStatusChange(request); */
                         }
                     }
                 }
@@ -5607,14 +5607,14 @@ function ActivityService(objectCollection) {
         });
     }
 
-   async function prepareARP (request){
+   async function prepareARP (request, fieldData){
 
         let ARPRequest = Object.assign({}, request);
 
         ARPRequest.field_id = fieldData.field_id;
         ARPRequest.page_start = 0;
         ARPRequest.page_limit = 1;
-        ARPRequest.bot_operation_type_id = 34;
+        ARPRequest.bot_operation_type_id = 43;
         let [errorARP, responseARP] = await checkARPBotOnAField(ARPRequest); 
 
         if(responseARP.length > 0){
