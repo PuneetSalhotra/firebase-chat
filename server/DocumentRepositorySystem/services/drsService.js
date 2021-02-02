@@ -48,6 +48,8 @@ function DrsService(objectCollection) {
                         request.document_repository_id,
                         request.target_asset_id,
                         request.target_access_id,
+                        request.asset_type_id,
+                        request.access_level_id||6,
                         request.organization_id,
                         request.asset_id,
                         util.getCurrentUTCTime()
@@ -287,6 +289,8 @@ function DrsService(objectCollection) {
             request.document_repository_id,
             request.repository_sub_type_id,
             request.asset_id,
+            request.asset_type_id,
+            request.access_level_id||6,
             request.flag,
             request.page_start,
             request.page_limit
