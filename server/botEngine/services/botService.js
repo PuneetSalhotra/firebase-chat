@@ -8982,6 +8982,29 @@ async function removeAsOwner(request,data)  {
     async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
+        const checksForBulkUpload = {
+            "mandatory" : {
+                "cloning" : ["LastMileName","ReasonForCloning"],
+                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks"],
+                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks"]
+            },
+           "char_limit" : {
+               "SearchCityEndA" : 50,
+               "SearchAreaEndA" : 250,
+               "SearchBuildingIdEndA" : 500,
+               "StreetFloorNameEndA" : 100,
+               "AddressEndA" : 500,
+               "CustomerNameEndA" : 125,
+               "SpecialInstructionsBySalesEndA" : 1000,
+               "SearchCityEndB" : 50,
+               "SearchAreaEndB" : 250,
+               "SearchBuildingIdEndB" : 500,
+               "StreetFloorNameEndB" : 100,
+               "AddressEndB" : 500,
+               "CustomerNameEndB" : 125,
+               "SpecialInstructionsBySalesEndB" : 1000
+           }  
+        };
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -9158,13 +9181,17 @@ async function removeAsOwner(request,data)  {
 
         // Error containers
         let errorMessageForNonAscii = "Non Ascii Character(s) found in:\n";
+        let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
         let errorMessageForInvalidVendor = "\nInvalid vendor(s) found in:\n";
+        let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
+        let mandatoryFieldsMissing = true;
         let nonAsciiErroFound = false;
         let invalidVendorFound = false; // vilVendorsList
+        let charlimitExceeded = false;
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
@@ -9180,16 +9207,43 @@ async function removeAsOwner(request,data)  {
             }
 
             // service type compatibility check for secondary
+            let actionType = childOpportunity.actionType;
             let linkType = childOpportunity.LinkType;
             let serviceType = childOpportunity.ServiceType;
+            let isLastMileOffNet = childOpportunity.IsLastMileOffNet || "";
+            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
 
             if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
                 unsupportedProductForSecondaryFound = true;
                 errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
             }
+            
+            // Mandatory check for secondary
+            if(linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "" )) {
+                mandatoryFieldsMissing = true;
+                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
+            }
+
+            // Mandatory check by actiontype
+            let mandatoryChecks = checksForBulkUpload["mandatory"][actionType] || [];
+            for(const fieldName of mandatoryChecks) {
+                let value = childOpportunity[fieldName] || "";
+                if( value === "" ) {
+                    mandatoryFieldsMissing = true;
+                    errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                }
+            }
+
+            let charsLimitChecks = checksForBulkUpload["char_limit"];
+            for (const [fieldName, limit] of Object.entries(charsLimitChecks)) {
+                let fieldValue = childOpportunity[fieldName] || "";
+                if(fieldValue.length > limit) {
+                    charlimitExceeded = true;
+                    errorMessageForCharLimitExceeded += `Characters limit exceeded for ${fieldName} in ${i + 1}.\n`;
+                } 
+            }
 
             // Invalid vendor check
-            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
             if (
                 LastMileOffNetVendor !== "" &&
                 LastMileOffNetVendor.includes(",")
@@ -9210,11 +9264,13 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidVendorFound) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidVendorFound || mandatoryFieldsMissing || charlimitExceeded) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
             if (invalidVendorFound) { formattedTimelineMessage += errorMessageForInvalidVendor }
+            if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
+            if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
