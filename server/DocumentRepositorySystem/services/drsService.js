@@ -80,6 +80,7 @@ function DrsService(objectCollection) {
                         request.organization_id,
                         request.document_repository_id,
                         request.target_asset_id,
+                        request.asset_type_id,
                         request.asset_id,
                         util.getCurrentUTCTime()
                       ];
