@@ -8951,7 +8951,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_id,
             request.desk_asset_id
         );
-        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_role', paramsArr); 
+        const queryString = util.getQueryString('ds_v1_asset_list_update_asset_type_index', paramsArr); 
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
