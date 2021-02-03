@@ -8985,8 +8985,8 @@ async function removeAsOwner(request,data)  {
         const checksForBulkUpload = {
             "mandatory" : {
                 "cloning" : ["LastMileName","ReasonForCloning"],
-                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks"],
-                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks"]
+                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks","VendorName"],
+                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks","VendorName"]
             },
            "char_limit" : {
                "SearchCityEndA" : 50,
@@ -9135,7 +9135,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning"
+            "SalesRemarks", "ReasonForCloning","VendorName"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -9211,7 +9211,8 @@ async function removeAsOwner(request,data)  {
             let linkType = childOpportunity.LinkType;
             let serviceType = childOpportunity.ServiceType;
             let isLastMileOffNet = childOpportunity.IsLastMileOffNet || "";
-            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
+            let vendorName = childOpportunity.VendorName || "";
+            const LastMileOffNetVendor = childOpportunity.LastMileOffNetVendor || "";
 
             if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
                 unsupportedProductForSecondaryFound = true;
@@ -9243,10 +9244,9 @@ async function removeAsOwner(request,data)  {
                 } 
             }
 
-            // Invalid vendor check
+            // Invalid LastMileOffNetVendor check
             if (
-                LastMileOffNetVendor !== "" &&
-                LastMileOffNetVendor.includes(",")
+                LastMileOffNetVendor !== ""
             ) {
                 let processedVendorList = LastMileOffNetVendor
                     .split(",")
@@ -9254,13 +9254,25 @@ async function removeAsOwner(request,data)  {
                         vendor = vendor.trim();
                         if (!vilVendorsList["vendorsList"].includes(vendor)) {
                             invalidVendorFound = true;
-                            errorMessageForInvalidVendor += `Invalid vendor ${vendor} found in Row ${i + 1}\n`;
+                            errorMessageForInvalidVendor += `Invalid LastMileOffNetVendor ${vendor} found in Row ${i + 1}\n`;
                         }
                         return vendor;
                     })
                     .join("|")
 
                 childOpportunitiesArray[i].LastMileOffNetVendor = processedVendorList;
+            }
+
+            // Invalid vendor check
+            if (
+                vendorName !== ""
+            ) {
+                vendorName = vendorName.trim();
+                if (!vilVendorsList["vendorsList"].includes(vendorName)) {
+                    invalidVendorFound = true;
+                    errorMessageForInvalidVendor += `Invalid vendor ${vendorName} found in Row ${i + 1}\n`;
+                }
+                childOpportunitiesArray[i].VendorName = vendorName;
             }
         }
 
