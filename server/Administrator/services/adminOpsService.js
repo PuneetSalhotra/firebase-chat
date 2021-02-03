@@ -1640,7 +1640,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: request.log_asset_id
             });
-            let logAssetFirstName = log_assetData[0].asset_first_name;
+            let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         //Add a timeline entry
         let activityTimelineCollection =  JSON.stringify({                            
             "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -8951,7 +8951,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_id,
             request.desk_asset_id
         );
-        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_role', paramsArr); 
+        const queryString = util.getQueryString('ds_v1_asset_list_update_asset_type_index', paramsArr); 
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
