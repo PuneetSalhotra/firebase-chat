@@ -2073,6 +2073,10 @@ function BotService(objectCollection) {
                     logger.silly("Leave Aplication Bot params received from request: %j", request);
                     try {
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+
+                        if(botOperationsJson.bot_operations.leave_flag == 2)
+                            fieldValue =  util.addDays(fieldValue, 1);
+                            
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -12754,6 +12758,13 @@ async function removeAsOwner(request,data)  {
                         key = conditionData.is_false;
                     }
                     isEnd = conditionData.isEnd;
+                } else if (conditionData.condition == 'neq') {
+                    if (fieldValue != Number(conditionData.compare_value)) {
+                        key = conditionData.is_true;
+                    } else {
+                        key = conditionData.is_false;
+                    }
+                    isEnd = conditionData.isEnd;
                 } else {
                     isEnd = true;
                 }
@@ -12999,7 +13010,7 @@ async function removeAsOwner(request,data)  {
             leave_flag,
             util.getCurrentUTCTime()
         ];
-        let queryString = util.getQueryString('ds_v1_role_asset_mapping_update_leave', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_leave', paramsArr);
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }

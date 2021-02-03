@@ -2371,7 +2371,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_5_activity_search_list_select_widget_drilldown_search', paramsArray);
+                var queryString = util.getQueryString('ds_v1_6_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
