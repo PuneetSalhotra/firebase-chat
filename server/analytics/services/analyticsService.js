@@ -2131,6 +2131,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.workforce_tag_id) || 0,
                         parseInt(request.filter_form_id) || 0,
                         parseInt(request.filter_field_id) || 0,
+                        request.filter_timescale || '',
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2142,7 +2143,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_5_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_6_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2157,7 +2158,7 @@ function AnalyticsService(objectCollection)
                     }else{
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_5_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_6_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2365,6 +2366,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_field_id) || 0,
                     parseInt(request.filter_mapping_activity_id) || 0,                    
                     request.filter_mapping_combo_value || '',
+                    request.filter_timescale || '',
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
@@ -2644,6 +2646,7 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }      
+    
     this.getAssetTargetList = async (request) => {
 
         let responseData = [],
@@ -2652,7 +2655,8 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
               request.organization_id,
               request.target_asset_id,
-              request.widget_type_id
+              request.widget_type_id,
+              request.widget_timescale
         ];
 
         const queryString = util.getQueryString('ds_v1_asset_target_mapping_select', paramsArr);
@@ -2703,11 +2707,15 @@ function AnalyticsService(objectCollection)
             request.organization_id,
             request.activity_id,
             request.target_asset_id,
-            request.widget_target_value,
-            request.year_month
+            request.widget_type_id,
+            request.year_month,
+            request.is_target,
+            request.entity_value, 
+            request.asset_id,
+            util.getCurrentUTCTime()
         ];
 
-        const queryString = util.getQueryString('ds_v1_activity_list_update_widget_target_value', paramsArr);
+        const queryString = util.getQueryString('ds_v1_vil_asset_target_mapping_update_value', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
@@ -2715,7 +2723,14 @@ function AnalyticsService(objectCollection)
                     error = false;
                     const activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                     //console.log("activityData ",activityData);
-                    request.message = "Your target for the month "+request.year_month+" is revised to "+request.widget_target_value;
+                    let entity = "";
+
+                    if(request.is_target == 1)
+                        entity = "Target";
+                    else
+                        entity = "Achieved Value";
+
+                    request.message = "Your "+entity+" for the month "+request.year_month+" is revised to "+request.entity_value;
                     util.sendCustomPushNotification(request, activityData);
 
                 })
@@ -2725,6 +2740,34 @@ function AnalyticsService(objectCollection)
         }
         return [error, responseData];
     }
+    //Functionality to get asset account target list          
+    this.getAssetAccountTargetList = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.widget_timescale || '',
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  	    
 
 }
 
