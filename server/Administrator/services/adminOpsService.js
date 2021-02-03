@@ -1636,12 +1636,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             // request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
             leadAssetFirstName = assetData[0].operating_asset_first_name;
         
-    
+            const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: request.log_asset_id
+            });
+            let logAssetFirstName = log_assetData[0].asset_first_name;
         //Add a timeline entry
         let activityTimelineCollection =  JSON.stringify({                            
-            "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "subject": `Note - ${util.getCurrentDate()}.`,
-            "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "mail_body": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "activity_reference": [],
             "asset_reference": [],
             "attachments": [],
