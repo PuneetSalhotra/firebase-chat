@@ -1640,7 +1640,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: request.log_asset_id
             });
-            let logAssetFirstName = log_assetData[0].asset_first_name;
+            let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         //Add a timeline entry
         let activityTimelineCollection =  JSON.stringify({                            
             "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
