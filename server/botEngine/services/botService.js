@@ -54,6 +54,7 @@ function BotService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const botConfig = require('../utils/botConfig.js');
+    const vilVendorsList = require('../utils/vilVendorsList');
 
     const activityCommonService = objectCollection.activityCommonService;
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
@@ -1264,6 +1265,12 @@ function BotService(objectCollection) {
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+            // Skipping form enable bot because it is causing other to fail
+            if(Number(i.bot_operation_type_id) === 20 ) {
+               continue;
+            }       
+
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             } catch (error) {
@@ -9042,6 +9049,29 @@ async function removeAsOwner(request,data)  {
     async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
+        const checksForBulkUpload = {
+            "mandatory" : {
+                "cloning" : ["LastMileName","ReasonForCloning"],
+                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks","VendorName"],
+                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks","VendorName"]
+            },
+           "char_limit" : {
+               "SearchCityEndA" : 50,
+               "SearchAreaEndA" : 250,
+               "SearchBuildingIdEndA" : 500,
+               "StreetFloorNameEndA" : 100,
+               "AddressEndA" : 500,
+               "CustomerNameEndA" : 125,
+               "SpecialInstructionsBySalesEndA" : 1000,
+               "SearchCityEndB" : 50,
+               "SearchAreaEndB" : 250,
+               "SearchBuildingIdEndB" : 500,
+               "StreetFloorNameEndB" : 100,
+               "AddressEndB" : 500,
+               "CustomerNameEndB" : 125,
+               "SpecialInstructionsBySalesEndB" : 1000
+           }  
+        };
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -9172,7 +9202,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning"
+            "SalesRemarks", "ReasonForCloning","VendorName"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -9216,11 +9246,23 @@ async function removeAsOwner(request,data)  {
             }
         };
 
+        // Error containers
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in:\n";
+        let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
+        let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
+        let errorMessageForInvalidVendor = "\nInvalid vendor(s) found in:\n";
+        let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
 
-        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        // Error flags
+        let unsupportedProductForSecondaryFound = false;
+        let mandatoryFieldsMissing = true;
         let nonAsciiErroFound = false;
+        let invalidVendorFound = false; // vilVendorsList
+        let charlimitExceeded = false;
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
+            // Non ASCII check
             for (const [key, value] of Object.entries(childOpportunity)) {
 
                 let indexOfNonAscii = String(value).search(/[^ -~]+/g);
@@ -9230,10 +9272,84 @@ async function removeAsOwner(request,data)  {
                 }
 
             }
+
+            // service type compatibility check for secondary
+            let actionType = childOpportunity.actionType;
+            let linkType = childOpportunity.LinkType;
+            let serviceType = childOpportunity.ServiceType;
+            let isLastMileOffNet = childOpportunity.IsLastMileOffNet || "";
+            let vendorName = childOpportunity.VendorName || "";
+            const LastMileOffNetVendor = childOpportunity.LastMileOffNetVendor || "";
+
+            if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
+                unsupportedProductForSecondaryFound = true;
+                errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
+            }
+            
+            // Mandatory check for secondary
+            if(linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "" )) {
+                mandatoryFieldsMissing = true;
+                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
+            }
+
+            // Mandatory check by actiontype
+            let mandatoryChecks = checksForBulkUpload["mandatory"][actionType] || [];
+            for(const fieldName of mandatoryChecks) {
+                let value = childOpportunity[fieldName] || "";
+                if( value === "" ) {
+                    mandatoryFieldsMissing = true;
+                    errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                }
+            }
+
+            let charsLimitChecks = checksForBulkUpload["char_limit"];
+            for (const [fieldName, limit] of Object.entries(charsLimitChecks)) {
+                let fieldValue = childOpportunity[fieldName] || "";
+                if(fieldValue.length > limit) {
+                    charlimitExceeded = true;
+                    errorMessageForCharLimitExceeded += `Characters limit exceeded for ${fieldName} in ${i + 1}.\n`;
+                } 
+            }
+
+            // Invalid LastMileOffNetVendor check
+            if (
+                LastMileOffNetVendor !== ""
+            ) {
+                let processedVendorList = LastMileOffNetVendor
+                    .split(",")
+                    .map(vendor => {
+                        vendor = vendor.trim();
+                        if (!vilVendorsList["vendorsList"].includes(vendor)) {
+                            invalidVendorFound = true;
+                            errorMessageForInvalidVendor += `Invalid LastMileOffNetVendor ${vendor} found in Row ${i + 1}\n`;
+                        }
+                        return vendor;
+                    })
+                    .join("|")
+
+                childOpportunitiesArray[i].LastMileOffNetVendor = processedVendorList;
+            }
+
+            // Invalid vendor check
+            if (
+                vendorName !== ""
+            ) {
+                vendorName = vendorName.trim();
+                if (!vilVendorsList["vendorsList"].includes(vendorName)) {
+                    invalidVendorFound = true;
+                    errorMessageForInvalidVendor += `Invalid vendor ${vendorName} found in Row ${i + 1}\n`;
+                }
+                childOpportunitiesArray[i].VendorName = vendorName;
+            }
         }
-        if (nonAsciiErroFound) {
+
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidVendorFound || mandatoryFieldsMissing || charlimitExceeded) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
-            formattedTimelineMessage += errorMessageForNonAscii;
+            if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
+            if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
+            if (invalidVendorFound) { formattedTimelineMessage += errorMessageForInvalidVendor }
+            if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
+            if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -9246,7 +9362,7 @@ async function removeAsOwner(request,data)  {
                     attachments: []
                 }
             );
-            throw new Error("NonAsciiCharacterFound");
+            throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
         // PreProcessinf Stage 1
@@ -9528,46 +9644,8 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            // if (childOpportunity.actionType === "mplsl2_second_primary") {
-            //     // Check for child opportunity
-            //     if (childOpportunity.OppId === "") {
-            //         errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
-            //         continue;
-
-            //     } else {
-            //         childOpportunityID = childOpportunity.OppId;
-            //         // Check if the child opportunity already exists
-            //         const [errorSix, childOpportunityData] = await activityListSearchCUID({
-            //             organization_id: request.organization_id,
-            //             activity_type_category_id: workflowActivityCategoryTypeID,
-            //             flag: 1,
-            //             search_string: childOpportunityID
-            //         });
-            //         if (childOpportunityData.length === 0) {
-            //             errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
-            //             continue;
-            //         }
-            //     }
-            //     // Second primary must be of linkType primary
-            //     if (linkType === "secondary") {
-            //         errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
-            //         continue;
-            //     }
-
-            //     // Skip pushing second primary job for dual creation cases to SQS
-            //     const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
-            //     if (linkType === "primary" && isDualJob) { continue; }
-            // }
-
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
-            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
-            if (
-                LastMileOffNetVendor !== "" &&
-                LastMileOffNetVendor.includes(",")
-            ) {
-                childOpportunity.LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
-            }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
@@ -9630,9 +9708,25 @@ async function removeAsOwner(request,data)  {
                 }
             );
         } catch (error) {
-            logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
-        }
+            if (error.message === "NoErrorsFound") {
+                await addTimelineMessage(
+                    {
+                        activity_timeline_text: "",
+                        organization_id: request.organization_id
+                    }, workflowActivityID || 0,
+                    {
+                        subject: 'Bulk Operation Notifictaion',
+                        content: "Excel has been submitted for processing successfully",
+                        mail_body: "Excel has been submitted for processing successfully",
+                        attachments: []
+                    }
+                );
+            }
+            else {
+                logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+            }
 
+        }
         return;
     }
 
@@ -12930,8 +13024,8 @@ async function removeAsOwner(request,data)  {
         const sheet_names = workbook.SheetNames;
         logger.silly("sheet_names: %j", sheet_names);
 
-        const headersArray = ["SerialNo", "OpportunityID", "CircuitID", "FRID", "SRType", "SRSubType"];
-
+        const headersArray = ["SerialNo", "OpportunityID", "roms_order_id", "CircuitID", "FRID", "SRType", "SRSubType"];
+        const mandatoryHeaders = ["SerialNo", "OpportunityID", "CircuitID", "FRID", "SRType", "SRSubType"];
         const OpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
         let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
         let nonAsciiErroFound = false;
@@ -12970,22 +13064,48 @@ async function removeAsOwner(request,data)  {
         for (let i = 1; i < OpportunitiesArray.length; i++) {
             const Opportunity = OpportunitiesArray[i];
             console.log(`NewCreateSR: serialNum: ${Opportunity.serialNumber}`);
-            for (const header of headersArray) {
-                if (!Opportunity.hasOwnProperty(header)) {
-                    // log error requiured headers not present
-                    errorMessage = "Invalid Headers"
+            let errorFoundForAnyColumn = false;
+            for (const header of mandatoryHeaders) {
+                if (Opportunity[header] == undefined || Opportunity[header] === "") {
+                    errorFoundForAnyColumn = true;
+                    errorMessage += `${header} is empty in row ${i + 1} \n`;
                 }
-
             }
-            if (errorMessage === "") {
-                for (const header of headersArray) {
-                    if (Opportunity[header] === "") {
-                        errorMessage += `${header} is empty in row ${i + 1} \n`;
+
+            if (!errorFoundForAnyColumn) {
+                let cuidRequestData = {
+                    organization_id: request.organization_id,
+                    activity_type_category_id: 48,
+                    activity_type_id: 0,
+                    flag: 0,
+                    search_string: Opportunity.OpportunityID,
+                    start_from: 0,
+                    limit_value: 10
+                }
+                let workflowActivityIDOfEnteredOpportunity = "";
+                const [errorOne, opportunityDataFromDb] = await activityListSearchCUID(cuidRequestData);
+                if (errorOne || opportunityDataFromDb.length === 0) {
+                    errorMessage += `The entered Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
+                }
+                else {
+                    let FRID = Opportunity.FRID;
+                    let primaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_2 || "";
+                    let secondaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_3 || "";
+                    workflowActivityIDOfEnteredOpportunity = opportunityDataFromDb[0].activity_id;
+                    if (primaryFeasibilityRequestID !== FRID && secondaryFeasibilityRequestID !== FRID) {
+                        errorMessage += `The entered FRID ${Opportunity.FRID} doesn't belong to the mentioned Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1}\n`;
+                    } else {
+                        const [errorZero, workflowActivityDataOfEnteredOpportunity] = await getActivityDetailsAsync({
+                            organization_id: request.organization_id,
+                        }, workflowActivityIDOfEnteredOpportunity);
+                        if (!workflowActivityDataOfEnteredOpportunity[0].activity_master_data) {
+                            errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
+                        }
                     }
                 }
             }
-
         }
+
         if (errorMessage !== "") {
 
             await addTimelineMessage(
@@ -13016,6 +13136,19 @@ async function removeAsOwner(request,data)  {
                 }
             }, esmsIntegrationsTopicName, Number(workflowActivityID));
         }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
 
         return;
     }
