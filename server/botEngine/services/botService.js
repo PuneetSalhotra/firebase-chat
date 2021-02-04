@@ -9055,7 +9055,7 @@ async function removeAsOwner(request,data)  {
         const MAX_ORDERS_TO_BE_PARSED = 100;
         const checksForBulkUpload = {
             "mandatory" : {
-                "cloning" : ["LastMileName","ReasonForCloning"],
+                "cloning" : ["LastMileName","ReasonForCloning","VendorName"],
                 "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks","VendorName"],
                 "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks","VendorName"]
             },
@@ -9206,7 +9206,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning","VendorName"
+            "SalesRemarks", "ReasonForCloning", "VendorName"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -9259,7 +9259,7 @@ async function removeAsOwner(request,data)  {
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
-        let mandatoryFieldsMissing = true;
+        let mandatoryFieldsMissing = false;
         let nonAsciiErroFound = false;
         let invalidVendorFound = false; // vilVendorsList
         let charlimitExceeded = false;
