@@ -1945,7 +1945,7 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('checkLargeDoa');
                     try {
-                        await checkLargeDoa(request, botOperationsJson.bot_operations.bot_inline);
+                        await checkCustomBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing checkCustomBot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
