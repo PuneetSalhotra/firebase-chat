@@ -38,6 +38,10 @@ const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
 
+function isObject(obj) {
+    return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
+}
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -9054,27 +9058,27 @@ async function removeAsOwner(request,data)  {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
         const checksForBulkUpload = {
-            "mandatory" : {
-                "cloning" : ["LastMileName","ReasonForCloning","VendorName"],
-                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks","VendorName"],
-                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks","VendorName"]
+            "mandatory": {
+                "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+                "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": [{ "LastMileName": "Stage2Offnet" }] }],
+                "refeasibility_rejected_by_fes": ["ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": [{ "LastMileName": "Stage2Offnet" }] }]
             },
-           "char_limit" : {
-               "SearchCityEndA" : 50,
-               "SearchAreaEndA" : 250,
-               "SearchBuildingIdEndA" : 500,
-               "StreetFloorNameEndA" : 100,
-               "AddressEndA" : 500,
-               "CustomerNameEndA" : 125,
-               "SpecialInstructionsBySalesEndA" : 1000,
-               "SearchCityEndB" : 50,
-               "SearchAreaEndB" : 250,
-               "SearchBuildingIdEndB" : 500,
-               "StreetFloorNameEndB" : 100,
-               "AddressEndB" : 500,
-               "CustomerNameEndB" : 125,
-               "SpecialInstructionsBySalesEndB" : 1000
-           }  
+            "char_limit": {
+                "SearchCityEndA": 50,
+                "SearchAreaEndA": 250,
+                "SearchBuildingIdEndA": 500,
+                "StreetFloorNameEndA": 100,
+                "AddressEndA": 500,
+                "CustomerNameEndA": 125,
+                "SpecialInstructionsBySalesEndA": 1000,
+                "SearchCityEndB": 50,
+                "SearchAreaEndB": 250,
+                "SearchBuildingIdEndB": 500,
+                "StreetFloorNameEndB": 100,
+                "AddressEndB": 500,
+                "CustomerNameEndB": 125,
+                "SpecialInstructionsBySalesEndB": 1000
+            }
         };
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
@@ -9268,13 +9272,11 @@ async function removeAsOwner(request,data)  {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
             for (const [key, value] of Object.entries(childOpportunity)) {
-
                 let indexOfNonAscii = String(value).search(/[^ -~]+/g);
                 if (indexOfNonAscii !== -1) {
                     nonAsciiErroFound = true;
                     errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
                 }
-
             }
 
             // service type compatibility check for secondary
@@ -9289,30 +9291,41 @@ async function removeAsOwner(request,data)  {
                 unsupportedProductForSecondaryFound = true;
                 errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
             }
-            
+
             // Mandatory check for secondary
-            if(linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "" )) {
+            if (linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "")) {
                 mandatoryFieldsMissing = true;
                 errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
             }
 
             // Mandatory check by actiontype
             let mandatoryChecks = checksForBulkUpload["mandatory"][actionType] || [];
-            for(const fieldName of mandatoryChecks) {
-                let value = childOpportunity[fieldName] || "";
-                if( value === "" ) {
-                    mandatoryFieldsMissing = true;
-                    errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+            for (const field of mandatoryChecks) {
+                if (!isObject(field)) {
+                    let fieldName = field;
+                    let value = childOpportunity[fieldName] || "";
+                    if (value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
+                } else {
+                    let fieldName = Object.keys(field)[0];
+                    let value = childOpportunity[fieldName] || "";
+                    let [dependentFieldName, dependentValue] = Object.entries(field[fieldName])[0];
+                    if (childOpportunity[dependentFieldName] === dependentValue && value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
                 }
             }
 
             let charsLimitChecks = checksForBulkUpload["char_limit"];
             for (const [fieldName, limit] of Object.entries(charsLimitChecks)) {
                 let fieldValue = childOpportunity[fieldName] || "";
-                if(fieldValue.length > limit) {
+                if (fieldValue.length > limit) {
                     charlimitExceeded = true;
                     errorMessageForCharLimitExceeded += `Characters limit exceeded for ${fieldName} in ${i + 1}.\n`;
-                } 
+                }
             }
 
             // Invalid LastMileOffNetVendor check
@@ -9733,7 +9746,7 @@ async function removeAsOwner(request,data)  {
         }
         return;
     }
-
+    
     async function dualBulkJobTransactionUpdate(request) {
         try {
             const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
