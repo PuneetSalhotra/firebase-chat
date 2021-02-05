@@ -2200,7 +2200,8 @@ function AnalyticsService(objectCollection)
                                     "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult[0].value,
-                                    "target": tempResult[0].target
+                                    "target": tempResult[0].target,
+                                    "data":tempResult
                                 }
                             );
                         }else{
@@ -2656,7 +2657,8 @@ function AnalyticsService(objectCollection)
               request.organization_id,
               request.target_asset_id,
               request.widget_type_id,
-              request.widget_timescale
+              request.widget_timescale,
+              request.resource_level_id
         ];
 
         const queryString = util.getQueryString('ds_v1_asset_target_mapping_select', paramsArr);
