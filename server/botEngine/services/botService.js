@@ -9063,7 +9063,7 @@ async function removeAsOwner(request,data)  {
             "mandatory": {
                 "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
                 "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": [{ "LastMileName": "Stage2Offnet" }] }],
-                "refeasibility_rejected_by_fes": ["ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": [{ "LastMileName": "Stage2Offnet" }] }]
+                "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": [{ "LastMileName": "Stage2Offnet" }] }]
             },
             "char_limit": {
                 "SearchCityEndA": 50,
