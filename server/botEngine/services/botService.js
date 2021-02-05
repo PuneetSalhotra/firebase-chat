@@ -11181,6 +11181,14 @@ async function removeAsOwner(request,data)  {
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
+            // check for empty plans
+            if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
+                console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
+
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
