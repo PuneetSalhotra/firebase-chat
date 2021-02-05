@@ -2092,7 +2092,44 @@ function BotService(objectCollection) {
                         "error": error
                         });
                     }
-                break;                    
+                break;
+                
+                case 44 : //FTP
+                    logger.silly("FTP Bot params received from request: %j", request);
+                    let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    sendToSqsPdfGeneration({...request,sqs_swith_flag:2,s3url,ftpJson})
+                    // try {
+                    //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    //     let fileName = await util.downloadS3Object(request,s3url);
+                    //     let fileData = fileName.split('/');
+                    //     let finalName = fileData[fileData.length-1]
+                    //     let dataToSend = fs.createReadStream(fileName);
+                    //     let remote = `${ftpJson.ftp_upload_location}/${finalName}`;
+                    //     let serverConfig = {
+                    //         host:ftpJson.ftp_address,
+                    //         port:ftpJson.ftp_port,
+                    //         username:ftpJson.ftp_username,
+                    //         password:ftpJson.ftp_password,
+                    //     }
+                    //     sftp.connect(serverConfig).then(() => {
+                    //       return sftp.put(dataToSend, remote);
+                    //     }).then(data => {
+                    //       console.log(data, 'the data info');
+                    //       fs.unlink(fileName);
+                    //     }).catch(err => {
+                    //       console.log(err, 'catch error');
+                    //     });
+                        
+                    // } catch (error) {
+                    //     logger.error("[FTP Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    //     i.bot_operation_status_id = 2;
+                    //     i.bot_operation_inline_data = JSON.stringify({
+                    //     "error": error
+                    //     });
+                    // }
+                break;
             }
 
             //botOperationTxnInsert(request, i);
