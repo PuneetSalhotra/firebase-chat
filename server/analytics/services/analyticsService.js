@@ -2742,7 +2742,7 @@ function AnalyticsService(objectCollection)
         }
         return [error, responseData];
     }
-
+    //Functionality to get asset account target list          
     this.getAssetAccountTargetList = async (request) => {
 
         let responseData = [],
@@ -2751,9 +2751,9 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
               request.organization_id,
               request.target_asset_id,
-              request.widget_timescale,
-              request.page_start,
-              request.page_limit
+              request.widget_timescale || '',
+              request.page_start || 0,
+              request.page_limit || 100
         ];
 
         const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select', paramsArr);
