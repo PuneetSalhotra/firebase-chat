@@ -233,6 +233,7 @@ function DrsService(objectCollection) {
       request.organization_id,
       request.document_repository_id,
       request.target_asset_id,
+      request.asset_type_id||0,
       update_type_id||0,
       util.getCurrentUTCTime()
   ];

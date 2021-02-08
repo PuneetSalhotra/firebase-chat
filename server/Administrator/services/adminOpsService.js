@@ -4781,6 +4781,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_date_joining = request.joining_datetime;
             idCardJSON.employee_phone_country_code = request.country_code;
             idCardJSON.employee_phone_number = request.phone_number;
+            idCardJSON.employee_asset_type_id = request.asset_type_id;
+            idCardJSON.employee_asset_type_name = request.asset_type_name;
 
             // Update the ID Card's Activity List table
             try {
