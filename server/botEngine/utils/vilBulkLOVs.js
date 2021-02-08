@@ -1,6 +1,6 @@
 // 
 
-const vendorsList = {
+const vilBulkLOVs = {
     "vendorsList": [
         "Gemini",
         "HFCL",
@@ -87,7 +87,53 @@ const vendorsList = {
         "TEJAYS INDUSTRIES PRIVATE LIMITED",
         "M/s Monstar Optical Fibre",
         "M/s Budhaa Automation"
-    ]
-}
+    ],
+    "LastMileList": [
+        "Stage2",
+        "Stage2Offnet",
+        "Stage2Ubr",
+        "Stage23g",
+        "Stage2Microwave",
+        "Desktop"
+    ],
+    "RejectionRemarksList": [
+        "Modification Required",
+        "Need Revised Feasibility",
+        "Circle/CFT request",
+        "Need revised solution",
+        "Capex revalidation required"
+    ],
+    "ReasonForCloningList": [
+        "Change in Bandwidth",
+        "Service addition",
+        "Parameter change",
+        "Feasibility Rejected",
+        "Feasibility has expired"
+    ],
+    "checksForBulkUpload": {
+        "mandatory": {
+            "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+            "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+            "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }]
+        },
+        "char_limit": {
+            "SearchCityEndA": 50,
+            "SearchAreaEndA": 250,
+            "SearchBuildingIdEndA": 500,
+            "StreetFloorNameEndA": 100,
+            "AddressEndA": 500,
+            "CustomerNameEndA": 125,
+            "SpecialInstructionsBySalesEndA": 1000,
+            "SearchCityEndB": 50,
+            "SearchAreaEndB": 250,
+            "SearchBuildingIdEndB": 500,
+            "StreetFloorNameEndB": 100,
+            "AddressEndB": 500,
+            "CustomerNameEndB": 125,
+            "SpecialInstructionsBySalesEndB": 1000
+        }
+    }
+};
 
-module.exports = vendorsList;
+
+module.exports = vilBulkLOVs;
