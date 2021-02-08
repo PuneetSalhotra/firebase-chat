@@ -2620,13 +2620,13 @@ function BotService(objectCollection) {
             } catch (error) {
                 console.log(error);
             }
-        
+            
             const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
                 organization_id: request.organization_id,
-                asset_id: request.log_asset_id
+                asset_id: request.asset_id
             });
-            let logAssetFirstName = log_assetData[0].asset_first_name;
-
+            let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+            console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
             //Add a timeline entry
             let activityTimelineCollection =  JSON.stringify({                            
                 "content": `${logAssetFirstName} removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -2684,9 +2684,10 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
  
     const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         organization_id: request.organization_id,
-        asset_id: request.log_asset_id
+        asset_id: request.asset_id
     });
-    let logAssetFirstName = log_assetData[0].asset_first_name;
+    let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+    console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
     //Add a timeline entry
     let activityTimelineCollection =  JSON.stringify({                            
         "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -6291,10 +6292,11 @@ async function removeAsOwner(request,data)  {
     async function addDeskAsParticipant(request, assetData) {
         const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
             organization_id: request.organization_id,
-            asset_id: request.log_asset_id
+            asset_id: request.asset_id
         });
-        let logAssetFirstName = log_assetData[0].asset_first_name;
-            let message = `${logAssetFirstName} added ${newAssetData[0].asset_first_name} as collaborator.`
+        let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+            let message = `${logAssetFirstName} added ${assetData.asset_first_name} as collaborator.`;
+            console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
         let addParticipantRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -6418,9 +6420,10 @@ async function removeAsOwner(request,data)  {
 
                         const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
                             organization_id: request.organization_id,
-                            asset_id: request.log_asset_id
+                            asset_id: request.asset_id
                         });
-                        let logAssetFirstName = log_assetData[0].asset_first_name;
+                        let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+                        console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
 
                         let activityTimelineCollection =  JSON.stringify({
                             "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -6457,9 +6460,10 @@ async function removeAsOwner(request,data)  {
 
                         const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
                             organization_id: request.organization_id,
-                            asset_id: request.log_asset_id
+                            asset_id: request.asset_id
                         });
-                        let logAssetFirstName = log_assetData[0].asset_first_name;
+                        let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+                        console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
 
                         let activityTimelineCollection =  JSON.stringify({
                             "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -10014,9 +10018,10 @@ async function removeAsOwner(request,data)  {
 
         const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
             organization_id: request.organization_id,
-            asset_id: request.log_asset_id
+            asset_id: request.asset_id
         });
-        let logAssetFirstName = log_assetData[0].asset_first_name;
+        let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+        console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
 
         let activityTimelineCollection =  JSON.stringify({
             "content": `${logAssetFirstName} assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
