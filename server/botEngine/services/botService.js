@@ -6289,6 +6289,10 @@ async function removeAsOwner(request,data)  {
     }
 
     async function addDeskAsParticipant(request, assetData) {
+        const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: request.log_asset_id
+        });
         let logAssetFirstName = log_assetData[0].asset_first_name;
             let message = `${logAssetFirstName} added ${newAssetData[0].asset_first_name} as collaborator.`
         let addParticipantRequest = {
