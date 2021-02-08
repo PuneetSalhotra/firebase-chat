@@ -13024,7 +13024,8 @@ async function removeAsOwner(request,data)  {
 
     async function getFormFieldValue(request, idField) {
         logger.silly("arpBot: idField: %j", idField);
-        let formInlineData = JSON.parse(request.activity_inline_data);
+        const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
+        let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
         let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
