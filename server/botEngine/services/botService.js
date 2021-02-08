@@ -38,6 +38,10 @@ const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
 
+function isObject(obj) {
+    return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
+}
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -1941,7 +1945,7 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('checkLargeDoa');
                     try {
-                        await checkLargeDoa(request, botOperationsJson.bot_operations.bot_inline);
+                        await checkCustomBot(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing checkCustomBot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2092,7 +2096,44 @@ function BotService(objectCollection) {
                         "error": error
                         });
                     }
-                break;                    
+                break;
+                
+                case 44 : //FTP
+                    logger.silly("FTP Bot params received from request: %j", request);
+                    // let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    // let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    // sendToSqsPdfGeneration({...request,sqs_swith_flag:2,s3url,ftpJson})
+                    // try {
+                    //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    //     let fileName = await util.downloadS3Object(request,s3url);
+                    //     let fileData = fileName.split('/');
+                    //     let finalName = fileData[fileData.length-1]
+                    //     let dataToSend = fs.createReadStream(fileName);
+                    //     let remote = `${ftpJson.ftp_upload_location}/${finalName}`;
+                    //     let serverConfig = {
+                    //         host:ftpJson.ftp_address,
+                    //         port:ftpJson.ftp_port,
+                    //         username:ftpJson.ftp_username,
+                    //         password:ftpJson.ftp_password,
+                    //     }
+                    //     sftp.connect(serverConfig).then(() => {
+                    //       return sftp.put(dataToSend, remote);
+                    //     }).then(data => {
+                    //       console.log(data, 'the data info');
+                    //       fs.unlink(fileName);
+                    //     }).catch(err => {
+                    //       console.log(err, 'catch error');
+                    //     });
+                        
+                    // } catch (error) {
+                    //     logger.error("[FTP Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    //     i.bot_operation_status_id = 2;
+                    //     i.bot_operation_inline_data = JSON.stringify({
+                    //     "error": error
+                    //     });
+                    // }
+                break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -9054,27 +9095,27 @@ async function removeAsOwner(request,data)  {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
         const checksForBulkUpload = {
-            "mandatory" : {
-                "cloning" : ["LastMileName","ReasonForCloning"],
-                "refeasibility_rejected_by_am" : ["LastMileName","RejectionRemarks","VendorName"],
-                "refeasibility_rejected_by_fes" : ["ReSubmissionRemarksEndA","ReSubmissionRemarksEndB","SalesRemarks","VendorName"]
+            "mandatory": {
+                "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+                "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+                "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }]
             },
-           "char_limit" : {
-               "SearchCityEndA" : 50,
-               "SearchAreaEndA" : 250,
-               "SearchBuildingIdEndA" : 500,
-               "StreetFloorNameEndA" : 100,
-               "AddressEndA" : 500,
-               "CustomerNameEndA" : 125,
-               "SpecialInstructionsBySalesEndA" : 1000,
-               "SearchCityEndB" : 50,
-               "SearchAreaEndB" : 250,
-               "SearchBuildingIdEndB" : 500,
-               "StreetFloorNameEndB" : 100,
-               "AddressEndB" : 500,
-               "CustomerNameEndB" : 125,
-               "SpecialInstructionsBySalesEndB" : 1000
-           }  
+            "char_limit": {
+                "SearchCityEndA": 50,
+                "SearchAreaEndA": 250,
+                "SearchBuildingIdEndA": 500,
+                "StreetFloorNameEndA": 100,
+                "AddressEndA": 500,
+                "CustomerNameEndA": 125,
+                "SpecialInstructionsBySalesEndA": 1000,
+                "SearchCityEndB": 50,
+                "SearchAreaEndB": 250,
+                "SearchBuildingIdEndB": 500,
+                "StreetFloorNameEndB": 100,
+                "AddressEndB": 500,
+                "CustomerNameEndB": 125,
+                "SpecialInstructionsBySalesEndB": 1000
+            }
         };
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
@@ -9206,7 +9247,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning","VendorName"
+            "SalesRemarks", "ReasonForCloning", "VendorName"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -9259,7 +9300,7 @@ async function removeAsOwner(request,data)  {
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
-        let mandatoryFieldsMissing = true;
+        let mandatoryFieldsMissing = false;
         let nonAsciiErroFound = false;
         let invalidVendorFound = false; // vilVendorsList
         let charlimitExceeded = false;
@@ -9268,13 +9309,11 @@ async function removeAsOwner(request,data)  {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
             for (const [key, value] of Object.entries(childOpportunity)) {
-
                 let indexOfNonAscii = String(value).search(/[^ -~]+/g);
                 if (indexOfNonAscii !== -1) {
                     nonAsciiErroFound = true;
                     errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
                 }
-
             }
 
             // service type compatibility check for secondary
@@ -9289,30 +9328,41 @@ async function removeAsOwner(request,data)  {
                 unsupportedProductForSecondaryFound = true;
                 errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
             }
-            
+
             // Mandatory check for secondary
-            if(linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "" )) {
+            if (linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "")) {
                 mandatoryFieldsMissing = true;
                 errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
             }
 
             // Mandatory check by actiontype
             let mandatoryChecks = checksForBulkUpload["mandatory"][actionType] || [];
-            for(const fieldName of mandatoryChecks) {
-                let value = childOpportunity[fieldName] || "";
-                if( value === "" ) {
-                    mandatoryFieldsMissing = true;
-                    errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+            for (const field of mandatoryChecks) {
+                if (!isObject(field)) {
+                    let fieldName = field;
+                    let value = childOpportunity[fieldName] || "";
+                    if (value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
+                } else {
+                    let fieldName = Object.keys(field)[0];
+                    let value = childOpportunity[fieldName] || "";
+                    let [dependentFieldName, dependentValue] = Object.entries(field[fieldName])[0];
+                    if (childOpportunity[dependentFieldName] === dependentValue && value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
                 }
             }
 
             let charsLimitChecks = checksForBulkUpload["char_limit"];
             for (const [fieldName, limit] of Object.entries(charsLimitChecks)) {
                 let fieldValue = childOpportunity[fieldName] || "";
-                if(fieldValue.length > limit) {
+                if (fieldValue.length > limit) {
                     charlimitExceeded = true;
                     errorMessageForCharLimitExceeded += `Characters limit exceeded for ${fieldName} in ${i + 1}.\n`;
-                } 
+                }
             }
 
             // Invalid LastMileOffNetVendor check
@@ -9733,7 +9783,7 @@ async function removeAsOwner(request,data)  {
         }
         return;
     }
-
+    
     async function dualBulkJobTransactionUpdate(request) {
         try {
             const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
@@ -10839,6 +10889,14 @@ async function removeAsOwner(request,data)  {
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
+            // check for empty plans
+            if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
+                console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
+            
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
@@ -11180,6 +11238,14 @@ async function removeAsOwner(request,data)  {
 
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
+
+            // check for empty plans
+            if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
+                console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
 
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
@@ -12264,8 +12330,8 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                //field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial',
+                //field_value: 'Approved considering MNP acquisition requirement',
                 message_unique_id: 1603968690920
             },
             {
@@ -12384,6 +12450,19 @@ async function removeAsOwner(request,data)  {
 
 
 
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+        
         console.log("activityDetails----", activityDetails);
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 

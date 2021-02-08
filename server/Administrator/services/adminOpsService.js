@@ -1640,7 +1640,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: request.log_asset_id
             });
-            let logAssetFirstName = log_assetData[0].asset_first_name;
+            let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         //Add a timeline entry
         let activityTimelineCollection =  JSON.stringify({                            
             "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -4781,6 +4781,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_date_joining = request.joining_datetime;
             idCardJSON.employee_phone_country_code = request.country_code;
             idCardJSON.employee_phone_number = request.phone_number;
+            idCardJSON.employee_asset_type_id = request.asset_type_id;
+            idCardJSON.employee_asset_type_name = request.asset_type_name;
 
             // Update the ID Card's Activity List table
             try {
