@@ -6423,7 +6423,7 @@ async function removeAsOwner(request,data)  {
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
-                        console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
 
                         let activityTimelineCollection =  JSON.stringify({
                             "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
