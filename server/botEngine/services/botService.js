@@ -6289,6 +6289,8 @@ async function removeAsOwner(request,data)  {
     }
 
     async function addDeskAsParticipant(request, assetData) {
+        let logAssetFirstName = log_assetData[0].asset_first_name;
+            let message = `${logAssetFirstName} added ${newAssetData[0].asset_first_name} as collaborator.`
         let addParticipantRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -6324,10 +6326,10 @@ async function removeAsOwner(request,data)  {
                 "activity_reference": [],
                 "asset_reference": [],
                 "attachments": [],
-                "content": `Tony added ${assetData.first_name} as collaborator.`,
-                "mail_body": `Tony added ${assetData.first_name} as collaborator.`,
-                "participant_added": `Tony added ${assetData.first_name} as collaborator.`,
-                "subject": `Tony added ${assetData.first_name} as collaborator.`
+                "content": message,
+                "mail_body": message,
+                "participant_added": message,
+                "subject": message
             }),
             flag_pin: 0,
             flag_priority: 0,
