@@ -71,6 +71,11 @@ const WorkbookOpsController_VodafoneCustom = require('../Workbook/controllers/wo
 //Document Repository System
 const DrsController = require('../DocumentRepositorySystem/controllers/drsController');
 
+//Document Repository System
+const PortalController = require('../Portal/controllers/portalController');
+
+
+
 function ControlInterceptor(objCollection) {
 
     new UtilityController(objCollection);
@@ -142,6 +147,9 @@ function ControlInterceptor(objCollection) {
 
     //Document Repository System
     new DrsController(objCollection);
+
+     //Portal Controller
+     new PortalController(objCollection);   
 }
 
 module.exports = ControlInterceptor;
