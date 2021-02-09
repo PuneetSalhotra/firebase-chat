@@ -7694,7 +7694,7 @@ async function removeAsOwner(request,data)  {
         });
 
         console.log('segmentData : ', segmentData);
-        let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
+        let segmentName = (segmentData[0].parent_activity_tag_name)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
         console.log('segmentData : ', segmentName);
         switch (segmentName) {
             case 'la': generatedOpportunityID += 'C-';
