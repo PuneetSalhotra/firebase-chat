@@ -16,7 +16,9 @@ function AnalyticsService(objectCollection)
     const db = objectCollection.db;    
     const analyticsConfig = require('../utils/analyticsConfig.js');
 
-    const activityCommonService = objectCollection.activityCommonService;    
+    const activityCommonService = objectCollection.activityCommonService;   
+    
+    const self = this;
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     //const activityParticipantService = new ActivityParticipantService(objectCollection);
     //const activityService = new ActivityService(objectCollection);
@@ -1082,6 +1084,21 @@ function AnalyticsService(objectCollection)
             );
 
             results[0] = await db.callDBProcedureR2(request, 'ds_p1_1_activity_list_select_management_widgets', paramsArray, 1);
+            if(request.is_kpi_value_required == 1){
+                console.log('results[0].length '+results[0].length);
+                
+                for(let i = 0; i < results[0].length; i ++){               
+                    request.target_asset_id = results[0][i].asset_id;
+                    request.widget_type_id  = results[0][i].widget_type_id;                
+                    request.resource_level_id = 0;
+                    //results[0][i] =  await self.getAssetTargetList(request);
+                    let kpiValue = await self.getAssetTargetList(request);
+                    if(!kpiValue[0]){
+                        results[0][i].kpivalue = kpiValue[1][0]
+                    } 
+                }
+            }
+
             return results[0];
         }
         catch(error)
