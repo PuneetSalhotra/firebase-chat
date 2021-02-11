@@ -152,7 +152,7 @@ function AnalyticsService(objectCollection)
         
         //Update widget_aggregate_id and widget_chart_id
         //*******************************************************/
-        let [err1, staticValues] = await getwidgetStaticValueDetails(request);
+        let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
         if(err1) {
             global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
             return [true, {message: "Error creating Widget"}];
@@ -352,7 +352,7 @@ function AnalyticsService(objectCollection)
         }
     }
 
-    async function getwidgetStaticValueDetails(request){
+    this.getwidgetStaticValueDetails = async function(request){
         let responseData = [],
             error = true;
 
