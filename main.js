@@ -261,6 +261,8 @@ function connectToKafkaBroker() {
         var responseWrapper = new ResponseWrapper(util);
         var activityCommonService = new ActivityCommonService(db,util,forEachAsync);
 
+        var ClientCapability = require('twilio').jwt.ClientCapability;
+
         var objCollection = {
             app: app,
             util: util,
@@ -269,7 +271,8 @@ function connectToKafkaBroker() {
             cacheWrapper: cacheWrapper,
             queueWrapper: queueWrapper,
             activityCommonService: activityCommonService,
-            forEachAsync: forEachAsync
+            forEachAsync: forEachAsync,
+            ClientCapability: ClientCapability
             //io:io
         };
         new AccessTokenInterceptor(app,responseWrapper,map,cacheWrapper);

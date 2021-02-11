@@ -2720,6 +2720,42 @@ function Util(objectCollection) {
         return value;
     };
 
+    //Get GPS date time
+    this.getGPSDatetime = function () {
+        return Math.floor(Date.now()); //timestamp in milliseconds //Math.floor(Date.now() / 1000) - in seconds
+    };
+
+    // Call external service
+    this.externalService = async (dataString) => {
+        var options = {
+            host: dataString.host,
+            port: dataString.port,
+            path: dataString.path,
+            method: dataString.method,
+            headers: dataString.headers
+        };
+
+        var httpreq = await dataString.http.request(options, function (response) {
+            response.setEncoding('utf8');
+            response.on('data', function (chunk) {
+
+                if (chunk.charCodeAt(0) == 60) {
+                    var dataString = {
+                        code: true,
+                        result: chunk,
+                        status: 300
+                    };
+                    var data = dataString;
+                } else {
+                    var data = JSON.parse(chunk);
+                }
+
+                return data;
+            });
+        });
+        httpreq.write(dataString.qsData);
+        httpreq.end();
+    };
 }
 
 module.exports = Util;
