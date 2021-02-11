@@ -2099,10 +2099,10 @@ function BotService(objectCollection) {
                 break;
                 
                 case 44 : //FTP
-                    logger.silly("FTP Bot params received from request: %j", request);
+                    logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
                     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    sendToSqsPdfGeneration({...request,sqs_swith_flag:2,s3url,ftpJson})
+                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson})
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
@@ -2198,16 +2198,16 @@ function BotService(objectCollection) {
         }
     }, (error, data) => {
         if (error) {
-            logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+            logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
             // activityCommonService.workbookTrxUpdate({
             //     activity_workbook_transaction_id: workbookTxnID,
             //     flag_generated: -1, //Error pushing to SQS Queue
             //     url: ''
             // });
         } else {
-            logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-            console.log("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+            logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
+            console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
         }                                    
     });
    }
@@ -8721,7 +8721,7 @@ async function removeAsOwner(request,data)  {
         let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             let responseData = [];
-            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            responseData.push({'message': `${request.form_id} is not submitted`});
             console.log('responseData : ', responseData);
             return [true, responseData];
         }
