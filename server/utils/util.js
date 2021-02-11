@@ -2719,7 +2719,7 @@ function Util(objectCollection) {
         var value = moment(date).add(-330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
         return value;
     };
-    
+
 }
 
 module.exports = Util;
