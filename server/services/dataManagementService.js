@@ -53,7 +53,7 @@ module.exports = function DataManagementService(params) {
             const browser = await puppeteer.launch({args: ['--no-sandbox','--disable-setuid-sandbox']});
             console.log('browser launch');
             const page = await browser.newPage();
-            page.on('console',message => console[message.type()](`👉 ${message.text()}`));
+            //page.on('console',message => console[message.type()](`👉 ${message.text()}`));
             page.on('error',error => console.error(`❌ ${error}`));
             // Emitted when a script within the page has uncaught exception
             page.on('pageerror',error => console.error(`❌ ${error}`));
