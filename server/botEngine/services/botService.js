@@ -2100,9 +2100,9 @@ function BotService(objectCollection) {
                 
                 case 44 : //FTP
                     logger.silly("FTP Bot params received from request: %j", request);
-                    // let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
-                    // let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    // sendToSqsPdfGeneration({...request,sqs_swith_flag:2,s3url,ftpJson})
+                    let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    sendToSqsPdfGeneration({...request,sqs_swith_flag:2,s3url,ftpJson})
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
