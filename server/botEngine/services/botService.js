@@ -58,7 +58,7 @@ function BotService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const botConfig = require('../utils/botConfig.js');
-    const vilVendorsList = require('../utils/vilVendorsList');
+    const vilBulkLOVs = require('../utils/vilBulkLOVs');
 
     const activityCommonService = objectCollection.activityCommonService;
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
@@ -7694,7 +7694,7 @@ async function removeAsOwner(request,data)  {
         });
 
         console.log('segmentData : ', segmentData);
-        let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
+        let segmentName = (segmentData[0].parent_activity_tag_name)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
         console.log('segmentData : ', segmentName);
         switch (segmentName) {
             case 'la': generatedOpportunityID += 'C-';
@@ -9104,29 +9104,7 @@ async function removeAsOwner(request,data)  {
     async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
-        const checksForBulkUpload = {
-            "mandatory": {
-                "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
-                "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
-                "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }]
-            },
-            "char_limit": {
-                "SearchCityEndA": 50,
-                "SearchAreaEndA": 250,
-                "SearchBuildingIdEndA": 500,
-                "StreetFloorNameEndA": 100,
-                "AddressEndA": 500,
-                "CustomerNameEndA": 125,
-                "SpecialInstructionsBySalesEndA": 1000,
-                "SearchCityEndB": 50,
-                "SearchAreaEndB": 250,
-                "SearchBuildingIdEndB": 500,
-                "StreetFloorNameEndB": 100,
-                "AddressEndB": 500,
-                "CustomerNameEndB": 125,
-                "SpecialInstructionsBySalesEndB": 1000
-            }
-        };
+        const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -9161,7 +9139,6 @@ async function removeAsOwner(request,data)  {
             case "production":
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/production-vil-bulk-feasibility-jobs-queue"
                 break;
-
         }
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -9305,14 +9282,14 @@ async function removeAsOwner(request,data)  {
         let errorMessageForNonAscii = "Non Ascii Character(s) found in:\n";
         let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
-        let errorMessageForInvalidVendor = "\nInvalid vendor(s) found in:\n";
+        let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
         let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
         let mandatoryFieldsMissing = false;
         let nonAsciiErroFound = false;
-        let invalidVendorFound = false; // vilVendorsList
+        let invalidValueFound = false;
         let charlimitExceeded = false;
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
@@ -9333,6 +9310,9 @@ async function removeAsOwner(request,data)  {
             let isLastMileOffNet = childOpportunity.IsLastMileOffNet || "";
             let vendorName = childOpportunity.VendorName || "";
             const LastMileOffNetVendor = childOpportunity.LastMileOffNetVendor || "";
+            let lastMileName = childOpportunity.LastMileName || "";
+            let rejectionRemarks = childOpportunity.RejectionRemarks || "";
+            let reasonForCloning = childOpportunity.ReasonForCloning || "";
 
             if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
                 unsupportedProductForSecondaryFound = true;
@@ -9383,9 +9363,9 @@ async function removeAsOwner(request,data)  {
                     .split(",")
                     .map(vendor => {
                         vendor = vendor.trim();
-                        if (!vilVendorsList["vendorsList"].includes(vendor)) {
-                            invalidVendorFound = true;
-                            errorMessageForInvalidVendor += `Invalid LastMileOffNetVendor ${vendor} found in Row ${i + 1}\n`;
+                        if (!vilBulkLOVs["vendorsList"].includes(vendor)) {
+                            invalidValueFound = true;
+                            errorMessageForInvalidValue += `Invalid LastMileOffNetVendor ${vendor} found in Row ${i + 1}\n`;
                         }
                         return vendor;
                     })
@@ -9399,19 +9379,55 @@ async function removeAsOwner(request,data)  {
                 vendorName !== ""
             ) {
                 vendorName = vendorName.trim();
-                if (!vilVendorsList["vendorsList"].includes(vendorName)) {
-                    invalidVendorFound = true;
-                    errorMessageForInvalidVendor += `Invalid vendor ${vendorName} found in Row ${i + 1}\n`;
+                if (!vilBulkLOVs["vendorsList"].includes(vendorName)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid vendor ${vendorName} found in Row ${i + 1}\n`;
                 }
                 childOpportunitiesArray[i].VendorName = vendorName;
             }
+            
+            // Invalid LastMile check
+            if (
+                lastMileName !== ""
+            ) {
+                lastMileName = lastMileName.trim();
+                if (!vilBulkLOVs["LastMileList"].includes(lastMileName)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid LastMile ${lastMileName} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.LastMileName = lastMileName;
+            }
+
+            // Invalid RejectionRemarksList check
+            if (
+                rejectionRemarks !== ""
+            ) {
+                rejectionRemarks = rejectionRemarks.trim();
+                if (!vilBulkLOVs["RejectionRemarksList"].includes(rejectionRemarks)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid RejectionRemarks ${rejectionRemarks} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.RejectionRemarks = rejectionRemarks;
+            }
+
+            // Invalid ReasonForCloning check
+            if (
+                reasonForCloning !== ""
+            ) {
+                reasonForCloning = reasonForCloning.trim();
+                if (!vilBulkLOVs["ReasonForCloningList"].includes(reasonForCloning)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid ReasonForCloning ${reasonForCloning} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.ReasonForCloning = reasonForCloning;
+            }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidVendorFound || mandatoryFieldsMissing || charlimitExceeded) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
-            if (invalidVendorFound) { formattedTimelineMessage += errorMessageForInvalidVendor }
+            if (invalidValueFound) { formattedTimelineMessage += errorMessageForInvalidValue }
             if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
             if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             await addTimelineMessage(
@@ -13008,7 +13024,8 @@ async function removeAsOwner(request,data)  {
 
     async function getFormFieldValue(request, idField) {
         logger.silly("arpBot: idField: %j", idField);
-        let formInlineData = JSON.parse(request.activity_inline_data);
+        const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
+        let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
         let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
