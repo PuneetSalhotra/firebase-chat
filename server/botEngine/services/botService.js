@@ -11666,7 +11666,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         }
-        console.log("Response from validatingNoOfLinks", response);
+        console.log("Response from validatingNoOfLinks");
         return ;
     }
 
