@@ -820,6 +820,9 @@ function RMBotService(objectCollection) {
 
         if(assetData.length == 0){
             request.debug_info.push("NO ASSET RETURNED IN ROUND ROBIN");
+            request.global_array.push({"END_OF_FLOW":"NO ASSET RETURNED IN ROUND ROBIN"});
+            self.AIEventTransactionInsert(request);
+            console.log("NO ASSET RETURNED IN ROUND ROBIN "+request.debug_info);
             return [false,{}];
         }else{
             request.debug_info.push("AFTER_EXECUTING_ROUND_ROBIN, TARGET RESOURCE IS "+assetData[0].asset_id);
@@ -830,7 +833,8 @@ function RMBotService(objectCollection) {
             request.res_asset_type_id = 0;
             request.res_asset_category_id = 0;
             request.res_asset_id = assetData[0].asset_id;
-        
+            
+            if(assetData[0].asset_id > 0)
             self.addParticipantMakeRequest(request);
         }
     }
@@ -3028,7 +3032,7 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
-    }    
+    };
 
 
     this.activityListLeadUpdateV2 = async function (request, lead_asset_id) {
@@ -3116,8 +3120,8 @@ function RMBotService(objectCollection) {
             request.activity_id,
             util.getCurrentUTCTime()                
         );
-        //const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset', paramsArr);
-        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset_json', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_next_asset_json', paramsArr);
+        const queryString = util.getQueryString('ds_v1_asset_list_update_next_arp_asset', paramsArr);
         
         if (queryString !== '') {
 

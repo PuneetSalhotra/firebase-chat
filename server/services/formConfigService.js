@@ -1343,7 +1343,7 @@ function FormConfigService(objCollection) {
                 global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
+                 let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
                     global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
                 }
@@ -2452,6 +2452,16 @@ function FormConfigService(objCollection) {
                 formFieldUpdateStatus
             }];
         }
+
+        //
+        const [formStatusdeleteError, formStatusdeleteStatus] = await workforceFormMappingUpdateStatus(request);
+        if (formStatusdeleteError !== false) {
+            return [formStatusdeleteError, {
+                formUpdateStatus,
+                formEntityUpdateStatus,
+                formStatusdeleteStatus
+            }];
+        }
         // History update: This is not happening for now, because I don't have the list of 
         // field_ids that need to be updated. Also, the activity_type_id and the config values update 
         // for all the fields are being taken care of internally by the stored db procedure.
@@ -2508,6 +2518,38 @@ function FormConfigService(objCollection) {
             formFieldUpdateStatus
         }];
     };
+
+    async function workforceFormMappingUpdateStatus(request) {
+        // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
+        // IN p_form_sequence_id BIGINT(20), IN p_is_workflow_origin TINYINT(4), IN p_workflow_percentage TINYINT(4), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.form_id,
+            request.activity_status_id,
+            request.organization_id,
+            3,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_update_log_state', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, updateStatus];
+    }
 
     async function workforceFormMappingUpdateWorkflow(request) {
         // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
@@ -6222,6 +6264,35 @@ function FormConfigService(objCollection) {
         }
 
         return [error, responseData];       
+    }
+
+    this.formFieldbotValidation = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.bot_id||0,
+            request.form_id,
+            request.field_id,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_validation', paramsArr);
+
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {                   
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }    
+
+        return [error, responseData]; 
     }
 }
 

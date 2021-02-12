@@ -313,6 +313,7 @@ function ActivityConfigService(db,util,objCollection) {
                     if(err === false) {
                         request['update_type_id'] = 902;
                         workForceActivityTypeHistoryInsert(request).then(() => {});
+                        workForceActivityTypeMappingUpdateLogState(request).then(() => {});
                         resolve(data);
                     } else {
                         reject(err);
@@ -331,6 +332,25 @@ function ActivityConfigService(db,util,objCollection) {
                 request.datetime_log || util.getCurrentUTCTime()
             );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert',paramsArr);
+            if(queryString != '') {
+                db.executeQuery(0,queryString,request,function (err,data) {
+                    (err === false) ? resolve(data) : resolve(err);
+                });
+            }
+        });
+    }
+
+    function workForceActivityTypeMappingUpdateLogState(request) {
+        return new Promise((resolve,reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_id,
+                0,
+                3,
+                request.asset_id,
+                request.datetime_log || util.getCurrentUTCTime()
+            );
+            var queryString = util.getQueryString(`ds_p1_activity_type_asset_type_mapping_update_log_state`,paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     (err === false) ? resolve(data) : resolve(err);
@@ -1171,7 +1191,12 @@ function ActivityConfigService(db,util,objCollection) {
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
-
+         if(!hasAccountCode){
+            let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+            if(activityData.length>0){
+            accountCode = activityData[0].activity_cuid_3;
+            }
+         }
         if(Number(is_from_integrations) === 1) {
             //Update the generated Account code in two places
             //1) CUID3 of Workflow

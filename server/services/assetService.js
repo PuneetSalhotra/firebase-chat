@@ -722,10 +722,12 @@ function AssetService(objectCollection) {
         
         let is_password_set = 'No';
         for(const i of rowArray) {
-            if((i.asset_email_password).length > 0) {
-                //Password is Set
-                is_password_set = 'Yes';
-                break;
+            if(!!i.asset_email_password){
+                //if((i.asset_email_password).length > 0) {
+                    //Password is Set
+                    is_password_set = 'Yes';
+                    break;
+               // }
             }
         }
 
@@ -807,12 +809,18 @@ function AssetService(objectCollection) {
             "asset_type_attendance_type_name":util.replaceDefaultString(rowArray[0]['asset_type_attendance_type_name']),
             "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
             "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id']),
+            "asset_type_flag_enable_suspension":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_suspension']),
 
             //Returning the following data - Document Repository System
             "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
             "asset_doc_repo_access_type_name":util.replaceDefaultString(rowArray[0]['asset_doc_repo_access_type_name']),
             "organization_flag_document_repository_enabled":util.replaceDefaultString(rowArray[0]['organization_flag_document_repository_enabled']),
-            "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url'])
+            "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url']),
+            "asset_flag_document_repo_super_admin":util.replaceDefaultNumber(rowArray[0]['asset_flag_document_repo_super_admin']),
+            "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
+
+            //email integrations
+            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable'])
         };
 
         callback(false, rowData);
@@ -4518,15 +4526,16 @@ this.getQrBarcodeFeeback = async(request) => {
     this.assetAvailableUpdate = async (request) => {
         let responseData = {},
             error = true;
-
+        request.global_array = [];
+        /*
         request.ai_bot_trigger_key = "asset_"+request.target_asset_id;
         request.ai_bot_trigger_asset_id = request.target_asset_id;
         request.ai_bot_trigger_activity_id = 0;
         request.ai_bot_trigger_activity_status_id = 0;
 
-        request.global_array = [];
+        
         request.global_array.push({"asset_available_set_":request.target_asset_id+" "+JSON.stringify(request, null, 2)});
-
+        */
         const paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
@@ -4541,7 +4550,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then(async (data) => {
                     responseData = data;
                     error = false;
-
+                /*
                     let ai_bot_transaction_id = 0;
 
                     request.ai_trace_insert_location = "assetAvailableUpdate, AFTER SETTING THE RESOURCE TO AVAILBALE";
@@ -4580,12 +4589,12 @@ this.getQrBarcodeFeeback = async(request) => {
                         logger.info("assetAvailableUpdate :: RESOURCE IS NOT ACTIVE");
                         request.global_array.push({"assetAvailableUpdate":"RESOURCE IS NOT ACTIVE, aiTransactionId"+request.ai_bot_transaction_id})
                         rmbotService.AIEventTransactionInsert(request);
-                    }
+                    } */
                 })
                 .catch((err) => {
                     error = err;
-                    request.global_array.push({"assetAvailableUpdaten Exception":error})
-                    rmbotService.AIEventTransactionInsert(request);                    
+                   // request.global_array.push({"assetAvailableUpdaten Exception":error})
+                   // rmbotService.AIEventTransactionInsert(request);                    
                 });
         }
         return [error, responseData];

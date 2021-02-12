@@ -212,6 +212,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/activity_type/list/V1', async function (req, res) {
+        const [err, activityTypeData] = await adminListingService.workforceActivityTypeMappingSelectCategoryV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, activityTypeData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, activityTypeData, -9999, req.body));
+        }
+    });
+
     // List activity status tags
     app.post('/' + global.config.version + '/admin/status_tag/list', async function (req, res) {
         const [err, activityStatusTagData] = await adminListingService.getListOfActivityStatusTags(req.body);
@@ -470,7 +480,17 @@ function AdminListingController(objCollection) {
             console.log("/admin/category/tagtype/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
-    });       
+    });    
+    
+    app.post('/' + global.config.version + '/admin/workforce/roles/countbySip', async (req, res) => {        
+        const [err, tagTypeData] = await adminListingService.rolesCountbySipFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/roles/countbySip | Error: ", err);
+            res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

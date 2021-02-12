@@ -340,6 +340,35 @@ function AnalyticsController(objCollection)
         } 
     });
 
+    app.post('/' + global.config.version + '/analytics/widget/target/set', async (req, res) => {
+        let [err,result] = await analyticsService.updateWidgetTargetValue(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
+
+    app.post('/' + global.config.version + '/analytics/asset/account/target/list', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getAssetAccountTargetList(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    app.post('/' + global.config.version + '/analytics/widget_type/collection', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getwidgetStaticValueDetails(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });        
+        
     }
 
 module.exports = AnalyticsController;

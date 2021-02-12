@@ -38,6 +38,10 @@ const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
 
+function isObject(obj) {
+    return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
+}
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -54,6 +58,7 @@ function BotService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const botConfig = require('../utils/botConfig.js');
+    const vilBulkLOVs = require('../utils/vilBulkLOVs');
 
     const activityCommonService = objectCollection.activityCommonService;
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
@@ -1264,6 +1269,12 @@ function BotService(objectCollection) {
             console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
             console.log('Value of i : ', i)
             console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+            // Skipping form enable bot because it is causing other to fail
+            if(Number(i.bot_operation_type_id) === 20 ) {
+               continue;
+            }       
+
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             } catch (error) {
@@ -2055,6 +2066,74 @@ function BotService(objectCollection) {
 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
+
+                case 40: // Bulk Create SR Bot
+                    logger.silly("Bulk Create SR Bot params received from request: %j", request);
+                    try {
+                        await bulkCreateSRBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_create_sr);
+                    } catch (error) {
+                        logger.error("[Bulk Create SR Bot Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
+
+                case 42 : //Leave Aplication
+                    logger.silly("Leave Aplication Bot params received from request: %j", request);
+                    try {
+                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+
+                        if(botOperationsJson.bot_operations.leave_flag == 2)
+                            fieldValue =  util.addDays(fieldValue, 1);
+                            
+                        await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                    } catch (error) {
+                        logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                        "error": error
+                        });
+                    }
+                break;
+                
+                case 44 : //FTP
+                    logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
+                    let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson})
+                    // try {
+                    //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                    //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                    //     let fileName = await util.downloadS3Object(request,s3url);
+                    //     let fileData = fileName.split('/');
+                    //     let finalName = fileData[fileData.length-1]
+                    //     let dataToSend = fs.createReadStream(fileName);
+                    //     let remote = `${ftpJson.ftp_upload_location}/${finalName}`;
+                    //     let serverConfig = {
+                    //         host:ftpJson.ftp_address,
+                    //         port:ftpJson.ftp_port,
+                    //         username:ftpJson.ftp_username,
+                    //         password:ftpJson.ftp_password,
+                    //     }
+                    //     sftp.connect(serverConfig).then(() => {
+                    //       return sftp.put(dataToSend, remote);
+                    //     }).then(data => {
+                    //       console.log(data, 'the data info');
+                    //       fs.unlink(fileName);
+                    //     }).catch(err => {
+                    //       console.log(err, 'catch error');
+                    //     });
+                        
+                    // } catch (error) {
+                    //     logger.error("[FTP Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    //     i.bot_operation_status_id = 2;
+                    //     i.bot_operation_inline_data = JSON.stringify({
+                    //     "error": error
+                    //     });
+                    // }
+                break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -2119,16 +2198,16 @@ function BotService(objectCollection) {
         }
     }, (error, data) => {
         if (error) {
-            logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+            logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
             // activityCommonService.workbookTrxUpdate({
             //     activity_workbook_transaction_id: workbookTxnID,
             //     flag_generated: -1, //Error pushing to SQS Queue
             //     url: ''
             // });
         } else {
-            logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-            console.log("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+            logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
+            console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
         }                                    
     });
    }
@@ -2541,7 +2620,13 @@ function BotService(objectCollection) {
             } catch (error) {
                 console.log(error);
             }
-        
+            
+            // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+            //     organization_id: request.organization_id,
+            //     asset_id: request.asset_id
+            // });
+            // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+            // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
             //Add a timeline entry
             let activityTimelineCollection =  JSON.stringify({                            
                 "content": `Tony removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -2596,7 +2681,13 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     } catch (error) {
         console.log(error);
     }
-
+ 
+    // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+    //     organization_id: request.organization_id,
+    //     asset_id: request.asset_id
+    // });
+    // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+    // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
     //Add a timeline entry
     let activityTimelineCollection =  JSON.stringify({                            
         "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -6199,6 +6290,13 @@ async function removeAsOwner(request,data)  {
     }
 
     async function addDeskAsParticipant(request, assetData) {
+        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+        //     organization_id: request.organization_id,
+        //     asset_id: request.asset_id
+        // });
+        let logAssetFirstName = 'Tony';
+            let message = `${logAssetFirstName} added ${assetData.asset_first_name} as collaborator.`;
+            // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
         let addParticipantRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -6234,10 +6332,10 @@ async function removeAsOwner(request,data)  {
                 "activity_reference": [],
                 "asset_reference": [],
                 "attachments": [],
-                "content": `Tony added ${assetData.first_name} as collaborator.`,
-                "mail_body": `Tony added ${assetData.first_name} as collaborator.`,
-                "participant_added": `Tony added ${assetData.first_name} as collaborator.`,
-                "subject": `Tony added ${assetData.first_name} as collaborator.`
+                "content": message,
+                "mail_body": message,
+                "participant_added": message,
+                "subject": message
             }),
             flag_pin: 0,
             flag_priority: 0,
@@ -6275,11 +6373,23 @@ async function removeAsOwner(request,data)  {
 
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
+                        //Get the asset Details of the requestor
+                        const dataResp = await getAssetDetails({
+                            "organization_id": request.organization_id,
+                            "asset_id": request.asset_id
+                        });
+
+                        let requestAssetName = 'Tony';
+                        if(dataResp.length > 0) {
+                            requestorAssetData = dataResp[0];
+                            requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
+
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6308,10 +6418,17 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
+                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        //     organization_id: request.organization_id,
+                        //     asset_id: request.asset_id
+                        // });
+                        let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6341,10 +6458,17 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
+                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        //     organization_id: request.organization_id,
+                        //     asset_id: request.asset_id
+                        // });
+                        let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `Tony assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -7570,7 +7694,7 @@ async function removeAsOwner(request,data)  {
         });
 
         console.log('segmentData : ', segmentData);
-        let segmentName = (segmentData[0].parent_activity_tag_name).toLowerCase();
+        let segmentName = (segmentData[0].parent_activity_tag_name)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
         console.log('segmentData : ', segmentName);
         switch (segmentName) {
             case 'la': generatedOpportunityID += 'C-';
@@ -7670,7 +7794,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         };
-
+        
         let formInlineData = [], formInlineDataMap = new Map();
         try {
             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -8597,7 +8721,7 @@ async function removeAsOwner(request,data)  {
         let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             let responseData = [];
-            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            responseData.push({'message': `${request.form_id} is not submitted`});
             console.log('responseData : ', responseData);
             return [true, responseData];
         }
@@ -8980,6 +9104,7 @@ async function removeAsOwner(request,data)  {
     async function bulkFeasibilityBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
+        const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -9014,7 +9139,6 @@ async function removeAsOwner(request,data)  {
             case "production":
                 sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/production-vil-bulk-feasibility-jobs-queue"
                 break;
-
         }
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -9110,7 +9234,7 @@ async function removeAsOwner(request,data)  {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning"
+            "SalesRemarks", "ReasonForCloning", "VendorName"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -9154,24 +9278,158 @@ async function removeAsOwner(request,data)  {
             }
         };
 
+        // Error containers
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in:\n";
+        let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
+        let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
+        let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
+        let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
 
-        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        // Error flags
+        let unsupportedProductForSecondaryFound = false;
+        let mandatoryFieldsMissing = false;
         let nonAsciiErroFound = false;
+        let invalidValueFound = false;
+        let charlimitExceeded = false;
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
+            // Non ASCII check
             for (const [key, value] of Object.entries(childOpportunity)) {
-
                 let indexOfNonAscii = String(value).search(/[^ -~]+/g);
                 if (indexOfNonAscii !== -1) {
                     nonAsciiErroFound = true;
                     errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
                 }
+            }
 
+            // service type compatibility check for secondary
+            let actionType = childOpportunity.actionType;
+            let linkType = childOpportunity.LinkType;
+            let serviceType = childOpportunity.ServiceType;
+            let isLastMileOffNet = childOpportunity.IsLastMileOffNet || "";
+            let vendorName = childOpportunity.VendorName || "";
+            const LastMileOffNetVendor = childOpportunity.LastMileOffNetVendor || "";
+            let lastMileName = childOpportunity.LastMileName || "";
+            let rejectionRemarks = childOpportunity.RejectionRemarks || "";
+            let reasonForCloning = childOpportunity.ReasonForCloning || "";
+
+            if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
+                unsupportedProductForSecondaryFound = true;
+                errorMessageForUnsupportedProductForSecondary += `Unsupported Product for secondary form found in Row ${i + 1}\n`;
+            }
+
+            // Mandatory check for secondary
+            if (linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "")) {
+                mandatoryFieldsMissing = true;
+                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
+            }
+
+            // Mandatory check by actiontype
+            let mandatoryChecks = checksForBulkUpload["mandatory"][actionType] || [];
+            for (const field of mandatoryChecks) {
+                if (!isObject(field)) {
+                    let fieldName = field;
+                    let value = childOpportunity[fieldName] || "";
+                    if (value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
+                } else {
+                    let fieldName = Object.keys(field)[0];
+                    let value = childOpportunity[fieldName] || "";
+                    let [dependentFieldName, dependentValue] = Object.entries(field[fieldName])[0];
+                    if (childOpportunity[dependentFieldName] === dependentValue && value === "") {
+                        mandatoryFieldsMissing = true;
+                        errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
+                }
+            }
+
+            let charsLimitChecks = checksForBulkUpload["char_limit"];
+            for (const [fieldName, limit] of Object.entries(charsLimitChecks)) {
+                let fieldValue = childOpportunity[fieldName] || "";
+                if (fieldValue.length > limit) {
+                    charlimitExceeded = true;
+                    errorMessageForCharLimitExceeded += `Characters limit exceeded for ${fieldName} in ${i + 1}.\n`;
+                }
+            }
+
+            // Invalid LastMileOffNetVendor check
+            if (
+                LastMileOffNetVendor !== ""
+            ) {
+                let processedVendorList = LastMileOffNetVendor
+                    .split(",")
+                    .map(vendor => {
+                        vendor = vendor.trim();
+                        if (!vilBulkLOVs["vendorsList"].includes(vendor)) {
+                            invalidValueFound = true;
+                            errorMessageForInvalidValue += `Invalid LastMileOffNetVendor ${vendor} found in Row ${i + 1}\n`;
+                        }
+                        return vendor;
+                    })
+                    .join("|")
+
+                childOpportunitiesArray[i].LastMileOffNetVendor = processedVendorList;
+            }
+
+            // Invalid vendor check
+            if (
+                vendorName !== ""
+            ) {
+                vendorName = vendorName.trim();
+                if (!vilBulkLOVs["vendorsList"].includes(vendorName)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid vendor ${vendorName} found in Row ${i + 1}\n`;
+                }
+                childOpportunitiesArray[i].VendorName = vendorName;
+            }
+            
+            // Invalid LastMile check
+            if (
+                lastMileName !== ""
+            ) {
+                lastMileName = lastMileName.trim();
+                if (!vilBulkLOVs["LastMileList"].includes(lastMileName)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid LastMile ${lastMileName} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.LastMileName = lastMileName;
+            }
+
+            // Invalid RejectionRemarksList check
+            if (
+                rejectionRemarks !== ""
+            ) {
+                rejectionRemarks = rejectionRemarks.trim();
+                if (!vilBulkLOVs["RejectionRemarksList"].includes(rejectionRemarks)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid RejectionRemarks ${rejectionRemarks} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.RejectionRemarks = rejectionRemarks;
+            }
+
+            // Invalid ReasonForCloning check
+            if (
+                reasonForCloning !== ""
+            ) {
+                reasonForCloning = reasonForCloning.trim();
+                if (!vilBulkLOVs["ReasonForCloningList"].includes(reasonForCloning)) {
+                    invalidValueFound = true;
+                    errorMessageForInvalidValue += `Invalid ReasonForCloning ${reasonForCloning} found in Row ${i + 1}\n`;
+                }
+                childOpportunity.ReasonForCloning = reasonForCloning;
             }
         }
-        if (nonAsciiErroFound) {
+
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
-            formattedTimelineMessage += errorMessageForNonAscii;
+            if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
+            if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
+            if (invalidValueFound) { formattedTimelineMessage += errorMessageForInvalidValue }
+            if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
+            if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -9184,7 +9442,7 @@ async function removeAsOwner(request,data)  {
                     attachments: []
                 }
             );
-            throw new Error("NonAsciiCharacterFound");
+            throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
         // PreProcessinf Stage 1
@@ -9466,46 +9724,8 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
-            // if (childOpportunity.actionType === "mplsl2_second_primary") {
-            //     // Check for child opportunity
-            //     if (childOpportunity.OppId === "") {
-            //         errorMessagesArray.push(`Child opportunity is empty in row #${i} for creating second MPLS L2 primary.`)
-            //         continue;
-
-            //     } else {
-            //         childOpportunityID = childOpportunity.OppId;
-            //         // Check if the child opportunity already exists
-            //         const [errorSix, childOpportunityData] = await activityListSearchCUID({
-            //             organization_id: request.organization_id,
-            //             activity_type_category_id: workflowActivityCategoryTypeID,
-            //             flag: 1,
-            //             search_string: childOpportunityID
-            //         });
-            //         if (childOpportunityData.length === 0) {
-            //             errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
-            //             continue;
-            //         }
-            //     }
-            //     // Second primary must be of linkType primary
-            //     if (linkType === "secondary") {
-            //         errorMessagesArray.push(`The link type in row #${i} must be primary for creating second MPLS L2 primary.`)
-            //         continue;
-            //     }
-
-            //     // Skip pushing second primary job for dual creation cases to SQS
-            //     const isDualJob = childOpportunityIDToDualFlagMap.get(childOpportunityID);
-            //     if (linkType === "primary" && isDualJob) { continue; }
-            // }
-
             if (solutionDocumentUrl !== "") { childOpportunity.FilePath = solutionDocumentUrl }
 
-            const LastMileOffNetVendor = String(childOpportunity.LastMileOffNetVendor) || "";
-            if (
-                LastMileOffNetVendor !== "" &&
-                LastMileOffNetVendor.includes(",")
-            ) {
-                childOpportunity.LastMileOffNetVendor = LastMileOffNetVendor.split(",").join("|")
-            }
             const bulkJobRequest = {
                 workflow_activity_id: workflowActivityID,
                 workflow_activity_type_id: workflowActivityTypeID,
@@ -9568,12 +9788,28 @@ async function removeAsOwner(request,data)  {
                 }
             );
         } catch (error) {
-            logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
-        }
+            if (error.message === "NoErrorsFound") {
+                await addTimelineMessage(
+                    {
+                        activity_timeline_text: "",
+                        organization_id: request.organization_id
+                    }, workflowActivityID || 0,
+                    {
+                        subject: 'Bulk Operation Notifictaion',
+                        content: "Excel has been submitted for processing successfully",
+                        mail_body: "Excel has been submitted for processing successfully",
+                        attachments: []
+                    }
+                );
+            }
+            else {
+                logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+            }
 
+        }
         return;
     }
-
+    
     async function dualBulkJobTransactionUpdate(request) {
         try {
             const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
@@ -9796,6 +10032,13 @@ async function removeAsOwner(request,data)  {
         }
         await activityCommonService.setAtivityOwnerFlag(params);
 
+        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+        //     organization_id: request.organization_id,
+        //     asset_id: request.asset_id
+        // });
+        // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
+        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+
         let activityTimelineCollection =  JSON.stringify({
             "content": `Tony assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "subject": `Note - ${util.getCurrentDate()}.`,
@@ -9991,29 +10234,37 @@ async function removeAsOwner(request,data)  {
 
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
-            console.log("Mobility is to be triggered");
-            request.form_id = 50079; // NON FLD form
-            let fldForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
+            try {
+                console.log("Mobility is to be triggered");
+                request.form_id = 50079;
+                let fldForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
 
-            connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+                connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
+            } catch(e) {
+                console.log("Data not fetched for 50079 mobility");
+            }
 
         } else {
-            request.form_id = 50264; // ill DOA a form
-            let IllForm = await getFormInlineData(request, 1);
-            formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
+            try {
+                request.form_id = 50264;
+                let IllForm = await getFormInlineData(request, 1);
+                formInputToProcess = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-            for(let row of formInputToProcess) {
+                for(let row of formInputToProcess) {
 
-                if(row.field_id == inlineData.opexFieldId) {
-                    opexValue = row.field_value;
-                } else if(row.field_id == inlineData.capexFieldId) {
-                    capexValue = row.field_value;
+                    if(row.field_id == inlineData.opexFieldId) {
+                        opexValue = row.field_value;
+                    } else if(row.field_id == inlineData.capexFieldId) {
+                        capexValue = row.field_value;
+                    }
+
+                    if(opexValue && capexValue) {
+                        break;
+                    }
                 }
-
-                if(opexValue && capexValue) {
-                    break;
-                }
+            } catch (e) {
+                console.log("Data for found for 50264");
             }
         }
 
@@ -10023,7 +10274,6 @@ async function removeAsOwner(request,data)  {
         largerDoaDataToProcess.sort((a, b) => (a.priority > b.priority
         ) ? 1 : -1);
 
-        console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
         request.form_id = 50403;
         let largeDoa = await getFormInlineData(request, 1);
         let largeDoaData = JSON.parse(largeDoa.data_entity_inline).form_submitted;
@@ -10032,7 +10282,7 @@ async function removeAsOwner(request,data)  {
 
         let columnNumber = {
             "column": 0,
-            "title" : "Failed Case"
+            "title" : ""
         }
 
 
@@ -10043,6 +10293,9 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
+        request.fldAovValue = fieldIdValuesMap[308731]
+        request.mobilityAovValue = fieldIdValuesMap[308694]; 
+        
         for(let currentExecution of largerDoaDataToProcess) {
 
             console.log("columnNumber----", columnNumber, currentExecution.name);
@@ -10055,6 +10308,7 @@ async function removeAsOwner(request,data)  {
 
 
             if(currentExecution.key_number == 1) {
+                console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
                 console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
@@ -10114,9 +10368,7 @@ async function removeAsOwner(request,data)  {
                                         continue;
                                     }
                                 }
-                            }
-
-                            if(eval(exp1)) {
+                            } else if(eval(exp1)) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
                                     console.log("columnNumber is updated to", columnNumber);
@@ -10142,34 +10394,140 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("Selected column is ", columnNumber);
-        if(columnNumber.column) {
-            //need timeline entry
-            let planConfig = {}, activityDetails = '', activityTypeId = '';
 
-            let requestInlineData = JSON.parse(request.activity_inline_data)
-            for(let row of requestInlineData) {
-                if(parseInt(row.field_id) == 308742) {
-                    planConfig = row;
-                }
+        if(request.activity_stream_type_id != 705) {
+            console.error("Triggering ARP form only in the case of activity_stream_type_id 705");
+            return;
+        }
+        //need timeline entry
+        let planConfig = {}, activityDetails = '', activityTypeId = '';
 
-                if(parseInt(row.field_id) == 218728) {
-                    activityDetails = row;
-                }
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
             }
 
-            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request.organization_id, activityDetails.split('|')[0]);
-
-            if(activityTypeDetails.length) {
-                activityTypeId = activityTypeDetails[0].activity_type_id;
-                // return;
-            } else {
-                console.error("activityTypeDetails found empty");
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
             }
+        }
 
-            let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid/Tender' : 'Other workflow');
-            console.log("Will be assigned to the required team");
-            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-            console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
+        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        let createWorkflowRequest                       = Object.assign({}, request);
+
+        createWorkflowRequest.activity_inline_data      = JSON.stringify([
+            {
+                form_id: 50476,
+                field_id: '309277',
+                field_name: 'Derived DOA',
+                field_data_type_id: 19,
+                field_data_type_category_id: 7,
+                data_type_combo_id: 0,
+                data_type_combo_value: '0',
+                field_value: columnNumber.title,
+                message_unique_id: 1611037456814
+            },
+            {
+                form_id: 50476,
+                field_id: '309279',
+                field_name: 'Decision Type',
+                field_data_type_id: 33,
+                field_data_type_category_id: 14,
+                data_type_combo_id: 0,
+                data_type_combo_value: fieldValue,
+                field_value : fieldValue,
+                message_unique_id : 1611037993575
+            },
+            {
+                form_id: 50476,
+                field_id: '309278',
+                field_name: 'AOV',
+                field_data_type_id: 6,
+                field_data_type_category_id: 2,
+                data_type_combo_id: 0,
+                data_type_combo_value: aovValue,
+                field_value: aovValue,
+                message_unique_id: 1611037843535
+            }
+        ]);
+
+        createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+        createWorkflowRequest.activity_type_category_id = 9;
+        createWorkflowRequest.activity_type_id          = 150506;
+        //createWorkflowRequest.activity_title = workflowActivityTypeName;
+        //createWorkflowRequest.activity_description = workflowActivityTypeName;
+        //createWorkflowRequest.activity_form_id    = Number(request.activity_form_id);
+        // Child Orders
+        createWorkflowRequest.activity_parent_id = 0;
+        createWorkflowRequest.activity_form_id    = 50476;
+        createWorkflowRequest.form_id    = 50476;
+
+        createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        createWorkflowRequest.activity_datetime_end   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        // delete createWorkflowRequest.activity_id;
+        createWorkflowRequest.device_os_id = 7;
+
+        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        createWorkflowRequest.activity_id = targetFormActivityID;
+        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+        createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
+
+        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+        console.log("activityInsertedDetails---->", activityInsertedDetails);
+
+
+        let activityTimelineCollection =  JSON.stringify({
+            "content": `Form Submitted`,
+            "subject": `ARP Trigger`,
+            "mail_body": `ARP Trigger`,
+            "activity_reference": [],
+            "form_id" : 50476,
+            "form_submitted" : JSON.parse(createWorkflowRequest.data_entity_inline),
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+
+
+        let timelineReq = Object.assign({}, createWorkflowRequest);
+
+        timelineReq.activity_id = request.workflow_activity_id;
+        timelineReq.message_unique_id = util.getMessageUniqueId(100);
+        timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+        timelineReq.activity_stream_type_id = 717;
+        timelineReq.activity_stream_type_id = 705;
+        timelineReq.timeline_stream_type_id = 705;
+        timelineReq.activity_type_category_id = 48;
+        timelineReq.asset_id = 100;
+        timelineReq.activity_timeline_collection = activityTimelineCollection;
+        timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+
+        return
+
+    }
+
+    async function triggerArpForm(request) {
+        try {
             let createWorkflowRequest                       = Object.assign({}, request);
 
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
@@ -10181,7 +10539,7 @@ async function removeAsOwner(request,data)  {
                     field_data_type_category_id: 7,
                     data_type_combo_id: 0,
                     data_type_combo_value: '0',
-                    field_value: columnNumber.title,
+                    field_value: request.team_title || "",
                     message_unique_id: 1611037456814
                 },
                 {
@@ -10191,8 +10549,8 @@ async function removeAsOwner(request,data)  {
                     field_data_type_id: 33,
                     field_data_type_category_id: 14,
                     data_type_combo_id: 0,
-                    data_type_combo_value: fieldValue,
-                    field_value : fieldValue,
+                    data_type_combo_value: request.decision_type_value || "",
+                    field_value : request.decision_type_value || "",
                     message_unique_id : 1611037993575
                 },
                 {
@@ -10202,8 +10560,8 @@ async function removeAsOwner(request,data)  {
                     field_data_type_id: 6,
                     field_data_type_category_id: 2,
                     data_type_combo_id: 0,
-                    data_type_combo_value: aovValue,
-                    field_value: aovValue,
+                    data_type_combo_value: request.aovValue || "",
+                    field_value: request.aovValue || "",
                     message_unique_id: 1611037843535
                 }
             ]);
@@ -10255,7 +10613,7 @@ async function removeAsOwner(request,data)  {
             timelineReq.activity_id = request.workflow_activity_id;
             timelineReq.message_unique_id = util.getMessageUniqueId(100);
             timelineReq.track_gps_datetime = util.getCurrentUTCTime();
-            timelineReq.activity_stream_type_id = 717;
+            // timelineReq.activity_stream_type_id = 717;
             timelineReq.activity_stream_type_id = 705;
             timelineReq.timeline_stream_type_id = 705;
             timelineReq.activity_type_category_id = 48;
@@ -10265,13 +10623,14 @@ async function removeAsOwner(request,data)  {
 
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-            return
+            return 1;
+        } catch(e) {
+            console.log("Error-->", e.stack, e);
+            return 0;
         }
-
     }
 
-
-    async function getActivityTypeIdBasedOnActivityId(organization_id, activity_id) {
+    async function getActivityTypeIdBasedOnActivityId(request, organization_id, activity_id) {
         let paramsArr = new Array(
           activity_id,
           organization_id
@@ -10560,6 +10919,14 @@ async function removeAsOwner(request,data)  {
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
+            // check for empty plans
+            if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
+                console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
+            
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
@@ -10902,6 +11269,14 @@ async function removeAsOwner(request,data)  {
             // Checking Rentals
             let rentalResult = validatingRentals(fldFormData, inlineData.rental_field_ids, linkResponse);
 
+            // check for empty plans
+            if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
+                console.error("Failed in Matching validatingRentals");
+                request.debug_info.push("Failed in Matching validatingRentals");
+                sheetMatchFlag[row.sheet] = '1';
+                continue;
+            }
+
             if(!rentalResult || !rentalResult.length) {
                 console.error("Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
@@ -10988,19 +11363,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -11134,16 +11509,47 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
         }
+
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.mobilityAovValue;
+        triggerArpForm(request);
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
@@ -11265,7 +11671,7 @@ async function removeAsOwner(request,data)  {
                 }
             }
         }
-        console.log("Response from validatingNoOfLinks", response);
+        console.log("Response from validatingNoOfLinks");
         return ;
     }
 
@@ -11914,19 +12320,19 @@ async function removeAsOwner(request,data)  {
         console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : 0,
-                phone_number : inlineData.phone_number,
-                country_code : "",
-                organization_id : request.organization_id,
-                asset_id : wfActivityDetails[0].activity_creator_asset_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
-        }
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : 0,
+        //         phone_number : inlineData.phone_number,
+        //         country_code : "",
+        //         organization_id : request.organization_id,
+        //         asset_id : wfActivityDetails[0].activity_creator_asset_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
 
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -11954,8 +12360,8 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 7,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                //field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial"',
-                field_value: 'Approved considering MNP acquisition requirement',
+                field_value: 'Approved as per DOA. Based on inputs uploaded in business case under BC Input Section of data management Tab. Any future changes in BW/Cost/Solutio will lead to revision in commercial',
+                //field_value: 'Approved considering MNP acquisition requirement',
                 message_unique_id: 1603968690920
             },
             {
@@ -12061,17 +12467,49 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        try{
-            await addParticipantStep({
-                is_lead : 1,
-                workflow_activity_id : request.activity_id,
-                desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-                organization_id : request.organization_id
-            });
-        }catch(e) {
-            console.log("Error while adding participant")
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+        
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
         }
 
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.fldAovValue;
+        triggerArpForm(request);
 
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
@@ -12494,68 +12932,75 @@ async function removeAsOwner(request,data)  {
         logger.silly("arpBot: Bot Inline data: %j", inlineData);
         let key = "_1";
         let isEnd = false;
-        
-       // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
-       // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
-       // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
 
-        while(!isEnd){
+        // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
+        // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
+        // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
+
+        while (!isEnd) {
             isEnd = true;
             logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
             let conditionData = inlineData[key];
-            if(conditionData.operation_type === 'check'){
+            if (conditionData.operation_type === 'check') {
                 // get the field value here
                 logger.silly("arpBot: conditionData.condition: %j", conditionData.condition);
                 logger.silly("arpBot: conditionData.data_type: %j", conditionData.data_type);
                 let fieldValue = await getFormFieldValue(request, conditionData.field_id);
                 logger.silly("arpBot: getFormFieldValue fieldValue: %j", fieldValue);
-                if(conditionData.condition == 'eq'){
-                    if(conditionData.data_type === 'int'){
-                        if(fieldValue === Number(conditionData.compare_value)){
+                if (conditionData.condition == 'eq') {
+                    if (conditionData.data_type === 'int') {
+                        if (fieldValue === Number(conditionData.compare_value)) {
                             key = conditionData.is_true;
-                        }else{
+                        } else {
                             key = conditionData.is_false;
                         }
-                    }else if(conditionData.data_type === 'string'){
-                        if(fieldValue === conditionData.compare_value){
+                    } else if (conditionData.data_type === 'string') {
+                        if (fieldValue === conditionData.compare_value) {
                             key = conditionData.is_true;
-                        }else{
+                        } else {
                             key = conditionData.is_false;
                         }
-                    } 
+                    }
                     isEnd = conditionData.isEnd;
-                }else if(conditionData.condition == 'gt'){
-                    if(fieldValue > Number(conditionData.compare_value)){
+                } else if (conditionData.condition == 'gt') {
+                    if (fieldValue > Number(conditionData.compare_value)) {
                         key = conditionData.is_true;
-                    }else{
-                        key = conditionData.is_false;
-                    } 
-                    isEnd = conditionData.isEnd;
-                }else if(conditionData.condition == 'gteq'){
-                    if(fieldValue >= Number(conditionData.compare_value)){
-                        key = conditionData.is_true;
-                    }else{
+                    } else {
                         key = conditionData.is_false;
                     }
-                    isEnd = conditionData.isEnd;             
-                }else if(conditionData.condition == 'lt'){
-                    if(fieldValue < Number(conditionData.compare_value)){
+                    isEnd = conditionData.isEnd;
+                } else if (conditionData.condition == 'gteq') {
+                    if (fieldValue >= Number(conditionData.compare_value)) {
                         key = conditionData.is_true;
-                    }else{
+                    } else {
                         key = conditionData.is_false;
-                    } 
-                    isEnd = conditionData.isEnd;        
-                }else if(conditionData.condition == 'lteq'){
-                    if(fieldValue <= Number(conditionData.compare_value)){
+                    }
+                    isEnd = conditionData.isEnd;
+                } else if (conditionData.condition == 'lt') {
+                    if (fieldValue < Number(conditionData.compare_value)) {
                         key = conditionData.is_true;
-                    }else{
+                    } else {
                         key = conditionData.is_false;
-                    } 
-                    isEnd = conditionData.isEnd;   
-                }else{
+                    }
+                    isEnd = conditionData.isEnd;
+                } else if (conditionData.condition == 'lteq') {
+                    if (fieldValue <= Number(conditionData.compare_value)) {
+                        key = conditionData.is_true;
+                    } else {
+                        key = conditionData.is_false;
+                    }
+                    isEnd = conditionData.isEnd;
+                } else if (conditionData.condition == 'neq') {
+                    if (fieldValue != Number(conditionData.compare_value)) {
+                        key = conditionData.is_true;
+                    } else {
+                        key = conditionData.is_false;
+                    }
+                    isEnd = conditionData.isEnd;
+                } else {
                     isEnd = true;
-                }                
-            }else if(conditionData.operation_type === 'assign'){
+                }
+            } else if (conditionData.operation_type === 'assign') {
 
                 request.target_asset_id = conditionData.asset_id;
                 request.target_asset_first_name = conditionData.operating_asset_first_name || '';
@@ -12564,37 +13009,285 @@ async function removeAsOwner(request,data)  {
                 key = conditionData.next_key;
                 isEnd = conditionData.isEnd;
 
-            }else if(conditionData.operation_type === 'na'){
+            } else if (conditionData.operation_type === 'na') {
 
                 isEnd = conditionData.isEnd;
                 key = conditionData.next_key;
 
-            }else{
+            } else {
 
                 isEnd = true;
                 key = '-3';
-            }  
-            
+            }
+
             logger.silly("arpBot: nextKey: %j", key);
             logger.silly("arpBot: isEnd: %j", isEnd);
         }
     }
 
-    async function getFormFieldValue(request, idField){
+    async function getFormFieldValue(request, idField) {
         logger.silly("arpBot: idField: %j", idField);
-        let formInlineData = JSON.parse(request.activity_inline_data);
+        const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
+        let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
         let fieldValue = '';
-       
-        for(let counter = 0; counter < formInlineData.length; counter++){
-            if(Number(formInlineData[counter].field_id) === Number(idField)){
+
+        for (let counter = 0; counter < formInlineData.length; counter++) {
+            if (Number(formInlineData[counter].field_id) === Number(idField)) {
                 logger.silly("arpBot: Field Matched: %j", formInlineData[counter].field_value);
                 fieldValue = formInlineData[counter].field_value;
                 break;
             }
         }
-       // logger.silly("arpBot: fieldValue: %j", fieldValue);
+        // logger.silly("arpBot: fieldValue: %j", fieldValue);
         return fieldValue;
     }
+
+    async function bulkCreateSRBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityCategoryTypeID = 0,
+            workflowActivityTypeID = 0,
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0,
+            opportunityID = "",
+            esmsIntegrationsTopicName = "";
+
+        const triggerFormID = request.trigger_form_id,
+            // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+
+        switch (global.mode) {
+            case "local":
+                esmsIntegrationsTopicName = "local-BulkCreateSR-request-topic-v1"
+                break;
+
+            // case "staging":
+            case "preprod":
+                esmsIntegrationsTopicName = "staging-BulkCreateSR-request-topic-v1"
+                break;
+
+            case "prod":
+            case "production":
+                esmsIntegrationsTopicName = "production-BulkCreateSR-request-topic-v1"
+                break;
+
+        }
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                opportunityID = workflowActivityData[0].activity_cuid_1;
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for Create SR");
+        }
+
+        // Fetch the bulk upload excel's S3 URL
+        const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, bulkUploadFormID);
+
+
+        if (Number(bulkUploadFormData.length) > 0) {
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+        }
+
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            throw new Error("Form to Bulk Create SR is not submitted");
+        }
+
+        // Fetch the excel URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
+            organization_id: request.organization_id
+        });
+
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
+        }
+
+        // Get the count of child orders.
+        let childOpportunitiesCountOffset = 0;
+        const [errorZero, childOpportunitiesCount] = await activityListSelectChildOrderCount({
+            organization_id: request.organization_id,
+            activity_type_category_id: workflowActivityCategoryTypeID,
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        })
+        if (childOpportunitiesCount.length > 0) {
+            childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
+        }
+
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
+
+        const headersArray = ["SerialNo", "OpportunityID", "roms_order_id", "CircuitID", "FRID", "SRType", "SRSubType"];
+        const mandatoryHeaders = ["SerialNo", "OpportunityID", "CircuitID", "FRID", "SRType", "SRSubType"];
+        const OpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 1; i < OpportunitiesArray.length; i++) {
+            const Opportunity = OpportunitiesArray[i];
+            for (const [key, value] of Object.entries(Opportunity)) {
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
+                }
+
+            }
+        }
+
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
+
+        // PreProcessing Stage 1
+        let errorMessage = "";
+        for (let i = 1; i < OpportunitiesArray.length; i++) {
+            const Opportunity = OpportunitiesArray[i];
+            console.log(`NewCreateSR: serialNum: ${Opportunity.serialNumber}`);
+            let errorFoundForAnyColumn = false;
+            for (const header of mandatoryHeaders) {
+                if (Opportunity[header] == undefined || Opportunity[header] === "") {
+                    errorFoundForAnyColumn = true;
+                    errorMessage += `${header} is empty in row ${i + 1} \n`;
+                }
+            }
+
+            if (!errorFoundForAnyColumn) {
+                let cuidRequestData = {
+                    organization_id: request.organization_id,
+                    activity_type_category_id: 48,
+                    activity_type_id: 0,
+                    flag: 0,
+                    search_string: Opportunity.OpportunityID,
+                    start_from: 0,
+                    limit_value: 10
+                }
+                let workflowActivityIDOfEnteredOpportunity = "";
+                const [errorOne, opportunityDataFromDb] = await activityListSearchCUID(cuidRequestData);
+                if (errorOne || opportunityDataFromDb.length === 0) {
+                    errorMessage += `The entered Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1} doesn't exist \n`;
+                }
+                else {
+                    let FRID = Opportunity.FRID;
+                    let primaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_2 || "";
+                    let secondaryFeasibilityRequestID = opportunityDataFromDb[0].activity_cuid_3 || "";
+                    workflowActivityIDOfEnteredOpportunity = opportunityDataFromDb[0].activity_id;
+                    if (primaryFeasibilityRequestID !== FRID && secondaryFeasibilityRequestID !== FRID) {
+                        errorMessage += `The entered FRID ${Opportunity.FRID} doesn't belong to the mentioned Oppurtuinity ID ${Opportunity.OpportunityID} in row ${i + 1}\n`;
+                    } else {
+                        const [errorZero, workflowActivityDataOfEnteredOpportunity] = await getActivityDetailsAsync({
+                            organization_id: request.organization_id,
+                        }, workflowActivityIDOfEnteredOpportunity);
+                        if (!workflowActivityDataOfEnteredOpportunity[0].activity_master_data) {
+                            errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (errorMessage !== "") {
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the CreateSR excel',
+                    content: errorMessage,
+                    mail_body: errorMessage,
+                    attachments: []
+                }
+            );
+
+            throw new Error("ErrorsFoundWhileProcessingCreateSR");
+        }
+
+        for (let i = 1; i < OpportunitiesArray.length; i++) {
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: Number(triggerFormID),
+                form_transaction_id: Number(request.form_transaction_id),
+                payload: {
+                    workflow_activity_id: request.workflow_activity_id,
+                    account_id: request.account_id,
+                    opportunity_details: OpportunitiesArray[i]
+                }
+            }, esmsIntegrationsTopicName, Number(workflowActivityID));
+        }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
+
+        return;
+    }
+
+    async function applyLeave(request, leave_flag, leave_date) {
+        let paramsArr = [
+            request.organization_id,
+            request.asset_id,
+            util.ISTtoUTC(leave_date),
+            leave_flag,
+            util.getCurrentUTCTime()
+        ];
+        let queryString = util.getQueryString('ds_v1_asset_list_update_leave', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }    
+
 }
 
 

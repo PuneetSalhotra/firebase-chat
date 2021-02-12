@@ -326,6 +326,9 @@ function AdminOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    console.log("assetListInsertV2 : "+JSON.stringify(data,2,null));
+                    request.created_asset_id = data[0].asset_id;
+                    roleAssetMappingInsert(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -1168,6 +1171,14 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
         }
 
+        //get the role details of desk
+        let [err22, roleDataDesk] = await adminListingService.listRolesByAccessLevels({...request,asset_type_id:request.desk_asset_type_id});
+        if (!err22 && roleDataDesk.length > 0) {
+            // request.asset_type_name = roleData[0].asset_type_name;
+            console.log('ROLE NAME for desk', roleDataDesk[0].asset_type_id, 'is : ', roleDataDesk[0].asset_type_name);
+        }
+        // console.log(roleDataDesk);
+
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
@@ -1236,7 +1247,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             employee_manual_work_location_address: request.asset_manual_work_location_address || ''
         });
 
-        // Create the asset
+        //Create the asset
         const [errOne, assetData] = await createAssetBundle(request, workforceID, organizationID, accountID);
         if (errOne) {
             console.log("addNewEmployeeToExistingDesk | createAssetBundle | Error: ", errOne);
@@ -1252,7 +1263,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             asset_id: deskAssetID
         });
         request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
-        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleData,request.desk_asset_id)
+        const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleDataDesk,request.desk_asset_id)
 
         request.operating_asset_id = Number(assetData.asset_id);
         // Add a new access mapping for employee asset to the desk asset 
@@ -1573,7 +1584,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 asset_id: mangerAssetID
             });
         
-        let message = `Tony added ${assetData[0].asset_first_name} to this Conversation`
+        let message = `Tony added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
                 "organization_id":request.organization_id,
@@ -1623,14 +1634,18 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             console.log('LEAD ASSET DATA - ', assetData[0]);
             console.log('********************************');
             // request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
-            leadAssetFirstName = assetData[0].asset_first_name;
+            leadAssetFirstName = assetData[0].operating_asset_first_name;
         
-    
+            const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: request.log_asset_id
+            });
+            let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         //Add a timeline entry
         let activityTimelineCollection =  JSON.stringify({                            
-            "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "content": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "subject": `Note - ${util.getCurrentDate()}.`,
-            "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "mail_body": `${logAssetFirstName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "activity_reference": [],
             "asset_reference": [],
             "attachments": [],
@@ -4766,6 +4781,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_date_joining = request.joining_datetime;
             idCardJSON.employee_phone_country_code = request.country_code;
             idCardJSON.employee_phone_number = request.phone_number;
+            idCardJSON.employee_asset_type_id = request.asset_type_id;
+            idCardJSON.employee_asset_type_name = request.asset_type_name;
 
             // Update the ID Card's Activity List table
             try {
@@ -5610,6 +5627,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_activity_type_name||"",
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
+            request.asset_type_flag_sip_enabled,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
@@ -8935,7 +8953,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_id,
             request.desk_asset_id
         );
-        const queryString = util.getQueryString('ds_v1_role_asset_mapping_update_role', paramsArr); 
+        const queryString = util.getQueryString('ds_v1_asset_list_update_asset_type_index', paramsArr); 
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -9098,6 +9116,33 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         else{
             return [true,[]]
         }
+    }
+
+    // Role asset Mapping Insert
+    async function roleAssetMappingInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_id,
+            request.created_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_role_asset_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        console.log("roleAssetMappingInsert : "+JSON.stringify(responseData,2,null));
+        return [error, responseData];
     }
 }
 
