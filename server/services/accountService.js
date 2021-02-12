@@ -691,14 +691,15 @@ function AccountService(objectCollection) {
         let paramsArr = new Array(
             request.organization_id,
             request.account_id,
-            request.workforce_id,            
+            request.workforce_id,  
+            request.asset_id||0,          
             request.search_string || '',
             flag,            
             request.page_start || 0,
             util.replaceQueryLimit(request.page_limit)
         );        
         
-        var queryString = util.getQueryString('ds_p1_form_entity_mapping_select_search', paramsArr);
+        var queryString = util.getQueryString('ds_p2_form_entity_mapping_select_search', paramsArr);
         if (queryString !== '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
