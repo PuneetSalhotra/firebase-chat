@@ -1905,13 +1905,13 @@ function BotService(objectCollection) {
                 case 33: //Global Add Participant
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('GLOBAL PARTICIPANT ADD');
+                    logger.info("Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
                     try {
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing Global addParticipant Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        global.logger.write(request.workflow_activity_id+':serverError', 'Error in executing Global addParticipant Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+':serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1922,17 +1922,18 @@ function BotService(objectCollection) {
                     break;
 
                 case 34: // ARP
-                global.logger.write('conLog', '****************************************************************', {}, {});
-                global.logger.write('conLog', 'ARPBot', {}, {});
-                logger.silly("ARP: Request Params received from Request: %j", request);
-                request.debug_info.push('ARPBot');
+                global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                global.logger.write('conLog', request.workflow_activity_id+': ARPBot', {}, {});
+                logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
+                request.debug_info.push(request.workflow_activity_id+': ARPBot');
                 try{
                     await arpBot(request, botOperationsJson.bot_operations);
                 }catch(err){
-                    global.logger.write('serverError', 'Error in executing ARPBot Step', {}, {});
-                    global.logger.write('serverError', err, {}, {});
+                    global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
+                    global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
                     i.bot_operation_status_id = 2;
                     i.bot_operation_inline_data = JSON.stringify({
+                        "log":request.debug_info,
                         "err": err
                     });                    
                 }
@@ -1942,13 +1943,13 @@ function BotService(objectCollection) {
                 case 35: //custom bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'checkLargeDoa', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('checkLargeDoa');
+                    logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
                     try {
                         await checkLargeDoa(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing checkCustomBot Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing checkCustomBot Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1961,7 +1962,7 @@ function BotService(objectCollection) {
                 case 36: //SME ILL DOA Bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
+                    logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push('SME ILL Bot');
                     try {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
@@ -12923,9 +12924,9 @@ async function removeAsOwner(request,data)  {
     }
 
     async function arpBot(request, inlineData) {
-        logger.silly("arpBot: Request Params received from Request: %j", request);
-        logger.silly("arpBot: Bot Inline data: %j", inlineData);
-        let key = "_1";
+        logger.info(request.workflow_activity_id+": arpBot: Request Params received from Request: %j", request);
+        logger.info(request.workflow_activity_id+": arpBot: Bot Inline data: %j", inlineData);
+        let key = "_0";
         let isEnd = false;
 
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
@@ -12934,14 +12935,14 @@ async function removeAsOwner(request,data)  {
 
         while (!isEnd) {
             isEnd = true;
-            logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
+            logger.info(request.workflow_activity_id+": arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
             let conditionData = inlineData[key];
             if (conditionData.operation_type === 'check') {
                 // get the field value here
-                logger.silly("arpBot: conditionData.condition: %j", conditionData.condition);
-                logger.silly("arpBot: conditionData.data_type: %j", conditionData.data_type);
+                logger.info(request.workflow_activity_id+": arpBot: conditionData.condition: %j", conditionData.condition);
+                logger.info(request.workflow_activity_id+": arpBot: conditionData.data_type: %j", conditionData.data_type);
                 let fieldValue = await getFormFieldValue(request, conditionData.field_id);
-                logger.silly("arpBot: getFormFieldValue fieldValue: %j", fieldValue);
+                logger.info(request.workflow_activity_id+": arpBot: getFormFieldValue fieldValue: %j", fieldValue);
                 if (conditionData.condition == 'eq') {
                     if (conditionData.data_type === 'int') {
                         if (fieldValue === Number(conditionData.compare_value)) {
@@ -13015,20 +13016,22 @@ async function removeAsOwner(request,data)  {
                 key = '-3';
             }
 
-            logger.silly("arpBot: nextKey: %j", key);
-            logger.silly("arpBot: isEnd: %j", isEnd);
+            logger.info(request.workflow_activity_id+": arpBot: nextKey: %j", key);
+            logger.info(request.workflow_activity_id+": arpBot: isEnd: %j", isEnd);
         }
     }
 
     async function getFormFieldValue(request, idField) {
-        logger.silly("arpBot: idField: %j", idField);
+        logger.info(request.workflow_activity_id+": idField: %j", idField);
+        
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
         let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.silly("arpBot: Field Matched: %j", formInlineData[counter].field_value);
+                logger.info(request.workflow_activity_id+": Field Matched: %j", formInlineData[counter].field_value);
+                request.debug_info.push(" Field Matched: "+idField+" "+formInlineData[counter].field_value)
                 fieldValue = formInlineData[counter].field_value;
                 break;
             }
