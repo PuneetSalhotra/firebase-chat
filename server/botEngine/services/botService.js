@@ -10394,6 +10394,11 @@ async function removeAsOwner(request,data)  {
         }
 
         console.log("Selected column is ", columnNumber);
+
+        if(request.activity_stream_type_id != 705) {
+            console.error("Triggering ARP form only in the case of activity_stream_type_id 705");
+            return;
+        }
         //need timeline entry
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
