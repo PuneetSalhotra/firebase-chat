@@ -1952,6 +1952,7 @@ function BotService(objectCollection) {
                         global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
                             "err": err
                         });
                         //return Promise.reject(err);
@@ -10227,12 +10228,12 @@ async function removeAsOwner(request,data)  {
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
 
-        console.log("dateFormData", JSON.stringify(originFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : dateFormData", JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
 
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----", resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
         let formInputToProcess, connectionTypeValue, capexValue, opexValue;
@@ -10240,14 +10241,14 @@ async function removeAsOwner(request,data)  {
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
             try {
-                console.log("Mobility is to be triggered");
+                logger.info(request.workflow_activity_id+" : larger DOA : Mobility is to be triggered");
                 request.form_id = 50079;
                 let fldForm = await getFormInlineData(request, 1);
                 formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
 
                 connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
             } catch(e) {
-                console.log("Data not fetched for 50079 mobility");
+                logger.info(request.workflow_activity_id+" : larger DOA : Data not fetched for 50079 mobility");
             }
 
         } else {
@@ -10269,7 +10270,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
             } catch (e) {
-                console.log("Data for found for 50264");
+                logger.info(request.workflow_activity_id+" : larger DOA : Data for found for 50264");
             }
         }
 
@@ -10283,7 +10284,7 @@ async function removeAsOwner(request,data)  {
         let largeDoa = await getFormInlineData(request, 1);
         let largeDoaData = JSON.parse(largeDoa.data_entity_inline).form_submitted;
 
-        console.log("largeDoaData---->", largeDoaData);
+        logger.info(request.workflow_activity_id+" : larger DOA : largeDoaData---->", largeDoaData);
 
         let columnNumber = {
             "column": 0,
@@ -10303,25 +10304,22 @@ async function removeAsOwner(request,data)  {
         
         for(let currentExecution of largerDoaDataToProcess) {
 
-            console.log("columnNumber----", columnNumber, currentExecution.name);
-            if(!currentExecution.isEnable) {
-                console.log(currentExecution.name, " is disabled ");
-                continue;
-            }
+            logger.info(request.workflow_activity_id+" : larger DOA : columnNumber----"+ JSON.stringify(columnNumber) +' column name '+ currentExecution.name);
 
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
             if(currentExecution.key_number == 1) {
-                console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
-                console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
+
+                logger.info(request.workflow_activity_id+" : larger DOA : Final Prcessing Data " + JSON.stringify(formInputToProcess));
+                logger.info(request.workflow_activity_id+" : larger DOA : Processing Empowerment DOA "+ JSON.stringify(valuesToBeChecked[0]) +' currentExecution values'+ currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
                 if(response != 1) {
-                    console.log("Got Rejection case in Custom Bot so not proceeding with next flow in larger DOA");
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Rejection case in Custom Bot so not proceeding with next flow in larger DOA");
                     return;
                 } else {
-                    console.log("Got Win-together/manual Flow So checking to which team it should be assigned");
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Win-together/manual Flow So checking to which team it should be assigned");
                     continue;
                 }
             }
@@ -10331,37 +10329,43 @@ async function removeAsOwner(request,data)  {
                 let fieldValue = fieldIdValuesMap[fieldId];
 
                 if(fieldValue == '') {
-                    console.log("Got Empty Value ", fieldId, fieldValue);
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Empty Value " + fieldId+ " " + fieldValue);
                     continue;
                 }
-                console.log("columnNumber before update", columnNumber, " and the value is ", fieldValue, " and type is ", currentExecution.type, " and field id is", fieldId);
 
                 if(currentExecution.key_number == 2) {
                     aovValue = fieldValue;
                 }
 
+                if(!currentExecution.isEnable) {
+                    logger.info(request.workflow_activity_id +` : larger DOA : ${currentExecution.name} is disabled` );
+                    break;
+                }
+
+                logger.info(request.workflow_activity_id+" : larger DOA : columnNumber before update" + columnNumber + " and the value is " + fieldValue + " and type is " + currentExecution.type, " and field id is", fieldId);
+
                 for(let columnDetails of valuesToBeChecked) {
-                    console.log("columnDetails-----", columnDetails);
+                    logger.info(request.workflow_activity_id+" : larger DOA : columnDetails-----" + JSON.stringify(columnDetails));
                     if(columnDetails['value1']) {
 
-                        console.log("column value is", columnDetails['value1']);
+                        logger.info(request.workflow_activity_id+" : larger DOA : column value is" + columnDetails['value1']);
 
                         if(currentExecution.type == 'number') {
                             let exp1 = fieldValue + columnDetails['value1'];
-                            console.log("exp1---->", exp1, eval(exp1));
+                            logger.info(request.workflow_activity_id+" : larger DOA : exp1---->" + exp1 + " "+eval(exp1));
 
                             if(columnDetails['value2']) {
                                 let exp2 = fieldValue + columnDetails['value2'];
-                                console.log("exp2---->", exp2, eval(exp2));
+                                logger.info(request.workflow_activity_id+" : larger DOA : exp2---->" + exp2 + " "+eval(exp2));
 
                                 if(columnDetails['value3']) {
                                     let exp3 = fieldValue + columnDetails['value2'];
-                                    console.log("exp3---->", exp3, eval(exp3));
+                                    logger.info(request.workflow_activity_id+" : larger DOA : exp3---->" + exp3 + " "+eval(exp3));
                                     if(eval(exp2) && eval(exp1)  && eval(exp3)) {
 
                                         if(columnDetails.column > columnNumber.column) {
                                             columnNumber = Object.assign({}, columnDetails);
-                                            console.log("columnNumber is updated to", columnNumber);
+                                            logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                             continue;
                                         }
                                     }
@@ -10369,14 +10373,14 @@ async function removeAsOwner(request,data)  {
 
                                     if(columnDetails.column > columnNumber.column) {
                                         columnNumber = Object.assign({}, columnDetails);
-                                        console.log("columnNumber is updated to", columnNumber);
+                                        logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                         continue;
                                     }
                                 }
                             } else if(eval(exp1)) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
-                                    console.log("columnNumber is updated to", columnNumber);
+                                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                     continue;
                                 }
                             }
@@ -10384,26 +10388,22 @@ async function removeAsOwner(request,data)  {
                             if(columnDetails['value1'] == fieldValue) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
-                                    console.log("columnNumber is updated to", columnNumber);
+                                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                     continue;
                                 }
                             }
                         }
                     }
 
-                    console.log("columnNumber Final Value", columnNumber);
+                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber Final Value"+ JSON.stringify(columnNumber));
                 }
 
                 break;
             }
         }
 
-        console.log("Selected column is ", columnNumber);
+        logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
 
-        if(request.activity_stream_type_id != 705) {
-            console.error("Triggering ARP form only in the case of activity_stream_type_id 705");
-            return;
-        }
         //need timeline entry
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
@@ -10418,20 +10418,20 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        console.log("activityDetails----", activityDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
             activityTypeId = activityTypeDetails[0].activity_type_id;
             // return;
         } else {
-            console.error("activityTypeDetails found empty");
+            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
 
         let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
+        logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        logger.info(request.workflow_activity_id+" : larger DOA : wfActivityDetails "+ JSON.stringify(wfActivityDetails));
         let createWorkflowRequest                       = Object.assign({}, request);
 
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
@@ -10467,6 +10467,17 @@ async function removeAsOwner(request,data)  {
                 data_type_combo_value: aovValue,
                 field_value: aovValue,
                 message_unique_id: 1611037843535
+            },
+            {
+                form_id: 50476,
+                field_id: '310606',
+                field_name: 'Assign Commercial L1',
+                field_data_type_id: 33,
+                field_data_type_category_id: 14,
+                data_type_combo_id: 0,
+                data_type_combo_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                field_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                message_unique_id: 1611037843535
             }
         ]);
 
@@ -10492,11 +10503,11 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        logger.info(request.workflow_activity_id+" : larger DOA : createWorkflowRequest "+ JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails----> " +  JSON.stringify(activityInsertedDetails));
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -10593,11 +10604,11 @@ async function removeAsOwner(request,data)  {
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            logger.info(request.workflow_activity_id+" : larger DOA : createWorkflowRequest", JSON.stringify(createWorkflowRequest));
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails---->", activityInsertedDetails);
 
 
             let activityTimelineCollection =  JSON.stringify({
@@ -10630,7 +10641,7 @@ async function removeAsOwner(request,data)  {
 
             return 1;
         } catch(e) {
-            console.log("Error-->", e.stack, e);
+            logger.info(request.workflow_activity_id+" : larger DOA : Error-->", e.stack, e);
             return 0;
         }
     }
@@ -10722,11 +10733,10 @@ async function removeAsOwner(request,data)  {
     async function checkCustomBotV1(request, inlineData, resultProductAndRequestType, formToProcess, connectionTypeValue) {
 
         if(request.flag_past_data_processing == 1) {
-            console.error("got flag_past_data_processing key as " + request.flag_past_data_processing + " so skipping Custom bot 35 SME and Mobility");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : got flag_past_data_processing key as " + request.flag_past_data_processing + " so skipping Custom bot 35 SME and Mobility");
             return;
         }
 
-        console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
         request.debug_info.push('activity_id: ' + request.activity_id);
@@ -10734,7 +10744,7 @@ async function removeAsOwner(request,data)  {
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
-        console.log("dateFormData", JSON.stringify(originFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :dateFormData "+ JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
@@ -10754,36 +10764,36 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         // let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :resultProductAndRequestType---- " + JSON.stringify(resultProductAndRequestType));
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
-        //     console.log("Request type match failed");
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Request type match failed");
         //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
         //     return;
         // } else if(!resultProductAndRequestType.reqularApproval) {
-        //     console.log("Regular approval match failed");
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Regular approval match failed");
         //     // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
         //     return;
         // }
 
         resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
-        console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :final value resultProductAndRequestType.productMatchFlag "+ resultProductAndRequestType.productMatchFlag);
         request.debug_info.push("final value resultProductAndRequestType.productMatchFlag : "+ resultProductAndRequestType.productMatchFlag);
         if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
-            console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             request.debug_info.push("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
             return checkSmeBotV1(request, inlineData.sme_config, deskAssetData, formToProcess);
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
-            console.log("Got Product Mobility, Triggering Mobility BOT");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Got Product Mobility, Triggering Mobility BOT");
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
             return checkMobilityV1(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch, resultProductAndRequestType.reqularApproval, connectionTypeValue, formToProcess);
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
-            console.log("Product Match Failed--- Manual Flow");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Product Match Failed--- Manual Flow");
             request.debug_info.push("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return 1;
@@ -11182,12 +11192,13 @@ async function removeAsOwner(request,data)  {
         let submitRejectionFormFlag = 0, comment = '';
         // let fldForm = await getFormInlineData(request, 1);
         // let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
-        console.log("dateFormData1", JSON.stringify(fldFormData));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1", JSON.stringify(fldFormData));
 
 
         // let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
-        console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
         if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].cocpr > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
@@ -11204,15 +11215,15 @@ async function removeAsOwner(request,data)  {
             connectionType = 'IOIP';
         }
 
-        console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
         let configSheets =  inlineData.field_values_map[connectionType] || [];
 
         if(!configSheets.length) {
-            console.log("No Sheet Selected");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 No Sheet Selected");
         }
 
-        console.log("configSheets", JSON.stringify(configSheets));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 configSheets", JSON.stringify(configSheets));
 
         let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
         if(!checkingSegmentResult.length) {
@@ -11220,24 +11231,24 @@ async function removeAsOwner(request,data)  {
             submitRejectionFormFlag = 1;
         }
 
-        console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
-            console.log("Processing Sheet ", row.sheet);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Processing Sheet ", row.sheet);
             request.debug_info.push("Processing Sheet ", row.sheet);
             comment = row.comment;
 
             if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
-                console.log("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 request.debug_info.push("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 continue;
             }
 
-            console.log("row.key---->", JSON.stringify(row.key));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 row.key---->", JSON.stringify(row.key));
             request.debug_info.push("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
-                console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 request.debug_info.push("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11262,13 +11273,13 @@ async function removeAsOwner(request,data)  {
             let linkResponse = validatingNoOfLinks(row.value.value, totalCOCPAndIOIP, row.sheet);
 
             if(!linkResponse) {
-                console.error("NO of Links are not matched");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 NO of Links are not matched");
                 request.debug_info.push("NO of Links are not matched");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
-            console.error("linkResponse",linkResponse);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 linkResponse",linkResponse);
             request.debug_info.push("linkResponse",linkResponse);
 
             // Checking Rentals
@@ -11276,19 +11287,19 @@ async function removeAsOwner(request,data)  {
 
             // check for empty plans
             if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
-                console.error("Failed in Matching validatingRentals");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             if(!rentalResult || !rentalResult.length) {
-                console.error("Failed in Matching validatingRentals");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
-            console.error("rentalResult", rentalResult, inlineData.monthly_quota);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 rentalResult", rentalResult, inlineData.monthly_quota);
             request.debug_info.push("rentalResult", rentalResult, inlineData.monthly_quota);
 
 
@@ -11296,7 +11307,7 @@ async function removeAsOwner(request,data)  {
             let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
 
             if(!monthlyQuota.length) {
-                console.error("Conditions did not match in validatingMonthlyQuota");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingMonthlyQuota");
                 request.debug_info.push("Conditions did not match in validatingMonthlyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11305,7 +11316,7 @@ async function removeAsOwner(request,data)  {
             let dailyQuota = validatingDailyQuota(fldFormData, monthlyQuota, inlineData.daily_quota);
 
             if(!dailyQuota.length) {
-                console.error("Conditions did not match in validatingDailyQuota");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingDailyQuota");
                 request.debug_info.push("Conditions did not match in validatingDailyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11314,7 +11325,7 @@ async function removeAsOwner(request,data)  {
             let smsCount = validatingSMSValues(fldFormData, dailyQuota, inlineData.sme_field_ids);
 
             if(!smsCount.length) {
-                console.error("Conditions did not match in validatingSMSValues");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingSMSValues");
                 request.debug_info.push("Conditions did not match in validatingSMSValues");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11322,22 +11333,22 @@ async function removeAsOwner(request,data)  {
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
-            console.log("minQuota", JSON.stringify(minQuota));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 minQuota", JSON.stringify(minQuota));
             request.debug_info.push("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
-                console.error("Condition failed in validate Mins");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Condition failed in validate Mins");
                 request.debug_info.push("Condition failed in validate Mins");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             if(!sheetMatchFlag[row.sheet]) {
-                console.error("First condition got matched so getting out from loop");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 First condition got matched so getting out from loop");
                 request.debug_info.push("First condition got matched so getting out from loop");
                 sheetMatchFlag[row.sheet] = '0';
                 // break;
             }
-            console.log("sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
             request.debug_info.push("sheetMatchFlag-- " + JSON.stringify(sheetMatchFlag));
         }
 
@@ -11359,13 +11370,13 @@ async function removeAsOwner(request,data)  {
                 return 0;
             }
 
-            console.log("Not Rejection because workflowType did not matched to current value");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Not Rejection because workflowType did not matched to current value");
 
             return 1;
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 wfActivityDetails", JSON.stringify(wfActivityDetails));
 
 
         // try{
@@ -11379,7 +11390,7 @@ async function removeAsOwner(request,data)  {
         //         asset_id : wfActivityDetails[0].activity_creator_asset_id
         //     });
         // }catch(e) {
-        //     console.log("Error while adding participant")
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Error while adding participant")
         // }
 
 
@@ -11479,11 +11490,11 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 createWorkflowRequest", JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityInsertedDetails---->", activityInsertedDetails);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -11538,18 +11549,18 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        console.log("activityDetails----", activityDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityDetails----", activityDetails);
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
             activityTypeId = activityTypeDetails[0].activity_type_id;
             // return;
         } else {
-            console.error("activityTypeDetails found empty");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityTypeDetails found empty");
         }
 
         let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
 
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
@@ -12234,7 +12245,7 @@ async function removeAsOwner(request,data)  {
         // let IllForm = await getFormInlineData(request, 1);
         // let IllFormData = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-        console.log("----", JSON.stringify(IllFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :---- "+ JSON.stringify(IllFormData));
 
         let segmentFieldIds =  inlineData.segmentFieldIds;
         let netCash =  inlineData.netCash;;
@@ -12302,14 +12313,16 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        console.log("activationDataOfLinks", JSON.stringify(activationDataOfLinks));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activationDataOfLinks", JSON.stringify(activationDataOfLinks));
         illFormDataWithLiks.push(temp);
 
         for(let row of illFormDataWithLiks) {
             row.push(paybackData);
         }
 
-        console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :illFormDataWithLiks " + JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
             if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i], paybackFieldId)) {
@@ -12322,7 +12335,8 @@ async function removeAsOwner(request,data)  {
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :wfActivityDetails "+ JSON.stringify(wfActivityDetails));
 
 
         // try{
@@ -12336,7 +12350,8 @@ async function removeAsOwner(request,data)  {
         //         asset_id : wfActivityDetails[0].activity_creator_asset_id
         //     });
         // }catch(e) {
-        //     console.log("Error while adding participant")
+        //     
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Error while adding participant")
         // }
 
 
@@ -12437,11 +12452,13 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :createWorkflowRequest "+ JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activityInsertedDetails----> "+ JSON.stringify(activityInsertedDetails));
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -12480,7 +12497,8 @@ async function removeAsOwner(request,data)  {
         //         organization_id : request.organization_id
         //     });
         // }catch(e) {
-        //     console.log("Error while adding participant")
+        //     
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Error while adding participant")
         // }
 
 
@@ -12498,7 +12516,8 @@ async function removeAsOwner(request,data)  {
             }
         }
         
-        console.log("activityDetails----", activityDetails);
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activityDetails---- " + JSON.stringify(activityDetails));
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
@@ -12509,7 +12528,8 @@ async function removeAsOwner(request,data)  {
         }
 
         let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Will be assigned to the required team");
 
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
@@ -12523,40 +12543,39 @@ async function removeAsOwner(request,data)  {
             for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
-                    console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : ROw Data " + JSON.stringify([row.field_id , row.field_value , productFieldId , segmentFieldId , orderTypeFieldId , bwFieldId , otcFieldId , arcField , contractTermsFieldId , netCash]));
                     if(row.field_id == productFieldId) {
-                        // console.log("row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase()", row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase())
-                        console.log("Product Matched", row.field_id, "expected",value['1'], "got this", row.field_value.toLowerCase());
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Product Matched " + row.field_id + "expected ",value['1'] + "got this " + row.field_value.toLowerCase());
                         value['1'].toLowerCase() == row.field_value.toLowerCase() ? productF = 1 : 0;
                         row.field_value == '' ? productF = 1 : 0;
                         continue;
                     } else if(row.field_id == segmentFieldId) {
-                        console.log("Segment Matched", row.field_id, "expected",value['2'], "got this", row.field_value.toLowerCase());
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Segment Matched " + row.field_id + "expected ",value['2'] + "got this " + row.field_value.toLowerCase());
                         value['2'].toLowerCase() == row.field_value.toLowerCase() ? segementF = 1 : 0;
                         row.field_value == '' ? segementF = 1 : 0;
                         continue;
                     } else if(row.field_id == orderTypeFieldId) {
                         if(row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'upgrade with capex/ opex') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Matched Order Type capexValue + opexValue " + capexValue +" opex value "+ opexValue);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 1");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 1");
                                 sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 3");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 3");
                                 sheetSelected = inlineData.smeSheet3;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Matched Order Type capexValue + opexValue " + capexValue +" opex value "+ opexValue);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 2");
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 4");
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet4;
                             }
@@ -12564,10 +12583,10 @@ async function removeAsOwner(request,data)  {
                             console.error("Got Empty values while checking capexValue opexValue");
                             orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 2");
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 4");
                                 sheetSelected = inlineData.smeSheet4;
                             }
                         }
@@ -12575,15 +12594,15 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF", productF, segementF,  orderTypeF);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : productF && segementF && orderTypeF " + JSON.stringify({productF , segementF, orderTypeF}));
                 if(productF && segementF && orderTypeF){
-                    console.log("Got match in phase 1");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Got match in phase 1");
                     phase1 = {productF, segementF, orderTypeF};
                     break;
                 }
                 else {
                     productF = 0, segementF = 0, orderTypeF = 0;
-                    console.log("Reset Params phase 1. Checking for new");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Reset Params phase 1. Checking for new");
                 }
 
             }
@@ -12593,32 +12612,32 @@ async function removeAsOwner(request,data)  {
                 return false;
             }
 
-            console.log("Executing new sheet", sheetSelected);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Executing new sheet " + sheetSelected);
             for(let value of sheetSelected) {
 
                 let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 for(let row of linkDetails) {
-                    console.log("bwF && otcF && arcF && contractF && netCashF loop", row.field_id, row.field_name, row.field_value);
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : bwF && otcF && arcF && contractF && netCashF loop " + JSON.stringify([ row.field_id, row.field_name, row.field_value]));
                     if(row.field_id == bwFieldId) {
-                        console.log("BW Match )", row.field_id, bwFieldId, Number(row.field_value), Number(value['4']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : BW Match ) " + JSON.stringify([ row.field_id, bwFieldId, Number(row.field_value), Number(value['4'])]));
                         Number(row.field_value) == Number(value['4']) ? bwF = 1 : 0;
                         row.field_value == '' ? bwF = 1 : 0;
                         continue;
                     } else if(row.field_id == otcFieldId) {
-                        console.log("otcF", row.field_id , otcFieldId , Number(row.field_value) , Number(value['5']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : otcF " + JSON.stringify([ row.field_id , otcFieldId , Number(row.field_value) , Number(value['5'])]));
                         Number(row.field_value) >= Number(value['5']) ? otcF = 1 : 0;
                         row.field_value == '' ? otcF = 1 : 0;
                         continue;
                     } else if(row.field_id == arcField) {
-                        console.log("arcF", row.field_id, arcField,  Number(row.field_value), Number(value['6']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : arcF " + JSON.stringify([ row.field_id, arcField,  Number(row.field_value), Number(value['6'])]));
                         Number(row.field_value) >= Number(value['6']) ? arcF = 1 : 0;
                         row.field_value == '' ? arcF = 1 : 0;
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
-                        console.log("contractF", row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : contractF " + JSON.stringify([ row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7'])]));
                         if(checkActivationDateFlag) {
                             let yearsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'years', true);
-                            console.log("Months Difference is", yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Months Difference is " + JSON.stringify([ yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value]));
                             yearsDiff >= Number(value['7']) ? contractF = 1 : 0;
 
                         } else {
@@ -12627,15 +12646,15 @@ async function removeAsOwner(request,data)  {
                         row.field_value == '' ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
-                        console.log("netCashF", row.field_id, netCash , Number(row.field_value) , Number(value['8']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : netCashF " + JSON.stringify([ row.field_id, netCash , Number(row.field_value) , Number(value['8'])]));
                         Number(row.field_value) >= Number(value['8']) ? netCashF = 1 : 0;
                         row.field_value == '' ? netCashF = 1 : 0;
                         continue;
                     } else if(row.field_id == paybackFieldId) {
-                        console.log("Checking for Pay back fields");
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Checking for Pay back fields");
 
                         if(row.field_value <= value['9']) {
-                            console.log("Value matched in pay back value");
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Value matched in pay back value");
                             paybackF = 1;
                         }
                         row.field_value == '' ? paybackF = 1 : 0;
@@ -12643,13 +12662,13 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("bwF && otcF && arcF && contractF && netCashF && paybackF", bwF, otcF, arcF, contractF, netCashF, paybackF);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : bwF && otcF && arcF && contractF && netCashF && paybackF " + JSON.stringify([ bwF, otcF, arcF, contractF, netCashF, paybackF]));
                 if(bwF && otcF && arcF && contractF && netCashF && paybackF) {
-                    console.log("Got match in phase 2 link" + linkId);
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Got match in phase 2 link" + linkId);
                     phase2 = {bwF, otcF, arcF, contractF, netCashF, paybackF};
                     return true;
                 } else {
-                    console.log("Reset In phase 2. Checking for new");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Reset In phase 2. Checking for new");
                     bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 }
             }
@@ -12694,7 +12713,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("botData---", botData);
+                console.log("botData--- ", botData);
 
                 if(!botData) {
                     console.error("Bot data was not found so lead would not be added before form submission");
@@ -12702,9 +12721,9 @@ async function removeAsOwner(request,data)  {
 
                 botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
 
-                console.log("Final=-----", botData);
+                console.log("Final=----- ", botData);
                 let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-                console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+                console.log("wfActivityDetails ", JSON.stringify(wfActivityDetails));
 
 
                 await addParticipantStep({
