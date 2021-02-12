@@ -2720,6 +2720,10 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.checkDateFormat = (date,format) => {
+        return moment(date, format).isValid();
+    }
+
 }
 
 module.exports = Util;
