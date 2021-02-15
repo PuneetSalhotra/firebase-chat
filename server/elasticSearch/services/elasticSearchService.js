@@ -493,29 +493,32 @@ function CommnElasticService(objectCollection) {
         let error = false,
             responseData = [];
 
+        let body = {
+            activity_type_id: Number(request.activity_type_id),
+            workforce_id: Number(request.workforce_id),
+            account_id: Number(request.account_id),
+            activity_id: Number(request.workflow_activity_id),
+            asset_id: Number(request.asset_id),
+            activity_title_expression: activityTitleExpression,
+            //operating_asset_first_name: "Sagar Pradhan",
+            //activity_title: "GALAXY MEDICATION",
+            //activity_type_name: "Account Management - SME",
+            //asset_first_name: "Channel Head",
+            //operating_asset_id: 44574,                
+        };
+
+        (request.cuid_1 || request.hasOwnProperty('cuid_1')) ? body.activity_cuid_1 = request.cuid_1 : "";
+        (request.cuid_2 || request.hasOwnProperty('cuid_2')) ? body.activity_cuid_2 = request.cuid_2 : "";
+        (accountCode    || request.hasOwnProperty('cuid_3')) ? body.activity_cuid_3 = accountCode || request.cuid_3 : "";
+
+        console.log("updateAccountCode : " + JSON.stringify(body));
         client.index({
             index: 'crawling_accounts',
-            body: {
-                activity_cuid_3: accountCode,
-                activity_type_id: Number(request.activity_type_id),
-                workforce_id: Number(request.workforce_id),
-                account_id: Number(request.account_id),
-                activity_id: Number(request.workflow_activity_id),
-                asset_id: Number(request.asset_id),
-                activity_title_expression: activityTitleExpression,
-                activity_cuid_1:request.cuid_1,
-                activity_cuid_2:request.cuid_2
-                //operating_asset_first_name: "Sagar Pradhan",
-                //activity_title: "GALAXY MEDICATION",
-                //activity_type_name: "Account Management - SME",
-                //asset_first_name: "Channel Head",
-                //operating_asset_id: 44574,                
-            }
+            body: body
         });
         let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
     };
-
     async function addintoActivitySearchMapping (request){
         // try{
         //    let ss = await client.search({

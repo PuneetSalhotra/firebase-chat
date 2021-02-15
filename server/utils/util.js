@@ -2339,7 +2339,7 @@ function Util(objectCollection) {
     };
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0, organisationFlag=0, senderEmail) {
         let responseData = [],
             error = false;
 
@@ -2347,7 +2347,7 @@ function Util(objectCollection) {
         //console.log('subject : ', subject);
         //console.log('text : ', text);
 
-        console.log('FLAG : ', flag);
+        console.log('FLAG : ', flag, "organisationFlag", organisationFlag);
         let buff;
         let htmlTemplate;
         if(flag === 0 ) {
@@ -2365,11 +2365,12 @@ function Util(objectCollection) {
             //username: 'COR420930@vodafoneidea.com',
             //username: 'Yasmeen.Sayyed3@vodafoneidea.com',
             //username: 'CentralOmt.In@vodafoneidea.com',
-            username: 'COR458207@vodafoneidea.com',
+            username: organisationFlag ? senderEmail : 'COR458207@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
 
+        console.log("ewsConfig", JSON.stringify(ewsConfig));
         // initialize node-ews
         const ews = new EWS(ewsConfig);
 
