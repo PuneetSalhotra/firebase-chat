@@ -200,8 +200,28 @@ function DrsService(objectCollection) {
   };
 
 
-  //Service to create a folder in document repository
+  //Service to create multiple folder in document repository
   this.createFolder = async (request) => {
+    let responseData = [],
+        error = true;
+
+    let urlList = JSON.parse(request.document_repository_folder_url);
+    for(let i = 0 ;i < urlList.length ; i++){
+        request.document_repository_folder_url = urlList[i];
+        let [err1,data] = await self.createFolderOneByOne(request);
+        if(err1){
+            error = err1;
+        } else {
+            error = false;
+            responseData.push(data[0]);
+        }        
+    }
+
+    return [error, responseData];
+  };
+
+  //Service to create a folder in document repository
+  this.createFolderOneByOne = async (request) => {
     let responseData = [],
         error = true;
 
@@ -235,8 +255,8 @@ function DrsService(objectCollection) {
             });
     }
 
-    return [error, responseData];
-  };
+    return [error, responseData];      
+  }
 
   async function docHistoryInsert(request,update_type_id){
       let responseData=[];
