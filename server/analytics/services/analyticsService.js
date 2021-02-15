@@ -2759,6 +2759,7 @@ function AnalyticsService(objectCollection)
         }
         return [error, responseData];
     }
+
     //Functionality to get asset account target list          
     this.getAssetAccountTargetList = async (request) => {
 
@@ -2786,7 +2787,63 @@ function AnalyticsService(objectCollection)
         }
 
         return [error, responseData];
-    }  	    
+    }
+        
+    //Functionality to get report transaction list          
+    this.getReportTransactionList = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_transaction_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
+
+    //Functionality to get report transaction list          
+    this.getTagTypeFilters = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.tag_type_id,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_organization_filter_tag_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }      
 
 }
 

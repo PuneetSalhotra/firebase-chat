@@ -15,6 +15,7 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
+const CommnElasticService = require('../../elasticSearch/services/elasticSearchService');
 //var aspose = aspose || {};
 //aspose.cells = require("aspose.cells");
 //
@@ -72,6 +73,7 @@ function BotService(objectCollection) {
 
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
+    const elasticService = new CommnElasticService(objectCollection);
 
     //const workbookOpsService = new WorkbookOpsService(objectCollection);
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
@@ -2136,6 +2138,23 @@ function BotService(objectCollection) {
                     //     });
                     // }
                 break;
+                
+                case 45 :
+                    logger.silly("Remove CUID Bot");
+                    logger.silly("Remove CUID Bot Request: %j", request);
+                    logger.info("Remove CUID BOT : " + JSON.stringify(botOperationInlineData))
+                    try {
+                        await removeCUIDs(request, JSON.parse(i.bot_operation_inline_data).bot_operations);
+                    } catch (error) {
+                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error"      : error,
+                            "error_stack" : error.stack
+                        });
+                    }
+                    break;
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -7616,6 +7635,51 @@ async function removeAsOwner(request,data)  {
         return [error, responseData];
     }
 
+    async function activityListRemoveCUIDs(request, cuidUpdateFlag) {
+        /* 
+            {
+                "bot_operations": {
+                    "condition": {
+                    "form_id": 0,
+                    "field_id": 0,
+                    "is_check": false,
+                    "operation": "",
+                    "threshold": 0
+                },
+                "remove_cuids": {
+                    "remove_cuid_flag":0/1/2/3
+                    }
+                }
+            }
+
+            0 for all
+        */
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_list_delete_cuid', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     async function activityAssetMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
         let responseData = [],
             error = true;
@@ -7674,6 +7738,7 @@ async function removeAsOwner(request,data)  {
         return [error, responseData];
     }
 
+    
     this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
@@ -13316,6 +13381,39 @@ async function removeAsOwner(request,data)  {
         }
     }    
 
+    async function removeCUIDs(request, inlineData) {
+        await activityListRemoveCUIDs(request, inlineData.remove_cuids.remove_cuid_flag);
+        let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+
+        switch (parseInt(inlineData.remove_cuids.remove_cuid_flag)) {
+            case 1:
+                request.cuid_1 = null;
+                break;
+
+            case 2:
+                request.cuid_2 = null;
+                break;
+
+            case 3:
+                request.cuid_3 = null;
+                break;
+
+            case 0 :
+                request.cuid_1 = null;
+                request.cuid_2 = null;
+                request.cuid_3 = null;
+                break;
+            default:
+                logger.info("Remove CUID BOT : " + `cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`);
+                throw new Error(`cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`)
+            // break;
+        }
+
+        logger.info("Remove CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
+        await elasticService.updateAccountCode(request, "", activityTitleExpression);
+
+        return;
+    }
 }
 
 

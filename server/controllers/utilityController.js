@@ -386,7 +386,7 @@ function UtilityController(objCollection) {
                 }
             });
         } else {
-            let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
+            let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, 0, req.outlook_email_integration, email_sender);
             if (err) {
                 return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
             } else {
