@@ -61,14 +61,14 @@ function DrsService(objectCollection) {
         await db.executeQueryPromise(0, queryString, request)
             .then(async (data) => {
               responseData = data;
-              let [assetHisErr,assetHisData] = await docRepoAssetMappingHistoryInsert(request,2406)
-                error = false;
+              error = false;
+                docRepoAssetMappingHistoryInsert(request,2406)
+
             })
             .catch((err) => {
                 error = err;
             });
-    }
-
+    }    
     return [error, responseData];
   };
 
@@ -83,9 +83,11 @@ function DrsService(objectCollection) {
                 request.asset_type_id = 0;
                 request.access_level_id = 6;
                 let [err1,data] = await self.shareDocToAssetBaseOnType(request);
+
                 if(err1){
                     error = err1;
                 } else {
+                    error = false;
                     responseData = data;
                 }
             }
@@ -98,12 +100,14 @@ function DrsService(objectCollection) {
                 //console.log(JSON.stringify(request,null,2));
                 let [err1,data] = await self.shareDocToAssetBaseOnType(request);
                 if(err1){
-                error = err1;
+                        error = err1;
                 } else {
-                responseData = data;
+                        error = false;
+                        responseData = data;
                 }
             }
         }
+
         return [error, responseData];
         };
 
