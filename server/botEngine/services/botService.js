@@ -2155,6 +2155,25 @@ function BotService(objectCollection) {
                     }
                     break;
 
+                    
+                    case 46 : //Forcast Category, Product Quantity in drilldown
+                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
+                    try {
+                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
+                        await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
+                    } catch (error) {
+                        logger.error("[Widget drilldown additional fields] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
+                            "error": error
+                        });
+                    }
+                    break;                
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -13411,6 +13430,19 @@ async function removeAsOwner(request,data)  {
         await elasticService.updateAccountCode(request, "", activityTitleExpression);
 
         return;
+    }
+
+    async function activitySearchListUpdateAddition(request, column_flag, field_value) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            field_value,
+            column_flag
+        ];
+        let queryString = util.getQueryString('ds_v1_activity_search_list_update_addition_fields', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
     }
 }
 
