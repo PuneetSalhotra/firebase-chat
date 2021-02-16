@@ -10393,7 +10393,7 @@ async function removeAsOwner(request,data)  {
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
-            if(currentExecution.key_number == 1) {
+            if(currentExecution.key_number == 1 && currentExecution.isEnable) {
 
                 logger.info(request.workflow_activity_id+" : larger DOA : Final Prcessing Data " + JSON.stringify(formInputToProcess));
                 logger.info(request.workflow_activity_id+" : larger DOA : Processing Empowerment DOA "+ JSON.stringify(valuesToBeChecked[0]) +' currentExecution values'+ currentExecution.values);
