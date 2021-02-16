@@ -2162,6 +2162,11 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
+                        if(botOperationsJson.bot_operations.is_product == 1){
+                            request.is_product = botOperationsJson.bot_operations.is_product;
+                            request.is_cart = botOperationsJson.bot_operations.is_cart;
+                            request.final_key = botOperationsJson.bot_operations.final_key;
+                        }
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
                     } catch (error) {
@@ -13134,21 +13139,35 @@ async function removeAsOwner(request,data)  {
     }
 
     async function getFormFieldValue(request, idField) {
-        logger.info(request.workflow_activity_id+": idField: %j", idField);
-        
+        let fieldValue = '';
+        try{
+        logger.info(request.workflow_activity_id+": idField: %j", idField);        
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
-        let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
+            logger.info(Number(formInlineData[counter].field_id)+": idField: %j", idField);
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.info(request.workflow_activity_id+": Field Matched: %j", formInlineData[counter].field_value);
-                request.debug_info.push(" Field Matched: "+idField+" "+formInlineData[counter].field_value)
-                fieldValue = formInlineData[counter].field_value;
+                logger.info(request.workflow_activity_id+": datatypeid "+formInlineData[counter].field_data_type_id+" is_cart "+request.is_cart+" : final_key : "+request.final_key+ " product_data"+formInlineData[counter].field_value);             
+                if(Number(formInlineData[counter].field_data_type_id) === 71){ 
+                    logger.info(request.workflow_activity_id+": Field Matched: %j", JSON.parse(formInlineData[counter].field_value).cart_items);
+                    if(request.is_cart == 0){
+                        fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
+                    }else if(request.is_cart == 1) {
+                        //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
+                        fieldValue = JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key];
+                    }
+                }else{
+                    fieldValue = formInlineData[counter].field_value;
+                }                
                 break;
             }
         }
-        // logger.silly("arpBot: fieldValue: %j", fieldValue);
+            logger.info("getFormFieldValue: fieldValue: %j", fieldValue);        
+        }catch(error){
+            logger.info(error);
+        }
+        request.debug_info.push("getFormFieldValue "+ fieldValue);
         return fieldValue;
     }
 
