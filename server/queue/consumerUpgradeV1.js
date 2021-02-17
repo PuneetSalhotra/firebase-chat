@@ -9,6 +9,7 @@ const tracerFormats = require('dd-trace/ext/formats')
 require('../utils/globalConfig');
 require('../vodafone/utils/vodafoneConfig');
 var forEachAsync = require('forEachAsync').forEachAsync;
+const { serializeError } = require('serialize-error');
 
 let Logger = require('../utils/logger.js');
 const logger = require('../logger/winstonLogger');
@@ -69,11 +70,12 @@ async function SetupAndStartConsumerGroup() {
         const kafkaProducer = await GetKafkaProducer();
         logger.info(`Kafka producer started`, { type: "consumer_group_startup" })
 
-        // const
+        const consumerGroup =  await GetConsumerGroup();
 
         return `Consumer group started!`
     } catch (error) {
         logger.error("[error]: ", { error: serializeError(error) })
+        throw new Error(error)
     }
 }
 
@@ -82,15 +84,25 @@ async function GetConsumerGroup() {
         clientId: `${global.mode}-kafkajs-consumergroup-client`,
         brokers: String(global.config.BROKER_HOST).split(","),
         connectionTimeout: 5000,
-        logLevel: KafkajsLogLevel.INFO
+        logLevel: KafkajsLogLevel.DEBUG
     })
 
     const consumerGroup = kafkaClient.consumer({ groupId: `${global.config.CONSUMER_GROUP_ID}-1` })
     await consumerGroup.connect()
     await consumerGroup.subscribe({ topic: global.config.TOPIC_NAME, fromBeginning: false })
 
-    consumerGroup.on('')
+    // Setup Instrumentation Events
+    // Documentation: https://github.com/tulios/kafkajs/blob/master/docs/InstrumentationEvents.md
+    const {
+        HEARTBEAT, CONNECT, GROUP_JOIN,
+        STOP, DISCONNECT, CRASH, REQUEST_TIMEOUT
+    } = consumerGroup.events;
 
+    consumerGroup.on(CONNECT, () => { logger.info("connected") })
+    consumerGroup.on(HEARTBEAT, e => logger.info(`heartbeat at ${e.timestamp}`))
+    consumerGroup.on(GROUP_JOIN, e => logger.info(`GROUP_JOIN event`))
+
+    return consumerGroup;
     // Initialize fellows!
     // Cache
     // let redisClient;
