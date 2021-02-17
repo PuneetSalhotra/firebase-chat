@@ -68,10 +68,20 @@ function GetKafkaProducer() {
 
 async function SetupAndStartConsumerGroup() {
     try {
+        // Kafka Producer
         const kafkaProducer = await GetKafkaProducer();
         logger.info(`Kafka producer started`, { type: "consumer_group_startup" })
 
+        // Kafka Consumer
         const consumerGroup = await GetConsumerGroup();
+
+        // Cache Wrapper
+        const cacheWrapper = await GetCacheWrapper()
+
+        // Object Collection
+        const objectCollection = await GetObjectCollection(kafkaProducer, cacheWrapper);
+
+        console.log("objectCollection: ", objectCollection)
 
         await consumerGroup.run({
             eachMessage: async ({ topic, partition, message }) => {
@@ -88,6 +98,44 @@ async function SetupAndStartConsumerGroup() {
         logger.error("[error]: ", { error: serializeError(error) })
         throw new Error(error)
     }
+}
+
+async function GetCacheWrapper() {
+    // Cache
+    let redisClient;
+    if (global.mode === 'local') {
+        redisClient = redis.createClient(global.config.redisConfig);
+    } else {
+        redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
+    }
+    const cacheWrapper = new CacheWrapper(redisClient);
+    return cacheWrapper;
+}
+
+async function GetObjectCollection(kafkaProducer, cacheWrapper) {
+    // Initialize fellows!
+    const queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
+    // AWS SNS
+    const sns = new AwsSns();
+    // Utilities
+    const util = new Util({ cacheWrapper });
+    const activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+    const activityPushService = new ActivityPushService({ cacheWrapper });
+
+    const objectCollection = {
+        util: util,
+        db: db,
+        cacheWrapper: cacheWrapper,
+        activityCommonService: activityCommonService,
+        sns: sns,
+        forEachAsync: forEachAsync,
+        queueWrapper: queueWrapper,
+        activityPushService: activityPushService
+    };
+    return objectCollection;
+
+    // Instantiate all the services
+    // const activityTimelineService = new ActivityTimelineService(objectCollection);
 }
 
 async function GetConsumerGroup() {
