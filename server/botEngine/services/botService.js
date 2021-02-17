@@ -1711,6 +1711,9 @@ function BotService(objectCollection) {
                                     //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
                                     sqsQueueUrl = global.config.excelBotSQSQueue;
                                 }
+                                logger.info(request.workflow_activity_id+": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
+                                let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:18});
+                                request.bot_excel_log_transaction = insertData;
                                 sqs.sendMessage({
                                     // DelaySeconds: 5,
                                     MessageBody: JSON.stringify(request),
@@ -1985,6 +1988,7 @@ function BotService(objectCollection) {
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
                     request.pdf_json = pdf_json;
                     request.generate_pdf = 1;
+                    request.bot_operation_id=37;
                     sendToSqsPdfGeneration(request);
                     
                     
@@ -2106,7 +2110,7 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
                     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson})
+                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44})
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
@@ -2229,6 +2233,11 @@ function BotService(objectCollection) {
         //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
         sqsQueueUrl = global.config.excelBotSQSQueue;
     }
+
+    logger.info(request.workflow_activity_id+": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
+    let [sqsInserErr,insertData]= await insertSqsStatus(request);
+    request.bot_excel_log_transaction = insertData;
+
     sqs.sendMessage({
         // DelaySeconds: 5,
         MessageBody: JSON.stringify(request),
@@ -13461,6 +13470,39 @@ async function removeAsOwner(request,data)  {
         return await (db.executeQueryPromise(0, queryString, request));
         }
     }
+
+    async function insertSqsStatus(request) {
+        let responseData = 0,
+        error = true;
+        var paramsArr = new Array(
+            0,
+            util.getCurrentUTCTime(),
+            5,
+            JSON.stringify(request),
+            request.bot_operation_id||0,
+            request.workflow_activity_id||0,
+            request.activity_id||0,
+            request.form_transaction_id||0,
+            request.workforce_id || 0,
+            request.account_id || 0,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        var queryString = util.getQueryString('ds_p1_bot_excel_log_transaction_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data[0].bot_operation_transaction_id;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        logger.info(request.workflow_activity_id+" : excel bot log inserted");
+      return [false,responseData]
+    };
 }
 
 
