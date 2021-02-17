@@ -17,6 +17,10 @@ const kafka = require('kafka-node');
 const kafkaConsumer = kafka.Consumer;
 const KafkaProducer = kafka.Producer;
 const kafkaConsumerGroup = kafka.ConsumerGroup;
+const {
+    Kafka: Kafkajs,
+    logLevel: KafkajsLogLevel
+} = require('kafkajs');
 
 const Util = require('../utils/util');
 
@@ -60,10 +64,12 @@ function GetKafkaProducer() {
     });
 }
 
-async function StartConsumerGroup() {
+async function SetupAndStartConsumerGroup() {
     try {
         const kafkaProducer = await GetKafkaProducer();
         logger.info(`Kafka producer started`, { type: "consumer_group_startup" })
+
+        // const
 
         return `Consumer group started!`
     } catch (error) {
@@ -71,36 +77,49 @@ async function StartConsumerGroup() {
     }
 }
 
-function Consumer() {
+async function GetConsumerGroup() {
+    const kafkaClient = new Kafkajs({
+        clientId: `${global.mode}-kafkajs-consumergroup-client`,
+        brokers: String(global.config.BROKER_HOST).split(","),
+        connectionTimeout: 5000,
+        logLevel: KafkajsLogLevel.INFO
+    })
+
+    const consumerGroup = kafkaClient.consumer({ groupId: `${global.config.CONSUMER_GROUP_ID}-1` })
+    await consumerGroup.connect()
+    await consumerGroup.subscribe({ topic: global.config.TOPIC_NAME, fromBeginning: false })
+
+    consumerGroup.on('')
+
     // Initialize fellows!
     // Cache
-    let redisClient;
-    if (global.mode === 'local') {
-        redisClient = redis.createClient(global.config.redisConfig);
-    } else {
-        redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-    }
-    const cacheWrapper = new CacheWrapper(redisClient);
-    // AWS SNS
-    const sns = new AwsSns();
-    // Utilities
-    const util = new Util({ cacheWrapper });
-    const activityCommonService = new ActivityCommonService(db, util, forEachAsync);
-    const activityPushService = new ActivityPushService({ cacheWrapper });
+    // let redisClient;
+    // if (global.mode === 'local') {
+    //     redisClient = redis.createClient(global.config.redisConfig);
+    // } else {
+    //     redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
+    // }
+    // const cacheWrapper = new CacheWrapper(redisClient);
+    // // AWS SNS
+    // const sns = new AwsSns();
+    // // Utilities
+    // const util = new Util({ cacheWrapper });
+    // const activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+    // const activityPushService = new ActivityPushService({ cacheWrapper });
 
-    const objCollection = {
-        util: util,
-        db: db,
-        cacheWrapper: cacheWrapper,
-        activityCommonService: activityCommonService,
-        sns: sns,
-        forEachAsync: forEachAsync,
-        queueWrapper: queueWrapper,
-        activityPushService: activityPushService
-    };
+    // const objCollection = {
+    //     util: util,
+    //     db: db,
+    //     cacheWrapper: cacheWrapper,
+    //     activityCommonService: activityCommonService,
+    //     sns: sns,
+    //     forEachAsync: forEachAsync,
+    //     queueWrapper: queueWrapper,
+    //     activityPushService: activityPushService
+    // };
 
-    // Instantiate all the services
-    const activityTimelineService = new ActivityTimelineService(objectCollection);
+    // // Instantiate all the services
+    // const activityTimelineService = new ActivityTimelineService(objectCollection);
 }
 
 var Consumer = function () {
@@ -444,4 +463,4 @@ var Consumer = function () {
     }
 
 };
-module.exports = { StartConsumerGroup };
+module.exports = { SetupAndStartConsumerGroup };

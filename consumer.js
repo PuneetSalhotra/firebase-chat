@@ -3,10 +3,10 @@ const { serializeError } = require('serialize-error')
 // new Consumer();
 const logger = require('./server/logger/winstonLogger');
 const {
-    StartConsumerGroup
+    SetupAndStartConsumerGroup
 } = require("./server/queue/consumerUpgradeV1");
 
-StartConsumerGroup()
+SetupAndStartConsumerGroup()
     .then(message => { console.log("[123123] message: ", message) })
     .catch(error => { console.log("[123123] error: ", error) })
 
