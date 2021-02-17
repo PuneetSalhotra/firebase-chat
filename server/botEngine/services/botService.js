@@ -1713,7 +1713,7 @@ function BotService(objectCollection) {
                                 }
                                 logger.info(request.workflow_activity_id+": inserting status into database %j", data, { type: 'bot_engine', request_body: request });
                                 let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:18});
-
+                                request.bot_excel_log_transaction = insertData;
                                 sqs.sendMessage({
                                     // DelaySeconds: 5,
                                     MessageBody: JSON.stringify(request),
@@ -2236,7 +2236,7 @@ function BotService(objectCollection) {
 
     logger.info(request.workflow_activity_id+": inserting status into database %j", data, { type: 'bot_engine', request_body: request });
     let [sqsInserErr,insertData]= await insertSqsStatus(request);
-
+    request.bot_excel_log_transaction = insertData;
     sqs.sendMessage({
         // DelaySeconds: 5,
         MessageBody: JSON.stringify(request),
@@ -13471,7 +13471,9 @@ async function removeAsOwner(request,data)  {
     }
 
     async function insertSqsStatus(request) {
+        let bot_excel_log_transaction = 0;
         var paramsArr = new Array(
+            0,
             util.getCurrentUTCTime(),
             5,
             JSON.stringify(request),
@@ -13488,10 +13490,10 @@ async function removeAsOwner(request,data)  {
         var queryString = util.getQueryString('ds_p1_bot_excel_log_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-               
+                bot_excel_log_transaction = data[0].bot_excel_log_transaction;
             });
         }
-      return [false,[]]
+      return [false,bot_excel_log_transaction]
     };
 }
 
