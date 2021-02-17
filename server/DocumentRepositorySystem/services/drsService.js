@@ -209,16 +209,22 @@ function DrsService(objectCollection) {
     let responseData = [],
         error = true;
 
-    let urlList = JSON.parse(request.document_repository_folder_url);
-    for(let i = 0 ;i < urlList.length ; i++){
-        request.document_repository_folder_url = urlList[i];
-        let [err1,data] = await self.createFolderOneByOne(request);
-        if(err1){
-            error = err1;
-        } else {
-            error = false;
-            responseData.push(data[0]);
-        }        
+    try{
+        let urlList = JSON.parse(request.document_repository_folder_url);
+        for(let i = 0 ;i < urlList.length ; i++){
+            request.document_repository_name = urlList[i].name;
+            request.document_repository_folder_url = urlList[i].url;
+            let [err1,data] = await self.createFolderOneByOne(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                data[0].name = request.document_repository_name
+                responseData.push(data[0]);
+            }        
+        }
+    } catch (err){
+        return [err, responseData];        
     }
 
     return [error, responseData];
