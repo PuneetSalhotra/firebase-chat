@@ -22,6 +22,7 @@ const {
     Kafka: Kafkajs,
     logLevel: KafkajsLogLevel
 } = require('kafkajs');
+const { nanoid } = require('nanoid')
 
 const Util = require('../utils/util');
 
@@ -70,7 +71,17 @@ async function SetupAndStartConsumerGroup() {
         const kafkaProducer = await GetKafkaProducer();
         logger.info(`Kafka producer started`, { type: "consumer_group_startup" })
 
-        const consumerGroup =  await GetConsumerGroup();
+        const consumerGroup = await GetConsumerGroup();
+
+        await consumerGroup.run({
+            eachMessage: async ({ topic, partition, message }) => {
+                console.log({
+                    key: message.key.toString(),
+                    value: message.value.toString(),
+                    headers: message.headers,
+                })
+            },
+        })
 
         return `Consumer group started!`
     } catch (error) {
@@ -80,14 +91,17 @@ async function SetupAndStartConsumerGroup() {
 }
 
 async function GetConsumerGroup() {
+    const kafkaClientID = `${global.mode}-kafkajs-consumergroup-client-${nanoid()}`;
+    const consumerGroupID = `${global.config.CONSUMER_GROUP_ID}-1`;
+
     const kafkaClient = new Kafkajs({
-        clientId: `${global.mode}-kafkajs-consumergroup-client`,
+        clientId: kafkaClientID,
         brokers: String(global.config.BROKER_HOST).split(","),
         connectionTimeout: 5000,
-        logLevel: KafkajsLogLevel.DEBUG
+        logLevel: KafkajsLogLevel.INFO
     })
 
-    const consumerGroup = kafkaClient.consumer({ groupId: `${global.config.CONSUMER_GROUP_ID}-1` })
+    const consumerGroup = kafkaClient.consumer({ groupId: consumerGroupID })
     await consumerGroup.connect()
     await consumerGroup.subscribe({ topic: global.config.TOPIC_NAME, fromBeginning: false })
 
@@ -98,9 +112,9 @@ async function GetConsumerGroup() {
         STOP, DISCONNECT, CRASH, REQUEST_TIMEOUT
     } = consumerGroup.events;
 
-    consumerGroup.on(CONNECT, () => { logger.info("connected") })
-    consumerGroup.on(HEARTBEAT, e => logger.info(`heartbeat at ${e.timestamp}`))
-    consumerGroup.on(GROUP_JOIN, e => logger.info(`GROUP_JOIN event`))
+    consumerGroup.on(CONNECT, () => { logger.info(`consumer with client ID ${kafkaClientID} has connected`, { type: "consumer_group_startup", kafkaClientID }) })
+    consumerGroup.on(HEARTBEAT, e => logger.silly(`${kafkaClientID} heartbeat at ${e.timestamp}`, { type: "consumer_group_startup", kafkaClientID, e }))
+    consumerGroup.on(GROUP_JOIN, e => logger.info(`${kafkaClientID} has joined ${consumerGroupID}`, { type: "consumer_group_startup", kafkaClientID, e }))
 
     return consumerGroup;
     // Initialize fellows!
