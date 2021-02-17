@@ -13473,7 +13473,7 @@ async function removeAsOwner(request,data)  {
     async function insertSqsStatus(request) {
         var paramsArr = new Array(
             util.getCurrentUTCTime(),
-            1,
+            5,
             JSON.stringify(request),
             request.bot_operation_id||0,
             request.workflow_activity_id||0,
