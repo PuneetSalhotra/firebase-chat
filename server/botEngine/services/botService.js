@@ -2142,9 +2142,9 @@ function BotService(objectCollection) {
                 case 45 :
                     logger.silly("Remove CUID Bot");
                     logger.silly("Remove CUID Bot Request: %j", request);
-                    logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations.bot_inline))
+                    logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
                     try {
-                        await removeCUIDs(request, botOperationsJson.bot_operations.bot_inline);
+                        await removeCUIDs(request, botOperationsJson.bot_operations);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
