@@ -491,6 +491,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    //organization/config/update
+    app.post('/' + global.config.version + '/organization/config/update', async (req, res) => {
+        try {
+            let result = await adminOpsService.updateOrganizationFeatureInlineData(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+      
     //Check Manager Details
     app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
         const [err, data] = await adminOpsService.checkManagerDetails(req.body);
@@ -533,6 +544,7 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+    
 
     app.post('/' + global.config.version + '/admin/tag_type/alter', async (req, res) => {
         const [err, responseData] = await adminOpsService.tagTypeUpdate(req.body);

@@ -2155,6 +2155,30 @@ function BotService(objectCollection) {
                     }
                     break;
 
+                    
+                    case 46 : //Forcast Category, Product Quantity in drilldown
+                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
+                    try {
+                        if(botOperationsJson.bot_operations.is_product == 1){
+                            request.is_product = botOperationsJson.bot_operations.is_product;
+                            request.is_cart = botOperationsJson.bot_operations.is_cart;
+                            request.final_key = botOperationsJson.bot_operations.final_key;
+                        }
+                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
+                        await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
+                    } catch (error) {
+                        logger.error("[Widget drilldown additional fields] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
+                            "error": error
+                        });
+                    }
+                    break;                
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -10353,10 +10377,8 @@ async function removeAsOwner(request,data)  {
 
         let columnNumber = {
             "column": 0,
-            "title" : ""
+            "title" : "Corporate-Commercial L1"
         }
-
-
 
         let fieldIdValuesMap = {}, aovValue = '';
 
@@ -10374,7 +10396,7 @@ async function removeAsOwner(request,data)  {
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
-            if(currentExecution.key_number == 1) {
+            if(currentExecution.key_number == 1 && currentExecution.isEnable) {
 
                 logger.info(request.workflow_activity_id+" : larger DOA : Final Prcessing Data " + JSON.stringify(formInputToProcess));
                 logger.info(request.workflow_activity_id+" : larger DOA : Processing Empowerment DOA "+ JSON.stringify(valuesToBeChecked[0]) +' currentExecution values'+ currentExecution.values);
@@ -10474,7 +10496,7 @@ async function removeAsOwner(request,data)  {
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
         for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
+            if(parseInt(row.field_id) == 225020) {
                 planConfig = row;
             }
 
@@ -10493,7 +10515,7 @@ async function removeAsOwner(request,data)  {
             logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
 
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 1 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
         logger.info(request.workflow_activity_id+" : larger DOA : wfActivityDetails "+ JSON.stringify(wfActivityDetails));
@@ -11605,7 +11627,7 @@ async function removeAsOwner(request,data)  {
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
         for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
+            if(parseInt(row.field_id) == 225020) {
                 planConfig = row;
             }
 
@@ -11624,7 +11646,7 @@ async function removeAsOwner(request,data)  {
             logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityTypeDetails found empty");
         }
 
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 1 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
 
         request.team_title = "commercial L1";
@@ -12572,7 +12594,7 @@ async function removeAsOwner(request,data)  {
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
         for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
+            if(parseInt(row.field_id) == 225020) {
                 planConfig = row;
             }
 
@@ -12592,7 +12614,7 @@ async function removeAsOwner(request,data)  {
             console.error("activityTypeDetails found empty");
         }
 
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 1 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Will be assigned to the required team");
 
@@ -13115,21 +13137,35 @@ async function removeAsOwner(request,data)  {
     }
 
     async function getFormFieldValue(request, idField) {
-        logger.info(request.workflow_activity_id+": idField: %j", idField);
-        
+        let fieldValue = '';
+        try{
+        logger.info(request.workflow_activity_id+": idField: %j", idField);        
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
-        let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
+            logger.info(Number(formInlineData[counter].field_id)+": idField: %j", idField);
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.info(request.workflow_activity_id+": Field Matched: %j", formInlineData[counter].field_value);
-                request.debug_info.push(" Field Matched: "+idField+" "+formInlineData[counter].field_value)
-                fieldValue = formInlineData[counter].field_value;
+                logger.info(request.workflow_activity_id+": datatypeid "+formInlineData[counter].field_data_type_id+" is_cart "+request.is_cart+" : final_key : "+request.final_key+ " product_data"+formInlineData[counter].field_value);             
+                if(Number(formInlineData[counter].field_data_type_id) === 71){ 
+                    logger.info(request.workflow_activity_id+": Field Matched: %j", JSON.parse(formInlineData[counter].field_value).cart_items);
+                    if(request.is_cart == 0){
+                        fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
+                    }else if(request.is_cart == 1) {
+                        //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
+                        fieldValue = JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key];
+                    }
+                }else{
+                    fieldValue = formInlineData[counter].field_value;
+                }                
                 break;
             }
         }
-        // logger.silly("arpBot: fieldValue: %j", fieldValue);
+            logger.info("getFormFieldValue: fieldValue: %j", fieldValue);        
+        }catch(error){
+            logger.info(error);
+        }
+        request.debug_info.push("getFormFieldValue "+ fieldValue);
         return fieldValue;
     }
 
@@ -13411,6 +13447,19 @@ async function removeAsOwner(request,data)  {
         await elasticService.updateAccountCode(request, "", activityTitleExpression);
 
         return;
+    }
+
+    async function activitySearchListUpdateAddition(request, column_flag, field_value) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            field_value,
+            column_flag
+        ];
+        let queryString = util.getQueryString('ds_v1_activity_search_list_update_addition_fields', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
     }
 }
 
