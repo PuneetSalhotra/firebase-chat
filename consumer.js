@@ -1,8 +1,14 @@
 const { serializeError } = require('serialize-error')
-var Consumer = require("./server/queue/consumer.js");
-new Consumer();
-
+// var Consumer = require("./server/queue/consumer.js");
+// new Consumer();
 const logger = require('./server/logger/winstonLogger');
+const {
+    StartConsumerGroup
+} = require("./server/queue/consumerUpgradeV1");
+
+StartConsumerGroup()
+    .then(message => { console.log("[123123] message: ", message) })
+    .catch(error => { console.log("[123123] error: ", error) })
 
 process.on('uncaughtException', (error, origin) => {
     logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: serializeError(error) });
