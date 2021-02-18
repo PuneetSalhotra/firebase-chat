@@ -85,7 +85,8 @@ async function SetupAndStartConsumerGroup() {
             activityTimelineService: new ActivityTimelineService(objectCollection),
             vodafoneService: new VodafoneService(objectCollection),
             activityUpdateService: new ActivityUpdateService(objectCollection),
-            activityParticipantService: new ActivityParticipantService(objectCollection)
+            activityParticipantService: new ActivityParticipantService(objectCollection),
+            activityCommonService: objectCollection.activityCommonService
         }
 
         // Set the message handler for the incoming messages
@@ -108,12 +109,15 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
     //     offset: string
     //     headers?: IHeaders
     // }
+    const { activityCommonService } = serviceObjectCollection;
     await consumerGroup.run({
         eachMessage: async ({ topic, partition, message }) => {
+            console.log("message: ", message)
             console.log({
                 key: message.key.toString(),
                 value: message.value.toString(),
                 headers: message.headers,
+                partition: partition
             })
             try {
                 const key = message.key.toString();
@@ -131,8 +135,8 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 }
 
                 let request = messageJSON['payload'];
-                request.partition = message.partition;
-                request.offset = message.offset;
+                request.partition = partition;
+                request.offset = offset;
 
                 // [START] Tracer Span Extract-Inject Logic
                 // Get the Span Context sent by the Kafka producer
@@ -150,7 +154,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                     childOf: kafkaProduceEventSpan
                 })
 
-                tracerScope.activate(span, () => {
+                tracerScope.activate(span, async () => {
 
                     const [errorZero, partitionOffsetData] = await activityCommonService.checkingPartitionOffsetAsync(request);
                     if (errorZero || Number(partitionOffsetData.length) > 0) {
@@ -161,7 +165,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                         throw new Error("PartitionOffsetEntryAlreadyExists");
                     }
                     const [errorTwo, _] = await activityCommonService.partitionOffsetInsertAsync(request);
-                    if (errorOne) { logger.error(`Error recording the partition offset`, { type: "kafka_consumer", error: serializeError(errorTwo) }) }
+                    if (errorTwo) { logger.error(`Error recording the partition offset`, { type: "kafka_consumer", error: serializeError(errorTwo) }) }
 
                     logger.info(`[${kafkaMessageID}] consuming message`, { type: "kafka_consumer", request })
 

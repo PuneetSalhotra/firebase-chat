@@ -2438,13 +2438,13 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
-    this.duplicateMsgUniqueIdInsertAsync = function (request, callback) {
+    this.duplicateMsgUniqueIdInsertAsync = async function (request, callback) {
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.message_unique_id,
-            JSON.stringify(arr),
+            JSON.stringify(request),
             "{}",
             request.asset_id,
             request.workforce_id,
