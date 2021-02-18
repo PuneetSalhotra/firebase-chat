@@ -192,7 +192,7 @@ var Consumer = function () {
                     global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
                     if (err === false) {
                         global.logger.write('conLog', 'Consuming the message', {}, request);
-                        activityCommonService.partitionOffsetInsert(request, (err, data) => {});
+                        activityCommonService.partitionOffsetInsert(request, (err, data) => {});                        
                         consumingMsg(message, kafkaMsgId, objCollection).then(async () => {
                             if (Number(request.pubnub_push) === 1) {
                                 //pubnubWrapper.publish(kafkaMsgId, { "status": 200 });
@@ -361,6 +361,10 @@ var Consumer = function () {
             logger.info(`${message.topic} ${message.key} | Kafka Consuming Message`, { type: 'kafka', ...message });
 
             try {
+                //set current UTC datetime into redis cache.
+                logger.info(`${message.topic} ${message.key} | Setting last_consumed_datetime in cache`, { type: 'kafka', ...message });
+                cacheWrapper.setLastConsumedDateTime(util.getCurrentUTCTime());
+
                 var messageJson = JSON.parse(message.value);
                 var serviceFile = messageJson.service;
                 var serviceName = messageJson.service;
