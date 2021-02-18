@@ -177,17 +177,53 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 });
 
             } catch (error) {
-
+                logger.error(`[error] error: `, { type: "kafka_consumer", error: serializeError(error) })
             }
-
-
-
         },
     })
 }
 
 async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectCollection) {
-    
+    return new Promise(async (resolve, reject) => {
+        try {
+            const { service, method, payload } = messageJSON;
+
+            let asyncFlag = 0;
+            let reversedMethodName = String(method).split('').reverse().join('');
+            let isAsyncMethod = reversedMethodName.substring(0, 5);
+            if (isAsyncMethod === "cnysA") { asyncFlag = 1; }
+
+            switch (service) {
+                case "activityService":
+                case "activityTimelineService":
+                case "vodafoneService":
+                case "activityUpdateService":
+                case "activityParticipantService":
+                    if (asyncFlag) {
+                        const [error, response] = await serviceObjectCollection[service][method](payload);
+                        if (error) { reject(error) }
+                        else { resolve() };
+                    } else {
+                        serviceObjectCollection[service][method](payload, function (error, data) {
+                            if (error) {
+                                logger.error(`Error executing ${service}.${method}`, { type: "kafka_consumer", ...messageJSON, error: serializeError(error) })
+                                resolve();
+                            } else {
+                                logger.info(`Executed ${service}.${method}`, { type: "kafka_consumer", ...messageJSON })
+                                resolve();
+                            }
+                        });
+                    }
+                    break;
+
+                default:
+                    throw new Error("ServiceNotFound")
+            }
+        } catch (error) {
+            logger.error(`[error] error: `, { type: "kafka_consumer", error: serializeError(error) })
+            reject(error);
+        }
+    });
 }
 
 async function GetCacheWrapper() {
