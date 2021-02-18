@@ -72,7 +72,6 @@ const EWS = require('node-ews');
 const { response } = require('express');
 
 const CryptoJS = require("crypto-js");
-
 // exchange server connection info
 /*const ewsConfig = {
     username: 'ESMSMails@vodafoneidea.com',
@@ -93,6 +92,7 @@ function Util(objectCollection) {
         cacheWrapper = objectCollection.cacheWrapper;
         activityCommonService = objectCollection.activityCommonService;
     }
+
 
     this.getSMSString = function (verificationCode) {
         var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
@@ -1176,6 +1176,29 @@ function Util(objectCollection) {
         }
     };
 
+    this.getAssetDetails = async function (request) {
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
+            request.asset_id
+        );
+        var responseData = [], error = true;
+
+        var queryString = this.getQueryString('ds_v1_1_asset_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+
+    };
     this.sendEmail = function (email, subject, text, htmlTemplate, callback) {
         var smtpConfig = {
             host: global.config.smtp_host,
@@ -2256,12 +2279,12 @@ function Util(objectCollection) {
         let pwd;
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password, 'lp-n5^+8M@62');
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password || "", 'lp-n5^+8M@62');
             // console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
                 username: request.email_sender,
-                password: decrypted.toString(),
+                password: request.email_sender_password_text || decrypted.toString(),
                 host: 'https://webmail.vodafoneidea.com'    
             };
         } else {
@@ -2274,6 +2297,7 @@ function Util(objectCollection) {
             };
         }
 
+        console.log("ewsConfig", JSON.stringify(ewsConfig));
         // initialize node-ews
         const ews = new EWS(ewsConfig);
 
@@ -2357,6 +2381,20 @@ function Util(objectCollection) {
             htmlTemplate = text;
         }       
 
+        if(organisationFlag) {
+            request.is_version_v1 = 1;
+            let [error, assetDetails] = await this.getAssetDetails(request);
+
+            console.log("assetDetails[0].asset_email_password before encrypt", assetDetails[0].asset_email_password);
+            request.email_sender_password_text = assetDetails[0].asset_email_password;
+            const err = await this.sendEmailEWS(request, email, subject, htmlTemplate);
+            if(err) {
+                return [true, 'Invalid Password'];
+            } else {
+                return [false, 'Success'];
+            }
+        }
+
         const pwd = await cacheWrapper.getROMSMailsPwd();
         console.log('Sender Email ID : CentralOmt.In@vodafoneidea.com');
         // console.log('PWD : ', pwd);
@@ -2365,7 +2403,7 @@ function Util(objectCollection) {
             //username: 'COR420930@vodafoneidea.com',
             //username: 'Yasmeen.Sayyed3@vodafoneidea.com',
             //username: 'CentralOmt.In@vodafoneidea.com',
-            username: organisationFlag ? senderEmail : 'COR458207@vodafoneidea.com',
+            username: 'COR458207@vodafoneidea.com',
             password: pwd, //'Jul@2020',
             host: 'https://webmail.vodafoneidea.com'
         };
