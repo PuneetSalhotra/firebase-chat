@@ -871,12 +871,12 @@ function CacheWrapper(client) {
     //Set the current UTC date time (YYYY-MM-DD HH:mm:ss) format value into redis cache with key as 'last_consumed_datetime'
    this.setLastConsumedDateTime = (datetime) => {
        return new Promise((resolve, reject) => {
-           client.set('last_consumed_datetime', datetime, function (err, reply) {
+           client.set('last_message_consumed_datetime', datetime, function (err, reply) {
                if (err) {
-                   logger.error(`SET last_consumed_datetime ${datetime}`, { type: 'redis', cache_response: reply, error: err });                    
+                   logger.error(`SET last_message_consumed_datetime ${datetime}`, { type: 'redis', cache_response: reply, error: err });                    
                    reject(err);
                } else {
-                   logger.verbose(`SET last_consumed_datetime ${datetime}`, { type: 'redis', cache_response: reply, error: err });                    
+                   logger.verbose(`SET last_message_consumed_datetime ${datetime}`, { type: 'redis', cache_response: reply, error: err });                    
                    resolve(reply);
                }
            });
