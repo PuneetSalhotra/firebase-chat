@@ -675,5 +675,38 @@ function DrsService(objectCollection) {
 //   };
 
 
+  //Update Doc Repo folder name
+  this.updateDocRepoFolderName = async (request) => {
+    let responseData = [],
+        error = true;
+
+    try{
+        const paramsArr = [
+                            request.organization_id,
+                            request.document_repository_id,
+                            request.document_repository_name,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                          ];
+    
+        const queryString = util.getQueryString('ds_p1_document_repository_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                  responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    
+        return [error, responseData];
+    } catch (err){
+        return [err, responseData];        
+    }
+  };
+
+
 }
 module.exports = DrsService;
