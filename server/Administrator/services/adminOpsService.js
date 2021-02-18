@@ -3978,25 +3978,27 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     const workforceGenericAssetTypeID = workforceGenericAssetTypeData[0].asset_type_id;
                     const workforceGenericAssetTypeName = workforceGenericAssetTypeData[0].asset_type_name;
 
-                    try {
-                        // Create the Generic Desks
-                        const [errTen, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
-                            request,
-                            { emp_designation: workforceGenericAssetTypeName },
-                            workforceGenericAssetTypeID,
-                            newWorkforceResponse.workforce_id,
-                            workforceGenericAssetTypeName,
-                            accountID,
-                            organizationID
-                        );
-                        if (errTen !== false) {
-                            throw new Error(errTen);
+                    if(!request.restrict_desk_creation){
+                        try {
+                            // Create the Generic Desks
+                            const [errTen, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                                request,
+                                { emp_designation: workforceGenericAssetTypeName },
+                                workforceGenericAssetTypeID,
+                                newWorkforceResponse.workforce_id,
+                                workforceGenericAssetTypeName,
+                                accountID,
+                                organizationID
+                            );
+                            if (errTen !== false) {
+                                throw new Error(errTen);
+                            }
+                            console.log("Generic Desk Asset ID: ", deskAssetID);
+                            console.log("Generic Contact Card Activity ID: ", contactCardActivityID);
+                        } catch (error) {
+                            console.log("Create the Generic Desk Asset Error: ", error);
+                            continue;
                         }
-                        console.log("Generic Desk Asset ID: ", deskAssetID);
-                        console.log("Generic Contact Card Activity ID: ", contactCardActivityID);
-                    } catch (error) {
-                        console.log("Create the Generic Desk Asset Error: ", error);
-                        continue;
                     }
                 }
 
@@ -4056,82 +4058,83 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                             continue;
                         }
                         const workforceEmployeeAssetTypeID = workforceEmployeeAssetTypeData[0].asset_type_id;
-
-                        try {
-                            // Create the Desk Asset
-                            const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
-                                request,
-                                employee,
-                                workforceDeskAssetTypeID,
-                                newUserDefinedWorkforceResponse.workforce_id,
-                                userDefinedWorkforceName,
-                                accountID,
-                                organizationID
-                            );
-                            if (errSix !== false) {
-                                throw new Error(errSix);
-                            }
-                            console.log("Desk Asset ID: ", deskAssetID);
-                            console.log("Contact Card Activity ID: ", contactCardActivityID);
-                            // Update admin flags for the desk asset
+                        if(!request.restrict_desk_creation){
                             try {
-                                await self.updateAssetFlags({
-                                    ...request,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: deskAssetID,
-                                    flag: 0,
-                                    set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
-                                });
+                                // Create the Desk Asset
+                                const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                                    request,
+                                    employee,
+                                    workforceDeskAssetTypeID,
+                                    newUserDefinedWorkforceResponse.workforce_id,
+                                    userDefinedWorkforceName,
+                                    accountID,
+                                    organizationID
+                                );
+                                if (errSix !== false) {
+                                    throw new Error(errSix);
+                                }
+                                console.log("Desk Asset ID: ", deskAssetID);
+                                console.log("Contact Card Activity ID: ", contactCardActivityID);
+                                // Update admin flags for the desk asset
+                                try {
+                                    await self.updateAssetFlags({
+                                        ...request,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: deskAssetID,
+                                        flag: 0,
+                                        set_admin_flag: 1,
+                                        set_organization_admin_flag: request.asset_flag_organization_admin || 1
+                                    });
+                                } catch (error) {
+                                    logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                                }
+
+                                // Create the Employee Asset
+                                const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
+                                    request,
+                                    employee,
+                                    workforceEmployeeAssetTypeID,
+                                    newUserDefinedWorkforceResponse.workforce_id,
+                                    userDefinedWorkforceName,
+                                    accountID,
+                                    organizationID,
+                                    deskAssetID
+                                );
+                                if (errEight !== false) {
+                                    throw new Error(errEight);
+                                }
+                                console.log("Employee Asset ID: ", employeeAssetID);
+                                console.log("ID Card Activity ID: ", idCardActivityID);
+
+                                // Update admin flags for the employee asset
+                                try {
+                                    await self.updateAssetFlags({
+                                        ...request,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: employeeAssetID,
+                                        flag: 0,
+                                        set_admin_flag: 1,
+                                        set_organization_admin_flag: request.asset_flag_organization_admin || 1
+                                    });
+                                    
+                                    await assetService.updateFlagProcess({
+                                        organization_id : request.organization_id,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: deskAssetID,
+                                        asset_flag_process_mgmt : 1
+                                    })
+
+                                } catch (error) {
+                                    logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
+                                }
+
                             } catch (error) {
-                                logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                                console.log("Create the Desk/Employee Asset Error: ", error);
+                                continue;
                             }
-
-                            // Create the Employee Asset
-                            const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
-                                request,
-                                employee,
-                                workforceEmployeeAssetTypeID,
-                                newUserDefinedWorkforceResponse.workforce_id,
-                                userDefinedWorkforceName,
-                                accountID,
-                                organizationID,
-                                deskAssetID
-                            );
-                            if (errEight !== false) {
-                                throw new Error(errEight);
-                            }
-                            console.log("Employee Asset ID: ", employeeAssetID);
-                            console.log("ID Card Activity ID: ", idCardActivityID);
-
-                            // Update admin flags for the employee asset
-                            try {
-                                await self.updateAssetFlags({
-                                    ...request,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: employeeAssetID,
-                                    flag: 0,
-                                    set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
-                                });
-                                
-                                await assetService.updateFlagProcess({
-                                    organization_id : request.organization_id,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: deskAssetID,
-                                    asset_flag_process_mgmt : 1
-                                })
-
-                            } catch (error) {
-                                logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
-                            }
-
-                        } catch (error) {
-                            console.log("Create the Desk/Employee Asset Error: ", error);
-                            continue;
                         }
                     }
                 }
@@ -5543,6 +5546,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_activity_type_name||"",
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
+            request.asset_type_flag_enable_send_sms || 0,
             workforceID,
             accountID,
             organizationID,
@@ -5628,6 +5632,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
             request.asset_type_flag_sip_enabled,
+            request.asset_type_flag_enable_send_sms || 0,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
@@ -9073,6 +9078,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         request.asset_type_approval_activity_type_name,
         request.asset_type_attendance_type_id ,
         request.asset_type_attendance_type_name,
+        request.asset_type_flag_enable_send_sms || 0,
         request.organization_id,
         1,
         util.getCurrentUTCTime(),

@@ -376,6 +376,7 @@ function UtilityController(objCollection) {
         let htmlTemplate = req.body.html_template;
         let emailReceiver = req.body.email_receiver;
         const emailSender = req.body.email_sender;
+        let outlookEmailIntegrationFLag = req.body.outlook_email_integration;
         
         if(emailSender === 'no_reply@grenerobotics.com') {
             util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
@@ -386,7 +387,7 @@ function UtilityController(objCollection) {
                 }
             });
         } else {
-            let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, 0, req.outlook_email_integration, email_sender);
+            let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, 0, outlookEmailIntegrationFLag, emailSender);
             if (err) {
                 return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
             } else {
