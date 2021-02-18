@@ -10322,36 +10322,6 @@ async function removeAsOwner(request,data)  {
 
         await sleep(5 * 1000);
 
-        // suppress ARP form in this activity type id
-        //need timeline entry
-        let planConfig = {}, activityDetails = '', activityTypeId = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 225020) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-
-        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
-        }
-
-        if(activityTypeId == '149752') {
-            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
-            return;
-        }
-
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
@@ -10529,6 +10499,35 @@ async function removeAsOwner(request,data)  {
         }
 
         logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
+
+        //need timeline entry
+        let planConfig = {}, activityDetails = '', activityTypeId = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 225020) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+
+        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
+        }
+
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
 
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
@@ -11664,6 +11663,10 @@ async function removeAsOwner(request,data)  {
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
 
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 :activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;
+        }
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
         request.aovValue = request.mobilityAovValue;
@@ -12631,6 +12634,11 @@ async function removeAsOwner(request,data)  {
 
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Will be assigned to the required team");
 
         request.team_title = "commercial L1";
