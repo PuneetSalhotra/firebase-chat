@@ -10524,6 +10524,11 @@ async function removeAsOwner(request,data)  {
             logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
 
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
@@ -11658,6 +11663,10 @@ async function removeAsOwner(request,data)  {
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
 
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 :activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;
+        }
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
         request.aovValue = request.mobilityAovValue;
@@ -12625,6 +12634,11 @@ async function removeAsOwner(request,data)  {
 
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Will be assigned to the required team");
 
         request.team_title = "commercial L1";
