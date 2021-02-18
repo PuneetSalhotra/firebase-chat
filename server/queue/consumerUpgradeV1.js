@@ -20,7 +20,9 @@ const KafkaProducer = kafka.Producer;
 const kafkaConsumerGroup = kafka.ConsumerGroup;
 const {
     Kafka: Kafkajs,
-    logLevel: KafkajsLogLevel
+    logLevel: KafkajsLogLevel,
+    KafkaJSBrokerNotFound,
+    Kafka,
 } = require('kafkajs');
 const { nanoid } = require('nanoid')
 
@@ -40,13 +42,9 @@ const pubnubWrapper = new (require('../utils/pubnubWrapper'))();
 // Importing all the relevant service files
 const ActivityService = require("../services/activityService");
 const ActivityTimelineService = require("../services/activityTimelineService");
-// {
-//     "activityService": {},
-//     "activityTimelineService": {},
-//     "vodafoneService": {},
-//     "activityUpdateService": {},
-//     "activityParticipantService": {}
-// }
+const ActivityParticipantService = require("../services/activityParticipantService");
+const ActivityUpdateService = require("../services/activityUpdateService");
+const VodafoneService = require("../vodafone/services/vodafoneService");
 
 function GetKafkaProducer() {
     return new Promise((resolve, reject) => {
@@ -82,22 +80,114 @@ async function SetupAndStartConsumerGroup() {
         const objectCollection = await GetObjectCollection(kafkaProducer, cacheWrapper);
 
         console.log("objectCollection: ", objectCollection)
+        const serviceObjectCollection = {
+            activityService: new ActivityService(objectCollection),
+            activityTimelineService: new ActivityTimelineService(objectCollection),
+            vodafoneService: new VodafoneService(objectCollection),
+            activityUpdateService: new ActivityUpdateService(objectCollection),
+            activityParticipantService: new ActivityParticipantService(objectCollection)
+        }
 
-        await consumerGroup.run({
-            eachMessage: async ({ topic, partition, message }) => {
-                console.log({
-                    key: message.key.toString(),
-                    value: message.value.toString(),
-                    headers: message.headers,
-                })
-            },
-        })
+        // Set the message handler for the incoming messages
+        await SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, serviceObjectCollection)
 
         return `Consumer group started!`
     } catch (error) {
         logger.error("[error]: ", { error: serializeError(error) })
         throw new Error(error)
     }
+}
+
+async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, serviceObjectCollection) {
+    // type KafkaMessage = {
+    //     key: Buffer
+    //     value: Buffer | null
+    //     timestamp: string
+    //     size: number
+    //     attributes: number
+    //     offset: string
+    //     headers?: IHeaders
+    // }
+    await consumerGroup.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log({
+                key: message.key.toString(),
+                value: message.value.toString(),
+                headers: message.headers,
+            })
+            try {
+                const key = message.key.toString();
+                const value = message.value.toString();
+                const { timestamp, size, attributes, offset, headers } = message;
+
+                const kafkaMessageID = `${topic}_${partition}_${offset}`;
+                logger.debug(`topic ${topic} partition ${partition} offset ${offset} kafkaMessageID ${kafkaMessageID}`, { type: "kafka_consumer" })
+                logger.debug(`getting this key from Redis ${topic}_${partition}`, { type: "kafka_consumer" })
+
+                const messageJSON = JSON.parse(value);
+
+                if (!messageJSON.hasOwnProperty("payload")) {
+                    throw new Error("NoPayloadFoundInKafkaMessage");
+                }
+
+                let request = messageJSON['payload'];
+                request.partition = message.partition;
+                request.offset = message.offset;
+
+                // [START] Tracer Span Extract-Inject Logic
+                // Get the Span Context sent by the Kafka producer
+                let logTraceHeaders = {};
+                try {
+                    logTraceHeaders = messageJSON['log_trace_headers'];
+                    logger.silly('trace headers received at kafka consumer: %j', logTraceHeaders, { type: 'trace_span' });
+                } catch (error) {
+                    logger.silly('[ERROR] trace headers received at kafka consumer: %j', logTraceHeaders, { type: 'trace_span' });
+                }
+                // Parent span, in this case is the span in which the Kafka producer sent the 
+                // message to the Kafka consumer here...
+                const kafkaProduceEventSpan = tracer.extract(tracerFormats.LOG, logTraceHeaders)
+                const span = tracer.startSpan('kafka_consumer', {
+                    childOf: kafkaProduceEventSpan
+                })
+
+                tracerScope.activate(span, () => {
+
+                    const [errorZero, partitionOffsetData] = await activityCommonService.checkingPartitionOffsetAsync(request);
+                    if (errorZero || Number(partitionOffsetData.length) > 0) {
+                        // Don't know why we need this call here
+                        // I haven't handled the error here, please do if you need to
+                        const [errorOne, _] = await activityCommonService.duplicateMsgUniqueIdInsertAsync(request);
+                        if (errorOne) { logger.error(`Error recording the duplicate transaction`, { type: "kafka_consumer", error: serializeError(errorOne) }) }
+                        throw new Error("PartitionOffsetEntryAlreadyExists");
+                    }
+                    const [errorTwo, _] = await activityCommonService.partitionOffsetInsertAsync(request);
+                    if (errorOne) { logger.error(`Error recording the partition offset`, { type: "kafka_consumer", error: serializeError(errorTwo) }) }
+
+                    logger.info(`[${kafkaMessageID}] consuming message`, { type: "kafka_consumer", request })
+
+                    // Core!
+                    await eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectCollection)
+
+                    // Re-visit this if there's any trouble with identify whether
+                    // a message has been read or not
+                    if (Number(request.pubnub_push) === 1) {
+                        await cacheWrapper.setOffset(global.config.TOPIC_NAME, kafkaMessageID, 0); // 1 Means Open; 0 means read
+                    }
+
+                });
+
+            } catch (error) {
+
+            }
+
+
+
+        },
+    })
+}
+
+async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectCollection) {
+    
 }
 
 async function GetCacheWrapper() {
@@ -165,133 +255,11 @@ async function GetConsumerGroup() {
     consumerGroup.on(GROUP_JOIN, e => logger.info(`${kafkaClientID} has joined ${consumerGroupID}`, { type: "consumer_group_startup", kafkaClientID, e }))
 
     return consumerGroup;
-    // Initialize fellows!
-    // Cache
-    // let redisClient;
-    // if (global.mode === 'local') {
-    //     redisClient = redis.createClient(global.config.redisConfig);
-    // } else {
-    //     redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-    // }
-    // const cacheWrapper = new CacheWrapper(redisClient);
-    // // AWS SNS
-    // const sns = new AwsSns();
-    // // Utilities
-    // const util = new Util({ cacheWrapper });
-    // const activityCommonService = new ActivityCommonService(db, util, forEachAsync);
-    // const activityPushService = new ActivityPushService({ cacheWrapper });
-
-    // const objCollection = {
-    //     util: util,
-    //     db: db,
-    //     cacheWrapper: cacheWrapper,
-    //     activityCommonService: activityCommonService,
-    //     sns: sns,
-    //     forEachAsync: forEachAsync,
-    //     queueWrapper: queueWrapper,
-    //     activityPushService: activityPushService
-    // };
-
-    // // Instantiate all the services
-    // const activityTimelineService = new ActivityTimelineService(objectCollection);
 }
 
 var Consumer = function () {
 
     var serviceObjectCollection = {};
-    // let redisClient;
-    // if (global.mode === 'local') {
-    //     redisClient = redis.createClient(global.config.redisConfig);
-    // } else {
-    //     redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-    // }
-
-    // var cacheWrapper = new CacheWrapper(redisClient);
-    // var util = new Util({
-    //     cacheWrapper
-    // });
-    // var sns = new AwsSns();
-    var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
-    var activityPushService = new ActivityPushService({
-        cacheWrapper,
-    });
-
-    var kfkClient =
-        new kafka.KafkaClient({
-            kafkaHost: global.config.BROKER_HOST,
-            connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
-            requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
-            autoConnect: global.config.BROKER_AUTO_CONNECT,
-            maxAsyncRequests: global.config.BROKER_MAX_ASYNC_REQUESTS
-        });
-    var kafkaProducer = new KafkaProducer(kfkClient);
-
-    // /*
-    var consumer =
-        new kafkaConsumer(
-            kfkClient,
-            [{
-                topic: global.config.TOPIC_NAME,
-                partition: parseInt(process.env.partition)
-                //partition: parseInt(0)
-            }], {
-            groupId: global.config.CONSUMER_GROUP_ID,
-            autoCommit: global.config.CONSUMER_AUTO_COMMIT,
-            autoCommitIntervalMs: global.config.CONSUMER_AUTO_COMMIT_INTERVAL,
-            fetchMaxWaitMs: global.config.CONSUMER_FETCH_MAX_WAIT,
-            fetchMinBytes: global.config.CONSUMER_FETCH_MIN_BYTES,
-            fetchMaxBytes: global.config.CONSUMER_FETCH_MAX_BYTES,
-            //fromOffset: false,
-            encoding: global.config.CONSUMER_ENCODING,
-            keyEncoding: global.config.CONSUMER_KEY_ENCODING
-        }
-        );
-    // */
-
-    let optionsConsumerGroup =
-    {
-        // Connect directly to kafka broker (instantiates a KafkaClient)
-        kafkaHost: global.config.BROKER_HOST,
-
-        // Put client batch settings if you need them
-        batch: global.config.CONSUMER_GROUP_BATCH,
-
-        // Optional (defaults to false) or tls options hash
-        ssl: global.config.CONSUMER_GROUP_SSL,
-
-        // Consumer group name
-        groupId: global.config.CONSUMER_GROUP_ID,
-
-        // Consumer group session timeout
-        sessionTimeout: global.config.CONSUMER_GROUP_SESSION_TIMEOUT,
-
-        // An array of partition assignment protocols ordered by preference.
-        // 'roundrobin' or 'range' string for built ins (see below to pass in custom assignment protocol)
-        protocol: global.config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL,
-
-        // default is utf8, use 'buffer' for binary data
-        encoding: global.config.CONSUMER_ENCODING,
-
-        // Offsets to use for new groups other options could be 'earliest' or 'none' (none will emit an error if no offsets were saved)
-        // equivalent to Java client's auto.offset.reset
-        // default
-        fromOffset: global.config.CONSUMER_GROUP_FROM_OFFSET,
-
-        // on the very first time this consumer group subscribes to a topic, record the offset returned in fromOffset (latest/earliest)
-        commitOffsetsOnFirstJoin: global.config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN,
-
-        // how to recover from OutOfRangeOffset error (where save offset is past server retention) accepts same value as fromOffset
-        // default
-        outOfRangeOffset: global.config.CONSUMER_GROUP_OUTOFRANGE_OFFSET,
-
-        // for details please see Migration section below
-        migrateHLC: global.config.CONSUMER_GROUP_MIGRATE_HLC,
-        migrateRolling: global.config.CONSUMER_GROUP_MIGRATE_ROLLING,
-
-        // Callback to allow consumers with autoCommit false a chance to commit before a rebalance finishes
-        // isAlreadyMember will be false on the first connection, and true on rebalances triggered after that
-        onRebalance: (isAlreadyMember, callback) => { callback(); } // or null
-    };
 
     // for a single topic pass in a string
     // var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
@@ -322,37 +290,6 @@ var Consumer = function () {
 
         // /*
         consumer.on('message', function (message) {
-
-            global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
-            var kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
-            global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
-            global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
-
-            var messageJson = JSON.parse(message.value);
-
-            if (!messageJson.hasOwnProperty("payload")) {
-                return;
-            }
-
-            var request = messageJson['payload'];
-            request.partition = message.partition;
-            request.offset = message.offset;
-
-            // [START] Tracer Span Extract-Inject Logic
-            // Get the Span Context sent by the Kafka producer
-            let logTraceHeaders = {};
-            try {
-                logTraceHeaders = messageJson['log_trace_headers'];
-                logger.silly('trace headers received at kafka consumer: %j', logTraceHeaders, { type: 'trace_span' });
-            } catch (error) {
-                logger.silly('[ERROR] trace headers received at kafka consumer: %j', logTraceHeaders, { type: 'trace_span' });
-            }
-            // Parent span, in this case is the span in which the Kafka producer sent the 
-            // message to the Kafka consumer here...
-            const kafkaProduceEventSpan = tracer.extract(tracerFormats.LOG, logTraceHeaders)
-            const span = tracer.startSpan('kafka_consumer', {
-                childOf: kafkaProduceEventSpan
-            })
 
             tracerScope.activate(span, () => {
 
