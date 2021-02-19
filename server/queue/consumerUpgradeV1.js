@@ -25,6 +25,7 @@ const {
     Kafka,
 } = require('kafkajs');
 const { nanoid } = require('nanoid')
+const onExit = require('signal-exit');
 
 const Util = require('../utils/util');
 
@@ -95,7 +96,7 @@ async function SetupAndStartConsumerGroup() {
         // Set the message handler for the incoming messages
         await SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, serviceObjectCollection)
 
-        return `Consumer group started!`
+        return consumerGroup
     } catch (error) {
         logger.error("[error]: ", { error: serializeError(error) })
         throw new Error(error)
