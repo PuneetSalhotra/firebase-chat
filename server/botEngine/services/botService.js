@@ -1927,22 +1927,23 @@ function BotService(objectCollection) {
                     break;
 
                 case 34: // ARP
-                global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                global.logger.write('conLog', request.workflow_activity_id+': ARPBot', {}, {});
-                logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
-                request.debug_info.push(request.workflow_activity_id+': ARPBot');
-                try{
-                    await arpBot(request, botOperationsJson.bot_operations);
-                }catch(err){
-                    global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
-                    global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
-                    i.bot_operation_status_id = 2;
-                    i.bot_operation_inline_data = JSON.stringify({
-                        "log":request.debug_info,
-                        "err": err
-                    });                    
-                }
-                global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': ARPBot', {}, {});
+                    logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': ARPBot');
+                    try{
+                        await arpBot(request, botOperationsJson.bot_operations);
+                    }catch(err){
+                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
+                            "err": err
+                        });                    
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+
                 break;
 
                 case 35: //custom bot
@@ -10608,8 +10609,8 @@ async function removeAsOwner(request,data)  {
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails----> " +  JSON.stringify(activityInsertedDetails));
 
+        logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails----> " +  JSON.stringify(activityInsertedDetails));
 
         let activityTimelineCollection =  JSON.stringify({
             "content": `Form Submitted`,
@@ -13447,7 +13448,7 @@ async function removeAsOwner(request,data)  {
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }
-    }    
+    }  
 
     async function removeCUIDs(request, inlineData) {
         await activityListRemoveCUIDs(request, inlineData.remove_cuids.remove_cuid_flag);
