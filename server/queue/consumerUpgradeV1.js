@@ -79,6 +79,9 @@ async function SetupAndStartConsumerGroup() {
         // Object Collection
         const objectCollection = await GetObjectCollection(kafkaProducer, cacheWrapper);
 
+        // Set the legacy logger | Technical debt
+        global.logger = new Logger(objectCollection.queueWrapper);
+
         console.log("objectCollection: ", objectCollection)
         const serviceObjectCollection = {
             activityService: new ActivityService(objectCollection),
