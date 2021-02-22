@@ -299,14 +299,17 @@ function GetKafkaProducer() {
         });
         const kafkaProducer = new KafkaProducer(kafkaClient);
 
-        if (kafkaProducer.ready) { resolve(kafkaProducer); }
+        if (kafkaProducer.ready) {
+            logger.info(`[0] Kafka producer is ready`, { type: "kafka_producer_startup" });
+            resolve(kafkaProducer);
+        }
         kafkaProducer.on('ready', () => {
-            logger.info(`producer is ready`, { type: "kafka_producer_startup" });
+            logger.info(`[1] Kafka producer is ready`, { type: "kafka_producer_startup" });
             resolve(kafkaProducer);
         })
 
         kafkaProducer.on('error', (error) => {
-            logger.error(`Error in producer execution`, { type: "kafka_producer_startup", error: serializeError(error) });
+            logger.error(`Kafka producer error`, { type: "kafka_producer_startup", error: serializeError(error) });
             reject(error);
         })
     });
