@@ -2817,7 +2817,7 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }  
 
-    //Functionality to get report transaction list          
+    //Functionality to get tag type          
     this.getTagTypeFilters = async (request) => {
 
         let responseData = [],
@@ -2843,7 +2843,36 @@ function AnalyticsService(objectCollection)
         }
 
         return [error, responseData];
-    }      
+    }  
+
+    //Functionality to get Asset Report Mapping          
+    this.getAssetReportMapping = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.is_export,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_report_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
 
 }
 
