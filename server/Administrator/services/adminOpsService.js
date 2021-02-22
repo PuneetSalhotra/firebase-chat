@@ -10,7 +10,6 @@ const RMBotService = require('../../botEngine/services/rmbotService');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
-var FormConfigService = require('../../services/formConfigService.js');
 
 
 const AWS_Cognito = require('aws-sdk');
@@ -32,7 +31,6 @@ function AdminOpsService(objectCollection) {
     const activityService = new ActivityService(objectCollection)
     const activityTimelineService = new ActivityTimelineService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
-    const formConfigService = new FormConfigService(objectCollection);
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -8814,7 +8812,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
-        const [dupErr,dupData] = await formConfigService.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
+        const [dupErr,dupData] = await this.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
         if(dupData.length>0){
             return [true,[]]
         }
@@ -8831,6 +8829,36 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         return [error,formEntityData];
     };  
+
+    this.formEntityAccessCheck = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.target_asset_id,
+            request.form_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldData];
+    };
 
 
     async function getUser(username) {
