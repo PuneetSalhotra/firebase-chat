@@ -65,7 +65,6 @@ async function SetupAndStartConsumerGroup() {
         // Set the legacy logger | Technical debt
         global.logger = new Logger(objectCollection.queueWrapper);
 
-        console.log("objectCollection: ", objectCollection)
         const serviceObjectCollection = {
             activityService: new ActivityService(objectCollection),
             activityTimelineService: new ActivityTimelineService(objectCollection),
@@ -80,7 +79,7 @@ async function SetupAndStartConsumerGroup() {
 
         return consumerGroup
     } catch (error) {
-        logger.error("[SetupAndStartConsumerGroup]: ", { error: serializeError(error), type: "consumer_group_startup" })
+        logger.error("[SetupAndStartConsumerGroup] Error: ", { error: serializeError(error), type: "consumer_group_startup" })
         throw new Error(error)
     }
 }
@@ -98,13 +97,13 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
     const { activityCommonService } = serviceObjectCollection;
     await consumerGroup.run({
         eachMessage: async ({ topic, partition, message }) => {
-            console.log("message: ", message)
-            console.log({
-                key: message.key.toString(),
-                value: message.value.toString(),
-                headers: message.headers,
-                partition: partition
-            })
+            // console.log("message: ", message)
+            // console.log({
+            //     key: message.key.toString(),
+            //     value: message.value.toString(),
+            //     headers: message.headers,
+            //     partition: partition
+            // })
             try {
                 const key = message.key.toString();
                 const value = message.value.toString();
@@ -167,7 +166,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 });
 
             } catch (error) {
-                logger.error(`SetMessageHandlerForConsumererror: `, { type: "kafka_consumer", error: serializeError(error) })
+                logger.error(`SetMessageHandlerForConsumer] Error: `, { type: "kafka_consumer", error: serializeError(error) })
             }
         },
     })
@@ -305,15 +304,15 @@ function GetKafkaProducer() {
 
         kafkaProducer.on('error', (error) => { reject(error); })
 
-        const {
-            REQUEST, CONNECT, DISCONNECT,
-            REQUEST_TIMEOUT
-        } = kafkaProducer.events;
+        // const {
+        //     REQUEST, CONNECT, DISCONNECT,
+        //     REQUEST_TIMEOUT
+        // } = kafkaProducer.events;
 
-        kafkaProducer.on(CONNECT, () => { logger.info(`producer has connected`, { type: "kafka_producer_startup" }) })
-        kafkaProducer.on(REQUEST, e => logger.info(`Producer with ${e.payload.clientId} emitting a request to a broker`, { type: "kafka_producer_startup", e }))
-        kafkaProducer.on(DISCONNECT, () => logger.error(`Producer disconnected`, { type: "kafka_producer_startup" }))
-        kafkaProducer.on(REQUEST_TIMEOUT, e => logger.error(`request timeout for producer ${e.payload.clientId}`, { type: "kafka_producer_startup", e }))
+        // kafkaProducer.on(CONNECT, () => { logger.info(`producer has connected`, { type: "kafka_producer_startup" }) })
+        // kafkaProducer.on(REQUEST, e => logger.info(`Producer with ${e.payload.clientId} emitting a request to a broker`, { type: "kafka_producer_startup", e }))
+        // kafkaProducer.on(DISCONNECT, () => logger.error(`Producer disconnected`, { type: "kafka_producer_startup" }))
+        // kafkaProducer.on(REQUEST_TIMEOUT, e => logger.error(`request timeout for producer ${e.payload.clientId}`, { type: "kafka_producer_startup", e }))
     });
 }
 
