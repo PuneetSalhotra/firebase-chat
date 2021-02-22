@@ -10680,6 +10680,17 @@ async function removeAsOwner(request,data)  {
                     data_type_combo_value: request.aovValue || "",
                     field_value: request.aovValue || "",
                     message_unique_id: 1611037843535
+                },
+                {
+                    form_id: 50476,
+                    field_id: '310606',
+                    field_name: 'Assign Commercial L1',
+                    field_data_type_id: 33,
+                    field_data_type_category_id: 14,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                    field_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                    message_unique_id: 1611037843535
                 }
             ]);
 
