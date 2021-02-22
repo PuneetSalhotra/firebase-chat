@@ -209,7 +209,7 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
                     throw new Error("ServiceNotFound")
             }
         } catch (error) {
-            logger.error(`[error] error: `, { type: "kafka_consumer", error: serializeError(error) })
+            logger.error(`[eventMessageRouter] error: `, { type: "kafka_consumer", error: serializeError(error) })
             reject(error);
         }
     });

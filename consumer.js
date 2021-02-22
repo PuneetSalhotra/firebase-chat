@@ -14,7 +14,7 @@ const signalsForGracefulShutdown = [
 let consumerGroup;
 SetupAndStartConsumerGroup()
     .then(cg => { consumerGroup = cg })
-    .catch(error => { console.log("[123123] error: ", error) })
+    .catch(error => { console.log("[START SetupAndStartConsumerGroup] Error: ", error) })
 
 for (const signal of signalsForGracefulShutdown) {
     process.on(signal, (signalName) => {
