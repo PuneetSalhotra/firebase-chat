@@ -80,7 +80,7 @@ async function SetupAndStartConsumerGroup() {
 
         return consumerGroup
     } catch (error) {
-        logger.error("[error]: ", { error: serializeError(error) })
+        logger.error("[SetupAndStartConsumerGroup]: ", { error: serializeError(error), type: "consumer_group_startup" })
         throw new Error(error)
     }
 }
@@ -167,7 +167,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 });
 
             } catch (error) {
-                logger.error(`[error] error: `, { type: "kafka_consumer", error: serializeError(error) })
+                logger.error(`SetMessageHandlerForConsumererror: `, { type: "kafka_consumer", error: serializeError(error) })
             }
         },
     })
@@ -280,6 +280,11 @@ async function GetConsumerGroup() {
     consumerGroup.on(HEARTBEAT, e => logger.silly(`${kafkaClientID} heartbeat at ${e.timestamp}`, { type: "consumer_group_startup", kafkaClientID, e }))
     consumerGroup.on(GROUP_JOIN, e => logger.info(`${kafkaClientID} has joined ${consumerGroupID}`, { type: "consumer_group_startup", kafkaClientID, e }))
 
+    consumerGroup.on(STOP, () => { logger.error(`consumer with client ID ${kafkaClientID} has stopped`, { type: "consumer_group_startup", kafkaClientID }) })
+    consumerGroup.on(DISCONNECT, e => logger.error(`consumer with client ID ${kafkaClientID} has disconnected`, { type: "consumer_group_startup", kafkaClientID, e }))
+    consumerGroup.on(CRASH, e => logger.error(`consumer with client ID ${kafkaClientID} has crashed`, { type: "consumer_group_startup", kafkaClientID, e }))
+    consumerGroup.on(REQUEST_TIMEOUT, e => logger.error(`request timeout for ${kafkaClientID}`, { type: "consumer_group_startup", kafkaClientID, e }))
+
     return consumerGroup;
 }
 
@@ -299,6 +304,16 @@ function GetKafkaProducer() {
         kafkaProducer.on('ready', () => { resolve(kafkaProducer); })
 
         kafkaProducer.on('error', (error) => { reject(error); })
+
+        const {
+            REQUEST, CONNECT, DISCONNECT,
+            REQUEST_TIMEOUT
+        } = kafkaProducer.events;
+
+        kafkaProducer.on(CONNECT, () => { logger.info(`producer has connected`, { type: "kafka_producer_startup" }) })
+        kafkaProducer.on(REQUEST, e => logger.info(`Producer with ${e.payload.clientId} emitting a request to a broker`, { type: "kafka_producer_startup", e }))
+        kafkaProducer.on(DISCONNECT, () => logger.error(`Producer disconnected`, { type: "kafka_producer_startup" }))
+        kafkaProducer.on(REQUEST_TIMEOUT, e => logger.error(`request timeout for producer ${e.payload.clientId}`, { type: "kafka_producer_startup", e }))
     });
 }
 
