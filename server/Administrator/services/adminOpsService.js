@@ -8812,7 +8812,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
-
+        const [dupErr,dupData] = await this.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
+        
+        if(dupData.length>0){
+            return [true,{message:"this form is shared already"}]
+        }
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -8826,6 +8830,36 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         return [error,formEntityData];
     };  
+
+    this.formEntityAccessCheck = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id||0,
+            request.target_asset_id,
+            request.target_form_id,
+            request.flag||0
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldData];
+    };
 
 
     async function getUser(username) {
