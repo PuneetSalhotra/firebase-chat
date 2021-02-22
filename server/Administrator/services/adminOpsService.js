@@ -8813,8 +8813,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 util.getCurrentUTCTime()
             );
         const [dupErr,dupData] = await this.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
+        
         if(dupData.length>0){
-            return [true,[]]
+            return [true,{message:"this form is shared already"}]
         }
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
