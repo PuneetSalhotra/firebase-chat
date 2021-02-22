@@ -10,6 +10,7 @@ const RMBotService = require('../../botEngine/services/rmbotService');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
+var FormConfigService = require('../../services/formConfigService');
 
 
 const AWS_Cognito = require('aws-sdk');
@@ -31,6 +32,7 @@ function AdminOpsService(objectCollection) {
     const activityService = new ActivityService(objectCollection)
     const activityTimelineService = new ActivityTimelineService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
+    const formConfigService = new FormConfigService(objectCollection);
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -8812,7 +8814,10 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
-
+        const [dupErr,dupData] = await formConfigService.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
+        if(dupData.length>0){
+            return [true,[]]
+        }
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
