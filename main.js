@@ -47,9 +47,9 @@ var corsOptions = {
             callback(null,true);
         } else {
             console.log(global.config.whitelist.indexOf(origin)+' == Rejected origin =>',origin);
-            //callback(null,true);
+            callback(null,true);
             // TODO: just to avoid the CORS origin
-            callback(new Error('Not allowed by CORS'))
+            //callback(new Error('Not allowed by CORS'))
         }
     }
 };
