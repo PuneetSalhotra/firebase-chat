@@ -47,24 +47,6 @@ const ActivityParticipantService = require("../services/activityParticipantServi
 const ActivityUpdateService = require("../services/activityUpdateService");
 const VodafoneService = require("../vodafone/services/vodafoneService");
 
-function GetKafkaProducer() {
-    return new Promise((resolve, reject) => {
-        const kafkaClient = new kafka.KafkaClient({
-            kafkaHost: global.config.BROKER_HOST,
-            connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
-            requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
-            autoConnect: global.config.BROKER_AUTO_CONNECT,
-            maxAsyncRequests: global.config.BROKER_MAX_ASYNC_REQUESTS
-        });
-        const kafkaProducer = new KafkaProducer(kafkaClient);
-
-        if (kafkaProducer.ready) { resolve(kafkaProducer); }
-        kafkaProducer.on('ready', () => { resolve(kafkaProducer); })
-
-        kafkaProducer.on('error', (error) => { reject(error); })
-    });
-}
-
 async function SetupAndStartConsumerGroup() {
     try {
         // Kafka Producer
@@ -299,6 +281,25 @@ async function GetConsumerGroup() {
     consumerGroup.on(GROUP_JOIN, e => logger.info(`${kafkaClientID} has joined ${consumerGroupID}`, { type: "consumer_group_startup", kafkaClientID, e }))
 
     return consumerGroup;
+}
+
+
+function GetKafkaProducer() {
+    return new Promise((resolve, reject) => {
+        const kafkaClient = new kafka.KafkaClient({
+            kafkaHost: global.config.BROKER_HOST,
+            connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
+            requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
+            autoConnect: global.config.BROKER_AUTO_CONNECT,
+            maxAsyncRequests: global.config.BROKER_MAX_ASYNC_REQUESTS
+        });
+        const kafkaProducer = new KafkaProducer(kafkaClient);
+
+        if (kafkaProducer.ready) { resolve(kafkaProducer); }
+        kafkaProducer.on('ready', () => { resolve(kafkaProducer); })
+
+        kafkaProducer.on('error', (error) => { reject(error); })
+    });
 }
 
 module.exports = { SetupAndStartConsumerGroup };
