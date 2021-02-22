@@ -10,7 +10,7 @@ const RMBotService = require('../../botEngine/services/rmbotService');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
-var FormConfigService = require('../../services/formConfigService');
+var FormConfigService = require('../../services/formConfigService.js');
 
 
 const AWS_Cognito = require('aws-sdk');
