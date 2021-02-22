@@ -11506,6 +11506,51 @@ async function removeAsOwner(request,data)  {
         //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Error while adding participant")
         // }
 
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 225020) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityTypeDetails found empty");
+        }
+
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
+
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 :activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;
+        }
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.mobilityAovValue;
+        triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
         // form submission
@@ -11638,51 +11683,6 @@ async function removeAsOwner(request,data)  {
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        // try{
-        //     await addParticipantStep({
-        //         is_lead : 1,
-        //         workflow_activity_id : request.activity_id,
-        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-        //         organization_id : request.organization_id
-        //     });
-        // }catch(e) {
-        //     console.log("Error while adding participant")
-        // }
-
-        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 225020) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-
-        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityDetails----", activityDetails);
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityTypeDetails found empty");
-        }
-
-        let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
-
-        if(activityTypeId == '149752') {
-            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 :activityTypeDetails found "+ activityTypeId + " so going to wintogether");
-            return;
-        }
-        request.team_title = "commercial L1";
-        request.decision_type_value = fieldValue;
-        request.aovValue = request.mobilityAovValue;
-        triggerArpForm(request);
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
@@ -12471,6 +12471,49 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Error while adding participant")
         // }
 
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
+        //     console.log("Error while adding participant")
+        // }
+
+
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+        
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.fldAovValue;
+        triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
         // form submission
@@ -12605,59 +12648,6 @@ async function removeAsOwner(request,data)  {
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
-
-        // try{
-        //     await addParticipantStep({
-        //         is_lead : 1,
-        //         workflow_activity_id : request.activity_id,
-        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-        //         organization_id : request.organization_id
-        //     });
-        // }catch(e) {
-        //     
-        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Error while adding participant")
-        // }
-
-
-
-        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 225020) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-        
-        
-        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activityDetails---- " + JSON.stringify(activityDetails));
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            console.error("activityTypeDetails found empty");
-        }
-
-        let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        
-        if(activityTypeId == '149752') {
-            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
-            return;            
-        }
-
-        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Will be assigned to the required team");
-
-        request.team_title = "commercial L1";
-        request.decision_type_value = fieldValue;
-        request.aovValue = request.fldAovValue;
-        triggerArpForm(request);
-
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
 
