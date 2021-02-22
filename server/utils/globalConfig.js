@@ -930,7 +930,11 @@ if(mode === 'staging') {
         "http://127.0.0.1",
         "http://localhost:3000",
         "http://localhost:5000",
-        "https://stagingmanagement.greneos.com"
+        "https://stagingmanagement.greneos.com",
+        "https://d1g3r3ihuqqg05.cloudfront.net",
+        "http://d1g3r3ihuqqg05.cloudfront.net",
+        "https://vibusinesshub.myvi.in",
+        "http://vibusinesshub.myvi.in" 
     ];
 }
 
@@ -1055,7 +1059,10 @@ if(mode === 'preprod') {
         "https://preprodmanagement.greneos.com",
         'http://localhost:3000',
         'http://localhost:5000',
-        "https://d1g3r3ihuqqg05.cloudfront.net/"
+        "https://d1g3r3ihuqqg05.cloudfront.net",
+        "http://d1g3r3ihuqqg05.cloudfront.net",
+        "https://vibusinesshub.myvi.in",
+        "http://vibusinesshub.myvi.in" 
     ];
 }
 

@@ -1963,7 +1963,7 @@ function FormConfigService(objCollection) {
         let responseData = [],
 		error = true;
 		const paramsArr = new Array(
-            0,
+            request.asset_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
