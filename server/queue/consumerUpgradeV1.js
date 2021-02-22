@@ -300,19 +300,15 @@ function GetKafkaProducer() {
         const kafkaProducer = new KafkaProducer(kafkaClient);
 
         if (kafkaProducer.ready) { resolve(kafkaProducer); }
-        kafkaProducer.on('ready', () => { resolve(kafkaProducer); })
+        kafkaProducer.on('ready', () => {
+            logger.info(`producer is ready`, { type: "kafka_producer_startup" });
+            resolve(kafkaProducer);
+        })
 
-        kafkaProducer.on('error', (error) => { reject(error); })
-
-        // const {
-        //     REQUEST, CONNECT, DISCONNECT,
-        //     REQUEST_TIMEOUT
-        // } = kafkaProducer.events;
-
-        // kafkaProducer.on(CONNECT, () => { logger.info(`producer has connected`, { type: "kafka_producer_startup" }) })
-        // kafkaProducer.on(REQUEST, e => logger.info(`Producer with ${e.payload.clientId} emitting a request to a broker`, { type: "kafka_producer_startup", e }))
-        // kafkaProducer.on(DISCONNECT, () => logger.error(`Producer disconnected`, { type: "kafka_producer_startup" }))
-        // kafkaProducer.on(REQUEST_TIMEOUT, e => logger.error(`request timeout for producer ${e.payload.clientId}`, { type: "kafka_producer_startup", e }))
+        kafkaProducer.on('error', (error) => {
+            logger.error(`Error in producer execution`, { type: "kafka_producer_startup", error: serializeError(error) });
+            reject(error);
+        })
     });
 }
 
