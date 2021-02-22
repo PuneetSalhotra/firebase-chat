@@ -1,0 +1,74 @@
+version: '3.3'
+
+services:
+    zookeeper:
+        image: 'docker.io/bitnami/zookeeper:3-debian-10'
+        ports:
+            - '2181:2181'
+        volumes:
+            - 'zookeeper_data:/bitnami'
+        environment:
+            - ALLOW_ANONYMOUS_LOGIN=yes
+        logging:
+            driver: none
+        networks:
+            - kafkaconnect-esms-network
+    kafka:
+        image: 'docker.io/bitnami/kafka:2-debian-10'
+        ports:
+            - '9092:9092'
+        volumes:
+            - 'kafka_data:/bitnami'
+        environment:
+            - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+            - ALLOW_PLAINTEXT_LISTENER=yes
+            - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+        depends_on:
+            - zookeeper
+        # logging:
+        #     driver: none
+        networks:
+            - kafkaconnect-esms-network
+
+    # kafdrop:
+    #     image: obsidiandynamics/kafdrop
+    #     restart: "no"
+    #     ports:
+    #         - "9000:9000"
+    #     environment:
+    #         KAFKA_BROKERCONNECT: "kafka:9092"
+    #         JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    #     depends_on:
+    #         - kafka
+    #     networks:
+    #         - kafkaconnect-esms-network
+    
+    node-esms-service:
+        build:
+            context: .
+            dockerfile: docker/local.esms.Dockerfile
+        # image: esms-integrations-service:v1.0.0
+        ports:
+            - '3000:3000'
+        environment: 
+            - KAFKA_BROKER_HOSTS=kafka:9092
+            - ENABLE_VIL_IBM_MQ_INTEGRATION=true
+            - mode=local
+            - LOG_TRANSACTION=false
+            - DEBUG=IBMMQClass:*,ESMS_CustomerFeasibility:*,ESMS_CreateSR:*
+        volumes: 
+            - .:/app/
+            - esms_node_modules:/app/node_modules
+        depends_on:
+            # - kafkaconnect-with-mq-source-and-sink
+            - kafka
+            # - qmgr
+        networks:
+            - kafkaconnect-esms-network
+volumes:
+    zookeeper_data:
+    kafka_data:
+    esms_node_modules:
+
+networks: 
+    kafkaconnect-esms-network: {}
