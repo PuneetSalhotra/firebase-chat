@@ -8839,10 +8839,10 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.activity_type_id,
+            request.activity_type_id||0,
             request.target_asset_id,
-            request.form_id,
-            request.flag
+            request.target_form_id,
+            request.flag||0
         );
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
         if (queryString !== '') {
