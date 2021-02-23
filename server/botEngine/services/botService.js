@@ -11553,6 +11553,7 @@ async function removeAsOwner(request,data)  {
         triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
+        await sleep(3 * 1000); // putting manual delay so that arp should be triggered before auto approve
         // form submission
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
@@ -12507,7 +12508,7 @@ async function removeAsOwner(request,data)  {
             console.error("activityTypeDetails found empty");
         }
 
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         console.log("Will be assigned to the required team");
 
         request.team_title = "commercial L1";
@@ -12516,6 +12517,7 @@ async function removeAsOwner(request,data)  {
         triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
+        await sleep(3 * 1000);
         // form submission
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
@@ -12792,7 +12794,41 @@ async function removeAsOwner(request,data)  {
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
         console.log("Processing Rejection Form ");
         try {
+            let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '', productId = '';
 
+            let requestInlineData = JSON.parse(request.activity_inline_data)
+            for(let row of requestInlineData) {
+                if(parseInt(row.field_id) == 308742) {
+                    planConfig = row;
+                }
+    
+                if(parseInt(row.field_id) == 218728) {
+                    activityDetails = row.field_value;
+                }
+                    
+                if(parseInt(row.field_id) == 224835) {
+                    productId = parseInt(row.data_type_combo_id);
+                }
+            }
+            
+            console.log("activityDetails----", activityDetails);
+            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+    
+            if(activityTypeDetails.length) {
+                activityTypeId = activityTypeDetails[0].activity_type_id;
+                
+            } else {
+                console.error("activityTypeDetails found empty");
+            }
+    
+            let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+            console.log("Will be assigned to the required team");
+    
+            request.team_title = "commercial L1";
+            request.decision_type_value = fieldValue;
+            request.aovValue = productId == 3 ? request.mobilityAovValue : request.fldAovValue;
+            triggerArpForm(request);
+           
             const getBotworkflowStepsByFormV1 = async (request) => {
                 let paramsArr = new Array(
                   request.organization_id,
