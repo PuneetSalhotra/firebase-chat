@@ -26,12 +26,19 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
+        console.log("IN addTimelineTransaction :: ");
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403];
+
         //const self = this;
         let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId = Number(request.activity_stream_type_id);
-
+        
+        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
+            activityStreamTypeId = 728;
+            request.activity_stream_type_id = 728;
+        }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // add form case
@@ -227,17 +234,26 @@ function ActivityTimelineService(objectCollection) {
     };
 
     this.addTimelineTransactionAsync = async (request) => {
+        console.log("IN addTimelineTransactionAsync :: ");
         //IF      | 9 & 705
         //ELSE IF | 9 & 713
         //ELSE IF | 48,50,51,54 & 705,713,715,716,726
         //ELSE
-
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403];
+        
         let responseData = [],
             error = true;
 
         request['datetime_log'] = util.getCurrentUTCTime();
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId = Number(request.activity_stream_type_id);
+        //console.log("IN addTimelineTransactionAsync form_id:: "+request.form_id + " :: "+supressTimelineEntries.includes(Number(request.form_id)));
+        //console.log("IN addTimelineTransactionAsync activity_stream_type_id:: "+request.activity_stream_type_id+" : "+(Number(request.activity_stream_type_id)==713));
+        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713){
+            //console.log("IN addTimelineTransactionAsync Suprress:: ");
+            activityStreamTypeId = 728;
+            request.activity_stream_type_id = 728;
+        }
 
         console.log(' ');
         console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
@@ -249,7 +265,8 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 48 && activityStreamTypeId === 726) ||
            (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 55 && activityStreamTypeId === 705) ||
-           (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
+           (activityTypeCategoryId === 60 && activityStreamTypeId === 705) ||
+           (activityTypeCategoryId === 48 && activityStreamTypeId === 728)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -382,7 +399,8 @@ function ActivityTimelineService(objectCollection) {
                 activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 ||
                 activityStreamTypeId === 716 ||
-                activityStreamTypeId === 726
+                activityStreamTypeId === 726 ||
+                activityStreamTypeId === 728
             )
         ) { 
 
