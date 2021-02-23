@@ -45,6 +45,7 @@ const ActivityService = require("../services/activityService");
 const ActivityTimelineService = require("../services/activityTimelineService");
 const ActivityParticipantService = require("../services/activityParticipantService");
 const ActivityUpdateService = require("../services/activityUpdateService");
+const FormConfigService = require("../services/formConfigService");
 const VodafoneService = require("../vodafone/services/vodafoneService");
 
 async function SetupAndStartConsumerGroup() {
@@ -71,6 +72,7 @@ async function SetupAndStartConsumerGroup() {
             vodafoneService: new VodafoneService(objectCollection),
             activityUpdateService: new ActivityUpdateService(objectCollection),
             activityParticipantService: new ActivityParticipantService(objectCollection),
+            formConfigService: new FormConfigService(objectCollection),
             activityCommonService: objectCollection.activityCommonService,
             cacheWrapper: cacheWrapper
         }
@@ -189,6 +191,7 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
                 case "vodafoneService":
                 case "activityUpdateService":
                 case "activityParticipantService":
+                case "formConfigService":
                     if (asyncFlag) {
                         const [error, response] = await serviceObjectCollection[service][method](payload);
                         if (error) { reject(error) }
@@ -207,7 +210,7 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
                     break;
 
                 default:
-                    throw new Error("ServiceNotFound")
+                    throw new Error(`ServiceNotFound::${service}.${method}`)
             }
         } catch (error) {
             logger.error(`[eventMessageRouter] error: `, { type: "kafka_consumer", error: serializeError(error) })
@@ -256,7 +259,8 @@ async function GetObjectCollection(kafkaProducer, cacheWrapper) {
 
 async function GetConsumerGroup() {
     const kafkaClientID = `${global.mode}-kafkajs-consumergroup-client-${nanoid()}`;
-    const consumerGroupID = `${global.config.CONSUMER_GROUP_ID}-1`;
+    // const consumerGroupID = `${global.config.CONSUMER_GROUP_ID}-1`; // For local testing
+    const consumerGroupID = `${global.config.CONSUMER_GROUP_ID}`;
 
     const kafkaClient = new Kafkajs({
         clientId: kafkaClientID,

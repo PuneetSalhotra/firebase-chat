@@ -8,7 +8,7 @@ const signalsForGracefulShutdown = [
     'SIGTERM', 'SIGINT',
     'SIGABRT', 'SIGALRM',
     'SIGHUP', 'SIGPWR',
-    'SIGUNUSED'
+    'SIGUNUSED', 'SIGKILL'
 ]
 
 let consumerGroup;
@@ -37,6 +37,10 @@ for (const signal of signalsForGracefulShutdown) {
         }
     });
 }
+
+process.on('message', (message) => {
+    logger.silly("[PROCESS MESSAGE] %j", message, { type: 'message_message' });
+});
 
 process.on('uncaughtException', (error, origin) => {
     logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: serializeError(error) });
