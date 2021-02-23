@@ -71,7 +71,8 @@ async function SetupAndStartConsumerGroup() {
             vodafoneService: new VodafoneService(objectCollection),
             activityUpdateService: new ActivityUpdateService(objectCollection),
             activityParticipantService: new ActivityParticipantService(objectCollection),
-            activityCommonService: objectCollection.activityCommonService
+            activityCommonService: objectCollection.activityCommonService,
+            cacheWrapper: cacheWrapper
         }
 
         // Set the message handler for the incoming messages
@@ -94,7 +95,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
     //     offset: string
     //     headers?: IHeaders
     // }
-    const { activityCommonService } = serviceObjectCollection;
+    const { activityCommonService, cacheWrapper } = serviceObjectCollection;
     await consumerGroup.run({
         eachMessage: async ({ topic, partition, message }) => {
             // console.log("message: ", message)
