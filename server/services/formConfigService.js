@@ -1363,7 +1363,7 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF                                                                           
-                                        logger.info("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
+                                        console.log("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
                                         addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
@@ -4750,7 +4750,7 @@ function FormConfigService(objCollection) {
 
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if (err || inlineData.length === 0) {
-            logger.info("addValueToWidgetForAnalyticsWF :: error in getting Inline Data");
+            console.log("addValueToWidgetForAnalyticsWF :: error in getting Inline Data");
             return err;
         }
 
@@ -4758,22 +4758,22 @@ function FormConfigService(objCollection) {
         console.log('inlineData[0].activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
         
         if(inlineData[0].activity_type_inline_data === null) {
-            logger.info("addValueToWidgetForAnalyticsWF :: inline data is null");
+            console.log("addValueToWidgetForAnalyticsWF :: inline data is null");
             return "";
         }
 
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
-        logger.info('addValueToWidgetForAnalyticsWF :: finalInlineData.hasOwnProperty(workflow_fields) : '+ finalInlineData.hasOwnProperty('workflow_fields'));
+        console.log('addValueToWidgetForAnalyticsWF :: finalInlineData.hasOwnProperty(workflow_fields) : '+ finalInlineData.hasOwnProperty('workflow_fields'));
 
         if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
 
-            logger.info('workflowFields : '+ workflowFields);
-            logger.info('activityInlineData : '+request.activity_inline_data);
-            logger.info('activityInlineData.length : '+ activityInlineData.length);
+            console.log('workflowFields : '+ workflowFields);
+            console.log('activityInlineData : '+request.activity_inline_data);
+            console.log('activityInlineData.length : '+ activityInlineData.length);
 
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
@@ -4784,7 +4784,7 @@ function FormConfigService(objCollection) {
                             Number(activityInlineData[i].field_data_type_id),
                             activityInlineData[i].field_value
                         );
-                        logger.info('addValueToWidgetForAnalyticsWF :: workflowFields[fieldId].sequence_id :: fieldValue :: '+fieldValue);
+                        console.log('addValueToWidgetForAnalyticsWF :: workflowFields[fieldId].sequence_id :: fieldValue :: '+fieldValue);
                         await activityCommonService.analyticsUpdateWidgetValue(request,
                             workflowActivityId,
                             workflowFields[fieldId].sequence_id,
