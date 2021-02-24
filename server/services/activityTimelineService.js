@@ -265,8 +265,7 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 48 && activityStreamTypeId === 726) ||
            (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 55 && activityStreamTypeId === 705) ||
-           (activityTypeCategoryId === 60 && activityStreamTypeId === 705) ||
-           (activityTypeCategoryId === 48 && activityStreamTypeId === 728)
+           (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
            ){
             console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
         }
@@ -399,8 +398,7 @@ function ActivityTimelineService(objectCollection) {
                 activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 ||
                 activityStreamTypeId === 716 ||
-                activityStreamTypeId === 726 ||
-                activityStreamTypeId === 728
+                activityStreamTypeId === 726
             )
         ) { 
 
