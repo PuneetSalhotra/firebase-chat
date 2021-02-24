@@ -2331,6 +2331,57 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
+    this.checkingPartitionOffsetAsync = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            global.config.TOPIC_ID,
+            request.partition,
+            request.offset
+        );
+        const queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.partitionOffsetInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            global.config.TOPIC_ID,
+            request.partition,
+            request.offset,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );
+        const queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
     this.partitionOffsetInsert = function (request, callback) {
         var paramsArr = new Array(
             global.config.TOPIC_ID,
@@ -2385,6 +2436,35 @@ this.getAllParticipantsAsync = async (request) => {
                 (err === false) ? callback(false, data): callback(true, {});
             });
         }
+    };
+
+    this.duplicateMsgUniqueIdInsertAsync = async function (request, callback) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.message_unique_id,
+            JSON.stringify(request),
+            "{}",
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
     };
 
     // Update the last updated and differential datetime for an asset.
