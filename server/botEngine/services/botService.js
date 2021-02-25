@@ -10357,12 +10357,12 @@ async function removeAsOwner(request,data)  {
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
 
-        logger.info(request.workflow_activity_id+" : larger DOA : dateFormData", JSON.stringify(originFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : dateFormData" + JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
 
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----", resultProductAndRequestType);
+        logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
         let formInputToProcess, connectionTypeValue, capexValue, opexValue;
@@ -10428,7 +10428,7 @@ async function removeAsOwner(request,data)  {
 
         request.fldAovValue = fieldIdValuesMap[308731]
         request.mobilityAovValue = fieldIdValuesMap[308694]; 
-        
+
         for(let currentExecution of largerDoaDataToProcess) {
 
             logger.info(request.workflow_activity_id+" : larger DOA : columnNumber----"+ JSON.stringify(columnNumber) +' column name '+ currentExecution.name);
@@ -10538,6 +10538,10 @@ async function removeAsOwner(request,data)  {
 
         logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
 
+        if(!aovValue || aovValue == "#N/A") {
+            logger.info(request.workflow_activity_id+" : larger DOA : aovValue ", aovValue);
+            return;
+        }
         //need timeline entry
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
@@ -10683,6 +10687,10 @@ async function removeAsOwner(request,data)  {
 
     async function triggerArpForm(request) {
         try {
+            if(!request.aovValue || request.aovValue.toUpperCase() == '#N/A') {
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :triggerArpForm aovValue" + aovValue);
+                return;
+            }
             let createWorkflowRequest                       = Object.assign({}, request);
 
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
@@ -11586,6 +11594,7 @@ async function removeAsOwner(request,data)  {
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
         request.aovValue = request.mobilityAovValue;
+
         triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
@@ -12550,6 +12559,7 @@ async function removeAsOwner(request,data)  {
         request.team_title = "commercial L1";
         request.decision_type_value = fieldValue;
         request.aovValue = request.fldAovValue;
+
         triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
