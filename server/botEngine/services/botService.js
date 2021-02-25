@@ -10448,6 +10448,13 @@ async function removeAsOwner(request,data)  {
                         logger.info(request.workflow_activity_id+" : larger DOA : column value is" + columnDetails['value1']);
 
                         if(currentExecution.type == 'number') {
+                            try {
+                                fieldValue = Number(fieldValue);
+                            } catch (e){
+                                logger.info(request.workflow_activity_id+" : larger DOA : parsing error" );
+                                continue;
+                            }
+                            
                             let exp1 = fieldValue + columnDetails['value1'];
                             logger.info(request.workflow_activity_id+" : larger DOA : exp1---->" + exp1 + " "+eval(exp1));
 
