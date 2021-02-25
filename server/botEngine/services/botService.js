@@ -11528,7 +11528,6 @@ async function removeAsOwner(request,data)  {
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 wfActivityDetails", JSON.stringify(wfActivityDetails));
 
-
         // try{
         //     await addParticipantStep({
         //         is_lead : 1,
@@ -11626,7 +11625,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 4,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|' + wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].asset_first_name,
+                field_value: wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_asset_first_name + '|' + wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_first_name,
                 message_unique_id: 1603968483792
             },
             {
@@ -11715,7 +11714,7 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
@@ -12591,7 +12590,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 4,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|' + wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].asset_first_name,
+                field_value: wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_asset_first_name + '|' + wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_first_name,
                 message_unique_id: 1603968483792
             },
             {
@@ -12682,7 +12681,7 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
