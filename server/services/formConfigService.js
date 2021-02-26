@@ -6335,7 +6335,7 @@ function FormConfigService(objCollection) {
             responseData = [];        
 
         try {
-            let [error1,activityData] = await this.workforceActivityTypeMapping(request);
+            let [error1,activityData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
             if(error1){
                 throw error1;
             }
@@ -6375,37 +6375,7 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
-
-    this.workforceActivityTypeMapping = async (request) => {
-        let error = true,
-            responseData = [];        
-
-        try {
-            const paramsArr = [
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.activity_type_id
-            ];
     
-            const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
-    
-            if (queryString != '') {
-                await db.executeQueryPromise(1, queryString, request)
-                    .then(async (data) => {                   
-                        responseData = data;
-                        error = false;
-                    })
-                    .catch((err) => {
-                        error = err;
-                    });
-            }
-        } catch (e){
-            return [e, responseData];
-        }   
-
-        return [error, responseData]; 
-    }
 }
 
 module.exports = FormConfigService;
