@@ -9209,6 +9209,93 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         console.log("roleAssetMappingInsert : "+JSON.stringify(responseData,2,null));
         return [error, responseData];
     }
+
+    
+    // Update Organization name
+    this.updateOrganizationName = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.organization_name,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("update organization name : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Building name
+    this.updateBuildingName = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.account_name,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("update building name : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Asset Manager mapping flag
+    this.updateAssetManagerMappingFlag = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.manager_asset_id,
+            request.flag_dotted_manager,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_update_flag_dotted_manager', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("Update Asset Manager mapping flag : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

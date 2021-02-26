@@ -6294,6 +6294,41 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.formAccessSearchList = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        try {
+            const paramsArr = [
+                request.flag,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                request.search_string,
+                request.page_start || 0,
+                request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_search', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {                   
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
 }
 
 module.exports = FormConfigService;

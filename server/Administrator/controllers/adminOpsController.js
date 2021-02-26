@@ -787,6 +787,39 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+        // Organization name update
+    app.post('/' + global.config.version + '/organization/cover/alter', async (req, res) => {
+        const [err, data] = await adminOpsService.updateOrganizationName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/organization/cover/alter| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Building name update
+    app.post('/' + global.config.version + '/account/cover/alter', async (req, res) => {
+        const [err, data] = await adminOpsService.updateBuildingName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/account/cover/alter| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Update asset manager mapping flag
+    app.post('/' + global.config.version + '/dottedmanager/flag/alter', async (req, res) => {
+        const [err, data] = await adminOpsService.updateAssetManagerMappingFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/dottedmanager/flag/alter| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
