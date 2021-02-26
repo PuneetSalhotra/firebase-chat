@@ -827,7 +827,7 @@ if(mode === 'staging') {
 
     //Redis Config    
     //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisIp = 'localhost';
+    config.redisIp = '10.0.1.226';
     config.redisPort = 6379;
 
     //IOS Push
