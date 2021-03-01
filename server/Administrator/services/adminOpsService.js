@@ -9296,6 +9296,32 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         return [error, responseData];
     }
+
+    this.selectBotOnField = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.form_id,
+            request.field_id,
+            request.data_type_combo_id,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_field', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
