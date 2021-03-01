@@ -10540,7 +10540,8 @@ async function removeAsOwner(request,data)  {
 
         logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
 
-        if(!aovValue || aovValue == "#N/A") {
+        // even if there is an exception for this then it is fine because aovValue is expected to have a number always
+        if(!Number(aovValue) || aovValue == "#N/A") {
             logger.info(request.workflow_activity_id+" : larger DOA : aovValue ", aovValue);
             return;
         }
@@ -10689,7 +10690,9 @@ async function removeAsOwner(request,data)  {
 
     async function triggerArpForm(request) {
         try {
-            if(!request.aovValue || request.aovValue.toUpperCase() == '#N/A') {
+            // even if there is an exception for this then it is fine because aovValue is expected to have a number always
+            // check for AOV value, should not be a string 
+            if(!Number(request.aovValue) || request.aovValue.toUpperCase() == '#N/A') {
                 logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :triggerArpForm aovValue" + aovValue);
                 return;
             }

@@ -3291,7 +3291,7 @@ this.getAllParticipantsAsync = async (request) => {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("err "+err);
                     if (err === false) {
-                        console.log('data: ' + data?data.length:null);
+                        // console.log('data: ' + data);
                         resolve(data);
                     } else {
                         reject(err);
