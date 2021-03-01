@@ -6340,7 +6340,7 @@ function FormConfigService(objCollection) {
                 throw error1;
             }
             if(activityData.length == 0 || activityData[0].activity_type_edc_form_id == undefined || activityData[0].activity_type_edc_form_id == null || activityData[0].activity_type_edc_form_id == 0 || activityData[0].activity_type_edc_field_id == null || activityData[0].activity_type_edc_field_id == 0 ){
-                responseData.push({form_transaction_id:0});
+                responseData.push({form_transaction_id:0,form_id :0 ,field_id :0});
                 error = false;
                 return [error, responseData];
             }
@@ -6359,9 +6359,9 @@ function FormConfigService(objCollection) {
                 await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {
                         if(data.length == 0){
-                            responseData.push({form_transaction_id:0});                            
+                            responseData.push({form_transaction_id:0,form_id :activityData[0].activity_type_edc_form_id ,field_id :activityData[0].activity_type_edc_field_id});                            
                         } else {
-                            responseData.push({form_transaction_id:data[0].data_form_transaction_id});
+                            responseData.push({form_transaction_id:data[0].data_form_transaction_id,form_id :activityData[0].activity_type_edc_form_id ,field_id :activityData[0].activity_type_edc_field_id});
                         }
                         error = false;
                     })
