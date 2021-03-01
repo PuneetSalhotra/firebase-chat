@@ -1561,12 +1561,9 @@ function ActivityService(objectCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
-
-                        if(activityTypeCategoryId === 48 || activityTypeCategoryId === 53 ||
-                            activityTypeCategoryId === 54 || activityTypeCategoryId === 55){                        
+                        if(activityTypeCategoryId != 9)
                             activtySearchListInsert(request);
-                        }
-
+                        
                         //BETA                            
                         if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
                             var paramsArr1 = new Array(
