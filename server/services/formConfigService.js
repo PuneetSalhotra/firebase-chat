@@ -6294,6 +6294,88 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.formAccessSearchList = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        try {
+            const paramsArr = [
+                request.flag,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                request.search_string,
+                request.page_start || 0,
+                request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_search', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {                   
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+
+    this.retrieveEdcTransaction = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        try {
+            let [error1,activityData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+            if(error1){
+                throw error1;
+            }
+            if(activityData.length == 0 || activityData[0].activity_type_edc_form_id == undefined || activityData[0].activity_type_edc_form_id == null || activityData[0].activity_type_edc_form_id == 0 || activityData[0].activity_type_edc_field_id == null || activityData[0].activity_type_edc_field_id == 0 ){
+                responseData.push({form_transaction_id:0});
+                error = false;
+                return [error, responseData];
+            }
+            const paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                activityData[0].activity_type_edc_form_id,
+                0,
+                1
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {
+                        if(data.length == 0){
+                            responseData.push({form_transaction_id:0});                            
+                        } else {
+                            responseData.push({form_transaction_id:data[0].data_form_transaction_id});
+                        }
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+    
 }
 
 module.exports = FormConfigService;

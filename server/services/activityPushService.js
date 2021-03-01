@@ -439,7 +439,6 @@ function ActivityPushService(objectCollection) {
                                 // Push Notification
                                 //pushString.title = senderName;
                                 //pushString.description = 'has sent u a message';
-
                                 message = 'has sent u a message';
                                 try {
                                     let activityTimelineCollection = JSON.parse(request.activity_timeline_collection);                                    
@@ -451,9 +450,12 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 //pushString.subtitle = 'has sent u a message';
                                 //pushString.description = 'has sent a message';
-                                pushString.subtitle = message;
+                                //pushString.subtitle = message;
                                 pushString.description = message;
-                                pushString.body = activityTitle;
+                                //pushString.body = activityTitle;
+                                pushString.desk_asset_id = request.asset_id;
+                                pushString.organization_id = request.organization_id;
+                                pushString.type = "activity_unread";
 
                                 // PubNub
                                 msg.activity_type_category_id = 16;
@@ -476,8 +478,8 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 27;
                                 msg.type = 'activity_unread';
                                 msg.description = `Added text in ${activityTitle}.`;
-                                pushString.description = `${content} - ${senderName}`;
-                                pushString.title = activityTitle;
+                                pushString.description = `${content}`;
+                                pushString.title = `${senderName}`;
                                 pushString.subtitle = content;
                                 pushString.body = senderName;
                                 break;
@@ -499,10 +501,13 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 27;
                                 msg.type = 'activity_unread';
                                 msg.description = `Added text in ${activityTitle}.`;
-                                pushString.description = `${content} - ${senderName}`;
-                                pushString.title = activityTitle;
-                                pushString.subtitle = content;
-                                pushString.body = senderName;
+                                pushString.description = `${content}`;
+                                pushString.title = `${activityTitle}`;
+                                pushString.subtitle = `${senderName}`;
+                                //pushString.body = `${senderName}`;
+                                pushString.desk_asset_id = request.asset_id;
+                                pushString.organization_id = request.organization_id;
+                                pushString.type = "activity_unread";
                                 break;
                         }
                         break;                        
@@ -548,6 +553,7 @@ function ActivityPushService(objectCollection) {
                     case 53: // Accounts
                         // Check for activity_creator_asset_id and asset_id for enabling push notification
                         try {
+                            console.log("case 53");
                             let activityData = await objectCollection.activityCommonService.getActivityDetailsPromise(request, request.activity_id);
                             if (activityData.length > 0) {
                                 if ((activityData[0]['activity_creator_asset_id'] !== Number(request.asset_id)) || 1 === 1) {
@@ -849,7 +855,12 @@ function ActivityPushService(objectCollection) {
                     console.log("[987987] getPushString | pushString: ", pushString);
                     console.log("[987987] getPushString | request.asset_id: ", request.asset_id);
                 }
-
+                console.log("------------------------------------------------");
+                console.log("pushString =");
+                console.log(pushString);
+                console.log("msg =");
+                console.log(msg);
+                console.log("------------------------------------------------");
                 callback(false, pushString, msg, smsString);
             } else {
                 callback(true, {}, msg, smsString);
