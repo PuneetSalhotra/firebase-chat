@@ -820,6 +820,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    // bot on field list
+    app.post('/' + global.config.version + '/admin/field/bot/select', async (req, res) => {
+        const [err, data] = await adminOpsService.selectBotOnField(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/bot/field/list| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
