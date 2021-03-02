@@ -803,7 +803,7 @@ function WidgetService(objCollection) {
             //let finalResult = 0;
             let response = [];
             //let resp = {};
-            for(i=-2;i<5;i++) {
+            for(i=-3;i<5;i++) {
                 if(i !== 0)
                     result = await retrievefieldTrxAvgTime(request, i);
                 else
@@ -844,6 +844,11 @@ function WidgetService(objCollection) {
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
                                 resp.label = 'P.O To order Logged';
                                 response.push(resp);
+                                break;
+                        case -3: resp.key = 'order_po_commissioned_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'P.O To order Commissioned';
+                                response.push(resp); 
                                 break;
                     }
                     
