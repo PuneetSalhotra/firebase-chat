@@ -10426,7 +10426,7 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
-        request.fldAovValue = fieldIdValuesMap[308731]
+        request.fldAovValue = fieldIdValuesMap[310745]
         request.mobilityAovValue = fieldIdValuesMap[308694]; 
 
         for(let currentExecution of largerDoaDataToProcess) {
