@@ -9332,7 +9332,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.organization_id,
             request.asset_id,
             request.activity_id,
-            request.asset_id,
+            request.activity_creator_asset_id,
             request.flag
         );
         const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_dotted_manager_account', paramsArr);
