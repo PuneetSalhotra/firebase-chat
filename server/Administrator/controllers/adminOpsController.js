@@ -831,6 +831,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    // Account check for dotted manager
+    app.post('/' + global.config.version + '/dottedmanager/access/account/check', async (req, res) => {
+        const [err, data] = await adminOpsService.accountCheckForDottedManager(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/dottedmanager/access/account/check| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
