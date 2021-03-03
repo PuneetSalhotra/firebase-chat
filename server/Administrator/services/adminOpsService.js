@@ -9302,6 +9302,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             error = true;
 
         const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
             request.form_id,
             request.field_id,
             request.data_type_combo_id,
