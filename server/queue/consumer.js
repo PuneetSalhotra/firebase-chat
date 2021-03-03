@@ -160,7 +160,7 @@ var Consumer = function () {
             global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
             global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
 
-            var messageJson = JSON.parse(message.value);
+            var messageJson = JSON.parse(message.value || '{}');
 
             if (!messageJson.hasOwnProperty("payload")) {
                 return;
