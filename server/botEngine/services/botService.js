@@ -10428,7 +10428,7 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
-        request.fldAovValue = fieldIdValuesMap[308731]
+        request.fldAovValue = fieldIdValuesMap[310745]
         request.mobilityAovValue = fieldIdValuesMap[308694]; 
 
         for(let currentExecution of largerDoaDataToProcess) {
@@ -10541,9 +10541,13 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
 
         // even if there is an exception for this then it is fine because aovValue is expected to have a number always
-        if(!Number(aovValue) || aovValue == "#N/A") {
+        if(!Number(aovValue) || Number(aovValue) < 0 || aovValue == "#N/A") {
             logger.info(request.workflow_activity_id+" : larger DOA : aovValue ", aovValue);
-            return;
+            columnNumber = {
+                "column": 0,
+                "title" : "Corporate-Commercial L1"
+            }
+            // return;
         }
         //need timeline entry
         let planConfig = {}, activityDetails = '', activityTypeId = '';
@@ -10692,9 +10696,10 @@ async function removeAsOwner(request,data)  {
         try {
             // even if there is an exception for this then it is fine because aovValue is expected to have a number always
             // check for AOV value, should not be a string 
-            if(!Number(request.aovValue) || request.aovValue.toUpperCase() == '#N/A') {
+            if(!Number(request.aovValue) || Number(request.aovValue) < 0 || request.aovValue.toUpperCase() == '#N/A') {
                 logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :triggerArpForm aovValue" + aovValue);
-                return;
+                request.team_title = "Corporate-Commercial L1"
+                // return;
             }
             let createWorkflowRequest                       = Object.assign({}, request);
 
