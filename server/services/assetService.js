@@ -6099,21 +6099,38 @@ this.getQrBarcodeFeeback = async(request) => {
 
     async function getAssetReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id")){ 
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.form_id,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+             ]
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+            ]
+            queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        }
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
@@ -6122,29 +6139,48 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
             });
         }
-
         return [error, responseData];
     }
 
     async function getAssetRoleReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        
-        const queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id"))
+        {
+            let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_id,
+            request.asset_type_id,
+            request.asset_type_category_id,
+            request.flag_filter,
+            request.form_id,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
+            ];
+
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+                ];
+            queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        }            
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
