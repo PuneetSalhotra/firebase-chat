@@ -820,7 +820,9 @@ function AssetService(objectCollection) {
             "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
 
             //email integrations
-            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable'])
+            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
+            "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
+            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime '])
         };
 
         callback(false, rowData);
