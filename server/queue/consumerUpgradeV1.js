@@ -116,7 +116,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 logger.debug(`topic ${topic} partition ${partition} offset ${offset} kafkaMessageID ${kafkaMessageID}`, { type: "kafka_consumer" })
                 logger.debug(`getting this key from Redis ${topic}_${partition}`, { type: "kafka_consumer" })
 
-                const messageJSON = JSON.parse(value);
+                const messageJSON = JSON.parse(value || "{}");
 
                 if (!messageJSON.hasOwnProperty("payload")) {
                     throw new Error("NoPayloadFoundInKafkaMessage");
