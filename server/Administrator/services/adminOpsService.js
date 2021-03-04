@@ -9302,6 +9302,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             error = true;
 
         const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
             request.form_id,
             request.field_id,
             request.data_type_combo_id,
@@ -9317,6 +9319,37 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 })
                 .catch((err) => {
                     error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Account check for dotted manager
+    this.accountCheckForDottedManager = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.activity_id,
+            request.activity_creator_asset_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_dotted_manager_account', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("accountCheckForDottedManager : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("accountCheckForDottedManager : error response = ");
+                    console.log(err);
                     return [error, responseData];
                 })
         }

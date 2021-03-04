@@ -5170,14 +5170,18 @@ function ActivityService(objectCollection) {
         console.log(' In activityActivityMappingInsert - ', fieldData.field_data_type_id);
 
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
-        if(Number(request.activity_type_category_id) === 9) {            
-            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-            if (workflowError !== false || workflowData.length === 0) {
-                console.log('workflowError : ', workflowError);
-                console.log('workflowData : ', workflowData);
-                return [workflowError, workflowData];
+        if (Number(request.activity_type_category_id) === 9) {
+            if (request.hasOwnProperty('workflow_activity_id')) {
+                currentWorkflowActivityId = Number(request.workflow_activity_id);
+            } else {
+                const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+                if (workflowError !== false || workflowData.length === 0) {
+                    console.log('workflowError : ', workflowError);
+                    console.log('workflowData : ', workflowData);
+                    return [workflowError, workflowData];
+                }
+                currentWorkflowActivityId = Number(workflowData[0].activity_id);
             }
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);
         }
 
         console.log('fieldData : ', fieldData);
