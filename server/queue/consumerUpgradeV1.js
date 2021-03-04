@@ -170,6 +170,10 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
 
             } catch (error) {
                 logger.error(`SetMessageHandlerForConsumer] Error: `, { type: "kafka_consumer", error: serializeError(error) })
+                activityCommonService.insertConsumerError({
+                    consumer_message : JSON.stringify(message),
+                    consumer_error   : JSON.stringify({ error : error, e_stack : error.stack})
+                })
             }
         },
     })
