@@ -1210,7 +1210,7 @@ function BotService(objectCollection) {
         }
 
         logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
-        
+   
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
@@ -10584,6 +10584,27 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : wfActivityDetails "+ JSON.stringify(wfActivityDetails));
         let createWorkflowRequest                       = Object.assign({}, request);
 
+        //Assign field_value based on value exists in db or not.
+        //Mangesh Shinde - 04 March 2021
+        let requestObj = {
+            organization_id : request.organization_id,
+            activity_id : request.workflow_activity_id,
+            trigger_form_id : request.form_id,
+            global_array : []
+        };
+
+        let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
+
+        let fieldValueForAssignCommercialL1 = 'Yes';
+
+        if(formEditErr) {
+            fieldValueForAssignCommercialL1 = 'No';
+        } else {
+            if(formEditData.length > 0) {
+                fieldValueForAssignCommercialL1 = 'No';
+            }
+        }
+
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
             {
                 form_id: 50476,
@@ -10625,11 +10646,13 @@ async function removeAsOwner(request,data)  {
                 field_data_type_id: 33,
                 field_data_type_category_id: 14,
                 data_type_combo_id: 0,
-                data_type_combo_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
-                field_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                data_type_combo_value: fieldValueForAssignCommercialL1,
+                field_value: fieldValueForAssignCommercialL1,
                 message_unique_id: 1611037843535
             }
         ]);
+
+        requestObj = null; formEditErr = null; formEditData = null; fieldValueForAssignCommercialL1 = null;
 
         createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
         createWorkflowRequest.activity_type_category_id = 9;
@@ -10703,6 +10726,27 @@ async function removeAsOwner(request,data)  {
             }
             let createWorkflowRequest                       = Object.assign({}, request);
 
+            //Assign field_value based on value exists in db or not.
+            //Mangesh Shinde - 04 March 2021
+            let requestObj = {
+                organization_id : request.organization_id,
+                activity_id : request.activity_id,
+                trigger_form_id : request.form_id,
+                global_array : []
+            };
+
+            let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
+
+            let fieldValueForAssignCommercialL1 = 'Yes';
+
+            if(formEditErr) {
+                fieldValueForAssignCommercialL1 = 'No';
+            } else {
+                if(formEditData.length > 0) {
+                    fieldValueForAssignCommercialL1 = 'No';
+                }
+            }
+
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
                 {
                     form_id: 50476,
@@ -10744,11 +10788,13 @@ async function removeAsOwner(request,data)  {
                     field_data_type_id: 33,
                     field_data_type_category_id: 14,
                     data_type_combo_id: 0,
-                    data_type_combo_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
-                    field_value: request.activity_stream_type_id == 705 ? 'Yes' : 'No',
+                    data_type_combo_value: fieldValueForAssignCommercialL1,
+                    field_value: fieldValueForAssignCommercialL1,
                     message_unique_id: 1611037843535
                 }
             ]);
+
+            requestObj = null; formEditErr = null; formEditData = null; fieldValueForAssignCommercialL1 = null;
 
             createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
             createWorkflowRequest.activity_type_category_id = 9;
