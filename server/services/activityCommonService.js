@@ -6303,7 +6303,30 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     return [error, responseData];
     }
-           
+       
+    this.insertConsumerError = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+          request.consumer_message,
+          request.consumer_error,
+          request.activity_id || 0,
+          util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_consumer_error_transaction_insert',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                await botService.callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
+    }
 
 }
 
