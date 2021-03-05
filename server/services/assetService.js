@@ -30,6 +30,8 @@ function AssetService(objectCollection) {
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
+    let self = this;
+
     this.getPhoneNumberAssets = function (request, callback) {
 
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
@@ -6513,6 +6515,31 @@ this.getQrBarcodeFeeback = async(request) => {
     }
 
     return [error, responseData];
+    }
+
+    
+    this.assetSessionLogout = async (request) => {
+        let responseData = [],
+        error = true; 
+
+        let message = {
+            organization_id: request.organization_id,
+            target_asset_id: request.target_asset_id,
+            asset_id: request.asset_id,
+            datetime: util.getCurrentUTCTime(),
+            type: "logout"
+        };
+
+        let data = {
+            organization_id: request.organization_id,
+            asset_id: request.target_asset_id
+        }
+
+        responseData = util.sendPushNotification(request, data, message);
+        error = false;
+        console.log("assetSessionLogout  : " +JSON.stringify(responseData));       
+        return [error, responseData]
+
     }
 
 }
