@@ -2763,6 +2763,30 @@ function Util(objectCollection) {
         return moment(date, format).isValid();
     }
 
+    this.sendPushNotification = async function (request, data, message) {
+        let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_asset_id") ||
+            Number(request.target_asset_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target asset_id specified."
+            }]
+        }
+        
+        let [err, assetData] = await this.getAssetDetails(data);
+        const assetPushARN = assetData[0].asset_push_arn;
+
+        sns.logOutPublish(message, assetPushARN, 1);
+        pubnubWrapper.publish(request.target_asset_id, message);
+
+        return [error, {
+            message: `Push sent to ${request.target_asset_id}`
+        }];
+    }
+
+
 }
 
 module.exports = Util;

@@ -908,5 +908,15 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    //Service to logout session 
+    app.post('/' + global.config.version + '/asset/session/logout', async (req, res) => {
+        const [err, data] = await assetService.assetSessionLogout(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });      
 }
 module.exports = AssetController;
