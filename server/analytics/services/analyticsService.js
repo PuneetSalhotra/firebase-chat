@@ -2874,6 +2874,37 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    //Functionality to get Asset Report Mapping V1         
+    this.getAssetReportMappingV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.access_level_id,
+              request.target_asset_id,
+              request.tag_type_id,
+              request.is_export,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_1_asset_report_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+    }    
+
 }
 
 module.exports = AnalyticsService;
