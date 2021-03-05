@@ -4748,15 +4748,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id:request.organization_id,
                 asset_identification_number: String(request.asset_identification_number),
             }, request.organization_id);
-            console.log(checkAadhar)
-            if (errZero_7 || (Number(checkAadhar.length) > 0 && (checkAadhar[0].asset_id!=deskAssetID||checkAadhar[0].asset_id!=employeeAssetID))) {
+            console.log(checkAadhar);
+            if ((errZero_7 || (Number(checkAadhar.length)) > 0 && (checkAadhar[0].asset_id!=deskAssetID&&checkAadhar[0].asset_id!=employeeAssetID))) {
                 console.log("update employee | assetListSelectAadharUniqueID | Error: ", errZero_7);
                 return [true, {
                     message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
                 }]
             }
         }
-// return;
+
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
             const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
