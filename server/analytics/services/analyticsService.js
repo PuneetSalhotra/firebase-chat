@@ -2874,7 +2874,7 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
-    //Functionality to get Asset Report Mapping          
+    //Functionality to get Asset Report Mapping V1         
     this.getAssetReportMappingV1 = async (request) => {
 
         let responseData = [],
