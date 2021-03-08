@@ -359,6 +359,8 @@ function DrsService(objectCollection) {
             request.asset_type_id,
             request.access_level_id||6,
             request.flag,
+            request.workforce_id || 0,
+            request.account_id || 0,
             request.page_start,
             request.page_limit
         ];
@@ -419,7 +421,11 @@ function DrsService(objectCollection) {
             request.document_repository_id,
             request.repository_sub_type_id,
             request.asset_id,
+            request.asset_type_id,
+            request.access_level_id||6,
             1,
+            request.workforce_id || 0,
+            request.account_id || 0,
             request.page_start,
             request.page_limit
         ];
