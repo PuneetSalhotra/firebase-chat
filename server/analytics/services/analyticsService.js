@@ -2940,9 +2940,9 @@ function AnalyticsService(objectCollection)
                 responseData[i].ob_non_mobility = widgetData;        
                                                       
             }
-            responseData[i].total_target = total_target;
-            responseData[i].total_achieved = total_achieved;
-            responseData[i].total_percentage = (total_achieved/total_target)*100;
+            responseData[i].target = total_target;
+            responseData[i].achieved = total_achieved;
+            responseData[i].percentage = (total_achieved/total_target)*100;
 
         }
         return [error, responseData];
