@@ -196,6 +196,8 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
                 case "activityUpdateService":
                 case "activityParticipantService":
                 case "formConfigService":
+                case "pamUpdateService":
+                case "pamService":
                     if (asyncFlag) {
                         const [error, response] = await serviceObjectCollection[service][method](payload);
                         if (error) { reject(error) }
