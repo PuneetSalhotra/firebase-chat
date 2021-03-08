@@ -2903,7 +2903,105 @@ function AnalyticsService(objectCollection)
               })
         }
         return [error, responseData];
-    }    
+    }  
+    
+    this.getAssetReporteeTargetValues = async (request) => {
+
+        let responseData = [],
+            error = true;
+        let widgetData = [], widgetErr = true;
+        [error, responseData] = await self.getAssetsReportingToSameManager(request);
+        console.log('responseData ', responseData);
+
+        for(let i = 0; i < responseData.length; i ++){
+            //responseData[i].widget_data = [];
+            let total_target = 0;
+            let total_achieved = 0;
+            let total_percentage = 0;            
+            for(let j = 69; j <= 72; j ++){
+                request.widget_type_id = j;
+                request.target_asset_id = responseData[i].asset_id;
+               
+                [widgetErr, widgetData] = await self.getAssetTargetListV1(request);
+                console.log('widgetData ',widgetData);
+                //responseData[i].widget_data.push(widgetData);
+                if(widgetData.length > 0){
+                    total_target = widgetData[0].target + total_target;
+                    total_achieved = widgetData[0].achieved + total_achieved;
+                }
+                //   responseData[i][j] = widgetData;
+                if(j == 69)
+                responseData[i].revenue_mobility = widgetData;
+                if(j == 70)
+                responseData[i].revenue_non_mobility = widgetData;
+                if(j == 71)
+                responseData[i].ob_mobility = widgetData;
+                if(j == 72)
+                responseData[i].ob_non_mobility = widgetData;        
+                                                      
+            }
+            responseData[i].total_target = total_target;
+            responseData[i].total_achieved = total_achieved;
+            responseData[i].total_percentage = (total_achieved/total_target)*100;
+
+        }
+        return [error, responseData];
+    }   
+    
+    this.getAssetsReportingToSameManager = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.target_asset_id,
+            request.page_start || 0,
+            request.page_limit || 100            
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_manager', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };    
+
+    this.getAssetTargetListV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.widget_type_id,
+              request.widget_timescale
+        ];
+
+        const queryString = util.getQueryString('ds_v1_1_asset_target_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }     
 
 }
 
