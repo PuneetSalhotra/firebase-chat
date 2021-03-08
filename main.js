@@ -124,45 +124,6 @@ app.use(helmet.hsts({maxAge: sixtyDaysInSeconds}))
 app.use(helmet.frameguard({action: 'sameorigin'}))
 app.use(helmet.noSniff())
 
-// Handling zero and missing asset_id/ auth_asset_id
-app.use(function (req,res,next) {
-    if(req.body.hasOwnProperty('asset_id') || req.body.hasOwnProperty('auth_asset_id')) {
-        if(req.body.hasOwnProperty('auth_asset_id')){
-            if(req.body.auth_asset_id > 0){
-                next();
-            }else{
-                res.send({
-                    status: -3211,
-                    service_id: 0,
-                    gmt_time: (new Util()).getCurrentUTCTime(),
-                    response: 'auth_asset_id exists but not greaterthan zero '+req.body.auth_asset_id
-                });
-                return;
-            }
-        }else if(req.body.hasOwnProperty('asset_id')){
-            if(req.body.asset_id > 0){
-                next();
-            }else{
-                res.send({
-                    status: -3212,
-                    service_id: 0,
-                    gmt_time: (new Util()).getCurrentUTCTime(),
-                    response: 'asset_id exists but not greaterthan zero '+req.body.asset_id
-                });
-                return;
-            }
-        }
-    }else{
-        res.send({
-            status: -3209,
-            service_id: 0,
-            gmt_time: (new Util()).getCurrentUTCTime(),
-            response: 'No asset_id or auth_asset_id in request parameters.'
-        });
-        return;
-    }
-});
-
 // Handling null/empty message_unique_ids
 app.use(function (req,res,next) {
     // Check whether asset_message_counter exists:
