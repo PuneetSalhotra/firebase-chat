@@ -15,6 +15,7 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
+const CommnElasticService = require('../../elasticSearch/services/elasticSearchService');
 //var aspose = aspose || {};
 //aspose.cells = require("aspose.cells");
 //
@@ -72,6 +73,7 @@ function BotService(objectCollection) {
 
     const adminListingService = new AdminListingService(objectCollection);
     const adminOpsService = new AdminOpsService(objectCollection);
+    const elasticService = new CommnElasticService(objectCollection);
 
     //const workbookOpsService = new WorkbookOpsService(objectCollection);
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
@@ -1208,7 +1210,7 @@ function BotService(objectCollection) {
         }
 
         logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
-        
+   
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
@@ -1709,6 +1711,9 @@ function BotService(objectCollection) {
                                     //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
                                     sqsQueueUrl = global.config.excelBotSQSQueue;
                                 }
+                                logger.info(request.workflow_activity_id+": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
+                                let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:18});
+                                request.bot_excel_log_transaction = insertData;
                                 sqs.sendMessage({
                                     // DelaySeconds: 5,
                                     MessageBody: JSON.stringify(request),
@@ -1905,13 +1910,13 @@ function BotService(objectCollection) {
                 case 33: //Global Add Participant
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('GLOBAL PARTICIPANT ADD');
+                    logger.info("Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
                     try {
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing Global addParticipant Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        global.logger.write(request.workflow_activity_id+':serverError', 'Error in executing Global addParticipant Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+':serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1922,35 +1927,38 @@ function BotService(objectCollection) {
                     break;
 
                 case 34: // ARP
-                global.logger.write('conLog', '****************************************************************', {}, {});
-                global.logger.write('conLog', 'ARPBot', {}, {});
-                logger.silly("ARP: Request Params received from Request: %j", request);
-                request.debug_info.push('ARPBot');
-                try{
-                    await arpBot(request, botOperationsJson.bot_operations);
-                }catch(err){
-                    global.logger.write('serverError', 'Error in executing ARPBot Step', {}, {});
-                    global.logger.write('serverError', err, {}, {});
-                    i.bot_operation_status_id = 2;
-                    i.bot_operation_inline_data = JSON.stringify({
-                        "err": err
-                    });                    
-                }
-                global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': ARPBot', {}, {});
+                    logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': ARPBot');
+                    try{
+                        await arpBot(request, botOperationsJson.bot_operations);
+                    }catch(err){
+                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
+                            "err": err
+                        });                    
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+
                 break;
 
                 case 35: //custom bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'checkLargeDoa', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('checkLargeDoa');
+                    logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
                     try {
                         await checkLargeDoa(request, botOperationsJson.bot_operations.bot_inline);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing checkCustomBot Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing checkCustomBot Step', {}, {});
+                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
                             "err": err
                         });
                         //return Promise.reject(err);
@@ -1961,7 +1969,7 @@ function BotService(objectCollection) {
                 case 36: //SME ILL DOA Bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
+                    logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push('SME ILL Bot');
                     try {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
@@ -1981,6 +1989,7 @@ function BotService(objectCollection) {
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
                     request.pdf_json = pdf_json;
                     request.generate_pdf = 1;
+                    request.bot_operation_id=37;
                     sendToSqsPdfGeneration(request);
                     
                     
@@ -2102,7 +2111,7 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
                     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson})
+                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44})
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
@@ -2134,6 +2143,47 @@ function BotService(objectCollection) {
                     //     });
                     // }
                 break;
+                
+                case 45 :
+                    logger.silly("Remove CUID Bot");
+                    logger.silly("Remove CUID Bot Request: %j", request);
+                    logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
+                    try {
+                        await removeCUIDs(request, botOperationsJson.bot_operations);
+                    } catch (error) {
+                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error"      : error,
+                            "error_stack" : error.stack
+                        });
+                    }
+                    break;
+
+                    
+                    case 46 : //Forcast Category, Product Quantity in drilldown
+                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
+                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
+                    try {
+                        if(botOperationsJson.bot_operations.is_product == 1){
+                            request.is_product = botOperationsJson.bot_operations.is_product;
+                            request.is_cart = botOperationsJson.bot_operations.is_cart;
+                            request.final_key = botOperationsJson.bot_operations.final_key;
+                        }
+                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
+                        await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
+                    } catch (error) {
+                        logger.error("[Widget drilldown additional fields] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "log":request.debug_info,
+                            "error": error
+                        });
+                    }
+                    break;                
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -2184,6 +2234,11 @@ function BotService(objectCollection) {
         //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
         sqsQueueUrl = global.config.excelBotSQSQueue;
     }
+
+    logger.info(request.workflow_activity_id+": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
+    let [sqsInserErr,insertData]= await insertSqsStatus(request);
+    request.bot_excel_log_transaction = insertData;
+
     sqs.sendMessage({
         // DelaySeconds: 5,
         MessageBody: JSON.stringify(request),
@@ -3292,7 +3347,11 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
-                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it    
+                    if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
+                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
+                    } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
+                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
+                    }    
                 } else if(Number(request.device_os_id) === 1) { //Android
                     //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
@@ -4927,19 +4986,24 @@ async function removeAsOwner(request,data)  {
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
+        logger.info(request.workflow_activity_id + " : addParticipant : inlineData : "+ JSON.stringify(inlineData));
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let type = Object.keys(inlineData);
         global.logger.write('conLog', type, {}, {});
         request.debug_info.push('type: ' + type);
+        logger.info(request.workflow_activity_id + " : addParticipant : type : "+ type);
 
         if (type[0] === 'static') {
+            logger.info(request.workflow_activity_id + " : addParticipant : Processing Static ");
             request.debug_info.push('Inside Static');
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -4958,6 +5022,8 @@ async function removeAsOwner(request,data)  {
                 newReq.phone_number = phone[1]; //phone number                      
             }
 
+            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
+
         } else if (type[0] === 'dynamic') {
             request.debug_info.push('Inside dynamic');
             newReq.desk_asset_id = 0;
@@ -4973,10 +5039,12 @@ async function removeAsOwner(request,data)  {
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+            logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
 
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
+            logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
             if (resp.length > 0) {
                 newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
                 newReq.phone_number = String(resp[0].data_entity_text_1);
@@ -5007,6 +5075,9 @@ async function removeAsOwner(request,data)  {
                     }
                 }
             }
+
+            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
+
         } else if (type[0] === 'asset_reference') {
             request.debug_info.push('Inside asset_reference');
 
@@ -5019,6 +5090,7 @@ async function removeAsOwner(request,data)  {
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
             isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
             flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+            logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
 
             if(Number(flagCreatorAsOwner) === 1) {
                 await addParticipantCreatorOwner(request);
@@ -5062,21 +5134,27 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
+
             if (Number(newReq.desk_asset_id) > 0) {
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
                 });
                 console.log('assetData.length - ', assetData.length);
+                logger.info(request.workflow_activity_id + " : addParticipant : assetData : "+ JSON.stringify(assetData));
                 request.debug_info.push('assetData.length: ' + assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
                     newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
 
                     console.log('newReq.phone_number - ', newReq.phone_number);
+                    logger.info(request.workflow_activity_id + " : addParticipant : phone_number : "+ newReq.phone_number);
                     request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
                 }
             }
+
+            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
         }
 
         // Fetch participant name from the DB
@@ -5090,6 +5168,7 @@ async function removeAsOwner(request,data)  {
                     field_id: newReq.name_field_id,
                     organization_id: newReq.organization_id
                 });
+               logger.info(request.workflow_activity_id + " : addParticipant : fieldData : "+ JSON.stringify(fieldData));
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
                     console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
@@ -5104,6 +5183,7 @@ async function removeAsOwner(request,data)  {
         newReq.is_owner = isOwner;
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
+        logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
         console.log('newReq.phone_number : ', newReq.phone_number);
         request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
         if (
@@ -5112,6 +5192,7 @@ async function removeAsOwner(request,data)  {
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            logger.info(request.workflow_activity_id + " : addParticipant : BotService | addParticipant | Message: : "+ newReq.phone_number);
             request.debug_info.push("BotService | addParticipant | Message: " + newReq.phone_number + " | " + typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
@@ -6052,6 +6133,7 @@ async function removeAsOwner(request,data)  {
     }
 
     async function addParticipantStep(request) {
+        logger.info(request.workflow_activity_id + " : addParticipant : request :"+ JSON.stringify(request));
         let dataResp,
             deskAssetData;
         let assetData = {};
@@ -6081,6 +6163,7 @@ async function removeAsOwner(request,data)  {
                 assetData.desk_asset_id = deskAssetData.desk_asset_id;
             }
 
+
         } else {
             dataResp = await getAssetDetails({
                 "organization_id": request.organization_id,
@@ -6088,6 +6171,8 @@ async function removeAsOwner(request,data)  {
             });
             deskAssetData = dataResp[0];
         }
+
+        logger.info(request.workflow_activity_id + " : addParticipant : deskAssetData :"+ JSON.stringify(deskAssetData));
 
         global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData, {});
 
@@ -6100,6 +6185,7 @@ async function removeAsOwner(request,data)  {
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
 
+        logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         return await addDeskAsParticipant(request, assetData);
 
         /*if(dataResp.length > 0) { //status is true means service desk exists
@@ -6353,12 +6439,15 @@ async function removeAsOwner(request,data)  {
             device_os_id: 9
         };
 
+        logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest));
+
         return await new Promise((resolve, reject) => {
             activityParticipantService.assignCoworker(addParticipantRequest, async (err, resp) => {
                 if(err === false) {                    
                     
                     //Check for lead flag                    
                     console.log('request.is_lead in BotService: ',request.is_lead);
+                    logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
                         let newReq = {};
@@ -7608,6 +7697,51 @@ async function removeAsOwner(request,data)  {
         return [error, responseData];
     }
 
+    async function activityListRemoveCUIDs(request, cuidUpdateFlag) {
+        /* 
+            {
+                "bot_operations": {
+                    "condition": {
+                    "form_id": 0,
+                    "field_id": 0,
+                    "is_check": false,
+                    "operation": "",
+                    "threshold": 0
+                },
+                "remove_cuids": {
+                    "remove_cuid_flag":0/1/2/3
+                    }
+                }
+            }
+
+            0 for all
+        */
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            cuidUpdateFlag,
+            request.asset_id || 0,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_list_delete_cuid', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     async function activityAssetMappingUpdateCUIDs(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
         let responseData = [],
             error = true;
@@ -7666,6 +7800,7 @@ async function removeAsOwner(request,data)  {
         return [error, responseData];
     }
 
+    
     this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
@@ -10222,12 +10357,12 @@ async function removeAsOwner(request,data)  {
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
 
-        console.log("dateFormData", JSON.stringify(originFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : dateFormData" + JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
 
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
         let formInputToProcess, connectionTypeValue, capexValue, opexValue;
@@ -10235,14 +10370,14 @@ async function removeAsOwner(request,data)  {
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
             try {
-                console.log("Mobility is to be triggered");
+                logger.info(request.workflow_activity_id+" : larger DOA : Mobility is to be triggered");
                 request.form_id = 50079;
                 let fldForm = await getFormInlineData(request, 1);
                 formInputToProcess = JSON.parse(fldForm.data_entity_inline).form_submitted;
 
                 connectionTypeValue = countCOCPAndIOIP(formInputToProcess, inlineData.cocp_ioip_field_ids);
             } catch(e) {
-                console.log("Data not fetched for 50079 mobility");
+                logger.info(request.workflow_activity_id+" : larger DOA : Data not fetched for 50079 mobility");
             }
 
         } else {
@@ -10264,7 +10399,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
             } catch (e) {
-                console.log("Data for found for 50264");
+                logger.info(request.workflow_activity_id+" : larger DOA : Data for found for 50264");
             }
         }
 
@@ -10278,14 +10413,12 @@ async function removeAsOwner(request,data)  {
         let largeDoa = await getFormInlineData(request, 1);
         let largeDoaData = JSON.parse(largeDoa.data_entity_inline).form_submitted;
 
-        console.log("largeDoaData---->", largeDoaData);
+        logger.info(request.workflow_activity_id+" : larger DOA : largeDoaData---->", largeDoaData);
 
         let columnNumber = {
             "column": 0,
-            "title" : ""
+            "title" : "Corporate-Commercial L1"
         }
-
-
 
         let fieldIdValuesMap = {}, aovValue = '';
 
@@ -10293,30 +10426,27 @@ async function removeAsOwner(request,data)  {
             fieldIdValuesMap[row.field_id] = row.field_value;
         }
 
-        request.fldAovValue = fieldIdValuesMap[308731]
+        request.fldAovValue = fieldIdValuesMap[310745]
         request.mobilityAovValue = fieldIdValuesMap[308694]; 
-        
+
         for(let currentExecution of largerDoaDataToProcess) {
 
-            console.log("columnNumber----", columnNumber, currentExecution.name);
-            if(!currentExecution.isEnable) {
-                console.log(currentExecution.name, " is disabled ");
-                continue;
-            }
+            logger.info(request.workflow_activity_id+" : larger DOA : columnNumber----"+ JSON.stringify(columnNumber) +' column name '+ currentExecution.name);
 
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
-            if(currentExecution.key_number == 1) {
-                console.log("Final Prcessing Data", JSON.stringify(formInputToProcess));
-                console.log("Processing Empowerment DOA", JSON.stringify(valuesToBeChecked[0]), currentExecution.values);
+            if(currentExecution.key_number == 1 && currentExecution.isEnable) {
+
+                logger.info(request.workflow_activity_id+" : larger DOA : Final Prcessing Data " + JSON.stringify(formInputToProcess));
+                logger.info(request.workflow_activity_id+" : larger DOA : Processing Empowerment DOA "+ JSON.stringify(valuesToBeChecked[0]) +' currentExecution values'+ currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
 
                 if(response != 1) {
-                    console.log("Got Rejection case in Custom Bot so not proceeding with next flow in larger DOA");
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Rejection case in Custom Bot so not proceeding with next flow in larger DOA");
                     return;
                 } else {
-                    console.log("Got Win-together/manual Flow So checking to which team it should be assigned");
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Win-together/manual Flow So checking to which team it should be assigned");
                     continue;
                 }
             }
@@ -10326,37 +10456,50 @@ async function removeAsOwner(request,data)  {
                 let fieldValue = fieldIdValuesMap[fieldId];
 
                 if(fieldValue == '') {
-                    console.log("Got Empty Value ", fieldId, fieldValue);
+                    logger.info(request.workflow_activity_id+" : larger DOA : Got Empty Value " + fieldId+ " " + fieldValue);
                     continue;
                 }
-                console.log("columnNumber before update", columnNumber, " and the value is ", fieldValue, " and type is ", currentExecution.type, " and field id is", fieldId);
 
                 if(currentExecution.key_number == 2) {
                     aovValue = fieldValue;
                 }
 
+                if(!currentExecution.isEnable) {
+                    logger.info(request.workflow_activity_id +` : larger DOA : ${currentExecution.name} is disabled` );
+                    break;
+                }
+
+                logger.info(request.workflow_activity_id+" : larger DOA : columnNumber before update" + columnNumber + " and the value is " + fieldValue + " and type is " + currentExecution.type, " and field id is", fieldId);
+
                 for(let columnDetails of valuesToBeChecked) {
-                    console.log("columnDetails-----", columnDetails);
+                    logger.info(request.workflow_activity_id+" : larger DOA : columnDetails-----" + JSON.stringify(columnDetails));
                     if(columnDetails['value1']) {
 
-                        console.log("column value is", columnDetails['value1']);
+                        logger.info(request.workflow_activity_id+" : larger DOA : column value is" + columnDetails['value1']);
 
                         if(currentExecution.type == 'number') {
+                            try {
+                                fieldValue = Number(fieldValue);
+                            } catch (e){
+                                logger.info(request.workflow_activity_id+" : larger DOA : parsing error" );
+                                continue;
+                            }
+                            
                             let exp1 = fieldValue + columnDetails['value1'];
-                            console.log("exp1---->", exp1, eval(exp1));
+                            logger.info(request.workflow_activity_id+" : larger DOA : exp1---->" + exp1 + " "+eval(exp1));
 
                             if(columnDetails['value2']) {
                                 let exp2 = fieldValue + columnDetails['value2'];
-                                console.log("exp2---->", exp2, eval(exp2));
+                                logger.info(request.workflow_activity_id+" : larger DOA : exp2---->" + exp2 + " "+eval(exp2));
 
                                 if(columnDetails['value3']) {
                                     let exp3 = fieldValue + columnDetails['value2'];
-                                    console.log("exp3---->", exp3, eval(exp3));
+                                    logger.info(request.workflow_activity_id+" : larger DOA : exp3---->" + exp3 + " "+eval(exp3));
                                     if(eval(exp2) && eval(exp1)  && eval(exp3)) {
 
                                         if(columnDetails.column > columnNumber.column) {
                                             columnNumber = Object.assign({}, columnDetails);
-                                            console.log("columnNumber is updated to", columnNumber);
+                                            logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                             continue;
                                         }
                                     }
@@ -10364,14 +10507,14 @@ async function removeAsOwner(request,data)  {
 
                                     if(columnDetails.column > columnNumber.column) {
                                         columnNumber = Object.assign({}, columnDetails);
-                                        console.log("columnNumber is updated to", columnNumber);
+                                        logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                         continue;
                                     }
                                 }
                             } else if(eval(exp1)) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
-                                    console.log("columnNumber is updated to", columnNumber);
+                                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                     continue;
                                 }
                             }
@@ -10379,32 +10522,37 @@ async function removeAsOwner(request,data)  {
                             if(columnDetails['value1'] == fieldValue) {
                                 if(columnDetails.column > columnNumber.column) {
                                     columnNumber = Object.assign({}, columnDetails);
-                                    console.log("columnNumber is updated to", columnNumber);
+                                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber is updated to"+ JSON.stringify(columnNumber));
                                     continue;
                                 }
                             }
                         }
                     }
 
-                    console.log("columnNumber Final Value", columnNumber);
+                    logger.info(request.workflow_activity_id+" : larger DOA : columnNumber Final Value"+ JSON.stringify(columnNumber));
                 }
 
                 break;
             }
         }
 
-        console.log("Selected column is ", columnNumber);
+        logger.info(request.workflow_activity_id+" : larger DOA : Selected column is "+ JSON.stringify(columnNumber));
 
-        if(request.activity_stream_type_id != 705) {
-            console.error("Triggering ARP form only in the case of activity_stream_type_id 705");
-            return;
+        // even if there is an exception for this then it is fine because aovValue is expected to have a number always
+        if(!Number(aovValue) || Number(aovValue) < 0 || aovValue == "#N/A") {
+            logger.info(request.workflow_activity_id+" : larger DOA : aovValue ", aovValue);
+            columnNumber = {
+                "column": 0,
+                "title" : "Corporate-Commercial L1"
+            }
+            // return;
         }
         //need timeline entry
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
         for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
+            if(parseInt(row.field_id) == 225020) {
                 planConfig = row;
             }
 
@@ -10413,21 +10561,47 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        console.log("activityDetails----", activityDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
             activityTypeId = activityTypeDetails[0].activity_type_id;
             // return;
         } else {
-            console.error("activityTypeDetails found empty");
+            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
 
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        logger.info(request.workflow_activity_id+" : larger DOA : wfActivityDetails "+ JSON.stringify(wfActivityDetails));
         let createWorkflowRequest                       = Object.assign({}, request);
+
+        //Assign field_value based on value exists in db or not.
+        //Mangesh Shinde - 04 March 2021
+        let requestObj = {
+            organization_id : request.organization_id,
+            activity_id : request.workflow_activity_id,
+            trigger_form_id : request.form_id,
+            global_array : []
+        };
+
+        let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
+
+        let fieldValueForAssignCommercialL1 = 'Yes';
+
+        if(formEditErr) {
+            fieldValueForAssignCommercialL1 = 'No';
+        } else {
+            if(formEditData.length > 0) {
+                fieldValueForAssignCommercialL1 = 'No';
+            }
+        }
 
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
             {
@@ -10462,8 +10636,21 @@ async function removeAsOwner(request,data)  {
                 data_type_combo_value: aovValue,
                 field_value: aovValue,
                 message_unique_id: 1611037843535
+            },
+            {
+                form_id: 50476,
+                field_id: '310606',
+                field_name: 'Assign Commercial L1',
+                field_data_type_id: 33,
+                field_data_type_category_id: 14,
+                data_type_combo_id: 0,
+                data_type_combo_value: fieldValueForAssignCommercialL1,
+                field_value: fieldValueForAssignCommercialL1,
+                message_unique_id: 1611037843535
             }
         ]);
+
+        requestObj = null; formEditErr = null; formEditData = null; fieldValueForAssignCommercialL1 = null;
 
         createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
         createWorkflowRequest.activity_type_category_id = 9;
@@ -10487,12 +10674,12 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        logger.info(request.workflow_activity_id+" : larger DOA : createWorkflowRequest "+ JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
 
+        logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails----> " +  JSON.stringify(activityInsertedDetails));
 
         let activityTimelineCollection =  JSON.stringify({
             "content": `Form Submitted`,
@@ -10528,7 +10715,35 @@ async function removeAsOwner(request,data)  {
 
     async function triggerArpForm(request) {
         try {
+            // even if there is an exception for this then it is fine because aovValue is expected to have a number always
+            // check for AOV value, should not be a string 
+            if(!Number(request.aovValue) || Number(request.aovValue) < 0 || request.aovValue.toUpperCase() == '#N/A') {
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :triggerArpForm aovValue" + aovValue);
+                request.team_title = "Corporate-Commercial L1"
+                // return;
+            }
             let createWorkflowRequest                       = Object.assign({}, request);
+
+            //Assign field_value based on value exists in db or not.
+            //Mangesh Shinde - 04 March 2021
+            let requestObj = {
+                organization_id : request.organization_id,
+                activity_id : request.activity_id,
+                trigger_form_id : request.form_id,
+                global_array : []
+            };
+
+            let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
+
+            let fieldValueForAssignCommercialL1 = 'Yes';
+
+            if(formEditErr) {
+                fieldValueForAssignCommercialL1 = 'No';
+            } else {
+                if(formEditData.length > 0) {
+                    fieldValueForAssignCommercialL1 = 'No';
+                }
+            }
 
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
                 {
@@ -10563,8 +10778,21 @@ async function removeAsOwner(request,data)  {
                     data_type_combo_value: request.aovValue || "",
                     field_value: request.aovValue || "",
                     message_unique_id: 1611037843535
+                },
+                {
+                    form_id: 50476,
+                    field_id: '310606',
+                    field_name: 'Assign Commercial L1',
+                    field_data_type_id: 33,
+                    field_data_type_category_id: 14,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: fieldValueForAssignCommercialL1,
+                    field_value: fieldValueForAssignCommercialL1,
+                    message_unique_id: 1611037843535
                 }
             ]);
+
+            requestObj = null; formEditErr = null; formEditData = null; fieldValueForAssignCommercialL1 = null;
 
             createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
             createWorkflowRequest.activity_type_category_id = 9;
@@ -10588,11 +10816,11 @@ async function removeAsOwner(request,data)  {
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            logger.info(request.workflow_activity_id+" : larger DOA : createWorkflowRequest", JSON.stringify(createWorkflowRequest));
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            logger.info(request.workflow_activity_id+" : larger DOA : activityInsertedDetails---->", activityInsertedDetails);
 
 
             let activityTimelineCollection =  JSON.stringify({
@@ -10625,7 +10853,7 @@ async function removeAsOwner(request,data)  {
 
             return 1;
         } catch(e) {
-            console.log("Error-->", e.stack, e);
+            logger.info(request.workflow_activity_id+" : larger DOA : Error-->", e.stack, e);
             return 0;
         }
     }
@@ -10717,11 +10945,10 @@ async function removeAsOwner(request,data)  {
     async function checkCustomBotV1(request, inlineData, resultProductAndRequestType, formToProcess, connectionTypeValue) {
 
         if(request.flag_past_data_processing == 1) {
-            console.error("got flag_past_data_processing key as " + request.flag_past_data_processing + " so skipping Custom bot 35 SME and Mobility");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : got flag_past_data_processing key as " + request.flag_past_data_processing + " so skipping Custom bot 35 SME and Mobility");
             return;
         }
 
-        console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
         request.debug_info.push('activity_id: ' + request.activity_id);
@@ -10729,7 +10956,7 @@ async function removeAsOwner(request,data)  {
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
-        console.log("dateFormData", JSON.stringify(originFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :dateFormData "+ JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
@@ -10749,36 +10976,36 @@ async function removeAsOwner(request,data)  {
         // validating product and request type
         // let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :resultProductAndRequestType---- " + JSON.stringify(resultProductAndRequestType));
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
-        //     console.log("Request type match failed");
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Request type match failed");
         //     submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
         //     return;
         // } else if(!resultProductAndRequestType.reqularApproval) {
-        //     console.log("Regular approval match failed");
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Regular approval match failed");
         //     // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
         //     return;
         // }
 
         resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
-        console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :final value resultProductAndRequestType.productMatchFlag "+ resultProductAndRequestType.productMatchFlag);
         request.debug_info.push("final value resultProductAndRequestType.productMatchFlag : "+ resultProductAndRequestType.productMatchFlag);
         if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
-            console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             request.debug_info.push("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
             return checkSmeBotV1(request, inlineData.sme_config, deskAssetData, formToProcess);
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
-            console.log("Got Product Mobility, Triggering Mobility BOT");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Got Product Mobility, Triggering Mobility BOT");
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
             return checkMobilityV1(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch, resultProductAndRequestType.reqularApproval, connectionTypeValue, formToProcess);
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
-            console.log("Product Match Failed--- Manual Flow");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :Product Match Failed--- Manual Flow");
             request.debug_info.push("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return 1;
@@ -11177,12 +11404,13 @@ async function removeAsOwner(request,data)  {
         let submitRejectionFormFlag = 0, comment = '';
         // let fldForm = await getFormInlineData(request, 1);
         // let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
-        console.log("dateFormData1", JSON.stringify(fldFormData));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1", JSON.stringify(fldFormData));
 
 
         // let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
-        console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
         if(totalCOCPAndIOIP[0].cocp > 0 && totalCOCPAndIOIP[0].cocpr > 0 && (totalCOCPAndIOIP[0].ioip + totalCOCPAndIOIP[0].ioip) == 0) {
@@ -11199,15 +11427,15 @@ async function removeAsOwner(request,data)  {
             connectionType = 'IOIP';
         }
 
-        console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
         let configSheets =  inlineData.field_values_map[connectionType] || [];
 
         if(!configSheets.length) {
-            console.log("No Sheet Selected");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 No Sheet Selected");
         }
 
-        console.log("configSheets", JSON.stringify(configSheets));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 configSheets", JSON.stringify(configSheets));
 
         let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
         if(!checkingSegmentResult.length) {
@@ -11215,24 +11443,24 @@ async function removeAsOwner(request,data)  {
             submitRejectionFormFlag = 1;
         }
 
-        console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
-            console.log("Processing Sheet ", row.sheet);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Processing Sheet ", row.sheet);
             request.debug_info.push("Processing Sheet ", row.sheet);
             comment = row.comment;
 
             if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
-                console.log("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 request.debug_info.push("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 continue;
             }
 
-            console.log("row.key---->", JSON.stringify(row.key));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 row.key---->", JSON.stringify(row.key));
             request.debug_info.push("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
-                console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 request.debug_info.push("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11257,13 +11485,13 @@ async function removeAsOwner(request,data)  {
             let linkResponse = validatingNoOfLinks(row.value.value, totalCOCPAndIOIP, row.sheet);
 
             if(!linkResponse) {
-                console.error("NO of Links are not matched");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 NO of Links are not matched");
                 request.debug_info.push("NO of Links are not matched");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
-            console.error("linkResponse",linkResponse);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 linkResponse",linkResponse);
             request.debug_info.push("linkResponse",linkResponse);
 
             // Checking Rentals
@@ -11271,19 +11499,19 @@ async function removeAsOwner(request,data)  {
 
             // check for empty plans
             if(!rentalResult[0] && !rentalResult[1] && !rentalResult[2] && !rentalResult[3] && !rentalResult[4]) {
-                console.error("Failed in Matching validatingRentals");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             if(!rentalResult || !rentalResult.length) {
-                console.error("Failed in Matching validatingRentals");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Failed in Matching validatingRentals");
                 request.debug_info.push("Failed in Matching validatingRentals");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
-            console.error("rentalResult", rentalResult, inlineData.monthly_quota);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 rentalResult", rentalResult, inlineData.monthly_quota);
             request.debug_info.push("rentalResult", rentalResult, inlineData.monthly_quota);
 
 
@@ -11291,7 +11519,7 @@ async function removeAsOwner(request,data)  {
             let monthlyQuota = validatingMonthlyQuota(fldFormData, rentalResult, inlineData.monthly_quota);
 
             if(!monthlyQuota.length) {
-                console.error("Conditions did not match in validatingMonthlyQuota");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingMonthlyQuota");
                 request.debug_info.push("Conditions did not match in validatingMonthlyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11300,7 +11528,7 @@ async function removeAsOwner(request,data)  {
             let dailyQuota = validatingDailyQuota(fldFormData, monthlyQuota, inlineData.daily_quota);
 
             if(!dailyQuota.length) {
-                console.error("Conditions did not match in validatingDailyQuota");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingDailyQuota");
                 request.debug_info.push("Conditions did not match in validatingDailyQuota");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11309,7 +11537,7 @@ async function removeAsOwner(request,data)  {
             let smsCount = validatingSMSValues(fldFormData, dailyQuota, inlineData.sme_field_ids);
 
             if(!smsCount.length) {
-                console.error("Conditions did not match in validatingSMSValues");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Conditions did not match in validatingSMSValues");
                 request.debug_info.push("Conditions did not match in validatingSMSValues");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
@@ -11317,22 +11545,22 @@ async function removeAsOwner(request,data)  {
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
-            console.log("minQuota", JSON.stringify(minQuota));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 minQuota", JSON.stringify(minQuota));
             request.debug_info.push("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
-                console.error("Condition failed in validate Mins");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Condition failed in validate Mins");
                 request.debug_info.push("Condition failed in validate Mins");
                 sheetMatchFlag[row.sheet] = '1';
                 continue;
             }
 
             if(!sheetMatchFlag[row.sheet]) {
-                console.error("First condition got matched so getting out from loop");
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 First condition got matched so getting out from loop");
                 request.debug_info.push("First condition got matched so getting out from loop");
                 sheetMatchFlag[row.sheet] = '0';
                 // break;
             }
-            console.log("sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
             request.debug_info.push("sheetMatchFlag-- " + JSON.stringify(sheetMatchFlag));
         }
 
@@ -11354,14 +11582,13 @@ async function removeAsOwner(request,data)  {
                 return 0;
             }
 
-            console.log("Not Rejection because workflowType did not matched to current value");
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Not Rejection because workflowType did not matched to current value");
 
             return 1;
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
-
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 wfActivityDetails", JSON.stringify(wfActivityDetails));
 
         // try{
         //     await addParticipantStep({
@@ -11374,11 +11601,58 @@ async function removeAsOwner(request,data)  {
         //         asset_id : wfActivityDetails[0].activity_creator_asset_id
         //     });
         // }catch(e) {
+        //     logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Error while adding participant")
+        // }
+
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
         //     console.log("Error while adding participant")
         // }
 
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 225020) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityTypeDetails found empty");
+        }
+
+        let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 Will be assigned to the required team");
+
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : checkCustomBotV1 :activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;
+        }
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.mobilityAovValue;
+
+        triggerArpForm(request);
 
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
+        await sleep(3 * 1000); // putting manual delay so that arp should be triggered before auto approve
         // form submission
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
@@ -11414,7 +11688,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 4,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|' + wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].asset_first_name,
+                field_value: wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_asset_first_name + '|' + wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_first_name,
                 message_unique_id: 1603968483792
             },
             {
@@ -11474,11 +11748,11 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 createWorkflowRequest", JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :checkMobilityV1 activityInsertedDetails---->", activityInsertedDetails);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -11503,53 +11777,12 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 
-        // try{
-        //     await addParticipantStep({
-        //         is_lead : 1,
-        //         workflow_activity_id : request.activity_id,
-        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-        //         organization_id : request.organization_id
-        //     });
-        // }catch(e) {
-        //     console.log("Error while adding participant")
-        // }
-
-        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-
-        console.log("activityDetails----", activityDetails);
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            console.error("activityTypeDetails found empty");
-        }
-
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
-
-        request.team_title = "commercial L1";
-        request.decision_type_value = fieldValue;
-        request.aovValue = request.mobilityAovValue;
-        triggerArpForm(request);
     }
 
     function validatingSegment(formData, segment, configSheets, sheets) {
@@ -12229,7 +12462,7 @@ async function removeAsOwner(request,data)  {
         // let IllForm = await getFormInlineData(request, 1);
         // let IllFormData = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-        console.log("----", JSON.stringify(IllFormData));
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :---- "+ JSON.stringify(IllFormData));
 
         let segmentFieldIds =  inlineData.segmentFieldIds;
         let netCash =  inlineData.netCash;;
@@ -12297,14 +12530,16 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        console.log("activationDataOfLinks", JSON.stringify(activationDataOfLinks));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activationDataOfLinks", JSON.stringify(activationDataOfLinks));
         illFormDataWithLiks.push(temp);
 
         for(let row of illFormDataWithLiks) {
             row.push(paybackData);
         }
 
-        console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :illFormDataWithLiks " + JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
             if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i], paybackFieldId)) {
@@ -12317,7 +12552,8 @@ async function removeAsOwner(request,data)  {
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :wfActivityDetails "+ JSON.stringify(wfActivityDetails));
 
 
         // try{
@@ -12331,11 +12567,57 @@ async function removeAsOwner(request,data)  {
         //         asset_id : wfActivityDetails[0].activity_creator_asset_id
         //     });
         // }catch(e) {
+        //     
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :Error while adding participant")
+        // }
+
+        // try{
+        //     await addParticipantStep({
+        //         is_lead : 1,
+        //         workflow_activity_id : request.activity_id,
+        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
+        //         organization_id : request.organization_id
+        //     });
+        // }catch(e) {
         //     console.log("Error while adding participant")
         // }
 
 
+
+        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 308742) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+        
+        console.log("activityDetails----", activityDetails);
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+            // return;
+        } else {
+            console.error("activityTypeDetails found empty");
+        }
+
+        let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+        console.log("Will be assigned to the required team");
+
+        request.team_title = "commercial L1";
+        request.decision_type_value = fieldValue;
+        request.aovValue = request.fldAovValue;
+
+        triggerArpForm(request);
+
         await sleep((inlineData.form_trigger_time_in_min || 0) * 60 * 1000);
+        await sleep(3 * 1000);
         // form submission
         // Check if the form has an origin flag set
         let createWorkflowRequest                       = Object.assign({}, request);
@@ -12372,7 +12654,7 @@ async function removeAsOwner(request,data)  {
                 field_data_type_category_id: 4,
                 data_type_combo_id: 0,
                 data_type_combo_value: '0',
-                field_value: wfActivityDetails[0].asset_id + '|' + wfActivityDetails[0].operating_asset_first_name + '|' + wfActivityDetails[0].operating_asset_id + '|' + wfActivityDetails[0].asset_first_name,
+                field_value: wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_asset_first_name + '|' + wfActivityDetails[0].activity_creator_asset_id + '|' + wfActivityDetails[0].activity_creator_first_name,
                 message_unique_id: 1603968483792
             },
             {
@@ -12432,11 +12714,13 @@ async function removeAsOwner(request,data)  {
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :createWorkflowRequest "+ JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        
+        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 :activityInsertedDetails----> "+ JSON.stringify(activityInsertedDetails));
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -12461,56 +12745,11 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
-
-        // try{
-        //     await addParticipantStep({
-        //         is_lead : 1,
-        //         workflow_activity_id : request.activity_id,
-        //         desk_asset_id : wfActivityDetails[0].activity_creator_asset_id,
-        //         organization_id : request.organization_id
-        //     });
-        // }catch(e) {
-        //     console.log("Error while adding participant")
-        // }
-
-
-
-        let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 308742) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-        
-        console.log("activityDetails----", activityDetails);
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            console.error("activityTypeDetails found empty");
-        }
-
-        let fieldValue = planConfig.data_type_combo_id == '2' ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-        console.log("Will be assigned to the required team");
-
-        request.team_title = "commercial L1";
-        request.decision_type_value = fieldValue;
-        request.aovValue = request.fldAovValue;
-        triggerArpForm(request);
-
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
 
@@ -12518,40 +12757,39 @@ async function removeAsOwner(request,data)  {
             for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
-                    console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : ROw Data " + JSON.stringify([row.field_id , row.field_value , productFieldId , segmentFieldId , orderTypeFieldId , bwFieldId , otcFieldId , arcField , contractTermsFieldId , netCash]));
                     if(row.field_id == productFieldId) {
-                        // console.log("row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase()", row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase())
-                        console.log("Product Matched", row.field_id, "expected",value['1'], "got this", row.field_value.toLowerCase());
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Product Matched " + row.field_id + "expected ",value['1'] + "got this " + row.field_value.toLowerCase());
                         value['1'].toLowerCase() == row.field_value.toLowerCase() ? productF = 1 : 0;
                         row.field_value == '' ? productF = 1 : 0;
                         continue;
                     } else if(row.field_id == segmentFieldId) {
-                        console.log("Segment Matched", row.field_id, "expected",value['2'], "got this", row.field_value.toLowerCase());
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Segment Matched " + row.field_id + "expected ",value['2'] + "got this " + row.field_value.toLowerCase());
                         value['2'].toLowerCase() == row.field_value.toLowerCase() ? segementF = 1 : 0;
                         row.field_value == '' ? segementF = 1 : 0;
                         continue;
                     } else if(row.field_id == orderTypeFieldId) {
                         if(row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'upgrade with capex/ opex') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Matched Order Type capexValue + opexValue " + capexValue +" opex value "+ opexValue);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 1");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 1");
                                 sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 3");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 3");
                                 sheetSelected = inlineData.smeSheet3;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Matched Order Type capexValue + opexValue " + capexValue +" opex value "+ opexValue);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 2");
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 4");
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet4;
                             }
@@ -12559,10 +12797,10 @@ async function removeAsOwner(request,data)  {
                             console.error("Got Empty values while checking capexValue opexValue");
                             orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 2");
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Sheet Selected Sheet 4");
                                 sheetSelected = inlineData.smeSheet4;
                             }
                         }
@@ -12570,15 +12808,15 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF", productF, segementF,  orderTypeF);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : productF && segementF && orderTypeF " + JSON.stringify({productF , segementF, orderTypeF}));
                 if(productF && segementF && orderTypeF){
-                    console.log("Got match in phase 1");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Got match in phase 1");
                     phase1 = {productF, segementF, orderTypeF};
                     break;
                 }
                 else {
                     productF = 0, segementF = 0, orderTypeF = 0;
-                    console.log("Reset Params phase 1. Checking for new");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Reset Params phase 1. Checking for new");
                 }
 
             }
@@ -12588,32 +12826,32 @@ async function removeAsOwner(request,data)  {
                 return false;
             }
 
-            console.log("Executing new sheet", sheetSelected);
+            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Executing new sheet " + sheetSelected);
             for(let value of sheetSelected) {
 
                 let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 for(let row of linkDetails) {
-                    console.log("bwF && otcF && arcF && contractF && netCashF loop", row.field_id, row.field_name, row.field_value);
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : bwF && otcF && arcF && contractF && netCashF loop " + JSON.stringify([ row.field_id, row.field_name, row.field_value]));
                     if(row.field_id == bwFieldId) {
-                        console.log("BW Match )", row.field_id, bwFieldId, Number(row.field_value), Number(value['4']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : BW Match ) " + JSON.stringify([ row.field_id, bwFieldId, Number(row.field_value), Number(value['4'])]));
                         Number(row.field_value) == Number(value['4']) ? bwF = 1 : 0;
                         row.field_value == '' ? bwF = 1 : 0;
                         continue;
                     } else if(row.field_id == otcFieldId) {
-                        console.log("otcF", row.field_id , otcFieldId , Number(row.field_value) , Number(value['5']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : otcF " + JSON.stringify([ row.field_id , otcFieldId , Number(row.field_value) , Number(value['5'])]));
                         Number(row.field_value) >= Number(value['5']) ? otcF = 1 : 0;
                         row.field_value == '' ? otcF = 1 : 0;
                         continue;
                     } else if(row.field_id == arcField) {
-                        console.log("arcF", row.field_id, arcField,  Number(row.field_value), Number(value['6']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : arcF " + JSON.stringify([ row.field_id, arcField,  Number(row.field_value), Number(value['6'])]));
                         Number(row.field_value) >= Number(value['6']) ? arcF = 1 : 0;
                         row.field_value == '' ? arcF = 1 : 0;
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
-                        console.log("contractF", row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : contractF " + JSON.stringify([ row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7'])]));
                         if(checkActivationDateFlag) {
                             let yearsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'years', true);
-                            console.log("Months Difference is", yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Months Difference is " + JSON.stringify([ yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value]));
                             yearsDiff >= Number(value['7']) ? contractF = 1 : 0;
 
                         } else {
@@ -12622,15 +12860,15 @@ async function removeAsOwner(request,data)  {
                         row.field_value == '' ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
-                        console.log("netCashF", row.field_id, netCash , Number(row.field_value) , Number(value['8']));
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : netCashF " + JSON.stringify([ row.field_id, netCash , Number(row.field_value) , Number(value['8'])]));
                         Number(row.field_value) >= Number(value['8']) ? netCashF = 1 : 0;
                         row.field_value == '' ? netCashF = 1 : 0;
                         continue;
                     } else if(row.field_id == paybackFieldId) {
-                        console.log("Checking for Pay back fields");
+                        logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Checking for Pay back fields");
 
                         if(row.field_value <= value['9']) {
-                            console.log("Value matched in pay back value");
+                            logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Value matched in pay back value");
                             paybackF = 1;
                         }
                         row.field_value == '' ? paybackF = 1 : 0;
@@ -12638,13 +12876,13 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("bwF && otcF && arcF && contractF && netCashF && paybackF", bwF, otcF, arcF, contractF, netCashF, paybackF);
+                logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : bwF && otcF && arcF && contractF && netCashF && paybackF " + JSON.stringify([ bwF, otcF, arcF, contractF, netCashF, paybackF]));
                 if(bwF && otcF && arcF && contractF && netCashF && paybackF) {
-                    console.log("Got match in phase 2 link" + linkId);
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Got match in phase 2 link" + linkId);
                     phase2 = {bwF, otcF, arcF, contractF, netCashF, paybackF};
                     return true;
                 } else {
-                    console.log("Reset In phase 2. Checking for new");
+                    logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 : checkSmeBotV1 : Reset In phase 2. Checking for new");
                     bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 }
             }
@@ -12656,7 +12894,41 @@ async function removeAsOwner(request,data)  {
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
         console.log("Processing Rejection Form ");
         try {
+            let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '', productId = '';
 
+            let requestInlineData = JSON.parse(request.activity_inline_data)
+            for(let row of requestInlineData) {
+                if(parseInt(row.field_id) == 308742) {
+                    planConfig = row;
+                }
+    
+                if(parseInt(row.field_id) == 218728) {
+                    activityDetails = row.field_value;
+                }
+                    
+                if(parseInt(row.field_id) == 224835) {
+                    productId = parseInt(row.data_type_combo_id);
+                }
+            }
+            
+            console.log("activityDetails----", activityDetails);
+            let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+    
+            if(activityTypeDetails.length) {
+                activityTypeId = activityTypeDetails[0].activity_type_id;
+                
+            } else {
+                console.error("activityTypeDetails found empty");
+            }
+    
+            let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
+            console.log("Will be assigned to the required team");
+    
+            request.team_title = "commercial L1";
+            request.decision_type_value = fieldValue;
+            request.aovValue = productId == 3 ? request.mobilityAovValue : request.fldAovValue;
+            triggerArpForm(request);
+           
             const getBotworkflowStepsByFormV1 = async (request) => {
                 let paramsArr = new Array(
                   request.organization_id,
@@ -12689,7 +12961,7 @@ async function removeAsOwner(request,data)  {
                     }
                 }
 
-                console.log("botData---", botData);
+                console.log("botData--- ", botData);
 
                 if(!botData) {
                     console.error("Bot data was not found so lead would not be added before form submission");
@@ -12697,9 +12969,9 @@ async function removeAsOwner(request,data)  {
 
                 botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
 
-                console.log("Final=-----", botData);
+                console.log("Final=----- ", botData);
                 let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-                console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+                console.log("wfActivityDetails ", JSON.stringify(wfActivityDetails));
 
 
                 await addParticipantStep({
@@ -12928,9 +13200,9 @@ async function removeAsOwner(request,data)  {
     }
 
     async function arpBot(request, inlineData) {
-        logger.silly("arpBot: Request Params received from Request: %j", request);
-        logger.silly("arpBot: Bot Inline data: %j", inlineData);
-        let key = "_1";
+        logger.info(request.workflow_activity_id+": arpBot: Request Params received from Request: %j", request);
+        logger.info(request.workflow_activity_id+": arpBot: Bot Inline data: %j", inlineData);
+        let key = "_0";
         let isEnd = false;
 
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
@@ -12939,14 +13211,14 @@ async function removeAsOwner(request,data)  {
 
         while (!isEnd) {
             isEnd = true;
-            logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
+            logger.info(request.workflow_activity_id+": arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
             let conditionData = inlineData[key];
             if (conditionData.operation_type === 'check') {
                 // get the field value here
-                logger.silly("arpBot: conditionData.condition: %j", conditionData.condition);
-                logger.silly("arpBot: conditionData.data_type: %j", conditionData.data_type);
+                logger.info(request.workflow_activity_id+": arpBot: conditionData.condition: %j", conditionData.condition);
+                logger.info(request.workflow_activity_id+": arpBot: conditionData.data_type: %j", conditionData.data_type);
                 let fieldValue = await getFormFieldValue(request, conditionData.field_id);
-                logger.silly("arpBot: getFormFieldValue fieldValue: %j", fieldValue);
+                logger.info(request.workflow_activity_id+": arpBot: getFormFieldValue fieldValue: %j", fieldValue);
                 if (conditionData.condition == 'eq') {
                     if (conditionData.data_type === 'int') {
                         if (fieldValue === Number(conditionData.compare_value)) {
@@ -13020,25 +13292,41 @@ async function removeAsOwner(request,data)  {
                 key = '-3';
             }
 
-            logger.silly("arpBot: nextKey: %j", key);
-            logger.silly("arpBot: isEnd: %j", isEnd);
+            logger.info(request.workflow_activity_id+": arpBot: nextKey: %j", key);
+            logger.info(request.workflow_activity_id+": arpBot: isEnd: %j", isEnd);
         }
     }
 
     async function getFormFieldValue(request, idField) {
-        logger.silly("arpBot: idField: %j", idField);
+        let fieldValue = '';
+        try{
+        logger.info(request.workflow_activity_id+": idField: %j", idField);        
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
-        let fieldValue = '';
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
+            logger.info(Number(formInlineData[counter].field_id)+": idField: %j", idField);
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.silly("arpBot: Field Matched: %j", formInlineData[counter].field_value);
-                fieldValue = formInlineData[counter].field_value;
+                logger.info(request.workflow_activity_id+": datatypeid "+formInlineData[counter].field_data_type_id+" is_cart "+request.is_cart+" : final_key : "+request.final_key+ " product_data"+formInlineData[counter].field_value);             
+                if(Number(formInlineData[counter].field_data_type_id) === 71){ 
+                    logger.info(request.workflow_activity_id+": Field Matched: %j", JSON.parse(formInlineData[counter].field_value).cart_items);
+                    if(request.is_cart == 0){
+                        fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
+                    }else if(request.is_cart == 1) {
+                        //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
+                        fieldValue = JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key];
+                    }
+                }else{
+                    fieldValue = formInlineData[counter].field_value;
+                }                
                 break;
             }
         }
-        // logger.silly("arpBot: fieldValue: %j", fieldValue);
+            logger.info("getFormFieldValue: fieldValue: %j", fieldValue);        
+        }catch(error){
+            logger.info(error);
+        }
+        request.debug_info.push("getFormFieldValue "+ fieldValue);
         return fieldValue;
     }
 
@@ -13286,8 +13574,87 @@ async function removeAsOwner(request,data)  {
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }
-    }    
+    }  
 
+    async function removeCUIDs(request, inlineData) {
+        await activityListRemoveCUIDs(request, inlineData.remove_cuids.remove_cuid_flag);
+        let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+
+        switch (parseInt(inlineData.remove_cuids.remove_cuid_flag)) {
+            case 1:
+                request.cuid_1 = null;
+                break;
+
+            case 2:
+                request.cuid_2 = null;
+                break;
+
+            case 3:
+                request.cuid_3 = null;
+                break;
+
+            case 0 :
+                request.cuid_1 = null;
+                request.cuid_2 = null;
+                request.cuid_3 = null;
+                break;
+            default:
+                logger.info("Remove CUID BOT : " + `cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`);
+                throw new Error(`cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`)
+            // break;
+        }
+
+        logger.info("Remove CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
+        await elasticService.updateAccountCode(request, "", activityTitleExpression);
+
+        return;
+    }
+
+    async function activitySearchListUpdateAddition(request, column_flag, field_value) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            field_value,
+            column_flag
+        ];
+        let queryString = util.getQueryString('ds_v1_activity_search_list_update_addition_fields', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }
+
+    async function insertSqsStatus(request) {
+        let responseData = 0,
+        error = true;
+        var paramsArr = new Array(
+            0,
+            util.getCurrentUTCTime(),
+            5,
+            JSON.stringify(request),
+            request.bot_operation_id||0,
+            request.workflow_activity_id||0,
+            request.activity_id||0,
+            request.form_transaction_id||0,
+            request.workforce_id || 0,
+            request.account_id || 0,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        var queryString = util.getQueryString('ds_p1_bot_excel_log_transaction_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data[0].bot_operation_transaction_id;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        logger.info(request.workflow_activity_id+" : excel bot log inserted");
+      return [false,responseData]
+    };
 }
 
 

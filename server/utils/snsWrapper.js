@@ -319,5 +319,37 @@ var AwsSns = function () {
         //}
 
     };
+
+    this.logOutPublish = function (message, targetArn, badgeCount) {
+        var aps = {
+            'badge': badgeCount,
+            'sound': 'default',
+            'asset_id': message.target_asset_id,
+            'organization_id': message.organzation_id,
+            'type': 'logout'
+        }
+
+        var params = {
+            MessageStructure: 'json',
+            Message: JSON.stringify({
+                'default': message.type,
+                APNS_VOIP: JSON.stringify({
+                    aps
+                }),
+                APNS_VOIP_SANDBOX: JSON.stringify({
+                    aps
+                })
+            }),
+            TargetArn: targetArn
+        };
+        sns.publish(params, function (err, data) {
+            if (err)
+                //console.log(err); // an error occurred
+                global.logger.write('debug', err, {}, {});
+            else
+                //console.log('Notification Sent : ' , data);           // successful response
+                global.logger.write('debug', 'Notification Sent : ' + data, {}, {});
+        });
+    };    
 };
 module.exports = AwsSns;

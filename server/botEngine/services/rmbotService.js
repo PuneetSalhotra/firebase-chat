@@ -806,7 +806,7 @@ function RMBotService(objectCollection) {
         }
    }
 
-   this.TriggerRoundRobinV2 = async function (request) {
+    this.TriggerRoundRobinV2 = async function (request) {
         let assetData = [], err = false;
 
         if(request.target_asset_id === 0)
@@ -3141,7 +3141,7 @@ function RMBotService(objectCollection) {
                 });
         }
         return [error, responseData];
-    }     
+    }      
 
     this.BCCPQAllocation = async function(request){
         request.global_array = [];

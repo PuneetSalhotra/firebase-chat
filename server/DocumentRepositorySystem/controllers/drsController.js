@@ -174,6 +174,17 @@ function DrsController(objCollection)
         }
     });
 
+
+    //Update Doc Repo folder name
+    app.post('/' + global.config.version + '/drs/doc-repo/folder/update', async (req, res) => {
+        const [err, data] = await drsService.updateDocRepoFolderName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = DrsController;

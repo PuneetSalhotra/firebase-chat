@@ -46,10 +46,10 @@ var corsOptions = {
         if(origin == undefined || global.config.whitelist.indexOf(origin) !== -1) {
             callback(null,true);
         } else {
-            console.log('== Rejected origin =>',origin);
-            //callback(null,true);
+            console.log(global.config.whitelist.indexOf(origin)+' == Rejected origin =>',origin);
+            callback(null,true);
             // TODO: just to avoid the CORS origin
-            callback(new Error('Not allowed by CORS'))
+            //callback(new Error('Not allowed by CORS'))
         }
     }
 };
@@ -125,7 +125,6 @@ app.use(helmet.frameguard({action: 'sameorigin'}))
 app.use(helmet.noSniff())
 
 // Handling null/empty message_unique_ids
-// 
 app.use(function (req,res,next) {
     // Check whether asset_message_counter exists:
     if(req.body.hasOwnProperty('asset_message_counter')) {

@@ -1363,7 +1363,7 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF                                                                           
-                                        logger.info("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
+                                        console.log("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
                                         addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
@@ -1963,7 +1963,7 @@ function FormConfigService(objCollection) {
         let responseData = [],
 		error = true;
 		const paramsArr = new Array(
-            0,
+            request.asset_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
@@ -4750,7 +4750,7 @@ function FormConfigService(objCollection) {
 
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if (err || inlineData.length === 0) {
-            logger.info("addValueToWidgetForAnalyticsWF :: error in getting Inline Data");
+            console.log("addValueToWidgetForAnalyticsWF :: error in getting Inline Data");
             return err;
         }
 
@@ -4758,22 +4758,22 @@ function FormConfigService(objCollection) {
         console.log('inlineData[0].activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
         
         if(inlineData[0].activity_type_inline_data === null) {
-            logger.info("addValueToWidgetForAnalyticsWF :: inline data is null");
+            console.log("addValueToWidgetForAnalyticsWF :: inline data is null");
             return "";
         }
 
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
-        logger.info('addValueToWidgetForAnalyticsWF :: finalInlineData.hasOwnProperty(workflow_fields) : '+ finalInlineData.hasOwnProperty('workflow_fields'));
+        console.log('addValueToWidgetForAnalyticsWF :: finalInlineData.hasOwnProperty(workflow_fields) : '+ finalInlineData.hasOwnProperty('workflow_fields'));
 
         if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
 
-            logger.info('workflowFields : '+ workflowFields);
-            logger.info('activityInlineData : '+request.activity_inline_data);
-            logger.info('activityInlineData.length : '+ activityInlineData.length);
+            console.log('workflowFields : '+ workflowFields);
+            console.log('activityInlineData : '+request.activity_inline_data);
+            console.log('activityInlineData.length : '+ activityInlineData.length);
 
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
@@ -4784,7 +4784,7 @@ function FormConfigService(objCollection) {
                             Number(activityInlineData[i].field_data_type_id),
                             activityInlineData[i].field_value
                         );
-                        logger.info('addValueToWidgetForAnalyticsWF :: workflowFields[fieldId].sequence_id :: fieldValue :: '+fieldValue);
+                        console.log('addValueToWidgetForAnalyticsWF :: workflowFields[fieldId].sequence_id :: fieldValue :: '+fieldValue);
                         await activityCommonService.analyticsUpdateWidgetValue(request,
                             workflowActivityId,
                             workflowFields[fieldId].sequence_id,
@@ -6294,6 +6294,88 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.formAccessSearchList = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        try {
+            const paramsArr = [
+                request.flag,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                request.search_string,
+                request.page_start || 0,
+                request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_search', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {                   
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+
+    this.retrieveEdcTransaction = async (request) => {
+        let error = true,
+            responseData = [];        
+
+        try {
+            let [error1,activityData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+            if(error1){
+                throw error1;
+            }
+            if(activityData.length == 0 || activityData[0].activity_type_edc_form_id == undefined || activityData[0].activity_type_edc_form_id == null || activityData[0].activity_type_edc_form_id == 0 || activityData[0].activity_type_edc_field_id == null || activityData[0].activity_type_edc_field_id == 0 ){
+                responseData.push({form_transaction_id:0,form_id :0 ,field_id :0});
+                error = false;
+                return [error, responseData];
+            }
+            const paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                activityData[0].activity_type_edc_form_id,
+                0,
+                1
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {
+                        if(data.length == 0){
+                            responseData.push({form_transaction_id:0,form_id :activityData[0].activity_type_edc_form_id ,field_id :activityData[0].activity_type_edc_field_id});                            
+                        } else {
+                            responseData.push({form_transaction_id:data[0].data_form_transaction_id,form_id :activityData[0].activity_type_edc_form_id ,field_id :activityData[0].activity_type_edc_field_id});
+                        }
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+    
 }
 
 module.exports = FormConfigService;

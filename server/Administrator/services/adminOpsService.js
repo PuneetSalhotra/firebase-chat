@@ -3978,25 +3978,27 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     const workforceGenericAssetTypeID = workforceGenericAssetTypeData[0].asset_type_id;
                     const workforceGenericAssetTypeName = workforceGenericAssetTypeData[0].asset_type_name;
 
-                    try {
-                        // Create the Generic Desks
-                        const [errTen, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
-                            request,
-                            { emp_designation: workforceGenericAssetTypeName },
-                            workforceGenericAssetTypeID,
-                            newWorkforceResponse.workforce_id,
-                            workforceGenericAssetTypeName,
-                            accountID,
-                            organizationID
-                        );
-                        if (errTen !== false) {
-                            throw new Error(errTen);
+                    if(!request.restrict_desk_creation){
+                        try {
+                            // Create the Generic Desks
+                            const [errTen, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                                request,
+                                { emp_designation: workforceGenericAssetTypeName },
+                                workforceGenericAssetTypeID,
+                                newWorkforceResponse.workforce_id,
+                                workforceGenericAssetTypeName,
+                                accountID,
+                                organizationID
+                            );
+                            if (errTen !== false) {
+                                throw new Error(errTen);
+                            }
+                            console.log("Generic Desk Asset ID: ", deskAssetID);
+                            console.log("Generic Contact Card Activity ID: ", contactCardActivityID);
+                        } catch (error) {
+                            console.log("Create the Generic Desk Asset Error: ", error);
+                            continue;
                         }
-                        console.log("Generic Desk Asset ID: ", deskAssetID);
-                        console.log("Generic Contact Card Activity ID: ", contactCardActivityID);
-                    } catch (error) {
-                        console.log("Create the Generic Desk Asset Error: ", error);
-                        continue;
                     }
                 }
 
@@ -4056,82 +4058,83 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                             continue;
                         }
                         const workforceEmployeeAssetTypeID = workforceEmployeeAssetTypeData[0].asset_type_id;
-
-                        try {
-                            // Create the Desk Asset
-                            const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
-                                request,
-                                employee,
-                                workforceDeskAssetTypeID,
-                                newUserDefinedWorkforceResponse.workforce_id,
-                                userDefinedWorkforceName,
-                                accountID,
-                                organizationID
-                            );
-                            if (errSix !== false) {
-                                throw new Error(errSix);
-                            }
-                            console.log("Desk Asset ID: ", deskAssetID);
-                            console.log("Contact Card Activity ID: ", contactCardActivityID);
-                            // Update admin flags for the desk asset
+                        if(!request.restrict_desk_creation){
                             try {
-                                await self.updateAssetFlags({
-                                    ...request,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: deskAssetID,
-                                    flag: 0,
-                                    set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
-                                });
+                                // Create the Desk Asset
+                                const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                                    request,
+                                    employee,
+                                    workforceDeskAssetTypeID,
+                                    newUserDefinedWorkforceResponse.workforce_id,
+                                    userDefinedWorkforceName,
+                                    accountID,
+                                    organizationID
+                                );
+                                if (errSix !== false) {
+                                    throw new Error(errSix);
+                                }
+                                console.log("Desk Asset ID: ", deskAssetID);
+                                console.log("Contact Card Activity ID: ", contactCardActivityID);
+                                // Update admin flags for the desk asset
+                                try {
+                                    await self.updateAssetFlags({
+                                        ...request,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: deskAssetID,
+                                        flag: 0,
+                                        set_admin_flag: 1,
+                                        set_organization_admin_flag: request.asset_flag_organization_admin || 1
+                                    });
+                                } catch (error) {
+                                    logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                                }
+
+                                // Create the Employee Asset
+                                const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
+                                    request,
+                                    employee,
+                                    workforceEmployeeAssetTypeID,
+                                    newUserDefinedWorkforceResponse.workforce_id,
+                                    userDefinedWorkforceName,
+                                    accountID,
+                                    organizationID,
+                                    deskAssetID
+                                );
+                                if (errEight !== false) {
+                                    throw new Error(errEight);
+                                }
+                                console.log("Employee Asset ID: ", employeeAssetID);
+                                console.log("ID Card Activity ID: ", idCardActivityID);
+
+                                // Update admin flags for the employee asset
+                                try {
+                                    await self.updateAssetFlags({
+                                        ...request,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: employeeAssetID,
+                                        flag: 0,
+                                        set_admin_flag: 1,
+                                        set_organization_admin_flag: request.asset_flag_organization_admin || 1
+                                    });
+                                    
+                                    await assetService.updateFlagProcess({
+                                        organization_id : request.organization_id,
+                                        account_id: accountID,
+                                        workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                                        asset_id: deskAssetID,
+                                        asset_flag_process_mgmt : 1
+                                    })
+
+                                } catch (error) {
+                                    logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
+                                }
+
                             } catch (error) {
-                                logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                                console.log("Create the Desk/Employee Asset Error: ", error);
+                                continue;
                             }
-
-                            // Create the Employee Asset
-                            const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
-                                request,
-                                employee,
-                                workforceEmployeeAssetTypeID,
-                                newUserDefinedWorkforceResponse.workforce_id,
-                                userDefinedWorkforceName,
-                                accountID,
-                                organizationID,
-                                deskAssetID
-                            );
-                            if (errEight !== false) {
-                                throw new Error(errEight);
-                            }
-                            console.log("Employee Asset ID: ", employeeAssetID);
-                            console.log("ID Card Activity ID: ", idCardActivityID);
-
-                            // Update admin flags for the employee asset
-                            try {
-                                await self.updateAssetFlags({
-                                    ...request,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: employeeAssetID,
-                                    flag: 0,
-                                    set_admin_flag: 1,
-                                    set_organization_admin_flag: request.asset_flag_organization_admin || 1
-                                });
-                                
-                                await assetService.updateFlagProcess({
-                                    organization_id : request.organization_id,
-                                    account_id: accountID,
-                                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
-                                    asset_id: deskAssetID,
-                                    asset_flag_process_mgmt : 1
-                                })
-
-                            } catch (error) {
-                                logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
-                            }
-
-                        } catch (error) {
-                            console.log("Create the Desk/Employee Asset Error: ", error);
-                            continue;
                         }
                     }
                 }
@@ -4745,15 +4748,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id:request.organization_id,
                 asset_identification_number: String(request.asset_identification_number),
             }, request.organization_id);
-            console.log(checkAadhar)
-            if (errZero_7 || (Number(checkAadhar.length) > 0 && (checkAadhar[0].asset_id!=deskAssetID||checkAadhar[0].asset_id!=employeeAssetID))) {
+            console.log(checkAadhar);
+            if ((errZero_7 || (Number(checkAadhar.length)) > 0 && (checkAadhar[0].asset_id!=deskAssetID&&checkAadhar[0].asset_id!=employeeAssetID))) {
                 console.log("update employee | assetListSelectAadharUniqueID | Error: ", errZero_7);
                 return [true, {
                     message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
                 }]
             }
         }
-// return;
+
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
             const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
@@ -5543,6 +5546,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_activity_type_name||"",
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
+            request.asset_type_flag_enable_send_sms || 0,
             workforceID,
             accountID,
             organizationID,
@@ -5628,6 +5632,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
             request.asset_type_flag_sip_enabled,
+            request.asset_type_flag_enable_send_sms || 0,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
@@ -6685,6 +6690,31 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_organization_list_update_ai_bot', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateOrganizationFeatureInlineData = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.enterprise_feature_data,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_enterprise_feature_data', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -8782,7 +8812,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.log_asset_id || request.asset_id,
                 util.getCurrentUTCTime()
             );
-
+        const [dupErr,dupData] = await this.formEntityAccessCheck({...request,workforce_id:request.sharing_workforce_id,account_id:request.sharing_account_id})
+        
+        if(dupData.length>0){
+            return [true,{message:"this form is shared already"}]
+        }
         const queryString = util.getQueryString('ds_p1_1_form_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -8796,6 +8830,36 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         return [error,formEntityData];
     };  
+
+    this.formEntityAccessCheck = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id||0,
+            request.target_asset_id,
+            request.target_form_id,
+            request.flag||0
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldData];
+    };
 
 
     async function getUser(username) {
@@ -9048,6 +9112,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         request.asset_type_approval_activity_type_name,
         request.asset_type_attendance_type_id ,
         request.asset_type_attendance_type_name,
+        request.asset_type_flag_enable_send_sms || 0,
         request.organization_id,
         1,
         util.getCurrentUTCTime(),
@@ -9142,6 +9207,152 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 })
         }
         console.log("roleAssetMappingInsert : "+JSON.stringify(responseData,2,null));
+        return [error, responseData];
+    }
+
+    
+    // Update Organization name
+    this.updateOrganizationName = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.organization_name,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("update organization name : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Building name
+    this.updateBuildingName = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.account_name,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("update building name : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Asset Manager mapping flag
+    this.updateAssetManagerMappingFlag = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.manager_asset_id,
+            request.flag_dotted_manager,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_update_flag_dotted_manager', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("Update Asset Manager mapping flag : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.selectBotOnField = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
+            request.form_id,
+            request.field_id,
+            request.data_type_combo_id,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_field', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Account check for dotted manager
+    this.accountCheckForDottedManager = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.activity_id,
+            request.activity_creator_asset_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_dotted_manager_account', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("accountCheckForDottedManager : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("accountCheckForDottedManager : error response = ");
+                    console.log(err);
+                    return [error, responseData];
+                })
+        }
         return [error, responseData];
     }
 }

@@ -3,6 +3,7 @@ const ActivityTimelineService = require("../../services/activityTimelineService.
 function DrsService(objectCollection) {  
   const db = objectCollection.db;  
   const util = objectCollection.util;  
+  const self = this;
 
   const activityTimelineService = new ActivityTimelineService(objectCollection);
 
@@ -40,7 +41,7 @@ function DrsService(objectCollection) {
   };
 
   //Service to give doc access to asset
-  this.shareDocToAsset = async (request) => {
+  this.shareDocToAssetBaseOnType = async (request) => {
     let responseData = [],
         error = true;
     
@@ -60,16 +61,55 @@ function DrsService(objectCollection) {
         await db.executeQueryPromise(0, queryString, request)
             .then(async (data) => {
               responseData = data;
-              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2406)
-                error = false;
+              error = false;
+                docRepoAssetMappingHistoryInsert(request,2406)
+
             })
             .catch((err) => {
                 error = err;
             });
-    }
-
+    }    
     return [error, responseData];
   };
+
+  this.shareDocToAsset = async (request) => {
+        let responseData = [],
+        error = true;
+        let typeBase = [];
+        if(Number(request.type_flag)){
+            typeBase = JSON.parse(request.target_assets);
+            for(let i = 0 ;i < typeBase.length ; i++){
+                request.target_asset_id = typeBase[i];
+                request.asset_type_id = 0;
+                request.access_level_id = 6;
+                let [err1,data] = await self.shareDocToAssetBaseOnType(request);
+
+                if(err1){
+                    error = err1;
+                } else {
+                    error = false;
+                    responseData = data;
+                }
+            }
+        } else {
+            typeBase = JSON.parse(request.asset_types);
+            for(let i = 0 ;i < typeBase.length ; i++){
+                request.asset_type_id = typeBase[i];
+                request.target_asset_id = 0;
+                request.access_level_id = 5;
+                //console.log(JSON.stringify(request,null,2));
+                let [err1,data] = await self.shareDocToAssetBaseOnType(request);
+                if(err1){
+                        error = err1;
+                } else {
+                        error = false;
+                        responseData = data;
+                }
+            }
+        }
+
+        return [error, responseData];
+        };
 
   //Service to remove doc access to asset
   this.removeDocToAsset = async (request) => {
@@ -90,7 +130,7 @@ function DrsService(objectCollection) {
         await db.executeQueryPromise(0, queryString, request)
             .then(async (data) => {
               responseData = data;
-              let [assetHisErr,assetHisData] = await assetHistoryInsert(request,2407)
+              let [assetHisErr,assetHisData] = await docRepoAssetMappingHistoryInsert(request,2407)
                 error = false;
             })
             .catch((err) => {
@@ -164,8 +204,34 @@ function DrsService(objectCollection) {
   };
 
 
-  //Service to create a folder in document repository
+  //Service to create multiple folder in document repository
   this.createFolder = async (request) => {
+    let responseData = [],
+        error = true;
+
+    try{
+        let urlList = JSON.parse(request.document_repository_folder_url);
+        for(let i = 0 ;i < urlList.length ; i++){
+            request.document_repository_name = urlList[i].name;
+            request.document_repository_folder_url = urlList[i].url;
+            let [err1,data] = await self.createFolderOneByOne(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                data[0].name = request.document_repository_name
+                responseData.push(data[0]);
+            }        
+        }
+    } catch (err){
+        return [err, responseData];        
+    }
+
+    return [error, responseData];
+  };
+
+  //Service to create a folder in document repository
+  this.createFolderOneByOne = async (request) => {
     let responseData = [],
         error = true;
 
@@ -199,8 +265,8 @@ function DrsService(objectCollection) {
             });
     }
 
-    return [error, responseData];
-  };
+    return [error, responseData];      
+  }
 
   async function docHistoryInsert(request,update_type_id){
       let responseData=[];
@@ -226,14 +292,13 @@ function DrsService(objectCollection) {
     return [responseData,error]
   }
 
-  async function assetHistoryInsert(request,update_type_id){
+  async function docRepoAssetMappingHistoryInsert(request,update_type_id){
     let responseData=[];
     let error = true;
   let paramsArr = [
       request.organization_id,
       request.document_repository_id,
       request.target_asset_id,
-      request.asset_type_id||0,
       update_type_id||0,
       util.getCurrentUTCTime()
   ];
@@ -294,6 +359,8 @@ function DrsService(objectCollection) {
             request.asset_type_id,
             request.access_level_id||6,
             request.flag,
+            request.workforce_id || 0,
+            request.account_id || 0,
             request.page_start,
             request.page_limit
         ];
@@ -354,7 +421,11 @@ function DrsService(objectCollection) {
             request.document_repository_id,
             request.repository_sub_type_id,
             request.asset_id,
+            request.asset_type_id,
+            request.access_level_id||6,
             1,
+            request.workforce_id || 0,
+            request.account_id || 0,
             request.page_start,
             request.page_limit
         ];
@@ -608,6 +679,39 @@ function DrsService(objectCollection) {
 
 //     return [error, responseData];
 //   };
+
+
+  //Update Doc Repo folder name
+  this.updateDocRepoFolderName = async (request) => {
+    let responseData = [],
+        error = true;
+
+    try{
+        const paramsArr = [
+                            request.organization_id,
+                            request.document_repository_id,
+                            request.document_repository_name,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                          ];
+    
+        const queryString = util.getQueryString('ds_p1_document_repository_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                  responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    
+        return [error, responseData];
+    } catch (err){
+        return [err, responseData];        
+    }
+  };
 
 
 }

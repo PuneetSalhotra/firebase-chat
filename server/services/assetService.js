@@ -30,6 +30,8 @@ function AssetService(objectCollection) {
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
+    let self = this;
+
     this.getPhoneNumberAssets = function (request, callback) {
 
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
@@ -820,7 +822,9 @@ function AssetService(objectCollection) {
             "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
 
             //email integrations
-            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable'])
+            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
+            "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
+            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime '])
         };
 
         callback(false, rowData);
@@ -6097,21 +6101,38 @@ this.getQrBarcodeFeeback = async(request) => {
 
     async function getAssetReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id")){ 
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.form_id,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+             ]
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+            ]
+            queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        }
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
@@ -6120,29 +6141,48 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
             });
         }
-
         return [error, responseData];
     }
 
     async function getAssetRoleReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        
-        const queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id"))
+        {
+            let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_id,
+            request.asset_type_id,
+            request.asset_type_category_id,
+            request.flag_filter,
+            request.form_id,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
+            ];
+
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+                ];
+            queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        }            
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
@@ -6475,6 +6515,31 @@ this.getQrBarcodeFeeback = async(request) => {
     }
 
     return [error, responseData];
+    }
+
+    
+    this.assetSessionLogout = async (request) => {
+        let responseData = [],
+        error = true; 
+
+        let message = {
+            organization_id: request.organization_id,
+            target_asset_id: request.target_asset_id,
+            asset_id: request.asset_id,
+            datetime: util.getCurrentUTCTime(),
+            type: "logout"
+        };
+
+        let data = {
+            organization_id: request.organization_id,
+            asset_id: request.target_asset_id
+        }
+
+        responseData = util.sendPushNotification(request, data, message);
+        error = false;
+        console.log("assetSessionLogout  : " +JSON.stringify(responseData));       
+        return [error, responseData]
+
     }
 
 }

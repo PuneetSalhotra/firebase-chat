@@ -437,6 +437,7 @@ if(mode === 'local') {
         "https://stagingdashboard2.greneos.com",
         'http://127.0.0.1',
         'http://localhost:3000',
+        'https://d1g3r3ihuqqg05.cloudfront.net'
     ];
 }
 
@@ -535,6 +536,7 @@ if(mode === 'dev') {
         "https://stagingdashboard2.greneos.com",
         'http://127.0.0.1',
         'http://localhost:3000',
+        'https://d1g3r3ihuqqg05.cloudfront.net/'
     ];
 
 }
@@ -649,6 +651,7 @@ if(mode === 'demo') {
         "https://sprintdashboard2.greneos.com",
         'http://127.0.0.1',
         'http://localhost:3000',
+        "https://d1g3r3ihuqqg05.cloudfront.net/"
     ];
 }
 
@@ -824,7 +827,7 @@ if(mode === 'staging') {
 
     //Redis Config    
     //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisIp = 'localhost';
+    config.redisIp = '10.0.1.226';
     config.redisPort = 6379;
 
     //IOS Push
@@ -927,7 +930,11 @@ if(mode === 'staging') {
         "http://127.0.0.1",
         "http://localhost:3000",
         "http://localhost:5000",
-        "https://stagingmanagement.greneos.com"
+        "https://stagingmanagement.greneos.com",
+        "https://d1g3r3ihuqqg05.cloudfront.net",
+        "http://d1g3r3ihuqqg05.cloudfront.net",
+        "https://vibusinesshub.myvi.in",
+        "http://vibusinesshub.myvi.in" 
     ];
 }
 
@@ -1051,7 +1058,11 @@ if(mode === 'preprod') {
         "https://preproddashboard2.greneos.com",
         "https://preprodmanagement.greneos.com",
         'http://localhost:3000',
-        'http://localhost:5000'
+        'http://localhost:5000',
+        "https://d1g3r3ihuqqg05.cloudfront.net",
+        "http://d1g3r3ihuqqg05.cloudfront.net",
+        "https://vibusinesshub.myvi.in",
+        "http://vibusinesshub.myvi.in" 
     ];
 }
 
@@ -1180,7 +1191,9 @@ if(mode === 'prod') {
         'https://web.greneos.com/',
         'https://dashboard.greneos.com',
         'https://management.greneos.com',
-        "https://dashboard2.greneos.com",        
+        "https://dashboard2.greneos.com",  
+        "https://vibusinesshub.myvi.in/",
+        "http://vibusinesshub.myvi.in/"
     ];
 }
 
