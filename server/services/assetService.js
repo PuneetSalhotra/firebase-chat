@@ -1014,8 +1014,10 @@ function AssetService(objectCollection) {
                 // Pick the initial/primary SMS provider from domesticSmsMode.txt
                 if (countryCode === 91) {
 
-                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    domesticSmsMode = Number(redisValdomesticSmsMode);
+                    // fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
 
                         /*   case 1: // mvaayoo                        
                                 util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1055,14 +1057,17 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-bulksms-sms', smsOptions);
                                 break;
                         }
-                    })
+                
 
                     /* smsEngine.sendDomesticSms(smsOptions); */
 
                 } else {
 
-                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
+                    let redisValinternationalSmsMode = await cacheWrapper.getSmsMode('international_sms_mode');
+                    internationalSmsMode = Number(redisValinternationalSmsMode);
+
+                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
 
                         /* case 1:
                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1086,7 +1091,7 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-nexmo-sms', smsOptions);
                                 break;
                         }
-                    })
+                    
 
                     // let smsOptions = {
                     //     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
