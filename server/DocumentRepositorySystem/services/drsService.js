@@ -203,7 +203,7 @@ function DrsService(objectCollection) {
             if(Number(request.type_flag)){
                 for(let i = 0 ;i < workforce_array.length ; i++){
                     request.workforce_id = workforce_array[i];
-                    request.asset_type_id = asset_type_array[0];
+                    request.asset_type_id = 0;
                     let [err1,data] = await self.shareDRSToASpecificRole(request);
                     if(err1){
                         error = err1;
@@ -216,7 +216,7 @@ function DrsService(objectCollection) {
                 }
             } else {
                 for(let i = 0 ;i < asset_type_array.length ; i++){
-                    request.workforce_id = workforce_array[0];
+                    request.workforce_id = 0;
                     request.asset_type_id = asset_type_array[i];
                     let [err1,data] = await self.shareDRSToASpecificRole(request);
                     if(err1){
