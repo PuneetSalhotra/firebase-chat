@@ -203,7 +203,7 @@ function DrsService(objectCollection) {
             if(Number(request.type_flag)){
                 for(let i = 0 ;i < workforce_array.length ; i++){
                     request.workforce_id = workforce_array[i];
-                    request.asset_type_id = asset_type_array[0];
+                    request.asset_type_id = 0;
                     let [err1,data] = await self.shareDRSToASpecificRole(request);
                     if(err1){
                         error = err1;
@@ -216,7 +216,7 @@ function DrsService(objectCollection) {
                 }
             } else {
                 for(let i = 0 ;i < asset_type_array.length ; i++){
-                    request.workforce_id = workforce_array[0];
+                    request.workforce_id = 0;
                     request.asset_type_id = asset_type_array[i];
                     let [err1,data] = await self.shareDRSToASpecificRole(request);
                     if(err1){
@@ -807,8 +807,42 @@ function DrsService(objectCollection) {
     } catch (err){
         return [err, responseData];        
     }
-  };
+}
 
+    //DELETE repository access for workforce
+  this.deleteDocRepoForWorkforce = async (request) => {
+    let responseData = [],
+        error = true;
 
+    try{
+        const paramsArr = [
+                            request.organization_id,
+                            request.activity_type_id,
+                            request.asset_type_id||0,
+                            request.workforce_id,
+                            request.log_state,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                          ];
+    
+        const queryString = util.getQueryString('ds_p1_1_activity_type_asset_type_mapping_update_log_state', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                  responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    
+        return [error, responseData];
+    } catch (err){
+        return [err, responseData];        
+    }
+}
+  
+  
 }
 module.exports = DrsService;
