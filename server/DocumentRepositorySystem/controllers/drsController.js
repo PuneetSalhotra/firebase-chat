@@ -28,6 +28,17 @@ function DrsController(objCollection)
         }
     });
 
+
+    //Service to share document repository to a specific role
+    app.post('/' + global.config.version + '/drs/doc-repo/workforce-role/access/set', async (req, res) => {
+        const [err, data] = await drsService.shareDRSToASpecificWorkforceRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    }); 
+
     //Service to remove sharing of a document repository to a specific role
     app.post('/' + global.config.version + '/drs/doc-repo/specific-role/access/reset', async (req, res) => {
         const [err, data] = await drsService.removeDRSToASpecificRole(req.body);
