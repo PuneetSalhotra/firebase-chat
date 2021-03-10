@@ -494,6 +494,9 @@ function FormConfigService(objCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+        
+        //added new flag 
+        request.isFieldEdit = 1;
 
         //From the request you are suppossed to get the form_activity_id in the parameter activity_id
         //for some migration data in production Instread of getting form_activity_id we are getting workflow_activity_id in the parameter activity_id
