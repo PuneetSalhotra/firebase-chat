@@ -10436,8 +10436,13 @@ async function removeAsOwner(request,data)  {
             let valuesToBeChecked = inlineData.values[currentExecution.values];
 
 
-            if(currentExecution.key_number == 1 && currentExecution.isEnable) {
+            if(currentExecution.key_number == 1) {
 
+                if(!currentExecution.isEnable) {
+                    logger.info(request.workflow_activity_id+" : larger DOA : Empowerment DOA is disabled ");
+                    continue;
+                }
+                
                 logger.info(request.workflow_activity_id+" : larger DOA : Final Prcessing Data " + JSON.stringify(formInputToProcess));
                 logger.info(request.workflow_activity_id+" : larger DOA : Processing Empowerment DOA "+ JSON.stringify(valuesToBeChecked[0]) +' currentExecution values'+ currentExecution.values);
                 let response = await checkCustomBotV1(request, valuesToBeChecked[0], resultProductAndRequestType, formInputToProcess, connectionTypeValue);
