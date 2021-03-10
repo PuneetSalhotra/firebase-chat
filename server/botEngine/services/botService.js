@@ -44,7 +44,7 @@ function isObject(obj) {
 }
 
 function BotService(objectCollection) {
-
+    console.log("BotService :");
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
@@ -1024,7 +1024,7 @@ function BotService(objectCollection) {
 
     this.initBotEngine = async (request) => {        
         request.debug_info = [];
-
+        request.debug_info.push("initBotEngine" +JSON.stringify(request));
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
 
@@ -10350,7 +10350,7 @@ async function removeAsOwner(request,data)  {
     }
 
     async function checkLargeDoa(request, inlineData) {
-
+        console.log("checkLargDoa");
         await sleep(5 * 1000);
 
         request.form_id = 4353;
@@ -10596,18 +10596,16 @@ async function removeAsOwner(request,data)  {
             global_array : []
         };
 
-        let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
-
+        //Based on requet parameter isFieldEdit == 1 deciding 
+        //field_name: 'Assign Commercial L1' value as 'No' Otherwise value as 'Yes'
+        console.log("isFieldEdit = " + request.isFieldEdit);
         let fieldValueForAssignCommercialL1 = 'Yes';
-
-        if(formEditErr) {
-            fieldValueForAssignCommercialL1 = 'No';
-        } else {
-            if(formEditData.length > 0) {
+        if(request.hasOwnProperty("isFieldEdit")) {
+            if(request.isFieldEdit == 1) {
                 fieldValueForAssignCommercialL1 = 'No';
             }
         }
-
+        
         createWorkflowRequest.activity_inline_data      = JSON.stringify([
             {
                 form_id: 50476,
@@ -10738,14 +10736,12 @@ async function removeAsOwner(request,data)  {
                 global_array : []
             };
 
-            let [formEditErr, formEditData] = await rmBotService.getFormEdidtedTimelineDetails(requestObj);
-
+            //Based on requet parameter isFieldEdit == 1 deciding 
+            //field_name: 'Assign Commercial L1' value as 'No' Otherwise value as 'Yes'
+            console.log("isFieldEdit = " + request.isFieldEdit);
             let fieldValueForAssignCommercialL1 = 'Yes';
-
-            if(formEditErr) {
-                fieldValueForAssignCommercialL1 = 'No';
-            } else {
-                if(formEditData.length > 0) {
+            if(request.hasOwnProperty("isFieldEdit")) {
+                if(request.isFieldEdit == 1) {
                     fieldValueForAssignCommercialL1 = 'No';
                 }
             }
