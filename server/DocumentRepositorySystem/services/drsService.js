@@ -807,8 +807,42 @@ function DrsService(objectCollection) {
     } catch (err){
         return [err, responseData];        
     }
-  };
+}
 
+    //DELETE repository access for workforce
+  this.deleteDocRepoForWorkforce = async (request) => {
+    let responseData = [],
+        error = true;
 
+    try{
+        const paramsArr = [
+                            request.organization_id,
+                            request.activity_type_id,
+                            request.asset_type_id||0,
+                            request.workforce_id,
+                            request.log_state,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                          ];
+    
+        const queryString = util.getQueryString('ds_p1_1_activity_type_asset_type_mapping_update_log_state', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                  responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    
+        return [error, responseData];
+    } catch (err){
+        return [err, responseData];        
+    }
+}
+  
+  
 }
 module.exports = DrsService;
