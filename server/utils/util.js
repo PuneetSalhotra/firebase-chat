@@ -2279,12 +2279,12 @@ function Util(objectCollection) {
         let pwd;
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password || "", 'lp-n5^+8M@62');
-            // console.log('decrypted PWD : ', decrypted);
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
                 username: request.email_sender,
-                password: request.email_sender_password_text || decrypted.toString(),
+                password: decrypted,
                 host: 'https://webmail.vodafoneidea.com'    
             };
         } else {
@@ -2385,7 +2385,7 @@ function Util(objectCollection) {
             request.is_version_v1 = 1;
             let [error, assetDetails] = await this.getAssetDetails(request);
 
-            console.log("assetDetails[0].asset_email_password before encrypt", assetDetails[0].asset_email_password);
+            console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
             request.email_sender_password_text = assetDetails[0].asset_email_password;
             const err = await this.sendEmailEWS(request, email, subject, htmlTemplate);
             if(err) {
