@@ -65,7 +65,6 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
-                req.body.base_url = req.url;
                 
                 if(Number(req.headers['x-grene-auth-flag']) === 2) {
                     console.log('Skipping Redis Auth coz x-grene-auth-flag is 2');

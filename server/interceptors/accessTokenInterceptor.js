@@ -13,7 +13,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         req.body.service_id = "";
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
-        req.body.base_url = req.url;        
+                
         //Check for flag - Cognito or Redis Auth
         //x-grene-auth-flag = 1 - Redis
         //x-grene-auth-flag = 2 - Cognito
