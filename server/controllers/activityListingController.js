@@ -1123,6 +1123,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/retrieve/asset/access/role/V1', async (req, res) => {
+        try{
+            const response = await activityCommonService.activityAssetMappingSelectActivityParticipantWithStatus(req.body,req.activity_id);
+            res.send(responseWrapper.getResponse(false, response, 200, req.body));
+        }catch(err) {
+            console.log("/retrieve/asset/access/role/V1 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityListingController;
