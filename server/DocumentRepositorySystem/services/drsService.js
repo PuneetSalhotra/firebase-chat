@@ -192,7 +192,52 @@ function DrsService(objectCollection) {
     return [error, responseData];
   };
 
-  //Service to share document repository to a specific role
+  //Service to share document repository to a specific role depend on asset_type_array or workforce_array
+  this.shareDRSToASpecificWorkforceRole = async (request) => {
+    let responseData = [],
+        error = true;
+    
+        try{
+            let workforce_array = JSON.parse(request.workforce_array);
+            let asset_type_array = JSON.parse(request.asset_type_array);
+            if(Number(request.type_flag)){
+                for(let i = 0 ;i < workforce_array.length ; i++){
+                    request.workforce_id = workforce_array[i];
+                    request.asset_type_id = asset_type_array[0];
+                    let [err1,data] = await self.shareDRSToASpecificRole(request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        data[0].asset_type_id = 0;
+                        data[0].workforce_id = workforce_array[i];
+                        responseData.push(data[0]);
+                    }        
+                }
+            } else {
+                for(let i = 0 ;i < asset_type_array.length ; i++){
+                    request.workforce_id = workforce_array[0];
+                    request.asset_type_id = asset_type_array[i];
+                    let [err1,data] = await self.shareDRSToASpecificRole(request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        data[0].asset_type_id = asset_type_array[i];
+                        data[0].workforce_id = 0;
+                        responseData.push(data[0]);
+                    }        
+                }
+            }
+        } catch (err){
+            console.log(err);
+            return [err, responseData];        
+        }    
+    return [false, responseData];
+  };
+
+
+  //Service to share document repository to a specific role 
   this.shareDRSToASpecificRole = async (request) => {
     let responseData = [],
         error = true;

@@ -883,6 +883,23 @@ function CacheWrapper(client) {
        });        
    };
 
+   this.getSmsMode = (mode) => {
+    return new Promise((resolve, reject) => {
+
+        //To handle the first time reading case - Key will be missing then we are sending 0
+        client.get(mode, (err, reply) => {
+            if(err) {
+                reject(err);
+            }
+            console.log('REPLY - get SMS Mode : ', reply);
+            resolve(reply);
+
+            
+        });
+
+    });
+};
+
 }
 
 module.exports = CacheWrapper;
