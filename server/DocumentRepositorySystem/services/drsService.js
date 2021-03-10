@@ -72,17 +72,52 @@ function DrsService(objectCollection) {
     return [error, responseData];
   };
 
+    //Service to give doc access to asset v1
+  this.shareDocToAssetBaseOnTypeV1 = async (request) => {
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [
+                            request.document_repository_id,
+                            request.target_asset_id,
+                            request.target_access_id,
+                            request.asset_type_id,
+                            request.access_level_id||6,
+                            request.organization_id,
+                            request.account_id||0,
+                            request.target_workforce_id||0,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                          ];
+    
+        const queryString = util.getQueryString('ds_p1_1_document_repository_asset_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                  responseData = data;
+                  error = false;
+                    docRepoAssetMappingHistoryInsert(request,2406)
+    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }    
+        return [error, responseData];
+      };
+
   this.shareDocToAsset = async (request) => {
         let responseData = [],
         error = true;
         let typeBase = [];
-        if(Number(request.type_flag)){
+        if(Number(request.type_flag) === 1){
             typeBase = JSON.parse(request.target_assets);
             for(let i = 0 ;i < typeBase.length ; i++){
                 request.target_asset_id = typeBase[i];
                 request.asset_type_id = 0;
                 request.access_level_id = 6;
-                let [err1,data] = await self.shareDocToAssetBaseOnType(request);
+                request.target_workforce_id = 0;
+                let [err1,data] = await self.shareDocToAssetBaseOnTypeV1(request);
 
                 if(err1){
                     error = err1;
@@ -91,14 +126,31 @@ function DrsService(objectCollection) {
                     responseData = data;
                 }
             }
-        } else {
+        } else if(Number(request.type_flag) === 2){
             typeBase = JSON.parse(request.asset_types);
             for(let i = 0 ;i < typeBase.length ; i++){
                 request.asset_type_id = typeBase[i];
                 request.target_asset_id = 0;
                 request.access_level_id = 5;
+                request.target_workforce_id = 0;
                 //console.log(JSON.stringify(request,null,2));
-                let [err1,data] = await self.shareDocToAssetBaseOnType(request);
+                let [err1,data] = await self.shareDocToAssetBaseOnTypeV1(request);
+                if(err1){
+                        error = err1;
+                } else {
+                        error = false;
+                        responseData = data;
+                }
+            }
+        } else if(Number(request.type_flag) === 3){
+            typeBase = JSON.parse(request.target_workforces);
+            for(let i = 0 ;i < typeBase.length ; i++){
+                request.target_workforce_id = typeBase[i];
+                request.target_asset_id = 0;
+                request.access_level_id = 3;
+                request.asset_type_id = 0;
+                //console.log(JSON.stringify(request,null,2));
+                let [err1,data] = await self.shareDocToAssetBaseOnTypeV1(request);
                 if(err1){
                         error = err1;
                 } else {
@@ -107,9 +159,8 @@ function DrsService(objectCollection) {
                 }
             }
         }
-
         return [error, responseData];
-        };
+    };
 
   //Service to remove doc access to asset
   this.removeDocToAsset = async (request) => {
