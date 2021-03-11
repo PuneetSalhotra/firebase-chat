@@ -44,7 +44,7 @@ function isObject(obj) {
 }
 
 function BotService(objectCollection) {
-    console.log("BotService :");
+    
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
