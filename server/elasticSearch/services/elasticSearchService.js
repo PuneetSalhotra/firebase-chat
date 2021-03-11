@@ -493,6 +493,11 @@ function CommnElasticService(objectCollection) {
         let error = false,
             responseData = [];
 
+            if(!request.hasOwnProperty("debug_info"))
+                request.debug_info = [];
+
+            request.debug_info.push("IN updateAccountCode : ");
+
         let body = {
             activity_type_id: Number(request.activity_type_id),
             workforce_id: Number(request.workforce_id),
@@ -512,10 +517,12 @@ function CommnElasticService(objectCollection) {
         (accountCode    || request.hasOwnProperty('cuid_3')) ? body.activity_cuid_3 = accountCode || request.cuid_3 : "";
 
         console.log("updateAccountCode : " + JSON.stringify(body));
+        request.debug_info.push("updateAccountCode : " + JSON.stringify(body));
         client.index({
             index: 'crawling_accounts',
             body: body
         });
+        request.debug_info.push("Before addintoActivitySearchMapping : ");
         let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
     };
@@ -574,26 +581,28 @@ function CommnElasticService(objectCollection) {
                         0                           
                       ];
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    request.debug_info.push("addintoActivitySearchMapping "+queryString);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
             .then((data) => {
                 responseData = data;
-                if(data.length>0){
-                let dataTobeSent = responseData[0];
-                client.index({
-                    index: 'activity_search_mapping',
-                    body: {
-                       ...dataTobeSent              
-                    }
-                })
-            }
+                request.debug_info.push("data.length : "+data.length);
+                if(data.length>0){                    
+                    let dataTobeSent = responseData[0];
+                    client.index({
+                        index: 'activity_search_mapping',
+                        body: {
+                        ...dataTobeSent              
+                        }
+                    })
+                }
                 error = false;
             })
             .catch((err) => {
                 error = err;
             });
     }
-
+    request.debug_info.push(dataTobeSent);
     return [error, responseData];
     }
 
