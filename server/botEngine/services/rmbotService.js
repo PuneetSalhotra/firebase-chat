@@ -3038,7 +3038,9 @@ function RMBotService(objectCollection) {
     this.activityListLeadUpdateV2 = async function (request, lead_asset_id) {
         let responseData = [],
             error = true;       
-        
+        if(!request.hasOwnProperty("debug_info"))
+            request.debug_info = [];
+
         request.datetime_log = util.getCurrentUTCTime();        
         let paramsArr = new Array(
                 request.activity_id,
@@ -3051,12 +3053,13 @@ function RMBotService(objectCollection) {
             );
 
         let queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+        request.debug_info.push(queryString);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                     .then(async (data) => {
                         responseData = data;
                         error = false;                        
-                      
+                        request.debug_info.push("UPDATE LEAD RESPONSE "+JSON.stringify(data));
                         self.activityListHistoryInsertAsync(request, 15);
 
                         request.target_lead_asset_id = lead_asset_id;
