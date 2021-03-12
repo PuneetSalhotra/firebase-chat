@@ -44,7 +44,7 @@ function isObject(obj) {
 }
 
 function BotService(objectCollection) {
-    console.log("BotService :");
+    
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
@@ -6188,6 +6188,7 @@ async function removeAsOwner(request,data)  {
         assetData.asset_type_id = deskAssetData.asset_type_id;
 
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
+        request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
         return await addDeskAsParticipant(request, assetData);
 
         /*if(dataResp.length > 0) { //status is true means service desk exists
@@ -6442,13 +6443,17 @@ async function removeAsOwner(request,data)  {
         };
 
         logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest));
-
+        request.debug_info.push(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest))
         return await new Promise((resolve, reject) => {
             activityParticipantService.assignCoworker(addParticipantRequest, async (err, resp) => {
                 if(err === false) {                    
                     
                     //Check for lead flag                    
                     console.log('request.is_lead in BotService: ',request.is_lead);
+                    request.debug_info.push("request.is_lead : "+request.is_lead);
+                    request.debug_info.push("request.is_owner : "+request.is_owner);
+                    request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
+
                     logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
@@ -6461,7 +6466,7 @@ async function removeAsOwner(request,data)  {
                             newReq.lead_asset_id = Number(assetData.desk_asset_id);
                             newReq.timeline_stream_type_id = 718;
                             newReq.datetime_log = util.getCurrentUTCTime();
-
+                        request.debug_info.push(" addDeskAsParticipant | Before activityListLeadUpdateV2 |"+assetData.desk_asset_id);
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
                         //Get the asset Details of the requestor
@@ -13071,7 +13076,7 @@ async function removeAsOwner(request,data)  {
             timelineReq.activity_stream_type_id = 705;
             timelineReq.timeline_stream_type_id = 705;
             timelineReq.activity_type_category_id = 48;
-            timelineReq.asset_id = deskAssetData.asset_id;
+            timelineReq.asset_id = 100;
             timelineReq.activity_timeline_collection = activityTimelineCollection;
             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
