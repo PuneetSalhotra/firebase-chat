@@ -602,7 +602,7 @@ function CommnElasticService(objectCollection) {
                 error = err;
             });
     }
-    request.debug_info.push(dataTobeSent);
+    //request.debug_info.push(dataTobeSent);
     return [error, responseData];
     }
 
