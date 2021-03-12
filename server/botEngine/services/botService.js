@@ -13074,7 +13074,7 @@ async function removeAsOwner(request,data)  {
             timelineReq.activity_stream_type_id = 705;
             timelineReq.timeline_stream_type_id = 705;
             timelineReq.activity_type_category_id = 48;
-            timelineReq.asset_id = deskAssetData.asset_id;
+            timelineReq.asset_id = 100;
             timelineReq.activity_timeline_collection = activityTimelineCollection;
             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
