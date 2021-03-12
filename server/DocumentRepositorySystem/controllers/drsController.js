@@ -177,7 +177,7 @@ function DrsController(objCollection)
     });
 
     app.post('/' + global.config.version + '/drs/doc-repo/remove/user/access', async (req, res) => {
-        const [err, data] = await drsService.removeDocToAsset(req.body);
+        const [err, data] = await drsService.removeDocRepoAccess(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
