@@ -10735,25 +10735,8 @@ async function removeAsOwner(request,data)  {
             let createWorkflowRequest                       = Object.assign({}, request);
 
             //Assign field_value based on value exists in db or not.
-            //Mangesh Shinde - 04 March 2021
-            let requestObj = {
-                organization_id : request.organization_id,
-                activity_id : request.activity_id,
-                trigger_form_id : request.form_id,
-                global_array : []
-            };
-
-            //Based on requet parameter isFieldEdit == 1 deciding 
-            //field_name: 'Assign Commercial L1' value as 'No' Otherwise value as 'Yes'
-            console.log("isFieldEdit = " + request.isFieldEdit);
-            let fieldValueForAssignCommercialL1 = 'Yes';
-            let comboValueForAssignCommercialL1 = 1;
-            if(request.hasOwnProperty("isFieldEdit")) {
-                if(request.isFieldEdit == 1) {
-                    fieldValueForAssignCommercialL1 = 'No';
-                    comboValueForAssignCommercialL1 = 2;
-                }
-            }
+            let fieldValueForAssignCommercialL1 = 'No';
+            let comboValueForAssignCommercialL1 = 2;
 
             createWorkflowRequest.activity_inline_data      = JSON.stringify([
                 {
