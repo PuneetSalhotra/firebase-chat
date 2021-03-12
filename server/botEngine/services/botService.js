@@ -10605,9 +10605,11 @@ async function removeAsOwner(request,data)  {
         //field_name: 'Assign Commercial L1' value as 'No' Otherwise value as 'Yes'
         console.log("isFieldEdit = " + request.isFieldEdit);
         let fieldValueForAssignCommercialL1 = 'Yes';
+        let comboValueForAssignCommercialL1 = 1;
         if(request.hasOwnProperty("isFieldEdit")) {
             if(request.isFieldEdit == 1) {
                 fieldValueForAssignCommercialL1 = 'No';
+                comboValueForAssignCommercialL1 = 2;
             }
         }
         
@@ -10651,7 +10653,7 @@ async function removeAsOwner(request,data)  {
                 field_name: 'Assign Commercial L1',
                 field_data_type_id: 33,
                 field_data_type_category_id: 14,
-                data_type_combo_id: 0,
+                data_type_combo_id: comboValueForAssignCommercialL1,
                 data_type_combo_value: fieldValueForAssignCommercialL1,
                 field_value: fieldValueForAssignCommercialL1,
                 message_unique_id: 1611037843535
@@ -10745,9 +10747,11 @@ async function removeAsOwner(request,data)  {
             //field_name: 'Assign Commercial L1' value as 'No' Otherwise value as 'Yes'
             console.log("isFieldEdit = " + request.isFieldEdit);
             let fieldValueForAssignCommercialL1 = 'Yes';
+            let comboValueForAssignCommercialL1 = 1;
             if(request.hasOwnProperty("isFieldEdit")) {
                 if(request.isFieldEdit == 1) {
                     fieldValueForAssignCommercialL1 = 'No';
+                    comboValueForAssignCommercialL1 = 2;
                 }
             }
 
@@ -10791,7 +10795,7 @@ async function removeAsOwner(request,data)  {
                     field_name: 'Assign Commercial L1',
                     field_data_type_id: 33,
                     field_data_type_category_id: 14,
-                    data_type_combo_id: 0,
+                    data_type_combo_id: comboValueForAssignCommercialL1,
                     data_type_combo_value: fieldValueForAssignCommercialL1,
                     field_value: fieldValueForAssignCommercialL1,
                     message_unique_id: 1611037843535
