@@ -10964,16 +10964,21 @@ async function removeAsOwner(request,data)  {
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
         logger.info(request.workflow_activity_id+" : larger DOA : checkCustomBotV1 :dateFormData "+ JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
-
-        let deskAssetData;
-        [error, deskAssetData] = await rmBotService.getNextRoundRobinAsset({
-            organization_id : request.organization_id,
-            asset_type_id   : inlineData.asset_type_id,
-            activity_id     : request.workflow_activity_id 
+        let dataResp = await getAssetDetailsOfANumber({
+            country_code : inlineData.country_code || '',
+            phone_number : inlineData.phone_number,
+            organization_id : request.organization_id
         });
+        let deskAssetData;
+        if (dataResp.length > 0) {
+            for (let i of dataResp) {
+                if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
+                    deskAssetData = i;
+                    break;
+                }
+            }
+        }
 
-        deskAssetData = deskAssetData[0];
-        request.debug_info.push('Response from ARP : ' + JSON.stringify(deskAssetData));
         // validating product and request type
         // let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
@@ -11778,7 +11783,7 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
@@ -12746,7 +12751,7 @@ async function removeAsOwner(request,data)  {
         timelineReq.activity_stream_type_id = 705;
         timelineReq.timeline_stream_type_id = 705;
         timelineReq.activity_type_category_id = 48;
-        timelineReq.asset_id = deskAssetData.asset_id;
+        timelineReq.asset_id = 100;
         timelineReq.activity_timeline_collection = activityTimelineCollection;
         timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
@@ -13069,7 +13074,7 @@ async function removeAsOwner(request,data)  {
             timelineReq.activity_stream_type_id = 705;
             timelineReq.timeline_stream_type_id = 705;
             timelineReq.activity_type_category_id = 48;
-            timelineReq.asset_id = deskAssetData.asset_id;
+            timelineReq.asset_id = 100;
             timelineReq.activity_timeline_collection = activityTimelineCollection;
             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
 
