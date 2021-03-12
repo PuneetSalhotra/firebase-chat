@@ -759,7 +759,10 @@ function AssetService(objectCollection) {
             'asset_status_name': util.replaceDefaultString(rowArray[0]['asset_status_name']),
             'asset_last_location_gps_enabled': util.replaceDefaultNumber(rowArray[0]['asset_last_location_gps_enabled']),
             'asset_last_location_address': util.replaceDefaultString(rowArray[0]['asset_last_location_address']),
-            'asset_last_location_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_last_location_datetime']),
+            'asset_last_location_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_last_seen_datetime']),
+            'asset_work_location_address': util.replaceDefaultString(rowArray[0]['asset_work_location_address']),
+            'asset_work_location_latitude': util.replaceDefaultString(rowArray[0]['asset_work_location_latitude']),
+            'asset_work_location_longitude': util.replaceDefaultString(rowArray[0]['asset_work_location_longitude']),
             'asset_session_status_id': util.replaceDefaultNumber(rowArray[0]['asset_session_status_id']),
             'asset_session_status_name': util.replaceDefaultString(rowArray[0]['asset_session_status_name']),
             'asset_session_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_session_status_datetime']),
@@ -1014,8 +1017,10 @@ function AssetService(objectCollection) {
                 // Pick the initial/primary SMS provider from domesticSmsMode.txt
                 if (countryCode === 91) {
 
-                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    domesticSmsMode = Number(redisValdomesticSmsMode);
+                    // fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
 
                         /*   case 1: // mvaayoo                        
                                 util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1055,14 +1060,17 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-bulksms-sms', smsOptions);
                                 break;
                         }
-                    })
+                
 
                     /* smsEngine.sendDomesticSms(smsOptions); */
 
                 } else {
 
-                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
+                    let redisValinternationalSmsMode = await cacheWrapper.getSmsMode('international_sms_mode');
+                    internationalSmsMode = Number(redisValinternationalSmsMode);
+
+                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
 
                         /* case 1:
                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1086,7 +1094,7 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-nexmo-sms', smsOptions);
                                 break;
                         }
-                    })
+                    
 
                     // let smsOptions = {
                     //     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
