@@ -10370,6 +10370,33 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
+        let planConfig = {}, activityDetails = '', activityTypeId = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 225020) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+
+        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+        } else {
+            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
+        }
+
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
         let formInputToProcess, connectionTypeValue, capexValue, opexValue;
 
         if(resultProductAndRequestType.productMatchFlag == 3 &&
@@ -10558,33 +10585,6 @@ async function removeAsOwner(request,data)  {
             // return;
         }
         //need timeline entry
-        let planConfig = {}, activityDetails = '', activityTypeId = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 225020) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-
-        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
-        }
-
-        if(activityTypeId == '149752') {
-            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
-            return;            
-        }
 
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
