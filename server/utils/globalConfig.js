@@ -869,8 +869,8 @@ if(mode === 'staging') {
     //config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
     //config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
 
-    config.TOPIC_ID = 25;
-    config.TOPIC_NAME = 'staging-desker-activities-msk';
+    config.TOPIC_ID = 49;
+    config.TOPIC_NAME = 'desker-new-cluster-staging';
     config.CONSUMER_GROUP_ID = 'staging-desker-activities-msk-cg';
 
     //staging-desker-form-widgets-v2 - 1 partition
