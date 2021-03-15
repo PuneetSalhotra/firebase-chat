@@ -1865,7 +1865,7 @@ function AdminListingService(objectCollection) {
 
         const queryString = util.getQueryString('ds_p1_asset_list_update_flag_super_admin', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
               .then(() => {
                 responseData = {'message': 'Updated Successfully'};
               })
