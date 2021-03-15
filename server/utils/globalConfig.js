@@ -14,7 +14,7 @@ config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinf
 config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
-config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
+config.BROKER_HOST = "b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092";
 config.knowledgeGraphArticleMaxSize = 2
 config.knowledgeGraphUrl = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=" + config.knowledgeGraphArticleMaxSize + "&from=0&query=type"
 config.knowledgeGraphKeywords = ["Mobile connection","GSM","Mobility"
