@@ -14,7 +14,7 @@ config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinf
 config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
-config.BROKER_HOST = "b-1.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.82ohbb.c2.kafka.ap-south-1.amazonaws.com:9092";
+config.BROKER_HOST = "b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092,b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092,b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092";
 config.knowledgeGraphArticleMaxSize = 2
 config.knowledgeGraphUrl = "https://kg.diffbot.com/kg/dql_endpoint?type=query&token=fe4c4f9e6c07673dc036cd88a7032855&size=" + config.knowledgeGraphArticleMaxSize + "&from=0&query=type"
 config.knowledgeGraphKeywords = ["Mobile connection","GSM","Mobility"
@@ -608,7 +608,7 @@ if(mode === 'demo') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 46;
+    config.TOPIC_ID = 58;
     config.TOPIC_NAME = 'desker-activities-demo-topic';
     config.CONSUMER_GROUP_ID = 'demo-desker-activities-msk-cg';
 
@@ -738,7 +738,7 @@ if(mode === 'sprint') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 45;
+    config.TOPIC_ID = 57;
     //config.TOPIC_NAME = 'sprint-desker-activities-msk'; //v1 is only one partition
     config.TOPIC_NAME = 'desker-activities-partitiontest-topic';
     config.CONSUMER_GROUP_ID = 'sprint-desker-activities-msk-cg';
@@ -869,8 +869,8 @@ if(mode === 'staging') {
     //config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
     //config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
 
-    config.TOPIC_ID = 49;
-    config.TOPIC_NAME = 'desker-new-cluster-staging';
+    config.TOPIC_ID = 55;
+    config.TOPIC_NAME = 'staging-desker-activities-msk';
     config.CONSUMER_GROUP_ID = 'staging-desker-activities-msk-cg';
 
     //staging-desker-form-widgets-v2 - 1 partition
@@ -1015,7 +1015,7 @@ if(mode === 'preprod') {
     //config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
     //config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
 
-    config.TOPIC_ID = 27;
+    config.TOPIC_ID = 56;
     config.TOPIC_NAME = 'preprod-desker-activities-msk'; //Only one partition
     config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-msk';
 
