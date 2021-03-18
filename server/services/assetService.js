@@ -6551,28 +6551,6 @@ this.getQrBarcodeFeeback = async(request) => {
 
     }
 
-    this.getAssetDetailsAsync = async function (request) {
-        let assetData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.asset_id
-        );
-        const queryString = util.getQueryString('ds_v1_2_asset_list_select', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    assetData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, assetData];
-    };
-
 }
 
 module.exports = AssetService;
