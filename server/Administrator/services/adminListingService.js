@@ -1579,7 +1579,7 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
-
+    
     this.getTagTypesBasedOnCategory = async (request) => {
         let responseData = [],
             error = true;
@@ -1605,7 +1605,31 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
-    
+    this.getTagTypesBasedOnCategoryV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.start_from || 0,
+            request.limit_value            
+        );
+        const queryString = util.getQueryString('ds_p1_1_tag_type_list_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.getTagEntityMappingsBasedOnCategory = async (request) => {
         let responseData = [],
             error = true;
