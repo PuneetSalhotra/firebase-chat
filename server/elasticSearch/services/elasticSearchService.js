@@ -574,6 +574,9 @@ function CommnElasticService(objectCollection) {
           
         let responseData = [],
         error = true;
+        
+        if(!request.hasOwnProperty("debug_info"))
+        request.debug_info = [];
 
     const paramsArr = [
                         request.workflow_activity_id,
