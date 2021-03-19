@@ -850,7 +850,7 @@ function AdminOpsService(objectCollection) {
     async function organizationListInsertV1(request) {
         let responseData = [],
             error = true;
-
+            
         const paramsArr = new Array(
             request.organization_name,
             request.organization_domain_name,
@@ -863,9 +863,14 @@ function AdminOpsService(objectCollection) {
             request.contact_phone_country_code || 0,
             request.contact_phone_number || 0,
             request.contact_email || '',
-            request.enterprise_feature_data || '{}',
-            1, // organization_type_id
-            1, // log_asset_id
+            request.org_enterprise_feature_data || '{}',
+            request.flag_email || 0,
+            request.flag_doc_repo || 0,
+            request.flag_ent_features || 0,
+            request.flag_ai_bot || 0,
+            request.flag_manager_proxy || 0,
+            request.organization_type_id || 1,
+            request.log_asset_id || 1,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_1_organization_list_insert', paramsArr);
