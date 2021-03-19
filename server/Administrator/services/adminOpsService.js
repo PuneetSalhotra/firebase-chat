@@ -71,7 +71,7 @@ function AdminOpsService(objectCollection) {
 
         let organizationID = 0;
         // Create the organization
-        let [errTwo, orgData];
+        let errTwo, orgData;
 
         if(!request.enterprise_feature_data) {
             [errTwo, orgData] = await organizationListInsert(request);
