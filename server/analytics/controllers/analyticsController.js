@@ -421,6 +421,83 @@ function AnalyticsController(objCollection)
     }); 
 
     
+    app.post('/' + global.config.version + '/asset/last_hierarchy/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetListUpdateLastHierarchy(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.reportFilterListInsert(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/list', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getReportFilterListSelect(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/delete', async (req, res) => {        
+
+        let [err,result] = await analyticsService.reportFilterListDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
+
+    
+    app.post('/' + global.config.version + '/retrieve/filter/data', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getTagListSelectDashobardFilters(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/dashboard/access/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetAccessLevelMappingInsert(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/access/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetReportMappingInsert(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
     }
 
 module.exports = AnalyticsController;
