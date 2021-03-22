@@ -3164,6 +3164,33 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     };   
 
+    this.getAssetAccessLevelMapping = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.access_level_id,
+            request.page_start,
+            request.page_limit          
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_access_level_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;                    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };  
+
 
 
 }
