@@ -2788,6 +2788,103 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }
+
+    //Functionality to get asset account target list          
+    this.getAssetAccountTargetListV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id || 0,
+              request.widget_timescale || '',
+              request.channel_asset_id,
+              request.account_activity_id || 0,
+              request.widget_type_id,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_widget_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+        //Functionality to get asset account target list   v1        
+    this.getAssetAccountChannelTargetList = async (request) => {
+
+            let responseData = [],
+                error = true, widgetErr = true, widgetData = [];
+
+            try{
+            const paramsArr = [     
+                  request.organization_id,
+                  request.target_asset_id,
+                  request.widget_timescale || '',
+                  request.page_start || 0,
+                  request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_list', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                  .then(async (data) => {
+                      responseData = data;
+                      error = false;
+
+                      if(data.length > 0){
+
+                        let sme = [69,70,71];
+                        let non_sme = [69,70,71,72];
+                        if(data[0].workforce_type_id == 13){
+                    
+                        } else if(data[0].workforce_type_id != 13){
+
+                            for(let i = 0 ; i <responseData.length; i++ ){
+                                request.account_activity_id = responseData[i].account_activity_id;
+                                for(let j = 0; j < non_sme.length; j++){
+
+                                    request.widget_type_id = non_sme[j];
+                                    request.channel_asset_id = 0;
+                                    
+                                    let [widgetErr, widgetData] = await self.getAssetAccountTargetListV1(request);
+                                    console.log('widgetData ',widgetData);
+                                    //responseData[i].widget_data.push(widgetData);
+                                    if(non_sme[j] == 69)
+                                    responseData[i].revenue_mobility = widgetData;
+                                    if(non_sme[j] == 70)
+                                    responseData[i].revenue_non_mobility = widgetData;
+                                    if(non_sme[j] == 71)
+                                    responseData[i].ob_mobility = widgetData;
+                                    if(non_sme[j] == 72)
+                                    responseData[i].ob_non_mobility = widgetData;  
+                                }
+                            }
+                        }
+
+                    }
+
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+            }
+        }catch(e){
+            console.log(e);
+        }
+            return [error, responseData];
+        }
         
     //Functionality to get report transaction list          
     this.getReportTransactionList = async (request) => {
@@ -3040,6 +3137,227 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }     
 
+    this.assetListUpdateLastHierarchy = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.asset_last_hierarchy_enabled,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_update_last_hierarchy', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.reportFilterListInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.report_filter_name,
+              request.report_inline_data,
+              request.report_timescale_id,
+              request.report_timescale,
+              request.report_start_datetime,
+              request.report_end_datetime,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.getReportFilterListSelect = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.page_start || 0,
+              request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.reportFilterListDelete = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.report_filter_id,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.getTagListSelectDashobardFilters = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.type_flag,
+              request.tag_type_id,
+              request.filter_is_search,
+              request.filter_search_string,
+              request.page_start || 0,
+              request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_v1_tag_list_select_dashobard_filters', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.assetAccessLevelMappingInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.asset_id,
+              request.target_asset_id,
+              request.activity_type_id,
+              request.tag_type_id,
+              request.segment_id,
+              request.product_tag_id,
+              request.cluster_tag_id,
+              request.workforce_tag_id,
+              request.application_id,
+              request.access_level_id,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_access_level_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.assetReportMappingInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.organization_id,
+            request.account_id,
+            request.asset_id,
+            request.target_asset_id,
+            request.report_type_id,
+            request.activity_type_id,
+            request.tag_type_id,
+            request.segment_id,
+            request.product_tag_id,
+            request.cluster_tag_id,
+            request.workforce_tag_id,
+            request.application_id,
+            request.access_level_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+      ];
+
+        const queryString = util.getQueryString('ds_v1_asset_report_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }         
     this.getAssetsReporteeCount = async function (request) {
         let responseData = [],
             error = true;
@@ -3066,6 +3384,33 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     };   
+
+    this.getAssetAccessLevelMapping = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.access_level_id,
+            request.page_start,
+            request.page_limit          
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_access_level_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;                    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };  
 
 
 

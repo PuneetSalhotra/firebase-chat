@@ -2094,10 +2094,16 @@ function BotService(objectCollection) {
                     try {
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
 
-                        if(botOperationsJson.bot_operations.leave_flag == 2)
-                            fieldValue =  util.addDays(fieldValue, 1);
+                        if(!util.checkDateFormat(fieldValue,"yyyy-MM-dd hh:mm:ss")){
+                            if(botOperationsJson.bot_operations.leave_flag == 2){
+                                fieldValue = util.getFormatedLogDatetime(fieldValue);
+                                fieldValue = util.addDays(fieldValue, 1);
+                                fieldValue = util.subtractUnitsFromDateTime(fieldValue,1,'seconds');
+                            }
+                        }
                             
-                        await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                        // await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                        await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -13567,6 +13573,22 @@ async function removeAsOwner(request,data)  {
             util.getCurrentUTCTime()
         ];
         let queryString = util.getQueryString('ds_v1_asset_list_update_leave', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }  
+
+    async function applyWorkflowLeave(request, leave_flag, leave_date) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            request.asset_id,
+            util.ISTtoUTC(leave_date),
+            leave_flag,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+        let queryString = util.getQueryString('ds_v1_asset_leave_mapping_insert', paramsArr);
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }
