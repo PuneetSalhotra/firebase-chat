@@ -2788,6 +2788,103 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }
+
+    //Functionality to get asset account target list          
+    this.getAssetAccountTargetListV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id || 0,
+              request.widget_timescale || '',
+              request.channel_asset_id,
+              request.account_activity_id || 0,
+              request.widget_type_id,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_widget_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+        //Functionality to get asset account target list   v1        
+    this.getAssetAccountChannelTargetList = async (request) => {
+
+            let responseData = [],
+                error = true, widgetErr = true, widgetData = [];
+
+            try{
+            const paramsArr = [     
+                  request.organization_id,
+                  request.target_asset_id,
+                  request.widget_timescale || '',
+                  request.page_start || 0,
+                  request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_list', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                  .then(async (data) => {
+                      responseData = data;
+                      error = false;
+
+                      if(data.length > 0){
+
+                        let sme = [69,70,71];
+                        let non_sme = [69,70,71,72];
+                        if(data[0].workforce_type_id == 13){
+                    
+                        } else if(data[0].workforce_type_id != 13){
+
+                            for(let i = 0 ; i <responseData.length; i++ ){
+                                request.account_activity_id = responseData[i].account_activity_id;
+                                for(let j = 0; j < non_sme.length; j++){
+
+                                    request.widget_type_id = non_sme[j];
+                                    request.channel_asset_id = 0;
+                                    
+                                    let [widgetErr, widgetData] = await self.getAssetAccountTargetListV1(request);
+                                    console.log('widgetData ',widgetData);
+                                    //responseData[i].widget_data.push(widgetData);
+                                    if(non_sme[j] == 69)
+                                    responseData[i].revenue_mobility = widgetData;
+                                    if(non_sme[j] == 70)
+                                    responseData[i].revenue_non_mobility = widgetData;
+                                    if(non_sme[j] == 71)
+                                    responseData[i].ob_mobility = widgetData;
+                                    if(non_sme[j] == 72)
+                                    responseData[i].ob_non_mobility = widgetData;  
+                                }
+                            }
+                        }
+
+                    }
+
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+            }
+        }catch(e){
+            console.log(e);
+        }
+            return [error, responseData];
+        }
         
     //Functionality to get report transaction list          
     this.getReportTransactionList = async (request) => {
@@ -2907,44 +3004,81 @@ function AnalyticsService(objectCollection)
     
     this.getAssetReporteeTargetValues = async (request) => {
 
-        let responseData = [],
-            error = true;
-        let widgetData = [], widgetErr = true;
-        [error, responseData] = await self.getAssetsReportingToSameManager(request);
-        console.log('responseData ', responseData);
+            let responseData = [],
+            error = true, responseData1 = [],
+            error1 = true, responseData2 = [],
+            error2 = true;
+            let resCount = 0;
+            let qualifiedResCount = 0;
+            let percentage = 0;
 
-        for(let i = 0; i < responseData.length; i ++){
-            //responseData[i].widget_data = [];
-            let total_target = 0;
-            let total_achieved = 0;
-            let total_percentage = 0;            
-            for(let j = 69; j <= 72; j ++){
-                request.widget_type_id = j;
-                request.target_asset_id = responseData[i].asset_id;
-               
-                [widgetErr, widgetData] = await self.getAssetTargetListV1(request);
-                console.log('widgetData ',widgetData);
-                //responseData[i].widget_data.push(widgetData);
-                if(widgetData.length > 0){
-                    total_target = widgetData[0].target + total_target;
-                    total_achieved = widgetData[0].achieved + total_achieved;
+            let widgetData = [], widgetErr = true;
+
+        try{
+
+            [error, responseData] = await self.getAssetsReportingToSameManager(request);
+            console.log('responseData ', responseData);
+
+            for(let i = 0; i < responseData.length; i ++){
+                //responseData[i].widget_data = [];
+                let total_target = 0;
+                let total_achieved = 0;
+                let total_percentage = 0;    
+                request.target_asset_id = responseData[i].asset_id;  
+                request['is_qualified'] = 0;
+                [error1, responseData1] = await self.getAssetsReporteeCount(request);
+
+                console.log('responseData1 ',responseData1)
+
+                request['is_qualified'] = 1;
+                [error2, responseData2] = await self.getAssetsReporteeCount(request);            
+                console.log('responseData2 ',responseData2)
+                for(let j = 69; j <= 72; j ++){
+                    request.widget_type_id = j;
+                    request.target_asset_id = responseData[i].asset_id;
+                
+                    [widgetErr, widgetData] = await self.getAssetTargetListV1(request);
+                    console.log('widgetData ',widgetData);
+                    //responseData[i].widget_data.push(widgetData);
+                    if(widgetData.length > 0){
+                        total_target = widgetData[0].target + total_target;
+                        total_achieved = widgetData[0].achieved + total_achieved;
+                    }
+                    //   responseData[i][j] = widgetData;
+                    if(j == 69)
+                    responseData[i].revenue_mobility = widgetData;
+                    if(j == 70)
+                    responseData[i].revenue_non_mobility = widgetData;
+                    if(j == 71)
+                    responseData[i].ob_mobility = widgetData;
+                    if(j == 72)
+                    responseData[i].ob_non_mobility = widgetData;       
                 }
-                //   responseData[i][j] = widgetData;
-                if(j == 69)
-                responseData[i].revenue_mobility = widgetData;
-                if(j == 70)
-                responseData[i].revenue_non_mobility = widgetData;
-                if(j == 71)
-                responseData[i].ob_mobility = widgetData;
-                if(j == 72)
-                responseData[i].ob_non_mobility = widgetData;        
-                                                      
-            }
-            responseData[i].target = total_target;
-            responseData[i].achieved = total_achieved;
-            responseData[i].percentage = (total_achieved/total_target)*100;
 
+                resCount = responseData1[0]?responseData1[0].reportee_count:0;
+                qualifiedResCount = responseData2[0]?responseData2[0].qualified_reportee_count:0;            
+                percentage = (qualifiedResCount/ resCount)*100;
+
+                responseData[i].sip_qualified_emp_count = qualifiedResCount
+                responseData[i].sip_emp_count = resCount;
+                responseData[i].sip_qualified_percentage = percentage?percentage.toFixed(2):0;
+                responseData[i].target = total_target;
+                responseData[i].achieved = total_achieved.toFixed(2);
+                responseData[i].percentage = ((total_achieved/total_target)*100).toFixed(2);
+
+            }
+
+            responseData1 = null;
+            responseData2 = null;
+            widgetData = null;
+            resCount = null;
+            qualifiedResCount = null;
+            percentage = null;
+        }catch(e){
+            console.log(e);
+            return [true, responseData];
         }
+
         return [error, responseData];
     }   
     
@@ -3224,6 +3358,34 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }         
+    this.getAssetsReporteeCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.target_asset_id,
+            request.widget_timescale,
+            request.is_qualified          
+        );
+
+        const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportee_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;                    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };   
+
+
 
 }
 

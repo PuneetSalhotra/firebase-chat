@@ -918,5 +918,15 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });      
+
+    app.post('/' + global.config.version + '/asset/inline/collection/v2', async (req, res) => {
+        const [err, responseData] = await assetService.getAssetDetailsAsync(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/inline/collection/v2 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });      
 }
 module.exports = AssetController;

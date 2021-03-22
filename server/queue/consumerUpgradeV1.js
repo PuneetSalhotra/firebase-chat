@@ -47,6 +47,8 @@ const ActivityParticipantService = require("../services/activityParticipantServi
 const ActivityUpdateService = require("../services/activityUpdateService");
 const FormConfigService = require("../services/formConfigService");
 const VodafoneService = require("../vodafone/services/vodafoneService");
+const PamUpdateService = require("../services/pamUpdateService");
+const PamService = require("../services/pamService");
 
 async function SetupAndStartConsumerGroup() {
     try {
@@ -73,6 +75,8 @@ async function SetupAndStartConsumerGroup() {
             activityUpdateService: new ActivityUpdateService(objectCollection),
             activityParticipantService: new ActivityParticipantService(objectCollection),
             formConfigService: new FormConfigService(objectCollection),
+            pamService: new PamService(objectCollection),
+            pamUpdateService: new PamUpdateService(objectCollection),            
             activityCommonService: objectCollection.activityCommonService,
             cacheWrapper: cacheWrapper
         }
