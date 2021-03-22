@@ -3292,7 +3292,7 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
               request.organization_id,
               request.account_id,
-              request.asset_id,
+              request.user_asset_id,
               request.target_asset_id,
               request.activity_type_id,
               request.tag_type_id,
@@ -3302,7 +3302,7 @@ function AnalyticsService(objectCollection)
               request.workforce_tag_id,
               request.application_id,
               request.access_level_id,
-              request.log_asset_id,
+              request.asset_id,
               util.getCurrentUTCTime()
         ];
 
@@ -3329,18 +3329,18 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
             request.organization_id,
             request.account_id,
-            request.asset_id,
-            request.target_asset_id,
+            request.user_asset_id,
+            request.target_asset_id||0,
             request.report_type_id,
             request.activity_type_id,
             request.tag_type_id,
-            request.segment_id,
-            request.product_tag_id,
-            request.cluster_tag_id,
-            request.workforce_tag_id,
-            request.application_id,
+            request.segment_id||0,
+            request.product_tag_id||0,
+            request.cluster_tag_id||0,
+            request.workforce_tag_id||0,
+            request.application_id||0,
             request.access_level_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
       ];
 
