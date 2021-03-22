@@ -2842,14 +2842,51 @@ function AnalyticsService(objectCollection)
                   .then(async (data) => {
                       responseData = data;
                       error = false;
-
                       if(data.length > 0){
-
-                        let sme = [69,70,71];
+                        let sme = [69,70,71,72];
                         let non_sme = [69,70,71,72];
-                        if(data[0].workforce_type_id == 13){
+                        let total_target = 0;
+                        let total_achieved = 0;
+                        let total_percentage = 0;  
+                        if(responseData[0].is_channel == 1){
+                            for(let i = 0 ; i <responseData.length; i++ ){
+                                console.log("responseData[i].channel_asset_id :: "+responseData[i].channel_asset_id);
+                                request.channel_asset_id = responseData[i].channel_asset_id;
+
+                                for(let j = 0; j < sme.length; j++){
+
+                                    request.account_activity_id = 0;
+                                    request.widget_type_id = sme[j];                                    
+                                    
+                                    let [widgetErr, widgetData] = await self.getAssetAccountTargetListV1(request);
+                                    console.log('widgetData ',widgetData);
+
+                                    if(widgetData.length > 0){
+                                        total_target = widgetData[0].target + total_target;
+                                        total_achieved = widgetData[0].achieved + total_achieved;
+
+                                        widgetData[0].target = widgetData[0].target?widgetData[0].target.toFixed(2):0;
+                                        widgetData[0].achieved = widgetData[0].achieved?widgetData[0].achieved.toFixed(2):0;
+                                        widgetData[0].percentage = widgetData[0].percentage?widgetData[0].percentage.toFixed(2):0;
+                                    }
+                                    
+                                    //responseData[i].widget_data.push(widgetData);
+                                    if(sme[j] == 69)
+                                    responseData[i].revenue_mobility = widgetData;
+                                    if(sme[j] == 70)
+                                    responseData[i].revenue_non_mobility = widgetData;
+                                    if(sme[j] == 71)
+                                    responseData[i].ob_mobility = widgetData;
+                                    if(sme[j] == 72)
+                                    responseData[i].ob_non_mobility = widgetData;  
+                                }
+
+                                responseData[i].target = total_target?total_target.toFixed(2):0;
+                                responseData[i].achieved = total_achieved?total_achieved.toFixed(2):0;
+                                responseData[i].percentage = total_target>0?((total_achieved/total_target)*100).toFixed(2):'NA';
+                            }                            
                     
-                        } else if(data[0].workforce_type_id != 13){
+                        } else if(data[0].is_channel == 0){
 
                             for(let i = 0 ; i <responseData.length; i++ ){
                                 request.account_activity_id = responseData[i].account_activity_id;
@@ -2860,7 +2897,16 @@ function AnalyticsService(objectCollection)
                                     
                                     let [widgetErr, widgetData] = await self.getAssetAccountTargetListV1(request);
                                     console.log('widgetData ',widgetData);
-                                    //responseData[i].widget_data.push(widgetData);
+
+                                    if(widgetData.length > 0){
+                                        total_target = widgetData[0].target + total_target;
+                                        total_achieved = widgetData[0].achieved + total_achieved;
+
+                                        widgetData[0].target = widgetData[0].target?widgetData[0].target.toFixed(2):0;
+                                        widgetData[0].achieved = widgetData[0].achieved?widgetData[0].achieved.toFixed(2):0;
+                                        widgetData[0].percentage = widgetData[0].percentage?widgetData[0].percentage.toFixed(2):0;                                        
+                                    }
+
                                     if(non_sme[j] == 69)
                                     responseData[i].revenue_mobility = widgetData;
                                     if(non_sme[j] == 70)
@@ -2870,6 +2916,10 @@ function AnalyticsService(objectCollection)
                                     if(non_sme[j] == 72)
                                     responseData[i].ob_non_mobility = widgetData;  
                                 }
+
+                                responseData[i].target = total_target?total_target.toFixed(2):0;
+                                responseData[i].achieved = total_achieved?total_achieved.toFixed(2):0;
+                                responseData[i].percentage = total_target>0?((total_achieved/total_target)*100).toFixed(2):'NA';
                             }
                         }
 
@@ -3017,8 +3067,20 @@ function AnalyticsService(objectCollection)
         try{
 
             [error, responseData] = await self.getAssetsReportingToSameManager(request);
+            console.log('responseData.length ', responseData.length);
             console.log('responseData ', responseData);
-
+            if(responseData.length > 0){
+                    responseData.push(
+                    {
+                    "asset_id": responseData[0].manager_asset_id,
+                    "asset_first_name": responseData[0].manager_asset_first_name,
+                    "operating_asset_id": responseData[0].manager_operating_asset_id,
+                    "operating_asset_first_name": responseData[0].manager_operating_asset_first_name,
+                    "operating_asset_last_name": ''
+                    }
+                );
+            }
+            console.log('responseData.length ', responseData.length);
             for(let i = 0; i < responseData.length; i ++){
                 //responseData[i].widget_data = [];
                 let total_target = 0;
@@ -3043,6 +3105,9 @@ function AnalyticsService(objectCollection)
                     if(widgetData.length > 0){
                         total_target = widgetData[0].target + total_target;
                         total_achieved = widgetData[0].achieved + total_achieved;
+                        widgetData[0].target = widgetData[0].target?widgetData[0].target.toFixed(2):0;
+                        widgetData[0].achieved = widgetData[0].achieved?widgetData[0].achieved.toFixed(2):0;
+                        widgetData[0].percentage = widgetData[0].percentage?widgetData[0].percentage.toFixed(2):0;
                     }
                     //   responseData[i][j] = widgetData;
                     if(j == 69)
@@ -3062,9 +3127,9 @@ function AnalyticsService(objectCollection)
                 responseData[i].sip_qualified_emp_count = qualifiedResCount
                 responseData[i].sip_emp_count = resCount;
                 responseData[i].sip_qualified_percentage = percentage?percentage.toFixed(2):0;
-                responseData[i].target = total_target;
-                responseData[i].achieved = total_achieved.toFixed(2);
-                responseData[i].percentage = ((total_achieved/total_target)*100).toFixed(2);
+                responseData[i].target = total_target?total_target.toFixed(2):0;
+                responseData[i].achieved = total_achieved?total_achieved.toFixed(2):0;
+                responseData[i].percentage = total_target>0?((total_achieved/total_target)*100).toFixed(2):'NA';
 
             }
 
