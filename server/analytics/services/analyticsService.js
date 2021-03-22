@@ -2788,6 +2788,103 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }
+
+    //Functionality to get asset account target list          
+    this.getAssetAccountTargetListV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id || 0,
+              request.widget_timescale || '',
+              request.channel_asset_id,
+              request.account_activity_id || 0,
+              request.widget_type_id,
+              request.page_start || 0,
+              request.page_limit || 100
+        ];
+
+        const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_widget_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+        //Functionality to get asset account target list   v1        
+    this.getAssetAccountChannelTargetList = async (request) => {
+
+            let responseData = [],
+                error = true, widgetErr = true, widgetData = [];
+
+            try{
+            const paramsArr = [     
+                  request.organization_id,
+                  request.target_asset_id,
+                  request.widget_timescale || '',
+                  request.page_start || 0,
+                  request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_v1_vil_asset_account_target_mapping_select_list', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                  .then(async (data) => {
+                      responseData = data;
+                      error = false;
+
+                      if(data.length > 0){
+
+                        let sme = [69,70,71];
+                        let non_sme = [69,70,71,72];
+                        if(data[0].workforce_type_id == 13){
+                    
+                        } else if(data[0].workforce_type_id != 13){
+
+                            for(let i = 0 ; i <responseData.length; i++ ){
+                                request.account_activity_id = responseData[i].account_activity_id;
+                                for(let j = 0; j < non_sme.length; j++){
+
+                                    request.widget_type_id = non_sme[j];
+                                    request.channel_asset_id = 0;
+                                    
+                                    let [widgetErr, widgetData] = await self.getAssetAccountTargetListV1(request);
+                                    console.log('widgetData ',widgetData);
+                                    //responseData[i].widget_data.push(widgetData);
+                                    if(non_sme[j] == 69)
+                                    responseData[i].revenue_mobility = widgetData;
+                                    if(non_sme[j] == 70)
+                                    responseData[i].revenue_non_mobility = widgetData;
+                                    if(non_sme[j] == 71)
+                                    responseData[i].ob_mobility = widgetData;
+                                    if(non_sme[j] == 72)
+                                    responseData[i].ob_non_mobility = widgetData;  
+                                }
+                            }
+                        }
+
+                    }
+
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+            }
+        }catch(e){
+            console.log(e);
+        }
+            return [error, responseData];
+        }
         
     //Functionality to get report transaction list          
     this.getReportTransactionList = async (request) => {

@@ -14,9 +14,9 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 
 const AWS_Cognito = require('aws-sdk');
 AWS_Cognito.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
-    "secretAccessKey": "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",
-    "region": "ap-south-1"
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
 });
 const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
