@@ -6325,11 +6325,76 @@ function VodafoneService(objectCollection) {
                 break;
             case 2: //
                 tableName = 'activity_search_mapping'; // for distinct result mapping
-                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " "
-                query += ' WHERE '
-                let [queryOne, appendedAndOne] = setCommonParam(request, query, appendedAnd)
-                queryOne += " ORDER BY activity_title";
-                query = queryOne;
+                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " where "
+                if (request.activity_type_id > 0) {
+                    if (request.activity_type_id && request.activity_type_id > 0) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' activity_type_id = ' + Number(request.activity_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_status_type_id && request.activity_status_type_id > 0) {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' activity_status_type_id =  ' + Number(request.activity_status_type_id)
+                        appendedAnd = true;
+                    }
+                    if (request.activity_title && request.activity_title != '') {
+                        if (appendedAnd)
+                            query += " AND ";
+                        query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                        appendedAnd = true;
+                    }
+                } else {
+                    if (request.tag_type_id && request.tag_type_id > 0) {
+                        if (request.tag_type_id && request.tag_type_id > 0) {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' tag_type_id =  ' + Number(request.tag_type_id)
+                            appendedAnd = true;
+                        }
+                        if (request.activity_status_type_id && request.activity_status_type_id > 0) {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
+                            appendedAnd = true;
+                        }
+                        if (request.activity_title && request.activity_title != '') {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                            appendedAnd = true;
+                        }
+                    } else {
+
+                        if (request.activity_type_id && request.activity_type_id > 0) {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' activity_type_id = ' + Number(request.activity_type_id)
+                            appendedAnd = true;
+                        }
+                        if (request.tag_type_id && request.tag_type_id > 0) {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' tag_type_id =  ' + Number(request.tag_type_id)
+                            appendedAnd = true;
+                        }
+                        if (request.activity_status_type_id && request.activity_status_type_id > 0) {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' activity_status_type_id =  ' + Number(request.activity_status_type_id)
+                            appendedAnd = true;
+                        }
+                        if (request.activity_title && request.activity_title != '') {
+                            if (appendedAnd)
+                                query += " AND ";
+                            query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                            appendedAnd = true;
+                        }
+
+                    }
+                }
+                query += " ORDER BY activity_title";
                 break;
             case 3: //
                 paramsArr = [request.asset_id]
