@@ -2473,6 +2473,7 @@ function ActivityTimelineService(objectCollection) {
         let formDataJson;
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
+        let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
 
         if (request.hasOwnProperty('form_id')) {
 
@@ -2919,6 +2920,37 @@ function ActivityTimelineService(objectCollection) {
                             activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                         });
                     }
+
+                    // Trigger Child order creation on annexure fields 
+                    if (Object.keys(annexureFields).includes(String(row.field_id))) {
+                        let childOrdersCreationTopicName = "";
+                        switch (global.mode) {
+                            case "local":
+                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
+                                break;
+                
+                            case "staging":
+                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
+                                break;
+                
+                            case "preprod":
+                            case "preproduction":
+                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
+                                break;
+                
+                            case "prod":
+                            case "production":
+                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
+                                break;
+                        }
+                
+                        await queueWrapper.raiseActivityEventToTopicPromise({
+                            ...request,
+                            s3UrlOfExcel: request.bucket_url
+                        }, childOrdersCreationTopicName, Number(request.workflow_activity_id));
+                
+                    }
+
                     next();
                     if (err === false) {
                         //Success
