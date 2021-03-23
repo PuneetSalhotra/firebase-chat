@@ -111,6 +111,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/organization/flags/alter', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.updateOrganizationFlags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/organization/flags/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
     // Create a new organization
     app.post('/' + global.config.version + '/admin/account/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createAccount(req.body);
