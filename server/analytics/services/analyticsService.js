@@ -3358,33 +3358,33 @@ function AnalyticsService(objectCollection)
             let loopKey = "";
             switch(parseInt(request.access_level_id)){
                 case 2 : loopBase = JSON.parse(request.target_accounts);
-                         loopKey = account_id;   
+                         loopKey = "account_id";   
                         break;
                 case 6 : loopBase = JSON.parse(request.target_assets);
-                         loopKey = target_asset_id;
+                         loopKey = "target_asset_id";
                          request.account_id = (JSON.parse(request.target_accounts))[0];
                         break;
                 case 8 : loopBase = JSON.parse(request.activity_types);
-                         loopKey = activity_type_id;
+                         loopKey = "activity_type_id";
                          request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
-                         loopKey = tag_type_id;   
+                         loopKey = "tag_type_id";   
                         break;
                 case 21 : loopBase = JSON.parse(request.segments);
-                         loopKey = segment_id;   
+                         loopKey = "segment_id";   
                         break;
                 case 22 : loopBase = JSON.parse(request.product_tags);
-                         loopKey = product_tag_id;   
+                         loopKey = "product_tag_id";   
                         break;
                 case 25 : loopBase = JSON.parse(request.cluster_tags);
-                         loopKey = cluster_tag_id;   
+                         loopKey = "cluster_tag_id";   
                         break;
                 case 26 : loopBase = JSON.parse(request.workforce_tags);
-                         loopKey = workforce_tag_id;   
+                         loopKey = "workforce_tag_id";   
                         break;
                 case 27 : loopBase = JSON.parse(request.applications);
-                         loopKey = application_id;   
+                         loopKey = "application_id";   
                         break;
             }
             for(let i = 0 ; i < loopBase.length ; i++){
@@ -3399,10 +3399,10 @@ function AnalyticsService(objectCollection)
             }
         }
         catch(err1){
-            return [err1, response];
+            return [err1, responseData];
         }
         
-        return [error,response];
+        return [error,responseData];
     }
 
     this.assetAccessLevelMappingInsert = async (request) => {
@@ -3451,11 +3451,11 @@ function AnalyticsService(objectCollection)
             let loopKey = "";
             switch(parseInt(request.access_level_id)){
                 case 8 : loopBase = JSON.parse(request.activity_types);
-                         loopKey = activity_type_id;
+                         loopKey = "activity_type_id";
                          request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
-                         loopKey = tag_type_id;   
+                         loopKey = "tag_type_id";   
                         break;
             }
             for(let i = 0 ; i < loopBase.length ; i++){
@@ -3470,10 +3470,10 @@ function AnalyticsService(objectCollection)
             }
         }
         catch(err1){
-            return [err1, response];
+            return [err1, responseData];
         }
         
-        return [error,response];
+        return [error,responseData];
     }    
 
     this.assetReportMappingInsert = async (request) => {
