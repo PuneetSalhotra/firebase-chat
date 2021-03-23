@@ -498,7 +498,7 @@ function AnalyticsController(objCollection)
     
     app.post('/' + global.config.version + '/dashboard/access/set', async (req, res) => {        
 
-        let [err,result] = await analyticsService.assetAccessLevelMappingInsert(req.body);
+        let [err,result] = await analyticsService.assetAccessLevelMapping(req.body);
         if(!err){
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
@@ -509,7 +509,18 @@ function AnalyticsController(objCollection)
     
     app.post('/' + global.config.version + '/report/access/set', async (req, res) => {        
 
-        let [err,result] = await analyticsService.assetReportMappingInsert(req.body);
+        let [err,result] = await analyticsService.assetReportMapping(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/analytics/asset/report/mapping', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getAssetReportMappingSelectAsset(req.body);
         if(!err){
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
