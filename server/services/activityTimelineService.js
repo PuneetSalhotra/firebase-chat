@@ -428,7 +428,7 @@ function ActivityTimelineService(objectCollection) {
                     console.log("Error firing initiateTargetFormGeneration: ", error);
                 }
             }
-            
+
             //fireBotEngineInitWorkflow
             try {
                 if ((
@@ -2475,7 +2475,8 @@ function ActivityTimelineService(objectCollection) {
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
         let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
-
+        console.log("field ids");
+        console.log(annexureFields);
         if (request.hasOwnProperty('form_id')) {
 
             let formDataCollection;
@@ -2728,6 +2729,8 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 52: // Excel Document
                     annexureExcelFilePath = row.field_value;
+                    console.log("annexureExcelFilePath");
+                    console.log(annexureExcelFilePath);
                     params[18] = row.field_value;
                     break;
                 case 53: // IP Address Form
@@ -2946,6 +2949,13 @@ function ActivityTimelineService(objectCollection) {
                                 break;
                         }
                 
+                        console.log("childOrdersCreationTopicName");
+                        console.log(childOrdersCreationTopicName);
+                        console.log({
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        });
+
                         await queueWrapper.raiseActivityEventToTopicPromise({
                             ...request,
                             s3UrlOfExcel: annexureExcelFilePath
@@ -3278,6 +3288,8 @@ async function addFormEntriesAsync(request) {
     let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
     let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
 
+    console.log("annexureFields");
+    console.log(annexureFields);
     if (request.hasOwnProperty('form_id')) {
         let formDataCollection;
         try {
@@ -3524,6 +3536,8 @@ async function addFormEntriesAsync(request) {
             case 52: // Excel Document
                 params[18] = row.field_value;
                 annexureExcelFilePath = row.field_value;
+                console.log("annexureExcelFilePath");
+                console.log(annexureExcelFilePath);
                 break;
             case 53: // IP Address Form
                 // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
@@ -3735,6 +3749,12 @@ async function addFormEntriesAsync(request) {
                                 break;
                         }
 
+                        console.log("childOrdersCreationTopicName");
+                        console.log(childOrdersCreationTopicName);
+                        console.log({
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        });
                         await queueWrapper.raiseActivityEventToTopicPromise({
                             ...request,
                             s3UrlOfExcel: annexureExcelFilePath
