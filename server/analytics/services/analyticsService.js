@@ -3202,6 +3202,227 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }     
 
+    this.assetListUpdateLastHierarchy = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.asset_last_hierarchy_enabled,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_update_last_hierarchy', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.reportFilterListInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.report_filter_name,
+              request.report_inline_data,
+              request.report_timescale_id,
+              request.report_timescale,
+              request.report_start_datetime,
+              request.report_end_datetime,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.getReportFilterListSelect = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.page_start || 0,
+              request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.reportFilterListDelete = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.report_filter_id,
+              request.asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_filter_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.getTagListSelectDashobardFilters = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.type_flag,
+              request.tag_type_id,
+              request.filter_is_search,
+              request.filter_search_string,
+              request.page_start || 0,
+              request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_v1_tag_list_select_dashobard_filters', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.assetAccessLevelMappingInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.asset_id,
+              request.target_asset_id,
+              request.activity_type_id,
+              request.tag_type_id,
+              request.segment_id,
+              request.product_tag_id,
+              request.cluster_tag_id,
+              request.workforce_tag_id,
+              request.application_id,
+              request.access_level_id,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_access_level_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+
+    this.assetReportMappingInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.organization_id,
+            request.account_id,
+            request.asset_id,
+            request.target_asset_id,
+            request.report_type_id,
+            request.activity_type_id,
+            request.tag_type_id,
+            request.segment_id,
+            request.product_tag_id,
+            request.cluster_tag_id,
+            request.workforce_tag_id,
+            request.application_id,
+            request.access_level_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+      ];
+
+        const queryString = util.getQueryString('ds_v1_asset_report_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }         
     this.getAssetsReporteeCount = async function (request) {
         let responseData = [],
             error = true;
