@@ -2469,8 +2469,9 @@ function ActivityTimelineService(objectCollection) {
     var addFormEntries = function (request, callback) {
 
         global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);
-
+        console.log("AddFormEntries requestData" , request);
         let formDataJson;
+        let annexureExcelFilePath = "";
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
         let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
@@ -2726,6 +2727,7 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 52: // Excel Document
+                    annexureExcelFilePath = row.field_value;
                     params[18] = row.field_value;
                     break;
                 case 53: // IP Address Form
@@ -2910,7 +2912,7 @@ function ActivityTimelineService(objectCollection) {
             // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             var queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(0, queryString, request, async function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
                         activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                             request['workflow_activity_id'] = activityData[0].channel_activity_id;
@@ -2946,7 +2948,7 @@ function ActivityTimelineService(objectCollection) {
                 
                         await queueWrapper.raiseActivityEventToTopicPromise({
                             ...request,
-                            s3UrlOfExcel: request.bucket_url
+                            s3UrlOfExcel: annexureExcelFilePath
                         }, childOrdersCreationTopicName, Number(request.workflow_activity_id));
                 
                     }
@@ -3266,13 +3268,15 @@ function ActivityTimelineService(objectCollection) {
 async function addFormEntriesAsync(request) {
     
     global.logger.write('debug', '\x1b[32m In ActivtiyTimelineServiceAsync - Inside the addFormEntriesAsync() function. \x1b[0m', {}, request)
-
+    console.log("AddFormEntries requestData" , request);
     let responseData = [],
             error = true;
 
     let formDataJson;
+    let annexureExcelFilePath = "";
     const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
     let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
+    let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
 
     if (request.hasOwnProperty('form_id')) {
         let formDataCollection;
@@ -3519,6 +3523,7 @@ async function addFormEntriesAsync(request) {
                 break;
             case 52: // Excel Document
                 params[18] = row.field_value;
+                annexureExcelFilePath = row.field_value;
                 break;
             case 53: // IP Address Form
                 // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
@@ -3705,6 +3710,36 @@ async function addFormEntriesAsync(request) {
                             request['flag'] = 1;
                             request['datetime_log'] = util.getCurrentUTCTime();
                             activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
+                    }
+
+                    // Trigger Child order creation on annexure fields 
+                    if (Object.keys(annexureFields).includes(String(row.field_id))) {
+                        let childOrdersCreationTopicName = "";
+                        switch (global.mode) {
+                            case "local":
+                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
+                                break;
+
+                            case "staging":
+                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
+                                break;
+
+                            case "preprod":
+                            case "preproduction":
+                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
+                                break;
+
+                            case "prod":
+                            case "production":
+                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
+                                break;
+                        }
+
+                        await queueWrapper.raiseActivityEventToTopicPromise({
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        }, childOrdersCreationTopicName, Number(request.workflow_activity_id));
+
                     }
                 })
                 .catch((err) => {
