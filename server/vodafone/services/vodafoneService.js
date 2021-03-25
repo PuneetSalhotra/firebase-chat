@@ -6576,6 +6576,186 @@ function VodafoneService(objectCollection) {
         return [query, appendedAnd]
     }
 
+    this.activitySearchMappingUpdateInES= async (request) => {
+        let responseData = [],
+            error = true;
+             let [addToActivityESErr,addToActivityESData] = await this.repopulateActivitySearchMappingInES(request);
+             let [addToActivityAssetESErr,addToActivityAssetESData] = await this.repopulateActivityAssetSearchMappingInES(request);
+        return [false, addToActivityESData];
+    };
+
+    this.repopulateActivitySearchMappingInES = async (request) => {
+        let responseData = [],
+            error = true;
+        try {
+            let paramsArr = [request.activity_id,
+            request.organization_id,
+            0
+            ]
+            const queryString = util.getQueryString('ds_p1_activity_search_mapping_select', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+                if (responseData.length > 0) {
+                    for (var i = 0; i < responseData.length; i++) {
+                        var esQueue = {
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            match: {
+                                                activity_id: responseData[i].activity_id
+                                            }
+                                        },
+                                        {
+                                            match: {
+                                                asset_id: request.asset_id
+                                            }
+                                        }
+                                    ],
+                                }
+                            }
+                        }
+                        let resultData = await client.search({
+                            index: 'activity_search_mapping',
+                            body: esQueue
+                        });
+                        if (resultData.hits.hits.length > 0) {
+                            await client.deleteByQuery({
+                                index: 'activity_search_mapping',
+                                "body": esQueue
+                            })
+                        }
+                        var insertData = {
+                            "activity_creator_asset_first_name": responseData[i].activity_creator_asset_first_name,
+                            "activity_creator_asset_id": responseData[i].activity_creator_asset_id,
+                            "activity_creator_operating_asset_first_name": responseData[i].activity_creator_operating_asset_first_name,
+                            "activity_cuid_1": responseData[i].activity_cuid_1,
+                            "activity_cuid_2": responseData[i].activity_cuid_2,
+                            "activity_cuid_3": responseData[i].activity_cuid_3,
+                            "activity_id": responseData[i].activity_id,
+                            "activity_status_id": responseData[i].activity_status_id,
+                            "activity_status_type_id": responseData[i].activity_status_type_id,
+                            "activity_title": responseData[i].activity_title,
+                            "activity_type_category_id": responseData[i].activity_type_category_id,
+                            "activity_type_id": responseData[i].activity_type_id,
+                            "activity_type_name": responseData[i].activity_type_name,
+                            "activity_type_tag_id": responseData[i].activity_type_tag_id,
+                            "asset_first_name": responseData[i].asset_first_name,
+                            "asset_flag_is_owner": responseData[i].asset_flag_is_owner,
+                            "asset_id": responseData[i].asset_id || request.asset_id,
+                            "asset_participant_access_id": responseData[i].asset_participant_access_id,
+                            "log_active": responseData[i].log_active,
+                            "log_state": responseData[i].log_state,
+                            "operating_asset_first_name": responseData[i].operating_asset_first_name,
+                            "organization_id": responseData[i].organization_id,
+                            "query_status": responseData[i].query_status,
+                            "tag_type_id": responseData[i].tag_type_id
+                        }
+                        const insertEsData = await client.index({
+                            index: 'activity_search_mapping',
+                            body: insertData
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            return [error, []];
+        }
+        return [false, responseData];
+    };
+    this.repopulateActivityAssetSearchMappingInES = async (request) => {
+        let responseData = [],
+            error = true;
+        try {
+            let paramsArr = [request.activity_id,
+            request.organization_id,
+            1
+            ]
+            const queryString = util.getQueryString('ds_p1_activity_search_mapping_select', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+                if (responseData.length > 0) {
+                    for (var i = 0; i < responseData.length; i++) {
+                        var esQueue = {
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            match: {
+                                                activity_id: responseData[i].activity_id
+                                            }
+                                        },
+                                        {
+                                            match: {
+                                                asset_id: request.asset_id
+                                            }
+                                        }
+                                    ],
+                                }
+                            }
+                        }
+                        let resultData = await client.search({
+                            index: 'activity_asset_search_mapping',
+                            body: esQueue
+                        });
+                        if (resultData.hits.hits.length > 0) {
+                            await client.deleteByQuery({
+                                index: 'activity_asset_search_mapping',
+                                "body": esQueue
+                            })
+                        }
+                        var insertData = {
+                            "activity_creator_asset_first_name": responseData[i].activity_creator_asset_first_name,
+                            "activity_creator_asset_id": responseData[i].activity_creator_asset_id,
+                            "activity_creator_operating_asset_first_name": responseData[i].activity_creator_operating_asset_first_name,
+                            "activity_cuid_1": responseData[i].activity_cuid_1,
+                            "activity_cuid_2": responseData[i].activity_cuid_2,
+                            "activity_cuid_3": responseData[i].activity_cuid_3,
+                            "activity_id": responseData[i].activity_id,
+                            "activity_status_id": responseData[i].activity_status_id,
+                            "activity_status_type_id": responseData[i].activity_status_type_id,
+                            "activity_title": responseData[i].activity_title,
+                            "activity_type_category_id": responseData[i].activity_type_category_id,
+                            "activity_type_id": responseData[i].activity_type_id,
+                            "activity_type_name": responseData[i].activity_type_name,
+                            "activity_type_tag_id": responseData[i].activity_type_tag_id,
+                            "asset_first_name": responseData[i].asset_first_name,
+                            "asset_flag_is_owner": responseData[i].asset_flag_is_owner,
+                            "asset_id": responseData[i].asset_id || request.asset_id,
+                            "asset_participant_access_id": responseData[i].asset_participant_access_id,
+                            "log_active": responseData[i].log_active,
+                            "log_state": responseData[i].log_state,
+                            "operating_asset_first_name": responseData[i].operating_asset_first_name,
+                            "organization_id": responseData[i].organization_id,
+                            "query_status": responseData[i].query_status,
+                            "tag_type_id": responseData[i].tag_type_id
+                        }
+                        const insertEsData = await client.index({
+                            index: 'activity_asset_search_mapping',
+                            body: insertData
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            return [error, []];
+        }
+        return [false, responseData];
+    };
 }
 
 
