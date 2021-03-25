@@ -6579,12 +6579,12 @@ function VodafoneService(objectCollection) {
     this.activitySearchMappingUpdateInES= async (request) => {
         let responseData = [],
             error = true;
-             let [addToActivityESErr,addToActivityESData] = await this.repopulateActivitySearchMappingInES(request);
-             let [addToActivityAssetESErr,addToActivityAssetESData] = await this.repopulateActivityAssetSearchMappingInES(request);
+             let [addToActivityESErr,addToActivityESData] = await this.insertUpdateActivitySearchMappingInES(request);
+             let [addToActivityAssetESErr,addToActivityAssetESData] = await this.insertUpdateActivityAssetSearchMappingInES(request);
         return [false, addToActivityESData];
     };
 
-    this.repopulateActivitySearchMappingInES = async (request) => {
+    this.insertUpdateActivitySearchMappingInES = async (request) => {
         let responseData = [],
             error = true;
         try {
@@ -6670,7 +6670,7 @@ function VodafoneService(objectCollection) {
         }
         return [false, responseData];
     };
-    this.repopulateActivityAssetSearchMappingInES = async (request) => {
+    this.insertUpdateActivityAssetSearchMappingInES = async (request) => {
         let responseData = [],
             error = true;
         try {
