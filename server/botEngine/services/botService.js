@@ -2102,7 +2102,7 @@ function BotService(objectCollection) {
                             }
                         }
                             
-                        // await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                        await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                         await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -13583,7 +13583,7 @@ async function removeAsOwner(request,data)  {
             request.asset_id,
             util.ISTtoUTC(leave_date),
             leave_flag,
-            request.log_asset_id,
+            request.auth_asset_id,
             util.getCurrentUTCTime()
         ];
         let queryString = util.getQueryString('ds_v1_asset_leave_mapping_insert', paramsArr);
