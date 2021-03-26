@@ -927,6 +927,37 @@ function AssetController(objCollection) {
             console.log("/asset/inline/collection/v2 | Error: ", err);
             res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
+    });
+
+    app.post('/' + global.config.version + '/asset/leave/set', async (req, res) => {
+        const [err, responseData] = await assetService.assetLeaveMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/leave/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/leave/alter', async (req, res) => {
+        const [err, responseData] = await assetService.assetLeaveMappingUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/leave/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    
+    app.post('/' + global.config.version + '/asset/leave/list', async (req, res) => {        
+
+        let [err,result] = await assetService.getAssetLeaveMappingSelect(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
     });      
 }
 module.exports = AssetController;
