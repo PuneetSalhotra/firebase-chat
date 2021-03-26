@@ -3651,33 +3651,6 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
-    this.getAssetLeaveMappingSelect = async (request) => {
-
-        let responseData = [],
-            error = true;
-        
-        const paramsArr = [     
-              request.organization_id,
-              request.asset_id,
-              request.page_start || 0,
-              request.page_limit || 50
-        ];
-
-        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_select', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-              .then((data) => {
-                  responseData = data;
-                  error = false;
-              })
-              .catch((err) => {
-                  error = err;
-              })
-        }
-
-        return [error, responseData];
-    }
-
 
 
 }
