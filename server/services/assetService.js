@@ -6619,7 +6619,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
                 })
                 .catch((err) => {
                     error = err;
