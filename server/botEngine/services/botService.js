@@ -1952,7 +1952,62 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
                     try {
-                        await checkLargeDoa(request, botOperationsJson.bot_operations.bot_inline);
+                        
+                        request.botOperationInlineData = botOperationsJson.bot_operations.bot_inline;
+                        request.bot_operation_type_id = 35;
+                        let baseURL = `http://localhost:7000`,
+                        //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                        sqsQueueUrl = global.config.excelBotSQSQueue;
+                        if (global.mode === "sprint" || global.mode === "staging") {
+                            baseURL = `http://10.0.2.49:4000`;
+                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                            sqsQueueUrl = global.config.excelBotSQSQueue;
+                        } else if (global.mode === "preprod") {
+                            baseURL = null;
+                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                            sqsQueueUrl = global.config.excelBotSQSQueue;
+                        } else if(global.mode === "prod") {
+                            baseURL = null;
+                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                            sqsQueueUrl = global.config.excelBotSQSQueue;
+                        }
+                        logger.info(request.workflow_activity_id+": inserting status into database %j " + JSON.stringify({ type: 'bot_engine', request_body: request }));
+                        let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:35});
+                        request.bot_excel_log_transaction = insertData;
+                        sqs.sendMessage({
+                            // DelaySeconds: 5,
+                            MessageBody: JSON.stringify(request),
+                            QueueUrl: sqsQueueUrl,
+                            MessageGroupId: `excel-processing-job-queue-v1`,
+                            MessageDeduplicationId: uuidv4(),
+                            MessageAttributes: {
+                                "Environment": {
+                                    DataType: "String",
+                                    StringValue: global.mode
+                                },
+                            }
+                        }, (error, data) => {
+                            if (error) {
+                                logger.error(request.workflow_activity_id+" Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+
+                                activityCommonService.workbookTrxUpdate({
+                                    activity_workbook_transaction_id: workbookTxnID,
+                                    flag_generated: -1, //Error pushing to SQS Queue
+                                    url: ''
+                                });
+                            } else {
+                                logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
+                            }                                    
+                        });
+                        // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                        //     form: request,
+                        // }, function (error, response, body) {
+                        //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                        //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                        // });
+
+                        // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                    
                     } catch (err) {
                         global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing checkCustomBot Step', {}, {});
                         global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
@@ -1965,7 +2020,7 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
-
+            
                 case 36: //SME ILL DOA Bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'SME ILL Bot', {}, {});
