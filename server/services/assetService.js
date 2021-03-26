@@ -6118,6 +6118,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.workforce_id,
                 request.asset_id,
                 request.activity_id,
+                request.asset_type_id,
                 request.asset_type_category_id,
                 request.flag_filter,
                 request.form_id,
@@ -6548,6 +6549,160 @@ this.getQrBarcodeFeeback = async(request) => {
         console.log("assetSessionLogout  : " +JSON.stringify(responseData));       
         return [error, responseData]
 
+    }
+
+    this.getAssetDetailsAsync = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_2_asset_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetData];
+    };
+
+    this.assetLeaveMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.target_asset_id,
+            request.leave_start_datetime,
+            request.leave_end_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_1_asset_leave_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.leave_workflow_id,
+            request.target_asset_id,
+            request.leave_start_datetime,
+            request.leave_end_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_update', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.leave_workflow_id,
+            request.target_asset_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingHistoryInsert = async function (request,leave_id) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            leave_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.getAssetLeaveMappingSelect = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.page_start || 0,
+              request.page_limit || 10
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
     }
 
 }

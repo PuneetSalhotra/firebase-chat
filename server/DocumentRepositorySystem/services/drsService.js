@@ -843,6 +843,38 @@ function DrsService(objectCollection) {
     }
 }
   
+
+  //Service to remove doc access to asset
+  this.removeDocRepoAccess = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+                        request.organization_id,
+                        request.document_repository_id,
+                        request.target_asset_id,
+                        request.asset_type_id,
+                        request.target_workforce_id,
+                        request.flag,
+                        request.asset_id,
+                        util.getCurrentUTCTime()
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_1_document_repository_asset_mapping_delete', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data) => {
+              responseData = data;
+              let [assetHisErr,assetHisData] = await docRepoAssetMappingHistoryInsert(request,2407)
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
   
 }
 module.exports = DrsService;

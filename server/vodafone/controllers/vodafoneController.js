@@ -456,7 +456,18 @@ function VodafoneController(objCollection) {
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         });
-    
+
+    //repopulate ElasticSearch Data service activity_search_mapping, activity_asset_search_mapping - Elastic Search
+    app.post('/' + global.config.version + '/workflow_reference/activity_search/mapping/update', async (req, res) => {
+        const [err, responseData] = await vodafoneService.activitySearchMappingUpdateInES(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/workflow_reference/activity_search/mapping/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = VodafoneController;

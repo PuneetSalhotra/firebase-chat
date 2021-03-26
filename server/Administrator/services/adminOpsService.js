@@ -14,9 +14,9 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 
 const AWS_Cognito = require('aws-sdk');
 AWS_Cognito.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
-    "secretAccessKey": "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",
-    "region": "ap-south-1"
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
 });
 const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
@@ -71,7 +71,14 @@ function AdminOpsService(objectCollection) {
 
         let organizationID = 0;
         // Create the organization
-        const [errTwo, orgData] = await organizationListInsert(request);
+        let errTwo, orgData;
+
+        if(!request.enterprise_feature_data) {
+            [errTwo, orgData] = await organizationListInsert(request);
+        } else {
+            [errTwo, orgData] = await organizationListInsertV1(request);
+        }
+        
         if (errTwo || orgData.length === 0) {
             return [true, {
                 message: "Error creating organization"
@@ -826,6 +833,47 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function organizationListInsertV1(request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.organization_name,
+            request.organization_domain_name,
+            request.organization_image_path || '',
+            request.organization_address || '',
+            request.organization_phone_country_code || 0,
+            request.organization_phone_number || 0,
+            request.organization_email || '',
+            request.contact_person || 'Admin',
+            request.contact_phone_country_code || 0,
+            request.contact_phone_number || 0,
+            request.contact_email || '',
+            request.org_enterprise_feature_data || '{}',
+            request.flag_email || 0,
+            request.flag_doc_repo || 0,
+            request.flag_ent_features || 0,
+            request.flag_ai_bot || 0,
+            request.flag_manager_proxy || 0,
+            request.organization_type_id || 1,
+            request.log_asset_id || 1,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

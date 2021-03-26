@@ -359,6 +359,16 @@ function AnalyticsController(objCollection)
         } 
     });  
 
+    app.post('/' + global.config.version + '/analytics/asset/account/target/list/v1', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getAssetAccountChannelTargetList(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
     app.post('/' + global.config.version + '/analytics/widget_type/collection', async (req, res) => {        
 
         let [err,result] = await analyticsService.getwidgetStaticValueDetails(req.body);
@@ -419,6 +429,126 @@ function AnalyticsController(objCollection)
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     }); 
+
+    
+    app.post('/' + global.config.version + '/asset/last_hierarchy/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetListUpdateLastHierarchy(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    app.post('/' + global.config.version + '/analytics/asset/access/leevl/mapping', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getAssetAccessLevelMapping(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.reportFilterListInsert(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/list', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getReportFilterListSelect(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/filter/delete', async (req, res) => {        
+
+        let [err,result] = await analyticsService.reportFilterListDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
+
+    
+    app.post('/' + global.config.version + '/retrieve/filter/data', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getTagListSelectDashobardFilters(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/dashboard/access/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetAccessLevelMapping(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/access/set', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetReportMapping(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/analytics/asset/report/mapping', async (req, res) => {        
+
+        let [err,result] = await analyticsService.getAssetReportMappingSelectAsset(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/dashboard/access/reset', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetAccessLevelMappingDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });  
+
+    
+    app.post('/' + global.config.version + '/report/access/reset', async (req, res) => {        
+
+        let [err,result] = await analyticsService.assetReportMappingDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });    
 
     
     }

@@ -2826,8 +2826,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.account_id,
                 activityId,
                 formId,
-                0,
-                50
+                request.offset || 0,
+                request.limit || 50
             );
             const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
             if (queryString !== '') {
@@ -3278,8 +3278,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.account_id,
                 activityId,
                 formId,
-                0,
-                200
+                request.start_from||0,
+                request.limit_value||200
             );
             const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
             if (queryString !== '') {
