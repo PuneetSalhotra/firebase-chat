@@ -3327,6 +3327,8 @@ function AnalyticsService(objectCollection)
               request.organization_id,
               request.account_id,
               request.type_flag,
+              request.target_account_id,
+              request.tag_id,
               request.tag_type_id,
               request.filter_is_search,
               request.filter_search_string,
