@@ -5,6 +5,7 @@ const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
+const { Kafka } = require('kafkajs');
 
 function ActivityTimelineService(objectCollection) {
 
@@ -2956,10 +2957,10 @@ function ActivityTimelineService(objectCollection) {
                             s3UrlOfExcel: annexureExcelFilePath
                         });
 
-                        await queueWrapper.raiseActivityEventToTopicPromise({
+                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
                             ...request,
                             s3UrlOfExcel: annexureExcelFilePath
-                        }, childOrdersCreationTopicName, Number(request.workflow_activity_id));
+                        }).catch(global.logger.error);
                 
                     }
 
@@ -3755,10 +3756,10 @@ async function addFormEntriesAsync(request) {
                             ...request,
                             s3UrlOfExcel: annexureExcelFilePath
                         });
-                        await queueWrapper.raiseActivityEventToTopicPromise({
+                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
                             ...request,
                             s3UrlOfExcel: annexureExcelFilePath
-                        }, childOrdersCreationTopicName, Number(request.workflow_activity_id));
+                        }).catch(global.logger.error)
 
                     }
                 })
@@ -4327,6 +4328,31 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
+    async function kafkaProdcucerForChildOrderCreation(topicName,message) {
+        const kafka = new Kafka({
+            clientId: 'child-order-creation',
+            brokers: [
+                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
+            ]
+        })
+        
+        const producer = kafka.producer()
+
+        await producer.connect()
+        await producer.send({
+            topic: topicName,
+    
+            messages: [
+                {
+                    value: JSON.stringify(message)
+                },
+            ],
+        })
+        producer.disconnect();
+        return;
+    }
 }
 
 module.exports = ActivityTimelineService;
