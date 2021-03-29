@@ -9730,14 +9730,14 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //send notification
     this.sendNotificationAsset = async function(request, assetsData) {
         //Store the broadcast message for each user (asset).
-        let [err, brodcast_txn_id] = await this.storeBroadCastMessageForEachAsset(
+        let [err, responseAssetData] = await this.storeBroadCastMessageForEachAsset(
             request,
             request.broadcast_id,
             assetsData.asset_id,
             request.asset_id);
         if (!err) {
 
-            if(request.is_send_push == 1) {
+            if(responseAssetData[0].is_send_push == 1) {
                 request.target_asset_id = assetsData.asset_id;
                 request.asset_push_arn = assetsData.asset_push_arn;
                 //sending push message to asset.
@@ -9745,6 +9745,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 if (error) {
                     logger.error("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
                 }
+            }else{
+                logger.info("is_send_push = " + responseAssetData[0].is_send_push+" : Hence no Push");
             }
 
         } else {
@@ -9970,7 +9972,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         asset_id,
         log_asset_id) {
     
-        let error = false,
+        let error = true,
             responseData = [];
     
         try {
@@ -9980,10 +9982,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 log_asset_id,
                 util.getCurrentUTCTime()
             );
-            let queryString = util.getQueryString(
-                "ds_p1_broadcast_transaction_insert",
-                paramsArr
-            );
+            let queryString = util.getQueryString("ds_p1_broadcast_transaction_insert",paramsArr);
     
             if (queryString != "") {
                 await db
