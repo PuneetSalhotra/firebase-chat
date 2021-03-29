@@ -9337,22 +9337,22 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     other wise all flag must be an array.
     */
     this.messageBroadCast = async function(request) {
-        console.log("messageBroadCast()=> request = " + JSON.stringify(request));
+        logger.info("messageBroadCast()=> request = " + JSON.stringify(request));
         let err = false, 
             broadcast_id = 0;
         
         request.isBroadMessageInsert = false;
     
         if (!request.hasOwnProperty("flag")) {
-            console.log("error = " + 'missing parameter : `flag`');
+            logger.error("error = " + 'missing parameter : `flag`');
             return [true, 'missing parameter : `flag`'];
         }
         
         switch (Number(request.flag)) {
-            case 1: {
-                await this.sendPushNotificationL1(request);
-            }
-            break;
+        case 1: {
+            await this.sendPushNotificationL1(request);
+        }
+        break;
         case 2: {
             await this.sendPushNotificationL2(request);
         }
@@ -9370,13 +9370,13 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         break;
         default: {
-            console.log("error = " + 'missing parameter : `flag`');
+            logger.error("error = " + 'missing parameter : `flag`');
             return [true, 'missing parameter : `flag`'];
         }
         }
     
         if (err) {
-            console.log("error = " + err);
+            logger.error("error = " + err);
             return [true, err];
         }
         return [false, []];
@@ -9385,8 +9385,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //------------------------------------------------------
     //L1 : Organization : Send Push Notification to all assets which comes under the organization.
     this.sendPushNotificationL1 = async function(request) {
-        console.log("------------------------------------------");
-        console.log("sendPushNotificationL1() : Organization :=>" +
+        logger.info("sendPushNotificationL1() : Organization :=>" +
             " organization_id = " + request.organization_id);
 
         let page_start = 0,
@@ -9413,27 +9412,27 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             //L2 : Building : Send Push Notification to all assets which comes under the account.
             await this.sendPushNotificationL2(request);
         } else {
-            console.log(
+            logger.info(
                 "account details not available for organization_id = " + organization_id
             );
         }
+
+        accountsData = null;
     };
 
     //------------------------------------------------------
     //L2 : Building : Send Push Notification to all assets which comes under the account.
     this.sendPushNotificationL2 = async function(request) {
-        console.log("------------------------------------------");
-        console.log("sendPushNotificationL2() : Building :=>" +
+        logger.info("sendPushNotificationL2() : Building :=>" +
             " organization_id = " + request.organization_id +
-            ", account_ids = " + request.account_ids);
+            " account_ids = " + request.account_ids);
     
         let organization_id = request.organization_id;
         let account_ids = request.account_ids;
         account_ids = JSON.parse(account_ids);
     
         let page_start = 0,
-            page_limit = 50,
-            responseData = [];
+            page_limit = 50;
     
         if (account_ids.length > 0) {
             // iterate account list
@@ -9463,31 +9462,28 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     //L3 : Workforce : Send Push Notification to all assets which comes under the workforce.
                     await this.sendPushNotificationL3(request);
                 } else {
-                    console.log(
+                    logger.info(
                         "workforce details not available for organization_id = " + organization_id + ", account_id = " + account_id
                     );
                 }
+                workforceData = null;
             }
+            account_ids = null;
         } else {
-            console.log("Missing parameter : account_ids\n");
+            logger.info("Missing parameter : account_ids\n");
         }
     };
 
     //------------------------------------------------------
     //L3 : Workforce : Send Push Notification to all assets which comes under the workforce.
     this.sendPushNotificationL3 = async function(request) {
-        console.log("------------------------------------------");
-        console.log("sendPushNotificationL3() : Workforce : =>" +
+        logger.info("sendPushNotificationL3() : Workforce : =>" +
             " organization_id = " + request.organization_id +
-            ", account_id = " + request.account_id +
-            ", workforce_ids = " + request.workforce_ids);
-        let organization_id = request.organization_id;
-        let account_id = request.account_id;
+            " account_id = " + request.account_id +
+            " workforce_ids = " + request.workforce_ids);
+        
         let workforce_ids = request.workforce_ids;
-        let page_start = 0,
-            page_limit = 50,
-            responseData = [];
-    
+        
         workforce_ids = JSON.parse(workforce_ids);
     
         if (workforce_ids.length > 0) {
@@ -9502,27 +9498,26 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     //send push notification to each asset
                     await this.sendPushNotificationsToAssets(request, assetsData);
                 } else {
-                    console.log(
+                    logger.info(
                         "asset details not available for" +
                         " organization_id = " + request.organization_id +
-                        ", account_id = " + request.account_id +
-                        ", workforce_id = " + workforce_id +
+                        " account_id = " + request.account_id +
+                        " workforce_id = " + workforce_id +
                         "\n"
                     );
                 }
             }
         } else {
-            console.log("Missing parameter : workforce_ids\n");
+            logger.info("Missing parameter : workforce_ids\n");
         }
     };
 
     //------------------------------------------------------
     //L4 : Role : Send Push Notification to all assets which comes under the asset_type.
     this.sendPushNotificationL4 = async function(request) {
-        console.log("------------------------------------------");
-        console.log("sendPushNotificationL4() : Role : =>" +
+        logger.info("sendPushNotificationL4() : Role : =>" +
             " organization_id = " + request.organization_id +
-            ", asset_type_ids = " + request.asset_type_ids);
+            " asset_type_ids = " + request.asset_type_ids);
         let organization_id = request.organization_id;
         let asset_type_ids = request.asset_type_ids;
         asset_type_ids = JSON.parse(asset_type_ids);
@@ -9556,23 +9551,22 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     //L5 : Asset : Send Push Notification to all assets.
                     await this.sendPushNotificationL5(request, assetsData);
                 } else {
-                    console.log(
+                    logger.info(
                         "asset details not available for organization_id = " + organization_id + " and asset_type_id = " + asset_type_id + "\n"
                     );
                 }
             }
         } else {
-            console.log("Missing parameter : asset_type_ids\n");
+            logger.info("Missing parameter : asset_type_ids\n");
         }
     };
 
     //------------------------------------------------------
     //L5 : Asset : Send Push Notification to all assets.
     this.sendPushNotificationL5 = async function(request) {
-        console.log("------------------------------------------");
-        console.log("sendPushNotificationL5() : Asset : =>" +
+        logger.info("sendPushNotificationL5() : Asset : =>" +
             " organization_id = " + request.organization_id +
-            ", asset_ids = " + request.asset_ids);
+            " asset_ids = " + request.asset_ids);
         let organization_id = request.organization_id;
         let asset_ids = request.asset_ids;
         asset_ids = JSON.parse(asset_ids);
@@ -9594,24 +9588,20 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     //send push notification to each asset
                     await this.sendPushNotificationsToAssets(request, assetsData);
                 } else {
-                    console.log(
+                    logger.info(
                         "asset details not available for organization_id = " + organization_id + " and asset_id = " + asset_id + "\n"
                     );
                 }
             }
         } else {
-            console.log("Missing parameter : asset_ids\n");
+            logger.info("Missing parameter : asset_ids\n");
         }
     };
 
     //------------------------------------------------------
     // send push notification to all list of assets.
     this.sendPushNotificationsToAssets = async function(request, assetsData) {
-        let error = false,
-            responseData = {};
-    
-        let errorMessagesArray = [];
-    
+        
         for (let i = 0; i < assetsData.length; i++) {
     
             if(!request.isBroadMessageInsert) {
@@ -9626,7 +9616,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             } else {
                 await this.sendNotificationAsset(request, assetsData[i]);
             }
-            console.log("\n");
+            logger.info("\n");
         }
     };
 
@@ -9640,17 +9630,21 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_id);
         if (!err) {
 
-            request.target_asset_id = assetsData.asset_id;
-            request.asset_push_arn = assetsData.asset_push_arn;
-            //sending push message to asset.
-            let [error, responseData] = await util.sendPushToAsset(request);
-            if (error) {
-                console.log("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
+            if(request.is_send_push == 1) {
+                request.target_asset_id = assetsData.asset_id;
+                request.asset_push_arn = assetsData.asset_push_arn;
+                //sending push message to asset.
+                let [error, responseData] = await util.sendPushToAsset(request);
+                if (error) {
+                    logger.error("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
+                }
             }
 
         } else {
-            console.log("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
+            logger.info("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
         }
+
+        assetsData = null;
 
         return [false, []];
     }
@@ -9663,7 +9657,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         page_start,
         page_limit
     ) {
-        console.log("getAccountList() :=> : " +
+        logger.info("getAccountList() :=> : " +
             "organization_id = " + organization_id);
     
         let error = false,
@@ -9680,17 +9674,17 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
-                        console.log("account list size = " + responseData.length);
+                        logger.info("account list size = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getAccountList : query : Error " + err);
+                        logger.error("getAccountList : query : Error " + err);
                     });
             }
         } catch (err) {
             error = err;
-            console.log("getAccountList : Error " + err);
+            logger.error("getAccountList : Error " + err);
         }
     
         return [error, responseData];
@@ -9705,9 +9699,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         page_start,
         page_limit
     ) {
-        console.log("getWorkforceList()=> : " +
+        logger.info("getWorkforceList()=> : " +
             "organization_id = " + organization_id +
-            ", account_id = " + account_id);
+            " account_id = " + account_id);
         let error = false,
             responseData = [];
         try {
@@ -9727,16 +9721,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
-                        console.log("workforce list size = " + responseData.length);
+                        logger.info("workforce list size = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getWorkforceList : query : Error " + err);
+                        logger.error("getWorkforceList : query : Error " + err);
                     });
             }
         } catch (err) {
-            console.log("getWorkforceList : Error " + err);
+            logger.error("getWorkforceList : Error " + err);
         }
     
         return [error, responseData];
@@ -9751,9 +9745,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         page_start,
         page_limit
     ) {
-        console.log("getWorkforceList()=> : " +
+        logger.info("getWorkforceList()=> : " +
             "organization_id = " + organization_id +
-            ", account_id = " + account_id);
+            " account_id = " + account_id);
         let error = false,
             responseData = [];
         try {
@@ -9773,16 +9767,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
-                        console.log("workforce list size = " + responseData.length);
+                        logger.info("workforce list size = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getWorkforceList : query : Error " + err);
+                        logger.error("getWorkforceList : query : Error " + err);
                     });
             }
         } catch (err) {
-            console.log("getWorkforceList : Error " + err);
+            logger.error("getWorkforceList : Error " + err);
         }
     
         return [error, responseData];
@@ -9837,10 +9831,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.asset_id,
                 util.getCurrentUTCTime()
             );
-            let queryString = util.getQueryString(
-                "ds_p1_broadcast_list_insert",
-                paramsArr
-            );
+            let queryString = util.getQueryString("ds_p1_broadcast_list_insert", paramsArr);
     
             if (queryString != "") {
                 await db
@@ -9848,15 +9839,17 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .then((data) => {
                         broadcast_id = data[0].broadcast_id;
                         request.broadcast_id = data[0].broadcast_id;
+                        request.is_send_push = data[0].is_send_push;
+                        logger.info("broadcast_id = " + request.broadcast_id + " is_send_push = " + data[0].is_send_push);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("storeBroadCastMessage : query : Error " + error);
+                        logger.error("storeBroadCastMessage : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("storeBroadCastMessage : Error " + err);
+            logger.error("storeBroadCastMessage : Error " + err);
         }
     
         return [error, broadcast_id];
@@ -9890,15 +9883,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
+                        logger.info("broadcast_id = " + request.broadcast_id + " broadcast_txn_id = " + data[0].broadcast_txn_id);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("storeBroadCastMessageForEachAsset : query : Error " + error);
+                        logger.error("storeBroadCastMessageForEachAsset : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("storeBroadCastMessageForEachAsset : Error " + err);
+            logger.error("storeBroadCastMessageForEachAsset : Error " + err);
         }
     
         return [error, responseData];
@@ -9907,7 +9901,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //----------------------------------------------
     //Select the list of broadcast messages.
     this.getBroadCardList = async function(request) {
-        console.log("getBroadCardList: request : " + JSON.stringify(request));
+        logger.info("getBroadCardList: request : " + JSON.stringify(request));
     
         let error = false,
             responseData = [];
@@ -9932,11 +9926,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getBroadCardList : query : Error " + error);
+                        logger.error("getBroadCardList : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("getBroadCardList : Error " + err);
+            logger.error("getBroadCardList : Error " + err);
         }
     
         return [error, responseData];
@@ -9945,7 +9939,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //----------------------------------------------
     //Get the count who have read/unread the broadcast messages.
     this.getAssetCountWhoReadUnReadBroadMessage = async function(request) {
-        console.log("getAssetCountWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
+        logger.info("getAssetCountWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
     
         let error = false,
             responseData = [];
@@ -9969,11 +9963,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getAssetCountWhoReadUnReadBroadMessage : query : Error " + error);
+                        logger.error("getAssetCountWhoReadUnReadBroadMessage : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("getAssetCountWhoReadUnReadBroadMessage : Error " + err);
+            logger.error("getAssetCountWhoReadUnReadBroadMessage : Error " + err);
         }
     
         return [error, responseData];
@@ -9982,7 +9976,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //----------------------------------------------
     //Get the list of user(asset) who have read / unread the broadcast message.
     this.getListOfAssetsWhoReadUnReadBroadMessage = async function(request) {
-        console.log("getListOfAssetsWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
+        logger.info("getListOfAssetsWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
     
         let error = false,
             responseData = [];
@@ -10009,11 +10003,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("getListOfAssetsWhoReadUnReadBroadMessage : query : Error " + error);
+                        logger.error("getListOfAssetsWhoReadUnReadBroadMessage : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("getListOfAssetsWhoReadUnReadBroadMessage : Error " + err);
+            logger.error("getListOfAssetsWhoReadUnReadBroadMessage : Error " + err);
         }
     
         return [error, responseData];
@@ -10022,7 +10016,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //----------------------------------------------
     //Update broadcast_flag_read for an asset.
     this.updateBroadCastMessageFlagForEachAsset = async function(request) {
-        console.log("updateBroadCastMessageFlagForEachAsset: request : " + JSON.stringify(request));
+        logger.info("updateBroadCastMessageFlagForEachAsset: request : " + JSON.stringify(request));
     
         let error = false,
             responseData = [];
@@ -10048,11 +10042,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     })
                     .catch((err) => {
                         error = err;
-                        console.log("updateBroadCastMessageFlagForEachAsset : query : Error " + error);
+                        logger.error("updateBroadCastMessageFlagForEachAsset : query : Error " + error);
                     });
             }
         } catch (err) {
-            console.log("updateBroadCastMessageFlagForEachAsset : Error " + err);
+            logger.error("updateBroadCastMessageFlagForEachAsset : Error " + err);
         }
     
         return [error, responseData];
