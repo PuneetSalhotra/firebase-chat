@@ -2230,6 +2230,7 @@ function Util(objectCollection) {
     };
 
     this.sendPushToAsset = async (request) =>{
+        console.log("sendPushToAsset: asset_id = " + request.target_asset_id);
         let error = false;
         // [CHECK] target_asset_id
         if (
@@ -2248,14 +2249,14 @@ function Util(objectCollection) {
             assetPushARN = assetMapData.asset_push_arn;
         }
         
-        sns.publish({
-            description: request.message,
-            title: request.push_title,
-            subtitle: request.push_message,
-            body: `DESKER`,
-            activity_id: 0,
-            activity_type_category_id: 0
-        }, 1, assetPushARN);
+        // sns.publish({
+        //     description: request.message,
+        //     title: request.push_title,
+        //     subtitle: request.push_message,
+        //     body: `DESKER`,
+        //     activity_id: 0,
+        //     activity_type_category_id: 0
+        // }, 1, assetPushARN);
 
         return [error, {
             message: `Push sent to ${request.target_asset_id}`

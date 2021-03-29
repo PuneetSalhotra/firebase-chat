@@ -9296,6 +9296,767 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
         return [error, responseData];
     }
+
+    /*
+    Message Brodcasting : on level wise.
+    Following levels to be supported while sending the broadcast
+    1. Org
+    2. Building
+    3. Workforce
+    4. Role
+    5. Asset
+    using following parameters:
+    flag : 1 or 2 or 3 or 4 or 5
+    
+    if 1. Org then request parameters contains
+        flag : 1
+        organization_id:906
+
+    if 2. Building then request parameters contains
+        flag:2
+        organization_id:906
+        account_ids:[1023,1046]
+
+    if 3. Workforce then request parameters contains
+        flag:3
+        organization_id:906
+        account_id:1046
+        workforce_ids:[5781,5782,5783,5784]
+
+    if 4. Role then request parameters contains
+        flag:4
+        organization_id:906
+        asset_type_ids:[5781,5782,5783,5784]
+
+    if 5. Asset then request parameters contains
+        flag:5
+        organization_id:906
+        asset_ids:[51606,51607,5783,5784]
+        
+    Note : If flag coming as 1 means Org. It must be integer value.
+    other wise all flag must be an array.
+    */
+    this.messageBroadCast = async function(request) {
+        console.log("messageBroadCast()=> request = " + JSON.stringify(request));
+        let err = false, 
+            broadcast_id = 0;
+        
+        request.isBroadMessageInsert = false;
+    
+        if (!request.hasOwnProperty("flag")) {
+            console.log("error = " + 'missing parameter : `flag`');
+            return [true, 'missing parameter : `flag`'];
+        }
+        
+        switch (Number(request.flag)) {
+            case 1: {
+                await this.sendPushNotificationL1(request);
+            }
+            break;
+        case 2: {
+            await this.sendPushNotificationL2(request);
+        }
+        break;
+        case 3: {
+            await this.sendPushNotificationL3(request);
+        }
+        break;
+        case 4: {
+            await this.sendPushNotificationL4(request);
+        }
+        break;
+        case 5: {
+            await this.sendPushNotificationL5(request);
+        }
+        break;
+        default: {
+            console.log("error = " + 'missing parameter : `flag`');
+            return [true, 'missing parameter : `flag`'];
+        }
+        }
+    
+        if (err) {
+            console.log("error = " + err);
+            return [true, err];
+        }
+        return [false, []];
+    };
+
+    //------------------------------------------------------
+    //L1 : Organization : Send Push Notification to all assets which comes under the organization.
+    this.sendPushNotificationL1 = async function(request) {
+        console.log("------------------------------------------");
+        console.log("sendPushNotificationL1() : Organization :=>" +
+            " organization_id = " + request.organization_id);
+
+        let page_start = 0,
+            page_limit = 50,
+            responseData = [],
+            organization_id = request.organization_id;
+    
+        //find out account list for specified organization.
+        let [error, accountsData] = await this.getAccountList(
+            request,
+            organization_id,
+            page_start,
+            page_limit
+        );
+        if (accountsData.length > 0) {
+            let account_ids = [];
+            // iterate account list
+            for (let i = 0; i < accountsData.length; i++) {
+                let account_id = accountsData[i].account_id;
+                account_ids.push(account_id);
+            }
+            request.account_ids = JSON.stringify(account_ids);
+    
+            //L2 : Building : Send Push Notification to all assets which comes under the account.
+            await this.sendPushNotificationL2(request);
+        } else {
+            console.log(
+                "account details not available for organization_id = " + organization_id
+            );
+        }
+    };
+
+    //------------------------------------------------------
+    //L2 : Building : Send Push Notification to all assets which comes under the account.
+    this.sendPushNotificationL2 = async function(request) {
+        console.log("------------------------------------------");
+        console.log("sendPushNotificationL2() : Building :=>" +
+            " organization_id = " + request.organization_id +
+            ", account_ids = " + request.account_ids);
+    
+        let organization_id = request.organization_id;
+        let account_ids = request.account_ids;
+        account_ids = JSON.parse(account_ids);
+    
+        let page_start = 0,
+            page_limit = 50,
+            responseData = [];
+    
+        if (account_ids.length > 0) {
+            // iterate account list
+            for (let i = 0; i < account_ids.length; i++) {
+                let account_id = account_ids[i];
+    
+                //L3 : find out workforce list for specified organization-account.
+                let [error, workforceData] = await this.getWorkforceList(
+                    request,
+                    organization_id,
+                    account_id,
+                    page_start,
+                    page_limit
+                );
+                if (workforceData.length > 0) {
+                    let workforce_ids = [];
+    
+                    //iterate workforce list
+                    for (let i = 0; i < workforceData.length; i++) {
+                        let workforce_id = workforceData[i].workforce_id;
+                        workforce_ids.push(workforce_id);
+                    }
+    
+                    request.workforce_ids = JSON.stringify(workforce_ids);
+                    request.account_id = account_id;
+    
+                    //L3 : Workforce : Send Push Notification to all assets which comes under the workforce.
+                    await this.sendPushNotificationL3(request);
+                } else {
+                    console.log(
+                        "workforce details not available for organization_id = " + organization_id + ", account_id = " + account_id
+                    );
+                }
+            }
+        } else {
+            console.log("Missing parameter : account_ids\n");
+        }
+    };
+
+    //------------------------------------------------------
+    //L3 : Workforce : Send Push Notification to all assets which comes under the workforce.
+    this.sendPushNotificationL3 = async function(request) {
+        console.log("------------------------------------------");
+        console.log("sendPushNotificationL3() : Workforce : =>" +
+            " organization_id = " + request.organization_id +
+            ", account_id = " + request.account_id +
+            ", workforce_ids = " + request.workforce_ids);
+        let organization_id = request.organization_id;
+        let account_id = request.account_id;
+        let workforce_ids = request.workforce_ids;
+        let page_start = 0,
+            page_limit = 50,
+            responseData = [];
+    
+        workforce_ids = JSON.parse(workforce_ids);
+    
+        if (workforce_ids.length > 0) {
+            //iterate workforce list
+            for (let i = 0; i < workforce_ids.length; i++) {
+                let workforce_id = workforce_ids[i];
+                request.target_workforce_id = workforce_id;
+    
+                //L5 : find out asset list for specified organization-account-workforce.
+                let [error, assetsData] = await activityCommonService.getLinkedAssetsInWorkforce(request);
+                if (assetsData.length > 0) {
+                    //send push notification to each asset
+                    await this.sendPushNotificationsToAssets(request, assetsData);
+                } else {
+                    console.log(
+                        "asset details not available for" +
+                        " organization_id = " + request.organization_id +
+                        ", account_id = " + request.account_id +
+                        ", workforce_id = " + workforce_id +
+                        "\n"
+                    );
+                }
+            }
+        } else {
+            console.log("Missing parameter : workforce_ids\n");
+        }
+    };
+
+    //------------------------------------------------------
+    //L4 : Role : Send Push Notification to all assets which comes under the asset_type.
+    this.sendPushNotificationL4 = async function(request) {
+        console.log("------------------------------------------");
+        console.log("sendPushNotificationL4() : Role : =>" +
+            " organization_id = " + request.organization_id +
+            ", asset_type_ids = " + request.asset_type_ids);
+        let organization_id = request.organization_id;
+        let asset_type_ids = request.asset_type_ids;
+        asset_type_ids = JSON.parse(asset_type_ids);
+    
+        let page_start = 0,
+            page_limit = 100,
+            responseData = [];
+    
+        if (asset_type_ids.length > 0) {
+            //iterate asset_type_ids list
+            for (let i = 0; i < asset_type_ids.length; i++) {
+                let asset_type_id = asset_type_ids[i];
+    
+                //L5 : find out asset list for specified organization-account-workforce-asset_type.
+                let [error, assetsData] = await this.getAssetListByUsingAssetTypeId(
+                    request,
+                    organization_id,
+                    asset_type_id,
+                    page_start,
+                    page_limit
+                );
+                if (assetsData.length > 0) {
+                    let asset_ids = [];
+                    //send push notification to each asset
+                    for (let i = 0; i < assetsData.length; i++) {
+                        asset_ids.push(assetsData[i].asset_id);
+                    }
+    
+                    request.asset_ids = JSON.stringify(asset_ids);
+    
+                    //L5 : Asset : Send Push Notification to all assets.
+                    await this.sendPushNotificationL5(request, assetsData);
+                } else {
+                    console.log(
+                        "asset details not available for organization_id = " + organization_id + " and asset_type_id = " + asset_type_id + "\n"
+                    );
+                }
+            }
+        } else {
+            console.log("Missing parameter : asset_type_ids\n");
+        }
+    };
+
+    //------------------------------------------------------
+    //L5 : Asset : Send Push Notification to all assets.
+    this.sendPushNotificationL5 = async function(request) {
+        console.log("------------------------------------------");
+        console.log("sendPushNotificationL5() : Asset : =>" +
+            " organization_id = " + request.organization_id +
+            ", asset_ids = " + request.asset_ids);
+        let organization_id = request.organization_id;
+        let asset_ids = request.asset_ids;
+        asset_ids = JSON.parse(asset_ids);
+        let page_start = 0,
+            page_limit = 50,
+            responseData = [];
+    
+        if (asset_ids.length > 0) {
+            //iterate asset_ids list
+            for (let i = 0; i < asset_ids.length; i++) {
+                let asset_id = asset_ids[i];
+    
+                //find out asset details for specified organization-asset_ids.
+                let [error, assetsData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: organization_id,
+                    asset_id: asset_id,
+                });
+                if (assetsData.length > 0) {
+                    //send push notification to each asset
+                    await this.sendPushNotificationsToAssets(request, assetsData);
+                } else {
+                    console.log(
+                        "asset details not available for organization_id = " + organization_id + " and asset_id = " + asset_id + "\n"
+                    );
+                }
+            }
+        } else {
+            console.log("Missing parameter : asset_ids\n");
+        }
+    };
+
+    //------------------------------------------------------
+    // send push notification to all list of assets.
+    this.sendPushNotificationsToAssets = async function(request, assetsData) {
+        let error = false,
+            responseData = {};
+    
+        let errorMessagesArray = [];
+    
+        for (let i = 0; i < assetsData.length; i++) {
+    
+            if(!request.isBroadMessageInsert) {
+
+                //inserting 
+                let [err, broadcast_id] = await this.storeBroadCastMessage(request);
+                if (!err) {
+
+                    request.isBroadMessageInsert = true;
+                    await this.sendNotificationAsset(request, assetsData[i]);
+                }
+            } else {
+                await this.sendNotificationAsset(request, assetsData[i]);
+            }
+            console.log("\n");
+        }
+    };
+
+    //send notification
+    this.sendNotificationAsset = async function(request, assetsData) {
+        //Store the broadcast message for each user (asset).
+        let [err, brodcast_txn_id] = await this.storeBroadCastMessageForEachAsset(
+            request,
+            request.broadcast_id,
+            assetsData.asset_id,
+            request.asset_id);
+        if (!err) {
+
+            request.target_asset_id = assetsData.asset_id;
+            request.asset_push_arn = assetsData.asset_push_arn;
+            //sending push message to asset.
+            let [error, responseData] = await util.sendPushToAsset(request);
+            if (error) {
+                console.log("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
+            }
+
+        } else {
+            console.log("error : target_asset_id = " + request.target_asset_id + " : error message : " + JSON.stringify(responseData));
+        }
+
+        return [false, []];
+    }
+
+    //------------------------------------------------------
+    //get list of all accounts for the requested organization_id
+    this.getAccountList = async function(
+        request,
+        organization_id,
+        page_start,
+        page_limit
+    ) {
+        console.log("getAccountList() :=> : " +
+            "organization_id = " + organization_id);
+    
+        let error = false,
+            responseData = [];
+        try {
+            let paramsArr = new Array(organization_id, page_start, page_limit);
+            let queryString = util.getQueryString(
+                "ds_p1_account_list_select_organization",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        console.log("account list size = " + responseData.length);
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getAccountList : query : Error " + err);
+                    });
+            }
+        } catch (err) {
+            error = err;
+            console.log("getAccountList : Error " + err);
+        }
+    
+        return [error, responseData];
+    };
+
+    //------------------------------------------------------
+    //get list of workforces for the requested account_id
+    this.getWorkforceList = async function(
+        request,
+        organization_id,
+        account_id,
+        page_start,
+        page_limit
+    ) {
+        console.log("getWorkforceList()=> : " +
+            "organization_id = " + organization_id +
+            ", account_id = " + account_id);
+        let error = false,
+            responseData = [];
+        try {
+            let paramsArr = new Array(
+                organization_id,
+                account_id,
+                page_start,
+                page_limit
+            );
+            let queryString = util.getQueryString(
+                "ds_v1_workforce_list_select_account",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        console.log("workforce list size = " + responseData.length);
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getWorkforceList : query : Error " + err);
+                    });
+            }
+        } catch (err) {
+            console.log("getWorkforceList : Error " + err);
+        }
+    
+        return [error, responseData];
+    };
+
+    //------------------------------------------------------
+    //get asset list for provided asset_type_ids
+    this.getWorkforceList = async function(
+        request,
+        organization_id,
+        account_id,
+        page_start,
+        page_limit
+    ) {
+        console.log("getWorkforceList()=> : " +
+            "organization_id = " + organization_id +
+            ", account_id = " + account_id);
+        let error = false,
+            responseData = [];
+        try {
+            let paramsArr = new Array(
+                organization_id,
+                account_id,
+                page_start,
+                page_limit
+            );
+            let queryString = util.getQueryString(
+                "ds_v1_workforce_list_select_account",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        console.log("workforce list size = " + responseData.length);
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getWorkforceList : query : Error " + err);
+                    });
+            }
+        } catch (err) {
+            console.log("getWorkforceList : Error " + err);
+        }
+    
+        return [error, responseData];
+    };
+
+    //----------------------------------------------
+    //Store the broadcast message.
+    this.storeBroadCastMessage = async function(request) {
+        let error = false,
+            broadcast_id = 0,
+            broadcast_level = 0,
+            broadcast_level_name = '';
+
+        switch(Number(request.flag)) {
+            case 1: {
+                broadcast_level = 1;
+                broadcast_level_name = 'Organization';
+            }
+            break;
+            case 2: {
+                broadcast_level = 2;
+                broadcast_level_name = 'Building';
+            }
+            break;
+            case 3: {
+                broadcast_level = 3;
+                broadcast_level_name = 'Workforce';
+            }
+            break;
+            case 4: {
+                broadcast_level = 4;
+                broadcast_level_name = 'Role';
+            }
+            break;
+            case 5: {
+                broadcast_level = 5;
+                broadcast_level_name = 'Asset';
+            }
+            break;
+        }
+    
+        try {
+            let paramsArr = new Array(
+                request.broadcast_name || '',
+                request.broadcast_subject,
+                request.broadcast_content,
+                JSON.stringify({
+                    "level": broadcast_level,
+                    "level_name": broadcast_level_name
+                }),
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_list_insert",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        broadcast_id = data[0].broadcast_id;
+                        request.broadcast_id = data[0].broadcast_id;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("storeBroadCastMessage : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("storeBroadCastMessage : Error " + err);
+        }
+    
+        return [error, broadcast_id];
+    }
+
+    //----------------------------------------------
+    //Store the broadcast message for each user (asset).
+    this.storeBroadCastMessageForEachAsset = async function(
+        request,
+        broadcast_id,
+        asset_id,
+        log_asset_id) {
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                broadcast_id,
+                asset_id,
+                log_asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_insert",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("storeBroadCastMessageForEachAsset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("storeBroadCastMessageForEachAsset : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //Select the list of broadcast messages.
+    this.getBroadCardList = async function(request) {
+        console.log("getBroadCardList: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_list_select",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getBroadCardList : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("getBroadCardList : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //Get the count who have read/unread the broadcast messages.
+    this.getAssetCountWhoReadUnReadBroadMessage = async function(request) {
+        console.log("getAssetCountWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.broadcast_id,
+                request.organization_id
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_count",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getAssetCountWhoReadUnReadBroadMessage : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("getAssetCountWhoReadUnReadBroadMessage : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //Get the list of user(asset) who have read / unread the broadcast message.
+    this.getListOfAssetsWhoReadUnReadBroadMessage = async function(request) {
+        console.log("getListOfAssetsWhoReadUnReadBroadMessage: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.broadcast_id,
+                request.broadcast_flag,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getListOfAssetsWhoReadUnReadBroadMessage : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("getListOfAssetsWhoReadUnReadBroadMessage : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //Update broadcast_flag_read for an asset.
+    this.updateBroadCastMessageFlagForEachAsset = async function(request) {
+        console.log("updateBroadCastMessageFlagForEachAsset: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.broadcast_id,
+                request.asset_id,
+                request.broadcast_flag_read,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_update_flag_read",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("updateBroadCastMessageFlagForEachAsset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("updateBroadCastMessageFlagForEachAsset : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
