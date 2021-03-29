@@ -842,6 +842,70 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    //--------------------------------------
+	//send broadcast messages.
+    app.post('/' + global.config.version + '/admin/send/broadcastmessage', async function (req, res) {
+        const [err, orgData] = await adminOpsService.messageBroadCast(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/send/broadcastmessage | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    
+    //--------------------------------------
+	//Select the list of broadcast messages.
+    app.post('/' + global.config.version + '/admin/broadcast/list', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getBroadCardList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    
+    //--------------------------------------
+	//Get the count who have read/unread the broadcast messages.
+    app.post('/' + global.config.version + '/admin/broadcast/asset/count', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getAssetCountWhoReadUnReadBroadMessage(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/asset/count | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+
+    //--------------------------------------
+    //Get the list of user(asset) who have read / unread the broadcast message.
+    app.post('/' + global.config.version + '/admin/broadcast/asset/list', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getListOfAssetsWhoReadUnReadBroadMessage(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/asset/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+
+    //--------------------------------------
+    //Update broadcast_flag_read for an asset.
+    app.post('/' + global.config.version + '/admin/broadcast/updateflag', async function (req, res) {
+        const [err, orgData] = await adminOpsService.updateBroadCastMessageFlagForEachAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/updateflag | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
