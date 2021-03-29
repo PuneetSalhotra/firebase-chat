@@ -376,6 +376,36 @@ function PamListingController(objCollection) {
         }
 
     });
+    
+    app.post('/' + global.config.version + '/pam/first/level/tag/list', async function (req, res) {
+        const [err, data] = await pamListingService.getFirstLevelTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+    
+    app.post('/' + global.config.version + '/pam/sub/level/tag/list', async function (req, res) {
+        const [err, data] = await pamListingService.getSubLevelMenuTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    
+    app.post('/' + global.config.version + '/pam/tag/menu/list', async function (req, res) {
+        const [err, data] = await pamListingService.getMenuLinkedtoParticularTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });		
 }
 ;
 module.exports = PamListingController;
