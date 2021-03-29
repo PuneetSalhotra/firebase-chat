@@ -4315,6 +4315,13 @@ function AssetService(objectCollection) {
                 }
             }
         }
+
+        for (let row of xlData) {
+            if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
+                return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
+            }
+        }
+        
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
     };
@@ -6614,6 +6621,32 @@ this.getQrBarcodeFeeback = async(request) => {
             util.getCurrentUTCTime()
         ];
         const queryString = util.getQueryString('ds_v1_asset_leave_mapping_update', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.leave_workflow_id,
+            request.target_asset_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_delete', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
