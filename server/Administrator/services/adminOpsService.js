@@ -9737,7 +9737,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_id);
         if (!err) {
 
-            if(responseAssetData[0].is_send_push == 1) {
+            if(responseAssetData[0].is_send_push == 1 && request.is_send_push == 1) {
                 request.target_asset_id = assetsData.asset_id;
                 request.asset_push_arn = assetsData.asset_push_arn;
                 //sending push message to asset.
