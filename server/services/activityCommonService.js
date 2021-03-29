@@ -1027,6 +1027,68 @@ this.getAllParticipantsAsync = async (request) => {
         });
     };
 
+    this.activityAssetMappingSelectActivityParticipantWithStatus = function (request, activityId) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20)
+        let status_form_enabled = 0;
+        return new Promise((resolve, reject) => {
+            let paramsArr;
+            
+                paramsArr = new Array(
+                    request.organization_id,
+                    request.activity_id,
+                    request.form_id
+                );
+            
+            const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select_form', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, async function (err, data) {
+                    if(err){
+                        reject(err)
+                    }
+                    console.log(data)
+                  if(data.length>0&&data[0].activity_status_id >0){
+                    try{
+                     let leadResponse = await activityAssetMappingSelectActivityParticipantV1(request,activityId);
+                     if(leadResponse.length>0){
+                     leadResponse[0].status_form_enabled=1;
+                     }
+                     resolve(leadResponse)
+                    }
+                    catch(err1){
+                      reject(err1)
+                    }
+                  }
+                  else{
+                      resolve([{status_form_enabled:0}])
+                  }
+                  
+                  
+                });
+            }
+        });
+    };
+
+    function activityAssetMappingSelectActivityParticipantV1  (request) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20)
+
+        return new Promise((resolve, reject) => {
+            let paramsArr;
+           
+                paramsArr = new Array(
+                    request.activity_id,
+                    request.asset_id,
+                    request.organization_id
+                );
+            
+            const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    }
+
     this.activityAssetMappingSelectActivityParticipant = function (request, activityId) {
         // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20)
 
@@ -2764,8 +2826,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.account_id,
                 activityId,
                 formId,
-                0,
-                50
+                request.offset || 0,
+                request.limit || 50
             );
             const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
             if (queryString !== '') {
@@ -3216,8 +3278,8 @@ this.getAllParticipantsAsync = async (request) => {
                 request.account_id,
                 activityId,
                 formId,
-                0,
-                200
+                request.start_from||0,
+                request.limit_value||200
             );
             const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
             if (queryString !== '') {
@@ -3291,7 +3353,7 @@ this.getAllParticipantsAsync = async (request) => {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("err "+err);
                     if (err === false) {
-                        console.log('data: ' + data?data.length:null);
+                        // console.log('data: ' + data);
                         resolve(data);
                     } else {
                         reject(err);

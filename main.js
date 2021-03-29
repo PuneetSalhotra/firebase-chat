@@ -125,7 +125,6 @@ app.use(helmet.frameguard({action: 'sameorigin'}))
 app.use(helmet.noSniff())
 
 // Handling null/empty message_unique_ids
-// 
 app.use(function (req,res,next) {
     // Check whether asset_message_counter exists:
     if(req.body.hasOwnProperty('asset_message_counter')) {

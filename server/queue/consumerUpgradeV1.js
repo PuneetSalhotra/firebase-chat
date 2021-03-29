@@ -47,6 +47,8 @@ const ActivityParticipantService = require("../services/activityParticipantServi
 const ActivityUpdateService = require("../services/activityUpdateService");
 const FormConfigService = require("../services/formConfigService");
 const VodafoneService = require("../vodafone/services/vodafoneService");
+const PamUpdateService = require("../services/pamUpdateService");
+const PamService = require("../services/pamService");
 
 async function SetupAndStartConsumerGroup() {
     try {
@@ -73,6 +75,8 @@ async function SetupAndStartConsumerGroup() {
             activityUpdateService: new ActivityUpdateService(objectCollection),
             activityParticipantService: new ActivityParticipantService(objectCollection),
             formConfigService: new FormConfigService(objectCollection),
+            pamService: new PamService(objectCollection),
+            pamUpdateService: new PamUpdateService(objectCollection),            
             activityCommonService: objectCollection.activityCommonService,
             cacheWrapper: cacheWrapper
         }
@@ -116,7 +120,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 logger.debug(`topic ${topic} partition ${partition} offset ${offset} kafkaMessageID ${kafkaMessageID}`, { type: "kafka_consumer" })
                 logger.debug(`getting this key from Redis ${topic}_${partition}`, { type: "kafka_consumer" })
 
-                const messageJSON = JSON.parse(value);
+                const messageJSON = JSON.parse(value || "{}");
 
                 if (!messageJSON.hasOwnProperty("payload")) {
                     throw new Error("NoPayloadFoundInKafkaMessage");
@@ -192,6 +196,8 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
                 case "activityUpdateService":
                 case "activityParticipantService":
                 case "formConfigService":
+                case "pamUpdateService":
+                case "pamService":
                     if (asyncFlag) {
                         const [error, response] = await serviceObjectCollection[service][method](payload);
                         if (error) { reject(error) }

@@ -30,6 +30,8 @@ function AssetService(objectCollection) {
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
+    let self = this;
+
     this.getPhoneNumberAssets = function (request, callback) {
 
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
@@ -757,7 +759,10 @@ function AssetService(objectCollection) {
             'asset_status_name': util.replaceDefaultString(rowArray[0]['asset_status_name']),
             'asset_last_location_gps_enabled': util.replaceDefaultNumber(rowArray[0]['asset_last_location_gps_enabled']),
             'asset_last_location_address': util.replaceDefaultString(rowArray[0]['asset_last_location_address']),
-            'asset_last_location_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_last_location_datetime']),
+            'asset_last_location_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_last_seen_datetime']),
+            'asset_work_location_address': util.replaceDefaultString(rowArray[0]['asset_work_location_address']),
+            'asset_work_location_latitude': util.replaceDefaultString(rowArray[0]['asset_work_location_latitude']),
+            'asset_work_location_longitude': util.replaceDefaultString(rowArray[0]['asset_work_location_longitude']),
             'asset_session_status_id': util.replaceDefaultNumber(rowArray[0]['asset_session_status_id']),
             'asset_session_status_name': util.replaceDefaultString(rowArray[0]['asset_session_status_name']),
             'asset_session_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_session_status_datetime']),
@@ -820,7 +825,9 @@ function AssetService(objectCollection) {
             "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
 
             //email integrations
-            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable'])
+            "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
+            "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
+            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime '])
         };
 
         callback(false, rowData);
@@ -1010,8 +1017,10 @@ function AssetService(objectCollection) {
                 // Pick the initial/primary SMS provider from domesticSmsMode.txt
                 if (countryCode === 91) {
 
-                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    domesticSmsMode = Number(redisValdomesticSmsMode);
+                    // fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
 
                         /*   case 1: // mvaayoo                        
                                 util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1051,14 +1060,17 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-bulksms-sms', smsOptions);
                                 break;
                         }
-                    })
+                
 
                     /* smsEngine.sendDomesticSms(smsOptions); */
 
                 } else {
 
-                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
+                    let redisValinternationalSmsMode = await cacheWrapper.getSmsMode('international_sms_mode');
+                    internationalSmsMode = Number(redisValinternationalSmsMode);
+
+                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
 
                         /* case 1:
                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1082,7 +1094,7 @@ function AssetService(objectCollection) {
                                 smsEngine.emit('send-nexmo-sms', smsOptions);
                                 break;
                         }
-                    })
+                    
 
                     // let smsOptions = {
                     //     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
@@ -4303,6 +4315,13 @@ function AssetService(objectCollection) {
                 }
             }
         }
+
+        for (let row of xlData) {
+            if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
+                return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
+            }
+        }
+        
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
     };
@@ -6097,21 +6116,39 @@ this.getQrBarcodeFeeback = async(request) => {
 
     async function getAssetReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id")){ 
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.form_id,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+             ]
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+            ]
+            queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_reference', paramsArr);
+        }
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
@@ -6120,29 +6157,48 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
             });
         }
-
         return [error, responseData];
     }
 
     async function getAssetRoleReferenceList(request) {
         let responseData = [],
-            error = true;
+            error = true, queryString = "";
 
-        let paramsArr = new Array(
-          request.organization_id,
-          request.account_id,
-          request.workforce_id,
-          request.asset_id,
-          request.activity_id,
-          request.asset_type_id,
-          request.asset_type_category_id,
-          request.flag_filter,
-          request.search_string,
-          request.start_from || 0,
-          request.limit_value || 50
-        );
-        
-        const queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        if(request.hasOwnProperty("form_id"))
+        {
+            let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_id,
+            request.asset_type_id,
+            request.asset_type_category_id,
+            request.flag_filter,
+            request.form_id,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
+            ];
+
+            queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
+        }else{
+            
+            let paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_id,
+                request.asset_type_id,
+                request.asset_type_category_id,
+                request.flag_filter,
+                request.search_string,
+                request.start_from || 0,
+                request.limit_value || 50
+                ];
+            queryString = util.getQueryString('ds_p1_2_asset_list_select_asset_reference', paramsArr);
+        }            
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request).then((data) => {
                 responseData = data;
@@ -6475,6 +6531,185 @@ this.getQrBarcodeFeeback = async(request) => {
     }
 
     return [error, responseData];
+    }
+
+    
+    this.assetSessionLogout = async (request) => {
+        let responseData = [],
+        error = true; 
+
+        let message = {
+            organization_id: request.organization_id,
+            target_asset_id: request.target_asset_id,
+            asset_id: request.asset_id,
+            datetime: util.getCurrentUTCTime(),
+            type: "logout"
+        };
+
+        let data = {
+            organization_id: request.organization_id,
+            asset_id: request.target_asset_id
+        }
+
+        responseData = util.sendPushNotification(request, data, message);
+        error = false;
+        console.log("assetSessionLogout  : " +JSON.stringify(responseData));       
+        return [error, responseData]
+
+    }
+
+    this.getAssetDetailsAsync = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_2_asset_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetData];
+    };
+
+    this.assetLeaveMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.target_asset_id,
+            request.leave_start_datetime,
+            request.leave_end_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_1_asset_leave_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.leave_workflow_id,
+            request.target_asset_id,
+            request.leave_start_datetime,
+            request.leave_end_datetime,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_update', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.leave_workflow_id,
+            request.target_asset_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetLeaveMappingHistoryInsert = async function (request,leave_id) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            leave_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.getAssetLeaveMappingSelect = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.page_start || 0,
+              request.page_limit || 10
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_leave_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
     }
 
 }

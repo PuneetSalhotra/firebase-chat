@@ -1535,7 +1535,11 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                     response.asset_first_name = data[0].asset_first_name;
                                     response.asset_last_name = data[0].asset_last_name;
                                     response.asset_phone_passcode = data[0].asset_phone_passcode;
-                                    
+                                    response.male_covers = 0;
+                                    response.female_covers = 0;
+                                    response.activity_datetime_start_expected = null;
+                                    response.activity_datetime_end_deferred = null;   
+
                                     assetStatusUpdate(request).then(()=>{
                                         pamAssetListHistoryInsert(request, 207, request.asset_id).then(()=>{});
                                     });
@@ -1554,6 +1558,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                               response.activity_status_type_id = (resp[0].activity_status_type_id) ? resp[0].activity_status_type_id : 0;
                               response.activity_status_type_name = util.replaceDefaultString(resp[0].activity_status_type_name);
                               response.asset_image_path = util.replaceDefaultString(resp[0].asset_image_path);
+                              response.male_covers = resp[0].male_covers;
+                              response.female_covers = resp[0].female_covers;
+                              response.activity_datetime_start_expected = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
+                              response.activity_datetime_end_deferred = util.replaceDefaultDatetime(resp[0].activity_datetime_end_deferred);
 
                               /*Checking Expiry datetime
                               var expirtyDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);                          

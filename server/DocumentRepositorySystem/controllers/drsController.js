@@ -28,6 +28,17 @@ function DrsController(objCollection)
         }
     });
 
+
+    //Service to share document repository to a specific role
+    app.post('/' + global.config.version + '/drs/doc-repo/workforce-role/access/set', async (req, res) => {
+        const [err, data] = await drsService.shareDRSToASpecificWorkforceRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    }); 
+
     //Service to remove sharing of a document repository to a specific role
     app.post('/' + global.config.version + '/drs/doc-repo/specific-role/access/reset', async (req, res) => {
         const [err, data] = await drsService.removeDRSToASpecificRole(req.body);
@@ -166,7 +177,7 @@ function DrsController(objCollection)
     });
 
     app.post('/' + global.config.version + '/drs/doc-repo/remove/user/access', async (req, res) => {
-        const [err, data] = await drsService.removeDocToAsset(req.body);
+        const [err, data] = await drsService.removeDocRepoAccess(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
@@ -178,6 +189,15 @@ function DrsController(objCollection)
     //Update Doc Repo folder name
     app.post('/' + global.config.version + '/drs/doc-repo/folder/update', async (req, res) => {
         const [err, data] = await drsService.updateDocRepoFolderName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/drs/doc-repo/workforce/delete', async (req, res) => {
+        const [err, data] = await drsService.deleteDocRepoForWorkforce(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {

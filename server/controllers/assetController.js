@@ -908,5 +908,67 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    //Service to logout session 
+    app.post('/' + global.config.version + '/asset/session/logout', async (req, res) => {
+        const [err, data] = await assetService.assetSessionLogout(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });      
+
+    app.post('/' + global.config.version + '/asset/inline/collection/v2', async (req, res) => {
+        const [err, responseData] = await assetService.getAssetDetailsAsync(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/inline/collection/v2 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/leave/set', async (req, res) => {
+        const [err, responseData] = await assetService.assetLeaveMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/leave/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/leave/alter', async (req, res) => {
+        const [err, responseData] = await assetService.assetLeaveMappingUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/asset/leave/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+        }
+    });
+
+    
+    app.post('/' + global.config.version + '/asset/leave/list', async (req, res) => {        
+
+        let [err,result] = await assetService.getAssetLeaveMappingSelect(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
+
+    
+    app.post('/' + global.config.version + '/asset/leave/reset', async (req, res) => {        
+
+        let [err,result] = await assetService.assetLeaveMappingDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });      
 }
 module.exports = AssetController;
