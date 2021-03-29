@@ -14,9 +14,9 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 
 const AWS_Cognito = require('aws-sdk');
 AWS_Cognito.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSA6UUSRC",
-    "secretAccessKey": "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",
-    "region": "ap-south-1"
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
 });
 const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
@@ -71,7 +71,14 @@ function AdminOpsService(objectCollection) {
 
         let organizationID = 0;
         // Create the organization
-        const [errTwo, orgData] = await organizationListInsert(request);
+        let errTwo, orgData;
+
+        if(!request.enterprise_feature_data) {
+            [errTwo, orgData] = await organizationListInsert(request);
+        } else {
+            [errTwo, orgData] = await organizationListInsertV1(request);
+        }
+        
         if (errTwo || orgData.length === 0) {
             return [true, {
                 message: "Error creating organization"
@@ -826,6 +833,47 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function organizationListInsertV1(request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.organization_name,
+            request.organization_domain_name,
+            request.organization_image_path || '',
+            request.organization_address || '',
+            request.organization_phone_country_code || 0,
+            request.organization_phone_number || 0,
+            request.organization_email || '',
+            request.contact_person || 'Admin',
+            request.contact_phone_country_code || 0,
+            request.contact_phone_number || 0,
+            request.contact_email || '',
+            request.org_enterprise_feature_data || '{}',
+            request.flag_email || 0,
+            request.flag_doc_repo || 0,
+            request.flag_ent_features || 0,
+            request.flag_ai_bot || 0,
+            request.flag_manager_proxy || 0,
+            request.organization_type_id || 1,
+            request.log_asset_id || 1,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -4748,15 +4796,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id:request.organization_id,
                 asset_identification_number: String(request.asset_identification_number),
             }, request.organization_id);
-            console.log(checkAadhar)
-            if (errZero_7 || (Number(checkAadhar.length) > 0 && (checkAadhar[0].asset_id!=deskAssetID||checkAadhar[0].asset_id!=employeeAssetID))) {
+            console.log(checkAadhar);
+            if ((errZero_7 || (Number(checkAadhar.length)) > 0 && (checkAadhar[0].asset_id!=deskAssetID&&checkAadhar[0].asset_id!=employeeAssetID))) {
                 console.log("update employee | assetListSelectAadharUniqueID | Error: ", errZero_7);
                 return [true, {
                     message: `An employee with the Aadhar ${request.asset_identification_number} already exists.`
                 }]
             }
         }
-// return;
+
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
             const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
@@ -9291,6 +9339,65 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 })
                 .catch((err) => {
                     error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.selectBotOnField = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
+            request.form_id,
+            request.field_id,
+            request.data_type_combo_id,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_field', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Account check for dotted manager
+    this.accountCheckForDottedManager = async function(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.activity_id,
+            request.activity_creator_asset_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select_dotted_manager_account', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("accountCheckForDottedManager : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("accountCheckForDottedManager : error response = ");
+                    console.log(err);
                     return [error, responseData];
                 })
         }

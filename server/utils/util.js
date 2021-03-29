@@ -2214,15 +2214,15 @@ function Util(objectCollection) {
             }];
         }
 
-        pubnubWrapper.publish(request.target_workforce_id, {
-           type: "workforce_push",
-           organization_id: Number(request.organization_id),
-           activity_type_category_id: 0,
-           activity_id: 0,
-           activity_title: request.push_title,
-           description: request.push_message,
-           target_workforce_id:request.target_workforce_id
-        });
+        //pubnubWrapper.publish(request.target_workforce_id, {
+        //    type: "workforce_push",
+        //    organization_id: Number(request.organization_id),
+        //    activity_type_category_id: 0,
+        //    activity_id: 0,
+        //    activity_title: request.push_title,
+        //    description: request.push_message,
+        //    target_workforce_id:request.target_workforce_id
+        //});
 
         return [error, {
             message: `Push sent to ${request.target_workforce_id}`
@@ -2230,7 +2230,6 @@ function Util(objectCollection) {
     };
 
     this.sendPushToAsset = async (request) =>{
-        console.log("sendPushToAsset: asset_id = " + request.target_asset_id);
         let error = false;
         // [CHECK] target_asset_id
         if (
@@ -2280,12 +2279,12 @@ function Util(objectCollection) {
         let pwd;
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password || "", 'lp-n5^+8M@62');
-            // console.log('decrypted PWD : ', decrypted);
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
                 username: request.email_sender,
-                password: request.email_sender_password_text || decrypted.toString(),
+                password: decrypted,
                 host: 'https://webmail.vodafoneidea.com'    
             };
         } else {
@@ -2386,7 +2385,7 @@ function Util(objectCollection) {
             request.is_version_v1 = 1;
             let [error, assetDetails] = await this.getAssetDetails(request);
 
-            console.log("assetDetails[0].asset_email_password before encrypt", assetDetails[0].asset_email_password);
+            console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
             request.email_sender_password_text = assetDetails[0].asset_email_password;
             const err = await this.sendEmailEWS(request, email, subject, htmlTemplate);
             if(err) {
@@ -2763,6 +2762,30 @@ function Util(objectCollection) {
     this.checkDateFormat = (date,format) => {
         return moment(date, format).isValid();
     }
+
+    this.sendPushNotification = async function (request, data, message) {
+        let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_asset_id") ||
+            Number(request.target_asset_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target asset_id specified."
+            }]
+        }
+        
+        let [err, assetData] = await this.getAssetDetails(data);
+        const assetPushARN = assetData[0].asset_push_arn;
+
+        sns.logOutPublish(message, assetPushARN, 1);
+        pubnubWrapper.publish(request.target_asset_id, message);
+
+        return [error, {
+            message: `Push sent to ${request.target_asset_id}`
+        }];
+    }
+
 
 }
 

@@ -821,6 +821,28 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // bot on field list
+    app.post('/' + global.config.version + '/admin/field/bot/select', async (req, res) => {
+        const [err, data] = await adminOpsService.selectBotOnField(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/bot/field/list| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Account check for dotted manager
+    app.post('/' + global.config.version + '/dottedmanager/access/account/check', async (req, res) => {
+        const [err, data] = await adminOpsService.accountCheckForDottedManager(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/dottedmanager/access/account/check| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
     //--------------------------------------
 	//send broadcast messages.
     app.post('/' + global.config.version + '/admin/send/broadcastmessage', async function (req, res) {
