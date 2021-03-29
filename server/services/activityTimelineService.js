@@ -5,6 +5,7 @@ const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
+const { Kafka } = require('kafkajs');
 
 function ActivityTimelineService(objectCollection) {
 
@@ -428,7 +429,7 @@ function ActivityTimelineService(objectCollection) {
                     console.log("Error firing initiateTargetFormGeneration: ", error);
                 }
             }
-            
+
             //fireBotEngineInitWorkflow
             try {
                 if ((
@@ -2469,11 +2470,14 @@ function ActivityTimelineService(objectCollection) {
     var addFormEntries = function (request, callback) {
 
         global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);
-
+        console.log("AddFormEntries requestData" , request);
         let formDataJson;
+        let annexureExcelFilePath = "";
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
-
+        let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
+        console.log("field ids");
+        console.log(annexureFields);
         if (request.hasOwnProperty('form_id')) {
 
             let formDataCollection;
@@ -2725,6 +2729,9 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 52: // Excel Document
+                    annexureExcelFilePath = row.field_value;
+                    console.log("annexureExcelFilePath");
+                    console.log(annexureExcelFilePath);
                     params[18] = row.field_value;
                     break;
                 case 53: // IP Address Form
@@ -2909,7 +2916,7 @@ function ActivityTimelineService(objectCollection) {
             // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             var queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(0, queryString, request, async function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
                         activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
                             request['workflow_activity_id'] = activityData[0].channel_activity_id;
@@ -2919,6 +2926,44 @@ function ActivityTimelineService(objectCollection) {
                             activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                         });
                     }
+
+                    // Trigger Child order creation on annexure fields 
+                    if (Object.keys(annexureFields).includes(String(row.field_id))) {
+                        let childOrdersCreationTopicName = "";
+                        switch (global.mode) {
+                            case "local":
+                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
+                                break;
+                
+                            case "staging":
+                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
+                                break;
+                
+                            case "preprod":
+                            case "preproduction":
+                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
+                                break;
+                
+                            case "prod":
+                            case "production":
+                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
+                                break;
+                        }
+                
+                        console.log("childOrdersCreationTopicName");
+                        console.log(childOrdersCreationTopicName);
+                        console.log({
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        });
+
+                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        }).catch(global.logger.error);
+                
+                    }
+
                     next();
                     if (err === false) {
                         //Success
@@ -3234,14 +3279,18 @@ function ActivityTimelineService(objectCollection) {
 async function addFormEntriesAsync(request) {
     
     global.logger.write('debug', '\x1b[32m In ActivtiyTimelineServiceAsync - Inside the addFormEntriesAsync() function. \x1b[0m', {}, request)
-
+    console.log("AddFormEntries requestData" , request);
     let responseData = [],
             error = true;
 
     let formDataJson;
+    let annexureExcelFilePath = "";
     const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
     let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
+    let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
 
+    console.log("annexureFields");
+    console.log(annexureFields);
     if (request.hasOwnProperty('form_id')) {
         let formDataCollection;
         try {
@@ -3487,6 +3536,9 @@ async function addFormEntriesAsync(request) {
                 break;
             case 52: // Excel Document
                 params[18] = row.field_value;
+                annexureExcelFilePath = row.field_value;
+                console.log("annexureExcelFilePath");
+                console.log(annexureExcelFilePath);
                 break;
             case 53: // IP Address Form
                 // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
@@ -3673,6 +3725,42 @@ async function addFormEntriesAsync(request) {
                             request['flag'] = 1;
                             request['datetime_log'] = util.getCurrentUTCTime();
                             activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
+                    }
+
+                    // Trigger Child order creation on annexure fields 
+                    if (Object.keys(annexureFields).includes(String(row.field_id))) {
+                        let childOrdersCreationTopicName = "";
+                        switch (global.mode) {
+                            case "local":
+                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
+                                break;
+
+                            case "staging":
+                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
+                                break;
+
+                            case "preprod":
+                            case "preproduction":
+                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
+                                break;
+
+                            case "prod":
+                            case "production":
+                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
+                                break;
+                        }
+
+                        console.log("childOrdersCreationTopicName");
+                        console.log(childOrdersCreationTopicName);
+                        console.log({
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        });
+                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
+                            ...request,
+                            s3UrlOfExcel: annexureExcelFilePath
+                        }).catch(global.logger.error)
+
                     }
                 })
                 .catch((err) => {
@@ -4240,6 +4328,31 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
+    async function kafkaProdcucerForChildOrderCreation(topicName,message) {
+        const kafka = new Kafka({
+            clientId: 'child-order-creation',
+            brokers: [
+                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
+            ]
+        })
+        
+        const producer = kafka.producer()
+
+        await producer.connect()
+        await producer.send({
+            topic: topicName,
+    
+            messages: [
+                {
+                    value: JSON.stringify(message)
+                },
+            ],
+        })
+        producer.disconnect();
+        return;
+    }
 }
 
 module.exports = ActivityTimelineService;
