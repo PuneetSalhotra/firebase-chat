@@ -2236,6 +2236,7 @@ function Util(objectCollection) {
             !request.hasOwnProperty("target_asset_id") ||
             Number(request.target_asset_id) === 0
         ) {
+            logger.error("Incorrect target asset_id specified.");
             return [true, {
                 message: "Incorrect target asset_id specified."
             }];
@@ -2256,7 +2257,8 @@ function Util(objectCollection) {
             activity_id: 0,
             activity_type_category_id: 0
         }, 1, assetPushARN);
-
+       
+        logger.info(`Push sent to ${request.target_asset_id}`);
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
         }];
@@ -2797,6 +2799,7 @@ function Util(objectCollection) {
                 !request.hasOwnProperty("organization_id") ||
                 Number(request.organization_id) === 0
             ) {
+                logger.error("Incorrect organization_id specified.");
                 return [true, {
                     message: "Incorrect organization_id specified."
                 }];
@@ -2811,6 +2814,7 @@ function Util(objectCollection) {
                 !request.hasOwnProperty("target_account_id") ||
                 Number(request.target_account_id) === 0
             ) {
+                logger.error("Incorrect target_account_id specified.");
                 return [true, {
                     message: "Incorrect target_account_id specified."
                 }];
@@ -2825,6 +2829,7 @@ function Util(objectCollection) {
                 !request.hasOwnProperty("target_workforce_id") ||
                 Number(request.target_workforce_id) === 0
             ) {
+                logger.error("Incorrect target workforce_id specified.");
                 return [true, {
                     message: "Incorrect target workforce_id specified."
                 }];
@@ -2839,6 +2844,7 @@ function Util(objectCollection) {
                 !request.hasOwnProperty("target_asset_type_id") ||
                 Number(request.target_asset_type_id) === 0
             ) {
+                logger.error("Incorrect target asset_type_id specified.");
                 return [true, {
                     message: "Incorrect target asset_type_id specified."
                 }];
@@ -2853,6 +2859,7 @@ function Util(objectCollection) {
                 !request.hasOwnProperty("target_asset_id") ||
                 Number(request.target_asset_id) === 0
             ) {
+                logger.error("Incorrect target asset_id specified.");
                 return [true, {
                     message: "Incorrect target asset_id specified."
                 }];
@@ -2872,9 +2879,10 @@ function Util(objectCollection) {
           target_asset_type_id:request.target_asset_type_id,
           target_asset_id:request.target_workforce_id       
        });
-
+       
+       logger.info(`pubnub push sent to channel = ${idChannel} and type = ${type_flag}`);
        return [error, {
-           message: `Push sent to ${request.target_workforce_id}`
+           message: `Push sent to ${idChannel}`
        }];
    };
    
