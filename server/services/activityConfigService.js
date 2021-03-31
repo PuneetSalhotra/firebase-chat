@@ -1118,6 +1118,10 @@ function ActivityConfigService(db,util,objCollection) {
         let panNumber = generatedAccountData.panNumber;
         let gstNumber = generatedAccountData.gstNumber;
         let hasAccountCode = generatedAccountData.hasAccountCode;
+        let accountTitle = generatedAccountData.account_title;
+
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+        accountTitle = accountTitle.split(' ').join('')
         let checkPan = "";
         if(panNumber!=null||panNumber!=""){
           checkPan = panNumber.toUpperCase();
@@ -1128,20 +1132,29 @@ function ActivityConfigService(db,util,objCollection) {
         else{
             checkPan =""
         }
-                //Check the uniqueness of the account code
-                
-                let [errpa,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
 
-                
-                if(errpa) {
-                    responseData.push({'message': 'Error in checking pan card'});
-                    return [true,responseData];
-                }
-                if(panresponse.length>0) {
-                    responseData.push({'message': 'Pan already exists!'});
-                    return [true,responseData];
+        //Check the uniqueness of the account title
 
-                }
+        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
+        if(accountTitleResponse.hits.hits.length > 0 )
+        {
+            console.log("Account name already exists!")
+            responseData.push({ 'message': 'Account Name already exists!' });
+            return [true, responseData];
+        }
+
+        //Check the uniqueness of the pan number
+        let [errpa, panresponse] = await checkForPanNumberExistenceElasticServer(request, checkPan);
+
+        if (errpa) {
+            responseData.push({ 'message': 'Error in checking pan card' });
+            return [true, responseData];
+        }
+        if (panresponse.length > 0) {
+            responseData.push({ 'message': 'Pan already exists!' });
+            return [true, responseData];
+
+        }
          if(hasAccountCode){
         //Check the generated code is unique or not?
         let [err1,accountData] = await checkWhetherAccountCodeExists(accountCode);
@@ -1304,6 +1317,30 @@ function ActivityConfigService(db,util,objCollection) {
         
     }
 
+    let duplicateAccountNameElasticSearch = async function (title) {
+
+        console.log('Searching elastisearch for Accounyt title : ',title);
+        let resultData = await client.search({
+            index: 'crawling_accounts',
+            body: {
+                query: {
+                    bool: {
+                        must: [
+                            {
+                                match_phrase: {
+                                    activity_title_expression: title
+                                }
+                            }
+                        ],
+
+                    }
+                }
+            }
+        });
+        console.log('response from ElastiSearch: ',resultData);
+        return resultData;
+    }
+
     async function generateAccountCode(request,botInlineData) {
         let responseData = {};
 
@@ -1311,6 +1348,7 @@ function ActivityConfigService(db,util,objCollection) {
         let accountCode = "";
         let gstNumber = "";
         let panNumber = "";
+        let accountTitle = "";
         let hasAccountCode =true;
         let formID = Number(request.activity_form_id) || Number(request.form_id);
         let hasSeqNo = 0;
@@ -1329,6 +1367,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
                 laCompanyName = await util.removeSpecialCharecters(laCompanyName);
+                // laCompanyName = laCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // laCompanyName = laCompanyName.split(' ').join('')
+                accountTitle = laCompanyName;
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
                 
                 console.log('laGroupCompany - ', laGroupCompany);
@@ -1384,6 +1425,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
                 geCompanyName = await util.removeSpecialCharecters(geCompanyName);
+                // geCompanyName = geCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // geCompanyName = geCompanyName.split(' ').join('')
+                accountTitle = geCompanyName;
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
                 
                 console.log('geGroupCompany - ', geGroupCompany);
@@ -1457,6 +1501,9 @@ function ActivityConfigService(db,util,objCollection) {
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
                                                     smeCompanyName = await util.removeSpecialCharecters(smeCompanyName);
+                                                    // smeCompanyName = smeCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                                    // smeCompanyName = smeCompanyName.split(' ').join('')
+                                                    accountTitle = smeCompanyName;
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1546,6 +1593,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
                 govtCompanyName = await util.removeSpecialCharecters(govtCompanyName);
+                // govtCompanyName = govtCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // govtCompanyName = govtCompanyName.split(' ').join('');
+                accountTitle = govtCompanyName;
                 if(govtAccounType === 'SI') { //SI
                     //console.log('Inside SI');
 
@@ -1587,6 +1637,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
                 vicsCompanyName = await util.removeSpecialCharecters(vicsCompanyName)
+                // vicsCompanyName = vicsCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // vicsCompanyName = vicsCompanyName.split(' ').join('')
+                accountTitle = vicsCompanyName;
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
                 const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
                 const vicsPanFID = Number(botInlineData.pan_number);
@@ -1649,6 +1702,9 @@ function ActivityConfigService(db,util,objCollection) {
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
                                                     sohoCompanyName = await util.removeSpecialCharecters(sohoCompanyName);
+                                                    // sohoCompanyName = sohoCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                                    // sohoCompanyName = sohoCompanyName.split(' ').join('')
+                                                    accountTitle = sohoCompanyName;
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1712,6 +1768,7 @@ function ActivityConfigService(db,util,objCollection) {
         responseData.panNumber = panNumber;
         responseData.gstNumber = gstNumber;
         responseData.hasAccountCode = hasAccountCode;
+        responseData.account_title = accountTitle;
 
         return responseData;
     }

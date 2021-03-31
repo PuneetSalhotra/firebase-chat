@@ -9718,6 +9718,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 if (!err) {
 
                     request.isBroadMessageInsert = true;
+                    if(request.is_send_push == 1) {
+                        await this.sendPubNubNotification(request);
+                    } else {
+                        logger.info("is_send_push = " + request.is_send_push + " : Hence no pubnub Push");
+                    }
                     await this.sendNotificationAsset(request, assetsData[i]);
                 }
             } else {
@@ -9847,7 +9852,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
     //------------------------------------------------------
     //get asset list for provided asset_type_ids
-    this.getWorkforceList = async function(
+    this.getAssetListByUsingAssetTypeId = async function(
         request,
         organization_id,
         account_id,
@@ -9964,6 +9969,74 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return [error, broadcast_id];
     }
 
+    //send pubnub notification.
+    this.sendPubNubNotification = async function (request) {
+        
+        switch(Number(request.flag)) {
+            case 1: {
+                await util.sendPushToEntity(request);
+            }
+            break;
+            case 2: {
+                //Account
+                let account_ids = request.account_ids;
+                account_ids = JSON.parse(account_ids);
+            
+                if (account_ids.length > 0) {
+                    // iterate account list
+                    for (let i = 0; i < account_ids.length; i++) {
+                        request.target_account_id = account_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+            break;
+            case 3: {
+                //WorkForce
+                let workforce_ids = request.workforce_ids;
+                workforce_ids = JSON.parse(workforce_ids);
+            
+                if (workforce_ids.length > 0) {
+                    // iterate workforce list
+                    for (let i = 0; i < workforce_ids.length; i++) {
+                        request.target_workforce_id = workforce_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+            break;
+            case 4: {
+                //Role
+                let asset_type_ids = request.asset_type_ids;
+                asset_type_ids = JSON.parse(asset_type_ids);
+            
+                if (asset_type_ids.length > 0) {
+                    // iterate asset_type list
+                    for (let i = 0; i < asset_type_ids.length; i++) {
+                        request.target_asset_type_id = asset_type_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+            break;
+            case 5: {
+                //Asset
+                let asset_ids = request.asset_ids;
+                asset_ids = JSON.parse(asset_ids);
+            
+                if (asset_ids.length > 0) {
+                    // iterate asset list
+                    for (let i = 0; i < asset_ids.length; i++) {
+                        request.target_asset_id = asset_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+            break;
+        }
+        return [false, []];
+    }
+
     //----------------------------------------------
     //Store the broadcast message for each user (asset).
     this.storeBroadCastMessageForEachAsset = async function(
@@ -9994,7 +10067,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("storeBroadCastMessageForEachAsset : query : Error " + error);
+                        logger.error("ds_p1_broadcast_transaction_insert : query : Error " + error);
                     });
             }
         } catch (err) {
@@ -10028,11 +10101,13 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
+                        logger.info("ds_p1_broadcast_list_select : response");
+                        logger.info("list size = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("getBroadCardList : query : Error " + error);
+                        logger.error("ds_p1_broadcast_list_select : query : Error " + error);
                     });
             }
         } catch (err) {
@@ -10065,11 +10140,13 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
+                        logger.info("ds_p1_broadcast_transaction_select_count : response : ");
+                        logger.info(JSON.stringify(responseData));
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("getAssetCountWhoReadUnReadBroadMessage : query : Error " + error);
+                        logger.error("ds_p1_broadcast_transaction_select_count : query : Error " + error);
                     });
             }
         } catch (err) {
@@ -10105,11 +10182,13 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
+                        logger.info("ds_p1_broadcast_transaction_select : response : ");
+                        logger.info("asset list size = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("getListOfAssetsWhoReadUnReadBroadMessage : query : Error " + error);
+                        logger.error("ds_p1_broadcast_transaction_select : query : Error " + error);
                     });
             }
         } catch (err) {
@@ -10144,15 +10223,57 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
+                        logger.info("ds_p1_broadcast_transaction_update_flag_read : query : response :");
+                        logger.info(responseData);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("updateBroadCastMessageFlagForEachAsset : query : Error " + error);
+                        logger.error("ds_p1_broadcast_transaction_update_flag_read : query : Error " + error);
                     });
             }
         } catch (err) {
             logger.error("updateBroadCastMessageFlagForEachAsset : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //get All/Read/UnRead/Archive BroadCast Message For Asset
+    this.getAllReadUnReadArchiveBroadCastMessageForAsset = async function(request) {
+        logger.info("getAllReadUnReadArchiveBroadCastMessageForAsset: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.flag,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_broadcast_transaction_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("getAllReadUnReadArchiveBroadCastMessageForAsset : Error " + err);
         }
     
         return [error, responseData];

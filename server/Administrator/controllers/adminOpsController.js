@@ -906,6 +906,18 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+
+    //--------------------------------------
+    //get All/Read/UnRead/Archive BroadCast Message For Asset
+    app.post('/' + global.config.version + '/admin/asset/broadcastlist', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getAllReadUnReadArchiveBroadCastMessageForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/asset/broadcastlist | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;

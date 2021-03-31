@@ -3364,11 +3364,9 @@ function AnalyticsService(objectCollection)
                         break;
                 case 6 : loopBase = JSON.parse(request.target_assets);
                          loopKey = "target_asset_id";
-                         request.account_id = (JSON.parse(request.target_accounts))[0];
                         break;
                 case 8 : loopBase = JSON.parse(request.activity_types);
                          loopKey = "activity_type_id";
-                         request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
                          loopKey = "tag_type_id";   
@@ -3388,16 +3386,33 @@ function AnalyticsService(objectCollection)
                 case 27 : loopBase = JSON.parse(request.applications);
                          loopKey = "application_id";   
                         break;
-            }
-            for(let i = 0 ; i < loopBase.length ; i++){
-                request[loopKey]= loopBase[i];
-                let [err1,data] = await self.assetAccessLevelMappingInsert(request);
-                if(err1){
-                    error = err1;
-                } else {
-                    error = false;
-                    responseData.push(data[0]);
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    {key:"target_accounts",value:"account_id",access_level_id:2},
+                    {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                    {key:"segments",value:"segment_id",access_level_id:21},
+                    {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                ];
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    request.access_level_id = loopData[i].access_level_id;
+                    let [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData.push(data[0]);
+                    }
                 }
+            } else {
+                [error,responseData] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
             }
         }
         catch(err1){
@@ -3405,6 +3420,23 @@ function AnalyticsService(objectCollection)
         }
         
         return [error,responseData];
+    }
+
+    this.assetAccessLevelLoop = async (loopBase,loopKey,request) => {
+        let responseData = [],
+            error = true;
+        for(let i = 0 ; i < loopBase.length ; i++){
+            request[loopKey]= loopBase[i];
+            let [err1,data] = await self.assetAccessLevelMappingInsert(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                responseData.push(data[0]);
+            }
+        }
+        request[loopKey] = 0;
+        return [error, responseData];
     }
 
     this.assetAccessLevelMappingInsert = async (request) => {
