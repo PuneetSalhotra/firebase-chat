@@ -5457,6 +5457,8 @@ function ActivityService(objectCollection) {
         
 
         let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        activityTitleExpression = activityTitleExpression.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+        activityTitleExpression = activityTitleExpression.split(' ').join('')
         console.log('receieved activityTitleExpression - ', activityTitleExpression);
 
         let newReq = Object.assign({}, request);
