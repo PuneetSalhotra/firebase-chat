@@ -2236,6 +2236,7 @@ function Util(objectCollection) {
             !request.hasOwnProperty("target_asset_id") ||
             Number(request.target_asset_id) === 0
         ) {
+            logger.error("Incorrect target asset_id specified.");
             return [true, {
                 message: "Incorrect target asset_id specified."
             }];
@@ -2256,7 +2257,8 @@ function Util(objectCollection) {
             activity_id: 0,
             activity_type_category_id: 0
         }, 1, assetPushARN);
-
+       
+        logger.info(`Push sent to ${request.target_asset_id}`);
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
         }];
@@ -2786,7 +2788,104 @@ function Util(objectCollection) {
         }];
     }
 
+    this.sendPushToEntity = async function(request) {
 
+        let error = false;
+        let type_flag = "";
+        let idChannel = 0;
+        if(request.flag == 1){
+
+            if (
+                !request.hasOwnProperty("organization_id") ||
+                Number(request.organization_id) === 0
+            ) {
+                logger.error("Incorrect organization_id specified.");
+                return [true, {
+                    message: "Incorrect organization_id specified."
+                }];
+            }else{
+                type_flag = "organization_push"
+                idChannel = request.organization_id;
+            }             
+
+        }else if(request.flag == 2){
+
+            if (
+                !request.hasOwnProperty("target_account_id") ||
+                Number(request.target_account_id) === 0
+            ) {
+                logger.error("Incorrect target_account_id specified.");
+                return [true, {
+                    message: "Incorrect target_account_id specified."
+                }];
+            }else{
+                type_flag = "account_push";
+                idChannel = request.target_account_id;
+            }              
+            
+        }else if(request.flag == 3){
+
+            if (
+                !request.hasOwnProperty("target_workforce_id") ||
+                Number(request.target_workforce_id) === 0
+            ) {
+                logger.error("Incorrect target workforce_id specified.");
+                return [true, {
+                    message: "Incorrect target workforce_id specified."
+                }];
+            }else{
+                type_flag = "workforce_push"
+                idChannel = request.target_workforce_id;
+            }            
+            
+        }else if(request.flag == 4){
+
+            if (
+                !request.hasOwnProperty("target_asset_type_id") ||
+                Number(request.target_asset_type_id) === 0
+            ) {
+                logger.error("Incorrect target asset_type_id specified.");
+                return [true, {
+                    message: "Incorrect target asset_type_id specified."
+                }];
+            }else{
+                type_flag = "asset_type_push"
+                idChannel = request.target_asset_type_id;
+            }            
+            
+        }else if(request.flag == 5){
+
+            if (
+                !request.hasOwnProperty("target_asset_id") ||
+                Number(request.target_asset_id) === 0
+            ) {
+                logger.error("Incorrect target asset_id specified.");
+                return [true, {
+                    message: "Incorrect target asset_id specified."
+                }];
+            }else{
+                type_flag = "asset_push";
+                idChannel = request.target_asset_id;
+            }  
+        }
+
+       pubnubWrapper.publish(idChannel, {
+          type: type_flag,
+          organization_id: Number(request.organization_id),
+          activity_title: request.push_title,
+          description: request.push_message,
+          target_workforce_id:request.target_workforce_id,
+          target_account_id:request.target_account_id,
+          target_asset_type_id:request.target_asset_type_id,
+          target_asset_id:request.target_workforce_id       
+       });
+       
+       logger.info(`pubnub push sent to channel = ${idChannel} and type = ${type_flag}`);
+       return [error, {
+           message: `Push sent to ${idChannel}`
+       }];
+   };
+   
 }
 
 module.exports = Util;
