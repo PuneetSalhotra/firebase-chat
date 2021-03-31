@@ -3388,16 +3388,38 @@ function AnalyticsService(objectCollection)
                 case 27 : loopBase = JSON.parse(request.applications);
                          loopKey = "application_id";   
                         break;
-            }
-            for(let i = 0 ; i < loopBase.length ; i++){
-                request[loopKey]= loopBase[i];
-                let [err1,data] = await self.assetAccessLevelMappingInsert(request);
-                if(err1){
-                    error = err1;
-                } else {
-                    error = false;
-                    responseData.push(data[0]);
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    {key:"cluster_tags",value:"cluster_tag_id"},
+                    {key:"target_accounts",value:"account_id"},
+                    {key:"target_assets",value:"target_asset_id"},
+                    {key:"tag_types",value:"tag_type_id"},
+                    {key:"segments",value:"segment_id"},
+                    {key:"product_tags",value:"product_tag_id"},
+                    {key:"workforce_tags",value:"workforce_tag_id"},
+                    {key:"activity_types",value:"activity_type_id"}
+                ];
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    if(loopKey == "target_asset_id"){
+                        request.account_id = (JSON.parse(request.target_accounts))[0];                        
+                    }
+                    if(loopKey == "activity_types"){
+                        request.account_id = (JSON.parse(request.tag_types))[0];                        
+                    }
+                    let [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData.push(data[0]);
+                    }
                 }
+            } else {
+                [error,responseData] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
             }
         }
         catch(err1){
@@ -3405,6 +3427,22 @@ function AnalyticsService(objectCollection)
         }
         
         return [error,responseData];
+    }
+
+    this.assetAccessLevelLoop = async (loopBase,loopKey,request) => {
+        let responseData = [],
+            error = true;
+        for(let i = 0 ; i < loopBase.length ; i++){
+            request[loopKey]= loopBase[i];
+            let [err1,data] = await self.assetAccessLevelMappingInsert(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                responseData.push(data[0]);
+            }
+        }
+        return [error, responseData];
     }
 
     this.assetAccessLevelMappingInsert = async (request) => {
