@@ -3364,11 +3364,9 @@ function AnalyticsService(objectCollection)
                         break;
                 case 6 : loopBase = JSON.parse(request.target_assets);
                          loopKey = "target_asset_id";
-                         request.account_id = (JSON.parse(request.target_accounts))[0];
                         break;
                 case 8 : loopBase = JSON.parse(request.activity_types);
                          loopKey = "activity_type_id";
-                         request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
                          loopKey = "tag_type_id";   
