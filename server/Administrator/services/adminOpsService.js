@@ -4369,10 +4369,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.account_type_id || 1,
             request.manager_asset_id || 0,
             organizationID,
+            request.flag_ent_features || 1,
             1, // log_asset_id
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_account_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_account_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

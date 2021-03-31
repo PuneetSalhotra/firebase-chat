@@ -9308,7 +9308,9 @@ async function removeAsOwner(request,data)  {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
         const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
-
+        const formId = request.form_id || request.trigger_form_id || 0;
+        const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
+        logger.silly("product selected: %j",productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
@@ -9487,6 +9489,7 @@ async function removeAsOwner(request,data)  {
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
         let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
         let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
+        let errorMessageForInvalidProduct = "Invalid product selected in:\n";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
@@ -9494,6 +9497,7 @@ async function removeAsOwner(request,data)  {
         let nonAsciiErroFound = false;
         let invalidValueFound = false;
         let charlimitExceeded = false;
+        let invalidProductSelected = false;
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
@@ -9516,6 +9520,11 @@ async function removeAsOwner(request,data)  {
             let lastMileName = childOpportunity.LastMileName || "";
             let rejectionRemarks = childOpportunity.RejectionRemarks || "";
             let reasonForCloning = childOpportunity.ReasonForCloning || "";
+
+            if (productTypeFromForm !== serviceType) {
+                invalidProductSelected = true;
+                errorMessageForInvalidProduct += `Invalid Product "${serviceType}" selected instead of "${productTypeFromForm}" in Row ${i + 1}\n`;
+            }
 
             if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
                 unsupportedProductForSecondaryFound = true;
@@ -9626,13 +9635,14 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
             if (invalidValueFound) { formattedTimelineMessage += errorMessageForInvalidValue }
             if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
             if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
+            if (invalidProductSelected) { formattedTimelineMessage += errorMessageForInvalidProduct }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
