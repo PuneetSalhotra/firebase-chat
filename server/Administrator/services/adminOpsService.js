@@ -10238,6 +10238,46 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
         return [error, responseData];
     }
+
+    //----------------------------------------------
+    //get All/Read/UnRead/Archive BroadCast Message For Asset
+    this.getAllReadUnReadArchiveBroadCastMessageForAsset = async function(request) {
+        logger.info("getAllReadUnReadArchiveBroadCastMessageForAsset: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.flag,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_broadcast_transaction_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("getAllReadUnReadArchiveBroadCastMessageForAsset : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
