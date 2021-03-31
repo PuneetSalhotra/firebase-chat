@@ -1399,6 +1399,7 @@ function PamListingService(objectCollection) {
             request.tag_type_id,
             request.tag_type_category_id,
             request.menu_tag_id,
+            request.menu_sub_tag_id,
             request.page_start,
             request.page_limit
         );
