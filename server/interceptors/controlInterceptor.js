@@ -74,6 +74,8 @@ const DrsController = require('../DocumentRepositorySystem/controllers/drsContro
 //Document Repository System
 const PortalController = require('../Portal/controllers/portalController');
 
+//Payment Gateway
+const MerchantPaymentController = require('../payments/controllers/merchantPaymentController');
 
 
 function ControlInterceptor(objCollection) {
@@ -149,7 +151,10 @@ function ControlInterceptor(objCollection) {
     new DrsController(objCollection);
 
      //Portal Controller
-     new PortalController(objCollection);   
+     new PortalController(objCollection);
+     
+    //Payment Gateway
+    new MerchantPaymentController(objCollection);
 }
 
 module.exports = ControlInterceptor;
