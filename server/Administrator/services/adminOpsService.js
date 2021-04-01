@@ -4340,10 +4340,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.account_type_id || 1,
             request.manager_asset_id || 0,
             organizationID,
+            request.flag_ent_features || 1,
             1, // log_asset_id
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_account_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_account_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -10234,6 +10235,46 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             }
         } catch (err) {
             logger.error("updateBroadCastMessageFlagForEachAsset : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    //----------------------------------------------
+    //get All/Read/UnRead/Archive BroadCast Message For Asset
+    this.getAllReadUnReadArchiveBroadCastMessageForAsset = async function(request) {
+        logger.info("getAllReadUnReadArchiveBroadCastMessageForAsset: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.flag,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_broadcast_transaction_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("getAllReadUnReadArchiveBroadCastMessageForAsset : Error " + err);
         }
     
         return [error, responseData];
