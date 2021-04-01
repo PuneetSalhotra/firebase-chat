@@ -4315,13 +4315,13 @@ function AssetService(objectCollection) {
                 }
             }
         }
-
+        
         for (let row of xlData) {
             if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
                 return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
             }
         }
-        
+
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
     };
@@ -6581,6 +6581,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingInsert = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6598,7 +6600,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2901, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
@@ -6608,6 +6611,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingUpdate = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6626,7 +6631,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2902, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
@@ -6636,6 +6642,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingDelete = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6652,7 +6660,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2903, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
