@@ -5019,6 +5019,8 @@ async function removeAsOwner(request,data)  {
         switch (fieldDataTypeID) {
             case 1: // Date
                 return 'data_entity_datetime_2';
+            case 2 : // date only
+                return 'data_entity_date_1';
             case 71: 
             case 5: // Number
                 return 'data_entity_bigint_1';

@@ -2929,38 +2929,21 @@ function ActivityTimelineService(objectCollection) {
 
                     // Trigger Child order creation on annexure fields 
                     if (Object.keys(annexureFields).includes(String(row.field_id))) {
-                        let childOrdersCreationTopicName = "";
-                        switch (global.mode) {
-                            case "local":
-                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
-                                break;
-                
-                            case "staging":
-                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
-                                break;
-                
-                            case "preprod":
-                            case "preproduction":
-                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
-                                break;
-                
-                            case "prod":
-                            case "production":
-                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
-                                break;
-                        }
-                
-                        console.log("childOrdersCreationTopicName");
-                        console.log(childOrdersCreationTopicName);
-                        console.log({
-                            ...request,
-                            s3UrlOfExcel: annexureExcelFilePath
-                        });
+                        if (annexureExcelFilePath.length > 0) {
+                            let childOrdersCreationTopicName = global.config.CHILD_ORDER_TOPIC_NAME;
+                            console.log("childOrdersCreationTopicName");
+                            console.log(childOrdersCreationTopicName);
+                            console.log({
+                                ...request,
+                                s3UrlOfExcel: annexureExcelFilePath
+                            });
 
-                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
-                            ...request,
-                            s3UrlOfExcel: annexureExcelFilePath
-                        }).catch(global.logger.error);
+                            await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName, {
+                                ...request,
+                                s3UrlOfExcel: annexureExcelFilePath
+                            }).catch(global.logger.error);
+                        }
+
                 
                     }
 
@@ -3729,37 +3712,19 @@ async function addFormEntriesAsync(request) {
 
                     // Trigger Child order creation on annexure fields 
                     if (Object.keys(annexureFields).includes(String(row.field_id))) {
-                        let childOrdersCreationTopicName = "";
-                        switch (global.mode) {
-                            case "local":
-                                childOrdersCreationTopicName = "local-desker-child-order-creation-v1"
-                                break;
-
-                            case "staging":
-                                childOrdersCreationTopicName = "staging-desker-child-order-creation-v1"
-                                break;
-
-                            case "preprod":
-                            case "preproduction":
-                                childOrdersCreationTopicName = "preprod-desker-child-order-creation-v1"
-                                break;
-
-                            case "prod":
-                            case "production":
-                                childOrdersCreationTopicName = "production-desker-child-order-creation-v1"
-                                break;
+                        if (annexureExcelFilePath.length > 0) {
+                            let childOrdersCreationTopicName = global.config.CHILD_ORDER_TOPIC_NAME;
+                            console.log("childOrdersCreationTopicName");
+                            console.log(childOrdersCreationTopicName);
+                            console.log({
+                                ...request,
+                                s3UrlOfExcel: annexureExcelFilePath
+                            });
+                            await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName, {
+                                ...request,
+                                s3UrlOfExcel: annexureExcelFilePath
+                            }).catch(global.logger.error)
                         }
-
-                        console.log("childOrdersCreationTopicName");
-                        console.log(childOrdersCreationTopicName);
-                        console.log({
-                            ...request,
-                            s3UrlOfExcel: annexureExcelFilePath
-                        });
-                        await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName,{
-                            ...request,
-                            s3UrlOfExcel: annexureExcelFilePath
-                        }).catch(global.logger.error)
 
                     }
                 })

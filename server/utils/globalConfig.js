@@ -7,6 +7,10 @@ mode = process.env.NODE_ENV;
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
+//razorpay configuration
+config.razorpayMerchantId = "GpdQxFFvBJpwGH";
+config.razorpayApiId = "rzp_test_EKiobaL8CXxuzm";
+config.razorpayApiKey = "U8iSqeNexlYFCMEqNnl9Ik82";
 
 config = {};
 
@@ -404,6 +408,9 @@ if(mode === 'local') {
     //LOGS
     config.LOGS_TOPIC_NAME = 'desker-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'desker-logs-cg';
+
+    //Child Order Creation
+    config.CHILD_ORDER_TOPIC_NAME = "local-desker-child-order-creation-v1";
 
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -882,6 +889,9 @@ if(mode === 'staging') {
     config.LOGS_TOPIC_NAME = 'staging-desker-logs-v3';
     config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v3-cg';
 
+    //Child Order Creation
+    config.CHILD_ORDER_TOPIC_NAME = "staging-desker-child-order-creation-v1";
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -1026,6 +1036,9 @@ if(mode === 'preprod') {
     //LOGS    
     config.LOGS_TOPIC_NAME = 'preprod-desker-logs-v1'; //Only one partition
     config.LOGS_CONSUMER_GROUP_ID = 'preprod-desker-logs-v1-cg';
+
+    //Child Order Creation
+    config.CHILD_ORDER_TOPIC_NAME = "preprod-desker-child-order-creation-v1";
 
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
