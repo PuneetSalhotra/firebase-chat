@@ -7,6 +7,10 @@ mode = process.env.NODE_ENV;
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
+//razorpay configuration
+config.razorpayMerchantId = "GpdQxFFvBJpwGH";
+config.razorpayApiId = "rzp_test_EKiobaL8CXxuzm";
+config.razorpayApiKey = "U8iSqeNexlYFCMEqNnl9Ik82";
 
 config = {};
 
