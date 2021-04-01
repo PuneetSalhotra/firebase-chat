@@ -4315,6 +4315,13 @@ function AssetService(objectCollection) {
                 }
             }
         }
+        
+        for (let row of xlData) {
+            if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
+                return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
+            }
+        }
+
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
     };
