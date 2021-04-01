@@ -6715,7 +6715,7 @@ this.getQrBarcodeFeeback = async(request) => {
     //----------------------------------------------
     //Get the read / unread counts of the broadcast messages of an asset
     this.getReadUnReadBroadMessageCount = async function(request) {
-        logger.info("getReadUnReadBroadMessageCount: request : " + JSON.stringify(request));
+        console.log("getReadUnReadBroadMessageCount: request : " + JSON.stringify(request));
     
         let error = false,
             responseData = [];
@@ -6739,11 +6739,11 @@ this.getQrBarcodeFeeback = async(request) => {
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("getReadUnReadBroadMessageCount : query : Error " + error);
+                        console.log("getReadUnReadBroadMessageCount : query : Error " + error);
                     });
             }
         } catch (err) {
-            logger.error("getReadUnReadBroadMessageCount : Error " + err);
+            console.log("getReadUnReadBroadMessageCount : Error " + err);
         }
     
         return [error, responseData];
