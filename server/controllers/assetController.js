@@ -969,6 +969,17 @@ function AssetController(objCollection) {
         } else {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
-    });      
+    });     
+    //--------------------------------------
+    //Get the read / unread counts of the broadcast messages of an asset.
+    app.post('/' + global.config.version + 'asset/broadcast/counts', async function (req, res) {
+        const [err, orgData] = await assetService.getReadUnReadBroadMessageCount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/asset/broadcast/counts | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });        
 }
 module.exports = AssetController;

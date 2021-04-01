@@ -6712,6 +6712,42 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    //----------------------------------------------
+    //Get the read / unread counts of the broadcast messages of an asset
+    this.getReadUnReadBroadMessageCount = async function(request) {
+        logger.info("getReadUnReadBroadMessageCount: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.organization_id
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset_count",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("getReadUnReadBroadMessageCount : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("getReadUnReadBroadMessageCount : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;
