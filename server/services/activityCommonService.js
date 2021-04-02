@@ -5428,6 +5428,36 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];   
     };
 
+    this.getLinkedAssetsInWorkforceV1 = async function(request) {
+        let error = false,
+            responseData = [];
+        try{
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.account_id, 
+                request.target_workforce_id,
+                request.page_start,
+                request.page_limit
+            );
+            let queryString = util.getQueryString('ds_v1_1_asset_list_select_linked_workforce', paramsArr);
+           
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        }catch(err){
+            console.log('Error '+err);
+        }
+
+        return [error, responseData];   
+    };
+
     this.activityActivityMappingInsert = async (request) => {
         let error = true,
         responseData = [];
