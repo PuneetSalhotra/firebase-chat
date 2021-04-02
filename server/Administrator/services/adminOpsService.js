@@ -9749,6 +9749,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             if(responseAssetData[0].is_send_push == 1 && request.is_send_push == 1) {
                 request.target_asset_id = assetsData.asset_id;
                 request.asset_push_arn = assetsData.asset_push_arn;
+                request.message = request.broadcast_content;
+                request.push_title = request.broadcast_subject;
+                request.push_message = request.broadcast_content;
                 //sending push message to asset.
                 let [error, responseData] = await util.sendPushToAsset(request);
                 if (error) {
@@ -9976,6 +9979,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //send pubnub notification.
     this.sendPubNubNotification = async function (request) {
         
+        request.push_title = request.broadcast_subject;
+        request.push_message = request.broadcast_content;
+
         switch(Number(request.flag)) {
             case 1: {
                 await util.sendPushToEntity(request);
