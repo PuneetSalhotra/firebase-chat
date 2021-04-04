@@ -9595,13 +9595,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         workforce_ids = JSON.parse(workforce_ids);
     
         if (workforce_ids.length > 0) {
+            request.page_start = 0;
+            request.page_limit = 500;
+            
             //iterate workforce list
             for (let i = 0; i < workforce_ids.length; i++) {
                 let workforce_id = workforce_ids[i];
                 request.target_workforce_id = workforce_id;
     
                 //L5 : find out asset list for specified organization-account-workforce.
-                let [error, assetsData] = await activityCommonService.getLinkedAssetsInWorkforce(request);
+               let [error, assetsData] = await activityCommonService.getLinkedAssetsInWorkforceV1(request);
                 if (assetsData.length > 0) {
                     //send push notification to each asset
                     await this.sendPushNotificationsToAssets(request, assetsData);
@@ -9746,6 +9749,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             if(responseAssetData[0].is_send_push == 1 && request.is_send_push == 1) {
                 request.target_asset_id = assetsData.asset_id;
                 request.asset_push_arn = assetsData.asset_push_arn;
+                request.message = request.broadcast_content;
+                request.push_title = request.broadcast_subject;
+                request.push_message = request.broadcast_content;
                 //sending push message to asset.
                 let [error, responseData] = await util.sendPushToAsset(request);
                 if (error) {
@@ -9856,24 +9862,24 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     this.getAssetListByUsingAssetTypeId = async function(
         request,
         organization_id,
-        account_id,
+        asset_type_id,
         page_start,
         page_limit
     ) {
-        logger.info("getWorkforceList()=> : " +
+        logger.info("getAssetListByUsingAssetTypeId()=> : " +
             "organization_id = " + organization_id +
-            " account_id = " + account_id);
+            " asset_type_id = " + asset_type_id);
         let error = false,
             responseData = [];
         try {
             let paramsArr = new Array(
                 organization_id,
-                account_id,
+                asset_type_id,
                 page_start,
                 page_limit
             );
             let queryString = util.getQueryString(
-                "ds_v1_workforce_list_select_account",
+                "ds_p1_asset_list_select_asset_type",
                 paramsArr
             );
     
@@ -9882,16 +9888,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     .executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
-                        logger.info("workforce list size = " + responseData.length);
+                        logger.info("asset list size  = " + responseData.length);
                         error = false;
                     })
                     .catch((err) => {
                         error = err;
-                        logger.error("getWorkforceList : query : Error " + err);
+                        logger.error("ds_p1_asset_list_select_asset_type : query : Error " + err);
                     });
             }
         } catch (err) {
-            logger.error("getWorkforceList : Error " + err);
+            logger.error("getAssetListByUsingAssetTypeId : Error " + err);
         }
     
         return [error, responseData];
@@ -9973,6 +9979,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     //send pubnub notification.
     this.sendPubNubNotification = async function (request) {
         
+        request.push_title = request.broadcast_subject;
+        request.push_message = request.broadcast_content;
+
         switch(Number(request.flag)) {
             case 1: {
                 await util.sendPushToEntity(request);
