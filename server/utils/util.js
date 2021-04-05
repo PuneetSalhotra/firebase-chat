@@ -2255,7 +2255,8 @@ function Util(objectCollection) {
             subtitle: request.push_message,
             body: `DESKER`,
             activity_id: 0,
-            activity_type_category_id: 0
+            activity_type_category_id: 0,
+            broadcast_id: request.broadcast_id       
         }, 1, assetPushARN);
        
         logger.info(`Push sent to ${request.target_asset_id}`);
@@ -2877,7 +2878,8 @@ function Util(objectCollection) {
           target_workforce_id:request.target_workforce_id,
           target_account_id:request.target_account_id,
           target_asset_type_id:request.target_asset_type_id,
-          target_asset_id:request.target_workforce_id       
+          target_asset_id:request.target_workforce_id,
+          broadcast_id: request.broadcast_id       
        });
        
        logger.info(`pubnub push sent to channel = ${idChannel} and type = ${type_flag}`);

@@ -1120,7 +1120,7 @@ function ActivityConfigService(db,util,objCollection) {
         let hasAccountCode = generatedAccountData.hasAccountCode;
         let accountTitle = generatedAccountData.account_title;
 
-        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '');
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
         accountTitle = accountTitle.split(' ').join('')
         let checkPan = "";
         if(panNumber!=null||panNumber!=""){
@@ -1367,7 +1367,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
                 laCompanyName = await util.removeSpecialCharecters(laCompanyName);
-                // laCompanyName = laCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // laCompanyName = laCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                 // laCompanyName = laCompanyName.split(' ').join('')
                 accountTitle = laCompanyName;
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
@@ -1425,7 +1425,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
                 geCompanyName = await util.removeSpecialCharecters(geCompanyName);
-                // geCompanyName = geCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // geCompanyName = geCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                 // geCompanyName = geCompanyName.split(' ').join('')
                 accountTitle = geCompanyName;
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
@@ -1501,7 +1501,7 @@ function ActivityConfigService(db,util,objCollection) {
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
                                                     smeCompanyName = await util.removeSpecialCharecters(smeCompanyName);
-                                                    // smeCompanyName = smeCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                                    // smeCompanyName = smeCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                                                     // smeCompanyName = smeCompanyName.split(' ').join('')
                                                     accountTitle = smeCompanyName;
                                                     break;
@@ -1593,7 +1593,7 @@ function ActivityConfigService(db,util,objCollection) {
                 let govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
                 govtCompanyName = await util.removeSpecialCharecters(govtCompanyName);
-                // govtCompanyName = govtCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // govtCompanyName = govtCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                 // govtCompanyName = govtCompanyName.split(' ').join('');
                 accountTitle = govtCompanyName;
                 if(govtAccounType === 'SI') { //SI
@@ -1637,7 +1637,7 @@ function ActivityConfigService(db,util,objCollection) {
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
                 vicsCompanyName = await util.removeSpecialCharecters(vicsCompanyName)
-                // vicsCompanyName = vicsCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                // vicsCompanyName = vicsCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                 // vicsCompanyName = vicsCompanyName.split(' ').join('')
                 accountTitle = vicsCompanyName;
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
@@ -1702,7 +1702,7 @@ function ActivityConfigService(db,util,objCollection) {
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
                                                     sohoCompanyName = await util.removeSpecialCharecters(sohoCompanyName);
-                                                    // sohoCompanyName = sohoCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                                    // sohoCompanyName = sohoCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
                                                     // sohoCompanyName = sohoCompanyName.split(' ').join('')
                                                     accountTitle = sohoCompanyName;
                                                     break;

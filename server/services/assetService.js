@@ -4316,6 +4316,21 @@ function AssetService(objectCollection) {
             }
         }
         
+        let mandatoryPositionsOfColumns = {
+            "C1" : "Feasibility ID",
+            "D1" : "Bandwidth (Mbps)",
+            "E1" : "One Time Charges (Rs.)",
+            "G1" : "Recurring Charges (Rs.)",
+            "F1" : "Existing Recurring Charges (Rs.)"
+        }
+        
+        for (let column of Object.keys(mandatoryPositionsOfColumns)) {
+            if (mandatoryPositionsOfColumns[column] !== workbook.Sheets[sheet_name_list[0]][column].v) {
+                console.log("Columns are not in required order.Please correct it and upload again.");
+                return ["error", "Columns are not in required order.Please correct it and upload again."];
+            }
+        }
+
         for (let row of xlData) {
             if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
                 return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
@@ -6721,6 +6736,42 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    //----------------------------------------------
+    //Get the read / unread counts of the broadcast messages of an asset
+    this.getReadUnReadBroadMessageCount = async function(request) {
+        console.log("getReadUnReadBroadMessageCount: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.organization_id
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset_count",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getReadUnReadBroadMessageCount : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("getReadUnReadBroadMessageCount : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;
