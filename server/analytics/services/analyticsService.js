@@ -2,6 +2,8 @@
     author: bharat krishna masimukku
 */
 
+const { response } = require('express');
+
 function AnalyticsService(objectCollection) 
 {
     
@@ -3410,7 +3412,7 @@ function AnalyticsService(objectCollection)
                         error = err1;
                     } else {
                         error = false;
-                        responseData.push(data[0]);
+                        responseData = [...responseData,...data];
                     }
                 }
             } else {
@@ -3518,14 +3520,14 @@ function AnalyticsService(objectCollection)
             
             if(!parseInt(request.access_level_id)){
                 let loopData = [
-                    {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
-                    {key:"target_accounts",value:"account_id",access_level_id:2},
-                    {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    // {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    // {key:"target_accounts",value:"account_id",access_level_id:2},
+                    // {key:"target_assets",value:"target_asset_id",access_level_id:6},
                     {key:"tag_types",value:"tag_type_id",access_level_id:20},
-                    {key:"segments",value:"segment_id",access_level_id:21},
-                    {key:"product_tags",value:"product_tag_id",access_level_id:22},
-                    {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
-                    {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                    // {key:"segments",value:"segment_id",access_level_id:21},
+                    // {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    // {key:"activity_types",value:"activity_type_id",access_level_id:8}
                 ];
                 for(let i = 0 ; i < loopData.length; i++){
                     loopBase = JSON.parse(request[loopData[i].key]);
@@ -3536,7 +3538,23 @@ function AnalyticsService(objectCollection)
                         error = err1;
                     } else {
                         error = false;
-                        responseData.push(data[0]);
+                        responseData = [...responseData,...data];
+                    }
+                }
+                if(request.activity_types){
+                    let activity_types = JSON.parse(request.activity_types);
+                    for(let tags in activity_types){
+                        loopBase = activity_types[tags];
+                        loopKey = "activity_type_id";
+                        request.access_level_id = 8;
+                        request.tag_type_id = tags;
+                        let [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                        if(err1){
+                            error = err1;
+                        } else {
+                            error = false;
+                            responseData = [...responseData,...data];
+                        }
                     }
                 }
             } else {
