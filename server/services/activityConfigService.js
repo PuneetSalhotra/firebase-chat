@@ -1277,6 +1277,48 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
+    this.dedupePanCHeck = async (request)=>{
+        let error = false;
+        let activityData=[];
+        let activities = [];
+        console.log('Searching elastisearch for pan number : ',request.pan_number);
+        const response = await client.search({
+            index: 'crawling_accounts',
+            body: {
+                query: {
+                    match: {activity_cuid_1: request.pan_number}
+                    //"constant_score" : { 
+                    //    "filter" : {
+                    //        "term" : { 
+                    //            "activity_cuid_3": accountCode
+                    //        }
+                    //    }
+                    // }
+                }
+            }
+        })
+
+        console.log('response from ElastiSearch: ',response);
+        let totalRetrieved = (response.hits.hits).length;
+        console.log('Number of Matched Results : ',totalRetrieved);
+
+        for(const i_iterator of response.hits.hits) {
+            console.log(i_iterator._source.activity_cuid_1);
+            if(i_iterator._source.activity_cuid_1 === request.pan_number) {
+                
+                console.log('found a Match!');
+                activities.push(i_iterator._source.activity_id)
+            }
+        }
+        
+       if(activities.length>0){
+         activityData = await activityCommonService.getActivityDetailsPromise(request, activities[0]);
+       }
+
+       return [error,activityData]
+       
+    }
+
     async function checkForPanNumberExistenceElasticServer(request,panNumber) {
         let error = false;
         
@@ -1311,7 +1353,7 @@ function ActivityConfigService(db,util,objCollection) {
                     console.log('found a Match!');
                 }
             }
-    
+
             return [error,responseData];
 
         
@@ -1745,7 +1787,7 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log('sohoSeqNumber : ',sohoSeqNumber);
 
                 if(Number(sohoSeqNumber) === 9999) {
-                    await cacheWrapper.getSohoSeqNumber(0);
+                    await cacheWrapper.setSohoSeqNumber(0);
                     accountCode += '0000';
                 } else {
                     accountCode += (sohoSeqNumber.toString()).padStart(4,'0');
