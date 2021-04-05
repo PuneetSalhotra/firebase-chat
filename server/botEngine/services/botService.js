@@ -4931,7 +4931,7 @@ async function removeAsOwner(request,data)  {
             workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
             workflowFile705Request.activity_type_category_id = 48;
             workflowFile705Request.activity_stream_type_id = 705;
-            workflowFile705Request.flag_timeline_entry = 1;
+            workflowFile705Request.flag_timeline_entry = 0;
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
