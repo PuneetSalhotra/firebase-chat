@@ -918,6 +918,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/asset/account/mapped/list', async function (req, res) {
+        const [err, accData] = await adminOpsService.getAdminAssetMappedList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/admin/asset/account/mapped/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
