@@ -10317,6 +10317,46 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
         return [error, responseData];
     }
+
+    //getAdminAssetMappedList
+
+    this.getAdminAssetMappedList = async function(request) {
+        logger.info("getAdminAssetMappedList: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.flag||0,
+                request.organization_id,
+                request.start_from,
+                request.limit_value
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_activity_asset_search_mapping_select_asset",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_activity_asset_search_mapping_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("getAdminAssetMappedList : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
