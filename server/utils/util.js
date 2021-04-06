@@ -2250,6 +2250,7 @@ function Util(objectCollection) {
         }
         
         sns.publish({
+            type:"asset_push",
             description: request.message,
             title: request.push_title,
             subtitle: request.push_message,
