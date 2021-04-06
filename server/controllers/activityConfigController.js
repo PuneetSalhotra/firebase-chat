@@ -209,6 +209,16 @@ function ActivityConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/activity/pan/dedupe/check', async (req, res) => {
+        const [err, data] = await activityConfigService.dedupePanCHeck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/pan/dedupe/check : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 
