@@ -6515,6 +6515,11 @@ async function removeAsOwner(request,data)  {
                     request.debug_info.push("request.is_owner : "+request.is_owner);
                     request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
 
+                    const dataResp = await getAssetDetails({
+                        "organization_id": request.organization_id,
+                        "asset_id": request.asset_id
+                    });
+
                     logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
@@ -6531,22 +6536,27 @@ async function removeAsOwner(request,data)  {
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
                         //Get the asset Details of the requestor
-                        const dataResp = await getAssetDetails({
-                            "organization_id": request.organization_id,
-                            "asset_id": request.asset_id
-                        });
+                        
 
                         let requestAssetName = 'Tony';
                         if(dataResp.length > 0) {
-                            requestorAssetData = dataResp[0];
+                           let requestorAssetData = dataResp[0];
                             requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                         }
+                        
+                        let contentText = `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`;
 
+                        if(request.asset_id == assetData.desk_asset_id){
+                          contentText = `${assetData.first_name} has made as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6575,17 +6585,29 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
-                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        // const [log_error1, log_assetData1] = await activityCommonService.getAssetDetailsAsync({
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                          let requestorAssetData = dataResp[0];
+                            logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                       contentText = `${assetData.first_name} has made as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
 
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
+                        // if()
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6620,12 +6642,22 @@ async function removeAsOwner(request,data)  {
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                            let requestorAssetData = dataResp[0];
+                              logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                          }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
-
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                        contentText = `${assetData.first_name} has made as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
