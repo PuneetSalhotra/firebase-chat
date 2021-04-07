@@ -9352,6 +9352,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             error = true;
 
         const paramsArr = new Array(
+            request.organization_id,
             request.asset_id,
             request.manager_asset_id,
             request.flag_dotted_manager,
