@@ -2158,7 +2158,7 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                       // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2243,7 +2243,24 @@ function BotService(objectCollection) {
                             "error": error
                         });
                     }
-                    break;                
+                    break;    
+                    
+                    case 48: // pdf_edit
+                    console.log('****************************************************************');
+                    console.log('pdf_edit');
+                    logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await editPDF(request, botOperationsJson.bot_operations.pdf_edit);
+                    } catch (err) {
+                        logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
 
             }
 
@@ -2326,6 +2343,46 @@ function BotService(objectCollection) {
             console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
         }                                    
     });
+   }
+
+   async function editPDF(request,bot_data){
+    request.debug_info.push("****ENTERED PDF EDIT BOT****");
+    console.log('sleeping for 9 secs')
+    await sleep(9000);
+    let addCommentRequest = Object.assign(request, {});
+    let s3Url = "https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/858/974/5353/31476/2018/11/103/pdf-2021048-17511215.pdf"
+    addCommentRequest.asset_id = 100;
+    addCommentRequest.device_os_id = 7;
+    addCommentRequest.activity_type_category_id = 48;
+    addCommentRequest.activity_type_id = request.activity_type_id;
+    addCommentRequest.activity_id = request.workflow_activity_id;
+    addCommentRequest.activity_timeline_collection = JSON.stringify({
+        "content": `Tony has added attachment(s).`,
+        "subject": `Tony has added attachment(s).`,
+        "mail_body": `Tony has added attachment(s).`,
+        "attachments": [s3Url]
+    });
+    addCommentRequest.activity_stream_type_id = 325;
+    addCommentRequest.timeline_stream_type_id = 325;
+    addCommentRequest.activity_timeline_text = "";
+    addCommentRequest.activity_access_role_id = 27;
+    addCommentRequest.operating_asset_first_name = "TONY"
+    addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    addCommentRequest.flag_timeline_entry = 1;
+    addCommentRequest.log_asset_id = 100;
+    addCommentRequest.attachment_type_id = 17;
+    addCommentRequest.attachment_type_name = path.basename(s3Url);
+
+    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    try {
+        await addTimelineTransactionAsync(addCommentRequest);
+    } catch (error) {
+        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        throw new Error(error);
+    }
+    request.debug_info.push("****EXITED PDF EDIT BOT****");
+    return [false,[]]
    }
 
    async function assetApprovalWorkflow(request,bot_data){
@@ -3408,11 +3465,12 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
-                    if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
-                    } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
-                    }    
+                    // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
+                    // } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
+                    // }    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
                 } else if(Number(request.device_os_id) === 1) { //Android
                     //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
@@ -6515,6 +6573,11 @@ async function removeAsOwner(request,data)  {
                     request.debug_info.push("request.is_owner : "+request.is_owner);
                     request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
 
+                    const dataResp = await getAssetDetails({
+                        "organization_id": request.organization_id,
+                        "asset_id": request.asset_id
+                    });
+
                     logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
@@ -6531,22 +6594,27 @@ async function removeAsOwner(request,data)  {
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
                         //Get the asset Details of the requestor
-                        const dataResp = await getAssetDetails({
-                            "organization_id": request.organization_id,
-                            "asset_id": request.asset_id
-                        });
+                        
 
                         let requestAssetName = 'Tony';
                         if(dataResp.length > 0) {
-                            requestorAssetData = dataResp[0];
+                           let requestorAssetData = dataResp[0];
                             requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                         }
+                        
+                        let contentText = `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`;
 
+                        if(request.asset_id == assetData.desk_asset_id){
+                          contentText = `${assetData.first_name} has made as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6575,17 +6643,29 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
-                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        // const [log_error1, log_assetData1] = await activityCommonService.getAssetDetailsAsync({
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                          let requestorAssetData = dataResp[0];
+                            logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                       contentText = `${assetData.first_name} has made as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
 
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
+                        // if()
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6620,12 +6700,22 @@ async function removeAsOwner(request,data)  {
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                            let requestorAssetData = dataResp[0];
+                              logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                          }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
-
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                        contentText = `${assetData.first_name} has made as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],

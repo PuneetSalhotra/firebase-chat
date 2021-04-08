@@ -25,6 +25,10 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
 
+    function isArray(obj) {
+        return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
+    }
+
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
@@ -1527,7 +1531,17 @@ function FormConfigService(objCollection) {
                                 for (const row of oldFormsData) {
                                     console.log("row.data_entity_inline");
                                     console.log(row.data_entity_inline);
-                                    let dataEntityInline = JSON.parse(row.data_entity_inline);
+                                    let dataEntityInline = [];
+                                    try {
+                                        if (typeof row.data_entity_inline === 'string') {
+                                            dataEntityInline = JSON.parse(row.data_entity_inline);
+                                        } else if (isArray(row.data_entity_inline)) {
+                                            dataEntityInline = row.data_entity_inline;
+                                        }
+
+                                    } catch (e) {
+                                        console.log("error in checking old forms data");
+                                    }
                                     for (const formFields of dataEntityInline) {
                                         if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
                                             if (formFields.field_value !== "") {

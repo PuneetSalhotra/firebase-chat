@@ -2279,15 +2279,22 @@ function Util(objectCollection) {
         }
         
         sns.publish({
-            type:"asset_push",
             description: request.message,
             title: request.push_title,
             subtitle: request.push_message,
-            body: `DESKER`,
-            activity_id: 0,
-            activity_type_category_id: 0,
-            broadcast_id: request.broadcast_id       
+            body: ``,
+            activity_id: request.broadcast_id,
+            activity_type_category_id: -1      
         }, 1, assetPushARN);
+        logger.info("asset push notification ====>")
+        logger.info(JSON.stringify({
+            description: request.message,
+            title: request.push_title,
+            subtitle: request.push_message,
+            body: ``,
+            activity_id: request.broadcast_id,
+            activity_type_category_id: -1      
+        }, null, 2));
        
         logger.info(`Push sent to ${request.target_asset_id}`);
         return [error, {
