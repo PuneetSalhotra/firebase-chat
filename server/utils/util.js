@@ -219,6 +219,35 @@ function Util(objectCollection) {
         });
     };
 
+    this.pamSendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
+        messageString = encodeURI(messageString);
+        //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
+        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=PUDMNK&format=json&message=" + messageString;
+        //console.log(url);
+        global.logger.write('debug', url, {}, {});
+        request(url, function (error, response, body) {
+            var foo = JSON.parse(body);
+
+            //console.log('error : ', error);
+            //console.log('body : ' , body);
+            // global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+            logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
+
+            var res = {};
+            if (typeof foo != 'undefined' && foo.status === 1) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
+
     //Handling the Sender ID
     this.sendSmsSinfiniV1 = function (messageString, countryCode, phoneNumber, senderId, callback) {
         messageString = encodeURI(messageString);        
@@ -2769,6 +2798,16 @@ function Util(objectCollection) {
         var value = moment(date).add(-330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
         return value;
     };
+
+    this.UTCtoIST = function (date) {
+        // var value = moment(date).utcOffset("+05:30").format("YYYY-MM-DD HH:mm:ss")
+        var value = moment(date).add(330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
+        return value;
+    };
+
+    this.convertDateFormat = (date,format) => {
+        return moment(date).format(format);
+    }
 
     this.checkDateFormat = (date,format) => {
         return moment(date, format).isValid();

@@ -14,6 +14,11 @@ function PamService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var sns = new AwsSns();
+    // SMS
+    // const smsEngine = require('../utils/smsEngine');
+
+    const self = this;
+    const supportContactNumber = "8801717292";
           
     this.ivrService = function(request, callback) {
         console.log('Request params received for ivr Service : ' , request);
@@ -1563,6 +1568,19 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                               response.activity_datetime_start_expected = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                               response.activity_datetime_end_deferred = util.replaceDefaultDatetime(resp[0].activity_datetime_end_deferred);
 
+                              
+                              if(resp[0].entered_covers == 0){
+                                pamGetAssetDetails(request).then((data)=>{                                        
+                                    var phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
+                                    var countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
+
+                                    var text = `Dear ${util.replaceDefaultString(resp[0].operating_asset_first_name)},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused please call us on ${supportContactNumber}.
+                                    `                           
+                                    self.sendSms(countryCode,phoneNumber,text);    
+                                });
+                              }
+                              
+
                               /*Checking Expiry datetime
                               var expirtyDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);                          
             if((Math.sign(util.differenceDatetimes(util.getCurrentISTTime(),expirtyDatetime)) === 1) && (request.app_code == 1) && (response.activity_status_type_id == 95)) {
@@ -1653,6 +1671,29 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });                   
        }
    };
+   
+
+
+this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
+    
+    let domesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+        switch (domesticSmsMode) {
+            case 1: // SinFini
+                    util.pamSendSmsSinfini(smsMessage, countryCode, phoneNumber, function(err,res){
+                        if(err === false) {
+                            console.log('SinFini Message sent!',res);
+                        }
+                    });
+                    break;
+            case 2: // mVayoo
+                    util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
+                        if(err === false) {
+                            console.log('mVayoo Message sent!',res);
+                        }
+                    });
+                    break;
+        }
+};
    
  function assetStatusUpdate(request) {
      return new Promise((resolve, reject)=>{
@@ -3119,6 +3160,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             var countryCode;
             var phoneNumber;                      
             var reservationCreatedDatetime;
+            var reservationStartDatetime;
             
             var participantData = JSON.parse(request.activity_participant_collection);
                     forEachAsync(participantData, function (next, row) {
@@ -3127,6 +3169,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                             getActivityDetails(request).then((resp)=>{                               
                                 reservationCode = resp[0].activity_sub_type_name;
                                 expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
+                                reservationStartDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_estimated);
                                 reservationCreatedDatetime = util.addUnitsToDateTime(util.replaceDefaultDatetime(resp[0].activity_datetime_created),5.5,'hours');
                                 console.log("reservationCreatedDatetime: "+reservationCreatedDatetime);
                                 
@@ -3168,28 +3211,19 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                          
                          if(request.hasOwnProperty('reserv_at_item_order')) {
                             //text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
-			    text = "Dear "+memberName+","+" Your code was used to make an order at "+reservationCreatedDatetime+".";
-                             text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
+			                /*text = "Dear "+memberName+","+" Your code was used to make an order at "+reservationCreatedDatetime+".";
+                             text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";*/
                          } else {
-  	                       	  text = "Dear "+memberName+","+" Thank you for patronizing PUDDING & MINK! \nTable number "+tableNames+" is reserved for you/ your group on "+expiryDateTime+".";
-	                    	  text += " Your reservation code is "+reservationCode+"."+" Do feel free to forward this message to your other guests, so they may use the same code to enter. \nPlease note the entry is from the parking level @ Radisson Blu Plaza, Banjara Hills.";
-	                    	  text += " Your reservation will be forfeited at 12am if no one from the group is present. \nWe look forward to hosting you/ your group. \nAssuring you of a great experience, \nPUDDING & MINK !!";
+                            let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
+                            text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.
+                            `
 
                          }
                          console.log('SMS text : \n', text);
-                         //phoneNumber = '7680000368';
                          
-                         util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
-                                if(err === false) {
-                                    console.log('Message sent!',res);
-                                 }
-                         });
-                         
-                         util.pamSendSmsMvaayoo(text, 91, 6309386175, function(err,res){
-                                if(err === false) {
-                                    console.log('Message sent to Admin!', res);
-                                }                                     
-                             });
+                            self.sendSms(countryCode,phoneNumber,text);
+                            self.sendSms(91,supportContactNumber,text);
+
                          return callback(false, 200);
                          });                             
    };
@@ -3772,6 +3806,29 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             }
         });
     }
+    
+    
+    this.pamSendOrderSms = async (request) => {
+        let err = true,res = [];
+        try{
+            if(Number(request.item_order_count)){
+                request.work_station_asset_id = request.member_asset_id;
+                let pamAssetDetails = await pamGetAssetDetails(request);                                        
+                let phoneNumber = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_number);
+                let countryCode = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_country_code);
+                let memberName = util.replaceDefaultString(pamAssetDetails[0].asset_first_name);
+                    
+                let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now.
+                `
+                console.log(text);
+                self.sendSms(countryCode,phoneNumber,text);
+                err = false;
+            }
+        }catch(error){
+            return [error,res];
+        }
+        return [err,res];
+    };
 }
 ;
 
