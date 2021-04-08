@@ -2158,7 +2158,7 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                       // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
