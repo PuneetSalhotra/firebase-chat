@@ -1,5 +1,4 @@
 
-const request = require("request");
 var PamService = require("../services/pamService");
 
 function PamController(objCollection) {
