@@ -1,4 +1,5 @@
 
+const request = require("request");
 var PamService = require("../services/pamService");
 
 function PamController(objCollection) {
@@ -473,6 +474,15 @@ function PamController(objCollection) {
     		data = {};
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
+    });
+        
+    app.post('/' + global.config.version + '/pam/send/order/sms', async (req, res) => {
+    	let [err,result] = await pamService.pamSendOrderSms(req.body);
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        }
     });
 }
 ;
