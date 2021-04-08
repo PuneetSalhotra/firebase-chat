@@ -2243,7 +2243,24 @@ function BotService(objectCollection) {
                             "error": error
                         });
                     }
-                    break;                
+                    break;    
+                    
+                    case 48: // pdf_edit
+                    console.log('****************************************************************');
+                    console.log('pdf_edit');
+                    logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await editPDF(request, botOperationsJson.bot_operations.pdf_edit);
+                    } catch (err) {
+                        logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
 
             }
 
@@ -2326,6 +2343,46 @@ function BotService(objectCollection) {
             console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
         }                                    
     });
+   }
+
+   async function editPDF(request,bot_data){
+    request.debug_info.push("****ENTERED PDF EDIT BOT****");
+    console.log('sleeping for 9 secs')
+    await sleep(9000);
+    let addCommentRequest = Object.assign(request, {});
+    let s3Url = "https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/858/974/5353/31476/2018/11/103/pdf-2021048-17511215.pdf"
+    addCommentRequest.asset_id = 100;
+    addCommentRequest.device_os_id = 7;
+    addCommentRequest.activity_type_category_id = 48;
+    addCommentRequest.activity_type_id = request.activity_type_id;
+    addCommentRequest.activity_id = request.workflow_activity_id;
+    addCommentRequest.activity_timeline_collection = JSON.stringify({
+        "content": `Tony has added attachment(s).`,
+        "subject": `Tony has added attachment(s).`,
+        "mail_body": `Tony has added attachment(s).`,
+        "attachments": [s3Url]
+    });
+    addCommentRequest.activity_stream_type_id = 325;
+    addCommentRequest.timeline_stream_type_id = 325;
+    addCommentRequest.activity_timeline_text = "";
+    addCommentRequest.activity_access_role_id = 27;
+    addCommentRequest.operating_asset_first_name = "TONY"
+    addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    addCommentRequest.flag_timeline_entry = 1;
+    addCommentRequest.log_asset_id = 100;
+    addCommentRequest.attachment_type_id = 17;
+    addCommentRequest.attachment_type_name = path.basename(s3Url);
+
+    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    try {
+        await addTimelineTransactionAsync(addCommentRequest);
+    } catch (error) {
+        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        throw new Error(error);
+    }
+    request.debug_info.push("****EXITED PDF EDIT BOT****");
+    return [false,[]]
    }
 
    async function assetApprovalWorkflow(request,bot_data){
@@ -3408,11 +3465,12 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
-                    if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
-                    } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
-                    }    
+                    // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
+                    // } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
+                    // }    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
                 } else if(Number(request.device_os_id) === 1) { //Android
                     //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
