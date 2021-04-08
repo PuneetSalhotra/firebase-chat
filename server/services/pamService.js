@@ -3169,7 +3169,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             getActivityDetails(request).then((resp)=>{                               
                                 reservationCode = resp[0].activity_sub_type_name;
                                 expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
-                                reservationStartDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_estimated);
+                                reservationStartDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                                 reservationCreatedDatetime = util.addUnitsToDateTime(util.replaceDefaultDatetime(resp[0].activity_datetime_created),5.5,'hours');
                                 console.log("reservationCreatedDatetime: "+reservationCreatedDatetime);
                                 
