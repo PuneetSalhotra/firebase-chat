@@ -518,23 +518,52 @@ function CommnElasticService(objectCollection) {
 
         console.log("updateAccountCode : " + JSON.stringify(body));
         request.debug_info.push("updateAccountCode : " + JSON.stringify(body));
-        client.updateByQuery({
+        let resultData = await client.search({
             index: 'crawling_accounts',
-            "body": {
-                "query": {
-                    "match": {
-                        "activity_id": Number(request.workflow_activity_id)
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    {
+                      match: {
+                        activity_id: request.workflow_activity_id
+                      }
                     }
-                },
-                "script": {
-                    "source": "ctx._source = params",
-                    "lang": "painless",
-                    "params": {
-                        ...body
+                  ],
+          
+                }
+              }
+            }
+          });
+
+        if (resultData.hits.hits.length > 0) {
+            client.updateByQuery({
+                index: 'crawling_accounts',
+                "body": {
+                    "query": {
+                        "match": {
+                            "activity_id": Number(request.workflow_activity_id)
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {
+                            ...body
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
+        else {
+            client.index({
+                index: "crawling_accounts",
+                body: {
+                    ...body
+                }
+            })
+        }
+
         request.debug_info.push("Before addintoActivitySearchMapping : ");
         let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
