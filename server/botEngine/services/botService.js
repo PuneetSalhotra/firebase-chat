@@ -48,6 +48,7 @@ function BotService(objectCollection) {
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+    var hummus = require('hummus');
 
     const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
@@ -2251,7 +2252,7 @@ function BotService(objectCollection) {
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
-                        await editPDF(request, botOperationsJson.bot_operations.pdf_edit);
+                        await editPDF(request, "");
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2348,9 +2349,124 @@ function BotService(objectCollection) {
    async function editPDF(request,bot_data){
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
-    await sleep(9000);
+    // await sleep(9000);
+    let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
+    
+    let pdfJson = {
+        mobility_json:{
+            "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/pdf-2021049-135332696.pdf",
+            "fields":[
+               {
+                  "field_id":311062,
+                  "pdf_search_name":"viperiod",
+                  "sheet":6
+               },
+               {
+                  "field_id":311065,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311066,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311067,
+                  "pdf_search_name":"viaov",
+                  "sheet":6
+               },
+               {
+                  "field_id":311068,
+                  "pdf_search_name":"vitcv",
+                  "sheet":6
+               }
+            ]
+         },
+        feasibility_json:{feasibility_feild_ids:[]},
+        mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
+    };
+
+    let isMobility = false;
+    request.debug_info.push("checking which type of form it is");
+    let product_name = "";
+
+    for(let i=0;i<pdfJson.mobility_feild_ids.length;i++){
+      let field_value =  await getFormFieldValue(request,pdfJson.mobility_feild_ids[i]);
+      if(field_value){
+          product_name = field_value;
+          isMobility=true;
+          request.debug_info.push("it is a mobility type form");
+      }
+    }
+    console.log("is mob",isMobility);
+
+    let pdf_edit_json = {}
+
+    if(isMobility){
+    pdf_edit_json = pdfJson.mobility_json;
+    }
+    else {
+    pdf_edit_json = pdfJson.feasibility_json;
+    for(let i=0;i<pdf_edit_json.feasibility_feild_ids.length;i++){
+        let field_value =  await getFormFieldValue(request,pdf_edit_json.feasibility_feild_ids[i]);
+        if(field_value){
+            product_name = field_value;
+            
+            request.debug_info.push("it is a feasibility type form");
+        }
+    }
+    }
+    let pdf_url = pdf_edit_json.pdf_url;
+
+    let pdfFileName = await util.downloadS3Object(request, pdf_url);
+    let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
+    console.log(pdfPath,pdfFileName)
+    await sleep(2000)
+    request.debug_info.push("Product name ",product_name);
+
+    //getting accounts of asset
+    let accountDetails = await adminOpsService.getAdminAssetMappedList(request);
+    let accountName = accountDetails[0].activity_title;
+    request.debug_info.push("account name ",accountName);
+
+    //getting asset Details
+    const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+        organization_id: request.organization_id,
+        asset_id: request.asset_id
+    });
+    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+    request.debug_info.push("customer name ",customerName);
+
+   for(let i=0;i<pdf_edit_json.fields.length;i++){
+       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+    let field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    if(field_value){
+        // console.log("came inside");
+        try{
+       await pdfreplaceText(pdfPath, pdfPath,pdf_edit_json.fields[i].sheet , pdf_edit_json.fields[i].pdf_search_name, field_value);
+      
+        }
+        catch(err){
+            console.log(err)
+        }
+    }
+   }
+   //adding account name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viaccna", accountName);
+
+   //adding customer name
+   await pdfreplaceText(pdfPath, pdfPath,2 , "viassetname", customerName);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viprodhead", `Proposal for Product Name -${product_name}`);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,6 , "viprod", product_name);
+
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
     let addCommentRequest = Object.assign(request, {});
-    let s3Url = "https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/858/974/5353/31476/2018/11/103/pdf-2021048-17511215.pdf"
+    let s3Url = pdfS3urlnew[1][0].location;
     addCommentRequest.asset_id = 100;
     addCommentRequest.device_os_id = 7;
     addCommentRequest.activity_type_category_id = 48;
@@ -2381,9 +2497,62 @@ function BotService(objectCollection) {
         console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
         throw new Error(error);
     }
+    fs.unlink(pdfPath,()=>{});
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
    }
+
+   function pdfstrToByteArray(str) {
+    var myBuffer = [];
+    var buffer = Buffer.from(str);
+    for (var i = 0; i < buffer.length; i++) {
+        myBuffer.push(buffer[i]);
+    }
+    return myBuffer;
+  }
+  
+  function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
+      console.log("in",pageNumber,findText,replaceText)
+      var writer = hummus.createWriterToModify(sourceFile, {
+          modifiedFilePath: targetFile
+      });
+      var sourceParser = writer.createPDFCopyingContextForModifiedFile().getSourceDocumentParser();
+      var pageObject = sourceParser.parsePage(Number(pageNumber));
+      var textObjectId = pageObject.getDictionary().toJSObject().Contents.getObjectID();
+      var textStream = sourceParser.queryDictionaryObject(pageObject.getDictionary(), 'Contents');
+      //read the original block of text data
+      var data = [];
+      var readStream = sourceParser.startReadingFromStream(textStream);
+      while(readStream.notEnded()){
+          Array.prototype.push.apply(data, readStream.read(10000));
+      }
+    //   console.log(findText)
+      var string = Buffer.from(data).toString();
+  for(let i =0;i<findText.length;i++){
+  var characters = findText;
+  var match = [];
+  for (var a = 0; a < characters.length; a++) {
+      match.push('(-?[0-9]+)?(\\()?' + characters[a] + '(\\))?');
+  }
+//   console.log("---",match)
+  string = string.replace(new RegExp(match.join('')), function(m, m1) {
+      // m1 holds the first item which is a space
+      return m1 + '( ' + replaceText + ')';
+  });
+}
+  
+      //Create and write our new text object
+      var objectsContext = writer.getObjectsContext();
+      objectsContext.startModifiedIndirectObject(textObjectId);
+  
+      var stream = objectsContext.startUnfilteredPDFStream();
+      stream.getWriteStream().write(pdfstrToByteArray(string));
+      objectsContext.endPDFStream(stream);
+  
+      objectsContext.endIndirectObject();
+  
+      writer.end();
+  }
 
    async function assetApprovalWorkflow(request,bot_data){
     let responseData = [];
