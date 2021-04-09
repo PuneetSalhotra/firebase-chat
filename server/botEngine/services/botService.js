@@ -2349,12 +2349,12 @@ function BotService(objectCollection) {
    async function editPDF(request,bot_data){
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
-    // await sleep(9000);
+    await sleep(9000);
     let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
     
     let pdfJson = {
         mobility_json:{
-            "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/pdf-2021049-135332696.pdf",
+            "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/2021049-1559868.pdf",
             "fields":[
                {
                   "field_id":311062,
@@ -2421,12 +2421,13 @@ function BotService(objectCollection) {
 
     let pdfFileName = await util.downloadS3Object(request, pdf_url);
     let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
-    console.log(pdfPath,pdfFileName)
+    console.log(pdfPath,pdfFileName);
+    // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---Mobility.pdf"
     await sleep(2000)
     request.debug_info.push("Product name ",product_name);
 
     //getting accounts of asset
-    let accountDetails = await adminOpsService.getAdminAssetMappedList(request);
+    let [accerr,accountDetails] = await adminOpsService.getAdminAssetMappedList(request);
     let accountName = accountDetails[0].activity_title;
     request.debug_info.push("account name ",accountName);
 
@@ -2440,7 +2441,9 @@ function BotService(objectCollection) {
 
    for(let i=0;i<pdf_edit_json.fields.length;i++){
        console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+      
     let field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    
     if(field_value){
         // console.log("came inside");
         try{
@@ -2463,6 +2466,10 @@ function BotService(objectCollection) {
 
    //adding product name
    await pdfreplaceText(pdfPath, pdfPath,6 , "viprod", product_name);
+
+   //adding current date
+   let currentDate = (util.getCurrentDate()).toString();
+   await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
 
    let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
     let addCommentRequest = Object.assign(request, {});
