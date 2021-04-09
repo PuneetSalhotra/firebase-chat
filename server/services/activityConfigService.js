@@ -1277,6 +1277,23 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
+    this.checkAccountNameForDuplicate = async (request) => {
+        let error = false,
+            responseData = [];
+        let accountTitle = request.activity_title || "";
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        accountTitle = accountTitle.split(' ').join('')
+
+        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
+        if (accountTitleResponse.hits.hits.length > 0) {
+            console.log("Account name already exists!")
+            responseData.push({ 'message': 'Account Name already exists!' });
+            return [true, responseData];
+        }
+        responseData.push({ 'message': 'Account Name verified successfully!' });
+        return [error, responseData];
+    }
+
     this.dedupePanCHeck = async (request)=>{
         let error = false;
         let activityData=[];
