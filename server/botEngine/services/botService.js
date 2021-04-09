@@ -2246,7 +2246,7 @@ function BotService(objectCollection) {
                     }
                     break;    
                     
-                    case 48: // pdf_edit
+                    case 48 : // pdf_edit
                     console.log('****************************************************************');
                     console.log('pdf_edit');
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
@@ -2346,7 +2346,7 @@ function BotService(objectCollection) {
     });
    }
 
-   async function editPDF(request,bot_data){
+  async function editPDF(request,bot_data){
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
     await sleep(9000);
@@ -2383,7 +2383,34 @@ function BotService(objectCollection) {
                }
             ]
          },
-        feasibility_json:{feasibility_feild_ids:[]},
+        feasibility_json:{"feasibility_feild_ids":[
+            311053,
+            311054,
+            311055,
+            311056,
+            311057,
+            311058,
+            311059,
+            311060
+         ],
+         "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/2021049-21514745.pdf",
+         "fields":[
+            {
+               "field_id":311070,
+               "pdf_search_name":"viplan",
+               "sheet":16
+            },
+            {
+               "field_id":311071,
+               "pdf_search_name":"viband",
+               "sheet":16
+            },
+            {
+               "field_id":311069,
+               "pdf_search_name":"viperiod",
+               "sheet":16
+            }
+         ]},
         mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
     };
 
@@ -2409,7 +2436,7 @@ function BotService(objectCollection) {
     else {
     pdf_edit_json = pdfJson.feasibility_json;
     for(let i=0;i<pdf_edit_json.feasibility_feild_ids.length;i++){
-        let field_value =  await getFormFieldValue(request,pdf_edit_json.feasibility_feild_ids[i]);
+        let field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.feasibility_feild_ids[i]);
         if(field_value){
             product_name = field_value;
             
@@ -2422,7 +2449,7 @@ function BotService(objectCollection) {
     let pdfFileName = await util.downloadS3Object(request, pdf_url);
     let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
     console.log(pdfPath,pdfFileName);
-    // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---Mobility.pdf"
+    // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---MPLS-L2.pdf"
     await sleep(2000)
     request.debug_info.push("Product name ",product_name);
 
@@ -2442,7 +2469,13 @@ function BotService(objectCollection) {
    for(let i=0;i<pdf_edit_json.fields.length;i++){
        console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
       
-    let field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    let field_value = "";
+    if(isMobility){
+    field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    }
+    else{
+        field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.fields[i].field_id);
+    }
     
     if(field_value){
         // console.log("came inside");
@@ -2465,7 +2498,7 @@ function BotService(objectCollection) {
    await pdfreplaceText(pdfPath, pdfPath,0 , "viprodhead", `Proposal for Product Name -${product_name}`);
 
    //adding product name
-   await pdfreplaceText(pdfPath, pdfPath,6 , "viprod", product_name);
+   await pdfreplaceText(pdfPath, pdfPath,isMobility?6:16 , "viprod", product_name);
 
    //adding current date
    let currentDate = (util.getCurrentDate()).toString();
@@ -13660,6 +13693,66 @@ async function removeAsOwner(request,data)  {
             logger.info(error);
         }
         request.debug_info.push("getFormFieldValue "+ fieldValue);
+        return fieldValue;
+    }
+
+
+    async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+      
+            // console.log(request.form_id,formID)
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        // console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue = fieldData.field_value;
+                }
+                break;
+            }
+        }
+    
+        console.log('Field Value B4: ',fieldValue);
+        fieldValue = fieldValue.split(" ").join("");
+        console.log('Field Value After: ',fieldValue);
+        console.log('*************************');
         return fieldValue;
     }
 
