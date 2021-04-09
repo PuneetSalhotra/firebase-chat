@@ -2565,7 +2565,7 @@ function Util(objectCollection) {
         try{
             const s3 = new AWS.S3();
             const readStream = fs.createReadStream(filePath);
-            let fileKey = "pdf-"+this.getcurrentTimeInMilliSecs()+".pdf";
+            let fileKey = "868/984/5404/38850/2020/01/103/"+this.getcurrentTimeInMilliSecs()+".pdf";
             let bucName = await this.getS3BucketNameV1(request);
             const params = {
               Bucket: bucName[0].bucket_name,

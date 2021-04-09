@@ -10303,8 +10303,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 request.asset_id,
                 request.flag||0,
                 request.organization_id,
-                request.start_from,
-                request.limit_value
+                request.start_from||0,
+                request.limit_value||50
             );
             let queryString = util.getQueryString(
                 "ds_p1_activity_asset_search_mapping_select_asset",
