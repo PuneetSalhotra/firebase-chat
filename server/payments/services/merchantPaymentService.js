@@ -335,8 +335,7 @@ function MerchantPaymentService(objectCollection) {
                                         //Step 3: fetch the order details using razorpay_order_id.
                                         let [err, payment] = await razorPaymentGatewayService.fetchPaymentByUsingPaymentId(razorpay_payment_id);
                                         if (!err) {
-                                            request.paymentData = payment;
-
+                                            
                                             if(razorpay_order_id !== payment.order_id) {
                                                 logger.error('Invaild parameter `razorpay_order_id`');
                                                 return [true, { 
@@ -463,7 +462,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_payment_id = null;
         let razorpay_order_id = null;
         
-        let request_payload = JSON.parse(request);
+        let request_payload = request;
         
         let request_entity = {};
         if(request_payload.hasOwnProperty("payload")) {
@@ -585,8 +584,7 @@ function MerchantPaymentService(objectCollection) {
                         //Step 3: fetch the order details using razorpay_order_id.
                         let [err, payment] = await razorPaymentGatewayService.fetchPaymentByUsingPaymentId(razorpay_payment_id);
                         if (!err) {
-                            request.paymentData = payment;
-
+                            
                             if(razorpay_order_id !== payment.order_id) {
                                 logger.error('Invaild parameter `razorpay_order_id`');
                                 return [true, { 
