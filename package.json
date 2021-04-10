@@ -48,7 +48,7 @@
     "forEachAsync": "^3.0.0",
     "helmet": "^3.23.3",
     "html-pdf": "^2.2.0",
-    "hummus": "^1.0.108",
+    "hummus": "^1.0.110",
     "hummus-recipe": "^1.9.9",
     "ip": "^1.1.5",
     "jwk-to-pem": "^2.0.4",
