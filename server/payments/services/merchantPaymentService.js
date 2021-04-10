@@ -3,7 +3,7 @@
 const RazorPaymentGatewayService = require('./razorpayGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
-
+const moment = require('moment');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
@@ -47,6 +47,7 @@ function MerchantPaymentService(objectCollection) {
                 return [true, responseData];
             }   
         } else {
+            logger.error('Missing parameter `merchant_id`');
             return [true, { 
                 errormsg : 'Missing parameter `merchant_id`'
             }];
@@ -55,9 +56,20 @@ function MerchantPaymentService(objectCollection) {
 
     //API 2 : createOrder
     this.createOrder = async function (request) {
-        logger.info("MerchantPaymentService : createOrder: reqeuest : " + JSON.stringify(request));
+        logger.info("MerchantPaymentService : createOrder: request : " + JSON.stringify(request));
         let error = false;
+
+        //Step 1: validate Each parameters
+        let result = this.validatePaymentRequest(request);
+        if("Ok" !== result) {
+            logger.error(result);
+            error = true;
+            return [true, { 
+                errormsg : result
+            }];
+        }
         
+        //Step 2: Check if the merchant_id is valid
         if(paymentUtil.isNotEmpty(request.merchant_id)) {
             
             let [err, responseData] = await this.getMerchant(request, request.merchant_id); 
@@ -74,34 +86,41 @@ function MerchantPaymentService(objectCollection) {
 
                 let signature = paymentUtil.hmacSha256(hashText, secretKey);
                 
-                //validate signature
+                //Step 3: validate signature
                 if(request.signature !== signature) {
-                    logger.info("Invalid parameter `signature`");
+                    logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
                     return [true, { 
                         errormsg : "Invalid parameter `signature`"
                     }];
                 } else {
-                    logger.info("valid parameter `signature`");
+                    logger.info("merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : valid parameter `signature`");
 
-                    //check duplicate order
+                    //Step 4: check duplicate order
                     let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no);
-                    //const [err, data] = await razorPaymentGatewayService.fetchPaymentsByUsingOrderId("order_GqswX5ZTKf2abi");
                     if (!err) {
 
                         if(paymentOrderData.length == 0) {
                             //add new order
                             request.current_date = util.getCurrentUTCTime();
+
+                            //Step 5: Add a new record in payment order list table.
                             let [errr, order] = await this.addPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, merchantData.merchant_secret_key);
                             if (!errr) {
                                 logger.info("payment order inserted for merchant_id = " + request.merchant_id
                                         + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+                                
+                                //Step 6: generate new order at razorPaymentGateway server.
                                 let [err, options] = await razorPaymentGatewayService.createOrder(request, merchantData);
                                 if (!err) {
+
+                                    //Step 7: add new payment transaction into system corresponding merchant_id and merchant_txn_ref_no
                                     let [err, data] = await this.addPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, options.order_id);
                                     if (!err) {
                                         logger.info("transaction inserted for merchant_id = " + request.merchant_id
                                         + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
-                                        logger.info("final response = " + JSON.stringify(options));
+
+                                        //Step 8: send response back to web.
+                                        logger.info("razorPaymentGatewayService : createOrder | response = " + JSON.stringify(options));
                                         return [false, options];
                                     } else {
                                         logger.error("addPaymentTransaction| Error: ", JSON.stringify(data));
@@ -142,13 +161,18 @@ function MerchantPaymentService(objectCollection) {
     this.handlePaymentResponse = async function (request) {
         logger.info("MerchantPaymentService : handlePaymentResponse : request : "  +  JSON.stringify(request));
         let razorpayApiKey = global.config.razorpayApiKey;
-        let merchant_txn_ref_no  = request.merchant_txn_ref_no;
         let razorpay_payment_id = null;
         let razorpay_order_id = null;
-        let merchant_id = request.merchant_id;
         let razorpay_signature = null;
         let isSuccess = false;
         
+        if(!paymentUtil.isNotEmpty(razorpayApiKey)) {
+            logger.error('Please configure `razorpayApiKey` in globalConfig.js file');
+            return [true, { 
+                errormsg : 'Internal Server Error'
+            }];
+        }
+
         request.current_date = util.getCurrentUTCTime();
         if(request.hasOwnProperty("success_response")) {
             let success_response = JSON.parse(request.success_response);
@@ -169,13 +193,28 @@ function MerchantPaymentService(objectCollection) {
                     if(metadata !== null) {
                         razorpay_payment_id = metadata.payment_id;
                         razorpay_order_id = metadata.order_id;
+                    } else {
+                        logger.error('Invalid payment response : Empty parameter `metadata`');
+                        return [true, { 
+                            errormsg : 'Invalid payment response : Empty parameter `metadata`'
+                        }];
                     }
+                } else {
+                    logger.error('Invalid payment response : Empty parameter `error`');
+                    return [true, { 
+                        errormsg : 'Invalid payment response : Empty parameter `error`'
+                    }];
                 }
+            } else {
+                logger.error('Invalid payment response');
+                return [true, { 
+                    errormsg : 'Invalid payment response : Missing parameter `error`'
+                }];
             }
         } else {
-            logger.error('Invalid response');
+            logger.error('Invalid payment response');
             return [true, { 
-                errormsg : 'Invalid response'
+                errormsg : 'Invalid payment response'
             }];
         }
 
@@ -193,6 +232,20 @@ function MerchantPaymentService(objectCollection) {
             }];
         }
 
+        if(!paymentUtil.isNotEmpty(request.merchant_id)) {
+            logger.error('Invaild parameter `merchant_id`');
+            return [true, { 
+                errormsg : 'Invaild parameter `merchant_id`'
+            }];
+        }
+
+        if(!paymentUtil.isNotEmpty(request.merchant_txn_ref_no)) {
+            logger.error('Invaild parameter `merchant_txn_ref_no`');
+            return [true, { 
+                errormsg : 'Invaild parameter `merchant_txn_ref_no`'
+            }];
+        }
+
         if(isSuccess) {
 
             if(!paymentUtil.isNotEmpty(razorpay_signature)) {
@@ -201,137 +254,505 @@ function MerchantPaymentService(objectCollection) {
                     errormsg : 'Invaild parameter `signature`'
                 }];
             }
-            
-        }
 
-        //fetch the order details using razorpay_order_id.
-        let [err, payment] = await razorPaymentGatewayService.fetchPaymentByUsingPaymentId(razorpay_payment_id);
-        if (!err) {
-            request.paymentData = payment;
-
-            if(razorpay_order_id !== payment.order_id) {
-                logger.error('Invaild parameter `razorpay_order_id`');
+            if(!this.validateResponse(razorpay_payment_id, razorpay_order_id, razorpay_signature, razorpayApiKey)) {
+                logger.error('Invaild parameter `signature`');
                 return [true, { 
-                    errormsg : 'Invaild parameter `razorpay_order_id`'
+                    errormsg : 'Invaild parameter `signature`'
                 }];
             }
+        }
 
-            if(isSuccess) {
-                if(!this.validateResponse(razorpay_payment_id, razorpay_order_id, razorpay_signature, razorpayApiKey)) {
-                    logger.error('Invaild parameter `signature`');
-                    return [true, { 
-                        errormsg : 'Invaild parameter `signature`'
-                    }];
-                }
-            }
 
-            let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no);
+        if(paymentUtil.isNotEmpty(request.merchant_id)) {
+            
+            let [err, responseData] = await this.getMerchant(request, request.merchant_id); 
             if (!err) {
-                if(paymentOrderData.length !== 0) {
+                let merchantData = responseData;
+                //Step 1: find payment_log_transaction using merchant_id and razorpay_order_id
+                let [err, paymentTransactionData] = await this.getPaymentTransactionUsingOrderId(request, razorpay_order_id);
+                if (!err) {
+                    if(paymentTransactionData.length !== 0) {
 
-                    paymentOrderData = paymentOrderData[0];
-                    if(paymentOrderData.order_status === "REQ") {
+                        paymentTransactionData = paymentTransactionData[0];
 
-                        let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no);
-                        if (!err) {
-                            if(paymentTransactionData.length !== 0) {
-
-                                paymentTransactionData = paymentTransactionData[0];
-                                logger.info("paymentTransactionData");
-                                logger.info(JSON.stringify(paymentTransactionData));
-                                if(paymentTransactionData.payment_status === "REQ") {
-                                    let transaction_id = paymentTransactionData.transaction_id;
-                                    logger.debug("transaction_id = " + transaction_id);
-                                    let [err, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, payment, transaction_id);
-                                    if (!err) {
-                                        
-                                        let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, payment);
-                                        if (!err) {
-                                            
-                                            let order_status = 'FAI';
-                                            let response_code = "39"; 
-                                            let response_description = 'FAILED';
-                                            if("captured" === payment.status) {
-                                                order_status = 'SUC';
-                                                response_code = "00";
-                                                response_description = "SUCCESS";
-                                            } 
-
-                                            let finalResponse = {
-                                                merchant_id : request.merchant_id,
-                                                merchant_txn_ref_no: request.merchant_txn_ref_no,
-                                                amount: paymentOrderData.amount,
-                                                paymentDateTime: util.getCurrentUTCTime(),
-                                                authorization_code: payment.id,
-                                                pg_ref_no: payment.order_id,
-                                                transaction_id:transaction_id,
-                                                payment_response_code:response_code
-                                            };
-                                            logger.info("finalResponse = ");
-                                            logger.info(JSON.stringify(finalResponse));
-                                            return [false, finalResponse];
-                                        } else {
-                                            logger.error("handlePaymentResponse| Error: ", err);
-                                            return [true, { 
-                                                errormsg : 'Invaild parameter `razorpay_order_id`'
-                                            }];
-                                        }
-                                    } else {
-                                        logger.error("handlePaymentResponse| Error: ", err);
-                                        return [true, { 
-                                            errormsg : 'Invaild parameter `razorpay_order_id`'
-                                        }];
-                                    }
-                                } else {
-                                    let payment_status = paymentTransactionData.payment_status;
-                                    if(order_status === 'SUC') {
-                                        payment_status = 'already Paid';
-                                    }
-                                    if(order_status === 'FAI') {
-                                        payment_status = 'Payment Failed';
-                                    }
-                                    logger.error('Duplicate response : Payment status = ' + payment_status);
-                                    return [true, { 
-                                        errormsg : 'Duplicate response : Payment status = ' + payment_status
-                                    }];
-                                }
-                            }
-                        } else {
-                            logger.error("handlePaymentResponse| Error: ", err);
+                        if(!(paymentTransactionData.merchant_id === request.merchant_id && paymentTransactionData.merchant_txn_ref_no === request.merchant_txn_ref_no)) {
+                            logger.error('Invalid response : Invalid parameters `merchant_id`|`merchant_txn_ref_no`');
                             return [true, { 
-                                errormsg : 'Invaild parameter `razorpay_order_id`'
+                                errormsg : 'Invalid response : Invalid parameters `merchant_id`|`merchant_txn_ref_no`'
                             }];
                         }
-                    } else {
 
-                        let order_status = paymentOrderData.order_status;
-                        if(order_status === 'SUC') {
-                            order_status = 'already Paid';
+                        let payment_status = paymentTransactionData.payment_status;
+                        if(payment_status === 'SUC' || payment_status === 'FAI') {
+
+                            //Step 2: send duplicate response
+                            let finalResponse = {
+                                merchant_id : paymentTransactionData.merchant_id,
+                                merchant_txn_ref_no: paymentTransactionData.merchant_txn_ref_no,
+                                amount: paymentTransactionData.amount,
+                                paymentDateTime: moment(paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss"),
+                                authorization_code: paymentTransactionData.auth_id,
+                                pg_ref_no: paymentTransactionData.auth_no,
+                                transaction_id: paymentTransactionData.transaction_id,
+                                payment_response_code: paymentTransactionData.response_code,
+                                payment_response_desc: paymentTransactionData.response_desc
+                            };
+                            logger.error('Duplicate response : Payment status = ' + payment_status);
+                            logger.info("sending back existing payment response = ");
+                            logger.info(JSON.stringify(finalResponse));
+                            return [false, finalResponse];
+                        } else {
+
+                            //Step 2: find payment_order_list 
+                            let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no);
+                            if (!err) {
+                                if(paymentOrderData.length !== 0) {
+
+                                    paymentOrderData = paymentOrderData[0];
+                                    let order_status = paymentOrderData.order_status;
+
+                                    if(order_status === 'SUC' || order_status === 'FAI') {
+
+                                        //Step 3: send duplicate response
+                                        let finalResponse = {
+                                            merchant_id : paymentTransactionData.merchant_id,
+                                            merchant_txn_ref_no: paymentTransactionData.merchant_txn_ref_no,
+                                            amount: paymentTransactionData.amount,
+                                            paymentDateTime: moment(paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss"),
+                                            authorization_code: paymentTransactionData.auth_id,
+                                            pg_ref_no: paymentTransactionData.auth_no,
+                                            transaction_id: paymentTransactionData.transaction_id,
+                                            payment_response_code: paymentTransactionData.response_code,
+                                            payment_response_desc: paymentTransactionData.response_desc
+                                        };
+                                        logger.error('Duplicate response : Payment status = ' + payment_status);
+                                        logger.info("sending back existing payment response = ");
+                                        logger.info(JSON.stringify(finalResponse));
+                                        return [false, finalResponse];
+                                    } else {
+
+                                        //Step 3: fetch the order details using razorpay_order_id.
+                                        let [err, payment] = await razorPaymentGatewayService.fetchPaymentByUsingPaymentId(razorpay_payment_id);
+                                        if (!err) {
+                                            request.paymentData = payment;
+
+                                            if(razorpay_order_id !== payment.order_id) {
+                                                logger.error('Invaild parameter `razorpay_order_id`');
+                                                return [true, { 
+                                                    errormsg : 'Invaild parameter `razorpay_order_id`'
+                                                }];
+                                            }
+                                            
+                                            let transaction_id = paymentTransactionData.transaction_id;
+                                            logger.debug("transaction_id = " + transaction_id);
+                                            let [err, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, payment, transaction_id);
+                                            if (!err) {
+                                                
+                                                //-------------------------
+                                                payment.payment_date_time = moment(payment.created_at).utc().format("YYYY-MM-DD HH:mm:ss");
+                                                let payment_status = 'FAI';
+                                                let response_code = "39"; 
+                                                let response_description = payment.error_reason || 'FAIELD';
+                                                let razorpay_payment_response = {};
+                                                if(request.hasOwnProperty("failure_response")) {
+                                                    razorpay_payment_response = JSON.parse(request.failure_response);
+                                                    response_description = payment.error_reason;
+                                                }
+                                                
+                                                if("captured" === payment.status) {
+                                                    payment_status = 'SUC';
+                                                    response_code = "00";
+                                                    response_description = "SUCCESS";
+                                                    razorpay_payment_response = JSON.parse(request.success_response);
+                                                }
+                                                payment.response_code = response_code;
+                                                payment.response_desc = response_description;
+                                                payment.payment_status = payment_status;
+                                                payment.response_method = "WEB";
+                                                payment.razorpay_payment_response = razorpay_payment_response;
+
+                                                let auth_code = null;
+                                                if(payment.hasOwnProperty("acquirer_data")) {
+                                                    if(paymentUtil.isNumber(payment.acquirer_data.auth_code)) {
+                                                        auth_code = payment.acquirer_data.auth_code;
+                                                    }
+                                                }
+                                                payment.auth_code = auth_code;
+                                                //-------------------------
+                                                let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, payment);
+                                                if (!err) {
+                                                    
+                                                    let order_status = 'FAI';
+                                                    let response_code = "39"; 
+                                                    let response_description = 'FAILED';
+                                                    if("captured" === payment.status) {
+                                                        order_status = 'SUC';
+                                                        response_code = "00";
+                                                        response_description = "SUCCESS";
+                                                    } 
+
+                                                    let payment_datetime = moment(payment.payment_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
+
+                                                    let finalResponse = {
+                                                        merchant_id : request.merchant_id,
+                                                        merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                                        amount: paymentOrderData.amount.toFixed(2),
+                                                        paymentDateTime: payment_datetime,
+                                                        authorization_code: payment.id,
+                                                        pg_ref_no: payment.order_id,
+                                                        transaction_id: transaction_id,
+                                                        payment_response_code: response_code,
+                                                        payment_response_desc: response_description
+                                                    };
+                                                    logger.info("finalResponse = ");
+                                                    logger.info(JSON.stringify(finalResponse));
+                                                    return [false, finalResponse];
+                                                } else {
+                                                    logger.error("handlePaymentResponse| updatePaymentTransaction | Error: ", err);
+                                                    return [true, err];
+                                                }
+                                            } else {
+                                                logger.error("handlePaymentResponse| updatePaymentOrder | Error: ", err);
+                                                return [true, err];
+                                            }
+                                        } else {
+                                            logger.error("handlePaymentResponse| fetchPaymentByUsingPaymentId | Error: ", err);
+                                            return [true, err];
+                                        }
+                                    }
+                                } else {
+                                    logger.error('Invaild parameter `merchant_id` | `merchant_txn_ref_no`');
+                                    return [true, { 
+                                        errormsg : 'Invaild parameter `merchant_id` | `merchant_txn_ref_no`'
+                                    }];
+                                }
+                            } else {
+                                logger.error(err);
+                                return [true, err];
+                            }
                         }
-                        if(order_status === 'FAI') {
-                            order_status = 'Order Failed';
-                        }
+                    } else {
+                        logger.error("getPaymentTransactionUsingOrderId| Error: ", err);
                         return [true, { 
-                            errormsg : 'Duplicate response : Order status = ' + order_status
+                            errormsg : 'Invaild parameter `razorpay_order_id`'
+                        }];
+                    }
+                } else {
+                    logger.error("getPaymentTransactionUsingOrderId| Error: ", err);
+                    return [true, err];
+                }
+            } else {
+                logger.error("getMerchant| Error: ", JSON.stringify(responseData));
+                return [true, responseData];
+            }   
+        } else {
+            logger.error('Missing parameter `merchant_id`');
+            return [true, { 
+                errormsg : 'Missing parameter `merchant_id`'
+            }];
+        }
+    }
+    
+    //API 4 :handlePaymentResponseThroughWebhook
+    this.handlePaymentResponseThroughWebhook = async function (request) {
+        logger.info("MerchantPaymentService : handlePaymentResponseThroughWebhook : request : "  +  JSON.stringify(request));
+        let razorpayApiKey = global.config.razorpayApiKey;
+        let razorpayMerchantId = global.config.razorpayMerchantId;
+        
+        let razorpay_payment_id = null;
+        let razorpay_order_id = null;
+        
+        let request_payload = JSON.parse(request);
+        
+        let request_entity = {};
+        if(request_payload.hasOwnProperty("payload")) {
+            let payload = request_payload.payload;
+            if(payload.hasOwnProperty("payment")) {
+                let payment = payload.payment;
+                if(payment.hasOwnProperty("entity")) {
+                    request_entity = payment.entity;
+                    if(request_entity === {}) {
+                        logger.error('Invalid payment response | Invalid parameter `entity`');
+                        return [true, { 
+                            errormsg : 'Invalid payment response | Missing parameter `entity`'
                         }];
                     }
                 }
+            }
+        }
+        
+        request.current_date = util.getCurrentUTCTime();
+        if(!paymentUtil.isNotEmpty(razorpayMerchantId)) {
+            logger.error('Please configure `razorpayMerchantId` in globalConfig.js file');
+            return [true, { 
+                errormsg : 'Internal Server Error'
+            }];
+        } else {
+            if(!paymentUtil.isNotEmpty(request_payload.account_id)) {
+                logger.error('Invalid payment response | Missing parameter `account_id`');
+                return [true, { 
+                    errormsg : 'Invalid payment response | Missing parameter `account_id`'
+                }];
             } else {
-                logger.error("handlePaymentResponse| Error: ", err);
+                if(razorpayMerchantId !== request_payload.account_id.substring(4, request_payload.account_id.length)) {
+                    logger.error('Invalid payment response | Invalid parameter `account_id`');
+                    return [true, { 
+                        errormsg : 'Invalid payment response | Invalid parameter `account_id`'
+                    }];
+                }
+            }
+        }
+
+        if(!paymentUtil.isNotEmpty(request_payload.event)) {
+            logger.error('Invalid payment response | Missing parameter `event`');
+            return [true, { 
+                errormsg : 'Invalid payment response | Missing parameter `event`'
+            }];
+        } 
+
+        if(!("payment.captured" === request_payload.event || "payment.failed" === request_payload.event)) {
+            logger.error('Invalid payment response | Invalid parameter `event`');
+            return [true, { 
+                errormsg : 'Invalid payment response | Missing parameter `event`'
+            }];
+        }
+
+        if(!paymentUtil.isNotEmpty(request_entity.id)) {
+            logger.error('Invaild parameter `razorpay_payment_id`');
+            return [true, { 
+                errormsg : 'Invaild parameter `razorpay_payment_id`'
+            }];
+        } else {
+            razorpay_payment_id = request_entity.id;
+        }
+
+        if(!paymentUtil.isNotEmpty(request_entity.id)) {
+            logger.error('Invaild parameter `razorpay_payment_id`');
+            return [true, { 
+                errormsg : 'Invaild parameter `razorpay_payment_id`'
+            }];
+        } else {
+            razorpay_payment_id = request_entity.id;
+        }
+
+        if(!paymentUtil.isNotEmpty(request_entity.order_id)) {
+            logger.error('Invaild parameter `razorpay_order_id`');
+            return [true, { 
+                errormsg : 'Invaild parameter `razorpay_order_id`'
+            }];
+        } else {
+            razorpay_order_id = request_entity.order_id;
+        }
+        
+        //Step 1: find payment_log_transaction using razorpay_order_id
+        let [err, paymentTransactionData] = await this.getPaymentTransactionUsingOrderId(request, razorpay_order_id);
+        if (!err) {
+            if(paymentTransactionData.length !== 0) {
+
+                paymentTransactionData = paymentTransactionData[0];
+                request.merchant_id = paymentTransactionData.merchant_id;
+                request.merchant_txn_ref_no = paymentTransactionData.merchant_txn_ref_no;
+                
+                let payment_status = paymentTransactionData.payment_status;
+                if((payment_status === 'SUC' || payment_status === 'FAI') && "WEBHOOK" === paymentTransactionData.str_fld_1) {
+
+                    //Step 2: send duplicate response
+                    let finalResponse = {
+                        merchant_id : paymentTransactionData.merchant_id,
+                        merchant_txn_ref_no: paymentTransactionData.merchant_txn_ref_no,
+                        amount: paymentTransactionData.amount,
+                        paymentDateTime: moment(paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss"),
+                        authorization_code: paymentTransactionData.auth_id,
+                        pg_ref_no: paymentTransactionData.auth_no,
+                        transaction_id: paymentTransactionData.transaction_id,
+                        payment_response_code: paymentTransactionData.response_code,
+                        payment_response_desc: paymentTransactionData.response_desc
+                    };
+                    logger.error('Duplicate response : Payment status = ' + payment_status);
+                    logger.info("sending back existing payment response = ");
+                    logger.info(JSON.stringify(finalResponse));
+                    return [false, finalResponse];
+                } 
+
+                //Step 2: find payment_order_list 
+                let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no);
+                if (!err) {
+                    if(paymentOrderData.length !== 0) {
+
+                        paymentOrderData = paymentOrderData[0];
+                        
+                        //Step 3: fetch the order details using razorpay_order_id.
+                        let [err, payment] = await razorPaymentGatewayService.fetchPaymentByUsingPaymentId(razorpay_payment_id);
+                        if (!err) {
+                            request.paymentData = payment;
+
+                            if(razorpay_order_id !== payment.order_id) {
+                                logger.error('Invaild parameter `razorpay_order_id`');
+                                return [true, { 
+                                    errormsg : 'Invaild parameter `razorpay_order_id`'
+                                }];
+                            }
+                            
+                            let transaction_id = paymentTransactionData.transaction_id;
+                            logger.debug("transaction_id = " + transaction_id);
+                            
+
+                            //-------------------------
+                            payment.payment_date_time = moment(payment.created_at).utc().format("YYYY-MM-DD HH:mm:ss");
+                            let payment_status = 'FAI';
+                            let response_code = "39"; 
+                            let response_description = payment.error_reason || 'FAIELD';
+                            if(request.hasOwnProperty("failure_response")) {
+                                response_description = request_entity.error_reason;
+                            }
+                            
+                            if("captured" === payment.status) {
+                                payment_status = 'SUC';
+                                response_code = "00";
+                                response_description = "SUCCESS";
+                            }
+
+                            payment.response_code = response_code;
+                            payment.response_desc = response_description;
+                            payment.payment_status = payment_status;
+                            payment.response_method = "WEBHOOK";
+                            payment.razorpay_payment_response = request_payload;
+
+                            if("card" === payment.method) {
+                                payment.method_sub_type = request_entity.card.type;
+                                payment.card_network = request_entity.card.network;
+                                payment.customer_name = request_entity.card.name;
+                                payment.inst_id = request_entity.card.id;
+                                payment.mask_id = "XXXX XXXX XXXX " + request_entity.card.last4;
+                            }
+                            if("netbanking" === payment.method) {
+                                payment.method_sub_type = request_entity.bank;
+                            }
+                            if("upi" === payment.method) {
+                                payment.inst_id = request_entity.vpa;
+                            }
+                            if("wallet" === payment.method) {
+                                payment.method_sub_type = request_entity.wallet;
+                            }
+
+                            let auth_code = null;
+                            if(payment.hasOwnProperty("acquirer_data")) {
+                                if(paymentUtil.isNumber(payment.acquirer_data.auth_code)) {
+                                    auth_code = payment.acquirer_data.auth_code;
+                                }
+                                if(auth_code === null && paymentUtil.isNumber(payment.acquirer_data.bank_transaction_id)) {
+                                    auth_code = payment.acquirer_data.bank_transaction_id;
+                                }
+                                if(auth_code === null && paymentUtil.isNumber(payment.acquirer_data.transaction_id)) {
+                                    auth_code = payment.acquirer_data.transaction_id;
+                                }
+                                if(auth_code === null && paymentUtil.isNumber(payment.acquirer_data.bank_transaction_id)) {
+                                    auth_code = payment.acquirer_data.bank_transaction_id;
+                                }
+                                if(auth_code === null && paymentUtil.isNumber(payment.acquirer_data.rrn)) {
+                                    auth_code = payment.acquirer_data.rrn;
+                                }
+                            }
+                            payment.auth_code = auth_code;
+                            //-------------------------
+                            
+                            let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, payment);
+                            if (!err) {
+                                
+                                if("SUC" === paymentOrderData.order_status || "FAI" === paymentOrderData.order_status) {
+                                    let order_status = 'FAI';
+                                    let response_code = "39"; 
+                                    let response_description = 'FAILED';
+                                    if("captured" === payment.status) {
+                                        order_status = 'SUC';
+                                        response_code = "00";
+                                        response_description = "SUCCESS";
+                                    } 
+
+                                    let payment_datetime = moment(payment.payment_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
+
+                                    let finalResponse = {
+                                        merchant_id : request.merchant_id,
+                                        merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                        amount: paymentOrderData.amount.toFixed(2),
+                                        paymentDateTime: payment_datetime,
+                                        authorization_code: payment.id,
+                                        pg_ref_no: payment.order_id,
+                                        transaction_id: transaction_id,
+                                        payment_response_code: response_code,
+                                        payment_response_desc: response_description
+                                    };
+                                    logger.info("finalResponse = ");
+                                    logger.info(JSON.stringify(finalResponse));
+                                    return [false, finalResponse];
+                                } else {
+                                    let [err, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, payment, transaction_id);
+                                    if (!err) {  
+                                        let order_status = 'FAI';
+                                        let response_code = "39"; 
+                                        let response_description = request_entity.error_reason|| 'FAILED';
+
+                                        if("captured" === payment.status) {
+                                            order_status = 'SUC';
+                                            response_code = "00";
+                                            response_description = "SUCCESS";
+                                        } 
+
+                                        let payment_datetime = moment(payment.payment_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
+
+                                        let finalResponse = {
+                                            merchant_id : request.merchant_id,
+                                            merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                            amount: paymentOrderData.amount.toFixed(2),
+                                            paymentDateTime: payment_datetime,
+                                            authorization_code: payment.id,
+                                            pg_ref_no: payment.order_id,
+                                            transaction_id: transaction_id,
+                                            payment_response_code: response_code,
+                                            payment_response_desc: response_description
+                                        };
+                                        logger.info("finalResponse = ");
+                                        logger.info(JSON.stringify(finalResponse));
+                                        return [false, finalResponse];
+                                    } else {
+                                        logger.error("handlePaymentResponse| updatePaymentOrder | Error: ", err);
+                                        return [true, err];
+                                    }
+                                }
+                            } else {
+                                logger.error("handlePaymentResponse| updatePaymentTransaction | Error: ", err);
+                                return [true, err];
+                            }
+                        } else {
+                            logger.error("handlePaymentResponse| fetchPaymentByUsingPaymentId | Error: ", err);
+                            return [true, err];
+                        }
+                    } else {
+                        logger.error('Invaild parameter `merchant_id` | `merchant_txn_ref_no`');
+                        return [true, { 
+                            errormsg : 'Invaild parameter `merchant_id` | `merchant_txn_ref_no`'
+                        }];
+                    }
+                } else {
+                    logger.error(err);
+                    return [true, err];
+                }
+            } else {
+                logger.error("getPaymentTransactionUsingOrderId| Error: ", err);
                 return [true, { 
                     errormsg : 'Invaild parameter `razorpay_order_id`'
                 }];
             }
         } else {
-            logger.error("handlePaymentResponse| Error: ", err);
-            return [true, { 
-                errormsg : 'Invaild parameter `razorpay_payment_id`'
-            }];
+            logger.error("getPaymentTransactionUsingOrderId| Error: ", err);
+            return [true, err];
         }
     }
-    
-    
 
+
+
+    // Supportive Functions
     this.getMerchant = async function(request, merchant_id) {
         logger.info("MerchantPaymentService : getMerchant : merchant_id = " + merchant_id);
         let responseData = {},
@@ -345,23 +766,30 @@ function MerchantPaymentService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = data[0];
-                    //logger.info("MerchantPaymentService : getMerchant : response = " + JSON.stringify(responseData));
-                    if("ACT" === responseData.merchant_status) {
-                        error = false;
-                    } else {
+                    if(data.length === 0) {
+                        logger.error("MerchantPaymentService : getMerchant : Invalid parameter `merchant_id` = " + request.merchant_id);
                         error = true;
-                        logger.error("Inactive merchant = " + merchant_id);
                         responseData = {
-                            errormsg : "Inactive merchant = " + merchant_id
+                            errormsg : "Invalid parameter `merchant_id`"
                         };
+                    } else {
+                        responseData = data[0];
+                        if("ACT" === responseData.merchant_status) {
+                            error = false;
+                        } else {
+                            error = true;
+                            logger.error("Inactive `merchant_id` = " + merchant_id);
+                            responseData = {
+                                errormsg : "Inactive `merchant_id` = " + merchant_id
+                            };
+                        }
                     }
                 })
                 .catch((err) => {
                     logger.error("MerchantPaymentService : getMerchant : merchant_id = " + request.merchant_id + " : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -387,10 +815,12 @@ function MerchantPaymentService(objectCollection) {
                     error = false;
                 })
                 .catch((err) => {
-                    logger.error("MerchantPaymentService : getMerchant : merchant_id = " + request.merchant_id + " : Error : " + err);
+                    logger.error("MerchantPaymentService : getPaymentOrder : merchant_id = " + merchant_id +
+        " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : getPaymentOrder : ds_p1_payment_order_list_select : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -412,14 +842,61 @@ function MerchantPaymentService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = data;
-                    error = false;
+                    if(data.length === 0) {
+                        logger.error("MerchantPaymentService : getPaymentTransaction : merchant_id = " + merchant_id +
+                        " merchant_txn_ref_no = " + merchant_txn_ref_no);
+                        error = true;
+                        responseData = {
+                            errormsg : "Invalid `merchant_id` & `merchant_txn_ref_no`"
+                        };
+                    } else {
+                        responseData = data;
+                        error = false;
+                    }
                 })
                 .catch((err) => {
-                    logger.error("MerchantPaymentService : getPaymentTransaction : merchant_id = " + request.merchant_id + " : Error : " + err);
+                    logger.error("MerchantPaymentService : getPaymentTransaction : merchant_id = " + merchant_id +
+        " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : getPaymentTransaction : ds_p1_payment_log_transaction_select : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
+                    };
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getPaymentTransactionUsingOrderId = async function(request, razorpay_order_id) {
+        logger.info("MerchantPaymentService : getPaymentTransactionUsingOrderId :  razorpay_order_id = " + razorpay_order_id);
+        let responseData = {},
+            error = true;
+
+        const paramsArr = new Array(
+            razorpay_order_id
+        );
+        const queryString = util.getQueryString('ds_p1_payment_log_transaction_select_auth_no', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    if(data.length === 0) {
+                        logger.error("MerchantPaymentService : getPaymentTransactionUsingOrderId : razorpay_order_id = " + razorpay_order_id);
+                        error = true;
+                        responseData = {
+                            errormsg : "Invalid `razorpay_order_id`"
+                        };
+                    } else {
+                        responseData = data;
+                        error = false;
+                    }
+                })
+                .catch((err) => {
+                    logger.error("MerchantPaymentService : getPaymentTransactionUsingOrderId :  razorpay_order_id = " + razorpay_order_id + " : Error:");
+                    logger.error("MerchantPaymentService : getPaymentTransactionUsingOrderId : ds_p1_payment_log_transaction_select_auth_no : Error : " + err);
+                    error = true;
+                    responseData = {
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -438,10 +915,10 @@ function MerchantPaymentService(objectCollection) {
             request.merchant_txn_ref_no,
             Number(request.amount).toFixed(2),
             request.currency,
-            request.customer_email_id || null,
-            request.response_url || null,
+            null,
+            null,
             'PAYMENT',
-            request.customer_name || null, 
+            null, 
             request.customer_mobile_no || null,
             request.addl_param_1 || null,
             request.addl_param_2 || null,
@@ -459,10 +936,12 @@ function MerchantPaymentService(objectCollection) {
                     responseData = data;
                 })
                 .catch((err) => {
-                    logger.error("MerchantPaymentService : addPaymentOrder : merchant_id = " + request.merchant_id + " : Error : " + err);
+                    logger.error("MerchantPaymentService : addPaymentOrder : merchant_id = " + merchant_id +
+        " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : addPaymentOrder : ds_p1_payment_order_list_insert : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -484,22 +963,20 @@ function MerchantPaymentService(objectCollection) {
             Number(request.amount).toFixed(2),
             Number(request.amount).toFixed(2),
             request.currency,
-            request.countryCode || '',
-            request.customer_name || null, 
+            null,
+            null, 
             request.customer_mobile_no || null,
             null,
             null,
             null,
             payment_order_id,
-            request.acquirer_id || '',
-            request.gateway_id || '',
+            null,
+            null,
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
             Number("0.00").toFixed(2)
             //"REQ"
         );
-
-        console.log(paramsArr);
 
         const queryString = util.getQueryString('ds_p1_payment_log_transaction_insert', paramsArr);
 
@@ -511,10 +988,11 @@ function MerchantPaymentService(objectCollection) {
                 })
                 .catch((err) => {
                     logger.error("MerchantPaymentService : addPaymentTransaction : merchant_id = " + merchant_id +
-                    " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error : " + err);
+        " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : addPaymentTransaction : ds_p1_payment_log_transaction_insert : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -554,10 +1032,11 @@ function MerchantPaymentService(objectCollection) {
                 })
                 .catch((err) => {
                     logger.error("MerchantPaymentService : updatePaymentOrder : merchant_id = " + merchant_id +
-                    " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error : " + err);
+        " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : updatePaymentOrder : ds_p1_payment_order_list_update : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
@@ -570,33 +1049,30 @@ function MerchantPaymentService(objectCollection) {
         let responseData = {},
             error = true;
 
-        let payment_status = 'FAI';
-        let response_code = "39"; 
-        let response_description = request.reason || 'FAIELD';
-        if("captured" === payment.status) {
-            payment_status = 'SUC';
-            response_code = "00";
-            response_description = "SUCCESS";
-        } 
         const paramsArr = new Array(
-            util.getCurrentUTCTime(),
+            payment.payment_date_time,
             payment.method,
-            null,
-            null,
-            null,
-            null,
+            payment.method_sub_type || null,
+            payment.inst_id || null,
+            payment.mask_id || null,
+            payment.card_network || null,
             payment.order_id,
             payment.id,
-            response_code,
+            payment.response_code,
             null,
-            response_code,
-            response_description,
-            payment_status,
-            null,
+            payment.response_code,
+            payment.response_desc,
+            payment.payment_status,
+            payment.response_method,
             merchant_id,
-            merchant_txn_ref_no
+            merchant_txn_ref_no,
+            payment.customer_name || null,
+            payment.fee || null,
+            payment.tax || null,
+            payment.auth_code || null,
+            null,
+            JSON.stringify(payment.razorpay_payment_response)
         );
-
         const queryString = util.getQueryString('ds_p1_payment_log_transaction_update', paramsArr);
 
         if (queryString !== '') {
@@ -607,61 +1083,69 @@ function MerchantPaymentService(objectCollection) {
                 })
                 .catch((err) => {
                     logger.error("MerchantPaymentService : updatePaymentTransaction : merchant_id = " + merchant_id +
-                    " merchant_txn_ref_no = " + merchant_txn_ref_no + " : Error : " + err);
+        " merchant_txn_ref_no = " + merchant_txn_ref_no +" : Error:");
+                    logger.error("MerchantPaymentService : updatePaymentTransaction : ds_p1_payment_log_transaction_update : Error : " + err);
                     error = true;
                     responseData = {
-                        errormsg : err
+                        errormsg : 'Internal Server Error'
                     };
                 })
         }
         return [error, responseData];
     }
 
-    this.featchOrder = async function (merchantRefNo, razorPayOrderId) {
-        logger.info("MerchantPaymentService : featchOrder: reqeuest : " + JSON.stringify(request));
-        let responseData = [],
-            error = false;
+    // this.featchOrder = async function (merchantRefNo, razorPayOrderId) {
+    //     logger.info("MerchantPaymentService : featchOrder: reqeuest : " + JSON.stringify(request));
+    //     let responseData = [],
+    //         error = false;
 
-        let [err, data] = await razorPaymentGatewayService.featchOrder(request);
-        if (!err) {
-            let responseData = {
-                options : data,
-                organization_id : request.organization_id,
-                account_id : request.account_id,
-                workforce_id : request.workforce_id,
-                asset_id : request.asset_id,
-                product_id : request.product_id,
-                merchantRefNo : request.merchantRefNo
-            };
-            logger.info("MerchantPaymentService : createOrder: response : " + JSON.stringify(responseData));
-            return [error, responseData];
-        } else {
-            logger.error("/greneos/api/payment| Error: ", err);
-            return [true, err];
-        }
-    }
+    //     let [err, data] = await razorPaymentGatewayService.featchOrder(request);
+    //     if (!err) {
+    //         let responseData = {
+    //             options : data,
+    //             organization_id : request.organization_id,
+    //             account_id : request.account_id,
+    //             workforce_id : request.workforce_id,
+    //             asset_id : request.asset_id,
+    //             product_id : request.product_id,
+    //             merchantRefNo : request.merchantRefNo
+    //         };
+    //         logger.info("MerchantPaymentService : createOrder: response : " + JSON.stringify(responseData));
+    //         return [error, responseData];
+    //     } else {
+    //         logger.error("/greneos/api/payment| Error: ", err);
+    //         return [true, err];
+    //     }
+    // }
 
     this.validateResponse = function(razorpay_payment_id, razorpay_order_id, signature, razorpayApiKey) {
-        
+        logger.info("validate payment response signature=>");
         let hashText = razorpay_order_id + "|" + razorpay_payment_id;
 
-        //let secretKey = global.config.razorpayApiKey;
-
         let isValidResponse = paymentUtil.isValidHmacSha256(hashText, signature , razorpayApiKey);
-
-        logger.info("isValidResponse = " + isValidResponse);
+        if(isValidResponse) {
+            logger.info(razorpay_order_id + " : Valid payment response signature");
+        } else {
+            logger.error(razorpay_order_id + " : Invalid payment response parameter signature.");
+        }
         return isValidResponse;
     }
 
-    this.validatePaymentRequest = function(reqeust) {
-        let mandatoryParams = ["amount", "currency", "customer_mobile_no", "description", "merchant_id", "merchant_txn_ref_no"];
+    this.validatePaymentRequest = function(request) {
+        logger.info("validate payment request parameters=>");
+        let mandatoryParams = ["amount", "currency", "customer_mobile_no", "description", "merchant_id", "merchant_txn_ref_no","signature"];
         let result = paymentUtil.isParameterExists(mandatoryParams, request);
         if('Ok' !== result) {
+            logger.error(result);
             return result;
         }
-        if(!this.isNumber(request.amount)) {
+
+        let isValidNum = paymentUtil.isNumber(request.amount);
+        if(!isValidNum) {
+            logger.error('Invalid parameter `amount`');
             return 'Invalid parameter `amount`';
         } 
+        logger.info("all parameters are valid");
         return 'Ok';
     }
 }
