@@ -5,9 +5,9 @@ const logger = require('../../logger/winstonLogger');
 const uuidv4 = require('uuid/v4');
 function RazorPaymentGatewayService(objCollection) {
 
-    this.createOrder = async function (requestData, merchantData) {
-        logger.info("RazorPaymentGatewayService : createOrder: request :" + JSON.stringify(requestData));
-        
+    this.createOrder = async function (request, merchantData) {
+        logger.info("RazorPaymentGatewayService : createOrder: merchant_id = " + request.merchant_id +
+        " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
         let error = false;
 
         //merchant key
@@ -15,19 +15,19 @@ function RazorPaymentGatewayService(objCollection) {
         let instance = new Razorpay ({ key_id: global.config.razorpayApiId, key_secret: global.config.razorpayApiKey })
 
         let options = {
-            amount: Number(requestData.amount).toFixed(2) * 100,  // amount in the smallest currency unit
-            currency: requestData.currency,
-            receipt: requestData.merchant_txn_ref_no
+            amount: Number(request.amount).toFixed(2) * 100,  // amount in the smallest currency unit
+            currency: request.currency,
+            receipt: request.merchant_txn_ref_no
         };
 
         let promise = new Promise ((resolve, reject) => {
 
+            logger.info("merchant_id = " + request.merchant_id + " merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : razorpay create order request parameters : " + JSON.stringify(options));
             //create order call
             instance.orders.create (options, (err, order) => {
                 
                 if(err) {
-                    logger.error("razorpay payment gateway response error =");
-                    logger.error(err);
+                    logger.error("merchant_id = " + request.merchant_id + " merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : razorpay create order response error : ", err);
                     reject([true, {"message" : err}]);
                 } else {
                     let options = {
@@ -35,15 +35,14 @@ function RazorPaymentGatewayService(objCollection) {
                         "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
                         "currency": order.currency,
                         "name": merchantData.merchant_name,
-                        "description": requestData.description,
+                        "description": request.description,
                         "image": "https://example.com/your_logo",
                         "order_id": order.id,
                         "prefill": {
-                            "contact": requestData.customer_mobile_no
+                            "contact": request.customer_mobile_no
                         }
                     };
-
-                    logger.info("razorpay payment gateway response  =" + JSON.stringify(order));
+                    logger.info("merchant_id = " + request.merchant_id + " merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : razorpay create order response : " + JSON.stringify(order));
                     logger.info("RazorPaymentGatewayService : createOrder: response : " + JSON.stringify(options));
                     resolve([false, options]);
                 }
