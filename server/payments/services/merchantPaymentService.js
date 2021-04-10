@@ -463,7 +463,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_payment_id = null;
         let razorpay_order_id = null;
         
-        let request_payload = JSON.parse(request);
+        let request_payload = request;
         
         let request_entity = {};
         if(request_payload.hasOwnProperty("payload")) {
