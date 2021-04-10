@@ -40,11 +40,15 @@ function PaymentUtil(objectCollection) {
     this.isNotEmpty = function(data) {
         return data !== undefined && data !== null && data !== "";
     }
+
+    this.isNonNullObject = function (input) {
+        return !!input && (typeof input === "undefined" ? "undefined" : _typeof(input)) === "object" && !Array.isArray(input);
+    }
    
     this.isParameterExists = function(paramArray, request) {
-        for(let i = 0; i < params.length; i++) {
+        for(let i = 0; i < paramArray.length; i++) {
             if(request.hasOwnProperty(paramArray[i])) {
-                if(this.isNotEmpty(reqeust[paramArray[i]])) {
+                if(this.isNotEmpty(request[paramArray[i]])) {
                 } else {
                     return 'invalid parameter `' + paramArray[i] + '`';    
                 }
