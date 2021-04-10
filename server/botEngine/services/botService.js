@@ -48,6 +48,7 @@ function BotService(objectCollection) {
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+    var hummus = require('hummus');
 
     const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
@@ -2158,7 +2159,7 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                       // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2243,7 +2244,24 @@ function BotService(objectCollection) {
                             "error": error
                         });
                     }
-                    break;                
+                    break;    
+                    
+                    case 48 : // pdf_edit
+                    console.log('****************************************************************');
+                    console.log('pdf_edit');
+                    logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await editPDF(request, "");
+                    } catch (err) {
+                        logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
 
             }
 
@@ -2327,6 +2345,254 @@ function BotService(objectCollection) {
         }                                    
     });
    }
+
+  async function editPDF(request,bot_data){
+    request.debug_info.push("****ENTERED PDF EDIT BOT****");
+    console.log('sleeping for 9 secs')
+    await sleep(9000);
+    let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
+    
+    let pdfJson = {
+        mobility_json:{
+            "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/2021049-1559868.pdf",
+            "fields":[
+               {
+                  "field_id":311062,
+                  "pdf_search_name":"viperiod",
+                  "sheet":6
+               },
+               {
+                  "field_id":311065,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311066,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311067,
+                  "pdf_search_name":"viaov",
+                  "sheet":6
+               },
+               {
+                  "field_id":311068,
+                  "pdf_search_name":"vitcv",
+                  "sheet":6
+               }
+            ]
+         },
+        feasibility_json:{"feasibility_feild_ids":[
+            311053,
+            311054,
+            311055,
+            311056,
+            311057,
+            311058,
+            311059,
+            311060
+         ],
+         "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/984/5404/38850/2020/01/103/2021049-21514745.pdf",
+         "fields":[
+            {
+               "field_id":311070,
+               "pdf_search_name":"viplan",
+               "sheet":16
+            },
+            {
+               "field_id":311071,
+               "pdf_search_name":"viband",
+               "sheet":16
+            },
+            {
+               "field_id":311069,
+               "pdf_search_name":"viperiod",
+               "sheet":16
+            }
+         ]},
+        mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
+    };
+
+    let isMobility = false;
+    request.debug_info.push("checking which type of form it is");
+    let product_name = "";
+
+    for(let i=0;i<pdfJson.mobility_feild_ids.length;i++){
+      let field_value =  await getFormFieldValue(request,pdfJson.mobility_feild_ids[i]);
+      if(field_value){
+          product_name = field_value;
+          isMobility=true;
+          request.debug_info.push("it is a mobility type form");
+      }
+    }
+    console.log("is mob",isMobility);
+
+    let pdf_edit_json = {}
+
+    if(isMobility){
+    pdf_edit_json = pdfJson.mobility_json;
+    }
+    else {
+    pdf_edit_json = pdfJson.feasibility_json;
+    for(let i=0;i<pdf_edit_json.feasibility_feild_ids.length;i++){
+        let field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.feasibility_feild_ids[i]);
+        if(field_value){
+            product_name = field_value;
+            
+            request.debug_info.push("it is a feasibility type form");
+        }
+    }
+    }
+    let pdf_url = pdf_edit_json.pdf_url;
+
+    let pdfFileName = await util.downloadS3Object(request, pdf_url);
+    let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
+    console.log(pdfPath,pdfFileName);
+    // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---MPLS-L2.pdf"
+    await sleep(2000)
+    request.debug_info.push("Product name ",product_name);
+
+    //getting accounts of asset
+    let [accerr,accountDetails] = await adminOpsService.getAdminAssetMappedList(request);
+    let accountName = accountDetails[0].activity_title;
+    request.debug_info.push("account name ",accountName);
+
+    //getting asset Details
+    const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+        organization_id: request.organization_id,
+        asset_id: request.asset_id
+    });
+    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+    request.debug_info.push("customer name ",customerName);
+
+   for(let i=0;i<pdf_edit_json.fields.length;i++){
+       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+      
+    let field_value = "";
+    if(isMobility){
+    field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    }
+    else{
+        field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.fields[i].field_id);
+    }
+    
+    if(field_value){
+        // console.log("came inside");
+        try{
+       await pdfreplaceText(pdfPath, pdfPath,pdf_edit_json.fields[i].sheet , pdf_edit_json.fields[i].pdf_search_name, field_value);
+      
+        }
+        catch(err){
+            console.log(err)
+        }
+    }
+   }
+   //adding account name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viaccna", accountName);
+
+   //adding customer name
+   await pdfreplaceText(pdfPath, pdfPath,2 , "viassetname", customerName);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viprodhead", `Proposal for Product Name -${product_name}`);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,isMobility?6:16 , "viprod", product_name);
+
+   //adding current date
+   let currentDate = (util.getCurrentDate()).toString();
+   await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
+
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
+    let addCommentRequest = Object.assign(request, {});
+    let s3Url = pdfS3urlnew[1][0].location;
+    addCommentRequest.asset_id = 100;
+    addCommentRequest.device_os_id = 7;
+    addCommentRequest.activity_type_category_id = 48;
+    addCommentRequest.activity_type_id = request.activity_type_id;
+    addCommentRequest.activity_id = request.workflow_activity_id;
+    addCommentRequest.activity_timeline_collection = JSON.stringify({
+        "content": `Tony has added attachment(s).`,
+        "subject": `Tony has added attachment(s).`,
+        "mail_body": `Tony has added attachment(s).`,
+        "attachments": [s3Url]
+    });
+    addCommentRequest.activity_stream_type_id = 325;
+    addCommentRequest.timeline_stream_type_id = 325;
+    addCommentRequest.activity_timeline_text = "";
+    addCommentRequest.activity_access_role_id = 27;
+    addCommentRequest.operating_asset_first_name = "TONY"
+    addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    addCommentRequest.flag_timeline_entry = 1;
+    addCommentRequest.log_asset_id = 100;
+    addCommentRequest.attachment_type_id = 17;
+    addCommentRequest.attachment_type_name = path.basename(s3Url);
+
+    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    try {
+        await addTimelineTransactionAsync(addCommentRequest);
+    } catch (error) {
+        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        throw new Error(error);
+    }
+    fs.unlink(pdfPath,()=>{});
+    request.debug_info.push("****EXITED PDF EDIT BOT****");
+    return [false,[]]
+   }
+
+   function pdfstrToByteArray(str) {
+    var myBuffer = [];
+    var buffer = Buffer.from(str);
+    for (var i = 0; i < buffer.length; i++) {
+        myBuffer.push(buffer[i]);
+    }
+    return myBuffer;
+  }
+  
+  function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
+      console.log("in",pageNumber,findText,replaceText)
+      var writer = hummus.createWriterToModify(sourceFile, {
+          modifiedFilePath: targetFile
+      });
+      var sourceParser = writer.createPDFCopyingContextForModifiedFile().getSourceDocumentParser();
+      var pageObject = sourceParser.parsePage(Number(pageNumber));
+      var textObjectId = pageObject.getDictionary().toJSObject().Contents.getObjectID();
+      var textStream = sourceParser.queryDictionaryObject(pageObject.getDictionary(), 'Contents');
+      //read the original block of text data
+      var data = [];
+      var readStream = sourceParser.startReadingFromStream(textStream);
+      while(readStream.notEnded()){
+          Array.prototype.push.apply(data, readStream.read(10000));
+      }
+    //   console.log(findText)
+      var string = Buffer.from(data).toString();
+  for(let i =0;i<findText.length;i++){
+  var characters = findText;
+  var match = [];
+  for (var a = 0; a < characters.length; a++) {
+      match.push('(-?[0-9]+)?(\\()?' + characters[a] + '(\\))?');
+  }
+//   console.log("---",match)
+  string = string.replace(new RegExp(match.join('')), function(m, m1) {
+      // m1 holds the first item which is a space
+      return m1 + '( ' + replaceText + ')';
+  });
+}
+  
+      //Create and write our new text object
+      var objectsContext = writer.getObjectsContext();
+      objectsContext.startModifiedIndirectObject(textObjectId);
+  
+      var stream = objectsContext.startUnfilteredPDFStream();
+      stream.getWriteStream().write(pdfstrToByteArray(string));
+      objectsContext.endPDFStream(stream);
+  
+      objectsContext.endIndirectObject();
+  
+      writer.end();
+  }
 
    async function assetApprovalWorkflow(request,bot_data){
     let responseData = [];
@@ -3408,11 +3674,12 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
-                    if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
-                    } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
-                    }    
+                    // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
+                    // } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
+                    // }    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
                 } else if(Number(request.device_os_id) === 1) { //Android
                     //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
@@ -6515,6 +6782,11 @@ async function removeAsOwner(request,data)  {
                     request.debug_info.push("request.is_owner : "+request.is_owner);
                     request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
 
+                    const dataResp = await getAssetDetails({
+                        "organization_id": request.organization_id,
+                        "asset_id": request.asset_id
+                    });
+
                     logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
@@ -6531,22 +6803,27 @@ async function removeAsOwner(request,data)  {
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
                         //Get the asset Details of the requestor
-                        const dataResp = await getAssetDetails({
-                            "organization_id": request.organization_id,
-                            "asset_id": request.asset_id
-                        });
+                        
 
                         let requestAssetName = 'Tony';
                         if(dataResp.length > 0) {
-                            requestorAssetData = dataResp[0];
+                           let requestorAssetData = dataResp[0];
                             requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                         }
+                        
+                        let contentText = `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`;
 
+                        if(request.asset_id == assetData.desk_asset_id){
+                          contentText = `${assetData.first_name} has made as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6575,17 +6852,29 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
-                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        // const [log_error1, log_assetData1] = await activityCommonService.getAssetDetailsAsync({
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                          let requestorAssetData = dataResp[0];
+                            logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                       contentText = `${assetData.first_name} has made as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
 
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
+                        // if()
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6620,12 +6909,22 @@ async function removeAsOwner(request,data)  {
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                            let requestorAssetData = dataResp[0];
+                              logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                          }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
-
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                        contentText = `${assetData.first_name} has made as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -13394,6 +13693,66 @@ async function removeAsOwner(request,data)  {
             logger.info(error);
         }
         request.debug_info.push("getFormFieldValue "+ fieldValue);
+        return fieldValue;
+    }
+
+
+    async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+      
+            // console.log(request.form_id,formID)
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        // console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue = fieldData.field_value;
+                }
+                break;
+            }
+        }
+    
+        console.log('Field Value B4: ',fieldValue);
+        fieldValue = fieldValue.split(" ").join("");
+        console.log('Field Value After: ',fieldValue);
+        console.log('*************************');
         return fieldValue;
     }
 

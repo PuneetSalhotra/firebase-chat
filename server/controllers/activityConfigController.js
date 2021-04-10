@@ -230,6 +230,17 @@ function ActivityConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/account-activity/account-name/check', async (req, res) => {
+        const [err, data] = await activityConfigService.checkAccountNameForDuplicate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/account-code/bot : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 

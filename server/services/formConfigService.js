@@ -25,6 +25,10 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
 
+    function isArray(obj) {
+        return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
+    }
+
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
@@ -532,7 +536,7 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         var dataTypeId = Number(newData.field_data_type_id);
-
+        //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
         //Listener to update data in Intermediate tables for Reference/combo bots
         switch(Number(newData.field_data_type_id)) {
             case 57: fireBotUpdateIntTables(request, newData);
@@ -628,10 +632,16 @@ function FormConfigService(objCollection) {
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
-                    if (String(oldFieldValue).trim().length === 0) {
-                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
-                    } else {
-                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
+                    let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    console.log("/activity/form/alter data_type_category_id "+newData.field_data_type_category_id+" exists in simple categories : "+simpleDataTypes.includes(newData.field_data_type_category_id));
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id)){
+                        if (String(oldFieldValue).trim().length === 0) {
+                            content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
+                        } else {
+                            content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
+                        }
+                    }else{
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated`;
                     }
 
                     let activityTimelineCollection = {
@@ -1527,7 +1537,17 @@ function FormConfigService(objCollection) {
                                 for (const row of oldFormsData) {
                                     console.log("row.data_entity_inline");
                                     console.log(row.data_entity_inline);
-                                    let dataEntityInline = JSON.parse(row.data_entity_inline);
+                                    let dataEntityInline = [];
+                                    try {
+                                        if (typeof row.data_entity_inline === 'string') {
+                                            dataEntityInline = JSON.parse(row.data_entity_inline);
+                                        } else if (isArray(row.data_entity_inline)) {
+                                            dataEntityInline = row.data_entity_inline;
+                                        }
+
+                                    } catch (e) {
+                                        console.log("error in checking old forms data");
+                                    }
                                     for (const formFields of dataEntityInline) {
                                         if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
                                             if (formFields.field_value !== "") {
