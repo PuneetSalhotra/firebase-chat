@@ -1134,14 +1134,17 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
         //Check the uniqueness of the account title
-
-        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
-        if(accountTitleResponse.hits.hits.length > 0 )
-        {
-            console.log("Account name already exists!")
-            responseData.push({ 'message': 'Account Name already exists!' });
-            return [true, responseData];
+        //Do not check for sme and soho accounts for now
+        let formIdsOfSMeAndSoho = [3781, 2810, 3782, 4678];
+        if (!formIdsOfSMeAndSoho.includes(Number(request.form_id))) {
+            let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
+            if (accountTitleResponse.hits.hits.length > 0) {
+                console.log("Account name already exists!")
+                responseData.push({ 'message': 'Account Name already exists!' });
+                return [true, responseData];
+            }
         }
+
 
         //Check the uniqueness of the pan number
         let [errpa, panresponse] = await checkForPanNumberExistenceElasticServer(request, checkPan);
