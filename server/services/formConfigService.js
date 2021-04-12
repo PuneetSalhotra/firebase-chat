@@ -5962,7 +5962,15 @@ function FormConfigService(objCollection) {
                     //console.log('productActId - ', productActId);
                     await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
                 }*/
-                await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
+
+                let activityId =  processedOldFieldValue.product_activity_id;
+
+                if(!activityId) {
+                    processedOldFieldValue.length ? activityId = processedOldFieldValue[0].activity_id : "";
+                }
+               
+
+                await activityCommonService.activityActivityMappingArchive(oldReq, activityId);
             } else { //'Single'
                 processedOldFieldValue = oldFieldValue.split('|');
                 await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue[0]);
