@@ -5312,7 +5312,7 @@ function ActivityService(objectCollection) {
             return "Failure";
         }
 
-        return finalWorkflowData;
+        return [];
     }
 
     async function businessCaseTimelineEntry(request, fieldData) {
