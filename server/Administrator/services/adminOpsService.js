@@ -107,6 +107,35 @@ function AdminOpsService(objectCollection) {
         }
     }
 
+    this.updateOrganizationFlags = async function (request) {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.org_enterprise_feature_data,
+            request.flag_email,
+            request.flag_doc_repo,
+            request.flag_ent_features,
+            request.flag_ai_bot,
+            request.flag_manager_proxy,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_flags', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Create Asset Bundle
     async function createAssetBundle(request, workforceID, organizationID, accountID) {
         // Performs multiple steps
