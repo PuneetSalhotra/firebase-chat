@@ -41,7 +41,14 @@ function ActivityUpdateService(objectCollection) {
     };
 
     var activityListUpdateCover = function (request, callback) {
-        var coverJson = JSON.parse(request.activity_cover_data);
+        var coverJson
+        try {
+            coverJson = JSON.parse(request.activity_cover_data);
+        } catch(e) {
+            console.error("Error while executing cover json activity_cover_data", request.activity_cover_data)
+            callback(true, false);
+        }
+        
         var paramsArr = new Array();
         var queryString = '';
         /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
