@@ -2350,7 +2350,7 @@ function BotService(objectCollection) {
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
     await sleep(9000);
-    let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
+    // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
     
     let pdfJson = {
         mobility_json:{
@@ -2413,7 +2413,7 @@ function BotService(objectCollection) {
          ]},
         mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
     };
-
+    
     let isMobility = false;
     request.debug_info.push("checking which type of form it is");
     let product_name = "";
@@ -2505,38 +2505,47 @@ function BotService(objectCollection) {
    await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
 
    let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
-    let addCommentRequest = Object.assign(request, {});
+    // let addCommentRequest = Object.assign(request, {});
     let s3Url = pdfS3urlnew[1][0].location;
-    addCommentRequest.asset_id = 100;
-    addCommentRequest.device_os_id = 7;
-    addCommentRequest.activity_type_category_id = 48;
-    addCommentRequest.activity_type_id = request.activity_type_id;
-    addCommentRequest.activity_id = request.workflow_activity_id;
-    addCommentRequest.activity_timeline_collection = JSON.stringify({
-        "content": `Tony has added attachment(s).`,
-        "subject": `Tony has added attachment(s).`,
-        "mail_body": `Tony has added attachment(s).`,
-        "attachments": [s3Url]
-    });
-    addCommentRequest.activity_stream_type_id = 325;
-    addCommentRequest.timeline_stream_type_id = 325;
-    addCommentRequest.activity_timeline_text = "";
-    addCommentRequest.activity_access_role_id = 27;
-    addCommentRequest.operating_asset_first_name = "TONY"
-    addCommentRequest.datetime_log = util.getCurrentUTCTime();
-    addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
-    addCommentRequest.flag_timeline_entry = 1;
-    addCommentRequest.log_asset_id = 100;
-    addCommentRequest.attachment_type_id = 17;
-    addCommentRequest.attachment_type_name = path.basename(s3Url);
+    request.form_id = 50639;
+    request.activity_form_id = 50639
+    request.activity_inline_data = JSON.stringify([
+        {"form_id":50639,"field_id":"311124","field_name":"PDF Scan",
+        "field_data_type_id":51,"field_data_type_category_id":13,
+        "data_type_combo_id":0,"data_type_combo_value":"0",
+        "field_value":s3Url,
+        "message_unique_id":1618208278588}])
+    await submitFormV1(request);
+    // addCommentRequest.asset_id = 100;
+    // addCommentRequest.device_os_id = 7;
+    // addCommentRequest.activity_type_category_id = 48;
+    // addCommentRequest.activity_type_id = request.activity_type_id;
+    // addCommentRequest.activity_id = request.workflow_activity_id;
+    // addCommentRequest.activity_timeline_collection = JSON.stringify({
+    //     "content": `Tony has added attachment(s).`,
+    //     "subject": `Tony has added attachment(s).`,
+    //     "mail_body": `Tony has added attachment(s).`,
+    //     "attachments": [s3Url]
+    // });
+    // addCommentRequest.activity_stream_type_id = 325;
+    // addCommentRequest.timeline_stream_type_id = 325;
+    // addCommentRequest.activity_timeline_text = "";
+    // addCommentRequest.activity_access_role_id = 27;
+    // addCommentRequest.operating_asset_first_name = "TONY"
+    // addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    // addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    // addCommentRequest.flag_timeline_entry = 1;
+    // addCommentRequest.log_asset_id = 100;
+    // addCommentRequest.attachment_type_id = 17;
+    // addCommentRequest.attachment_type_name = path.basename(s3Url);
 
-    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-    try {
-        await addTimelineTransactionAsync(addCommentRequest);
-    } catch (error) {
-        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
-        throw new Error(error);
-    }
+    // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    // try {
+    //     await addTimelineTransactionAsync(addCommentRequest);
+    // } catch (error) {
+    //     console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+    //     throw new Error(error);
+    // }
     fs.unlink(pdfPath,()=>{});
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
@@ -14064,6 +14073,109 @@ async function removeAsOwner(request,data)  {
         return await (db.executeQueryPromise(0, queryString, request));
         }
     }
+
+
+    // Create Activity Service
+    async function submitFormV1(request) {
+        const activityID = await cacheWrapper.getActivityIdPromise();
+        const formTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        let activityTimelineCollection =  JSON.stringify({
+            "content": `Form Submitted`,
+            "subject": `Proposal Form`,
+            "mail_body": `Proposal Form`,
+            "activity_reference": [],
+            "form_id" : 50639,
+            "form_submitted" : JSON.parse(request.activity_inline_data),
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+        const addActivityRequest = {
+            "organization_id":request.organization_id,
+            "account_id":request.account_id,
+            "workforce_id":request.workforce_id,
+            "asset_id":request.asset_id,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            "asset_message_counter":0,
+            "activity_title":"Proposal Form",
+            "activity_description":"Adding Pdf",
+            //"activity_inline_data":"[{\"form_id\":50639,\"field_id\":\"311124\",\"field_name\":\"PDF Scan\",\"field_data_type_id\":51,\"field_data_type_category_id\":13,\"data_type_combo_id\":0,\"data_type_combo_value\":\"0\",\"field_value\":\"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/1102/5918/41535/2021/04/103/1618208142138/2021049-21549985.pdf\",\"message_unique_id\":1618208278588}]",
+            "activity_inline_data":request.activity_inline_data,
+            "activity_participant_collection":request.activity_participant_collection||"",
+            "activity_datetime_start":util.getCurrentUTCTime(),
+            "activity_datetime_end":util.getCurrentUTCTime(),
+            "activity_type_category_id":9,
+            "activity_sub_type_id":0,
+            "activity_id":activityID,
+            "activity_type_id":187495,
+            "activity_access_role_id":21,
+            "activity_status_id":381939,
+            "activity_status_type_category_id":1,
+            "activity_status_type_id":22,
+            "asset_participant_access_id":21,
+            "activity_flag_file_enabled":1,
+            "activity_parent_id":0,
+            "activity_form_id":50639,
+            "flag_pin":0,
+            "flag_offline":0,
+            "flag_retry":0,
+            "message_unique_id":util.getMessageUniqueId(31993),
+            "track_latitude":"0.0",
+            "track_longitude":"0.0",
+            "track_altitude":0,
+            "track_gps_datetime":util.getCurrentUTCTime(),
+            "track_gps_accuracy":"0",
+            "track_gps_status":0,
+            "service_version":1,
+            "app_version":1,
+            "api_version":1,
+            "device_os_id":5,
+            "activity_stream_type_id":705,
+            "activity_parent_id":request.workflow_activity_id,
+            "parent_activity_id":request.workflow_activity_id,
+            "form_transaction_id":formTransactionID,
+            "form_id":request.form_id,
+            "activity_timeline_collection":activityTimelineCollection,
+            "data_entity_inline":request.activity_inline_data,
+            "activity_timeline_text":"",
+            "activity_timeline_url":"",
+            "flag_timeline_entry":1,
+            "file_activity_id":0,
+            "workflow_activity_id":request.workflow_activity_id,
+            "is_mytony":1,
+            "is_refill":0,
+            "expression":"",
+            url: "/r1/activity/add/v1",
+            
+        };
+        console.log(JSON.stringify(addActivityRequest))
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        await addActivityAsync(addActivityRequest);
+        // console.log('xdxd',xx);
+        // let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityID);
+        // console.log('act det',wfActivityDetails)
+      
+            const childWorkflow705Request = Object.assign({}, addActivityRequest);
+            childWorkflow705Request.activity_id = request.workflow_activity_id;
+            childWorkflow705Request.data_activity_id = activityID;
+            childWorkflow705Request.data_form_transaction_id =formTransactionID;
+            childWorkflow705Request.activity_type_category_id = 48;
+            childWorkflow705Request.message_unique_id = util.getMessageUniqueId(31993);
+            childWorkflow705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            childWorkflow705Request.device_os_id = 5;
+            childWorkflow705Request.auth_asset_id = 100;
+            childWorkflow705Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
+            childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
+            childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
+            // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
+            console.log("timeline entry",childWorkflow705Request)
+            // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            // await addTimelineTransactionAsync(childWorkflow705Request);
+            
+             activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
+             return [false,[]]
+}
 
     async function insertSqsStatus(request) {
         let responseData = 0,
