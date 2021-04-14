@@ -458,9 +458,8 @@ function MerchantPaymentService(objectCollection) {
         logger.info("MerchantPaymentService : handlePaymentResponseThroughWebhook : request : "  +  JSON.stringify(request));
         let razorpayMerchantId = global.config.razorpayMerchantId;
         
-        //let request_payload = request;
-        let request_payload = JSON.parse(request.success_response);
-
+        let request_payload = request;
+        
         let request_entity = {};
         if(request_payload.hasOwnProperty("payload")) {
             let payload = request_payload.payload;
@@ -528,8 +527,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_payment_id = null;
         let razorpay_order_id = null;
         
-        //let request_payload = request;
-        let request_payload = JSON.parse(request.success_response);
+        let request_payload = request;
         
         let request_entity = {};
         if(request_payload.hasOwnProperty("payload")) {
@@ -808,8 +806,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_order_id = null;
         let razorpay_refund_id = null;
         
-        //let request_payload = request;
-        let request_payload = JSON.parse(request.success_response);
+        let request_payload = request;
         
         let request_payment_entity = {};
         let request_refund_entity = {};
