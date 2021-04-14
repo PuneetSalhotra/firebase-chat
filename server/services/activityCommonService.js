@@ -485,7 +485,7 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId,
             retryFlag,
             request.flag_offline || 0,
-            request.track_gps_datetime,
+            request.track_gps_datetime || new Date(),
             request.datetime_log,
             request.data_activity_id || 0
         );

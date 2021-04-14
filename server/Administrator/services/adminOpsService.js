@@ -9986,7 +9986,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
             if (queryString != "") {
                 await db
-                    .executeQueryPromise(1, queryString, request)
+                    .executeQueryPromise(0, queryString, request)
                     .then((data) => {
                         broadcast_id = data[0].broadcast_id;
                         request.broadcast_id = data[0].broadcast_id;
@@ -10099,7 +10099,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
             if (queryString != "") {
                 await db
-                    .executeQueryPromise(1, queryString, request)
+                    .executeQueryPromise(0, queryString, request)
                     .then((data) => {
                         responseData = data;
                         logger.info("broadcast_id = " + request.broadcast_id + " broadcast_txn_id = " + data[0].broadcast_txn_id);
@@ -10260,7 +10260,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
             if (queryString != "") {
                 await db
-                    .executeQueryPromise(1, queryString, request)
+                    .executeQueryPromise(0, queryString, request)
                     .then((data) => {
                         responseData = data;
                         logger.info("ds_p1_broadcast_transaction_update_flag_read : query : response :");
