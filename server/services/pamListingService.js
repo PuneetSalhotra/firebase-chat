@@ -1418,6 +1418,63 @@ function PamListingService(objectCollection) {
         return [error, responseData];
     }  
 
+    this.getCustomTagsLinkedToMenuItem = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.asset_type_category_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_activity_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                	responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    } 
+
+    this.getMenuItemsLinkedToCustomTag = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id, 
+            request.activity_type_id,
+            request.asset_type_category_id,
+            request.customization_tag_id,
+            request.is_active,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_menu_choices', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                	responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    } 
+
 };
 
 module.exports = PamListingService;
