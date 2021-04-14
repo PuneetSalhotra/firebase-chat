@@ -106,9 +106,13 @@ function RazorPaymentGatewayService(objCollection) {
                     reject([true, {"message" : err}]);
                 } else {
                     logger.info("RazorPaymentGatewayService : fetchPaymentsByUsingOrderId: order_id = " + razorpay_order_id + " : response :" + JSON.stringify(payments));
-                    resolve([false, payments]);
+                    if(payments.count == 0) {
+                        resolve([false, {}]);    
+                    } else {
+                        payments = payments.items[0];
+                        resolve([false, payments]);
+                    }
                 }
-
             });
 
         });
@@ -149,6 +153,36 @@ function RazorPaymentGatewayService(objCollection) {
         
     }
 
+    this.fetchRefundByUsingRefundId = async function(razorpay_payment_id, razorpay_refund_id) {
+        
+        logger.info("RazorPaymentGatewayService : fetchRefundByUsingRefundId: razorpay_refund_id = " + razorpay_refund_id);
+        
+        let responseData = [],
+            error = false;
 
+        //merchant key
+        //need to take it from merchant_acquirer_param
+        let instance = new Razorpay ({ key_id: global.config.razorpayApiId, key_secret: global.config.razorpayApiKey })
+
+        let promise = new Promise ((resolve, reject) => {
+
+            //create order call
+            instance.refunds.fetch (razorpay_refund_id, { payment_id : razorpay_payment_id }, (err, refund) => {
+
+                if(err) {
+                    logger.error("RazorPaymentGatewayService : fetchRefundByUsingRefundId: razorpay_refund_id = " + razorpay_refund_id + " : Error :");
+                    logger.error(err);
+                    reject([true, {"message" : err}]);
+                } else {
+                    logger.info("RazorPaymentGatewayService : fetchRefundByUsingRefundId: razorpay_refund_id = " + razorpay_refund_id + " : response :" + JSON.stringify(refund));
+                    resolve([false, refund]);
+                }
+
+            });
+            
+        });
+
+        return promise;
+    }
 }
 module.exports = RazorPaymentGatewayService;
