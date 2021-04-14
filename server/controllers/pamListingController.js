@@ -405,7 +405,25 @@ function PamListingController(objCollection) {
             console.log("Error: ", err)
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-    });		
+    });	
+    app.post('/' + global.config.version + '/pam/retrieve/menuitem/custom/tag', async function (req, res) {
+        const [err, data] = await pamListingService.getCustomTagsLinkedToMenuItem(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/retrieve/custom/choices', async function (req, res) {
+        const [err, data] = await pamListingService.getMenuItemsLinkedToCustomTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	    
 }
 ;
 module.exports = PamListingController;
