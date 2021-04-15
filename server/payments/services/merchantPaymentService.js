@@ -25,9 +25,25 @@ function MerchantPaymentService(objectCollection) {
                 let secretKey = responseData.merchant_secret_key;
                 secretKey = Buffer.from(secretKey, 'base64').toString();
 
-                let hashText = request.amount + request.currency + request.customer_mobile_no + request.description
-                    + request.merchant_id + request.merchant_txn_ref_no + secretKey;
+                let hashText = request.amount;
+                if(request.currency !== undefined) {
+                    hashText = hashText + request.currency;
+                } 
+                if(request.customer_mobile_no !== undefined) {
+                    hashText = hashText + request.customer_mobile_no;
+                } 
+                if(request.description !== undefined) {
+                    hashText = hashText + request.description;
+                } 
+                
+                hashText = hashText + request.merchant_id + request.merchant_txn_ref_no;
+                    
+                if(request.original_merchant_txn_ref_no !== undefined) {
+                    hashText = hashText + request.original_merchant_txn_ref_no;
+                } 
 
+                hashText = hashText + secretKey;
+                logger.info("hashText = " + hashText);
                 let signature = paymentUtil.hmacSha256(hashText, secretKey);
                 
                 responseData = {
@@ -1242,6 +1258,129 @@ function MerchantPaymentService(objectCollection) {
         }
     }
 
+    //API 6 :Raise new Refund.
+    this.createRefund = async function(request) {
+        logger.info("MerchantPaymentService : createRefund : request : "  +  JSON.stringify(request));
+        let razorpayApiKey = global.config.razorpayApiKey;
+	    let razorpayMerchantId = global.config.razorpayMerchantId;
+
+        //Step 1: validate Each parameters
+        let result = this.validateRefundRequest(request);
+        if("Ok" !== result) {
+            logger.error(result);
+            error = true;
+            return [true, { 
+                errormsg : result
+            }];
+        }
+
+        if(paymentUtil.isNotEmpty(request.merchant_id)) {
+            
+            //Setp 2: validate merchant_id
+            let [err, responseData] = await this.getMerchant(request, request.merchant_id); 
+            if (!err) {
+                let merchantData = responseData;
+
+                //get merchant secretKey
+                let secretKey = merchantData.merchant_secret_key;
+                secretKey = Buffer.from(secretKey, 'base64').toString();
+
+                //prepare hashText for validating signature
+                let hashText = request.amount + request.merchant_id + request.merchant_txn_ref_no + request.original_merchant_txn_ref_no + secretKey;
+                logger.info("hashText = " + hashText);
+                let signature = paymentUtil.hmacSha256(hashText, secretKey);
+                
+                //Step 3: validate signature
+                if(request.signature !== signature) {
+                    logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
+                    return [true, { 
+                        errormsg : "Invalid parameter `signature`"
+                    }];
+                } else {
+                    //Step 4: find order details using merchant_id and merchant_txn_ref_no
+                    let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.original_merchant_txn_ref_no);
+                    if (!err) {
+                        if(paymentOrderData.length !== 0) {
+
+                            paymentOrderData = paymentOrderData[0];
+
+                            //Step 5: find payment_log_transaction using merchant_id and merchant_txn_ref_no
+                            let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.merchant_id, request.original_merchant_txn_ref_no);
+                            if (!err) {
+                                if(paymentTransactionData.length !== 0) {
+                
+                                    paymentTransactionData = paymentTransactionData[0];
+                                    let payment_status = paymentTransactionData.payment_status;
+                                    logger.info("merchant_txn_ref_no = " + paymentTransactionData.merchant_txn_ref_no + " : payment status = " + paymentTransactionData.payment_status);
+                                    
+                                    if(payment_status === 'SUC') {
+
+                                        if((paymentTransactionData.remaining_amount > 0) && (request.amount <= paymentTransactionData.remaining_amount)) {
+                                            //Step 6: initiate a new refund using razorpay_payment_id.
+                                            let [err, razorpay_payment] = await razorPaymentGatewayService.createRefund(paymentTransactionData.auth_id, { amount : Number(request.amount)*100});
+                                            if (!err) {
+                                                //Pending status
+                                                let finalResponse = {
+                                                    merchant_id : request.merchant_id,
+                                                    merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                                    original_merchant_txn_ref_no: request.original_merchant_txn_ref_no,
+                                                    pg_ref_no: paymentTransactionData.auth_no,
+                                                    transaction_id: paymentTransactionData.transaction_id,
+                                                    payment_response_code: "000",
+                                                    payment_response_desc: "Refund initiated successfully"
+                                                };
+                                                logger.info("finalResponse = ");
+                                                logger.info(JSON.stringify(finalResponse));
+                                                return [false, finalResponse];
+                                            } else {
+                                                logger.error(err);
+                                                return [true, err];
+                                            }
+                                        } else {
+                                            logger.error('Refund not allowed');
+                                            return [true, { 
+                                                errormsg : 'Refund not allowed'
+                                            }];
+                                        }
+                                    } else {
+                                        logger.error('Refund not allowed');
+                                        return [true, { 
+                                            errormsg : 'Refund not allowed'
+                                        }];
+                                    }
+                                } else {
+                                    logger.error("createRefund | getPaymentTransactionUsingOrderId| Error: ", err);
+                                    return [true, { 
+                                        errormsg : 'Invaild parameter `razorpay_order_id`'
+                                    }];
+                                }
+                            } else {
+                                logger.error("createRefund | getPaymentTransaction| Error: ", err);
+                                return [true, err];
+                            }
+                        } else {
+                            logger.error('createRefund | Invaild parameter `merchant_id` | `merchant_txn_ref_no`');
+                            return [true, { 
+                                errormsg : 'Invaild parameter `merchant_id` | `merchant_txn_ref_no`'
+                            }];
+                        }
+                    } else {
+                        logger.error(err);
+                        return [true, err];
+                    }
+                }
+            } else {
+                logger.error("statusCheck | getMerchant| Error: ", JSON.stringify(responseData));
+                return [true, responseData];
+            }   
+        } else {
+            logger.error('statusCheck | Missing parameter `merchant_id`');
+            return [true, { 
+                errormsg : 'Missing parameter `merchant_id`'
+            }];
+        }
+    }
+
     // Supportive Functions
     this.getMerchant = async function(request, merchant_id) {
         logger.info("MerchantPaymentService : getMerchant : merchant_id = " + merchant_id);
@@ -1679,6 +1818,24 @@ function MerchantPaymentService(objectCollection) {
     this.validatePaymentRequest = function(request) {
         logger.info("validate payment request parameters=>");
         let mandatoryParams = ["amount", "currency", "customer_mobile_no", "description", "merchant_id", "merchant_txn_ref_no","signature"];
+        let result = paymentUtil.isParameterExists(mandatoryParams, request);
+        if('Ok' !== result) {
+            logger.error(result);
+            return result;
+        }
+
+        let isValidNum = paymentUtil.isNumber(request.amount);
+        if(!isValidNum) {
+            logger.error('Invalid parameter `amount`');
+            return 'Invalid parameter `amount`';
+        } 
+        logger.info("all parameters are valid");
+        return 'Ok';
+    }
+
+    this.validateRefundRequest = function(request) {
+        logger.info("validate payment request parameters=>");
+        let mandatoryParams = ["amount", "merchant_id", "merchant_txn_ref_no", "original_merchant_txn_ref_no","signature"];
         let result = paymentUtil.isParameterExists(mandatoryParams, request);
         if('Ok' !== result) {
             logger.error(result);

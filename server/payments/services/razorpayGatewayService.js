@@ -184,5 +184,37 @@ function RazorPaymentGatewayService(objCollection) {
 
         return promise;
     }
+
+    this.createRefund = async function(razorpay_payment_id, jsonObj) {
+        
+        logger.info("RazorPaymentGatewayService : createRefund: razorpay_payment_id = " + razorpay_payment_id);
+        logger.info(jsonObj);
+        let responseData = [],
+            error = false;
+
+        //merchant key
+        //need to take it from merchant_acquirer_param
+        let instance = new Razorpay ({ key_id: global.config.razorpayApiId, key_secret: global.config.razorpayApiKey })
+
+        let promise = new Promise ((resolve, reject) => {
+
+            //create refund call
+            instance.payments.refund (razorpay_payment_id, jsonObj, (err, refund) => {
+
+                if(err) {
+                    logger.error("RazorPaymentGatewayService : createRefund: razorpay_payment_id = " + razorpay_payment_id + " : Error :");
+                    logger.error(err);
+                    reject([true, {"message" : err}]);
+                } else {
+                    logger.info("RazorPaymentGatewayService : createRefund: razorpay_payment_id = " + razorpay_payment_id + " : response :" + JSON.stringify(refund));
+                    resolve([false, refund]);
+                }
+
+            });
+            
+        });
+
+        return promise;
+    }
 }
 module.exports = RazorPaymentGatewayService;
