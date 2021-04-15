@@ -1,6 +1,3 @@
-/*
- * author: Sri Sai Venkatesh
- */
 
 var moment = require('moment');
 var request = require("request");
