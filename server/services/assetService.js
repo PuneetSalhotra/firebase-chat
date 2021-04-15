@@ -6784,7 +6784,7 @@ this.getQrBarcodeFeeback = async(request) => {
               request.organization_id,
               request.account_id,
               request.workforce_id,
-              request.asset_id,
+              request.target_asset_id,
               request.asset_flag_organization_management,
               request.asset_admin_access_data
         ];
