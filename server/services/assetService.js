@@ -6772,6 +6772,34 @@ this.getQrBarcodeFeeback = async(request) => {
     
         return [error, responseData];
     }
+
+    this.assetListUpdateFlagOrganizationMgmt = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.workforce_id,
+              request.asset_id,
+              request.asset_flag_organization_management
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_organization_mgmt', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;
