@@ -6783,7 +6783,8 @@ this.getQrBarcodeFeeback = async(request) => {
               request.account_id,
               request.workforce_id,
               request.asset_id,
-              request.asset_flag_organization_management
+              request.asset_flag_organization_management,
+              request.asset_admin_access_data
         ];
 
         const queryString = util.getQueryString('ds_p1_asset_list_update_flag_organization_mgmt', paramsArr);
