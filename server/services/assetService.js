@@ -829,7 +829,7 @@ function AssetService(objectCollection) {
             "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
             "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime ']),
             "asset_flag_organization_management":util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_management']),
-            "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data '])
+            "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
         };
 
         callback(false, rowData);
