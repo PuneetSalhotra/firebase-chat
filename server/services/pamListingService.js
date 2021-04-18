@@ -1476,6 +1476,23 @@ function PamListingService(objectCollection) {
         return [error, responseData];
     } 
 
+    this.getTableDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.table_asset_id
+            );
+            var queryString = util.getQueryString('pm_v1_asset_list_select_table', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                     if(err === false) {
+                            resolve(data);	        			      			  
+                        } else {
+                           reject(err);
+                       }
+                });
+            }
+        });
+        };
 };
 
 module.exports = PamListingService;
