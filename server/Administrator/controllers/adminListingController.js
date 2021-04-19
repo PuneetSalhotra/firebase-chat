@@ -472,6 +472,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/lov/dependent/list', async (req, res) => {
+        const [err, data] = await adminListingService.getStateAndCircleBasedOnCity(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/lov/dependent/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/asset/super-admin/flag/set', async (req, res) => {
         const [err, data] = await adminListingService.setSuperAdminFlag(req.body);
         if (!err) {

@@ -1836,7 +1836,6 @@ function AdminListingService(objectCollection) {
         return [error, workflowFormsData];
     }  
 
-
     this.getLovDatatypeListV1 = async (request) => {
         //2001 VIL - Account Type
         //2002 VIL - Corporate Class
@@ -1875,6 +1874,37 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getStateAndCircleBasedOnCity = async (request) => {
+
+        // flag = 1, Get state from city 
+        // flag = 2, Get circle from city 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [              
+            request.type_id,
+            request.entity_id,
+            request.search_string || '',
+            request.flag || 1,
+            request.page_start || 0,
+            request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_p1_lov_list_select_dependent', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+    
     this.setSuperAdminFlag = async (request) => {
 
         let responseData = [],
