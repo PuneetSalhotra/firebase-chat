@@ -799,7 +799,7 @@ function PamUpdateService(objectCollection) {
     function pamGetAssetDetails(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                351, //request.organization_id,
+                request.organization_id || 351, //,
                 request.asset_id
             );
             var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);

@@ -275,8 +275,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
     var identifyCaller = function (request, callback) {
         var paramsArr = new Array(
-                351, //request.organization_id,
-                30, //request.asset_type_category_id,
+                request.organization_id || 351, //,
+                request.asset_type_category_id || 30, //,
                 request.phone_number,
                 request.country_code
                 );
@@ -303,7 +303,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 console.log(util.getDayEndDatetimeIST());
 
                 var paramsArr1 = new Array(
-                        351, //request.organization_id,
+                        request.organization_id || 351,
                         util.addUnitsToDateTime(util.getDayStartDatetimeIST(),-5.5,'hours'),
                         util.addUnitsToDateTime(util.getDayEndDatetimeIST(),-5.5,'hours')
                         );
@@ -323,8 +323,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
      function getEventDatetime (request){
         return new Promise((resolve, reject)=>{
             var paramsArr1 = new Array(
-                351, //request.organization_id,
-                452, //request.account_id,
+                request.organization_id || 351,
+                request.account_id || 452,
                 request.datetime_log
                 );
             var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_datetime', paramsArr1);
@@ -339,7 +339,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     var getReservationsCount = function (eventActivityId, callback) {
         var paramsArr = new Array(
-                351, //request.organization_id,
+                request.organization_id || 351,
                 eventActivityId
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_count', paramsArr);
@@ -355,8 +355,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     function getReservationDetails(eventActivityId, memberAssetId) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
-                351, //request.organization_id,
-                452, //request.account_id,
+                request.organization_id || 351, //
+                request.account_id || 452, //,
                 eventActivityId,
                 memberAssetId
                 );
@@ -3231,7 +3231,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
       function pamGetAssetDetails(request) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
-                351, //request.organization_id,
+                request.organization_id || 351, //,
                 request.work_station_asset_id
                 );
             var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
