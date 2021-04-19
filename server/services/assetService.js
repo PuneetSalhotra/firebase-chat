@@ -827,7 +827,9 @@ function AssetService(objectCollection) {
             //email integrations
             "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
             "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
-            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime '])
+            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime ']),
+            "asset_flag_organization_management":util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_management']),
+            "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
         };
 
         callback(false, rowData);
@@ -6770,6 +6772,35 @@ this.getQrBarcodeFeeback = async(request) => {
             console.log("getReadUnReadBroadMessageCount : Error " + err);
         }
     
+        return [error, responseData];
+    }
+
+    this.assetListUpdateFlagOrganizationMgmt = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.workforce_id,
+              request.target_asset_id,
+              request.asset_flag_organization_management,
+              request.asset_admin_access_data
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_organization_mgmt', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
         return [error, responseData];
     }
 }
