@@ -5107,6 +5107,8 @@ async function removeAsOwner(request,data)  {
                     createTargetFormRequest.activity_flag_created_by_bot = 1;
                 }
 
+                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.workflow_activity_id : 0;
+                
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
                 } catch (error) {
@@ -5182,7 +5184,7 @@ async function removeAsOwner(request,data)  {
         createTargetFormRequest.activity_status_type_id = 22;
         createTargetFormRequest.asset_participant_access_id = 21;
         createTargetFormRequest.activity_flag_file_enabled = -1;
-        createTargetFormRequest.activity_parent_id = 0;
+        createTargetFormRequest.activity_parent_id = createTargetFormRequest.start_workflow_activity_parent_id || 0;
         createTargetFormRequest.flag_pin = 0;
         createTargetFormRequest.flag_offline = 0;
         createTargetFormRequest.flag_retry = 0;
