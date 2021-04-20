@@ -2262,6 +2262,19 @@ function BotService(objectCollection) {
                     }
                     console.log('****************************************************************');
                     break;
+                case 49: // Bulk Third Party Bot
+                    logger.silly("Bulk Third party opex Bot params received from request: %j", request);
+                    try {
+                        await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
+                    } catch (error) {
+                        logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
+
 
             }
 
@@ -14211,6 +14224,204 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : excel bot log inserted");
       return [false,responseData]
     };
+
+    async function bulkThirdPartyOpexBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityCategoryTypeID = 0,
+            workflowActivityTypeID = 0,
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0,
+            opportunityID = "",
+            esmsIntegrationsTopicName = "";
+
+        const triggerFormID = request.trigger_form_id,
+            // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+
+        switch (global.mode) {
+            case "local":
+                esmsIntegrationsTopicName = "local-BulkCreateSR-request-topic-v1"
+                break;
+
+            // case "staging":
+            case "preprod":
+                esmsIntegrationsTopicName = "staging-BulkCreateSR-request-topic-v1"
+                break;
+
+            case "prod":
+            case "production":
+                esmsIntegrationsTopicName = "production-BulkCreateSR-request-topic-v1"
+                break;
+
+        }
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                opportunityID = workflowActivityData[0].activity_cuid_1;
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for Create SR");
+        }
+
+        // Fetch the bulk upload excel's S3 URL
+        const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, bulkUploadFormID);
+
+
+        if (Number(bulkUploadFormData.length) > 0) {
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+        }
+
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            throw new Error("Form to Third party opex is not submitted");
+        }
+
+        // Fetch the excel URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
+            organization_id: request.organization_id
+        });
+
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
+        }
+
+        // Get the count of child orders.
+        const [errorZero, childOpportunitiesData] = await activityListSelectChildOrderCount({
+            organization_id: request.organization_id,
+            activity_type_category_id: workflowActivityCategoryTypeID,
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        })
+
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
+
+        const headersArray = ["SerialNo", "currentBusinessFR", "thirdPartyFR"];
+        const mandatoryHeaders = ["SerialNo", "currentBusinessFR"];
+        const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            for (const [key, value] of Object.entries(row)) {
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
+                }
+            }
+        }
+
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
+
+        // PreProcessing Stage 1
+        let errorMessage = "";
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            console.log(`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
+            let errorFoundForAnyColumn = false;
+            for (const header of mandatoryHeaders) {
+                if (row[header] == undefined || row[header] === "") {
+                    errorFoundForAnyColumn = true;
+                    errorMessage += `${header} is empty in row ${i + 1} \n`;
+                }
+            }
+
+            if (!errorFoundForAnyColumn) {
+                
+            }
+        }
+
+        if (errorMessage !== "") {
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the CreateSR excel',
+                    content: errorMessage,
+                    mail_body: errorMessage,
+                    attachments: []
+                }
+            );
+
+            throw new Error("ErrorsFoundWhileProcessingCreateSR");
+        }
+
+        for (let i = 1; i < OpportunitiesArray.length; i++) {
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: Number(triggerFormID),
+                form_transaction_id: Number(request.form_transaction_id),
+                payload: {
+                    workflow_activity_id: request.workflow_activity_id,
+                    account_id: request.account_id,
+                    opportunity_details: OpportunitiesArray[i]
+                }
+            }, esmsIntegrationsTopicName, Number(workflowActivityID));
+        }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
+
+        return;
+    }
 }
 
 
