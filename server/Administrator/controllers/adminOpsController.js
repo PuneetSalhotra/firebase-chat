@@ -501,7 +501,18 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-      
+     
+    //organization/form-tag/update
+    app.post('/' + global.config.version + '/organization/form-tag/update', async (req, res) => {
+        try {
+            let result = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+     
     //Check Manager Details
     app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
         const [err, data] = await adminOpsService.checkManagerDetails(req.body);
