@@ -949,6 +949,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/organization/form-tag/flag/update', async function (req, res) {
+        const [err, accData] = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/organization/form-tag/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
