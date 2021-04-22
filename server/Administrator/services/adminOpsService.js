@@ -119,10 +119,11 @@ function AdminOpsService(objectCollection) {
             request.flag_ent_features,
             request.flag_ai_bot,
             request.flag_manager_proxy,
+            request.flag_enable_form_tag,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
