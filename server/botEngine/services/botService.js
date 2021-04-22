@@ -200,8 +200,17 @@ function BotService(objectCollection) {
                         request.log_asset_id,
                         request.log_datetime,
                     );
-
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
+                    const queryString = util.getQueryString('ds_p1_bot_list_insert', paramsArray);
+                    if (queryString != '') {
+                        await db.executeQueryPromise(0, queryString, request)
+                          .then((data)=>{
+                                results[0] = data;
+                            })
+                            .catch((err)=>{
+                                    return Promise.reject(err)
+                            });
+                    }
+               
 
                 paramsArray =
                     new Array(
