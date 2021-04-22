@@ -111,6 +111,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/organization/flags/alter', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.updateOrganizationFlags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/organization/flags/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
     // Create a new organization
     app.post('/' + global.config.version + '/admin/account/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createAccount(req.body);
@@ -925,6 +935,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse({}, accData, 200, req.body));
         } else {
             console.log("/admin/asset/account/mapped/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/organization/form-tag/flag/update', async function (req, res) {
+        const [err, accData] = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/organization/form-tag/flag/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
         }
     });
