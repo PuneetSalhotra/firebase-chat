@@ -823,13 +823,14 @@ function AssetService(objectCollection) {
             "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url']),
             "asset_flag_document_repo_super_admin":util.replaceDefaultNumber(rowArray[0]['asset_flag_document_repo_super_admin']),
             "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
-
+            
             //email integrations
             "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
             "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
             "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime ']),
             "asset_flag_organization_management":util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_management']),
             "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
+            "organization_flag_enable_form_tag" :util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_form_tag']),
         };
 
         callback(false, rowData);

@@ -2003,7 +2003,7 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }  
     
-    this.updateTagEntityMapping = async (request) => {
+    async function updateTagEntityMapping(request) {
         let responseData = [],
             error = true;
 
@@ -2030,6 +2030,29 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }  
+
+    this.updateTagEntitiesMapping = async (request) => {
+        try {
+            try {
+                request.tag_activity_type_ids = JSON.parse(request.tag_activity_type_ids);
+            } catch(e) {
+                console.log("Error while parsing tag_activity_type_ids");
+            }
+
+            for(let tagActivityTypeId of request.tag_activity_type_ids) {
+                request.tag_activity_type_id = tagActivityTypeId;
+                let [error, response] = await updateTagEntityMapping(request);
+
+                if(error) {
+                    return [error, response];
+                }
+            }
+
+            return [false, []];
+        } catch(e) {
+            console.log("Error while parsing tag_activity_type_ids");
+        }
+    }
 }
 
 module.exports = AdminListingService;
