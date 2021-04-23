@@ -10764,8 +10764,6 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
-        let formInputToProcess, connectionTypeValue, capexValue, opexValue;
-
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
@@ -10784,7 +10782,6 @@ async function removeAsOwner(request,data)  {
 
         if(activityTypeDetails.length) {
             activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
         } else {
             logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
@@ -10794,7 +10791,8 @@ async function removeAsOwner(request,data)  {
             return;            
         }
 
-    
+        let formInputToProcess, connectionTypeValue, capexValue, opexValue;
+
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
             try {
@@ -10981,7 +10979,7 @@ async function removeAsOwner(request,data)  {
             // return;
         }
         //need timeline entry
-        
+
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);

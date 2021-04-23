@@ -899,11 +899,12 @@ function AdminOpsService(objectCollection) {
             request.flag_ent_features || 0,
             request.flag_ai_bot || 0,
             request.flag_manager_proxy || 0,
+            request.organization_flag_enable_form_tag || 0,
             request.organization_type_id || 1,
             request.log_asset_id || 1,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_1_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -6806,6 +6807,30 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 })
         }
         return [error, responseData];
+    }
+
+    this.updateOrganizationFormTagFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag_enable_form_tag,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_flag_enable_form_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [];
     }
 
     this.processSignup = async function (request) {
