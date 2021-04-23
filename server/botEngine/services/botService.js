@@ -14242,23 +14242,24 @@ async function removeAsOwner(request,data)  {
 
         switch (global.mode) {
             case "local":
-                esmsIntegrationsTopicName = "local-BulkCreateSR-request-topic-v1"
+                esmsIntegrationsTopicName = "local-BulkThirdPartyOpex-request-topic-v1"
                 break;
 
             // case "staging":
             case "preprod":
-                esmsIntegrationsTopicName = "staging-BulkCreateSR-request-topic-v1"
+                esmsIntegrationsTopicName = "staging-BulkThirdPartyOpex-request-topic-v1"
                 break;
 
             case "prod":
             case "production":
-                esmsIntegrationsTopicName = "production-BulkCreateSR-request-topic-v1"
+                esmsIntegrationsTopicName = "production-BulkThirdPartyOpex-request-topic-v1"
                 break;
-
         }
 
+        let workflowActivityData;
+
         try {
-            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
@@ -14358,6 +14359,7 @@ async function removeAsOwner(request,data)  {
             throw new Error("NonAsciiCharacterFound");
         }
 
+        console.log("childOpportunitiesData",childOpportunitiesData);
         // PreProcessing Stage 1
         let errorMessage = "";
         for (let i = 1; i < excelRows.length; i++) {
@@ -14371,8 +14373,43 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            console.log(row);
             if (!errorFoundForAnyColumn) {
-                
+                if (childOpportunitiesData.length > 0) {
+                    let fridFound = false;
+                    let fridtype = "";
+                    for (const childOpty of childOpportunitiesData) {
+                        console.log(childOpty);
+                        if (
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() &&
+                            String(row.currentBusinessFR).toUpperCase() === String(workflchildOpty.activity_cuid_3).toUpperCase()
+                        ) {
+                            fridtype = String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                            fridFound = true;
+                            break;
+                        }
+                    }
+                    if (fridFound) {
+                        row["fridType"] = fridtype;
+                    } else {
+                        errorFoundForAnyColumn = true;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
+                    }
+                } else {
+                    let fridFound = false;
+                    if (
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() &&
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
+                    ) {
+                        fridFound = true;
+                    }
+                    if (fridFound) {
+                        row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                    } else {
+                        errorFoundForAnyColumn = true;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
+                    }
+                }
             }
         }
 
@@ -14394,7 +14431,7 @@ async function removeAsOwner(request,data)  {
             throw new Error("ErrorsFoundWhileProcessingCreateSR");
         }
 
-        for (let i = 1; i < OpportunitiesArray.length; i++) {
+        for (let i = 1; i < excelRows.length; i++) {
             await queueWrapper.raiseActivityEventToTopicPromise({
                 type: "VIL_ESMS_IBMMQ_INTEGRATION",
                 trigger_form_id: Number(triggerFormID),
@@ -14402,7 +14439,7 @@ async function removeAsOwner(request,data)  {
                 payload: {
                     workflow_activity_id: request.workflow_activity_id,
                     account_id: request.account_id,
-                    opportunity_details: OpportunitiesArray[i]
+                    frid_details: excelRows[i]
                 }
             }, esmsIntegrationsTopicName, Number(workflowActivityID));
         }
