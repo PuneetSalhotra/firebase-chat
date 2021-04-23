@@ -513,7 +513,7 @@ function AdminListingController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/admin/activity-type/tag/mapping/update', async (req, res) => {        
-        const [err, tagTypeData] = await adminListingService.updateTagEntityMapping(req.body);
+        const [err, tagTypeData] = await adminListingService.updateTagEntitiesMapping(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
         } else {
