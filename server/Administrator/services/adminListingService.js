@@ -1978,7 +1978,34 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }  
-        
+    
+    this.updateTagEntityMapping = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_id, 
+            request.tag_type_id, 
+            request.tag_type_category_id, 
+            request.tag_activity_type_id, 
+            request.tag_asset_id, 
+            request.log_asset_id, 
+            utils.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_update_activity_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }  
 }
 
 module.exports = AdminListingService;
