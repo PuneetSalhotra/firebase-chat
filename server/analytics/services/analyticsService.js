@@ -3030,17 +3030,21 @@ function AnalyticsService(objectCollection)
             error = true;
         
         const paramsArr = [     
-              request.organization_id,
-              request.account_id,
-              request.access_level_id,
-              request.target_asset_id,
-              request.tag_type_id,
-              request.is_export,
-              request.page_start || 0,
-              request.page_limit || 100
+            request.organization_id,
+            request.account_id,
+            request.access_level_id,
+            request.target_asset_id,
+            request.tag_type_id,
+            request.tag_id || 0,
+            request.activity_type_id || 0,
+            request.target_account_id || 0,
+            request.search_string || '',
+            request.is_export,
+            request.page_start || 0,
+            request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_1_asset_report_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_asset_report_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
