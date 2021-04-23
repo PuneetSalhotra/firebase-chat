@@ -512,12 +512,12 @@ function AdminListingController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/admin/workforce/activity-type/tag/mapping/update', async (req, res) => {        
+    app.post('/' + global.config.version + '/admin/activity-type/tag/mapping/update', async (req, res) => {        
         const [err, tagTypeData] = await adminListingService.updateTagEntityMapping(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
         } else {
-            console.log("/admin/workforce/activity-type/tag/mapping/update | Error: ", err);
+            console.log("/admin/activity-type/tag/mapping/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
     });
