@@ -14305,13 +14305,11 @@ async function removeAsOwner(request,data)  {
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
-        // Get the count of child orders.
-        const [errorZero, childOpportunitiesData] = await activityListSelectChildOrderCount({
+        // Get the details of child orders.
+        const [errorZero, childOpportunitiesData] = await activityListSelectChildOrders({
             organization_id: request.organization_id,
-            activity_type_category_id: workflowActivityCategoryTypeID,
-            activity_type_id: workflowActivityTypeID,
-            parent_activity_id: workflowActivityID,
-        })
+            parent_activity_id: workflowActivityID
+        });
 
         console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
@@ -14359,7 +14357,6 @@ async function removeAsOwner(request,data)  {
             throw new Error("NonAsciiCharacterFound");
         }
 
-        console.log("childOpportunitiesData",childOpportunitiesData);
         // PreProcessing Stage 1
         let errorMessage = "";
         for (let i = 1; i < excelRows.length; i++) {
@@ -14378,19 +14375,22 @@ async function removeAsOwner(request,data)  {
                 if (childOpportunitiesData.length > 0) {
                     let fridFound = false;
                     let fridtype = "";
+                    let childActivityId = 0;
                     for (const childOpty of childOpportunitiesData) {
                         console.log(childOpty);
                         if (
-                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() &&
-                            String(row.currentBusinessFR).toUpperCase() === String(workflchildOpty.activity_cuid_3).toUpperCase()
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
                         ) {
                             fridtype = String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
                             fridFound = true;
+                            childActivityId = childOpty.activity_id;
                             break;
                         }
                     }
                     if (fridFound) {
                         row["fridType"] = fridtype;
+                        row["activityId"] = childActivityId;
                     } else {
                         errorFoundForAnyColumn = true;
                         errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
@@ -14398,13 +14398,14 @@ async function removeAsOwner(request,data)  {
                 } else {
                     let fridFound = false;
                     if (
-                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() &&
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
                         String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
                     ) {
                         fridFound = true;
                     }
                     if (fridFound) {
                         row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                        row["activityId"] = workflowActivityID;
                     } else {
                         errorFoundForAnyColumn = true;
                         errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
@@ -14458,6 +14459,38 @@ async function removeAsOwner(request,data)  {
         );
 
         return;
+    }
+
+    async function activityListSelectChildOrders(request) {
+        // IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+        // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+        // IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.parent_activity_id,
+            request.flag || 1,
+            request.sort_flag,
+            request.datetime_start || '1970-01-01 00:00:00',
+            request.datetime_end || util.getCurrentUTCTime(),
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_child_orders', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
