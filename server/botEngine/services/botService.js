@@ -375,7 +375,19 @@ function BotService(objectCollection) {
                     );
 
                 // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
-                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+
+                const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_insert', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                      .then((data)=>{
+                            //success block
+                            results[0] = data;
+                        })
+                        .catch((err)=>{
+                                return Promise.reject(error)
+                        });
+                }
 
                 if(request.bot_operation_type_id == 32) { // set a flag for the target field as prefill enabled for prefil bot
                     let inlineData = JSON.parse(request.bot_operation_inline_data);
