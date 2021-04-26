@@ -14263,7 +14263,7 @@ async function removeAsOwner(request,data)  {
 
             // case "staging":
             case "preprod":
-                esmsIntegrationsTopicName = "staging-BulkThirdPartyOpex-request-topic-v1"
+                esmsIntegrationsTopicName = "staging-BulkThirdPartyOpex-request-topic-v2"
                 break;
 
             case "prod":
@@ -14459,7 +14459,7 @@ async function removeAsOwner(request,data)  {
                 }
             );
 
-            throw new Error("ErrorsFoundWhileProcessingCreateSR");
+            throw new Error("ErrorsFoundWhileProcessingBulkThirdPartyOpex");
         }
 
         for (let i = 1; i < excelRows.length; i++) {
