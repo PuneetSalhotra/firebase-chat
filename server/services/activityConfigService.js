@@ -1162,7 +1162,7 @@ function ActivityConfigService(db,util,objCollection) {
         }
 
 
-        if (hasAccountCode && isCodeDedupeRequired) {
+        if (hasAccountCode && (isCodeDedupeRequired || isPanDedupeRequired)) {
             //Check the generated code is unique or not?
             let [err1, accountData] = await checkWhetherAccountCodeExists(accountCode);
             if (err1) {
@@ -1628,7 +1628,7 @@ function ActivityConfigService(db,util,objCollection) {
                     }
                 }                
                  
-                if (isCodeDedupeRequired) {
+                if (isCodeDedupeRequired || isPanDedupeRequired) {
                     console.log('smeSubIndustryName - ', smeSubIndustryName);
                     console.log('smeTurnOver : ', smeTurnOver);
 
@@ -1856,7 +1856,7 @@ function ActivityConfigService(db,util,objCollection) {
                     }
                 }
 
-                if (isCodeDedupeRequired) {
+                if (isCodeDedupeRequired || isPanDedupeRequired) {
                     console.log("pan number", panNumber)
                     if (panNumber != "") {
                         hasAccountCode = false;
