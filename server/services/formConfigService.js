@@ -6486,6 +6486,14 @@ function FormConfigService(objCollection) {
     this.formEntityMappingTagFetch = async (request) => {
         let error = true,
             responseData = [];        
+        /*
+        p_flag_tag_enabled = 0 for listing origin forms directly where tags are not mapped
+        p_flag_tag_enabled =  1 for listing the ones mapped to tags
+
+        p_flag = 1 for organization level access
+        p_flag = 2 for account level access
+        p_flag = 3 for workforce/asset level access 
+        */
 
         try {
             const paramsArr = [
@@ -6495,8 +6503,8 @@ function FormConfigService(objCollection) {
                 request.asset_id,
                 request.tag_type_id,
                 request.tag_id,
-                request.flag || 0,
                 request.flag_tag_enabled || 0,
+                request.flag || 0,
                 request.page_start || 0,
                 request.page_limit || 100
             ];
