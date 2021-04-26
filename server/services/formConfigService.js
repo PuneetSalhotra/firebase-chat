@@ -6491,8 +6491,8 @@ function FormConfigService(objCollection) {
             const paramsArr = [
                 request.organization_id,
                 request.account_id,
-                request.workforce_id,
                 request.asset_id,
+                request.workforce_id,
                 request.tag_type_id,
                 request.tag_id,
                 request.flag || 0,
