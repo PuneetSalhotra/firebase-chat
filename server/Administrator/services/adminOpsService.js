@@ -107,6 +107,36 @@ function AdminOpsService(objectCollection) {
         }
     }
 
+    this.updateOrganizationFlags = async function (request) {
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.org_enterprise_feature_data,
+            request.flag_email,
+            request.flag_doc_repo,
+            request.flag_ent_features,
+            request.flag_ai_bot,
+            request.flag_manager_proxy,
+            request.flag_enable_form_tag,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_organization_list_update_flags', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Create Asset Bundle
     async function createAssetBundle(request, workforceID, organizationID, accountID) {
         // Performs multiple steps
@@ -10332,6 +10362,48 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return [error, responseData];
     }
 
+    this.updateOrganizationFormTagFlag = async function(request) {
+        logger.info("updateOrganizationFormTagFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.org_enterprise_feature_data,
+                request.flag_email,
+                request.flag_doc_repo,
+                request.flag_ent_features,
+                request.flag_ai_bot,
+                request.flag_manager_proxy, 
+                request.flag_enable_form_tag, 
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_1_organization_list_update_flags",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_activity_asset_search_mapping_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updateOrganizationFormTagFlag : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
     this.addUsersToCognitoManual = async function(request) {
         let error = false,
             responseData = [];
@@ -10349,7 +10421,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
         }
-        return [error, responseData];
+
+        return[error, responseData];
     }
 }
 
