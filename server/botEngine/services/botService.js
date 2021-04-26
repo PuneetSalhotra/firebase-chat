@@ -14238,7 +14238,12 @@ async function removeAsOwner(request,data)  {
         const triggerFormID = request.trigger_form_id,
             // Form and Field for getting the excel file's 
             bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
-            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0;
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0,
+            primaryRequestFormId = botOperationInlineData.bulk_upload.primary_form_id || 0,
+            primaryRequestFieldId = botOperationInlineData.bulk_upload.primary_field_id || 0,
+            seconadryRequestFormId = botOperationInlineData.bulk_upload.secondary_form_id || 0,
+            seconadryRequestFieldId = botOperationInlineData.bulk_upload.secondary_field_id || 0;
+
 
         switch (global.mode) {
             case "local":
@@ -14391,6 +14396,13 @@ async function removeAsOwner(request,data)  {
                     if (fridFound) {
                         row["fridType"] = fridtype;
                         row["activityId"] = childActivityId;
+                        if (fridtype === "PRIMARY") {
+                            row["formId"] = primaryRequestFormId;
+                            row["fieldId"] = primaryRequestFieldId;
+                        } else {
+                            row["formId"] = seconadryRequestFormId;
+                            row["fieldId"] = seconadryRequestFieldId;
+                        }
                     } else {
                         errorFoundForAnyColumn = true;
                         errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
@@ -14406,6 +14418,13 @@ async function removeAsOwner(request,data)  {
                     if (fridFound) {
                         row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
                         row["activityId"] = workflowActivityID;
+                        if (row["fridType"] === "PRIMARY") {
+                            row["formId"] = primaryRequestFormId;
+                            row["fieldId"] = primaryRequestFieldId;
+                        } else {
+                            row["formId"] = seconadryRequestFormId;
+                            row["fieldId"] = seconadryRequestFieldId;
+                        }
                     } else {
                         errorFoundForAnyColumn = true;
                         errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
