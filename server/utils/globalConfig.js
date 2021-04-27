@@ -299,6 +299,8 @@ if(mode === 'local') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
+    
 
     //Ports Config
     config.version = 'r1';
@@ -554,7 +556,7 @@ if(mode === 'demo') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_FS3ysb0GG';
-
+    config.user_web_pool_id = '';
     //Ports Config
     config.version = 'r0';
     config.servicePort = 8000;
@@ -668,7 +670,7 @@ if(mode === 'sprint') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_24nBlFK07';
-
+    config.user_web_pool_id = '';
     //Ports Config
     config.version = 'r0';
     config.servicePort = 6000;
@@ -799,6 +801,7 @@ if(mode === 'staging') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
 
     //Ports Config
     config.version = 'r0';
@@ -954,7 +957,7 @@ if(mode === 'preprod') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
-
+    config.user_web_pool_id = 'ap-south-1_xCOITnm28';
     //Ports Config
     config.version = 'r1';
     config.servicePort = 6000;

@@ -948,6 +948,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/cognito/user/add', async function (req, res) {
+        const [err, orgData] = await adminOpsService.addUsersToCognitoManual(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/cognito/user/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
