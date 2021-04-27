@@ -375,7 +375,19 @@ function BotService(objectCollection) {
                     );
 
                 // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
-                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+
+                const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_insert', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                      .then((data)=>{
+                            //success block
+                            results[0] = data;
+                        })
+                        .catch((err)=>{
+                                return Promise.reject(error)
+                        });
+                }
 
                 if(request.bot_operation_type_id == 32) { // set a flag for the target field as prefill enabled for prefil bot
                     let inlineData = JSON.parse(request.bot_operation_inline_data);
@@ -2881,7 +2893,9 @@ function BotService(objectCollection) {
                 global.logger.write('conLog', type, {}, {});
                 request.debug_info.push('type: ' + type);
 
-                if(type.includes('static')){
+            //console.log('type[0]: ', type[0]);
+            //if(type[0] === 'flag_esms') {
+            if(type.includes('static')){
                     assetID = Number(inlineData[type[0]].asset_id);
                     console.log('STATIC - Asset ID : ', assetID);
                     request.debug_info.push('STATIC - Asset ID : '+ assetID);
@@ -2890,8 +2904,7 @@ function BotService(objectCollection) {
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
                     request.debug_info.push('from_request - Asset ID : '+ assetID);
-                }
-                else if(type.includes('asset_reference'))
+                } else if(type.includes('asset_reference'))
                 {
                     const formID = Number(inlineData["asset_reference"].form_id),
                     fieldID = Number(inlineData["asset_reference"].field_id);                      
@@ -2998,7 +3011,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function removeAsLead(request,workflowActivityID,leadAssetID)
+    async function removeAsLead(request,workflowActivityID, leadAssetID)
     {
         let newReq = {};
         newReq.organization_id = request.organization_id;
@@ -3064,6 +3077,7 @@ function BotService(objectCollection) {
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
 
+    
     }
 
 async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
@@ -10775,8 +10789,6 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
-        let formInputToProcess, connectionTypeValue, capexValue, opexValue;
-
         let planConfig = {}, activityDetails = '', activityTypeId = '';
 
         let requestInlineData = JSON.parse(request.activity_inline_data)
@@ -10795,7 +10807,6 @@ async function removeAsOwner(request,data)  {
 
         if(activityTypeDetails.length) {
             activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
         } else {
             logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
         }
@@ -10805,7 +10816,8 @@ async function removeAsOwner(request,data)  {
             return;            
         }
 
-    
+        let formInputToProcess, connectionTypeValue, capexValue, opexValue;
+
         if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) {
             try {
@@ -10992,7 +11004,7 @@ async function removeAsOwner(request,data)  {
             // return;
         }
         //need timeline entry
-        
+
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);

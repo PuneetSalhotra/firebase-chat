@@ -1420,6 +1420,30 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.tagEntityMappingTagSelect = async function (request) {
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.tag_type_id,
+            request.cluster_tag_id,
+            request.page_start || 0,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
     this.tagTypeTagMappingSelect = async function (request) {
         let responseData = [],
             error = true;

@@ -899,11 +899,12 @@ function AdminOpsService(objectCollection) {
             request.flag_ent_features || 0,
             request.flag_ai_bot || 0,
             request.flag_manager_proxy || 0,
+            request.organization_flag_enable_form_tag || 0,
             request.organization_type_id || 1,
             request.log_asset_id || 1,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_1_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1490,7 +1491,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
 
         //Add the number to Cognito
-        await addUser('+' + request.country_code +''+request.phone_number);
+        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
 
         // Send SMS to the newly added employee
         try {
@@ -2632,7 +2634,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
 
         //Remove User from Cognito
-        await removeUser('+' + request.country_code +''+request.phone_number);
+        await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+        await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
 
         // Update Desk Asset Status to Employee Not Assigned
         try {
@@ -6808,6 +6811,30 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return [error, responseData];
     }
 
+    this.updateOrganizationFormTagFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag_enable_form_tag,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_flag_enable_form_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [];
+    }
+
     this.processSignup = async function (request) {
         let responseData = [],
             error = true;
@@ -7355,6 +7382,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     break;
             case 4: for(let i = 0; i < entityList.length; i++) {
                         request.activity_status_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
+            case 8: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_type_id = entityList[i];
                         await this.tagEntityMappingInsertDBCall(request);
                     }
                     break;
@@ -8797,12 +8829,12 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return [error, finalResponse];
     }
 
-    async function addUser(username) {
-        console.log('                   ');
+    async function addUser(username, pool_id) {
+       // console.log('Adding ', pool_id);
         console.log('*******************');
         console.log('Adding : ', username);
         let params = {
-            UserPoolId: global.config.user_pool_id,
+            UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username,
             
             //TemporaryPassword: 'STRING_VALUE',
@@ -8824,7 +8856,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     
                 //After 5 seconds get the added user from cognito and add it to the redis layer
                 console.log('Beofre setTimeout 5 Seconds');
-                setTimeout(()=>{ getUser(username) }, 5000);
+                setTimeout(()=>{ getUser(username, pool_id) }, 5000);
                 resolve();
             });
         });
@@ -8832,9 +8864,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return "success";	  
     }
 
-    async function removeUser(username) {
+    async function removeUser(username, pool_id) {
         var params = {
-            UserPoolId: global.config.user_pool_id,
+            UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username /* required */
           };
           cognitoidentityserviceprovider.adminDeleteUser(params, function(err, data) {
@@ -8941,9 +8973,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     };
 
 
-    async function getUser(username) {
+    async function getUser(username, pool_id) {
         var params = {
-            UserPoolId: global.config.user_pool_id,
+            UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username
           };
           cognitoidentityserviceprovider.adminGetUser(params, function(err, data) {
@@ -10400,6 +10432,27 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
     
         return [error, responseData];
+    }
+
+    this.addUsersToCognitoManual = async function(request) {
+        let error = false,
+            responseData = [];
+        try{
+            //Add the number to Cognito
+            if(request.is_mobile_add == 1)   
+                await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+            else if(request.is_web_add == 1)
+                await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            else if(request.is_mobile_remove == 1)
+                await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+            else if(request.is_web_remove == 1)
+                await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+
+        } catch (err) {
+            logger.error("addUsersToCognitoManual : Error " + err);
+        }
+
+        return[error, responseData];
     }
 }
 

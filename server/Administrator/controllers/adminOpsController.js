@@ -511,7 +511,18 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-      
+     
+    //organization/form-tag/update
+    app.post('/' + global.config.version + '/organization/form-tag/update', async (req, res) => {
+        try {
+            let result = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+     
     //Check Manager Details
     app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
         const [err, data] = await adminOpsService.checkManagerDetails(req.body);
@@ -946,6 +957,16 @@ function AdminOpsController(objCollection) {
         } else {
             console.log("/organization/form-tag/flag/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/cognito/user/add', async function (req, res) {
+        const [err, orgData] = await adminOpsService.addUsersToCognitoManual(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/cognito/user/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 }

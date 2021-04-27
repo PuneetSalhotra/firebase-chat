@@ -328,6 +328,7 @@ function AdminListingController(objCollection) {
         }
     });
 
+
     // List Tags associated with the TagType
     app.post('/' + global.config.version + '/admin/tag_type/mappings/list', async function (req, res) {
         const [err, data] = await adminListingService.tagTypeTagMappingSelect(req.body);
@@ -512,12 +513,23 @@ function AdminListingController(objCollection) {
         }
     });
 
+
     app.post('/' + global.config.version + '/admin/activity-type/tag/mapping/update', async (req, res) => {        
         const [err, tagTypeData] = await adminListingService.updateTagEntitiesMapping(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
         } else {
             console.log("/admin/activity-type/tag/mapping/update | Error: ", err);
+          res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
+        }
+    });
+  
+    app.post('/' + global.config.version + '/admin/tag-entity/mapping/list', async (req, res) => {        
+        const [err, tagTypeData] = await adminListingService.tagEntityMappingTagSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
+        } else {
+            console.log("/admin/tag-entity/mapping/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
     });
