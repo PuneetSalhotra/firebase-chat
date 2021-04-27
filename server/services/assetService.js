@@ -124,6 +124,8 @@ function AssetService(objectCollection) {
 
     this.getPhoneNumberAssetsV1 = async function (request, callback) {
 
+        console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
+        
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
         var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
         var emailId = request.asset_email_id;
@@ -135,13 +137,27 @@ function AssetService(objectCollection) {
             request.url.includes('v2') &&
             (
                 String(request.asset_phone_number).includes('+91') ||
-                String(request.asset_phone_number).includes('+61')
+                String(request.asset_phone_number).includes('+61') 
             )
         ) {
             countryCode = Number(String(request.asset_phone_number).slice(0, 3));
             request.asset_phone_country_code = countryCode;
 
             phoneNumber = Number(String(request.asset_phone_number).slice(3));
+            request.asset_phone_number = request.asset_phone_number;
+
+            console.log("countryCode: ", countryCode);
+            console.log("phoneNumber: ", phoneNumber);
+        } else if (
+            request.url.includes('v2') &&
+            (
+                String(request.asset_phone_number).includes('+1')
+            )
+        ) {
+            countryCode = Number(String(request.asset_phone_number).slice(0, 2));
+            request.asset_phone_country_code = countryCode;
+
+            phoneNumber = Number(String(request.asset_phone_number).slice(2));
             request.asset_phone_number = request.asset_phone_number;
 
             console.log("countryCode: ", countryCode);
