@@ -6482,6 +6482,51 @@ function FormConfigService(objCollection) {
         producer.disconnect();
         return;
     }
+
+    this.formEntityMappingTagFetch = async (request) => {
+        let error = true,
+            responseData = [];        
+        /*
+        p_flag_tag_enabled = 0 for listing origin forms directly where tags are not mapped
+        p_flag_tag_enabled =  1 for listing the ones mapped to tags
+
+        p_flag = 1 for organization level access
+        p_flag = 2 for account level access
+        p_flag = 3 for workforce/asset level access 
+        */
+
+        try {
+            const paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.tag_type_id,
+                request.tag_id,
+                request.flag_tag_enabled || 0,
+                request.flag || 0,
+                request.page_start || 0,
+                request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_tag', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {                   
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
 }
 
 module.exports = FormConfigService;
