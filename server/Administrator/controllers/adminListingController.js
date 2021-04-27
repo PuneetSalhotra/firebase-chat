@@ -511,6 +511,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/activity-type/tag/mapping/update', async (req, res) => {        
+        const [err, tagTypeData] = await adminListingService.updateTagEntitiesMapping(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, tagTypeData, 200, req.body));
+        } else {
+            console.log("/admin/activity-type/tag/mapping/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
