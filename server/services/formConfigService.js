@@ -6498,12 +6498,12 @@ function FormConfigService(objCollection) {
         try {
             
             if(request.level_flag == 1) {
-                request.flag = 1;
+                request.flag_tag_enabled = 1;
                 let [error, res] = await fetchMappingTagsBasedOnFlag(request);
                 if(error) {
                    return  [error, []]
                 }
-                request.flag = 0;
+                request.flag_tag_enabled = 0;
                 let [error1, res1] = await fetchMappingTagsBasedOnFlag(request);
 
                 if(error1) {
@@ -6546,8 +6546,8 @@ function FormConfigService(objCollection) {
                 request.asset_id,
                 request.tag_type_id,
                 request.tag_id,
-                request.flag || 0,
                 request.flag_tag_enabled || 0,
+                request.flag || 0,
                 request.level_flag || 1,
                 request.page_start || 0,
                 request.page_limit || 100
@@ -6559,6 +6559,52 @@ function FormConfigService(objCollection) {
                 await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {                   
                         responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+
+    this.formEntityMappingTagDelete = async(request) => {
+        try{
+
+            for(let activityTagId of request.tag_activity_type_ids) {
+                request.tag_activity_type_id = activityTagId;
+                deleteMappingTags(request);
+            }
+
+            return [false, []];
+        }catch(e) {
+            console.log("formEntityMappingTagDelete", e, e.stack)
+        }
+    }
+    async function deleteMappingTags(request) {
+        let responseData=[];
+        try {
+            const paramsArr = [
+                request.organization_id, 
+                request.tag_id, 
+                request.tag_type_category_id || 0, 
+                request.tag_activity_type_id, 
+                request.tag_workforce_id || 0, 
+                request.tag_asset_id || 0, 
+                request.activity_status_id || 0, 
+                request.log_asset_id, 
+                util.getCurrentUTCTime()
+            ];
+        
+            const queryString = util.getQueryString('ds_v1_1_tag_entity_mapping_delete', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {                   
                         error = false;
                     })
                     .catch((err) => {

@@ -2425,7 +2425,8 @@ function ActivityService(objectCollection) {
                 }
 
                 //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
-                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53) {
+                // if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 31 || activityTypeCategroyId == 63) {
+                if([9,48,53,31,63].indexOf(activityTypeCategroyId) > -1){
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 

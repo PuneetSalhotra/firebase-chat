@@ -2975,11 +2975,12 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
               request.organization_id,
               request.tag_type_id,
+              request.is_export || 0,
               request.page_start || 0,
               request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_organization_filter_tag_type_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_organization_filter_tag_type_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
