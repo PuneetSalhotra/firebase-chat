@@ -2015,7 +2015,7 @@ function AdminListingService(objectCollection) {
             request.tag_activity_type_id, 
             request.tag_asset_id, 
             request.log_asset_id, 
-            utils.getCurrentUTCTime()
+            util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_v1_tag_entity_mapping_update_activity_type', paramsArr);
         if (queryString !== '') {
@@ -2050,7 +2050,7 @@ function AdminListingService(objectCollection) {
 
             return [false, []];
         } catch(e) {
-            console.log("Error while parsing tag_activity_type_ids");
+            console.log("Error updateTagEntitiesMapping", e, e.stack);
         }
     }
 }
