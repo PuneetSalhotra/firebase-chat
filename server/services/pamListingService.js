@@ -1400,10 +1400,12 @@ function PamListingService(objectCollection) {
             request.tag_type_category_id,
             request.menu_tag_id,
             request.menu_sub_tag_id,
+            request.is_search,
+            request.search_string,
             request.page_start,
             request.page_limit
         );
-        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_menu', paramsArr);
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_menu_search', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
