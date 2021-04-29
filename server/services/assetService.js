@@ -134,8 +134,8 @@ function AssetService(objectCollection) {
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
-        let phoneNumverValidationFlag = await cacheWrapper.getFlagForPhoneNumberValidation();
-        if(phoneNumverValidationFlag !== undefined && phoneNumverValidationFlag !== null && phoneNumverValidationFlag !== NaN && phoneNumverValidationFlag === '1') {
+        let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
+        if('1' === phoneNumverValidationFlag) {
             console.log("validate using module awesome-phoneNumber");
             var pn = new awesomePhoneNumber(phoneNumber);
             if(pn !== undefined && pn !== null) {

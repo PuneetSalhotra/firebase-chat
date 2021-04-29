@@ -900,16 +900,16 @@ function CacheWrapper(client) {
     });
 };
 
-    //get phone_number_validation flag value from redis.
-    this.getFlagForPhoneNumberValidation = () => {
+    //get key-value from redis cache.
+    this.getKeyValueFromCache = (key) => {
         return new Promise((resolve, reject) => {
 
             //To handle the first time reading case - Key will be missing then we are sending 0
-            client.get('phone_number_validation', (err, reply) => {
+            client.get(key, (err, reply) => {
                 if(err) {
                     reject(err);
                 }
-                console.log('REPLY - get phone_number_validation : ', reply);
+                console.log('REPLY - get ' + key + " = ", reply);
                 if(reply === null) {
                     resolve(null);                    
                 } else {
