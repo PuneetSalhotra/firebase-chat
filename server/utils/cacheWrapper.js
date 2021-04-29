@@ -900,6 +900,26 @@ function CacheWrapper(client) {
     });
 };
 
+    //get Account SME Sequential number
+    this.getFlagForPhoneNumberValidation = () => {
+        return new Promise((resolve, reject) => {
+
+            //To handle the first time reading case - Key will be missing then we are sending 0
+            client.get('phone_number_validation', (err, reply) => {
+                if(err) {
+                    reject(err);
+                }
+                console.log('REPLY - get phone_number_validation : ', reply);
+                if(reply === null) {
+                    resolve(null);                    
+                } else {
+                    resolve(reply);
+                }
+            });
+
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;
