@@ -13,6 +13,7 @@ const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
 
 const RMBotService = require('../botEngine/services/rmbotService');
+const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
 function AssetService(objectCollection) {
@@ -125,45 +126,80 @@ function AssetService(objectCollection) {
     this.getPhoneNumberAssetsV1 = async function (request, callback) {
 
         console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
-        
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+
+        var phoneNumber = request.asset_phone_number;
+        var countryCode = undefined;
         var emailId = request.asset_email_id;
         var verificationMethod = Number(request.verification_method);
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
-        if (
-            request.url.includes('v2') &&
-            (
-                String(request.asset_phone_number).includes('+91') ||
-                String(request.asset_phone_number).includes('+61') 
-            )
-        ) {
-            countryCode = Number(String(request.asset_phone_number).slice(0, 3));
-            request.asset_phone_country_code = countryCode;
+        //TODO : flag value should be configured. 
+        var flag = 1;
 
-            phoneNumber = Number(String(request.asset_phone_number).slice(3));
-            request.asset_phone_number = request.asset_phone_number;
+        if(flag == 1) {
+            var pn = new awesomePhoneNumber(phoneNumber);
+            if(pn !== undefined && pn !== null) {
+                const isValidNumber = pn.isValid();
+                console.log("isValid PhoneNumber = " + isValidNumber);
+                if(isValidNumber) {
+                    phoneNumber = pn.getNumber('significant');
+                    countryCode = pn.getCountryCode();
+                } else {
+                    phoneNumber = undefined;
+                    countryCode = undefined;
+                }
+            }
+        } 
 
-            console.log("countryCode: ", countryCode);
-            console.log("phoneNumber: ", phoneNumber);
-        } else if (
-            request.url.includes('v2') &&
-            (
-                String(request.asset_phone_number).includes('+1')
-            )
-        ) {
-            countryCode = Number(String(request.asset_phone_number).slice(0, 2));
-            request.asset_phone_country_code = countryCode;
+        if((phoneNumber === undefined || phoneNumber === NaN)  || countryCode === undefined) {
+            phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+            countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+            
+            if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+91') ||
+                    String(request.asset_phone_number).includes('+61') ||
+                    String(request.asset_phone_number).includes('+44') ||
+                    String(request.asset_phone_number).includes('+49') ||
+                    String(request.asset_phone_number).includes('+33') 
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 3));
+                request.asset_phone_country_code = countryCode;
 
-            phoneNumber = Number(String(request.asset_phone_number).slice(2));
-            request.asset_phone_number = request.asset_phone_number;
+                phoneNumber = Number(String(request.asset_phone_number).slice(3));
+                request.asset_phone_number = request.asset_phone_number;
+            } else if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+1')
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 2));
+                request.asset_phone_country_code = countryCode;
 
-            console.log("countryCode: ", countryCode);
-            console.log("phoneNumber: ", phoneNumber);
+                phoneNumber = Number(String(request.asset_phone_number).slice(2));
+                request.asset_phone_number = request.asset_phone_number;
+            }  else if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+880') ||
+                    String(request.asset_phone_number).includes('+961')
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 4));
+                request.asset_phone_country_code = countryCode;
+
+                phoneNumber = Number(String(request.asset_phone_number).slice(4));
+                request.asset_phone_number = request.asset_phone_number;
+            }
         }
 
+        console.log("countryCode: ", countryCode);
+        console.log("phoneNumber: ", phoneNumber);
+        
         try {
             let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
