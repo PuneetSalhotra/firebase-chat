@@ -8,52 +8,52 @@ function ArpController(objCollection) {
     const arpService = new ArpService(objCollection);
     // const activityCommonService = objCollection.activityCommonService;
 
-    app.post('/' + global.config.version + '/arp/setting/update/asset/flag', async function (req, res) {
+    app.post('/' + global.config.version + '/arp/asset/setting/flag/alter', async function (req, res) {
         const [err, orgData] = await arpService.updateAssetFlag(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/arp/setting/update/asset/flag | Error: ", err);
+            console.log("/arp/asset/setting/flag/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
-    app.post('/' + global.config.version + '/arp/update/asset/businesshours', async function (req, res) {
+    app.post('/' + global.config.version + '/arp/asset/inline/alter', async function (req, res) {
         const [err, orgData] = await arpService.updateAssetBusinessHours(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/arp/update/asset/businesshours | Error: ", err);
+            console.log("/arp/asset/inline/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
-    app.post('/' + global.config.version + '/arp/update/floor/level/flag', async function (req, res) {
+    app.post('/' + global.config.version + '/arp/workforce/setting/flag/alter', async function (req, res) {
         const [err, orgData] = await arpService.updateFloorLevelFlag(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/arp/update/floor/level/flag | Error: ", err);
+            console.log("/arp/workforce/setting/flag/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
-    app.post('/' + global.config.version + '/arp/update/floor/level/businesshours', async function (req, res) {
+    app.post('/' + global.config.version + '/arp/workforce/inline/alter', async function (req, res) {
         const [err, orgData] = await arpService.updateAssetBusinessHours(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/arp/update/floor/level/businesshours | Error: ", err);
+            console.log("/arp/workforce/inline/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
-    app.post('/' + global.config.version + '/arp/update/building/level/businesshours', async function (req, res) {
+    app.post('/' + global.config.version + '/arp/account/inline/alter', async function (req, res) {
         const [err, orgData] = await arpService.updateFloorLevelFlag(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/arp/update/building/level/businesshours | Error: ", err);
+            console.log("/arp/account/inline/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });

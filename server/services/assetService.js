@@ -886,8 +886,8 @@ function AssetService(objectCollection) {
             "asset_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['asset_flag_arp_settings_enabled']),
             "asset_arp_data":util.replaceDefaultNumber(rowArray[0]['asset_arp_data']),
             "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
-            "workforce_arp_data":util.replaceDefaultNumber(rowArray[0]['workforce_arp_data']),
-            "account_arp_data":util.replaceDefaultNumber(rowArray[0]['account_arp_data']),
+            "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
+            "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
         };
 
         callback(false, rowData);
