@@ -140,6 +140,32 @@ function ArpService(objectCollection) {
         return [error, responseData];
     }
 
+    this.updateFlagPersistRole = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.bot_operation_id,
+            request.bot_id,
+            request.bot_operation_flag_persist_role,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_flag_persist_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ArpService;
