@@ -134,7 +134,6 @@ function AssetService(objectCollection) {
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
-        //TODO : flag value should be configured. 
         let phoneNumverValidationFlag = await cacheWrapper.getFlagForPhoneNumberValidation();
         if(phoneNumverValidationFlag !== undefined && phoneNumverValidationFlag !== null && phoneNumverValidationFlag !== NaN && phoneNumverValidationFlag === '1') {
             console.log("validate using module awesome-phoneNumber");
@@ -151,7 +150,7 @@ function AssetService(objectCollection) {
                 }
             }
         } else {
-            console.log("validate using logic");
+            console.log("validate using core logic");
             phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
             countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
             

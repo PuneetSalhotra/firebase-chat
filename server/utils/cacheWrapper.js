@@ -900,7 +900,7 @@ function CacheWrapper(client) {
     });
 };
 
-    //get Account SME Sequential number
+    //get phone_number_validation flag value from redis.
     this.getFlagForPhoneNumberValidation = () => {
         return new Promise((resolve, reject) => {
 
