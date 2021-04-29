@@ -518,10 +518,52 @@ function CommnElasticService(objectCollection) {
 
         console.log("updateAccountCode : " + JSON.stringify(body));
         request.debug_info.push("updateAccountCode : " + JSON.stringify(body));
-        client.index({
+        let resultData = await client.search({
             index: 'crawling_accounts',
-            body: body
-        });
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    {
+                      match: {
+                        activity_id: request.workflow_activity_id
+                      }
+                    }
+                  ],
+          
+                }
+              }
+            }
+          });
+
+        if (resultData.hits.hits.length > 0) {
+            client.updateByQuery({
+                index: 'crawling_accounts',
+                "body": {
+                    "query": {
+                        "match": {
+                            "activity_id": Number(request.workflow_activity_id)
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source = params",
+                        "lang": "painless",
+                        "params": {
+                            ...body
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            client.index({
+                index: "crawling_accounts",
+                body: {
+                    ...body
+                }
+            })
+        }
+
         request.debug_info.push("Before addintoActivitySearchMapping : ");
         let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
@@ -575,8 +617,8 @@ function CommnElasticService(objectCollection) {
         let responseData = [],
         error = true;
         
-        if(!request.hasOwnProperty("debug_info"))
-        request.debug_info = [];
+        if(!request.debug_info)
+            request.debug_info = [];
 
     const paramsArr = [
                         request.workflow_activity_id,
@@ -586,18 +628,35 @@ function CommnElasticService(objectCollection) {
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
     request.debug_info.push("addintoActivitySearchMapping "+queryString);
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
                 responseData = data;
                 request.debug_info.push("data.length : "+data.length);
                 if(data.length>0){                    
                     let dataTobeSent = responseData[0];
-                    client.index({
+                    // client.index({
+                    //     index: 'activity_search_mapping',
+                    //     body: {
+                    //     ...dataTobeSent              
+                    //     }
+                    // })
+                    client.updateByQuery({
                         index: 'activity_search_mapping',
-                        body: {
-                        ...dataTobeSent              
+                        "body": {
+                            "query": {
+                                "match": {
+                                    "activity_id": Number(request.workflow_activity_id)
+                                }
+                            },
+                            "script": {
+                                "source": "ctx._source = params",
+                                "lang": "painless",
+                                "params": {
+                                    ...dataTobeSent  
+                                }
+                            }
                         }
-                    })
+                    });
                 }
                 error = false;
             })

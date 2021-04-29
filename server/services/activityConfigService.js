@@ -1118,6 +1118,13 @@ function ActivityConfigService(db,util,objCollection) {
         let panNumber = generatedAccountData.panNumber;
         let gstNumber = generatedAccountData.gstNumber;
         let hasAccountCode = generatedAccountData.hasAccountCode;
+        let accountTitle = generatedAccountData.account_title;
+        let isPanDedupeRequired = generatedAccountData.is_pan_dedupe_required;
+        let isCodeDedupeRequired = generatedAccountData.is_code_dedupe_required;
+        let isNameDedupeRequired = generatedAccountData.is_name_dedupe_required;
+
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        accountTitle = accountTitle.split(' ').join('')
         let checkPan = "";
         if(panNumber!=null||panNumber!=""){
           checkPan = panNumber.toUpperCase();
@@ -1128,68 +1135,81 @@ function ActivityConfigService(db,util,objCollection) {
         else{
             checkPan =""
         }
-                //Check the uniqueness of the account code
-                
-                let [errpa,panresponse] = await checkForPanNumberExistenceElasticServer(request,checkPan);
 
-                
-                if(errpa) {
-                    responseData.push({'message': 'Error in checking pan card'});
-                    return [true,responseData];
-                }
-                if(panresponse.length>0) {
-                    responseData.push({'message': 'Pan already exists!'});
-                    return [true,responseData];
-
-                }
-         if(hasAccountCode){
-        //Check the generated code is unique or not?
-        let [err1,accountData] = await checkWhetherAccountCodeExists(accountCode);
-        if(err1) {
-            responseData.push({'message': 'Error in Checking Acount Code!'});
-            return [true,responseData];
+        //Check the uniqueness of the account title
+        if (isNameDedupeRequired) {
+            let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
+            if (accountTitleResponse.hits.hits.length > 0) {
+                console.log("Account name already exists!")
+                responseData.push({ 'message': 'Account Name already exists!' });
+                return [true, responseData];
+            }
         }
 
-        //1) If it is not unique then check if there is a sequential number as part of the account code.
-        //If it is not there then throw error "Account already exists".
-        if(accountData.length > 0 && Number(hasSeqNo) === 0) {
-            responseData.push({'message': 'Account already exists!'});
-            return [true,responseData];
 
-        } else if(accountData.length > 0 && Number(hasSeqNo) === 1){
-            //2) If sequential number is there as part of the account code, 
-            //increment the sequential number by 1 and reverify the uniqueness of account code.
+        if (isPanDedupeRequired) {
+            //Check the uniqueness of the pan number
+            let [errpa, panresponse] = await checkForPanNumberExistenceElasticServer(request, checkPan);
 
-            let tempObj;
-            let newAccountCode; 
-                    
-            while(true) { //Runs until it finds a unique account code               
-
-                //Increment the sequential ID
-                tempObj = await generateAccountCode(request,botInlineData);
-                newAccountCode = tempObj.account_code;
-                console.log('*******************');
-                console.log('New Account Code : ', newAccountCode);
-                
-                //Check the uniqueness of the account code
-                let [err,accountData] = await checkWhetherAccountCodeExists(newAccountCode);
-                console.log('**********', accountData);
-
-                if(err) {
-                    responseData.push({'message': 'Error in Checking Acount Code!'});
-                    return [true,responseData];
-                }
-
-                if(accountData.length === 0 || cnt === 5) {
-                    break;
-                }                
-            } //End while loop
-
-            accountCode = newAccountCode
+            if (errpa) {
+                responseData.push({ 'message': 'Error in checking pan card' });
+                return [true, responseData];
+            }
+            if (panresponse.length > 0) {
+                responseData.push({ 'message': 'Pan already exists!' });
+                return [true, responseData];
+            }
         }
 
-        console.log('Final Account Code : ',accountCode);
-    }
+
+        if (hasAccountCode && (isCodeDedupeRequired || isPanDedupeRequired)) {
+            //Check the generated code is unique or not?
+            let [err1, accountData] = await checkWhetherAccountCodeExists(accountCode);
+            if (err1) {
+                responseData.push({ 'message': 'Error in Checking Acount Code!' });
+                return [true, responseData];
+            }
+
+            //1) If it is not unique then check if there is a sequential number as part of the account code.
+            //If it is not there then throw error "Account already exists".
+            if (accountData.length > 0 && Number(hasSeqNo) === 0) {
+                responseData.push({ 'message': 'Account already exists!' });
+                return [true, responseData];
+
+            } else if (accountData.length > 0 && Number(hasSeqNo) === 1) {
+                //2) If sequential number is there as part of the account code, 
+                //increment the sequential number by 1 and reverify the uniqueness of account code.
+
+                let tempObj;
+                let newAccountCode;
+
+                while (true) { //Runs until it finds a unique account code               
+
+                    //Increment the sequential ID
+                    tempObj = await generateAccountCode(request, botInlineData);
+                    newAccountCode = tempObj.account_code;
+                    console.log('*******************');
+                    console.log('New Account Code : ', newAccountCode);
+
+                    //Check the uniqueness of the account code
+                    let [err, accountData] = await checkWhetherAccountCodeExists(newAccountCode);
+                    console.log('**********', accountData);
+
+                    if (err) {
+                        responseData.push({ 'message': 'Error in Checking Acount Code!' });
+                        return [true, responseData];
+                    }
+
+                    if (accountData.length === 0 || cnt === 5) {
+                        break;
+                    }
+                } //End while loop
+
+                accountCode = newAccountCode
+            }
+
+            console.log('Final Account Code : ', accountCode);
+        }
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
@@ -1264,6 +1284,65 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
+    this.checkAccountNameForDuplicate = async (request) => {
+        let error = false,
+            responseData = [];
+        let accountTitle = request.activity_title || "";
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        accountTitle = accountTitle.split(' ').join('')
+
+        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
+        if (accountTitleResponse.hits.hits.length > 0) {
+            console.log("Account name already exists!")
+            responseData.push({ 'message': 'Account Name already exists!' });
+            return [true, responseData];
+        }
+        responseData.push({ 'message': 'Account Name verified successfully!' });
+        return [error, responseData];
+    }
+
+    this.dedupePanCHeck = async (request)=>{
+        let error = false;
+        let activityData=[];
+        let activities = [];
+        console.log('Searching elastisearch for pan number : ',request.pan_number);
+        const response = await client.search({
+            index: 'crawling_accounts',
+            body: {
+                query: {
+                    match: {activity_cuid_1: request.pan_number}
+                    //"constant_score" : { 
+                    //    "filter" : {
+                    //        "term" : { 
+                    //            "activity_cuid_3": accountCode
+                    //        }
+                    //    }
+                    // }
+                }
+            }
+        })
+
+        console.log('response from ElastiSearch: ',response);
+        let totalRetrieved = (response.hits.hits).length;
+        console.log('Number of Matched Results : ',totalRetrieved);
+
+        for(const i_iterator of response.hits.hits) {
+            console.log(i_iterator._source.activity_cuid_1);
+            if(i_iterator._source.activity_cuid_1 === request.pan_number) {
+                
+                console.log('found a Match!');
+                activities.push(i_iterator._source.activity_id)
+            }
+        }
+        
+       if(activities.length>0){
+         activityData = await activityCommonService.getActivityDetailsPromise(request, activities[0]);
+       }
+
+       return [error,activityData]
+       
+    }
+
     async function checkForPanNumberExistenceElasticServer(request,panNumber) {
         let error = false;
         
@@ -1298,10 +1377,34 @@ function ActivityConfigService(db,util,objCollection) {
                     console.log('found a Match!');
                 }
             }
-    
+
             return [error,responseData];
 
         
+    }
+
+    let duplicateAccountNameElasticSearch = async function (title) {
+
+        console.log('Searching elastisearch for Accounyt title : ',title);
+        let resultData = await client.search({
+            index: 'crawling_accounts',
+            body: {
+                query: {
+                    bool: {
+                        must: [
+                            {
+                                match_phrase: {
+                                    activity_title_expression: title
+                                }
+                            }
+                        ],
+
+                    }
+                }
+            }
+        });
+        console.log('response from ElastiSearch: ',resultData);
+        return resultData;
     }
 
     async function generateAccountCode(request,botInlineData) {
@@ -1311,6 +1414,8 @@ function ActivityConfigService(db,util,objCollection) {
         let accountCode = "";
         let gstNumber = "";
         let panNumber = "";
+        let accountTitle = "";
+        let isPanDedupeRequired = false, isCodeDedupeRequired = false, isNameDedupeRequired = false;
         let hasAccountCode =true;
         let formID = Number(request.activity_form_id) || Number(request.form_id);
         let hasSeqNo = 0;
@@ -1329,6 +1434,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let laCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laCompanyNameFID);
                 //const laGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,laGroupCompanyNameFID);
                 laCompanyName = await util.removeSpecialCharecters(laCompanyName);
+                // laCompanyName = laCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                // laCompanyName = laCompanyName.split(' ').join('')
+                accountTitle = laCompanyName;
                 const laGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,laGroupCompanyNameFID);
                 
                 console.log('laGroupCompany - ', laGroupCompany);
@@ -1368,6 +1476,15 @@ function ActivityConfigService(db,util,objCollection) {
                     laNewGroupCompanyName = laNewGroupCompanyName.split(" ").join('');
                     accountCode += ((laNewGroupCompanyName.substring(0,6)).padEnd(6,'0')).toUpperCase();    
                 }
+                if (botInlineData.hasOwnProperty("is_pan_dedupe_required") && Number(botInlineData.is_pan_dedupe_required) === 1) {
+                    isPanDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_code_dedupe_required") && Number(botInlineData.is_code_dedupe_required) === 1) {
+                    isCodeDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_name_dedupe_required") && Number(botInlineData.is_name_dedupe_required) === 1) {
+                    isNameDedupeRequired = true;
+                }
                 break;
 
             case 150442://GE - VGE Segment
@@ -1384,6 +1501,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let geCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geCompanyNameFID);
                 //const geGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,geGroupCompanyNameFID);
                 geCompanyName = await util.removeSpecialCharecters(geCompanyName);
+                // geCompanyName = geCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                // geCompanyName = geCompanyName.split(' ').join('')
+                accountTitle = geCompanyName;
                 const geGroupCompany = await getFieldValueUsingFieldIdV2(request,formID,geGroupCompanyNameFID);
                 
                 console.log('geGroupCompany - ', geGroupCompany);
@@ -1419,6 +1539,16 @@ function ActivityConfigService(db,util,objCollection) {
                 } else {
                     geNewGroupCompanyName = geNewGroupCompanyName.split(" ").join("");
                     accountCode += ((geNewGroupCompanyName.substr(0,6)).padEnd(6,'0')).toUpperCase();
+                }
+
+                if (botInlineData.hasOwnProperty("is_pan_dedupe_required") && Number(botInlineData.is_pan_dedupe_required) === 1) {
+                    isPanDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_code_dedupe_required") && Number(botInlineData.is_code_dedupe_required) === 1) {
+                    isCodeDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_name_dedupe_required") && Number(botInlineData.is_name_dedupe_required) === 1) {
+                    isNameDedupeRequired = true;
                 }
                 break;
 
@@ -1457,6 +1587,15 @@ function ActivityConfigService(db,util,objCollection) {
                                                     smeCompanyNameFID = Number(i.name_of_the_company);
                                                     smeCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,smeCompanyNameFID);
                                                     smeCompanyName = await util.removeSpecialCharecters(smeCompanyName);
+                                                    // smeCompanyName = smeCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                                                    // smeCompanyName = smeCompanyName.split(' ').join('')
+                                                    accountTitle = smeCompanyName;
+                                                    if (i.hasOwnProperty("is_code_dedupe_required") && Number(i.is_code_dedupe_required) === 1) {
+                                                        isCodeDedupeRequired = true;
+                                                    }
+                                                    if (i.hasOwnProperty("is_name_dedupe_required") && Number(i.is_name_dedupe_required) === 1) {
+                                                        isNameDedupeRequired = true;
+                                                    }
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1471,7 +1610,9 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'pan_number': console.log(i.pan_number);
                                            smePanNumber = i.pan_number;
                                            panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,smePanNumber);
-                                            
+                                            if (i.hasOwnProperty("is_pan_dedupe_required") && Number(i.is_pan_dedupe_required) === 1) {
+                                                isPanDedupeRequired = true;
+                                            }
                                            break;      
                         case 'gst_number': console.log(i.gst_number);
                                            smeGstNumber = i.gst_number;
@@ -1487,48 +1628,51 @@ function ActivityConfigService(db,util,objCollection) {
                     }
                 }                
                  
-                console.log('smeSubIndustryName - ', smeSubIndustryName);
-                console.log('smeTurnOver : ', smeTurnOver);
+                if (isCodeDedupeRequired || isPanDedupeRequired) {
+                    console.log('smeSubIndustryName - ', smeSubIndustryName);
+                    console.log('smeTurnOver : ', smeTurnOver);
 
-                //1 SME-Emerging Enterprises (51 - 100 Cr)
-                //2 SME-Medium Enterprises (101 - 250 Cr)
-                //3 SME-Small Enterprises (10 - 50 Cr)
+                    //1 SME-Emerging Enterprises (51 - 100 Cr)
+                    //2 SME-Medium Enterprises (101 - 250 Cr)
+                    //3 SME-Small Enterprises (10 - 50 Cr)
 
-                //smeTurnOver = smeTurnOver.toLowerCase();
-                console.log('smeTurnOver : ', smeTurnOver);
-                //if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
-                //    smeTurnOver = 1;
-                //} else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
-                //    smeTurnOver = 2;
-                //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
-                //    smeTurnOver = 3;
-                //}
-                if(panNumber!=""){
-                    hasAccountCode=false;
+                    //smeTurnOver = smeTurnOver.toLowerCase();
+                    console.log('smeTurnOver : ', smeTurnOver);
+                    //if(smeTurnOver === 'sme-emergingenterprises(51-100cr)') {
+                    //    smeTurnOver = 1;
+                    //} else if(smeTurnOver === 'sme-emergingenterprises(101-250cr)') {
+                    //    smeTurnOver = 2;
+                    //} else if(smeTurnOver === 'sme-emergingenterprises(10-50cr)') {
+                    //    smeTurnOver = 3;
+                    //}
+                    if (panNumber != "") {
+                        hasAccountCode = false;
+                    }
+                    accountCode += 'S-';
+                    accountCode += ((smeCompanyName.substr(0, 7)).padEnd(7, '0')).toUpperCase();
+
+                    //4 digit sequential number, gets reset to 0000 after 9999
+                    let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
+                    console.log('smeSeqNumber : ', smeSeqNumber);
+
+                    if (Number(smeSeqNumber) === 9999) {
+                        await cacheWrapper.setSmeSeqNumber(0);
+                        accountCode += '0000';
+                    } else {
+                        accountCode += (smeSeqNumber.toString()).padStart(4, '0');
+                    }
+
+                    accountCode += '-'
+                    accountCode += smeTurnOver // turnover
+
+                    console.log('sme Sub Industry Name : ', smeSubIndustryName);
+                    if (smeSubIndustryName.toLowerCase() === 'others') {
+                        accountCode += 'OTHERS'
+                    } else {
+                        accountCode += ((smeSubIndustryName.substr(0, 3)).padEnd(5, '0')).toUpperCase(); //subindustry
+                    }
                 }
-                accountCode += 'S-';
-                accountCode += ((smeCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
-                //4 digit sequential number, gets reset to 0000 after 9999
-                let smeSeqNumber = await cacheWrapper.getSmeSeqNumber();
-                console.log('smeSeqNumber : ',smeSeqNumber);
-
-                if(Number(smeSeqNumber) === 9999) {
-                    await cacheWrapper.setSmeSeqNumber(0);
-                    accountCode += '0000';
-                } else {
-                    accountCode += (smeSeqNumber.toString()).padStart(4,'0');
-                }
-
-                accountCode += '-'
-                accountCode += smeTurnOver // turnover
-
-                console.log('sme Sub Industry Name : ',smeSubIndustryName);
-                if(smeSubIndustryName.toLowerCase() === 'others') {
-                    accountCode += 'OTHERS'
-                } else {
-                    accountCode += ((smeSubIndustryName.substr(0,3)).padEnd(5,'0')).toUpperCase(); //subindustry
-                }
                 break;
 
             case 150443: //Regular Govt/Govt SI Segment
@@ -1546,6 +1690,9 @@ function ActivityConfigService(db,util,objCollection) {
                 let govtCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtCompanyNameFID);
                 const govtGroupCompanyName = await getFieldValueUsingFieldIdV1(request,formID,govtGroupCompanyNameFID);
                 govtCompanyName = await util.removeSpecialCharecters(govtCompanyName);
+                // govtCompanyName = govtCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                // govtCompanyName = govtCompanyName.split(' ').join('');
+                accountTitle = govtCompanyName;
                 if(govtAccounType === 'SI') { //SI
                     //console.log('Inside SI');
 
@@ -1579,7 +1726,15 @@ function ActivityConfigService(db,util,objCollection) {
                 console.log('Circle : ',circleName);
                 accountCode += ((circleName.substr(0,3)).padEnd(3,'0')).toUpperCase();
                 panNumber = govtPanNumber;
-
+                if (botInlineData.hasOwnProperty("is_pan_dedupe_required") && Number(botInlineData.is_pan_dedupe_required) === 1) {
+                    isPanDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_code_dedupe_required") && Number(botInlineData.is_code_dedupe_required) === 1) {
+                    isCodeDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_name_dedupe_required") && Number(botInlineData.is_name_dedupe_required) === 1) {
+                    isNameDedupeRequired = true;
+                }
                 break;
 
             case 150254: //VICS - Carrier partner addition
@@ -1587,6 +1742,9 @@ function ActivityConfigService(db,util,objCollection) {
                 const vicsCompanyNameFID = Number(botInlineData.name_of_the_company);
                 let vicsCompanyName = await getFieldValueUsingFieldIdV1(request,formID,vicsCompanyNameFID);
                 vicsCompanyName = await util.removeSpecialCharecters(vicsCompanyName)
+                // vicsCompanyName = vicsCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                // vicsCompanyName = vicsCompanyName.split(' ').join('')
+                accountTitle = vicsCompanyName;
                 const vicsAccountTypeFID = Number(botInlineData.account_type);
                 const vicsAccountType = await getFieldValueUsingFieldIdV1(request,formID,vicsAccountTypeFID);
                 const vicsPanFID = Number(botInlineData.pan_number);
@@ -1615,6 +1773,15 @@ function ActivityConfigService(db,util,objCollection) {
                 panNumber = vicsPanNumber;
                 gstNumber = vicsGstNumber;
                 console.log('from cache vicsSeqNumber : ',vicsSeqNumber);
+                if (botInlineData.hasOwnProperty("is_pan_dedupe_required") && Number(botInlineData.is_pan_dedupe_required) === 1) {
+                    isPanDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_code_dedupe_required") && Number(botInlineData.is_code_dedupe_required) === 1) {
+                    isCodeDedupeRequired = true;
+                }
+                if (botInlineData.hasOwnProperty("is_name_dedupe_required") && Number(botInlineData.is_name_dedupe_required) === 1) {
+                    isNameDedupeRequired = true;
+                }
                 break;
 
             case 150444: //SOHO
@@ -1649,6 +1816,15 @@ function ActivityConfigService(db,util,objCollection) {
                                                     sohoCompanyNameFID = Number(i.name_of_the_company);
                                                     sohoCompanyName = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoCompanyNameFID);
                                                     sohoCompanyName = await util.removeSpecialCharecters(sohoCompanyName);
+                                                    // sohoCompanyName = sohoCompanyName.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'').replace(/[^a-zA-Z0-9]/g, '');
+                                                    // sohoCompanyName = sohoCompanyName.split(' ').join('')
+                                                    accountTitle = sohoCompanyName;
+                                                    if (i.hasOwnProperty("is_code_dedupe_required") && Number(i.is_code_dedupe_required) === 1) {
+                                                        isCodeDedupeRequired = true;
+                                                    }
+                                                    if (i.hasOwnProperty("is_name_dedupe_required") && Number(i.is_name_dedupe_required) === 1) {
+                                                        isNameDedupeRequired = true;
+                                                    }
                                                     break;
                         
                         case 'sub_industry': console.log(i.sub_industry);
@@ -1662,7 +1838,9 @@ function ActivityConfigService(db,util,objCollection) {
                         case 'pan_number': console.log(i.pan_number);
                                            sohoPanNumber = i.pan_number;
                                            panNumber = await getFieldValueUsingFieldIdV1(request,i.form_id,sohoPanNumber);
-                                            
+                                            if (i.hasOwnProperty("is_pan_dedupe_required") && Number(i.is_pan_dedupe_required) === 1) {
+                                                isPanDedupeRequired = true;
+                                            }
                                            break;      
                         case 'gst_number': console.log(i.gst_number);
                                            sohoGstNumber = i.gst_number;
@@ -1677,33 +1855,37 @@ function ActivityConfigService(db,util,objCollection) {
                                                       break;
                     }
                 }
-                console.log("pan number",panNumber)
-                if(panNumber!=""){
-                    hasAccountCode=false;
+
+                if (isCodeDedupeRequired || isPanDedupeRequired) {
+                    console.log("pan number", panNumber)
+                    if (panNumber != "") {
+                        hasAccountCode = false;
+                    }
+                    accountCode += 'D-';
+                    accountCode += ((sohoCompanyName.substr(0, 7)).padEnd(7, '0')).toUpperCase();
+
+                    //4 digit sequential number, gets reset to 0000 after 9999
+                    let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
+                    console.log('sohoSeqNumber : ', sohoSeqNumber);
+
+                    if (Number(sohoSeqNumber) === 9999) {
+                        await cacheWrapper.setSohoSeqNumber(0);
+                        accountCode += '0000';
+                    } else {
+                        accountCode += (sohoSeqNumber.toString()).padStart(4, '0');
+                    }
+
+                    accountCode += '-'
+                    accountCode += sohoTurnOver // turnover
+
+                    console.log('soho Sub Industry Name : ', sohoSubIndustryName);
+                    if (sohoSubIndustryName.toLowerCase() === 'others') {
+                        accountCode += 'OTHERS'
+                    } else {
+                        accountCode += ((sohoSubIndustryName.substr(0, 3)).padEnd(5, '0')).toUpperCase(); //subindustry
+                    }
                 }
-                accountCode += 'D-';
-                accountCode += ((sohoCompanyName.substr(0,7)).padEnd(7,'0')).toUpperCase();
 
-                //4 digit sequential number, gets reset to 0000 after 9999
-                let sohoSeqNumber = await cacheWrapper.getSohoSeqNumber();
-                console.log('sohoSeqNumber : ',sohoSeqNumber);
-
-                if(Number(sohoSeqNumber) === 9999) {
-                    await cacheWrapper.getSohoSeqNumber(0);
-                    accountCode += '0000';
-                } else {
-                    accountCode += (sohoSeqNumber.toString()).padStart(4,'0');
-                }
-
-                accountCode += '-'
-                accountCode += sohoTurnOver // turnover
-
-                console.log('soho Sub Industry Name : ',sohoSubIndustryName);
-                if(sohoSubIndustryName.toLowerCase() === 'others') {
-                    accountCode += 'OTHERS'
-                } else {
-                    accountCode += ((sohoSubIndustryName.substr(0,3)).padEnd(5,'0')).toUpperCase(); //subindustry
-                }
                 break;
         }
 
@@ -1712,6 +1894,10 @@ function ActivityConfigService(db,util,objCollection) {
         responseData.panNumber = panNumber;
         responseData.gstNumber = gstNumber;
         responseData.hasAccountCode = hasAccountCode;
+        responseData.account_title = accountTitle;
+        responseData.is_name_dedupe_required = isNameDedupeRequired;
+        responseData.is_code_dedupe_required = isCodeDedupeRequired;
+        responseData.is_pan_dedupe_required = isPanDedupeRequired;
 
         return responseData;
     }
@@ -2028,6 +2214,29 @@ function ActivityConfigService(db,util,objCollection) {
         //console.log('Field Value After: ',fieldValue);
         console.log('*************************');
         return fieldValue;
+    }
+    
+
+    this.panElasticEntry = async (request) => {
+       await client.index({
+            index: 'crawling_accounts',
+            body: {
+                activity_cuid_3: '',
+                activity_type_id: Number(request.activity_type_id),
+                workforce_id: Number(request.workforce_id),
+                account_id: Number(request.account_id),
+                activity_id: Number(request.workflow_activity_id),
+                asset_id: Number(request.asset_id),
+                activity_cuid_1:request.pan_number
+                //operating_asset_first_name: "Sagar Pradhan",
+                //activity_title: "GALAXY MEDICATION",
+                //activity_type_name: "Account Management - SME",
+                //asset_first_name: "Channel Head",
+                //operating_asset_id: 44574,
+            }
+        });
+
+        return [true,[]]
     }
     
 

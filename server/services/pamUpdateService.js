@@ -344,7 +344,7 @@ function PamUpdateService(objectCollection) {
                 request.datetime_log,
                 request.asset_id
                 );        
-            var queryString = util.getQueryString("ds_v1_1_activity_list_update_status", paramsArr);
+            var queryString = util.getQueryString("ds_v1_2_activity_list_update_status_pam", paramsArr);
             //var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -678,7 +678,7 @@ function PamUpdateService(objectCollection) {
                             activityStatusTypeId,
                             request.datetime_log
                             );
-                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
+                    queryString = util.getQueryString('ds_v1_2_activity_asset_mapping_update_status_pam', paramsArr);
                     db.executeQuery(0, queryString, request, function (error, queryResponse) { });
                 }, this);
                 callback(false, true);
@@ -799,7 +799,7 @@ function PamUpdateService(objectCollection) {
     function pamGetAssetDetails(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                351, //request.organization_id,
+                request.organization_id || 351, //,
                 request.asset_id
             );
             var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);

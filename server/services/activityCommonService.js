@@ -485,7 +485,7 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId,
             retryFlag,
             request.flag_offline || 0,
-            request.track_gps_datetime,
+            request.track_gps_datetime || new Date(),
             request.datetime_log,
             request.data_activity_id || 0
         );
@@ -1966,7 +1966,7 @@ this.getAllParticipantsAsync = async (request) => {
     function pamGetAssetDetails(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                351, //request.organization_id,
+                request.organization_id || 351,
                 request.work_station_asset_id
             );
             var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
@@ -5428,6 +5428,36 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];   
     };
 
+    this.getLinkedAssetsInWorkforceV1 = async function(request) {
+        let error = false,
+            responseData = [];
+        try{
+            let paramsArr = new Array(                
+                request.organization_id, 
+                request.account_id, 
+                request.target_workforce_id,
+                request.page_start,
+                request.page_limit
+            );
+            let queryString = util.getQueryString('ds_v1_1_asset_list_select_linked_workforce', paramsArr);
+           
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });                 
+            }
+        }catch(err){
+            console.log('Error '+err);
+        }
+
+        return [error, responseData];   
+    };
+
     this.activityActivityMappingInsert = async (request) => {
         let error = true,
         responseData = [];
@@ -6365,7 +6395,30 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     return [error, responseData];
     }
-           
+       
+    this.insertConsumerError = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+          request.consumer_message,
+          request.consumer_error,
+          request.activity_id || 0,
+          util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_consumer_error_transaction_insert',paramsArr);
+        if(queryString !== '') {
+            try {
+                const data = await db.executeQueryPromise(0,queryString,request);
+                await botService.callAddTimelineEntry(request);
+                responseData = data;
+                error = false;
+            } catch(e) {
+                error = e;
+            }
+        }
+        return [error,responseData];
+    }
 
 }
 

@@ -2149,6 +2149,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_form_id) || 0,
                         parseInt(request.filter_field_id) || 0,
                         request.filter_timescale || '',
+                        request.filter_is_lead || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2160,7 +2161,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_6_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_7_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2175,7 +2176,7 @@ function AnalyticsService(objectCollection)
                     }else{
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_6_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_7_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2385,11 +2386,12 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_mapping_activity_id) || 0,                    
                     request.filter_mapping_combo_value || '',
                     request.filter_timescale || '',
+                    request.filter_is_lead || 0,
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_6_activity_search_list_select_widget_drilldown_search', paramsArray);
+                var queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -2973,11 +2975,12 @@ function AnalyticsService(objectCollection)
         const paramsArr = [     
               request.organization_id,
               request.tag_type_id,
+              request.is_export || 0,
               request.page_start || 0,
               request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_organization_filter_tag_type_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_organization_filter_tag_type_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
@@ -3028,17 +3031,21 @@ function AnalyticsService(objectCollection)
             error = true;
         
         const paramsArr = [     
-              request.organization_id,
-              request.account_id,
-              request.access_level_id,
-              request.target_asset_id,
-              request.tag_type_id,
-              request.is_export,
-              request.page_start || 0,
-              request.page_limit || 100
+            request.organization_id,
+            request.account_id,
+            request.access_level_id,
+            request.target_asset_id,
+            request.tag_type_id,
+            request.tag_id || 0,
+            request.activity_type_id || 0,
+            request.target_account_id || 0,
+            request.search_string || '',
+            request.is_export,
+            request.page_start || 0,
+            request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_1_asset_report_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_asset_report_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
@@ -3364,11 +3371,9 @@ function AnalyticsService(objectCollection)
                         break;
                 case 6 : loopBase = JSON.parse(request.target_assets);
                          loopKey = "target_asset_id";
-                         request.account_id = (JSON.parse(request.target_accounts))[0];
                         break;
                 case 8 : loopBase = JSON.parse(request.activity_types);
                          loopKey = "activity_type_id";
-                         request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
                          loopKey = "tag_type_id";   
@@ -3388,16 +3393,33 @@ function AnalyticsService(objectCollection)
                 case 27 : loopBase = JSON.parse(request.applications);
                          loopKey = "application_id";   
                         break;
-            }
-            for(let i = 0 ; i < loopBase.length ; i++){
-                request[loopKey]= loopBase[i];
-                let [err1,data] = await self.assetAccessLevelMappingInsert(request);
-                if(err1){
-                    error = err1;
-                } else {
-                    error = false;
-                    responseData.push(data[0]);
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    {key:"target_accounts",value:"account_id",access_level_id:2},
+                    {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                    {key:"segments",value:"segment_id",access_level_id:21},
+                    {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                ];
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    request.access_level_id = loopData[i].access_level_id;
+                    let [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData = [...responseData,...data];
+                    }
                 }
+            } else {
+                [error,responseData] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
             }
         }
         catch(err1){
@@ -3405,6 +3427,23 @@ function AnalyticsService(objectCollection)
         }
         
         return [error,responseData];
+    }
+
+    this.assetAccessLevelLoop = async (loopBase,loopKey,request) => {
+        let responseData = [],
+            error = true;
+        for(let i = 0 ; i < loopBase.length ; i++){
+            request[loopKey]= loopBase[i];
+            let [err1,data] = await self.assetAccessLevelMappingInsert(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                responseData.push(data[0]);
+            }
+        }
+        request[loopKey] = 0;
+        return [error, responseData];
     }
 
     this.assetAccessLevelMappingInsert = async (request) => {
@@ -3449,26 +3488,80 @@ function AnalyticsService(objectCollection)
         let responseData = [],
             error = true;
         try{
+            
             let loopBase = [];
             let loopKey = "";
             switch(parseInt(request.access_level_id)){
+                case 2 : loopBase = JSON.parse(request.target_accounts);
+                         loopKey = "account_id";   
+                        break;
+                case 6 : loopBase = JSON.parse(request.target_assets);
+                         loopKey = "target_asset_id";
+                        break;
                 case 8 : loopBase = JSON.parse(request.activity_types);
                          loopKey = "activity_type_id";
-                         request.tag_type_id = (JSON.parse(request.tag_types))[0];   
                         break;
                 case 20 : loopBase = JSON.parse(request.tag_types);
                          loopKey = "tag_type_id";   
                         break;
-            }
-            for(let i = 0 ; i < loopBase.length ; i++){
-                request[loopKey]= loopBase[i];
-                let [err1,data] = await self.assetReportMappingInsert(request);
-                if(err1){
-                    error = err1;
-                } else {
-                    error = false;
-                    responseData.push(data[0]);
+                case 21 : loopBase = JSON.parse(request.segments);
+                         loopKey = "segment_id";   
+                        break;
+                case 22 : loopBase = JSON.parse(request.product_tags);
+                         loopKey = "product_tag_id";   
+                        break;
+                case 25 : loopBase = JSON.parse(request.cluster_tags);
+                         loopKey = "cluster_tag_id";   
+                        break;
+                case 26 : loopBase = JSON.parse(request.workforce_tags);
+                         loopKey = "workforce_tag_id";   
+                        break;
+                case 27 : loopBase = JSON.parse(request.applications);
+                         loopKey = "application_id";   
+                        break;
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    // {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    // {key:"target_accounts",value:"account_id",access_level_id:2},
+                    // {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                    // {key:"segments",value:"segment_id",access_level_id:21},
+                    // {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    // {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                ];
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    request.access_level_id = loopData[i].access_level_id;
+                    let [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData = [...responseData,...data];
+                    }
                 }
+                if(request.activity_types){
+                    let activity_types = JSON.parse(request.activity_types);
+                    for(let tags in activity_types){
+                        loopBase = activity_types[tags];
+                        loopKey = "activity_type_id";
+                        request.access_level_id = 8;
+                        request.tag_type_id = tags;
+                        let [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                        if(err1){
+                            error = err1;
+                        } else {
+                            error = false;
+                            responseData = [...responseData,...data];
+                        }
+                    }
+                }
+            } else {
+                [error,responseData] = await self.assetReportLoop(loopBase,loopKey,request);
             }
         }
         catch(err1){
@@ -3476,6 +3569,23 @@ function AnalyticsService(objectCollection)
         }
         
         return [error,responseData];
+    }
+
+    this.assetReportLoop = async (loopBase,loopKey,request) => {
+        let responseData = [],
+            error = true;
+        for(let i = 0 ; i < loopBase.length ; i++){
+            request[loopKey]= loopBase[i];
+            let [err1,data] = await self.assetReportMappingInsert(request);
+            if(err1){
+                error = err1;
+            } else {
+                error = false;
+                responseData.push(data[0]);
+            }
+        }
+        request[loopKey] = 0;
+        return [error, responseData];
     }    
 
     this.assetReportMappingInsert = async (request) => {
@@ -3485,7 +3595,7 @@ function AnalyticsService(objectCollection)
         
         const paramsArr = [     
             request.organization_id,
-            request.account_id,
+            request.account_id||0,
             request.user_asset_id,
             request.target_asset_id||0,
             request.report_type_id ||0,

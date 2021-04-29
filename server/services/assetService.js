@@ -13,6 +13,7 @@ const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
 
 const RMBotService = require('../botEngine/services/rmbotService');
+const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
 function AssetService(objectCollection) {
@@ -124,30 +125,81 @@ function AssetService(objectCollection) {
 
     this.getPhoneNumberAssetsV1 = async function (request, callback) {
 
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
+
+        var phoneNumber = request.asset_phone_number;
+        var countryCode = undefined;
         var emailId = request.asset_email_id;
         var verificationMethod = Number(request.verification_method);
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
-        if (
-            request.url.includes('v2') &&
-            (
-                String(request.asset_phone_number).includes('+91') ||
-                String(request.asset_phone_number).includes('+61')
-            )
-        ) {
-            countryCode = Number(String(request.asset_phone_number).slice(0, 3));
-            request.asset_phone_country_code = countryCode;
+        //TODO : flag value should be configured. 
+        var flag = 1;
 
-            phoneNumber = Number(String(request.asset_phone_number).slice(3));
-            request.asset_phone_number = request.asset_phone_number;
+        if(flag == 1) {
+            var pn = new awesomePhoneNumber(phoneNumber);
+            if(pn !== undefined && pn !== null) {
+                const isValidNumber = pn.isValid();
+                console.log("isValid PhoneNumber = " + isValidNumber);
+                if(isValidNumber) {
+                    phoneNumber = pn.getNumber('significant');
+                    countryCode = pn.getCountryCode();
+                } else {
+                    phoneNumber = undefined;
+                    countryCode = undefined;
+                }
+            }
+        } 
 
-            console.log("countryCode: ", countryCode);
-            console.log("phoneNumber: ", phoneNumber);
+        if((phoneNumber === undefined || phoneNumber === NaN)  || countryCode === undefined) {
+            phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+            countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+            
+            if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+91') ||
+                    String(request.asset_phone_number).includes('+61') ||
+                    String(request.asset_phone_number).includes('+44') ||
+                    String(request.asset_phone_number).includes('+49') ||
+                    String(request.asset_phone_number).includes('+33') 
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 3));
+                request.asset_phone_country_code = countryCode;
+
+                phoneNumber = Number(String(request.asset_phone_number).slice(3));
+                request.asset_phone_number = request.asset_phone_number;
+            } else if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+1')
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 2));
+                request.asset_phone_country_code = countryCode;
+
+                phoneNumber = Number(String(request.asset_phone_number).slice(2));
+                request.asset_phone_number = request.asset_phone_number;
+            }  else if (
+                request.url.includes('v2') &&
+                (
+                    String(request.asset_phone_number).includes('+880') ||
+                    String(request.asset_phone_number).includes('+961')
+                )
+            ) {
+                countryCode = Number(String(request.asset_phone_number).slice(0, 4));
+                request.asset_phone_country_code = countryCode;
+
+                phoneNumber = Number(String(request.asset_phone_number).slice(4));
+                request.asset_phone_number = request.asset_phone_number;
+            }
         }
 
+        console.log("countryCode: ", countryCode);
+        console.log("phoneNumber: ", phoneNumber);
+        
         try {
             let responseCode = 200;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
@@ -823,11 +875,14 @@ function AssetService(objectCollection) {
             "organization_document_repository_bucked_url":util.replaceDefaultString(rowArray[0]['organization_document_repository_bucked_url']),
             "asset_flag_document_repo_super_admin":util.replaceDefaultNumber(rowArray[0]['asset_flag_document_repo_super_admin']),
             "asset_type_flag_hide_organization_details":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_hide_organization_details']),
-
+            
             //email integrations
             "email_integration_enable":util.replaceDefaultNumber(rowArray[0]['email_integration_enable']),
             "asset_linked_enabled" :util.replaceDefaultNumber(rowArray[0]['asset_linked_enabled ']),
-            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime '])
+            "asset_linked_status_datetime":util.replaceDefaultDatetime(rowArray[0]['asset_linked_status_datetime ']),
+            "asset_flag_organization_management":util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_management']),
+            "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
+            "organization_flag_enable_form_tag" :util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_form_tag']),
         };
 
         callback(false, rowData);
@@ -4315,6 +4370,28 @@ function AssetService(objectCollection) {
                 }
             }
         }
+        
+        let mandatoryPositionsOfColumns = {
+            "C1" : "Feasibility ID",
+            "D1" : "Bandwidth (Mbps)",
+            "E1" : "One Time Charges (Rs.)",
+            "G1" : "Recurring Charges (Rs.)",
+            "F1" : "Existing Recurring Charges (Rs.)"
+        }
+        
+        for (let column of Object.keys(mandatoryPositionsOfColumns)) {
+            if (mandatoryPositionsOfColumns[column] !== workbook.Sheets[sheet_name_list[0]][column].v) {
+                console.log("Columns are not in required order.Please correct it and upload again.");
+                return ["error", "Columns are not in required order.Please correct it and upload again."];
+            }
+        }
+
+        for (let row of xlData) {
+            if (isNaN(Number(row['One Time Charges (Rs.)'])) || isNaN(Number(row['Existing Recurring Charges (Rs.)'])) || isNaN(Number(row['Recurring Charges (Rs.)']))) {
+                return ["error", "The CAF annexure is filled invalid data format, please check and resubmit"];
+            }
+        }
+
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
     };
@@ -5915,6 +5992,275 @@ this.getQrBarcodeFeeback = async(request) => {
         });
     };  
 
+    this.assetReportAccessMapping = function(request) {
+        console.log("assetReportAccessMapping :: access_level_id " + request.access_level_id);
+        console.log(request);
+        return new Promise((resolve, reject) => {
+            let responseData = [];
+            let singleData = {};
+
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.access_level_id,
+                request.target_asset_id,
+                request.tag_type_id,
+                request.tag_id || 0,
+                request.activity_type_id || 0,
+                request.target_account_id || 0,
+                request.search_string || '',
+                request.is_export,
+                request.page_start || 0,
+                request.page_limit || 100
+            );
+            const queryString = util.getQueryString('ds_p1_asset_report_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQueryPromise(1, queryString, request).then((data) => {
+                    console.log(data);
+                    error = false;
+                    console.log("assetReportAccessMapping :: access_level_id " + request.access_level_id + " :: DATA LENGTH :: ", data.length);
+                    if (request.access_level_id == 2) { 
+
+                        if (request.tag_id == 0) { // cluster tag
+                        
+                            tagEntityMappingTagSelectV1(request).then((resData) => {
+                                singleData.query_status = 0;
+                                singleData.account_id = 0;
+                                singleData.account_name = "National";
+
+                                resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                resolve([false, resData]);
+                            });
+                        
+                        } else if (request.tag_id > 0) {
+                            if (data.length == 0) {
+                                resolve([false, data]);
+                            } else {
+                                if (data[0].account_id == 0) {
+                        
+                                    tagEntityMappingTagSelectV1(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.account_id = 0;
+                                        singleData.account_name = "All";
+
+                                        resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                        resolve([false, resData]);
+                                    });
+                        
+                                } else {
+                                    resolve([false, data]);
+                                }
+                            }
+                        } else {
+                            resolve([false, data]);
+                        }
+
+                    } else if (request.access_level_id == 21) {
+                        
+                        if (data.length == 0) {
+                            resolve([false, data]);
+                        } else if (data.length == 1) {
+                            if (data[0].tag_id == 0) {
+                                
+                                request.tag_type_id = 110;
+                                request.tag_type_category_id = 1;
+                                
+                                tagListOfTagTypeSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "All";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+                        
+                            } else {
+                                resolve([false, data]);
+                            }
+                        } else {
+                            resolve([false, data]);
+                        }
+
+                    } else if (request.access_level_id == 6) {
+
+                        if (data.length == 0) {
+                            if (request.account_id == 0) {
+                                singleData.query_status = 0;
+                                singleData.asset_id = 0;
+                                singleData.asset_first_name = "All";
+                                singleData.operating_asset_id = 0;
+                                singleData.operating_asset_first_name = "All";
+                                resolve([false, singleData]);
+                            } else {
+                                
+                                request.account_id = request.target_account_id;
+                                request.workforce_id = 0;
+                                request.workforce_type_id = 0;
+                                
+                                assetListSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.asset_id = 0;
+                                    singleData.asset_first_name = "All";
+                                    singleData.operating_asset_id = 0;
+                                    singleData.operating_asset_first_name = "All";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+
+                            }
+                        } else if (data.length == 1) {                            
+                            console.log("CASE 6, DATA LENGTH 1, request.account_id :: ", request.account_id + ' ' + data[0].asset_id);
+                            if (request.target_account_id == 0) {
+                                resolve([false, data]);
+                            } else {
+                                console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ", request.account_id + ' ' + data[0].asset_id);
+                                if (data[0].target_asset_id == 0) {
+
+                                    request.account_id = request.target_account_id;
+                                    request.workforce_id = 0;
+                                    request.workforce_type_id = 0;
+                                    
+                                    assetListSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.asset_id = 0;
+                                        singleData.asset_first_name = "All";
+                                        singleData.operating_asset_id = 0;
+                                        singleData.operating_asset_first_name = "All";
+
+                                        resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                        resolve([false, resData]);
+                                    });
+
+                                } else {
+                                    console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ', +' ' + JSON.stringify(data));
+                                    resolve([false, data]);
+                                }
+                            }
+                        } else {
+                            resolve([false, data]);
+                        }
+
+                    } else if (request.access_level_id == 8) {
+                        resolve([false, data]);
+                    } else if (request.access_level_id == 22) {
+
+                        if (data.length == 0) {
+                            resolve([false, data]);
+                        } else if (data.length == 1) {
+                            if (data[0].tag_id == 0) {
+
+                                request.tag_type_category_id = 5;
+                                request.tag_type_id = 141;
+                                
+                                tagListOfTagTypeSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "All";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+                            } else {
+                                resolve([false, data]);
+                            }
+                        } else {
+                            resolve([false, data]);
+                        }
+
+                    } else if (request.access_level_id == 23) {
+                        
+                        if (data.length == 0) {
+                            
+                            tagEntityMappingSelect(request).then((resData) => {
+                                singleData.query_status = 0;
+                                singleData.activity_type_id = 0;
+                                singleData.activity_type_name = "All";
+
+                                resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                resolve([false, resData]);
+                            });
+
+                        } else {
+                            if (data[0].product_type_id == 0) {
+
+                                tagEntityMappingSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+
+                            } else {
+                                resolve([false, data]);
+                            }
+                        }
+
+                    } else if (request.access_level_id == 24) {
+                        resolve([false, data]);
+                    } else if (request.access_level_id == 25) {
+                        if (data.length == 0) {
+                            resolve([false, data]);
+                        } else if (data.length == 1) {
+                            if (data[0].cluster_tag_id == 0) {
+
+                                tagListOfTagTypeSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "National";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+
+                            } else {
+                                resolve([false, data]);
+                            }
+                        } else {
+                            console.log(data);
+                            resolve([false, data]);
+                        }
+
+                    } else if (request.access_level_id == 26) {
+
+                        if (data.length == 0) {
+                            resolve([false, data]);
+                        } else if (data.length == 1) {
+                            if (data[0].workforce_tag_id == 0) {
+
+                                request.tag_type_category_id = 2;
+                                request.tag_type_id = 147;
+                                
+                                tagListOfTagTypeSelect(request).then((resData) => {
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "All";
+
+                                    resData.splice(0, 0, singleData); //splice(index, <deletion 0 or 1>, item)
+                                    resolve([false, resData]);
+                                });
+
+                            } else {
+                                resolve([false, data]);
+                            }
+                        } else {
+                            resolve([false, data]);
+                        }
+                    } else if (request.access_level_id == 20) {
+                        resolve([false, data]);
+                    } else {
+                        resolve([false, data]);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                });
+            }
+        });
+    };
+
     function tagListOfTagTypeSelect(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -5976,11 +6322,29 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.organization_id,
                 request.tag_type_category_id,
                 request.tag_type_id,
-                request.cluster_tag_id,
+                request.tag_id,
                 request.page_start || 0,
                 request.page_limit
             );
             const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag', paramsArr);
+
+             if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+
+    async function tagEntityMappingTagSelectV1(request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.tag_id,
+                request.page_start || 0,
+                request.page_limit
+            );
+            const queryString = util.getQueryString('ds_p1_1_tag_entity_mapping_select_tag', paramsArr);
 
              if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
@@ -6574,6 +6938,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingInsert = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6591,7 +6957,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,responseData[0].leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2901, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
@@ -6601,6 +6968,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingUpdate = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6619,7 +6988,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2902, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
@@ -6629,6 +6999,8 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingDelete = async function (request) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
 
@@ -6645,7 +7017,8 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id)
+                    self.assetLeaveMappingHistoryInsert(request,request.leave_workflow_id);
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, 2903, function (err, data) { });
                 })
                 .catch((err) => {
                     error = err;
@@ -6705,6 +7078,71 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    //----------------------------------------------
+    //Get the read / unread counts of the broadcast messages of an asset
+    this.getReadUnReadBroadMessageCount = async function(request) {
+        console.log("getReadUnReadBroadMessageCount: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.organization_id
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_broadcast_transaction_select_asset_count",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("getReadUnReadBroadMessageCount : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("getReadUnReadBroadMessageCount : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    this.assetListUpdateFlagOrganizationMgmt = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.account_id,
+              request.workforce_id,
+              request.target_asset_id,
+              request.asset_flag_organization_management,
+              request.asset_admin_access_data
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_organization_mgmt', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;

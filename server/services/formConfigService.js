@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-
+const { Kafka } = require('kafkajs');
 function FormConfigService(objCollection) {
 
     var db = objCollection.db;
@@ -24,6 +24,10 @@ function FormConfigService(objCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const self = this;
+
+    function isArray(obj) {
+        return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
+    }
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -532,7 +536,7 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         var dataTypeId = Number(newData.field_data_type_id);
-
+        //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
         //Listener to update data in Intermediate tables for Reference/combo bots
         switch(Number(newData.field_data_type_id)) {
             case 57: fireBotUpdateIntTables(request, newData);
@@ -628,10 +632,16 @@ function FormConfigService(objCollection) {
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
-                    if (String(oldFieldValue).trim().length === 0) {
-                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
-                    } else {
-                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
+                    let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    console.log("/activity/form/alter data_type_category_id "+newData.field_data_type_category_id+" exists in simple categories : "+simpleDataTypes.includes(newData.field_data_type_category_id));
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id)){
+                        if (String(oldFieldValue).trim().length === 0) {
+                            content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
+                        } else {
+                            content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
+                        }
+                    }else{
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated`;
                     }
 
                     let activityTimelineCollection = {
@@ -889,6 +899,10 @@ function FormConfigService(objCollection) {
         return new Promise(async (resolve, reject) => {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
+            let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
+            let annexureExcelFilePath = "";
+            console.log("field ids");
+            console.log(annexureFields);
             let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
             let OTC_1_ValueFields = widgetFieldsStatusesData.OTC_1;
             let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
@@ -1005,6 +1019,9 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value; // p_entity_text_1
                         break;
                     case 52: // Excel Document
+                        annexureExcelFilePath = row.field_value;
+                        console.log("annexureExcelFilePath");
+                        console.log(annexureExcelFilePath);
                         params[18] = row.field_value;
                         break;
                     case 53: // IP Address Form
@@ -1352,7 +1369,7 @@ function FormConfigService(objCollection) {
                 }
                 else {
                     if (queryString != '') {
-                        db.executeQuery(0, queryString, request, function (err, data) {
+                        db.executeQuery(0, queryString, request, async function (err, data) {
     
                             global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
     
@@ -1508,6 +1525,59 @@ function FormConfigService(objCollection) {
                                         activityCommonService.analyticsUpdateWidgetValue(request, activityData[0].channel_activity_id, 0, creditDebitValue);
                                     });
                                 }
+                            // Trigger Child order creation on annexure fields 
+                            if (Object.keys(annexureFields).includes(String(row.field_id))) {
+                                let childOrdersCreationTopicName = global.config.CHILD_ORDER_TOPIC_NAME;
+
+                                let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
+                                let isFirstTimeExcelUploaded = true;
+                                let oldFormsData = await activityCommonService.getActivityTimelineTransactionByFormId(request, workflowData[0].activity_id, request.form_id);
+                                console.log(oldFormsData);
+                                console.log("oldFormsDataAkshay");
+                                for (const row of oldFormsData) {
+                                    console.log("row.data_entity_inline");
+                                    console.log(row.data_entity_inline);
+                                    let dataEntityInline = [];
+                                    try {
+                                        if (typeof row.data_entity_inline === 'string') {
+                                            dataEntityInline = JSON.parse(row.data_entity_inline);
+                                        } else if (isArray(row.data_entity_inline)) {
+                                            dataEntityInline = row.data_entity_inline;
+                                        }
+
+                                    } catch (e) {
+                                        console.log("error in checking old forms data");
+                                    }
+                                    for (const formFields of dataEntityInline) {
+                                        if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
+                                            if (formFields.field_value !== "") {
+                                                isFirstTimeExcelUploaded = false;
+                                                console.log("Excel file found in previous submission so do not create child order");
+                                            }
+                                        }
+                                    }
+
+                                }
+
+                                if (isFirstTimeExcelUploaded && annexureExcelFilePath.length > 0) {
+                                    console.log("Excel is uploaded for 1st time so proceed");
+                                    console.log("childOrdersCreationTopicName");
+                                    console.log(childOrdersCreationTopicName);
+                                    console.log({
+                                        ...request,
+                                        workflow_activity_id: workflowData[0].activity_id,
+                                        s3UrlOfExcel: annexureExcelFilePath
+                                    });
+
+                                    await kafkaProdcucerForChildOrderCreation(childOrdersCreationTopicName, {
+                                        ...request,
+                                        workflow_activity_id: workflowData[0].activity_id,
+                                        s3UrlOfExcel: annexureExcelFilePath
+                                    }).catch(global.logger.error);
+                                }
+
+                            }
+
                             next();
                             
                         });
@@ -5892,7 +5962,15 @@ function FormConfigService(objCollection) {
                     //console.log('productActId - ', productActId);
                     await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
                 }*/
-                await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue.product_activity_id);
+
+                let activityId =  processedOldFieldValue.product_activity_id;
+
+                if(!activityId) {
+                    processedOldFieldValue.length ? activityId = processedOldFieldValue[0].activity_id : "";
+                }
+               
+
+                await activityCommonService.activityActivityMappingArchive(oldReq, activityId);
             } else { //'Single'
                 processedOldFieldValue = oldFieldValue.split('|');
                 await activityCommonService.activityActivityMappingArchive(oldReq, processedOldFieldValue[0]);
@@ -6379,6 +6457,166 @@ function FormConfigService(objCollection) {
         return [error, responseData]; 
     }
     
+    async function kafkaProdcucerForChildOrderCreation(topicName,message) {
+        const kafka = new Kafka({
+            clientId: 'child-order-creation',
+            brokers: [
+                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
+                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
+            ]
+        })
+        
+        const producer = kafka.producer()
+
+        await producer.connect()
+        await producer.send({
+            topic: topicName,
+    
+            messages: [
+                {
+                    value: JSON.stringify(message)
+                },
+            ],
+        })
+        producer.disconnect();
+        return;
+    }
+
+    this.formEntityMappingTagFetch = async (request) => {
+        let error = true,
+            responseData = [];        
+        /*
+        p_flag_tag_enabled = 0 for listing origin forms directly where tags are not mapped
+        p_flag_tag_enabled =  1 for listing the ones mapped to tags
+
+        p_flag = 1 for organization level access
+        p_flag = 2 for account level access
+        p_flag = 3 for workforce/asset level access 
+        */
+
+        try {
+            
+            if(request.level_flag == 1) {
+                request.flag_tag_enabled = 1;
+                let [error, res] = await fetchMappingTagsBasedOnFlag(request);
+                if(error) {
+                   return  [error, []]
+                }
+                request.flag_tag_enabled = 0;
+                let [error1, res1] = await fetchMappingTagsBasedOnFlag(request);
+
+                if(error1) {
+                    return  [error1, []]
+                 }
+
+                 return [false, [{
+                     forms : res1,
+                     tag_types : res
+                 }]]
+
+
+            } else {
+                let [error, res] = await fetchMappingTagsBasedOnFlag(request);
+                if(error) {
+                   return  [error, []]
+                }
+
+                return  [
+                    error, [{
+                        forms : [],
+                        tags : res
+                    }]]
+
+            }
+
+        } catch (e){
+            return [e, []];
+        }   
+
+    }
+
+    async function fetchMappingTagsBasedOnFlag(request) {
+        let responseData=[];
+        try {
+            const paramsArr = [
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.tag_type_id,
+                request.tag_id,
+                request.flag_tag_enabled || 0,
+                request.flag || 0,
+                request.level_flag || 1,
+                request.page_start || 0,
+                request.page_limit || 100
+            ];
+    
+            const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_tag', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {                   
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
+
+    this.formEntityMappingTagDelete = async(request) => {
+        try{
+
+            for(let activityTagId of request.tag_activity_type_ids) {
+                request.tag_activity_type_id = activityTagId;
+                deleteMappingTags(request);
+            }
+
+            return [false, []];
+        }catch(e) {
+            console.log("formEntityMappingTagDelete", e, e.stack)
+        }
+    }
+    async function deleteMappingTags(request) {
+        let responseData=[];
+        try {
+            const paramsArr = [
+                request.organization_id, 
+                request.tag_id, 
+                request.tag_type_category_id || 0, 
+                request.tag_activity_type_id, 
+                request.tag_workforce_id || 0, 
+                request.tag_asset_id || 0, 
+                request.activity_status_id || 0, 
+                request.log_asset_id, 
+                util.getCurrentUTCTime()
+            ];
+        
+            const queryString = util.getQueryString('ds_v1_1_tag_entity_mapping_delete', paramsArr);
+    
+            if (queryString != '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {                   
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        } catch (e){
+            return [e, responseData];
+        }   
+
+        return [error, responseData]; 
+    }
 }
 
 module.exports = FormConfigService;

@@ -376,6 +376,65 @@ function PamListingController(objCollection) {
         }
 
     });
+    
+    app.post('/' + global.config.version + '/pam/first/level/tag/list', async function (req, res) {
+        const [err, data] = await pamListingService.getFirstLevelTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+    
+    app.post('/' + global.config.version + '/pam/sub/level/tag/list', async function (req, res) {
+        const [err, data] = await pamListingService.getSubLevelMenuTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    
+    app.post('/' + global.config.version + '/pam/tag/menu/list', async function (req, res) {
+        const [err, data] = await pamListingService.getMenuLinkedtoParticularTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/retrieve/menuitem/custom/tag', async function (req, res) {
+        const [err, data] = await pamListingService.getCustomTagsLinkedToMenuItem(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/retrieve/custom/choices', async function (req, res) {
+        const [err, data] = await pamListingService.getMenuItemsLinkedToCustomTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    
+    app.post('/' + global.config.version + '/pam/table/details', function (req, res) {
+    	pamListingService.getTableDetails(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+
 }
 ;
 module.exports = PamListingController;

@@ -1560,7 +1560,7 @@ function ActivityService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    if (err === false) {
+                    if (err === false) {``
                         if(activityTypeCategoryId != 9)
                             activtySearchListInsert(request);
                         
@@ -2425,7 +2425,8 @@ function ActivityService(objectCollection) {
                 }
 
                 //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
-                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53) {
+                // if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 31 || activityTypeCategroyId == 63) {
+                if([9,48,53,31,63].indexOf(activityTypeCategroyId) > -1){
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -5312,7 +5313,7 @@ function ActivityService(objectCollection) {
             return "Failure";
         }
 
-        return finalWorkflowData;
+        return [];
     }
 
     async function businessCaseTimelineEntry(request, fieldData) {
@@ -5457,6 +5458,8 @@ function ActivityService(objectCollection) {
         
 
         let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
+        activityTitleExpression = activityTitleExpression.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        activityTitleExpression = activityTitleExpression.split(' ').join('')
         console.log('receieved activityTitleExpression - ', activityTitleExpression);
 
         let newReq = Object.assign({}, request);

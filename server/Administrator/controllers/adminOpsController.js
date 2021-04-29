@@ -111,6 +111,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/organization/flags/alter', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.updateOrganizationFlags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/organization/flags/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
     // Create a new organization
     app.post('/' + global.config.version + '/admin/account/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createAccount(req.body);
@@ -501,7 +511,18 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-      
+     
+    //organization/form-tag/update
+    app.post('/' + global.config.version + '/organization/form-tag/update', async (req, res) => {
+        try {
+            let result = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            global.logger.write('conLog', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+     
     //Check Manager Details
     app.post('/' + global.config.version + '/admin/manager/assets/list', async (req, res) => {
         const [err, data] = await adminOpsService.checkManagerDetails(req.body);
@@ -840,6 +861,112 @@ function AdminOpsController(objCollection) {
         } else {
             console.log("/dottedmanager/access/account/check| Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    //--------------------------------------
+	//send broadcast messages.
+    app.post('/' + global.config.version + '/admin/send/broadcastmessage', async function (req, res) {
+        const [err, orgData] = await adminOpsService.messageBroadCast(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/send/broadcastmessage | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    
+    //--------------------------------------
+	//Select the list of broadcast messages.
+    app.post('/' + global.config.version + '/admin/broadcast/list', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getBroadCardList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    
+    //--------------------------------------
+	//Get the count who have read/unread the broadcast messages.
+    app.post('/' + global.config.version + '/admin/broadcast/asset/count', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getAssetCountWhoReadUnReadBroadMessage(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/asset/count | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+
+    //--------------------------------------
+    //Get the list of user(asset) who have read / unread the broadcast message.
+    app.post('/' + global.config.version + '/admin/broadcast/asset/list', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getListOfAssetsWhoReadUnReadBroadMessage(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/asset/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+
+    //--------------------------------------
+    //Update broadcast_flag_read for an asset.
+    app.post('/' + global.config.version + '/admin/broadcast/updateflag', async function (req, res) {
+        const [err, orgData] = await adminOpsService.updateBroadCastMessageFlagForEachAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/broadcast/updateflag | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    //--------------------------------------
+    //get All/Read/UnRead/Archive BroadCast Message For Asset
+    app.post('/' + global.config.version + '/admin/asset/broadcastlist', async function (req, res) {
+        const [err, orgData] = await adminOpsService.getAllReadUnReadArchiveBroadCastMessageForAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/asset/broadcastlist | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/asset/account/mapped/list', async function (req, res) {
+        const [err, accData] = await adminOpsService.getAdminAssetMappedList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/admin/asset/account/mapped/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/organization/form-tag/flag/update', async function (req, res) {
+        const [err, accData] = await adminOpsService.updateOrganizationFormTagFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/organization/form-tag/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/cognito/user/add', async function (req, res) {
+        const [err, orgData] = await adminOpsService.addUsersToCognitoManual(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/cognito/user/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 }

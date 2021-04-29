@@ -48,6 +48,7 @@ function BotService(objectCollection) {
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+    var hummus = require('hummus');
 
     const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
@@ -199,8 +200,17 @@ function BotService(objectCollection) {
                         request.log_asset_id,
                         request.log_datetime,
                     );
-
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
+                    const queryString = util.getQueryString('ds_p1_bot_list_insert', paramsArray);
+                    if (queryString != '') {
+                        await db.executeQueryPromise(0, queryString, request)
+                          .then((data)=>{
+                                results[0] = data;
+                            })
+                            .catch((err)=>{
+                                    return Promise.reject(err)
+                            });
+                    }
+               
 
                 paramsArray =
                     new Array(
@@ -365,7 +375,19 @@ function BotService(objectCollection) {
                     );
 
                 // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
-                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
+
+                const queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_insert', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                      .then((data)=>{
+                            //success block
+                            results[0] = data;
+                        })
+                        .catch((err)=>{
+                                return Promise.reject(error)
+                        });
+                }
 
                 if(request.bot_operation_type_id == 32) { // set a flag for the target field as prefill enabled for prefil bot
                     let inlineData = JSON.parse(request.bot_operation_inline_data);
@@ -2158,7 +2180,7 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                       // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2243,7 +2265,37 @@ function BotService(objectCollection) {
                             "error": error
                         });
                     }
-                    break;                
+                    break;    
+                    
+                    case 48 : // pdf_edit
+                    console.log('****************************************************************');
+                    console.log('pdf_edit');
+                    logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await editPDF(request, "");
+                    } catch (err) {
+                        logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
+                case 49: // Bulk Third Party Bot
+                    logger.silly("Bulk Third party opex Bot params received from request: %j", request);
+                    try {
+                        await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
+                    } catch (error) {
+                        logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
+
 
             }
 
@@ -2327,6 +2379,263 @@ function BotService(objectCollection) {
         }                                    
     });
    }
+
+  async function editPDF(request,bot_data){
+    request.debug_info.push("****ENTERED PDF EDIT BOT****");
+    console.log('sleeping for 9 secs')
+    await sleep(9000);
+    // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
+    
+    let pdfJson = {
+        mobility_json:{
+            "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/1102/5918/41535/2021/04/103/1618390937999/Proposal---SocGen---Mobility.pdf",
+            "fields":[
+               {
+                  "field_id":311062,
+                  "pdf_search_name":"viperiod",
+                  "sheet":6
+               },
+               {
+                  "field_id":311065,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311066,
+                  "pdf_search_name":"viplan",
+                  "sheet":6
+               },
+               {
+                  "field_id":311067,
+                  "pdf_search_name":"viaov",
+                  "sheet":6
+               },
+               {
+                  "field_id":311068,
+                  "pdf_search_name":"vitcv",
+                  "sheet":6
+               }
+            ]
+         },
+        feasibility_json:{"feasibility_feild_ids":[
+            311053,
+            311054,
+            311055,
+            311056,
+            311057,
+            311058,
+            311059,
+            311060
+         ],
+         "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/1102/5918/41535/2021/04/103/1618398697086/Proposal---SocGen---MPLS-L2.pdf",
+         "fields":[
+            {
+               "field_id":311070,
+               "pdf_search_name":"viplan",
+               "sheet":16
+            },
+            {
+               "field_id":311071,
+               "pdf_search_name":"viband",
+               "sheet":16
+            },
+            {
+               "field_id":311069,
+               "pdf_search_name":"viperiod",
+               "sheet":16
+            }
+         ]},
+        mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
+    };
+    
+    let isMobility = false;
+    request.debug_info.push("checking which type of form it is");
+    let product_name = "";
+
+    for(let i=0;i<pdfJson.mobility_feild_ids.length;i++){
+      let field_value =  await getFormFieldValue(request,pdfJson.mobility_feild_ids[i]);
+      if(field_value){
+          product_name = field_value;
+          isMobility=true;
+          request.debug_info.push("it is a mobility type form");
+      }
+    }
+    console.log("is mob",isMobility);
+
+    let pdf_edit_json = {}
+
+    if(isMobility){
+    pdf_edit_json = pdfJson.mobility_json;
+    }
+    else {
+    pdf_edit_json = pdfJson.feasibility_json;
+    for(let i=0;i<pdf_edit_json.feasibility_feild_ids.length;i++){
+        let field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.feasibility_feild_ids[i]);
+        if(field_value){
+            product_name = field_value;
+            
+            request.debug_info.push("it is a feasibility type form");
+        }
+    }
+    }
+    let pdf_url = pdf_edit_json.pdf_url;
+
+    let pdfFileName = await util.downloadS3Object(request, pdf_url);
+    let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
+    console.log(pdfPath,pdfFileName);
+    // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---MPLS-L2.pdf"
+    await sleep(2000)
+    request.debug_info.push("Product name ",product_name);
+
+    //getting accounts of asset
+    let [accerr,accountDetails] = await adminOpsService.getAdminAssetMappedList(request);
+    let accountName = accountDetails[0].activity_title;
+    request.debug_info.push("account name ",accountName);
+
+    //getting asset Details
+    const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+        organization_id: request.organization_id,
+        asset_id: request.asset_id
+    });
+    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+    request.debug_info.push("customer name ",customerName);
+
+   for(let i=0;i<pdf_edit_json.fields.length;i++){
+       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+      
+    let field_value = "";
+    if(isMobility){
+    field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    }
+    else{
+        field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.fields[i].field_id);
+    }
+    
+    if(field_value){
+        // console.log("came inside");
+        try{
+       await pdfreplaceText(pdfPath, pdfPath,pdf_edit_json.fields[i].sheet , pdf_edit_json.fields[i].pdf_search_name, field_value);
+      
+        }
+        catch(err){
+            console.log(err)
+        }
+    }
+   }
+   //adding account name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viaccna", accountName);
+
+   //adding customer name
+   await pdfreplaceText(pdfPath, pdfPath,2 , "viassetname", customerName);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,0 , "viprodhead", `Proposal for Product Name -${product_name}`);
+
+   //adding product name
+   await pdfreplaceText(pdfPath, pdfPath,isMobility?6:16 , "viprod", product_name);
+
+   //adding current date
+   let currentDate = (util.getCurrentDate()).toString();
+   await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
+
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
+    // let addCommentRequest = Object.assign(request, {});
+    let s3Url = pdfS3urlnew[1][0].location;
+    request.form_id = 50639;
+    request.activity_form_id = 50639
+    request.activity_inline_data = JSON.stringify([
+        {"form_id":50639,"field_id":"311124","field_name":"PDF Scan",
+        "field_data_type_id":51,"field_data_type_category_id":13,
+        "data_type_combo_id":0,"data_type_combo_value":"0",
+        "field_value":s3Url,
+        "message_unique_id":1618208278588}])
+    await submitFormV1(request);
+    // addCommentRequest.asset_id = 100;
+    // addCommentRequest.device_os_id = 7;
+    // addCommentRequest.activity_type_category_id = 48;
+    // addCommentRequest.activity_type_id = request.activity_type_id;
+    // addCommentRequest.activity_id = request.workflow_activity_id;
+    // addCommentRequest.activity_timeline_collection = JSON.stringify({
+    //     "content": `Tony has added attachment(s).`,
+    //     "subject": `Tony has added attachment(s).`,
+    //     "mail_body": `Tony has added attachment(s).`,
+    //     "attachments": [s3Url]
+    // });
+    // addCommentRequest.activity_stream_type_id = 325;
+    // addCommentRequest.timeline_stream_type_id = 325;
+    // addCommentRequest.activity_timeline_text = "";
+    // addCommentRequest.activity_access_role_id = 27;
+    // addCommentRequest.operating_asset_first_name = "TONY"
+    // addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    // addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    // addCommentRequest.flag_timeline_entry = 1;
+    // addCommentRequest.log_asset_id = 100;
+    // addCommentRequest.attachment_type_id = 17;
+    // addCommentRequest.attachment_type_name = path.basename(s3Url);
+
+    // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    // try {
+    //     await addTimelineTransactionAsync(addCommentRequest);
+    // } catch (error) {
+    //     console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+    //     throw new Error(error);
+    // }
+    fs.unlink(pdfPath,()=>{});
+    request.debug_info.push("****EXITED PDF EDIT BOT****");
+    return [false,[]]
+   }
+
+   function pdfstrToByteArray(str) {
+    var myBuffer = [];
+    var buffer = Buffer.from(str);
+    for (var i = 0; i < buffer.length; i++) {
+        myBuffer.push(buffer[i]);
+    }
+    return myBuffer;
+  }
+  
+  function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
+      console.log("in",pageNumber,findText,replaceText)
+      var writer = hummus.createWriterToModify(sourceFile, {
+          modifiedFilePath: targetFile
+      });
+      var sourceParser = writer.createPDFCopyingContextForModifiedFile().getSourceDocumentParser();
+      var pageObject = sourceParser.parsePage(Number(pageNumber));
+      var textObjectId = pageObject.getDictionary().toJSObject().Contents.getObjectID();
+      var textStream = sourceParser.queryDictionaryObject(pageObject.getDictionary(), 'Contents');
+      //read the original block of text data
+      var data = [];
+      var readStream = sourceParser.startReadingFromStream(textStream);
+      while(readStream.notEnded()){
+          Array.prototype.push.apply(data, readStream.read(10000));
+      }
+    //   console.log(findText)
+      var string = Buffer.from(data).toString();
+  for(let i =0;i<findText.length;i++){
+  var characters = findText;
+  var match = [];
+  for (var a = 0; a < characters.length; a++) {
+      match.push('(-?[0-9]+)?(\\()?' + characters[a] + '(\\))?');
+  }
+//   console.log("---",match)
+  string = string.replace(new RegExp(match.join('')), function(m, m1) {
+      // m1 holds the first item which is a space
+      return m1 + '( ' + replaceText + ')';
+  });
+}
+  
+      //Create and write our new text object
+      var objectsContext = writer.getObjectsContext();
+      objectsContext.startModifiedIndirectObject(textObjectId);
+  
+      var stream = objectsContext.startUnfilteredPDFStream();
+      stream.getWriteStream().write(pdfstrToByteArray(string));
+      objectsContext.endPDFStream(stream);
+  
+      objectsContext.endIndirectObject();
+  
+      writer.end();
+  }
 
    async function assetApprovalWorkflow(request,bot_data){
     let responseData = [];
@@ -2584,7 +2893,9 @@ function BotService(objectCollection) {
                 global.logger.write('conLog', type, {}, {});
                 request.debug_info.push('type: ' + type);
 
-                if(type.includes('static')){
+            //console.log('type[0]: ', type[0]);
+            //if(type[0] === 'flag_esms') {
+            if(type.includes('static')){
                     assetID = Number(inlineData[type[0]].asset_id);
                     console.log('STATIC - Asset ID : ', assetID);
                     request.debug_info.push('STATIC - Asset ID : '+ assetID);
@@ -2593,8 +2904,7 @@ function BotService(objectCollection) {
                     assetID = Number(request.asset_id);
                     console.log('from_request - Asset ID : ', assetID);
                     request.debug_info.push('from_request - Asset ID : '+ assetID);
-                }
-                else if(type.includes('asset_reference'))
+                } else if(type.includes('asset_reference'))
                 {
                     const formID = Number(inlineData["asset_reference"].form_id),
                     fieldID = Number(inlineData["asset_reference"].field_id);                      
@@ -2701,7 +3011,7 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function removeAsLead(request,workflowActivityID,leadAssetID)
+    async function removeAsLead(request,workflowActivityID, leadAssetID)
     {
         let newReq = {};
         newReq.organization_id = request.organization_id;
@@ -2767,6 +3077,7 @@ function BotService(objectCollection) {
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
 
+    
     }
 
 async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,creatorAssetID,leadAssetID){
@@ -3408,11 +3719,12 @@ async function removeAsOwner(request,data)  {
                 console.log('Number(request.device_os_id): ', Number(request.device_os_id));
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
-                    if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
-                    } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
-                        fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
-                    }    
+                    // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD MMM YYYY"); //Add 60 days to it
+                    // } else if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"YYYY-MM-DD"){
+                    //     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
+                    // }    
+                    fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60); //Add 60 days to it
                 } else if(Number(request.device_os_id) === 1) { //Android
                     //fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "DD-MM-YYYY"); //Add 60 days to it    
                     fridExpiryDate = util.addDaysToGivenDate((reqActivityInlineData[i].field_value).toString(), 60, "YYYY-MM-DD"); //Add 60 days to it
@@ -4829,6 +5141,8 @@ async function removeAsOwner(request,data)  {
                     createTargetFormRequest.activity_flag_created_by_bot = 1;
                 }
 
+                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.workflow_activity_id : 0;
+                
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
                 } catch (error) {
@@ -4904,7 +5218,7 @@ async function removeAsOwner(request,data)  {
         createTargetFormRequest.activity_status_type_id = 22;
         createTargetFormRequest.asset_participant_access_id = 21;
         createTargetFormRequest.activity_flag_file_enabled = -1;
-        createTargetFormRequest.activity_parent_id = 0;
+        createTargetFormRequest.activity_parent_id = createTargetFormRequest.start_workflow_activity_parent_id || 0;
         createTargetFormRequest.flag_pin = 0;
         createTargetFormRequest.flag_offline = 0;
         createTargetFormRequest.flag_retry = 0;
@@ -4929,7 +5243,7 @@ async function removeAsOwner(request,data)  {
             workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
             workflowFile705Request.activity_type_category_id = 48;
             workflowFile705Request.activity_stream_type_id = 705;
-            workflowFile705Request.flag_timeline_entry = 1;
+            workflowFile705Request.flag_timeline_entry = 0;
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
@@ -5017,6 +5331,8 @@ async function removeAsOwner(request,data)  {
         switch (fieldDataTypeID) {
             case 1: // Date
                 return 'data_entity_datetime_2';
+            case 2 : // date only
+                return 'data_entity_date_1';
             case 71: 
             case 5: // Number
                 return 'data_entity_bigint_1';
@@ -6513,6 +6829,11 @@ async function removeAsOwner(request,data)  {
                     request.debug_info.push("request.is_owner : "+request.is_owner);
                     request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
 
+                    const dataResp = await getAssetDetails({
+                        "organization_id": request.organization_id,
+                        "asset_id": request.asset_id
+                    });
+
                     logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
                         console.log('Inside IF');
@@ -6529,22 +6850,27 @@ async function removeAsOwner(request,data)  {
                         await rmBotService.activityListLeadUpdateV2(newReq, Number(assetData.desk_asset_id));
 
                         //Get the asset Details of the requestor
-                        const dataResp = await getAssetDetails({
-                            "organization_id": request.organization_id,
-                            "asset_id": request.asset_id
-                        });
+                        
 
                         let requestAssetName = 'Tony';
                         if(dataResp.length > 0) {
-                            requestorAssetData = dataResp[0];
+                           let requestorAssetData = dataResp[0];
                             requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                         }
+                        
+                        let contentText = `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`;
 
+                        if(request.asset_id == assetData.desk_asset_id){
+                          contentText = `${assetData.first_name} has made as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         //Add a timeline entry
                         let activityTimelineCollection =  JSON.stringify({                            
-                            "content": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${requestAssetName} assigned ${assetData.first_name} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6573,17 +6899,29 @@ async function removeAsOwner(request,data)  {
                         }
                         await activityCommonService.setAtivityOwnerFlag(params);
 
-                        // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
+                        // const [log_error1, log_assetData1] = await activityCommonService.getAssetDetailsAsync({
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                          let requestorAssetData = dataResp[0];
+                            logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                        }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                       contentText = `${assetData.first_name} has made as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
 
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
+                        // if()
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -6618,12 +6956,22 @@ async function removeAsOwner(request,data)  {
                         //     asset_id: request.asset_id
                         // });
                         let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        if(dataResp.length > 0) {
+                            let requestorAssetData = dataResp[0];
+                              logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
+                          }
                         // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
-
+                        let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`;
+                        if(request.asset_id == assetData.desk_asset_id){
+                        contentText = `${assetData.first_name} has made as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`
+                        }
+                        request.debug_info.push('Assigner asset data length : '+dataResp.length);
+                        request.debug_info.push('Target asset_id and assigner asset_id : ' +request.asset_id + assetData.desk_asset_id)
+                        request.debug_info.push('Text added to timeline : '+contentText)
                         let activityTimelineCollection =  JSON.stringify({
-                            "content": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "content": contentText,
                             "subject": `Note - ${util.getCurrentDate()}.`,
-                            "mail_body": `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                            "mail_body": contentText,
                             "activity_reference": [],
                             "asset_reference": [],
                             "attachments": [],
@@ -9306,7 +9654,9 @@ async function removeAsOwner(request,data)  {
         await sleep(2000);
         const MAX_ORDERS_TO_BE_PARSED = 100;
         const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
-
+        const formId = request.form_id || request.trigger_form_id || 0;
+        const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
+        logger.silly("product selected: %j",productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
@@ -9485,6 +9835,7 @@ async function removeAsOwner(request,data)  {
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
         let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
         let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
+        let errorMessageForInvalidProduct = "Invalid product selected in:\n";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
@@ -9492,6 +9843,7 @@ async function removeAsOwner(request,data)  {
         let nonAsciiErroFound = false;
         let invalidValueFound = false;
         let charlimitExceeded = false;
+        let invalidProductSelected = false;
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
@@ -9514,6 +9866,11 @@ async function removeAsOwner(request,data)  {
             let lastMileName = childOpportunity.LastMileName || "";
             let rejectionRemarks = childOpportunity.RejectionRemarks || "";
             let reasonForCloning = childOpportunity.ReasonForCloning || "";
+
+            if (productTypeFromForm !== serviceType) {
+                invalidProductSelected = true;
+                errorMessageForInvalidProduct += `Invalid Product "${serviceType}" selected instead of "${productTypeFromForm}" in Row ${i + 1}\n`;
+            }
 
             if (linkType === "Secondary" && (serviceType === "SuperWiFi" || serviceType === "NPLC" || serviceType === "IPLC" || serviceType === "MPLS-L2")) {
                 unsupportedProductForSecondaryFound = true;
@@ -9624,13 +9981,14 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
             if (invalidValueFound) { formattedTimelineMessage += errorMessageForInvalidValue }
             if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
             if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
+            if (invalidProductSelected) { formattedTimelineMessage += errorMessageForInvalidProduct }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -10431,6 +10789,33 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : larger DOA : resultProductAndRequestType----" + resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
 
+        let planConfig = {}, activityDetails = '', activityTypeId = '';
+
+        let requestInlineData = JSON.parse(request.activity_inline_data)
+        for(let row of requestInlineData) {
+            if(parseInt(row.field_id) == 225020) {
+                planConfig = row;
+            }
+
+            if(parseInt(row.field_id) == 218728) {
+                activityDetails = row.field_value;
+            }
+        }
+
+        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
+        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
+
+        if(activityTypeDetails.length) {
+            activityTypeId = activityTypeDetails[0].activity_type_id;
+        } else {
+            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
+        }
+
+        if(activityTypeId == '149752') {
+            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
+            return;            
+        }
+
         let formInputToProcess, connectionTypeValue, capexValue, opexValue;
 
         if(resultProductAndRequestType.productMatchFlag == 3 &&
@@ -10619,33 +11004,6 @@ async function removeAsOwner(request,data)  {
             // return;
         }
         //need timeline entry
-        let planConfig = {}, activityDetails = '', activityTypeId = '';
-
-        let requestInlineData = JSON.parse(request.activity_inline_data)
-        for(let row of requestInlineData) {
-            if(parseInt(row.field_id) == 225020) {
-                planConfig = row;
-            }
-
-            if(parseInt(row.field_id) == 218728) {
-                activityDetails = row.field_value;
-            }
-        }
-
-        logger.info(request.workflow_activity_id+" : larger DOA : activityDetails----"+ JSON.stringify(activityDetails));
-        let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
-
-        if(activityTypeDetails.length) {
-            activityTypeId = activityTypeDetails[0].activity_type_id;
-            // return;
-        } else {
-            logger.info(request.workflow_activity_id+" : larger DOA : activityTypeDetails found empty");
-        }
-
-        if(activityTypeId == '149752') {
-            logger.info(request.workflow_activity_id +" : larger DOA : activityTypeDetails found "+ activityTypeId + " so going to wintogether");
-            return;            
-        }
 
         let fieldValue = parseInt(planConfig.data_type_combo_id) == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
         logger.info(request.workflow_activity_id+" : larger DOA : Will be assigned to the required team");
@@ -13385,6 +13743,66 @@ async function removeAsOwner(request,data)  {
         return fieldValue;
     }
 
+
+    async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
+        console.log(' ');
+        console.log('*************************');
+        console.log('request.form_id - ', request.form_id);
+        console.log('formID - ', formID);
+        console.log('fieldID - ', fieldID);
+
+        let fieldValue = "";
+        let formData;
+      
+            // console.log(request.form_id,formID)
+        //Based on the workflow Activity Id - Fetch the latest entry from 713
+        if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+          try{
+            formData = await getFormInlineData({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workflow_activity_id: request.workflow_activity_id,
+                form_id: formID
+            },2);
+        }
+        catch(err){
+            formData=[]
+        }
+
+        } else {
+            //Take the inline data from the request
+            formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+        }    
+
+        // console.log('formData - ', formData);
+
+        for(const fieldData of formData) {
+            
+            if(Number(fieldData.field_id) === fieldID) {
+               
+                console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
+                switch(Number(fieldData.field_data_type_id)) {
+                    //Need Single selection and Drop Down
+                    //circle/ state
+
+                    case 57: //Account
+                        fieldValue = fieldData.field_value;
+                        fieldValue = fieldValue.split('|')[1];
+                        break;
+                    //case 68: break;
+                    default: fieldValue = fieldData.field_value;
+                }
+                break;
+            }
+        }
+    
+        console.log('Field Value B4: ',fieldValue);
+        fieldValue = fieldValue.split(" ").join("");
+        console.log('Field Value After: ',fieldValue);
+        console.log('*************************');
+        return fieldValue;
+    }
+
     async function bulkCreateSRBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
@@ -13694,6 +14112,109 @@ async function removeAsOwner(request,data)  {
         }
     }
 
+
+    // Create Activity Service
+    async function submitFormV1(request) {
+        const activityID = await cacheWrapper.getActivityIdPromise();
+        const formTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        let activityTimelineCollection =  JSON.stringify({
+            "content": `Form Submitted`,
+            "subject": `Proposal Form`,
+            "mail_body": `Proposal Form`,
+            "activity_reference": [],
+            "form_id" : 50639,
+            "form_submitted" : JSON.parse(request.activity_inline_data),
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+        const addActivityRequest = {
+            "organization_id":request.organization_id,
+            "account_id":request.account_id,
+            "workforce_id":request.workforce_id,
+            "asset_id":request.asset_id,
+            auth_asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            "asset_message_counter":0,
+            "activity_title":"Proposal Form",
+            "activity_description":"Adding Pdf",
+            //"activity_inline_data":"[{\"form_id\":50639,\"field_id\":\"311124\",\"field_name\":\"PDF Scan\",\"field_data_type_id\":51,\"field_data_type_category_id\":13,\"data_type_combo_id\":0,\"data_type_combo_value\":\"0\",\"field_value\":\"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/1102/5918/41535/2021/04/103/1618208142138/2021049-21549985.pdf\",\"message_unique_id\":1618208278588}]",
+            "activity_inline_data":request.activity_inline_data,
+            "activity_participant_collection":request.activity_participant_collection||"",
+            "activity_datetime_start":util.getCurrentUTCTime(),
+            "activity_datetime_end":util.getCurrentUTCTime(),
+            "activity_type_category_id":9,
+            "activity_sub_type_id":0,
+            "activity_id":activityID,
+            "activity_type_id":187495,
+            "activity_access_role_id":21,
+            "activity_status_id":381939,
+            "activity_status_type_category_id":1,
+            "activity_status_type_id":22,
+            "asset_participant_access_id":21,
+            "activity_flag_file_enabled":1,
+            "activity_parent_id":0,
+            "activity_form_id":50639,
+            "flag_pin":0,
+            "flag_offline":0,
+            "flag_retry":0,
+            "message_unique_id":util.getMessageUniqueId(31993),
+            "track_latitude":"0.0",
+            "track_longitude":"0.0",
+            "track_altitude":0,
+            "track_gps_datetime":util.getCurrentUTCTime(),
+            "track_gps_accuracy":"0",
+            "track_gps_status":0,
+            "service_version":1,
+            "app_version":1,
+            "api_version":1,
+            "device_os_id":5,
+            "activity_stream_type_id":705,
+            "activity_parent_id":request.workflow_activity_id,
+            "parent_activity_id":request.workflow_activity_id,
+            "form_transaction_id":formTransactionID,
+            "form_id":request.form_id,
+            "activity_timeline_collection":activityTimelineCollection,
+            "data_entity_inline":request.activity_inline_data,
+            "activity_timeline_text":"",
+            "activity_timeline_url":"",
+            "flag_timeline_entry":1,
+            "file_activity_id":0,
+            "workflow_activity_id":request.workflow_activity_id,
+            "is_mytony":1,
+            "is_refill":0,
+            "expression":"",
+            url: "/r1/activity/add/v1",
+            
+        };
+        console.log(JSON.stringify(addActivityRequest))
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        await addActivityAsync(addActivityRequest);
+        // console.log('xdxd',xx);
+        // let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityID);
+        // console.log('act det',wfActivityDetails)
+      
+            const childWorkflow705Request = Object.assign({}, addActivityRequest);
+            childWorkflow705Request.activity_id = request.workflow_activity_id;
+            childWorkflow705Request.data_activity_id = activityID;
+            childWorkflow705Request.data_form_transaction_id =formTransactionID;
+            childWorkflow705Request.activity_type_category_id = 48;
+            childWorkflow705Request.message_unique_id = util.getMessageUniqueId(31993);
+            childWorkflow705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            childWorkflow705Request.device_os_id = 5;
+            childWorkflow705Request.auth_asset_id = 100;
+            childWorkflow705Request.asset_token_auth = "54188fa0-f904-11e6-b140-abfd0c7973d9";
+            childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
+            childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
+            // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
+            console.log("timeline entry",childWorkflow705Request)
+            // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            // await addTimelineTransactionAsync(childWorkflow705Request);
+            
+             activityTimelineService.addTimelineTransactionAsync(childWorkflow705Request);
+             return [false,[]]
+}
+
     async function insertSqsStatus(request) {
         let responseData = 0,
         error = true;
@@ -13726,6 +14247,293 @@ async function removeAsOwner(request,data)  {
         logger.info(request.workflow_activity_id+" : excel bot log inserted");
       return [false,responseData]
     };
+
+    async function bulkThirdPartyOpexBot(request, formInlineDataMap = new Map(), botOperationInlineData = {}) {
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityCategoryTypeID = 0,
+            workflowActivityTypeID = 0,
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0,
+            opportunityID = "",
+            esmsIntegrationsTopicName = "";
+
+        const triggerFormID = request.trigger_form_id,
+            // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0,
+            primaryRequestFormId = botOperationInlineData.bulk_upload.primary_form_id || 0,
+            primaryRequestFieldId = botOperationInlineData.bulk_upload.primary_field_id || 0,
+            seconadryRequestFormId = botOperationInlineData.bulk_upload.secondary_form_id || 0,
+            seconadryRequestFieldId = botOperationInlineData.bulk_upload.secondary_field_id || 0;
+
+
+        switch (global.mode) {
+            case "local":
+                esmsIntegrationsTopicName = "local-BulkThirdPartyOpex-request-topic-v1"
+                break;
+
+            // case "staging":
+            case "preprod":
+                esmsIntegrationsTopicName = "staging-BulkThirdPartyOpex-request-topic-v2"
+                break;
+
+            case "prod":
+            case "production":
+                esmsIntegrationsTopicName = "production-BulkThirdPartyOpex-request-topic-v1"
+                break;
+        }
+
+        let workflowActivityData;
+
+        try {
+            workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                opportunityID = workflowActivityData[0].activity_cuid_1;
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for Create SR");
+        }
+
+        // Fetch the bulk upload excel's S3 URL
+        const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, bulkUploadFormID);
+
+
+        if (Number(bulkUploadFormData.length) > 0) {
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+        }
+
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            throw new Error("Form to Third party opex is not submitted");
+        }
+
+        // Fetch the excel URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
+            organization_id: request.organization_id
+        });
+
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
+        }
+
+        // Get the details of child orders.
+        const [errorZero, childOpportunitiesData] = await activityListSelectChildOrders({
+            organization_id: request.organization_id,
+            parent_activity_id: workflowActivityID
+        });
+
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
+
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
+
+        const headersArray = ["SerialNo", "currentBusinessFR", "thirdPartyFR"];
+        const mandatoryHeaders = ["SerialNo", "currentBusinessFR"];
+        const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            for (const [key, value] of Object.entries(row)) {
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
+                }
+            }
+        }
+
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
+                }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
+
+        // PreProcessing Stage 1
+        let errorMessage = "";
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            console.log(`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
+            let errorFoundForAnyColumn = false;
+            for (const header of mandatoryHeaders) {
+                if (row[header] == undefined || row[header] === "") {
+                    errorFoundForAnyColumn = true;
+                    errorMessage += `${header} is empty in row ${i + 1} \n`;
+                }
+            }
+
+            console.log(row);
+            if (!errorFoundForAnyColumn) {
+                if (childOpportunitiesData.length > 0) {
+                    let fridFound = false;
+                    let fridtype = "";
+                    let childActivityId = 0;
+                    for (const childOpty of childOpportunitiesData) {
+                        console.log(childOpty);
+                        if (
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
+                        ) {
+                            fridtype = String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                            fridFound = true;
+                            childActivityId = childOpty.activity_id;
+                            break;
+                        }
+                    }
+                    if (fridFound) {
+                        row["fridType"] = fridtype;
+                        row["activityId"] = childActivityId;
+                        if (fridtype === "PRIMARY") {
+                            row["formId"] = primaryRequestFormId;
+                            row["fieldId"] = primaryRequestFieldId;
+                        } else {
+                            row["formId"] = seconadryRequestFormId;
+                            row["fieldId"] = seconadryRequestFieldId;
+                        }
+                    } else {
+                        errorFoundForAnyColumn = true;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
+                    }
+                } else {
+                    let fridFound = false;
+                    if (
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
+                    ) {
+                        fridFound = true;
+                    }
+                    if (fridFound) {
+                        row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                        row["activityId"] = workflowActivityID;
+                        if (row["fridType"] === "PRIMARY") {
+                            row["formId"] = primaryRequestFormId;
+                            row["fieldId"] = primaryRequestFieldId;
+                        } else {
+                            row["formId"] = seconadryRequestFormId;
+                            row["fieldId"] = seconadryRequestFieldId;
+                        }
+                    } else {
+                        errorFoundForAnyColumn = true;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
+                    }
+                }
+            }
+        }
+
+        if (errorMessage !== "") {
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the CreateSR excel',
+                    content: errorMessage,
+                    mail_body: errorMessage,
+                    attachments: []
+                }
+            );
+
+            throw new Error("ErrorsFoundWhileProcessingBulkThirdPartyOpex");
+        }
+
+        for (let i = 1; i < excelRows.length; i++) {
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: Number(triggerFormID),
+                form_transaction_id: Number(request.form_transaction_id),
+                payload: {
+                    workflow_activity_id: request.workflow_activity_id,
+                    account_id: request.account_id,
+                    frid_details: excelRows[i]
+                }
+            }, esmsIntegrationsTopicName, Number(workflowActivityID));
+        }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
+
+        return;
+    }
+
+    async function activityListSelectChildOrders(request) {
+        // IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+        // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+        // IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.parent_activity_id,
+            request.flag || 1,
+            request.sort_flag,
+            request.datetime_start || '1970-01-01 00:00:00',
+            request.datetime_end || util.getCurrentUTCTime(),
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_child_orders', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 

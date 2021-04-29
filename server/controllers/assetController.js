@@ -853,6 +853,15 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/access/levels/list/v3', async function (req, res) {
+        const [err, data] = await assetService.assetReportAccessMapping(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/activity/asset-reference/list', async function (req, res) {
         const [err, data] = await assetService.getActivityAssetReferenceList(req.body);
         if (err) {
@@ -964,6 +973,27 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/leave/reset', async (req, res) => {        
 
         let [err,result] = await assetService.assetLeaveMappingDelete(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });     
+    //--------------------------------------
+    //Get the read / unread counts of the broadcast messages of an asset.
+    app.post('/' + global.config.version + '/asset/broadcast/counts', async function (req, res) {
+        const [err, orgData] = await assetService.getReadUnReadBroadMessageCount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/asset/broadcast/counts | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });        
+    
+    app.post('/' + global.config.version + '/asset/org/mgmt/flag/set', async (req, res) => {        
+
+        let [err,result] = await assetService.assetListUpdateFlagOrganizationMgmt(req.body);
         if(!err){
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } else {

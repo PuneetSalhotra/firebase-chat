@@ -1420,6 +1420,30 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.tagEntityMappingTagSelect = async function (request) {
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.tag_type_id,
+            request.cluster_tag_id,
+            request.page_start || 0,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_tag_entity_mapping_select_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
     this.tagTypeTagMappingSelect = async function (request) {
         let responseData = [],
             error = true;
@@ -1836,7 +1860,6 @@ function AdminListingService(objectCollection) {
         return [error, workflowFormsData];
     }  
 
-
     this.getLovDatatypeListV1 = async (request) => {
         //2001 VIL - Account Type
         //2002 VIL - Corporate Class
@@ -1875,6 +1898,37 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getStateAndCircleBasedOnCity = async (request) => {
+
+        // flag = 1, Get state from city 
+        // flag = 2, Get circle from city 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [              
+            request.type_id,
+            request.entity_id,
+            request.search_string || '',
+            request.flag || 1,
+            request.page_start || 0,
+            request.page_limit || 50
+        ];
+
+        const queryString = util.getQueryString('ds_p1_lov_list_select_dependent', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+    
     this.setSuperAdminFlag = async (request) => {
 
         let responseData = [],
@@ -1948,7 +2002,57 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }  
-        
+    
+    async function updateTagEntityMapping(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_id, 
+            request.tag_type_id, 
+            request.tag_type_category_id, 
+            request.tag_activity_type_id, 
+            request.tag_asset_id, 
+            request.log_asset_id, 
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_update_activity_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }  
+
+    this.updateTagEntitiesMapping = async (request) => {
+        try {
+            try {
+                request.tag_activity_type_ids = JSON.parse(request.tag_activity_type_ids);
+            } catch(e) {
+                console.log("Error while parsing tag_activity_type_ids");
+            }
+
+            for(let tagActivityTypeId of request.tag_activity_type_ids) {
+                request.tag_activity_type_id = tagActivityTypeId;
+                let [error, response] = await updateTagEntityMapping(request);
+
+                if(error) {
+                    return [error, response];
+                }
+            }
+
+            return [false, []];
+        } catch(e) {
+            console.log("Error updateTagEntitiesMapping", e, e.stack);
+        }
+    }
 }
 
 module.exports = AdminListingService;
