@@ -119,7 +119,7 @@ function AdminOpsService(objectCollection) {
             request.flag_ent_features,
             request.flag_ai_bot,
             request.flag_manager_proxy,
-            request.flag_enable_form_tag,
+            request.flag_form_tag,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );

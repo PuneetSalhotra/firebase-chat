@@ -134,10 +134,9 @@ function AssetService(objectCollection) {
         var organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
-        //TODO : flag value should be configured. 
-        var flag = 1;
-
-        if(flag == 1) {
+        let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
+        if('1' === phoneNumverValidationFlag) {
+            console.log("validate using module awesome-phoneNumber");
             var pn = new awesomePhoneNumber(phoneNumber);
             if(pn !== undefined && pn !== null) {
                 const isValidNumber = pn.isValid();
@@ -150,9 +149,8 @@ function AssetService(objectCollection) {
                     countryCode = undefined;
                 }
             }
-        } 
-
-        if((phoneNumber === undefined || phoneNumber === NaN)  || countryCode === undefined) {
+        } else {
+            console.log("validate using core logic");
             phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
             countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
             
@@ -883,6 +881,11 @@ function AssetService(objectCollection) {
             "asset_flag_organization_management":util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_management']),
             "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
             "organization_flag_enable_form_tag" :util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_form_tag']),
+            "asset_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['asset_flag_arp_settings_enabled']),
+            "asset_arp_data":util.replaceDefaultNumber(rowArray[0]['asset_arp_data']),
+            "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
+            "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
+            "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
         };
 
         callback(false, rowData);
