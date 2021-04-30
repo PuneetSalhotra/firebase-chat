@@ -1,0 +1,63 @@
+const ArpService = require("../services/arpService");
+
+function ArpController(objCollection) {
+
+    const responseWrapper = objCollection.responseWrapper;
+    const app = objCollection.app;
+    const util = objCollection.util;
+    const arpService = new ArpService(objCollection);
+    // const activityCommonService = objCollection.activityCommonService;
+
+    app.post('/' + global.config.version + '/arp/asset/setting/flag/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateAssetFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/asset/setting/flag/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/arp/asset/inline/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateAssetBusinessHours(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/asset/inline/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/arp/workforce/setting/flag/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateFloorLevelFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/workforce/setting/flag/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/arp/workforce/inline/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateAssetBusinessHours(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/workforce/inline/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/arp/account/inline/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateFloorLevelFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/account/inline/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+}
+
+module.exports = ArpController;

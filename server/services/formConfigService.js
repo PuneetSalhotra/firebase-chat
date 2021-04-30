@@ -6497,8 +6497,8 @@ function FormConfigService(objCollection) {
 
         try {
             
-            if(request.level_flag == 1) {
-                request.flag_tag_enabled = 1;
+            if(request.level_flag >0) {
+                // request.flag_tag_enabled = 1;
                 let [error, res] = await fetchMappingTagsBasedOnFlag(request);
                 if(error) {
                    return  [error, []]
@@ -6524,8 +6524,8 @@ function FormConfigService(objCollection) {
 
                 return  [
                     error, [{
-                        forms : [],
-                        tags : res
+                        forms : res,
+                        tags : []
                     }]]
 
             }
@@ -6548,7 +6548,7 @@ function FormConfigService(objCollection) {
                 request.tag_id,
                 request.flag_tag_enabled || 0,
                 request.flag || 0,
-                request.level_flag || 1,
+                request.level_flag || 0,
                 request.page_start || 0,
                 request.page_limit || 100
             ];
