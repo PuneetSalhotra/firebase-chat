@@ -58,6 +58,16 @@ function ArpController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/arp/persistant/flag/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateFlagPersistRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/persistant/flag/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = ArpController;
