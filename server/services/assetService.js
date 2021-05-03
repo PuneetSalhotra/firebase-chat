@@ -127,29 +127,43 @@ function AssetService(objectCollection) {
 
         console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
 
-        var phoneNumber = request.asset_phone_number;
-        var countryCode = undefined;
-        var emailId = request.asset_email_id;
-        var verificationMethod = Number(request.verification_method);
-        var organizationId = request.organization_id;
+        let phoneNumber = request.asset_phone_number;
+        let countryCode = undefined;
+        let emailId = request.asset_email_id;
+        let verificationMethod = Number(request.verification_method);
+        let organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
 
         let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
         if('1' === phoneNumverValidationFlag) {
             console.log("validate using module awesome-phoneNumber");
-            var pn = new awesomePhoneNumber(phoneNumber);
+            let pn = null;
+            try{
+                pn = new awesomePhoneNumber(phoneNumber);
+            }catch(e){
+                pn = null;
+                phoneNumber = NaN;
+                countryCode = NaN;
+                request.asset_phone_country_code = NaN;
+                console.log("Exception in Phone Number Validation "+phoneNumber);
+            }
             if(pn !== undefined && pn !== null) {
                 const isValidNumber = pn.isValid();
                 console.log("isValid PhoneNumber = " + isValidNumber);
                 if(isValidNumber) {
                     phoneNumber = pn.getNumber('significant');
                     countryCode = pn.getCountryCode();
+                    request.asset_phone_country_code = countryCode;
                 } else {
                     phoneNumber = undefined;
                     countryCode = undefined;
                 }
+            }else{
+                console.log("Incorrect Phone Number");
             }
+
         } else {
+
             console.log("validate using core logic");
             phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
             countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
@@ -385,9 +399,11 @@ function AssetService(objectCollection) {
             // IN p_phone_number VARCHAR(50), IN p_phone_country_code SMALLINT(6), 
             // IN p_phone_passcode VARCHAR(20), IN p_phone_passcode_generation_datetime DATETIME, 
             // IN p_phone_passcode_expiry_datetime DATETIME
+
+            console.log(JSON.stringify(request, null, 2));
             var paramsArr = new Array(
                 phoneNumber,
-                util.cleanPhoneNumber(request.asset_phone_country_code),
+                util.cleanPhoneNumber(request.asset_phone_country_code),  
                 verificationCode,
                 util.getCurrentUTCTime(),
                 moment().utc().add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'), // util.getCurrentUTCTime(),
