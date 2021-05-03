@@ -6508,18 +6508,23 @@ function FormConfigService(objCollection) {
                         tags : []
                     }]]
                 }
-                // request.flag_tag_enabled = 1;
-                let [error, res] = await fetchMappingTagsBasedOnFlag(request);
+                
+                let [error, res] = await fetchMappingTagsBasedOnFlag({...request,flag_tag_enabled:1});
                 if(error) {
                    return  [error, []]
                 }
-                // request.flag_tag_enabled = 0;
-                let [error1, res1] = await fetchMappingTagsBasedOnFlag(request);
+                
+                let [error1, res1] = await fetchMappingTagsBasedOnFlag({...request,flag_tag_enabled:0});
 
                 if(error1) {
                     return  [error1, []]
                  }
-
+               if(request.flag_tag_enabled==1&&request.level_flag==1){
+                return [false, [{
+                    forms : res1,
+                    tag_types : res
+                }]]
+               }
                  return [false, [{
                      forms : res1,
                      tags : res
