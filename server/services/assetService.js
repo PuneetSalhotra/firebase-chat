@@ -139,12 +139,13 @@ function AssetService(objectCollection) {
             console.log("validate using module awesome-phoneNumber");
             let pn = null;
             try{
+                if(phoneNumber.length > 5)
                 pn = new awesomePhoneNumber(phoneNumber);
             }catch(e){
                 pn = null;
-                phoneNumber = NaN;
-                countryCode = NaN;
-                request.asset_phone_country_code = NaN;
+               // phoneNumber = NaN;
+               // countryCode = NaN;
+               // request.asset_phone_country_code = NaN;
                 console.log("Exception in Phone Number Validation "+phoneNumber);
             }
             if(pn !== undefined && pn !== null) {
