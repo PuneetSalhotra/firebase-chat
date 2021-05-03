@@ -5417,11 +5417,12 @@ async function removeAsOwner(request,data)  {
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
             logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
-
+            request.debug_info.push(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
             logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
+            request.debug_info.push(request.workflow_activity_id + " : addParticipant : resp : " + resp.length);
             if (resp.length > 0) {
                 newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
                 newReq.phone_number = String(resp[0].data_entity_text_1);
@@ -5441,18 +5442,22 @@ async function removeAsOwner(request,data)  {
                         newReq.country_code = phone[0]; //country code
                         newReq.phone_number = phone[1]; //phone number                      
                     }
+                    request.debug_info.push('Grab the name : i.form_id : newReq.form_id '+i.form_id+' '+newReq.form_id);
+                    request.debug_info.push('Grab the name : i.field_id : newReq.name_field_id '+i.field_id+' '+newReq.name_field_id);
                     // Grab the name
                     if (
                         Number(i.form_id) === Number(newReq.form_id) &&
                         Number(i.field_id) === Number(newReq.name_field_id)
                     ) {
+                        request.debug_info.push('Grab the name : '+i.field_value);
                         newReq.customer_name = i.field_value;
                         console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
                         request.debug_info.push('BotEngine | addParticipant | From Form | newReq.customer_name: ' +  newReq.customer_name);
                     }
                 }
             }
-
+            request.debug_info.push('End of Dynamic : Country Code : '+newReq.country_code);
+            request.debug_info.push('End of Dynamic : PhoneNumber : '+newReq.phone_number);
             logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
 
         } else if (type[0] === 'asset_reference') {
@@ -5481,18 +5486,22 @@ async function removeAsOwner(request,data)  {
                 // newReq.customer_name = fieldValue[1]
 
             } else {
+                request.debug_info.push('ELSE !formInlineDataMap.has(fieldID)');
                 const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
                     account_id: request.account_id
                 }, workflowActivityID, formID);
 
+                request.debug_info.push('formData : '+formData.length);
+
                 if (Number(formData.length) > 0) {
                     formTransactionID = Number(formData[0].data_form_transaction_id);
                     formActivityID = Number(formData[0].data_activity_id);
                 }
+                request.debug_info.push('formTransactionID : '+formTransactionID+ "formActivityID : "+formActivityID);
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 //&&
+                    //Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
@@ -5508,6 +5517,8 @@ async function removeAsOwner(request,data)  {
                     console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
                     request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
                     request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
+                }else{
+                    request.debug_info.push('formTransactionID is not valid : ' +  formTransactionID);
                 }
             }
 
@@ -10705,8 +10716,8 @@ async function removeAsOwner(request,data)  {
                     formActivityID = Number(formData[0].data_activity_id);
                 }
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 //&&
+                    //Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
