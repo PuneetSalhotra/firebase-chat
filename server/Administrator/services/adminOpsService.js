@@ -893,7 +893,7 @@ function AdminOpsService(objectCollection) {
             request.contact_phone_country_code || 0,
             request.contact_phone_number || 0,
             request.contact_email || '',
-            request.org_enterprise_feature_data || '{}',
+            request.enterprise_feature_data || '{}',
             request.flag_email || 0,
             request.flag_doc_repo || 0,
             request.flag_ent_features || 0,
