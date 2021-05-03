@@ -6325,7 +6325,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.organization_id,
                 request.tag_type_category_id,
                 request.tag_type_id,
-                request.tag_id,
+                request.cluster_tag_id,
                 request.page_start || 0,
                 request.page_limit
             );

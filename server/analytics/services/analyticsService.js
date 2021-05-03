@@ -3406,11 +3406,25 @@ function AnalyticsService(objectCollection)
                     {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
                     {key:"activity_types",value:"activity_type_id",access_level_id:8}
                 ];
+                let err1 = true, data = [];
                 for(let i = 0 ; i < loopData.length; i++){
                     loopBase = JSON.parse(request[loopData[i].key]);
                     loopKey = loopData[i].value;
                     request.access_level_id = loopData[i].access_level_id;
-                    let [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                    if(request.access_level_id == 2){
+                        if(loopBase.length == 1 && loopBase[0] == 0){
+                            let clusterArray = JSON.parse(request.cluster_tags);
+                            for(let k = 0; k < clusterArray.length; k++){
+                                request.cluster_tag_id = clusterArray[k];
+                                [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                            }
+                        }else{
+                            [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                        }
+                    }else{
+                        [err1,data] = await self.assetAccessLevelLoop(loopBase,loopKey,request);
+                    }
+                    
                     if(err1){
                         error = err1;
                     } else {
