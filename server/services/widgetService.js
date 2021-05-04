@@ -817,23 +817,23 @@ function WidgetService(objCollection) {
                     switch(i) {
                         case -2: resp.key = 'po_order_documents_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O to Order Documents';                                
+                                resp.label = result[0].label;                                
                                 response.push(resp);
                                 break;                                    
                         case -1: resp.key = 'order_docs_order_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'Order Documents to Order Logged';                                
+                                resp.label = result[0].label;                             
                                 response.push(resp);
                                 break;                             
                                     
                         case 1: resp.key = 'po_order_submission_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O to Order Submission';                                
+                                resp.label = result[0].label;                                  
                                 response.push(resp);
                                 break;
                         case 2: resp.key = 'order_submission_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'Order Submission to Order Logged';                                
+                                resp.label = result[0].label;                                 
                                 response.push(resp);
                                 break;
                         /*case 3: resp.key = 'caf_approval_logged_tat';
@@ -842,17 +842,17 @@ function WidgetService(objCollection) {
                                 break;*/
                         case 4: resp.key = 'order_po_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To Order Logged';
+                                resp.label = result[0].label;  
                                 response.push(resp);
                                 break;
                         case -4: resp.key = 'order_po_commissioned_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To Order Commissioned';
+                                resp.label = result[0].label;  
                                 response.push(resp); 
                                 break;
                         case -3: resp.key = 'po_to_commissioning_agening';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To Commissioning Agening';
+                                resp.label = result[0].label;  
                                 response.push(resp); 
                                 break;
                     }
