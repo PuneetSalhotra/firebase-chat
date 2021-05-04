@@ -9845,8 +9845,9 @@ async function removeAsOwner(request,data)  {
         let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
         let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
-        let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
+        let errorMessageForCharLimitExceeded = "Characters limit exceeded in:\n";
         let errorMessageForInvalidProduct = "Invalid product selected in:\n";
+        let errorMessageForInvalidEmailId = "Invalid Email ID entered in:\n";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
@@ -9855,7 +9856,9 @@ async function removeAsOwner(request,data)  {
         let invalidValueFound = false;
         let charlimitExceeded = false;
         let invalidProductSelected = false;
+        let invalidEmailIdFound = false;
 
+        
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
@@ -9924,6 +9927,15 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            let emailValidationCheck = checksForBulkUpload["email_validation"];
+            for (const fieldName of emailValidationCheck) {
+                let fieldValue = childOpportunity[fieldName] || "";
+                if (fieldValue.length > 0 && !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(fieldValue)) {
+                    invalidEmailIdFound = true;
+                    errorMessageForInvalidEmailId += `Invalid Email ID found for ${fieldName} in ${i + 1}.\n`;
+                }
+            }
+            
             // Invalid LastMileOffNetVendor check
             if (
                 LastMileOffNetVendor !== ""
@@ -9992,7 +10004,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected || invalidEmailIdFound) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
@@ -10000,6 +10012,7 @@ async function removeAsOwner(request,data)  {
             if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
             if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             if (invalidProductSelected) { formattedTimelineMessage += errorMessageForInvalidProduct }
+            if (invalidEmailIdFound) { formattedTimelineMessage += errorMessageForInvalidEmailId }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
