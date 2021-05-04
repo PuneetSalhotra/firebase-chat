@@ -1560,7 +1560,7 @@ function ActivityService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    if (err === false) {``
+                    if (err === false) {
                         if(activityTypeCategoryId != 9)
                             activtySearchListInsert(request);
                         

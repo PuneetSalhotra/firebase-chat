@@ -3079,6 +3079,43 @@ function RMBotService(objectCollection) {
                         request.message_unique_id = util.getMessageUniqueId(request.asset_id);                        
 
                         await queueActMappingUpdateLead(request);
+
+                        //-----------------------------------------------------------
+                        if(Number(lead_asset_id) > 0 ) {
+                            request.track_gps_datetime = util.getCurrentUTCTime();
+                        
+                            if(!request.hasOwnProperty("message_unique_id")) {
+                                request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                            }
+
+                            let name = data[0].log_asset_name;
+                            
+                            if(Number(request.asset_id) == 100) {
+                                request.stream_type_id = 718;
+                                name = "Tony";
+                            }
+    
+                            if(Number(request.asset_id) != 100 && (data[0].existing_lead_asset_id == 0 || data[0].existing_lead_asset_id === null)) {
+                                request.stream_type_id = 731;
+                            }
+    
+                            if(Number(request.asset_id) != 100 && (data[0].existing_lead_asset_id > 0)) {
+                                request.stream_type_id = 732;
+                            }
+
+                            let timelineCollection = {};
+                            timelineCollection.content = name + " has assigned " + data[0].new_lead_first_name + " as Lead";
+                            timelineCollection.subject = name + " has assigned " + data[0].new_lead_first_name + " as Lead";
+                            timelineCollection.mail_body = name + " has assigned " + data[0].new_lead_first_name + " as Lead";
+                            timelineCollection.attachments = [];
+                            timelineCollection.asset_reference = [];
+                            timelineCollection.activity_reference = [];
+                            timelineCollection.rm_bot_scores ={};
+                            request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
+                            activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, Number(request.stream_type_id)); 
+                        }
+                        
+                        //-----------------------------------------------------
                     });
         }
         return [error, responseData];  

@@ -119,7 +119,7 @@ function AdminOpsService(objectCollection) {
             request.flag_ent_features,
             request.flag_ai_bot,
             request.flag_manager_proxy,
-            request.flag_enable_form_tag,
+            request.flag_form_tag,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -893,7 +893,7 @@ function AdminOpsService(objectCollection) {
             request.contact_phone_country_code || 0,
             request.contact_phone_number || 0,
             request.contact_email || '',
-            request.org_enterprise_feature_data || '{}',
+            request.enterprise_feature_data || '{}',
             request.flag_email || 0,
             request.flag_doc_repo || 0,
             request.flag_ent_features || 0,
