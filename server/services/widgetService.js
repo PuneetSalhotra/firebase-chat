@@ -803,7 +803,7 @@ function WidgetService(objCollection) {
             //let finalResult = 0;
             let response = [];
             //let resp = {};
-            for(i=-3;i<5;i++) {
+            for(i=-4;i<5;i++) {
                 if(i !== 0)
                     result = await retrievefieldTrxAvgTime(request, i);
                 else
@@ -817,23 +817,23 @@ function WidgetService(objCollection) {
                     switch(i) {
                         case -2: resp.key = 'po_order_documents_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O to order documents';                                
+                                resp.label = 'P.O to Order Documents';                                
                                 response.push(resp);
                                 break;                                    
                         case -1: resp.key = 'order_docs_order_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'Order documents to Order Logged';                                
+                                resp.label = 'Order Documents to Order Logged';                                
                                 response.push(resp);
                                 break;                             
                                     
                         case 1: resp.key = 'po_order_submission_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O to order submission';                                
+                                resp.label = 'P.O to Order Submission';                                
                                 response.push(resp);
                                 break;
                         case 2: resp.key = 'order_submission_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'Order Submission to order logged';                                
+                                resp.label = 'Order Submission to Order Logged';                                
                                 response.push(resp);
                                 break;
                         /*case 3: resp.key = 'caf_approval_logged_tat';
@@ -842,18 +842,27 @@ function WidgetService(objCollection) {
                                 break;*/
                         case 4: resp.key = 'order_po_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To order Logged';
+                                resp.label = 'P.O To Order Logged';
                                 response.push(resp);
                                 break;
-                        case -3: resp.key = 'order_po_commissioned_tat';
+                        case -4: resp.key = 'order_po_commissioned_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To order Commissioned';
+                                resp.label = 'P.O To Order Commissioned';
+                                response.push(resp); 
+                                break;
+                        case -3: resp.key = 'po_to_commissioning_agening';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'P.O To Commissioning Agening';
                                 response.push(resp); 
                                 break;
                     }
                     
                 }
-            }             
+            }  
+
+            response.push(response.shift());
+            response.push(response.shift());
+
             return response;
         } else {
             let paramsArr = new Array(
