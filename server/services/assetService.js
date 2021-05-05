@@ -215,6 +215,8 @@ function AssetService(objectCollection) {
         
         try {
             let responseCode = 200;
+            phoneNumber = isNaN(Number(phoneNumber)) ? "0" : phoneNumber;
+            countryCode = isNaN(Number(countryCode)) ? 0 : countryCode;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
             if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 10) {
                 // if (request.url.includes('v2')) { responseCode = 429; }
