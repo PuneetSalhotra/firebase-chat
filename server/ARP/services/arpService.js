@@ -89,7 +89,7 @@ function ArpService(objectCollection) {
         return [error, responseData];
     }
 
-    this.updateFloorLevelBusinessHours = async function (request) {
+    this.updateFloorLevelArpConfig = async function (request) {
         let responseData = [],
             error = true;
             const paramsArr = new Array(
@@ -115,7 +115,7 @@ function ArpService(objectCollection) {
         return [error, responseData];
     }
 
-    this.updateBuildingLevelBusinessHours = async function (request) {
+    this.updateBuildingLevelArpConfig = async function (request) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
