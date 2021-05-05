@@ -360,7 +360,7 @@ function ActivityParticipantService(objectCollection) {
                             newReq.workforce_id = request.workforce_id;      
                             newReq.activity_id = Number(request.activity_id);
                             newReq.lead_asset_id = activityParticipantCollection[0].asset_id;
-                            //newReq.asset_id = 100;
+                            newReq.asset_id = request.asset_id;
                             //newReq.timeline_stream_type_id = 718;
                             newReq.datetime_log = util.getCurrentUTCTime();
 
