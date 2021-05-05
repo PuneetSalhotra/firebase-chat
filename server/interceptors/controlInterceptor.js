@@ -77,6 +77,7 @@ const PortalController = require('../Portal/controllers/portalController');
 //Payment Gateway
 const MerchantPaymentController = require('../payments/controllers/merchantPaymentController');
 
+const ARPController = require('../ARP/controllers/arpController');
 
 function ControlInterceptor(objCollection) {
 
@@ -155,6 +156,8 @@ function ControlInterceptor(objCollection) {
      
     //Payment Gateway
     new MerchantPaymentController(objCollection);
+
+    new ARPController(objCollection);
 }
 
 module.exports = ControlInterceptor;
