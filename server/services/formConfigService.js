@@ -4379,6 +4379,15 @@ function FormConfigService(objCollection) {
         // Content to be displayed on the UI
         let content = '',
             formName = '';
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            form_id: request.form_id
+        });
+        if (!formConfigError && formConfigData.length > 0) {
+            formName = formConfigData[0].form_name;
+        }
         for (const fieldID of fieldsNewValuesMap.keys()) {
             // Fetch the latest upate sequence ID
             fetchUpdateSeqIdPromises.push(
@@ -4406,7 +4415,7 @@ function FormConfigService(objCollection) {
                     // Update the field entry
                     await putLatestUpdateSeqId(newRequest, newFieldData);
 
-                    formName = fieldsNewValuesMap.get(fieldID).form_name;
+                    // formName = fieldsNewValuesMap.get(fieldID).form_name;
                     let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                     // Update the activity inline data as well
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
