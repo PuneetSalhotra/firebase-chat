@@ -1210,6 +1210,7 @@ function ActivityConfigService(db,util,objCollection) {
 
             console.log('Final Account Code : ', accountCode);
         }
+        let activity_title = ""
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
@@ -1217,6 +1218,9 @@ function ActivityConfigService(db,util,objCollection) {
             let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
             if(activityData.length>0){
             accountCode = activityData[0].activity_cuid_3;
+            activity_title = activityData[0].activity_title;
+            activity_title = activity_title.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        activity_title = activity_title.split(' ').join('');
             }
          }
         if(Number(is_from_integrations) === 1) {
@@ -1235,6 +1239,17 @@ function ActivityConfigService(db,util,objCollection) {
             //Update the same in ElastiSearch
             console.log('hasAccountCode - ', hasAccountCode);
             if(!hasAccountCode) {
+                console.log("elastic data",{
+                    "activity_cuid_1":panNumber,
+                    "activity_cuid_2":gstNumber,
+                    "activity_cuid_3": accountCode,
+                    "activity_type_id": Number(request.activity_type_id),
+                    "workforce_id": Number(request.workforce_id),
+                    "account_id": Number(request.account_id),
+                    "activity_id": Number(request.workflow_activity_id),
+                    "asset_id": Number(request.asset_id),
+                    "activity_title_expression":activity_title
+                })
                 client.updateByQuery({
                     index: 'crawling_accounts',
                     "body": {
@@ -1254,7 +1269,8 @@ function ActivityConfigService(db,util,objCollection) {
                                 "workforce_id": Number(request.workforce_id),
                                 "account_id": Number(request.account_id),
                                 "activity_id": Number(request.workflow_activity_id),
-                                "asset_id": Number(request.asset_id)
+                                "asset_id": Number(request.asset_id),
+                                "activity_title_expression":activity_title
                             }
                         }
                     }
