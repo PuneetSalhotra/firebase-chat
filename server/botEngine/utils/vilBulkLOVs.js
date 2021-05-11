@@ -130,8 +130,16 @@ const vilBulkLOVs = {
             "StreetFloorNameEndB": 100,
             "AddressEndB": 500,
             "CustomerNameEndB": 125,
-            "SpecialInstructionsBySalesEndB": 1000
-        }
+            "SpecialInstructionsBySalesEndB": 1000,
+            "RackNoEndA" : 50,
+            "CageNoEndA" : 50,
+            "RackNoEndB" : 50,
+            "CageNoEndB" : 50
+        },
+        "email_validation" : [
+            "ContactPersonEmailIdEndA",
+            "ContactPersonEmailIdEndB"
+        ]
     },
     "product_fb_form_mapping": {
         "50326": "SuperWiFi",

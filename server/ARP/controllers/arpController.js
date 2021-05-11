@@ -39,7 +39,7 @@ function ArpController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/arp/workforce/inline/alter', async function (req, res) {
-        const [err, orgData] = await arpService.updateAssetBusinessHours(req.body);
+        const [err, orgData] = await arpService.updateFloorLevelArpConfig(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
@@ -49,11 +49,21 @@ function ArpController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/arp/account/inline/alter', async function (req, res) {
-        const [err, orgData] = await arpService.updateFloorLevelFlag(req.body);
+        const [err, orgData] = await arpService.updateBuildingLevelArpConfig(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/arp/account/inline/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/arp/persistant/flag/alter', async function (req, res) {
+        const [err, orgData] = await arpService.updateFlagPersistRole(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/persistant/flag/alter | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });

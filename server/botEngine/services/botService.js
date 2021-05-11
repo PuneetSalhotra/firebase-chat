@@ -5417,11 +5417,12 @@ async function removeAsOwner(request,data)  {
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
             logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
-
+            request.debug_info.push(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
             logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
+            request.debug_info.push(request.workflow_activity_id + " : addParticipant : resp : " + resp.length);
             if (resp.length > 0) {
                 newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
                 newReq.phone_number = String(resp[0].data_entity_text_1);
@@ -5441,18 +5442,22 @@ async function removeAsOwner(request,data)  {
                         newReq.country_code = phone[0]; //country code
                         newReq.phone_number = phone[1]; //phone number                      
                     }
+                    request.debug_info.push('Grab the name : i.form_id : newReq.form_id '+i.form_id+' '+newReq.form_id);
+                    request.debug_info.push('Grab the name : i.field_id : newReq.name_field_id '+i.field_id+' '+newReq.name_field_id);
                     // Grab the name
                     if (
                         Number(i.form_id) === Number(newReq.form_id) &&
                         Number(i.field_id) === Number(newReq.name_field_id)
                     ) {
+                        request.debug_info.push('Grab the name : '+i.field_value);
                         newReq.customer_name = i.field_value;
                         console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
                         request.debug_info.push('BotEngine | addParticipant | From Form | newReq.customer_name: ' +  newReq.customer_name);
                     }
                 }
             }
-
+            request.debug_info.push('End of Dynamic : Country Code : '+newReq.country_code);
+            request.debug_info.push('End of Dynamic : PhoneNumber : '+newReq.phone_number);
             logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
 
         } else if (type[0] === 'asset_reference') {
@@ -5481,18 +5486,22 @@ async function removeAsOwner(request,data)  {
                 // newReq.customer_name = fieldValue[1]
 
             } else {
+                request.debug_info.push('ELSE !formInlineDataMap.has(fieldID)');
                 const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
                     account_id: request.account_id
                 }, workflowActivityID, formID);
 
+                request.debug_info.push('formData : '+formData.length);
+
                 if (Number(formData.length) > 0) {
                     formTransactionID = Number(formData[0].data_form_transaction_id);
                     formActivityID = Number(formData[0].data_activity_id);
                 }
+                request.debug_info.push('formTransactionID : '+formTransactionID+ "formActivityID : "+formActivityID);
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 //&&
+                    //Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
@@ -5508,6 +5517,8 @@ async function removeAsOwner(request,data)  {
                     console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
                     request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
                     request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
+                }else{
+                    request.debug_info.push('formTransactionID is not valid : ' +  formTransactionID);
                 }
             }
 
@@ -7534,6 +7545,8 @@ async function removeAsOwner(request,data)  {
                         formName = fieldsNewValuesMap.get(fieldID).form_name;
                         let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                         // Update the activity inline data as well
+
+                        let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                         if (activityInlineDataMap.has(fieldID)) {
                             let oldFieldEntry = activityInlineDataMap.get(fieldID);
                             let newFieldEntry = Object.assign({}, oldFieldEntry);
@@ -7542,7 +7555,11 @@ async function removeAsOwner(request,data)  {
                             activityInlineDataMap.set(fieldID, newFieldEntry);
 
                             // Form the content string
-                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                            // content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                            if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))                         
+                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
                         } else {
                             // If it doesn't already exist, make a fresh entry!
                             let newFieldEntry = fieldsNewValuesMap.get(fieldID);
@@ -7559,7 +7576,11 @@ async function removeAsOwner(request,data)  {
                             });
 
                             // Form the content string
-                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                            if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))   
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                            // content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
                         }
 
                         return {
@@ -9834,8 +9855,9 @@ async function removeAsOwner(request,data)  {
         let errorMessageForMandatoryFieldsMissing = "Mandatory fields missing in:\n";
         let errorMessageForUnsupportedProductForSecondary = "\nUnsupported products for secondary found in:\n";
         let errorMessageForInvalidValue = "\nInvalid value(s) found in:\n";
-        let errorMessageForCharLimitExceeded = "Characters limit exceeded in: ";
+        let errorMessageForCharLimitExceeded = "Characters limit exceeded in:\n";
         let errorMessageForInvalidProduct = "Invalid product selected in:\n";
+        let errorMessageForInvalidEmailId = "Invalid Email ID entered in:\n";
 
         // Error flags
         let unsupportedProductForSecondaryFound = false;
@@ -9844,7 +9866,9 @@ async function removeAsOwner(request,data)  {
         let invalidValueFound = false;
         let charlimitExceeded = false;
         let invalidProductSelected = false;
+        let invalidEmailIdFound = false;
 
+        
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
@@ -9913,6 +9937,15 @@ async function removeAsOwner(request,data)  {
                 }
             }
 
+            let emailValidationCheck = checksForBulkUpload["email_validation"];
+            for (const fieldName of emailValidationCheck) {
+                let fieldValue = childOpportunity[fieldName] || "";
+                if (fieldValue.length > 0 && !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(fieldValue)) {
+                    invalidEmailIdFound = true;
+                    errorMessageForInvalidEmailId += `Invalid Email ID found for ${fieldName} in ${i + 1}.\n`;
+                }
+            }
+            
             // Invalid LastMileOffNetVendor check
             if (
                 LastMileOffNetVendor !== ""
@@ -9981,7 +10014,7 @@ async function removeAsOwner(request,data)  {
             }
         }
 
-        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected) {
+        if (nonAsciiErroFound || unsupportedProductForSecondaryFound || invalidValueFound || mandatoryFieldsMissing || charlimitExceeded || invalidProductSelected || invalidEmailIdFound) {
             let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
             if (nonAsciiErroFound) { formattedTimelineMessage += errorMessageForNonAscii }
             if (unsupportedProductForSecondaryFound) { formattedTimelineMessage += errorMessageForUnsupportedProductForSecondary }
@@ -9989,6 +10022,7 @@ async function removeAsOwner(request,data)  {
             if (mandatoryFieldsMissing) { formattedTimelineMessage += errorMessageForMandatoryFieldsMissing }
             if (charlimitExceeded) { formattedTimelineMessage += errorMessageForCharLimitExceeded }
             if (invalidProductSelected) { formattedTimelineMessage += errorMessageForInvalidProduct }
+            if (invalidEmailIdFound) { formattedTimelineMessage += errorMessageForInvalidEmailId }
             await addTimelineMessage(
                 {
                     activity_timeline_text: "",
@@ -10705,8 +10739,8 @@ async function removeAsOwner(request,data)  {
                     formActivityID = Number(formData[0].data_activity_id);
                 }
                 if (
-                    Number(formTransactionID) > 0 &&
-                    Number(formActivityID) > 0
+                    Number(formTransactionID) > 0 //&&
+                    //Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
                     const fieldData = await getFieldValue({
