@@ -102,6 +102,11 @@ config.documentTypes = {
     }
 }
 
+// codes to switch the slave to master in case of errors
+config.mysqlConnectionErrors = {
+    ENOTFOUND : 1
+}
+
 if(mode === 'testingprodissueenv') {
 
     //Ports Config
@@ -319,8 +324,8 @@ if(mode === 'local') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'preprodmysql.worlddesk.cloud';
+    config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
     //This is for Account Search
     //config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';

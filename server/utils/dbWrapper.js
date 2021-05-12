@@ -152,12 +152,35 @@ var executeQuery = function (flag, queryString, request, callback) {
     }
 
     try {
-        conPool.getConnection(function (err, conn) {
+        conPool.getConnection(async function (err, conn) {
             if (err) {
                 logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: request, error: err });
-
-                callback(err, false);
-                return;
+                if(global.config.mysqlConnectionErrors[err['code']]) {
+                    getActiveAvailableDbConnection((e, connection) => {
+                        if(e) {
+                            logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                            reject(e);
+                        } else {
+                            connection.query(queryString, function (err, rows, fields) {
+                                if (!err) {
+                                    logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                    // global.logger.write('dbResponse', queryString, rows, request);
+                                    connection.release();
+                                    return callback(false, rows[0]);
+                                } else {
+                                    logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                    // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                    // global.logger.write('serverError', err, err, request);
+                                    connection.release();
+                                    return callback(false, rows[0]);
+                                }
+                            // console.timeEnd(label);
+                            });
+                        }
+                    });
+                } else {
+                    return callback(true, err);
+                }
             } else {                
                 // label = 'DB-Query-Execution-Callback' + Date.now();
                 // console.time(label);
@@ -168,7 +191,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         callback(false, rows[0]);
                         return;
                     } else {
-                        // console.log("error: err: ", err);
+                        console.log("error: err: ", err);
                         logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
                         conn.release();
                         callback(err, false);
@@ -204,8 +227,34 @@ var executeQueryPromise = function (flag, queryString, request) {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
+
+                    if(global.config.mysqlConnectionErrors[err['code']]) {
+                        getActiveAvailableDbConnection((e, connection) => {
+                            if(e) {
+                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                reject(e);
+                            } else {
+                                connection.query(queryString, function (err, rows, fields) {
+                                    if (!err) {
+                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        connection.release();
+                                        resolve(rows[0]);
+                                    } else {
+                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                        // global.logger.write('serverError', err, err, request);
+                                        connection.release();
+                                        reject(err);
+                                    }
+                                // console.timeEnd(label);
+                                });
+                            }
+                        });
+                    } else {
+                        reject(err);
+                    }
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                    reject(err);
                 } else {
                     // label = 'DB-Query-Execution-Promise' + Date.now();
                     // console.time(label);
@@ -245,8 +294,33 @@ var executeRawQueryPromise = function (flag, queryString, request) {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                    // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                    reject(err);
+                    if(global.config.mysqlConnectionErrors[err['code']]) {
+                        getActiveAvailableDbConnection((e, connection) => {
+                            if(e) {
+                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                reject(e);
+                            } else {
+                                connection.query(queryString, function (err, rows, fields) {
+                                    if (!err) {
+                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        connection.release();
+                                        resolve(rows[0]);
+                                    } else {
+                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                        // global.logger.write('serverError', err, err, request);
+                                        connection.release();
+                                        reject(err);
+                                    }
+                                // console.timeEnd(label);
+                                });
+                            }
+                        });
+                    } else {
+                        // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                        reject(err);
+                    }
                 } else {
                     // label = 'DB-Query-Execution-Promise' + Date.now();
                     // console.time(label);
@@ -488,6 +562,19 @@ process.on('SIGINT', () => {
 //PID kill; PM2 Restart; nodemon Restart
 //process.on('SIGUSR1', ()=>{ process.exit(); });
 //process.on('SIGUSR2', ()=>{ process.exit(); });
+
+function getActiveAvailableDbConnection(callback) {
+    logger.info(`[1] GETTING MySQL MASTER CONNECTON AS BACKUP`);
+    writeCluster.getConnection(function (err, conn) {
+        if (err) {
+            //console.log('ERROR WHILE GETTING CONNECTON - ', err);
+            logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: {}, error: err });
+            callback(err);
+        } else {
+            callback(false, conn);
+        }
+    });
+}
 
 module.exports = {
     executeQuery: executeQuery,
