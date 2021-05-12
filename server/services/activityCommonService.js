@@ -6385,6 +6385,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }
             });
             }
+            else{
+                client.index({
+                    index:"activity_search_mapping",
+                    body:{
+                        ...dataTobeSent
+                    }
+                })
+            }
         }
                 error = false;
             })

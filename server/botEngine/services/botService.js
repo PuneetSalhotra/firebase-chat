@@ -8616,7 +8616,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
-                timelineReq.timeline_stream_type_id= 711;
+                timelineReq.timeline_stream_type_id= 734;
                 timelineReq.activity_stream_type_id= 711;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
