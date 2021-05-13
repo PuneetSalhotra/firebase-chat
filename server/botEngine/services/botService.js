@@ -7545,6 +7545,8 @@ async function removeAsOwner(request,data)  {
                         formName = fieldsNewValuesMap.get(fieldID).form_name;
                         let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                         // Update the activity inline data as well
+
+                        let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                         if (activityInlineDataMap.has(fieldID)) {
                             let oldFieldEntry = activityInlineDataMap.get(fieldID);
                             let newFieldEntry = Object.assign({}, oldFieldEntry);
@@ -7553,7 +7555,11 @@ async function removeAsOwner(request,data)  {
                             activityInlineDataMap.set(fieldID, newFieldEntry);
 
                             // Form the content string
-                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                            // content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                            if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))                         
+                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
                         } else {
                             // If it doesn't already exist, make a fresh entry!
                             let newFieldEntry = fieldsNewValuesMap.get(fieldID);
@@ -7570,7 +7576,11 @@ async function removeAsOwner(request,data)  {
                             });
 
                             // Form the content string
-                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                            if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))   
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                            // content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
                         }
 
                         return {
@@ -8606,7 +8616,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
-                timelineReq.timeline_stream_type_id= 711;
+                timelineReq.timeline_stream_type_id= 734;
                 timelineReq.activity_stream_type_id= 711;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;

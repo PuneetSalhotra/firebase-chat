@@ -4381,6 +4381,15 @@ function FormConfigService(objCollection) {
         // Content to be displayed on the UI
         let content = '',
             formName = '';
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            form_id: request.form_id
+        });
+        if (!formConfigError && formConfigData.length > 0) {
+            formName = formConfigData[0].form_name;
+        }
         for (const fieldID of fieldsNewValuesMap.keys()) {
             // Fetch the latest upate sequence ID
             fetchUpdateSeqIdPromises.push(
@@ -4408,9 +4417,10 @@ function FormConfigService(objCollection) {
                     // Update the field entry
                     await putLatestUpdateSeqId(newRequest, newFieldData);
 
-                    formName = fieldsNewValuesMap.get(fieldID).form_name;
+                    // formName = fieldsNewValuesMap.get(fieldID).form_name;
                     let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                     // Update the activity inline data as well
+                    let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                     if (activityInlineDataMap.has(fieldID)) {
                         let oldFieldEntry = activityInlineDataMap.get(fieldID);
                         let newFieldEntry = Object.assign({}, oldFieldEntry);
@@ -4419,7 +4429,11 @@ function FormConfigService(objCollection) {
                         activityInlineDataMap.set(fieldID, newFieldEntry);
 
                         // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                        if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))                         
+                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;
+                        else
+                        content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                        // content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
                     } else {
                         // If it doesn't already exist, make a fresh entry!
                         let newFieldEntry = fieldsNewValuesMap.get(fieldID);
@@ -4436,7 +4450,11 @@ function FormConfigService(objCollection) {
                         });
 
                         // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                        if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))   
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                        // content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
                     }
 
                     return {
@@ -6462,11 +6480,7 @@ function FormConfigService(objCollection) {
     async function kafkaProdcucerForChildOrderCreation(topicName,message) {
         const kafka = new Kafka({
             clientId: 'child-order-creation',
-            brokers: [
-                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
-            ]
+            brokers: global.config.BROKER_HOST.split(",")
         })
         
         const producer = kafka.producer()

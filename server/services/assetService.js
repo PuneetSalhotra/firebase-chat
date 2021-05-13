@@ -215,6 +215,8 @@ function AssetService(objectCollection) {
         
         try {
             let responseCode = 200;
+            phoneNumber = isNaN(Number(phoneNumber)) ? "0" : phoneNumber;
+            countryCode = isNaN(Number(countryCode)) ? 0 : countryCode;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
             if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 10) {
                 // if (request.url.includes('v2')) { responseCode = 429; }
@@ -899,7 +901,7 @@ function AssetService(objectCollection) {
             "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
             "organization_flag_enable_form_tag" :util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_form_tag']),
             "asset_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['asset_flag_arp_settings_enabled']),
-            "asset_arp_data":util.replaceDefaultNumber(rowArray[0]['asset_arp_data']),
+            "asset_arp_data":util.replaceDefaultString(rowArray[0]['asset_arp_data']),
             "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
             "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
             "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
@@ -7152,6 +7154,31 @@ this.getQrBarcodeFeeback = async(request) => {
         const queryString = util.getQueryString('ds_p1_asset_list_update_flag_organization_mgmt', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.assetListByEmail = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.asset_email_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_operating_asset_email', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
                   responseData = data;
                   error = false;

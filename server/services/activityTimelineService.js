@@ -4296,11 +4296,7 @@ async function addFormEntriesAsync(request) {
     async function kafkaProdcucerForChildOrderCreation(topicName,message) {
         const kafka = new Kafka({
             clientId: 'child-order-creation',
-            brokers: [
-                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
-            ]
+            brokers: global.config.BROKER_HOST.split(",")
         })
         
         const producer = kafka.producer()

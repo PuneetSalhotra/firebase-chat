@@ -2053,6 +2053,27 @@ function AdminListingService(objectCollection) {
             console.log("Error updateTagEntitiesMapping", e, e.stack);
         }
     }
+    this.selectCommonCurrency = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_common_currency_master_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
 }
 
 module.exports = AdminListingService;

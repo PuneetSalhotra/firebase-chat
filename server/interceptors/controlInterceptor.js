@@ -1,6 +1,3 @@
-/* 
- * author: A Sri Sai Venkatesh
- */
 
 var UtilityController = require('../controllers/utilityController');
 var ActivityConfigController = require('../controllers/activityConfigController');
@@ -77,7 +74,9 @@ const PortalController = require('../Portal/controllers/portalController');
 //Payment Gateway
 const MerchantPaymentController = require('../payments/controllers/merchantPaymentController');
 
-const ARPController = require('../ARP/controllers/arpController');
+//ARP Controller
+const ArpController = require('../ARP/controllers/arpController')
+
 
 function ControlInterceptor(objCollection) {
 
@@ -125,6 +124,9 @@ function ControlInterceptor(objCollection) {
     // Administrator Services UI
     new AdminListingController(objCollection);
     new AdminOpsController(objCollection);
+
+    //Arp Service
+    new ArpController(objCollection);
 
     // URL Services
     new UrlListingController(objCollection);
