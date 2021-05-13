@@ -1373,6 +1373,8 @@ function FormConfigService(objCollection) {
     
                             global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
     
+                            self.activityFormListUpdateFieldValue(request);
+
                             let idWorkflow = 0;
                             let idWorkflowType = 0;
 
@@ -6647,6 +6649,30 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.activityFormListUpdateFieldValue = async function (request) {
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.activity_id, 
+            request.form_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.field_value,
+            request.datetime_log
+        );
+        
+        var queryString = util.getQueryString("ds_v1_activity_form_list_update_field_value",paramsArr);    
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {                   
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    };    
 }
 
 module.exports = FormConfigService;

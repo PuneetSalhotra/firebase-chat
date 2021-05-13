@@ -6339,10 +6339,10 @@ function VodafoneService(objectCollection) {
                         query += ' activity_status_type_id =  ' + Number(request.activity_status_type_id)
                         appendedAnd = true;
                     }
-                    if (request.activity_title && request.activity_title != '') {
+                    if (request.search_string && request.search_string != '') {
                         if (appendedAnd)
                             query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                        query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
                         appendedAnd = true;
                     }
                 } else {
@@ -6359,10 +6359,10 @@ function VodafoneService(objectCollection) {
                             query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
                             appendedAnd = true;
                         }
-                        if (request.activity_title && request.activity_title != '') {
+                        if (request.search_string && request.search_string != '') {
                             if (appendedAnd)
                                 query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                            query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
                             appendedAnd = true;
                         }
                     } else {
@@ -6385,10 +6385,10 @@ function VodafoneService(objectCollection) {
                             query += ' activity_status_type_id =  ' + Number(request.activity_status_type_id)
                             appendedAnd = true;
                         }
-                        if (request.activity_title && request.activity_title != '') {
+                        if (request.search_string && request.search_string != '') {
                             if (appendedAnd)
                                 query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + request.activity_title + "%'"
+                            query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
                             appendedAnd = true;
                         }
 
@@ -6473,9 +6473,9 @@ function VodafoneService(objectCollection) {
             case 5: //
                 // activity_id,  activity_title
                 paramsArr = [
-                    request.parent_activity_id,
+                    request.entity_id,
                     request.activity_type_id,
-                    request.activity_title,
+                    request.search_string,
                     request.organization_id,
                     request.page_start || 0,
                     request.page_limit || 50
@@ -6495,7 +6495,7 @@ function VodafoneService(objectCollection) {
                     request.activity_status_type_id,
                     request.tag_id,
                     request.tag_type_id,
-                    request.activity_title,
+                    request.search_string,
                     request.flag_status,
                     request.flag_participating || 6,
                     request.page_start || 0,
