@@ -159,7 +159,6 @@ function ControlInterceptor(objCollection) {
     //Payment Gateway
     new MerchantPaymentController(objCollection);
 
-    new ArpController(objCollection);
 }
 
 module.exports = ControlInterceptor;
