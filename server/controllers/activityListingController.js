@@ -1133,6 +1133,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/form/data', async (req, res) => {
+        try{
+            const response = await activityListingService.getActivityFormList(req.body,req.activity_id);
+            res.send(responseWrapper.getResponse(false, response, 200, req.body));
+        }catch(err) {
+            console.log("/activity/form/data | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    
 }
 
 module.exports = ActivityListingController;

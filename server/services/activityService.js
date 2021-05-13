@@ -5873,6 +5873,53 @@ function ActivityService(objectCollection) {
             }
         });
     }  
+
+    this.activityFormListInsert = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+            var activityInlineData = activityInlineDataConversion(
+            request.activity_inline_data
+            );
+
+            console.log(JSON.stringify(activityInlineData))
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                JSON.stringify(activityInlineData),
+                request.activity_type_category_id,
+                request.activity_form_id,
+                request.form_transaction_id,
+                request.activity_channel_id,
+                request.asset_id,
+                request.datetime_log
+            );
+            console.log(paramsArr);            
+            var queryString = util.getQueryString( "ds_v1_activity_form_list_insert",paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        };
+        
+        function activityInlineDataConversion(data) {
+            var convertedData = {};
+            let fieldId ="";
+            data.forEach((item) => {
+                //fieldId = "_" + item.field_id;
+                convertedData["_" + item.field_id] = item;
+            });
+            return convertedData;
+        }      
+
 }
 
 module.exports = ActivityService;
