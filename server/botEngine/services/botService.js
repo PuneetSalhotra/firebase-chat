@@ -7798,7 +7798,7 @@ async function removeAsOwner(request,data)  {
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
-
+        const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id});
         // Fetch the Customer's asset_type_id
         const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
             organization_id: request.organization_id,
@@ -7833,6 +7833,7 @@ async function removeAsOwner(request,data)  {
         };
 
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
+        const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.asset_id});
         logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
@@ -7864,6 +7865,32 @@ async function removeAsOwner(request,data)  {
     //    }
     //    return [error, responseData];
     //}
+
+    async function assetListUpdateIndustry (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.industry_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
         let activity_id = request.workflow_activity_id;
