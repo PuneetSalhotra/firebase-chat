@@ -905,6 +905,20 @@ function AssetService(objectCollection) {
             "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
             "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
             "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
+
+            //tags
+            "asset_tag_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_1']),
+            "asset_tag_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_name_1']),
+            "asset_tag_type_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_1']),
+            "asset_tag_type_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_1']),
+            "asset_tag_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_2']),
+            "asset_tag_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_name_2']),
+            "asset_tag_type_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_2']),
+            "asset_tag_type_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_2']),
+            "asset_tag_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_3']),
+            "asset_tag_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_name_3']),
+            "asset_tag_type_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_3']),
+            "asset_tag_type_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_3'])
         };
 
         callback(false, rowData);
@@ -7195,7 +7209,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
         let responseData = [],
             error = true;
-        
+
         const paramsArr = [     
             request.asset_id,
             request.workforce_id,
@@ -7207,6 +7221,52 @@ this.getQrBarcodeFeeback = async(request) => {
         ];
 
         const queryString = util.getQueryString('ds_p1_asset_list_update_professional_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+
+    this.assetListUpdateTags = async (request) => {
+
+        /*
+            IF p_flag = 0 THEN update all tags
+            IF p_flag = 1 THEN update tag_1
+            IF p_flag = 2 THEN update tag_2
+            IF p_flag = 3 THEN update tag_3
+        */
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.professional_details,
+            request.tag_id_1,
+            request.tag_id_2,
+            request.tag_id_3,
+            request.organization_id,
+            request.workforce_id,
+            request.account_id,
+            request.flag || 0,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        
+        const queryString = util.getQueryString('ds_p1_asset_list_update_tag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
               .then((data) => {
