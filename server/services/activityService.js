@@ -1563,6 +1563,8 @@ function ActivityService(objectCollection) {
                     if (err === false) {
                         if(activityTypeCategoryId != 9)
                             activtySearchListInsert(request);
+
+                            self.activityFormListInsert(request);
                         
                         //BETA                            
                         if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
@@ -5880,7 +5882,7 @@ function ActivityService(objectCollection) {
             error = true;
 
             var activityInlineData = activityInlineDataConversion(
-            request.activity_inline_data
+            JSON.parse(request.activity_inline_data)
             );
 
             console.log(JSON.stringify(activityInlineData))
@@ -5889,6 +5891,7 @@ function ActivityService(objectCollection) {
                 request.activity_id,
                 JSON.stringify(activityInlineData),
                 request.activity_type_category_id,
+                request.activity_type_id,
                 request.activity_form_id,
                 request.form_transaction_id,
                 request.activity_channel_id,
