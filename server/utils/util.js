@@ -2493,16 +2493,96 @@ function Util(objectCollection) {
         //console.log('Before ews.run : Template - ', htmlTemplate);
         console.log('Before ews.run : receiverEmailID - ', email);
         
-        ews.run(ewsFunction, ewsArgs)
-        .then(result => {
-            console.log('EWS Email - Result : ', JSON.stringify(result));
+
+        //get flag from redis cache
+        let ews_mail = JSON.stringify({"email" : email});
+        let ews_function = ewsFunction;
+        let ews_request = JSON.stringify(request);
+        let ews_mail_error = null;
+        let log_asset_id = request.asset_id;
+        let isSendEmail = true;
+        cacheWrapper.getKeyValueFromCache('ews_mail_send_enabled')
+        .then(ewsMailSendEnabledFlag => {
+            console.log("ewsMailSendEnabledFlag = " + ewsMailSendEnabledFlag);            
+            if('1' == ewsMailSendEnabledFlag || ewsMailSendEnabledFlag == null) {
+                console.log("ewsMailSendEnabledFlag = 1 :  send email and also insert into ews_mail_transaction table");
+                if(ewsMailSendEnabledFlag === null) {
+                    ews_mail_error = JSON.stringify({"error" : "flag not available in cache"});
+                }
+            } else if('2' == ewsMailSendEnabledFlag) {
+                console.log("ewsMailSendEnabledFlag = 2 :  only insert into ews_mail_transaction table");
+                isSendEmail = false;
+                this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
+            } else if('0' == ewsMailSendEnabledFlag) {
+                console.log("ewsMailSendEnabledFlag = 0 : only send email");
+            }
+            console.log("isSendEmail " + isSendEmail);
+            if(isSendEmail) {
+                ews.run(ewsFunction, ewsArgs)
+                .then(result => {
+                    console.log('EWS Email - Result : ', JSON.stringify(result));
+                    if('1' == ewsMailSendEnabledFlag || ewsMailSendEnabledFlag == null) {
+                        this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
+                    }
+                })
+                .catch(err => {
+                    console.log('EWS Email - error : ', err.stack);
+                    ews_mail_error = JSON.stringify({"error" : err.stack});
+                    this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);                    
+                });
+            }
         })
         .catch(err => {
-            console.log('EWS Email - error : ', err.stack);
+            console.log('cachewrapper : getKeyValueFromCache  - error : ', err);
         });
 
         return [error, responseData];        
     };
+
+    this.insertEwsEmailTransactions = async function(ews_mail, ews_function, ews_email_sent_enabled, ews_request, ews_mail_error, log_asset_id) {
+        console.log("insertEwsEmailTransactions: ");
+        // console.log("ews_mail = " + ews_mail);
+        // console.log("ews_function = " + ews_function);
+        // console.log("ews_request = " + ews_request);
+        // console.log("ews_mail_error = " + ews_mail_error);
+        // console.log("log_asset_id = " + log_asset_id);
+
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                ews_mail,
+                ews_function,
+                ews_email_sent_enabled || 0,
+                ews_request,
+                ews_mail_error,
+                log_asset_id,
+                this.getCurrentUTCTime()
+            );
+            let queryString = this.getQueryString(
+                "ds_v1_ews_mail_transaction_insert",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("insertEwsEmailTransactions : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("insertEwsEmailTransactions : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 
     //Uploading XLSB file 
     //Added by Akshay Singh
