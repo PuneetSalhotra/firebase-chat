@@ -7250,10 +7250,6 @@ this.getQrBarcodeFeeback = async(request) => {
         
         const paramsArr = [     
             request.asset_id,
-            request.workforce_id,
-            request.account_id,
-            request.organization_id,
-            request.professional_details,
             request.tag_id_1,
             request.tag_id_2,
             request.tag_id_3,
