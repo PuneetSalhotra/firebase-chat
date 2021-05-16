@@ -5894,7 +5894,7 @@ function ActivityService(objectCollection) {
                 request.activity_type_id,
                 request.activity_form_id,
                 request.form_transaction_id,
-                request.activity_channel_id,
+                request.workflow_activity_id || request.activity_channel_id,
                 request.asset_id,
                 request.datetime_log
             );
