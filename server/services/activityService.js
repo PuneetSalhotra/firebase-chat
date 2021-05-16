@@ -337,6 +337,10 @@ function ActivityService(objectCollection) {
                                 self.activityUpdateExpression(request);
                             }
 
+                            if([48,53,54,55].includes(activityTypeCategroyId)){
+                                await updateChannelActivity(request, 9, request.activity_id, activityTypeCategroyId);
+                            }
+
                             if (request.activity_type_category_id == 48) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
                                 if(request.activity_type_id == 152184 && request.activity_form_id == 4353){
@@ -350,8 +354,6 @@ function ActivityService(objectCollection) {
                                 //updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
 //
                                 //});
-
-                                await updateChannelActivity(request, 9, request.activity_id, 48);
 
                                 let totalvalue = 0;
                                 let finalValue = 0;
@@ -5898,7 +5900,7 @@ function ActivityService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
             );
-            console.log(paramsArr);            
+            //console.log(paramsArr);            
             var queryString = util.getQueryString( "ds_v1_activity_form_list_insert",paramsArr);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
