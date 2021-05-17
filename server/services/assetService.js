@@ -7234,7 +7234,6 @@ this.getQrBarcodeFeeback = async(request) => {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
               .then((data) => {
-                  responseData = data;
                   error = false;
               })
               .catch((err) => {

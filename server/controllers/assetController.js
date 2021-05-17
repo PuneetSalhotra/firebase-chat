@@ -1013,7 +1013,7 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset/tag/update', async (req, res) => {        
 
-        let [err,result] = await assetService.assetListByEmail(req.body);
+        let [err,result] = await assetService.assetListUpdateTags(req.body);
         if(!err){
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
