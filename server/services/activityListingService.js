@@ -3834,6 +3834,32 @@ function ActivityListingService(objCollection) {
 
 	};
 
+	this.getActivityFormList = async (request) => {
+
+		let responseData = [],
+			error = true;
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_id, 
+			request.form_transaction_id,
+			request.workflow_activity_id
+		);
+		const queryString = util.getQueryString('ds_v1_activity_form_list_select', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		
+		return [error, responseData];
+	};		
+
 }
 
 module.exports = ActivityListingService;
