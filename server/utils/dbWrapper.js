@@ -227,33 +227,7 @@ var executeQueryPromise = function (flag, queryString, request) {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
-
-                    if(global.config.mysqlConnectionErrors[err['code']]) {
-                        getActiveAvailableDbConnection((e, connection) => {
-                            if(e) {
-                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
-                                reject(e);
-                            } else {
-                                connection.query(queryString, function (err, rows, fields) {
-                                    if (!err) {
-                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                                        // global.logger.write('dbResponse', queryString, rows, request);
-                                        connection.release();
-                                        resolve(rows[0]);
-                                    } else {
-                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                        // global.logger.write('serverError', err, err, request);
-                                        connection.release();
-                                        reject(err);
-                                    }
-                                // console.timeEnd(label);
-                                });
-                            }
-                        });
-                    } else {
-                        reject(err);
-                    }
+                    reject(err);
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                 } else {
                     // label = 'DB-Query-Execution-Promise' + Date.now();
