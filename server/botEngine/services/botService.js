@@ -2296,6 +2296,23 @@ function BotService(objectCollection) {
                     }
                     break;
 
+                case 50 : // Activity Update customer data 
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
+                    } catch (err) {
+                        logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
+
 
             }
 
@@ -2635,6 +2652,35 @@ function BotService(objectCollection) {
       objectsContext.endIndirectObject();
   
       writer.end();
+  }
+
+  async function activityUpdateCustomerData(request,bot_details) {
+      let req_Json = bot_details.customer_data_set;
+      let field_value = await getFieldValueUsingFieldIdV1(request,req_Json.form_id,req_Json.field_id)
+let assetDetailsArr = field_value.split('|')
+    let responseData = [],
+    error = true;
+
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_id,
+    assetDetailsArr[0],
+    request.asset_id || 0,
+    util.getCurrentUTCTime()
+);
+const queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(0, queryString, request)
+        .then((data) => {
+            responseData = data;
+            error = false;
+        })
+        .catch((err) => {
+            error = err;
+        })
+}
+return [error, responseData];
   }
 
    async function assetApprovalWorkflow(request,bot_data){
@@ -7717,7 +7763,10 @@ async function removeAsOwner(request,data)  {
                 request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
-
+        // console.lo
+        let indutry_type_id = createCustomerInlineData['lov_type_id'];
+        const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
+        console.log('indData12',industryData)
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
@@ -7798,7 +7847,8 @@ async function removeAsOwner(request,data)  {
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
-        const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id});
+       
+        const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id,industry_id:industryData[0].entity_id});
         // Fetch the Customer's asset_type_id
         const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
             organization_id: request.organization_id,
@@ -7833,7 +7883,8 @@ async function removeAsOwner(request,data)  {
         };
 
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
-        const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.asset_id});
+
+        const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.operating_asset_id,industry_id:industryData[0].entity_id});
         logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
@@ -7874,13 +7925,36 @@ async function removeAsOwner(request,data)  {
             request.organization_id,
             request.asset_id,
             request.industry_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
 
         var queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function getIndustryIdByName(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.id,
+          request.name
+        );
+
+        var queryString = util.getQueryString('ds_p3_lov_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
