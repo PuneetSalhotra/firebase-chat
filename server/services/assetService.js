@@ -7205,6 +7205,37 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 
+    this.assetCertificateSet = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [     
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.professional_details,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_professional_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+
     this.assetListUpdateTags = async (request) => {
 
         /*
@@ -7230,6 +7261,7 @@ this.getQrBarcodeFeeback = async(request) => {
             util.getCurrentUTCTime()
         ];
 
+        
         const queryString = util.getQueryString('ds_p1_asset_list_update_tag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
