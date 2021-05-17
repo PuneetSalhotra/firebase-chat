@@ -104,7 +104,8 @@ config.documentTypes = {
 
 // codes to switch the slave to master in case of errors
 config.mysqlConnectionErrors = {
-    ENOTFOUND : 1
+    ENOTFOUND : 1,
+    ECONNREFUSED : 1
 }
 
 if(mode === 'testingprodissueenv') {
