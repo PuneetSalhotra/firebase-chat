@@ -7795,16 +7795,16 @@ async function removeAsOwner(request,data)  {
         }
 
         // Fetch the Customer Service Desk's asset_type_id
-        const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 45
-        });
-        if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 45
+        // });
+        // if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create the desk
         const deskName = `Customer Service Desk ${customerData.customer_cuid || ''}`;
         const createCustomerServiceDeskRequest = {
@@ -7821,7 +7821,7 @@ async function removeAsOwner(request,data)  {
             workforce_name: "Customer Floor",
             activity_stream_type_id: 11018,
             stream_type_id: 11018,
-            asset_type_id: serviceDeskAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.desk_asset_type_id,
             activity_inline_data: JSON.stringify({
                 "contact_profile_picture": "",
                 "contact_first_name": deskName,
@@ -7830,7 +7830,7 @@ async function removeAsOwner(request,data)  {
                 "contact_phone_country_code": countryCode,
                 "contact_phone_number": phoneNumber,
                 "contact_email_id": customerData.customer_email,
-                "contact_asset_type_id": serviceDeskAssetTypeData[0].asset_type_id,
+                "contact_asset_type_id": createCustomerInlineData.desk_asset_type_id,
                 "contact_organization": "",
                 "contact_asset_id": 0,
                 "contact_workforce_id": createCustomerInlineData.workforce_id,
@@ -7850,16 +7850,16 @@ async function removeAsOwner(request,data)  {
        
         const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id,industry_id:industryData[0].entity_id});
         // Fetch the Customer's asset_type_id
-        const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 13
-        });
-        if (errThree || !(customerAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 13
+        // });
+        // if (errThree || !(customerAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create Customer on the Service Desk
         const createCustomerRequest = {
             ...createCustomerServiceDeskRequest,
@@ -7869,7 +7869,7 @@ async function removeAsOwner(request,data)  {
             asset_type_category_id: 13,
             asset_access_role_id: 1,
             asset_access_level_id: 5,
-            asset_type_id: customerAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.asset_type_id,
             desk_asset_id: serviceDeskData.asset_id,
             country_code: countryCode,
             phone_number: phoneNumber,
