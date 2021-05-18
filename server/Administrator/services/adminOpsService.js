@@ -10454,6 +10454,50 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
         return[error, responseData];
     }
+    this.typeMappingUpdateFlagDraft = async function(request){
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+
+        logger.info("typeMappingUpdateFlagDraft: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+
+        try {
+            let paramsArr = new Array(      
+                request.organization_id,      
+                request.account_id,                 
+                request.workforce_id,
+                request.activity_type_id,
+                request.flag_enable_draft,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            let queryString = util.getQueryString(
+                "ds_p1_workforce_activity_type_mapping_update_flag_draft",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_workforce_activity_type_mapping_update_flag_draft : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("typeMappingUpdateFlagDraft : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
