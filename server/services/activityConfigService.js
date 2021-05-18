@@ -2262,9 +2262,11 @@ function ActivityConfigService(db,util,objCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.activity_id,
-            request.current_activity_status_id
+            request.current_activity_status_id,
+            request.page_start,
+            request.page_limit
         );
-        const queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_previous_status', paramsArr);
+        const queryString = util.getQueryString('ds_v2_activity_status_change_txn_select_previous_status', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
