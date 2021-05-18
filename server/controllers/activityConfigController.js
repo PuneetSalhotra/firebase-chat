@@ -241,6 +241,16 @@ function ActivityConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/previous/status/list', async (req, res) => {
+        const [err, data] = await activityConfigService.getActivityPreviousStatusList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/account-code/bot : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 
