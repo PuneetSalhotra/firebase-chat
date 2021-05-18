@@ -3497,7 +3497,7 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }    
 
-    
+/*    
     this.assetReportMapping = async (request) => {
         let responseData = [],
             error = true;
@@ -3537,14 +3537,14 @@ function AnalyticsService(objectCollection)
             
             if(!parseInt(request.access_level_id)){
                 let loopData = [
-                    // {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
-                    // {key:"target_accounts",value:"account_id",access_level_id:2},
-                    // {key:"target_assets",value:"target_asset_id",access_level_id:6},
-                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
-                    // {key:"segments",value:"segment_id",access_level_id:21},
-                    // {key:"product_tags",value:"product_tag_id",access_level_id:22},
-                    // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
-                    // {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                     {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                     {key:"target_accounts",value:"account_id",access_level_id:2},
+                     {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                     {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                     {key:"segments",value:"segment_id",access_level_id:21},
+                     {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                     {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                     {key:"activity_types",value:"activity_type_id",access_level_id:8}
                 ];
                 for(let i = 0 ; i < loopData.length; i++){
                     loopBase = JSON.parse(request[loopData[i].key]);
@@ -3585,7 +3585,124 @@ function AnalyticsService(objectCollection)
         return [error,responseData];
     }
 
+*/    
+    this.assetReportMapping = async (request) => {
+        let responseData = [],
+            error = true;
+        try{
+            let loopBase = [];
+            let loopKey = "";
+            switch(parseInt(request.access_level_id)){
+                case 2 : loopBase = JSON.parse(request.target_accounts);
+                         loopKey = "account_id";   
+                        break;
+                case 6 : loopBase = JSON.parse(request.target_assets);
+                         loopKey = "target_asset_id";
+                        break;
+                case 8 : loopBase = JSON.parse(request.activity_types);
+                         loopKey = "activity_type_id";
+                        break;
+                case 20 : loopBase = JSON.parse(request.tag_types);
+                         loopKey = "tag_type_id";   
+                        break;
+                case 21 : loopBase = JSON.parse(request.segments);
+                         loopKey = "segment_id";   
+                        break;
+                case 22 : loopBase = JSON.parse(request.product_tags);
+                         loopKey = "product_tag_id";   
+                        break;
+                case 25 : loopBase = JSON.parse(request.cluster_tags);
+                         loopKey = "cluster_tag_id";   
+                        break;
+                case 26 : loopBase = JSON.parse(request.workforce_tags);
+                         loopKey = "workforce_tag_id";   
+                        break;
+                case 27 : loopBase = JSON.parse(request.applications);
+                         loopKey = "application_id";   
+                        break;
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    //{key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    {key:"target_accounts",value:"account_id",access_level_id:2}
+                    //{key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    //{key:"tag_types",value:"tag_type_id",access_level_id:20},
+                   // {key:"segments",value:"segment_id",access_level_id:21},
+                   // {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                   // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                   // {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                ];
+                let err1 = true, data = [];
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    request.access_level_id = loopData[i].access_level_id;
+                    if(request.access_level_id == 2){
+                        if(loopBase.length == 1 && loopBase[0] == 0){
+                            let clusterArray = JSON.parse(request.cluster_tags);
+                            for(let k = 0; k < clusterArray.length; k++){
+                                request.cluster_tag_id = clusterArray[k];
+                                [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                            }
+                        }else{
+                            [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                        }
+                    }if(request.access_level_id == 8){
+                        // activity_types:{"110":[149277,149278], "111":[152184]}
+                        // console.log("request.access_level_id :: "+request.access_level_id);
+                        loopBase = JSON.parse(request[loopData[i].key]);
+                        loopKey = loopData[i].value;  
+                        // console.log("    loopKey "+loopKey+ " :: loopBase :: " +loopBase);     
+                        let activityTypes = JSON.parse(request.activity_types);
+                        let tagTypeArray = Object.keys(activityTypes);
+                        // console.log("activityTypes "+request.activity_types);
+                        // console.log("tagTypeArray "+tagTypeArray);
+                        // console.log("tagTypeArray.length "+tagTypeArray.length);
+                        for(let k = 0; k < tagTypeArray.length; k++)
+                         {
+                         //   console.log("activityTypes.tagTypeArray "+activityTypes[tagTypeArray[k]]);
+                            let activityTypeList = activityTypes[tagTypeArray[k]];
+                         //   console.log("activityTypeList :: "+activityTypeList);
+                            request.tag_type_id = tagTypeArray[k];
+                            await self.assetReportLoop(activityTypeList,loopKey,request);
+
+                            /*
+                            for(let m = 0; m < activityTypeList.length ; m ++){
+                                
+                                request.tag_type_id = tagTypeArray[k];
+                                request.activity_type_id = activityTypeList[m];
+                                console.log("TagType : "+tagTypeArray[k]+" :: ActivityType : "+activityTypeList[m]);
+                                //await self.assetReportLoop(loopBase,loopKey,request);
+                                console.log(JSON.stringify(request,null,2));
+                                self.assetReportLoop(loopBase,loopKey,request);
+                            } */
+                         }
+ 
+
+                    }else{
+                        [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                    }
+                    
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData = [...responseData,...data];
+                    }
+                }
+            } else {
+                [error,responseData] = await self.assetReportLoop(loopBase,loopKey,request);
+            }
+        }
+        catch(err1){
+            return [err1, responseData];
+        }
+        
+        return [error,responseData];
+    }
     this.assetReportLoop = async (loopBase,loopKey,request) => {
+        console.log("assetReportLoop :: loopBase :: "+loopBase+ " :: loopKey  "+loopKey );
         let responseData = [],
             error = true;
         for(let i = 0 ; i < loopBase.length ; i++){
