@@ -969,6 +969,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+    app.post('/' + global.config.version + '/admin/workflow/activity-type/draft/update', async function (req, res) {
+       console.log("hitting");
+        const [err, flagData] = await adminOpsService.typeMappingUpdateFlagDraft(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/activity-type/draft/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
