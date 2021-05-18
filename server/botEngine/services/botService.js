@@ -2296,6 +2296,23 @@ function BotService(objectCollection) {
                     }
                     break;
 
+                case 50 : // Activity Update customer data 
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
+                    } catch (err) {
+                        logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
+
 
             }
 
@@ -2635,6 +2652,35 @@ function BotService(objectCollection) {
       objectsContext.endIndirectObject();
   
       writer.end();
+  }
+
+  async function activityUpdateCustomerData(request,bot_details) {
+      let req_Json = bot_details.customer_data_set;
+      let field_value = await getFieldValueUsingFieldIdV1(request,req_Json.form_id,req_Json.field_id)
+let assetDetailsArr = field_value.split('|')
+    let responseData = [],
+    error = true;
+
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_id,
+    assetDetailsArr[0],
+    request.asset_id || 0,
+    util.getCurrentUTCTime()
+);
+const queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(0, queryString, request)
+        .then((data) => {
+            responseData = data;
+            error = false;
+        })
+        .catch((err) => {
+            error = err;
+        })
+}
+return [error, responseData];
   }
 
    async function assetApprovalWorkflow(request,bot_data){
@@ -7717,7 +7763,10 @@ async function removeAsOwner(request,data)  {
                 request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
-
+        // console.lo
+        let indutry_type_id = createCustomerInlineData['lov_type_id'];
+        const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
+        console.log('indData12',industryData)
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
@@ -7746,16 +7795,16 @@ async function removeAsOwner(request,data)  {
         }
 
         // Fetch the Customer Service Desk's asset_type_id
-        const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 45
-        });
-        if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 45
+        // });
+        // if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create the desk
         const deskName = `Customer Service Desk ${customerData.customer_cuid || ''}`;
         const createCustomerServiceDeskRequest = {
@@ -7772,7 +7821,7 @@ async function removeAsOwner(request,data)  {
             workforce_name: "Customer Floor",
             activity_stream_type_id: 11018,
             stream_type_id: 11018,
-            asset_type_id: serviceDeskAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.desk_asset_type_id,
             activity_inline_data: JSON.stringify({
                 "contact_profile_picture": "",
                 "contact_first_name": deskName,
@@ -7781,7 +7830,7 @@ async function removeAsOwner(request,data)  {
                 "contact_phone_country_code": countryCode,
                 "contact_phone_number": phoneNumber,
                 "contact_email_id": customerData.customer_email,
-                "contact_asset_type_id": serviceDeskAssetTypeData[0].asset_type_id,
+                "contact_asset_type_id": createCustomerInlineData.desk_asset_type_id,
                 "contact_organization": "",
                 "contact_asset_id": 0,
                 "contact_workforce_id": createCustomerInlineData.workforce_id,
@@ -7798,18 +7847,19 @@ async function removeAsOwner(request,data)  {
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
-
+       
+        const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id,industry_id:industryData[0].entity_id});
         // Fetch the Customer's asset_type_id
-        const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 13
-        });
-        if (errThree || !(customerAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 13
+        // });
+        // if (errThree || !(customerAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create Customer on the Service Desk
         const createCustomerRequest = {
             ...createCustomerServiceDeskRequest,
@@ -7819,7 +7869,7 @@ async function removeAsOwner(request,data)  {
             asset_type_category_id: 13,
             asset_access_role_id: 1,
             asset_access_level_id: 5,
-            asset_type_id: customerAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.asset_type_id,
             desk_asset_id: serviceDeskData.asset_id,
             country_code: countryCode,
             phone_number: phoneNumber,
@@ -7833,6 +7883,8 @@ async function removeAsOwner(request,data)  {
         };
 
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
+
+        const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.operating_asset_id,industry_id:industryData[0].entity_id});
         logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
@@ -7864,6 +7916,55 @@ async function removeAsOwner(request,data)  {
     //    }
     //    return [error, responseData];
     //}
+
+    async function assetListUpdateIndustry (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.industry_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function getIndustryIdByName(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.id,
+          request.name
+        );
+
+        var queryString = util.getQueryString('ds_p3_lov_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
         let activity_id = request.workflow_activity_id;
