@@ -1495,6 +1495,28 @@ function PamListingService(objectCollection) {
             }
         });
         };
+
+    //Get PAM Role Module Mapping Details for the given asset_type_id
+    this.getPamRoleModuleMappingDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.asset_type_id,
+                request.start_limit,
+                request.end_limit
+            );
+            var queryString = util.getQueryString('ds_p1_pam_module_role_mapping_select_asset_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                        if(err === false) {
+                            resolve(data);	        			      			  
+                        } else {
+                            reject(err);
+                        }
+                });
+            }
+        });
+    };
 };
 
 module.exports = PamListingService;
