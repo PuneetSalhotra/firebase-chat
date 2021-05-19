@@ -115,13 +115,16 @@ if(mode === 'testingprodissueenv') {
     config.servicePort = 4000;
     
     //Mysql Config 
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]   
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_staging';
+    config.slave1Database = 'worlddesk_staging';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -214,13 +217,16 @@ if(mode === 'masimukku') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_staging';
+    config.slave1Database = 'worlddesk_staging';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
     config.conLimit = 2;
 
     //Redis Config    
@@ -327,18 +333,19 @@ if(mode === 'local') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
     //This is for Account Search
     //config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    // config.database = 'desker_staging';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_staging';
+    config.slave1Database = 'worlddesk_staging';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
     config.conLimit = 5;
 
     //Log Mysql Config
@@ -572,13 +579,16 @@ if(mode === 'demo') {
     config.standAlonePamServicePort = 6100;
 
     //Mysql Config
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
-   
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_demo';
-    config.dbPassword = 'apidbuser';
+
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_demo';
+    config.slave1Database = 'worlddesk_demo';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -698,7 +708,7 @@ if(mode === 'sprint') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]    
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
     //config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
@@ -706,10 +716,12 @@ if(mode === 'sprint') {
     //config.masterIp = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     //config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';    
-    //config.database = 'desker';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_staging';
+    config.slave1Database = 'worlddesk_staging';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -831,14 +843,16 @@ if(mode === 'staging') {
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]   
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
-    config.dbUser = 'apiuser';
-    // config.database = 'desker_staging';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_staging';
+    config.slave1Database = 'worlddesk_staging';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -985,16 +999,18 @@ if(mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     // Mysql Config
-    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
+    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_preprod';
-    // config.database = 'desker';
-    config.dbPassword = 'apidbuser';
+    config.slave1DBUser = 'apiuser';
+    config.masterDBUser = 'apiuser';
+    config.masterDatabase = 'worlddesk_preprod';
+    config.slave1Database = 'worlddesk_preprod';
+    config.masterDBPassword = 'apidbuser';
+    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
