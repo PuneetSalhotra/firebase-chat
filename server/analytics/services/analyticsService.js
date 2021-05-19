@@ -3624,31 +3624,36 @@ function AnalyticsService(objectCollection)
             
             if(!parseInt(request.access_level_id)){
                 let loopData = [
-                    //{key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
-                    {key:"target_accounts",value:"account_id",access_level_id:2}
-                    //{key:"target_assets",value:"target_asset_id",access_level_id:6},
-                    //{key:"tag_types",value:"tag_type_id",access_level_id:20},
-                   // {key:"segments",value:"segment_id",access_level_id:21},
-                   // {key:"product_tags",value:"product_tag_id",access_level_id:22},
-                   // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
-                   // {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                    {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    {key:"target_accounts",value:"account_id",access_level_id:2},
+                    {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                    {key:"segments",value:"segment_id",access_level_id:21},
+                    {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    {key:"activity_types",value:"activity_type_id",access_level_id:8}
                 ];
                 let err1 = true, data = [];
+                //console.log("loopData :: ",loopData.length);
                 for(let i = 0 ; i < loopData.length; i++){
                     loopBase = JSON.parse(request[loopData[i].key]);
                     loopKey = loopData[i].value;
                     request.access_level_id = loopData[i].access_level_id;
+                   // console.log("request.access_level_id :: "+request.access_level_id);
                     if(request.access_level_id == 2){
                         if(loopBase.length == 1 && loopBase[0] == 0){
                             let clusterArray = JSON.parse(request.cluster_tags);
+                            //console.log(clusterArray.length);
+                            //console.log(JSON.stringify(clusterArray, null, 2));
                             for(let k = 0; k < clusterArray.length; k++){
+                                //console.log(clusterArray[k]);
                                 request.cluster_tag_id = clusterArray[k];
                                 [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
                             }
                         }else{
                             [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
                         }
-                    }if(request.access_level_id == 8){
+                    }else if(request.access_level_id == 8){
                         // activity_types:{"110":[149277,149278], "111":[152184]}
                         // console.log("request.access_level_id :: "+request.access_level_id);
                         loopBase = JSON.parse(request[loopData[i].key]);
@@ -3681,6 +3686,7 @@ function AnalyticsService(objectCollection)
  
 
                     }else{
+                       // console.log("before else ");
                         [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
                     }
                     
