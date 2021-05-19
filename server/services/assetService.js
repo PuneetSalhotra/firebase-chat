@@ -16,6 +16,7 @@ const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -128,11 +129,18 @@ function AssetService(objectCollection) {
         console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
 
         let phoneNumber = request.asset_phone_number;
+        let email = request.email;
         let countryCode = undefined;
         let emailId = request.asset_email_id;
         let verificationMethod = Number(request.verification_method);
         let organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
+
+        // email wrapper
+
+        if(email) {
+            console.log("Got Email in the request--", email);
+        }
 
         let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
         if('1' === phoneNumverValidationFlag) {
@@ -230,14 +238,16 @@ function AssetService(objectCollection) {
                 //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
                 // });
 
-                smsEngine.emit('send-sinfini-sms', {
-                    type: 'NOTFCTN',
-                    countryCode,
-                    phoneNumber,
-                    msgString: smsMessage,
-                    failOver: true,
-                    appName: ''
-                });
+                if(!email) {
+                    smsEngine.emit('send-sinfini-sms', {
+                        type: 'NOTFCTN',
+                        countryCode,
+                        phoneNumber,
+                        msgString: smsMessage,
+                        failOver: true,
+                        appName: ''
+                    });
+                }
 
                 return;
             }
@@ -252,7 +262,7 @@ function AssetService(objectCollection) {
         }
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
-        if (verificationMethod === 1 || verificationMethod === 2) {
+        if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod == 3) {
             var paramsArr = new Array(
                 0, //organizationId,
                 phoneNumber,
@@ -303,6 +313,33 @@ function AssetService(objectCollection) {
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
                                 callback(false, { response }, 200);
                                 return;
+                            } else if (verificationMethod === 3) {
+                                request.passcode = selectData[0].asset_phone_passcode;
+                                forEachAsync(selectData, function (next, rowData) {
+                                    paramsArr = new Array(
+                                        rowData.asset_id,
+                                        rowData.organization_id,
+                                        verificationCode,
+                                        pwdValidDatetime
+                                    );
+                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                        assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                        });
+                                        next();
+                                    });
+
+                                });
+                                try {
+                                    await newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                } catch (error) {
+                                    console.log("getPhoneNumberAssetsV1 | Asset found | newUserPassCodeSet: ", error);
+                                }
+
+                                sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                callback(false, { response }, 200);
+                                return;
                             }
                         } else {
                             if (verificationMethod === 1) {
@@ -326,6 +363,17 @@ function AssetService(objectCollection) {
                                         // Operation error
                                         callback(false, {}, -9998);
                                     })
+                            } else if (verificationMethod === 3) {
+                                newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                    .then(function () {
+                                        // Passcode set in the DB
+                                        sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                        callback(false, { response }, 200);
+                                    }, function (err) {
+                                        // There was an error setting the passcode in the DB
+                                        callback(true, err, -9998);
+
+                                    });
                             }
                         }
                     } else {
@@ -1080,7 +1128,7 @@ function AssetService(objectCollection) {
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
             //appName = 'TONY';
-            appName = 'Grene Go app.';
+            appName = 'greneOS app.';
         } else {
             appName = appData[0].app_name;
         }
@@ -1256,6 +1304,14 @@ function AssetService(objectCollection) {
 
                 break;
             case 3: //email
+                request.email_receiver_name="";
+                request.email_sender_name="DESKER";
+                //request.email_id = request.email_id;
+                request.email_sender="admin@desker.co";
+                request.subject = "greneOS App One Time Password";
+                request.body = `Hi, <br/> ${verificationCode} is your verification code for the ${appName}.`;
+                request.email_id = request.email;
+                this.sendEmail(request);
                 break;
 
         }
