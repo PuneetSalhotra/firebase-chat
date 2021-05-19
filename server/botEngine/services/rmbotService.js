@@ -1697,10 +1697,11 @@ function RMBotService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.target_asset_id
+            request.target_asset_id,
+            request.datetime || util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_asset_workforce', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_select_asset_workforce', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
