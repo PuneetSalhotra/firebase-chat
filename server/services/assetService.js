@@ -5513,11 +5513,12 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.tag_type_id || 0,
                 request.tag_id || 0,
                 request.cluster_tag_id || 0,
+                request.vertical_tag_id || 0,
                 request.flag || 1,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            const queryString = util.getQueryString('ds_p1_1_asset_access_level_mapping_select_flag', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_asset_access_level_mapping_select_flag', paramsArr);
             if (queryString !== '') {
                 db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
@@ -5998,6 +5999,49 @@ this.getQrBarcodeFeeback = async(request) => {
                                 if (data[0].tag_type_id == 0) {
 
                                     tagTypesforApplication(request).then((resData) => {
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 28) {
+                            if (data.length == 0) {
+                        
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].vertical_tag_id == 0) {
+
+                                    request.tag_type_category_id = 3;
+                                    request.tag_type_id = data[0].vertical_tag_type_id;
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+                                        singleData.tag_type_id = data[0].vertical_tag_type_id;
+                                        singleData.tag_type_name = data[0].vertical_tag_type_name;
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
@@ -7275,6 +7319,35 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+    this.reporteeListByRoleOfAManager = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.manager_asset_id,
+              request.asset_type_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_role_reportees', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
 }
 
 module.exports = AssetService;
