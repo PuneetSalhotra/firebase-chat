@@ -114,7 +114,8 @@ if(mode === 'testingprodissueenv') {
     config.version = 'r0';
     config.servicePort = 4000;
     
-    //Mysql Config    
+    //Mysql Config 
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]   
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
@@ -213,6 +214,7 @@ if(mode === 'masimukku') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
@@ -324,7 +326,8 @@ if(mode === 'local') {
 
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
@@ -569,6 +572,7 @@ if(mode === 'demo') {
     config.standAlonePamServicePort = 6100;
 
     //Mysql Config
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
    
@@ -693,7 +697,8 @@ if(mode === 'sprint') {
 
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]    
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
     //config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
@@ -825,7 +830,8 @@ if(mode === 'staging') {
 
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]   
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
@@ -979,6 +985,7 @@ if(mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     // Mysql Config
+    config.dbURLKeys = ["STAGING_MASTER_IP", "STAGING_SLAVE1_IP"]
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
