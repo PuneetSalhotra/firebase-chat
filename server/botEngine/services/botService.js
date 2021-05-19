@@ -7221,9 +7221,10 @@ async function removeAsOwner(request,data)  {
                     }
                     break;
                 case 18: //Money with currency name
-                    var money = row.field_value.split('|');
-                    params[15] = money[0];
-                    params[18] = money[1];
+                    var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                    params[14] = money.value;
+                    params[18] = money.code;
+                    params[27] = JSON.stringify(money)
                     break;
                 case 19: //Short Text
                     params[18] = request.new_field_value || row.field_value;
@@ -13923,6 +13924,10 @@ async function removeAsOwner(request,data)  {
                     case 57: //Account
                         fieldValue = fieldData.field_value;
                         fieldValue = fieldValue.split('|')[1];
+                        break;
+                    case 18: //Money
+                        fieldValue = typeof fieldData.field_value=="string"?JSON.parse(fieldData.field_value):fieldData.field_value;
+                        fieldValue = fieldValue.value;
                         break;
                     //case 68: break;
                     default: fieldValue = fieldData.field_value;
