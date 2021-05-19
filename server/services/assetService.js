@@ -1878,7 +1878,11 @@ function AssetService(objectCollection) {
         }
     };
 
-    var archiveAsset = function (request){
+    var archiveAsset = async function (request){
+
+        let error= true,
+         responseData = [];
+
         var paramsArr = new Array(
             request.asset_id,
             request.organization_id,
@@ -1889,24 +1893,28 @@ function AssetService(objectCollection) {
         );
         var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
         if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, assetData) {
-                if (err === false) {
-                    return[false, assetData];
-                } else {
-                    return[true, err];
-                }
-            });
+             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    //logger.info("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+        console.log(error ,":: ",responseData);
+        return [error, responseData];
     }
 
     var deleteAsset = function (request, callback) {
         var paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
-            request.asset_id,
+            request.target_asset_id,
             request.datetime_log
         );
-
+        console.log(paramsArr);
         var queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -2385,30 +2393,56 @@ function AssetService(objectCollection) {
      });
      
      };*/
-
+/*
     //PAM
-    this.removeAsset = async function (request, callback) {
+    this.removeAsset = async (request) => {
         console.log('util : ' + util);
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
         //archive asset data
-        let [archiveErr,_]=await archiveAsset(request)
-        if(archiveErr){
-            callback(err, {}, -9998);
-        }
         deleteAsset(request, function (err, AssetId) {
-            if (err === false) {
-                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
-                var responseDataCollection = {};
-                responseDataCollection.asset_id = AssetId;
-                callback(false, responseDataCollection, 200);
-            } else {
-                callback(err, {}, -9998);
-            }
-        });
+                if (err === false) {
+                    archiveAsset(request);
+                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+                    var responseDataCollection = {};
+                    responseDataCollection.asset_id = AssetId;
+                    return[false, responseDataCollection];
+                } else {
+                    return[err, {}]
+                }
+            });
     };
+*/
+    this.removeAsset = async (request) => {
 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.target_asset_id,
+            request.organization_id,
+            request.target_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                  archiveAsset(request);
+                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
     //PAM
     /*this.assetClockIn = function (request, callback) {
      var dateTimeLog = util.getCurrentUTCTime();
