@@ -78,7 +78,7 @@ if(global.mode === 'local') {
     redisSubscriber = redis.createClient(global.config.redisConfig);
 } else {
     redisClient = redis.createClient(global.config.redisPort,global.config.redisIp);
-    redisSubscriber = redis.createClient(global.config.redisConfig);
+    redisSubscriber = redis.createClient(global.config.redisPort,global.config.redisIp);
 }
 
 var CacheWrapper = require('./server/utils/cacheWrapper');
