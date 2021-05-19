@@ -3093,7 +3093,7 @@ function RMBotService(objectCollection) {
                             
                             if(Number(request.asset_id) == 100) {
                                 request.stream_type_id = 718;
-                                name = "Tony"; // GreneOS
+                                name = "greneOS";
                             }
     
                             if(Number(request.asset_id) != 100 && (data[0].existing_lead_asset_id == 0 || data[0].existing_lead_asset_id === null)) {

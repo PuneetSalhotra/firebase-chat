@@ -25,9 +25,9 @@ const readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
 writeCluster.add('MASTER', {
     connectionLimit: global.config.conLimit,
     host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
+    user: global.config.masterDBUser,
+    password: global.config.masterDBPassword,
+    database: global.config.masterDatabase,
     debug: false
 });
 
@@ -35,9 +35,9 @@ writeCluster.add('MASTER', {
 readCluster.add('SLAVE1', {
     connectionLimit: global.config.conLimit,
     host: global.config.slave1Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
+    user: global.config.slave1DBUser,
+    password: global.config.slave1DBPassword,
+    database: global.config.slave1Database,
     debug: false
 });
 
@@ -45,9 +45,9 @@ readCluster.add('SLAVE1', {
 writeClusterForHealthCheck.add('MASTER', {
     connectionLimit: 1,
     host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
+    user: global.config.masterDBUser,
+    password: global.config.masterDBPassword,
+    database: global.config.masterDatabase,
     debug: false
 });
 
@@ -55,18 +55,18 @@ writeClusterForHealthCheck.add('MASTER', {
 readClusterForHealthCheck.add('SLAVE1', {
     connectionLimit: 1,
     host: global.config.slave1Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
+    user: global.config.slave1DBUser,
+    password: global.config.slave1DBPassword,
+    database: global.config.slave1Database,
     debug: false
 });
 
 readClusterForAccountSearch.add('SLAVE2', {
     connectionLimit: global.config.conLimit,
     host: global.config.slave2Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
+    user: global.config.slave1DBUser,
+    password: global.config.slave1DBPassword,
+    database: global.config.slave1Database,
     debug: false
 });
 
