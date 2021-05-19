@@ -4597,6 +4597,10 @@ function ActivityService(objectCollection) {
                 } else if (transactionTypeID === 2) {
                     return -Number(transactionAmount);
                 }
+
+            case 18: // money data type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                return(fieldValue.value)
             default:
                 return Number(fieldValue);
         }
