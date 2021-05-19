@@ -7275,6 +7275,35 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+    this.reporteeListByRoleOfAManager = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.manager_asset_id,
+              request.asset_type_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_role_reportees', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
 }
 
 module.exports = AssetService;
