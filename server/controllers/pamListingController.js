@@ -435,6 +435,17 @@ function PamListingController(objCollection) {
         });    		
     });
 
+    //Get PAM Role Module Mapping Details for the given asset_type_id
+    app.post('/' + global.config.version + '/pam/role/module/mapping', function (req, res) {
+    	pamListingService.getPamRoleModuleMappingDetails(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+
 }
 ;
 module.exports = PamListingController;
