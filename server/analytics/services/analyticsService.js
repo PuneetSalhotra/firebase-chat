@@ -2568,7 +2568,7 @@ function AnalyticsService(objectCollection)
                     paramsArray[19] = util.getLastDayOfNextMonthToIST();
                 }
                 if (widgetFlags[iteratorM] == 4) {
-                    paramsArray[1] = 1;
+                    paramsArray[1] = 3;
                     paramsArray[15] = 2;
                     paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
