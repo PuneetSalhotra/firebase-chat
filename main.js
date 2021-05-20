@@ -71,14 +71,11 @@ var KeyedMessage = kafka.KeyedMessage;
 
 var redis = require('redis');   //using elasticache as redis
 let redisClient;
-let redisSubscriber;
 //console.log('global.mode - ', global.mode);
 if(global.mode === 'local') {
     redisClient = redis.createClient(global.config.redisConfig);
-    redisSubscriber = redis.createClient(global.config.redisConfig);
 } else {
     redisClient = redis.createClient(global.config.redisPort,global.config.redisIp);
-    redisSubscriber = redis.createClient(global.config.redisPort,global.config.redisIp);
 }
 
 var CacheWrapper = require('./server/utils/cacheWrapper');
@@ -90,23 +87,16 @@ var ActivityCommonService = require("./server/services/activityCommonService");
 var map = new Map();
 
 redisClient.config('set','notify-keyspace-events','KEA');
-redisSubscriber.subscribe('__keyevent@0__:set');
 
-redisClient.on('connect',function (response) {
+redisClient.on('connect',async function (response) {
     logger.info('Redis Client Connected',{type: 'redis',response});
-    getAndSetDbURL();
+    await getAndSetDbURL();
     connectToKafkaBroker();
 });
 
 redisClient.on('error',function (error) {
     logger.error('Redis Error',{type: 'redis',error: serializeError(error)});
     // console.log(error);
-});
-
-redisSubscriber.on("message", function (channel, message) {
-    if (global.config.dbURLKeys.includes(message)) {
-        getAndSetDbURL();
-    }
 });
 
 //connectToKafkaBroker();
@@ -304,21 +294,23 @@ function connectToKafkaBroker() {
 };
 
 function getAndSetDbURL() {
-    redisClient.mget(global.config.dbURLKeys, function (err, reply) {
-        if (err) {
-            logger.error('Redis Error',{type: 'redis',error: serializeError(err)});
-        } else {
-            console.log(reply);
-            global.config.masterIp = reply[0];
-            global.config.masterDatabase = reply[1];
-            global.config.masterDBUser = reply[2];
-            global.config.masterDBPassword = reply[3];
-
-            global.config.slave1Ip = reply[4];
-            global.config.slave1Database = reply[5];
-            global.config.slave1DBUser = reply[6];
-            global.config.slave1DBPassword = reply[7];
-        }
+    return new Promise((resolve, reject) => {
+        redisClient.mget(global.config.dbURLKeys, function (err, reply) {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(reply);
+                global.config.masterIp = reply[0];
+                global.config.masterDatabase = reply[1];
+                global.config.masterDBUser = reply[2];
+                global.config.masterDBPassword = reply[3];
+                global.config.slave1Ip = reply[4];
+                global.config.slave1Database = reply[5];
+                global.config.slave1DBUser = reply[6];
+                global.config.slave1DBPassword = reply[7];
+                resolve(true);
+            }
+        });
     });
 }
 
