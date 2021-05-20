@@ -13,7 +13,7 @@ var clusterConfig = {
     restoreNodeTimeout: 1000, //Milliseconds
     defaultSelector: 'ORDER'
 };
-
+let slave1HealthCheckFlag = false;
 var writeCluster = mysql.createPoolCluster();
 var readCluster = mysql.createPoolCluster(clusterConfig);
 
@@ -136,9 +136,17 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
+                    if(flag === 0 ) {
+                        console.log("Slave1 is down so will read data from master");
+                        slave1HealthCheckFlag = false;
+                    }
                     //console.log('ERROR WHILE GETTING CONNECTON - ', err);
                     resolve([1, err]);
                 } else {
+                    if(flag === 0 ) {
+                        console.log("Slave1 is up");
+                        slave1HealthCheckFlag = true;
+                    }
                     conn.release();
                     resolve([0, 'up']);
                 }
@@ -169,7 +177,9 @@ var executeQuery = function (flag, queryString, request, callback) {
             //            console.log('slave1 pool is selected');
             break;
     }
-
+    if(flag === 1 && !slave1HealthCheckFlag) {
+        conPool = writeCluster;
+    }
     try {
         conPool.getConnection(async function (err, conn) {
             if (err) {
@@ -242,6 +252,9 @@ var executeQueryPromise = function (flag, queryString, request) {
             console.log('Hitting the account search Read Replica DB');
         }
 
+        if(flag === 1 && !slave1HealthCheckFlag) {
+            conPool = writeCluster;
+        }
         try {            
             conPool.getConnection(function (err, conn) {
                 if (err) {
@@ -309,6 +322,9 @@ var executeRawQueryPromise = function (flag, queryString, request) {
         
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
+        if(flag === 1 && !slave1HealthCheckFlag) {
+            conPool = writeCluster;
+        }
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
