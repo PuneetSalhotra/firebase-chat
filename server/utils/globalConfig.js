@@ -1001,7 +1001,7 @@ if(mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     // Mysql Config
-    config.dbURLKeys = ["STAGING_MASTER_IP","STAGING_MASTER_DB_NAME", "STAGING_MASTER_DB_USER","STAGING_MASTER_DB_PASSWORD", "STAGING_SLAVE1_IP","STAGING_SLAVE1_DB_NAME","STAGING_SLAVE1_DB_USER","STAGING_SLAVE1_DB_PASSWORD"];
+    config.dbURLKeys = ["PREPROD_MASTER_IP","PREPROD_MASTER_DB_NAME", "PREPROD_MASTER_DB_USER","PREPROD_MASTER_DB_PASSWORD", "PREPROD_SLAVE1_IP","PREPROD_SLAVE1_DB_NAME","PREPROD_SLAVE1_DB_USER","PREPROD_SLAVE1_DB_PASSWORD"];
     config.masterIp = 'preprodmysql.worlddesk.cloud';
     config.slave1Ip = 'stagingmysql.worlddesk.cloud';
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
