@@ -2160,12 +2160,13 @@ function Util(objectCollection) {
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
         const assetPushARN = assetMapData.asset_push_arn;
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         sns.publish({
             description: request.message,
             title: activityTitle,
             subtitle: request.message,
-            body: `TONY`,
+            body: defaultAssetName,
             activity_id: activityID,
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
