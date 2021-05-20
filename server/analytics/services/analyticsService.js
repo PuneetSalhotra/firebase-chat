@@ -2321,7 +2321,6 @@ function AnalyticsService(objectCollection)
                     } else {
 
                         switch (request.widget_type_id) {
-
                             case '128': {
                                 let results = new Array();
                                 resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
@@ -2372,12 +2371,13 @@ function AnalyticsService(objectCollection)
                 }
 
                 paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
                         .then((data) => {
-
+                            
                             paramsArray.pop();
                             let responseMap = new Map();
                             for (index = 0; index < data.length; index++) {
@@ -2436,14 +2436,8 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                results = new Array();
-                results.push(request.verticalData[request.widget_type_id]);
-                return Promise.resolve(results);
-            } else {
-                return Promise.resolve(results);    
-            }
-
+            return Promise.resolve(results); 
+            
         } catch (error) {
             console.log("error :; ", error);
             return Promise.reject(error);
@@ -2470,6 +2464,7 @@ function AnalyticsService(objectCollection)
                 paramsArray[16] = status_tags[value];
                 
                 paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
@@ -2533,13 +2528,7 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                results = new Array();
-                results.push(request.verticalData[request.widget_type_id]);
-                return Promise.resolve(results);
-            } else {
-                return Promise.resolve(results);    
-            }
+            return Promise.resolve(results);
 
         } catch (error) {
             console.log("error :; ", error);
@@ -2586,6 +2575,7 @@ function AnalyticsService(objectCollection)
                 }
 
                 paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
@@ -2649,13 +2639,7 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                results = new Array();
-                results.push(request.verticalData[request.widget_type_id]);
-                return Promise.resolve(results);
-            } else {
-                return Promise.resolve(results);    
-            }
+            return Promise.resolve(results);
 
         } catch (error) {
             console.log("error :; ", error);
