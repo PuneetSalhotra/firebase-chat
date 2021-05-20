@@ -2364,8 +2364,13 @@ function AnalyticsService(objectCollection)
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
 
+                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                paramsArray[15] = 0;
+                paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 4) {
                     paramsArray[1] = 2;
+                    paramsArray[15] = 1;
                 }
 
                 paramsArray.push(widgetFlags[iteratorM]);
@@ -2567,8 +2572,8 @@ function AnalyticsService(objectCollection)
                 if (widgetFlags[iteratorM] == 1) {
                     paramsArray[1] = 1;
                     paramsArray[15] = 2;
-                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST(paramsArray[18]);
-                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST(paramsArray[19]);
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 }
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
