@@ -2569,7 +2569,7 @@ function AnalyticsService(objectCollection)
                 }
                 if (widgetFlags[iteratorM] == 4) {
                     paramsArray[1] = 3;
-                    paramsArray[15] = 2;
+                    paramsArray[15] = 0;
                     paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
                 }
