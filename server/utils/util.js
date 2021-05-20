@@ -2160,12 +2160,13 @@ function Util(objectCollection) {
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
         const assetPushARN = assetMapData.asset_push_arn;
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         sns.publish({
             description: request.message,
             title: activityTitle,
             subtitle: request.message,
-            body: `TONY`,
+            body: defaultAssetName,
             activity_id: activityID,
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
@@ -2891,6 +2892,41 @@ function Util(objectCollection) {
 
     this.checkDateFormat = (date,format) => {
         return moment(date, format).isValid();
+    }
+
+    this.getFirstDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').endOf('month').endOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfCurrentQuarterToIST = () => {
+        let value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        return moment(moment(currentYear + '-01-01').toDate()).quarter(currentQuarter).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentQuarterToIST = () => {
+        var value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        let endMonth = 3 * parseInt(currentQuarter);
+        if (endMonth < 10)
+            endMonth = '0' + endMonth;
+        else
+            endMonth += '';
+        return moment(currentYear + '-' + endMonth).endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
     }
 
     this.sendPushNotification = async function (request, data, message) {
