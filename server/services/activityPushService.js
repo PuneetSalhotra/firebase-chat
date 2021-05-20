@@ -561,7 +561,9 @@ function ActivityPushService(objectCollection) {
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
                                     ) {
-                                        senderName = "TONY";
+                                        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
+                                        senderName = defaultAssetName;
                                     }
                                     switch (request.url) {
                                         case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -791,7 +793,9 @@ function ActivityPushService(objectCollection) {
                             Number(request.asset_id) === 31993 ||
                             Number(request.asset_id) === 100
                         ) {
-                            senderName = "TONY";
+                            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
+                            senderName = defaultAssetName;
                         }
                         switch (request.url) {
 
