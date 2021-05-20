@@ -2312,14 +2312,55 @@ function AnalyticsService(objectCollection)
 
                         }
                     }
-
+                    verticalMap = new Map();
                     if (verticalMap.size == 0) {
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
+                        switch (request.widget_type_id) {
+
+                            case '128': {
+                                let results = new Array();
+                                results.push({
+                                    "vertical_name": "Vertical",
+                                    "flag_1": "Oepn oppty",
+                                    "flag_2": "Commit for cm",
+                                    "flag_3": "Best case for cm",
+                                    "flag_4": "Closed current month"
+                                });
+                                resolve(results);
+                                break;
+                            }
+                            case '129': {
+                                let results = new Array();
+                                results.push({
+                                    "vertical_name": "Vertical",
+                                    "flag_1": "Identify",
+                                    "flag_2": "Qualify",
+                                    "flag_3": "Propose",
+                                    "flag_4": "Negotiate"
+                                });
+                                resolve(results);
+                                break;
+                            }
+                            case '130': {
+                                let results = new Array();
+                                results.push({
+                                    "vertical_name": "Vertical",
+                                    "flag_1": "Open oppty",
+                                    "flag_2": "Commit for cm",
+                                    "flag_3": "Next month",
+                                    "flag_4": "Current Qtr"
+                                });
+                                resolve(results);
+                                break;
+                            }
+
+                        }
                     } else {
 
                         switch (request.widget_type_id) {
 
                             case '128': {
+                                let results = new Array();
                                 resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
                                 break;
                             }
@@ -2356,10 +2397,10 @@ function AnalyticsService(objectCollection)
 
             results.push({
                 "vertical_name": "Vertical",
-                "flag_1": "oepn oppty",
-                "flag_2": "cmt for cm",
-                "flag_3": "best case for cm",
-                "flag_4": "closed current month"
+                "flag_1": "Oepn oppty",
+                "flag_2": "Commit for cm",
+                "flag_3": "Best case for cm",
+                "flag_4": "Closed current month"
             });
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
@@ -2438,7 +2479,17 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            return Promise.resolve(results);
+            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
+                return Promise.resolve({
+                    "vertical_name": "Vertical",
+                    "flag_1": "Oepn oppty",
+                    "flag_2": "Commit for cm",
+                    "flag_3": "Best case for cm",
+                    "flag_4": "Closed current month"
+                });
+            } else {
+                return Promise.resolve(results);    
+            }
 
         } catch (error) {
             console.log("error :; ", error);
@@ -2457,10 +2508,10 @@ function AnalyticsService(objectCollection)
 
             results.push({
                 "vertical_name": "Vertical",
-                "flag_1": "identify",
-                "flag_2": "qualify",
-                "flag_3": "propose",
-                "flag_4": "negotiate"
+                "flag_1": "Identify",
+                "flag_2": "Qualify",
+                "flag_3": "Propose",
+                "flag_4": "Negotiate"
             });
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
@@ -2542,7 +2593,17 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            return Promise.resolve(results);
+            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
+                return Promise.resolve({
+                    "vertical_name": "Vertical",
+                    "flag_1": "Identify",
+                    "flag_2": "Qualify",
+                    "flag_3": "Propose",
+                    "flag_4": "Negotiate"
+                });
+            } else {
+                return Promise.resolve(results);    
+            }
 
         } catch (error) {
             console.log("error :; ", error);
@@ -2561,9 +2622,9 @@ function AnalyticsService(objectCollection)
 
             results.push({
                 "vertical_name": "Vertical",
-                "flag_1": "oepn oppty",
-                "flag_2": "cmt for cm",
-                "flag_3": "next month",
+                "flag_1": "Open oppty",
+                "flag_2": "Commit for cm",
+                "flag_3": "Next month",
                 "flag_4": "Current Qtr"
             });
 
@@ -2658,7 +2719,17 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            return Promise.resolve(results);
+            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
+                return Promise.resolve({
+                    "vertical_name": "Vertical",
+                    "flag_1": "Open oppty",
+                    "flag_2": "Commit for cm",
+                    "flag_3": "Next month",
+                    "flag_4": "Current Qtr"
+                });
+            } else {
+                return Promise.resolve(results);    
+            }
 
         } catch (error) {
             console.log("error :; ", error);
