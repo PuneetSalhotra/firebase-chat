@@ -2182,10 +2182,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 
                 cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
                     if (err === false) {
-                        response.asset_id = resp.asset_id;
+                        //console.log(resp);
+                        response = resp;
                         response.asset_message_counter = data;
-                        response.asset_encryption_token_id = resp.asset_encryption_token_id;
-                        
+
+
                         request.asset_id = response.asset_id;
                         pamGetEmpStations(request).then((data)=>{
                             if(data.length > 0) { 
@@ -2270,8 +2271,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 if (err === false) {
                     //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
                     if(assetId.length>0) {
-                        response.asset_id = assetId[0].asset_id;
-                        response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+                        //response.asset_id = assetId[0].asset_id;
+                        //response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+                        response = assetId[0];
                         callback(false, response);
                     } else {
                         callback(true, 'wrongPasscode');
