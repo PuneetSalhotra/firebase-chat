@@ -4094,6 +4094,7 @@ async function addFormEntriesAsync(request) {
         let responseData = [],
             error = false;
 
+
         const paramsJSON = {
             "organization_id": requestObj.organization_id,
             "account_id": requestObj.account_id,
@@ -4124,6 +4125,8 @@ async function addFormEntriesAsync(request) {
         const Template = "";*/
         let dateTime = await util.mentionsDateFormat();
         console.log('dateTime : ', dateTime);
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
         
         let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${await util.mentionsDateFormat()} By ${request.email_sender_name}`;
 
@@ -4146,7 +4149,7 @@ async function addFormEntriesAsync(request) {
                             <p>
                             Thankyou
                             <br>
-                            Tony
+                            ${defaultAssetName}
                             </p>
                             </tr>
                             </tbody>

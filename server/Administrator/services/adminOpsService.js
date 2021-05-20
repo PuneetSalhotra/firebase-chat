@@ -1663,8 +1663,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: mangerAssetID
             });
-        
-        let message = `Tony added ${assetData[0].operating_asset_first_name} to this Conversation`
+            
+            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
                 "organization_id":request.organization_id,
