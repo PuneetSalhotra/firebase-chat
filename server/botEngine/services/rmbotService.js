@@ -154,9 +154,9 @@ function RMBotService(objectCollection) {
 
         logger.info("callAddParticipant"+JSON.stringify(request,null,2));
         let timelineCollection = {};
-        timelineCollection.content="Tony has assigned "+request.target_status_lead_asset_name+" as Lead";
-        timelineCollection.subject="Tony has assigned "+request.target_status_lead_asset_name+" as Lead";
-        timelineCollection.mail_body="Tony has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.content="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.subject="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.mail_body="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
         timelineCollection.attachments=[];
         timelineCollection.asset_reference=[];
         timelineCollection.activity_reference=[];
@@ -1964,9 +1964,9 @@ function RMBotService(objectCollection) {
                         request.timeline_stream_type_id = 718;
 
                         let timelineCollection = {};
-                        timelineCollection.content="Tony has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                        timelineCollection.subject="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                        timelineCollection.mail_body="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.content="greneOS has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.subject="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.mail_body="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
                         timelineCollection.attachments=[];
                         timelineCollection.asset_reference=[];
                         timelineCollection.activity_reference=[];
@@ -2666,9 +2666,9 @@ function RMBotService(objectCollection) {
 
                                     logger.info("LEAD_UNASSIGNMENT"+request.lead_asset_id);;
                                     let timelineCollection = {};
-                                    timelineCollection.content="Tony has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                                    timelineCollection.subject="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                                    timelineCollection.mail_body="Tony has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.content="greneOS has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.subject="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.mail_body="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
                                     timelineCollection.attachments=[];
                                     timelineCollection.asset_reference=[];
                                     timelineCollection.activity_reference=[];
