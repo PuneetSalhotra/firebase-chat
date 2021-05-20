@@ -8,6 +8,9 @@ function AnalyticsService(objectCollection)
     const makeRequest = require('request');    
     const nodeUtil = require('util');
     
+    const AssetService = require('../../services/assetService');
+    const assetService = new AssetService(objectCollection);
+
     //const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
@@ -2173,7 +2176,10 @@ function AnalyticsService(objectCollection)
                                 }
                             );
                         iterator++
-                    }else{
+                    } else if (['128', '129', '130'].includes(request.widget_type_id)) {
+                        request.verticalData = global.analyticsConfig.vertical;
+                        results = await this.prepareWidgetData(request, paramsArray);
+                    } else {
                         console.log(paramsArray);
                         paramsArray.push(0)
                         tempResult = await db.callDBProcedureR2(request, 'ds_v1_7_activity_search_list_select_widget_values', paramsArray, 1);
@@ -2259,7 +2265,389 @@ function AnalyticsService(objectCollection)
         {
             return Promise.reject(error);
         }
-    };    
+    };
+
+    this.prepareWidgetData = async (request, paramsArray) => {
+
+        return new Promise((resolve) => {
+
+            let requestObj = {
+                "organization_id": request.organization_id,
+                "account_id": request.account_id,
+                "workforce_id": request.workforce_id,
+                "segment_id": request.segment_id || 0,
+                "target_asset_id": request.asset_id,
+                "tag_type_id": request.tag_type_id || 0,
+                "tag_id": request.tag_id || 0,
+                "cluster_tag_id": request.cluster_tag_id || 0,
+                "vertical_tag_id": request.vertical_tag_id || 0,
+                "flag": 28,
+                "page_start": request.page_start || 0,
+                "page_limit": request.page_limit || 50
+            };
+
+            assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
+                .then(async (data) => {
+
+                    let verticalMap = new Map();
+
+                    if (data !== undefined && data.length >= 2) {
+
+                        let verticalsArray = data[1];
+                        for (index = 0; index < verticalsArray.length; index++) {
+
+                            let vertical = verticalsArray[index];
+                            if (vertical !== undefined && vertical.hasOwnProperty('tag_id')) {
+
+                                let tag_id = vertical.tag_id;
+                                if (tag_id !== null && tag_id > 0) {
+
+                                    let tag_name = verticalsArray[index].tag_name;
+                                    if ("All" !== tag_name) {
+                                        verticalMap.set(tag_id, tag_name);
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
+                    if (verticalMap.size == 0) {
+                        console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
+                        let results = new Array();
+                        results.push(request.verticalData[request.widget_type_id]);
+                        resolve(results);
+                    } else {
+
+                        switch (request.widget_type_id) {
+                            case '128': {
+                                let results = new Array();
+                                resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
+                                break;
+                            }
+                            case '129': {
+                                resolve(await this.prepareDataForWidgetType129(request, paramsArray, verticalMap));
+                                break;
+                            }
+                            case '130': {
+                                resolve(await this.prepareDataForWidgetType130(request, paramsArray, verticalMap));
+                                break;
+                            }
+
+                        }
+
+                    }
+                })
+                .catch((error) => {
+                    console.log("prepareWidgetData : Exception : ");
+                    console.log(error);
+                    return Promise.reject(error);
+                });
+        });
+
+    }
+
+    this.prepareDataForWidgetType128 = async (request, paramsArray, verticalMap) => {
+
+        try {
+
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalResponseMap = new Map();
+
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                paramsArray[15] = 0;
+                paramsArray[1] = 1;
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                }
+
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+                            
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            return Promise.reject(err);
+                        })
+                }
+
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results); 
+            
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.reject(error);
+        }
+    }
+
+    this.prepareDataForWidgetType129 = async (request, paramsArray, verticalMap) => {
+
+        try {
+
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalResponseMap = new Map();
+
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                let widgetJsonObject = request.verticalData[request.widget_type_id];
+                let status_tags = request.verticalData["status_tags"];
+                let key = "flag_" + widgetFlags[iteratorM];
+                let value = widgetJsonObject[key];
+                paramsArray[16] = status_tags[value];
+                
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            return Promise.reject(err);
+                        })
+                }
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.reject(error);
+        }
+    }
+
+    this.prepareDataForWidgetType130 = async (request, paramsArray, verticalMap) => {
+
+        try {
+
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalResponseMap = new Map();
+
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (widgetFlags[iteratorM] == 1) {
+                    paramsArray[1] = 1;
+                    paramsArray[15] = 2;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 2) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 3) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfNextMonthToIST();
+                    paramsArray[19] = util.getLastDayOfNextMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
+                }
+
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            return Promise.reject(err);
+                        })
+                }
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.reject(error);
+        }
+    }
+
+
 
     //Get the drill down with limit for a specific widget
     //Sravankumar
