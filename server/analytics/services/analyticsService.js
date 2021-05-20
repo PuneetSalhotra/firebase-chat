@@ -2312,7 +2312,6 @@ function AnalyticsService(objectCollection)
 
                         }
                     }
-                    verticalMap = new Map();
                     if (verticalMap.size == 0) {
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
                         switch (request.widget_type_id) {
