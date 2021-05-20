@@ -86,8 +86,11 @@ var ActivityCommonService = require("./server/services/activityCommonService");
 
 var map = new Map();
 
-redisClient.on('connect',function (response) {
+redisClient.config('set','notify-keyspace-events','KEA');
+
+redisClient.on('connect',async function (response) {
     logger.info('Redis Client Connected',{type: 'redis',response});
+    await getAndSetDbURL();
     connectToKafkaBroker();
 });
 
@@ -96,7 +99,30 @@ redisClient.on('error',function (error) {
     // console.log(error);
 });
 
-//connectToKafkaBroker();
+
+function getAndSetDbURL() {
+    return new Promise((resolve, reject) => {
+        redisClient.mget(global.config.dbURLKeys, function (err, reply) {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(reply);
+                global.config.masterIp = reply[0];
+                global.config.masterDatabase = reply[1];
+                global.config.masterDBUser = reply[2];
+                global.config.masterDBPassword = reply[3];
+                global.config.slave1Ip = reply[4];
+                global.config.slave1Database = reply[5];
+                global.config.slave1DBUser = reply[6];
+                global.config.slave1DBPassword = reply[7];
+                resolve(true);
+            }
+        });
+    });
+}
+
+
+
 
 const {
     requestParamsValidator,requestMethodValidator,requestContentTypeValidator,
