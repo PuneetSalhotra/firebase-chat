@@ -2893,6 +2893,41 @@ function Util(objectCollection) {
         return moment(date, format).isValid();
     }
 
+    this.getFirstDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').endOf('month').endOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfCurrentQuarterToIST = () => {
+        let value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        return moment(moment(currentYear + '-01-01').toDate()).quarter(currentQuarter).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentQuarterToIST = () => {
+        var value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        let endMonth = 3 * parseInt(currentQuarter);
+        if (endMonth < 10)
+            endMonth = '0' + endMonth;
+        else
+            endMonth += '';
+        return moment(currentYear + '-' + endMonth).endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
     this.sendPushNotification = async function (request, data, message) {
         let error = false;
         // [CHECK] target_asset_id
