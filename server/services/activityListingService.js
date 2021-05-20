@@ -591,7 +591,7 @@ function ActivityListingService(objCollection) {
 			request.workforce_id,
 			request.datetime_differential,
 			request.page_start,
-			util.replaceQueryLimit(request.page_limit)
+			request.page_limit
 		);
 		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_coworker', paramsArr);
 		if (queryString != '') {
