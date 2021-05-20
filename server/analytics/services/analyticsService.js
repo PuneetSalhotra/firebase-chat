@@ -2437,7 +2437,9 @@ function AnalyticsService(objectCollection)
             });
 
             if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                return Promise.resolve(request.verticalData[request.widget_type_id]);
+                results = new Array();
+                results.push(request.verticalData[request.widget_type_id]);
+                return Promise.resolve(results);
             } else {
                 return Promise.resolve(results);    
             }
@@ -2532,7 +2534,9 @@ function AnalyticsService(objectCollection)
             });
 
             if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                return Promise.resolve(request.verticalData[request.widget_type_id]);
+                results = new Array();
+                results.push(request.verticalData[request.widget_type_id]);
+                return Promise.resolve(results);
             } else {
                 return Promise.resolve(results);    
             }
@@ -2646,7 +2650,9 @@ function AnalyticsService(objectCollection)
             });
 
             if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
-                return Promise.resolve(request.verticalData[request.widget_type_id]);
+                results = new Array();
+                results.push(request.verticalData[request.widget_type_id]);
+                return Promise.resolve(results);
             } else {
                 return Promise.resolve(results);    
             }
