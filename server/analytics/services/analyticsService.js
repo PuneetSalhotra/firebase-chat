@@ -2177,6 +2177,7 @@ function AnalyticsService(objectCollection)
                             );
                         iterator++
                     } else if (['128', '129', '130'].includes(request.widget_type_id)) {
+                        request.verticalData = global.analyticsConfig.vertical;
                         results = await this.prepareWidgetData(request, paramsArray);
                     } else {
                         console.log(paramsArray);
@@ -2314,46 +2315,9 @@ function AnalyticsService(objectCollection)
                     }
                     if (verticalMap.size == 0) {
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
-                        switch (request.widget_type_id) {
-
-                            case '128': {
-                                let results = new Array();
-                                results.push({
-                                    "vertical_name": "Vertical",
-                                    "flag_1": "Oepn oppty",
-                                    "flag_2": "Commit for cm",
-                                    "flag_3": "Best case for cm",
-                                    "flag_4": "Closed current month"
-                                });
-                                resolve(results);
-                                break;
-                            }
-                            case '129': {
-                                let results = new Array();
-                                results.push({
-                                    "vertical_name": "Vertical",
-                                    "flag_1": "Identify",
-                                    "flag_2": "Qualify",
-                                    "flag_3": "Propose",
-                                    "flag_4": "Negotiate"
-                                });
-                                resolve(results);
-                                break;
-                            }
-                            case '130': {
-                                let results = new Array();
-                                results.push({
-                                    "vertical_name": "Vertical",
-                                    "flag_1": "Open oppty",
-                                    "flag_2": "Commit for cm",
-                                    "flag_3": "Next month",
-                                    "flag_4": "Current Qtr"
-                                });
-                                resolve(results);
-                                break;
-                            }
-
-                        }
+                        let results = new Array();
+                        results.push(request.verticalData[request.widget_type_id]);
+                        resolve(results);
                     } else {
 
                         switch (request.widget_type_id) {
@@ -2394,13 +2358,7 @@ function AnalyticsService(objectCollection)
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
 
-            results.push({
-                "vertical_name": "Vertical",
-                "flag_1": "Oepn oppty",
-                "flag_2": "Commit for cm",
-                "flag_3": "Best case for cm",
-                "flag_4": "Closed current month"
-            });
+            results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
 
@@ -2478,14 +2436,8 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
-                return Promise.resolve({
-                    "vertical_name": "Vertical",
-                    "flag_1": "Oepn oppty",
-                    "flag_2": "Commit for cm",
-                    "flag_3": "Best case for cm",
-                    "flag_4": "Closed current month"
-                });
+            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
+                return Promise.resolve(request.verticalData[request.widget_type_id]);
             } else {
                 return Promise.resolve(results);    
             }
@@ -2505,29 +2457,16 @@ function AnalyticsService(objectCollection)
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
 
-            results.push({
-                "vertical_name": "Vertical",
-                "flag_1": "Identify",
-                "flag_2": "Qualify",
-                "flag_3": "Propose",
-                "flag_4": "Negotiate"
-            });
+            results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
 
-                if (widgetFlags[iteratorM] == 1) {
-                    paramsArray[16] = 143;
-                }
-                if (widgetFlags[iteratorM] == 2) {
-                    paramsArray[16] = 144;
-                }
-                if (widgetFlags[iteratorM] == 3) {
-                    paramsArray[16] = 145;
-                }
-                if (widgetFlags[iteratorM] == 4) {
-                    paramsArray[16] = 147;
-                }
-
+                let widgetJsonObject = request.verticalData[request.widget_type_id];
+                let status_tags = request.verticalData["status_tags"];
+                let key = "flag_" + widgetFlags[iteratorM];
+                let value = widgetJsonObject[key];
+                paramsArray[16] = status_tags[value];
+                
                 paramsArray.push(widgetFlags[iteratorM]);
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
@@ -2592,14 +2531,8 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
-                return Promise.resolve({
-                    "vertical_name": "Vertical",
-                    "flag_1": "Identify",
-                    "flag_2": "Qualify",
-                    "flag_3": "Propose",
-                    "flag_4": "Negotiate"
-                });
+            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
+                return Promise.resolve(request.verticalData[request.widget_type_id]);
             } else {
                 return Promise.resolve(results);    
             }
@@ -2619,13 +2552,7 @@ function AnalyticsService(objectCollection)
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
 
-            results.push({
-                "vertical_name": "Vertical",
-                "flag_1": "Open oppty",
-                "flag_2": "Commit for cm",
-                "flag_3": "Next month",
-                "flag_4": "Current Qtr"
-            });
+            results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
 
@@ -2718,14 +2645,8 @@ function AnalyticsService(objectCollection)
                 "flag_4": total[3]
             });
 
-            if(0 == total[0] && 0 == total[1] && 0 == total[2] && 0 == total[3]) {
-                return Promise.resolve({
-                    "vertical_name": "Vertical",
-                    "flag_1": "Open oppty",
-                    "flag_2": "Commit for cm",
-                    "flag_3": "Next month",
-                    "flag_4": "Current Qtr"
-                });
+            if((0 == total[0]) && (0 == total[1]) && (0 == total[2]) && (0 == total[3])) {
+                return Promise.resolve(request.verticalData[request.widget_type_id]);
             } else {
                 return Promise.resolve(results);    
             }
