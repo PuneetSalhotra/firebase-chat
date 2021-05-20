@@ -40,55 +40,79 @@ redisSubscriber.on("message", function (channel, message) {
     }
 });
 
-//Adding Master
-writeCluster.add('MASTER', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.masterIp,
-    user: global.config.masterDBUser,
-    password: global.config.masterDBPassword,
-    database: global.config.masterDatabase,
-    debug: false
-});
+function initiateDB() {
 
-//Adding Slave
-readCluster.add('SLAVE1', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.slave1Ip,
-    user: global.config.slave1DBUser,
-    password: global.config.slave1DBPassword,
-    database: global.config.slave1Database,
-    debug: false
-});
+    redisClient.mget(global.config.dbURLKeys, function (err, reply) {
+        if (err) {
+            logger.error('Redis Error', { type: 'redis', error: serializeError(err) });
+        } else {
+            logger.info(`[DBCrendentialsFetched]`);
+            global.config.masterIp = reply[0];
+            global.config.masterDatabase = reply[1];
+            global.config.masterDBUser = reply[2];
+            global.config.masterDBPassword = reply[3];
 
-//Adding Master for healthCheck purpose
-writeClusterForHealthCheck.add('MASTER', {
-    connectionLimit: 1,
-    host: global.config.masterIp,
-    user: global.config.masterDBUser,
-    password: global.config.masterDBPassword,
-    database: global.config.masterDatabase,
-    debug: false
-});
+            global.config.slave1Ip = reply[4];
+            global.config.slave1Database = reply[5];
+            global.config.slave1DBUser = reply[6];
+            global.config.slave1DBPassword = reply[7];
 
-//Adding Slave for healthCheck purpose
-readClusterForHealthCheck.add('SLAVE1', {
-    connectionLimit: 1,
-    host: global.config.slave1Ip,
-    user: global.config.slave1DBUser,
-    password: global.config.slave1DBPassword,
-    database: global.config.slave1Database,
-    debug: false
-});
 
-readClusterForAccountSearch.add('SLAVE2', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.slave2Ip,
-    user: global.config.slave1DBUser,
-    password: global.config.slave1DBPassword,
-    database: global.config.slave1Database,
-    debug: false
-});
+            //Adding Master
+            writeCluster.add('MASTER', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.masterIp,
+                user: global.config.masterDBUser,
+                password: global.config.masterDBPassword,
+                database: global.config.masterDatabase,
+                debug: false
+            });
 
+
+            //Adding Slave
+            readCluster.add('SLAVE1', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+            //Adding Master for healthCheck purpose
+            writeClusterForHealthCheck.add('MASTER', {
+                connectionLimit: 1,
+                host: global.config.masterIp,
+                user: global.config.masterDBUser,
+                password: global.config.masterDBPassword,
+                database: global.config.masterDatabase,
+                debug: false
+            });
+
+            //Adding Slave for healthCheck purpose
+            readClusterForHealthCheck.add('SLAVE1', {
+                connectionLimit: 1,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+            readClusterForAccountSearch.add('SLAVE2', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave2Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+        }
+    });
+}
+
+initiateDB();
 //Adding Master
 //readCluster.add('MASTER', {
 //    connectionLimit: global.config.conLimit,
@@ -618,11 +642,6 @@ function getAndSetDbURL() {
             logger.error('Redis Error',{type: 'redis',error: serializeError(err)});
         } else {
             logger.warn(`[DBCrendentialsChanged]`, { type: 'mysql', db_response: null, request_body: null, error: null });
-            global.config.masterIp = reply[0];
-            global.config.masterDatabase = reply[1];
-            global.config.masterDBUser = reply[2];
-            global.config.masterDBPassword = reply[3];
-
             global.config.slave1Ip = reply[4];
             global.config.slave1Database = reply[5];
             global.config.slave1DBUser = reply[6];
