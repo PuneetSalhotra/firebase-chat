@@ -2075,8 +2075,8 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+            //arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
@@ -2109,9 +2109,9 @@ function AnalyticsService(objectCollection)
 
             try{
             
-                for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-                {
-                    console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+            //    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            //    {
+                    console.log('request.tag_type_id '+request.tag_type_id);
 
                     paramsArray = 
                     new Array
@@ -2127,7 +2127,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_workforce_type_id),
                         parseInt(request.filter_workforce_id),
                         parseInt(request.filter_asset_id),
-                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.tag_type_id),
                         parseInt(request.filter_tag_id),
                         parseInt(request.filter_activity_type_id),
                         global.analyticsConfig.activity_id_all, //Activity ID,
@@ -2171,12 +2171,12 @@ function AnalyticsService(objectCollection)
                         results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": responseArray,
                                 }
                             );
                         iterator++
-                    } else if (['128', '129', '130'].includes(request.widget_type_id)) {
+                    } else if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
                         request.verticalData = global.analyticsConfig.vertical;
                         results = await this.prepareWidgetData(request, paramsArray);
                     } else {
@@ -2194,7 +2194,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": tempResult,
                                 }
                             );
@@ -2208,7 +2208,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult,
                                 }
@@ -2221,7 +2221,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult[0].value,
                                     "target": tempResult[0].target,
@@ -2244,7 +2244,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": totalValue,
                                 }
@@ -2252,7 +2252,7 @@ function AnalyticsService(objectCollection)
                         }
                     }
                     iterator++;
-                }
+            //    }
 
             }catch(e){
                 console.log('error ::', e);
@@ -2714,8 +2714,8 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+           // arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
@@ -2756,9 +2756,9 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
             
-            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-            {
-                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+          //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+          //  {
+                console.log('request.tag_type_id '+request.tag_type_id);
 
                  paramsArray = 
                  new Array(
@@ -2773,7 +2773,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_workforce_type_id),
                     parseInt(request.filter_workforce_id),
                     parseInt(request.filter_asset_id),
-                    parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                    parseInt(request.tag_type_id),
                     parseInt(request.filter_tag_id),
                     parseInt(request.filter_activity_type_id),
                     global.analyticsConfig.activity_id_all, //Activity ID,
@@ -2818,7 +2818,7 @@ function AnalyticsService(objectCollection)
                 results[iterator] =
                 (
                     {
-                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                        "tag_type_id": request.tag_type_id,
                         "status_type_id": request.filter_activity_status_type_id,
                         "result": tempResult,
                     }
@@ -2826,7 +2826,7 @@ function AnalyticsService(objectCollection)
 
                 iterator++; 
 
-            }
+          //  }
 
             return results;
         }
