@@ -3797,6 +3797,7 @@ function ActivityListingService(objCollection) {
 		let attachmentsList = [];
         attachmentsList.push(s3Url);
 		let addCommentRequest = Object.assign(request, {});
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3804,16 +3805,16 @@ function ActivityListingService(objCollection) {
         addCommentRequest.activity_type_id = request.parent_activity_id;
         addCommentRequest.activity_id = request.parent_activity_id;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added Bulk Summary Data attachment(s).`,
-            "subject": `Tony has added Bulk Summary Data attachment(s).`,
-            "mail_body": `Tony has added Bulk Summary Data attachment(s).`,
+            "content": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
+            "subject": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
+            "mail_body": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
         addCommentRequest.timeline_stream_type_id = 325;
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
