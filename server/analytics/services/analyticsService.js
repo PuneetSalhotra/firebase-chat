@@ -2314,13 +2314,16 @@ function AnalyticsService(objectCollection)
                         }
                     }
                     if (verticalMap.size == 0) {
+
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
                         let results = new Array();
                         results.push(request.verticalData[request.widget_type_id]);
                         resolve(results);
+
                     } else {
 
                         switch (request.widget_type_id) {
+
                             case '128': {
                                 let results = new Array();
                                 resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
@@ -2342,7 +2345,7 @@ function AnalyticsService(objectCollection)
                 .catch((error) => {
                     console.log("prepareWidgetData : Exception : ");
                     console.log(error);
-                    return Promise.reject(error);
+                    resolve(request.verticalData.error_response);
                 });
         });
 
@@ -2356,10 +2359,14 @@ function AnalyticsService(objectCollection)
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
-
+            let isError = false;
             results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
 
                 paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
@@ -2389,10 +2396,13 @@ function AnalyticsService(objectCollection)
                         .catch((err) => {
                             console.log("Error : ");
                             console.log(err);
-                            return Promise.reject(err);
+                            isError = true;
                         })
                 }
+            }
 
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
             }
 
             for (var entry of verticalMap.entries()) {
@@ -2440,7 +2450,7 @@ function AnalyticsService(objectCollection)
             
         } catch (error) {
             console.log("error :; ", error);
-            return Promise.reject(error);
+            return Promise.resolve(request.verticalData.error_response);
         }
     }
 
@@ -2452,10 +2462,15 @@ function AnalyticsService(objectCollection)
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
+            let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
 
                 let widgetJsonObject = request.verticalData[request.widget_type_id];
                 let status_tags = request.verticalData["status_tags"];
@@ -2482,9 +2497,13 @@ function AnalyticsService(objectCollection)
                         .catch((err) => {
                             console.log("Error : ");
                             console.log(err);
-                            return Promise.reject(err);
+                            isError = true;
                         })
                 }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
             }
 
             for (var entry of verticalMap.entries()) {
@@ -2532,7 +2551,7 @@ function AnalyticsService(objectCollection)
 
         } catch (error) {
             console.log("error :; ", error);
-            return Promise.reject(error);
+            return Promise.resolve(request.verticalData.error_response);
         }
     }
 
@@ -2543,11 +2562,17 @@ function AnalyticsService(objectCollection)
             let results = new Array();
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalFlags = new Array();
             let verticalResponseMap = new Map();
+            let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
 
                 if (widgetFlags[iteratorM] == 1) {
                     paramsArray[1] = 1;
@@ -2593,9 +2618,13 @@ function AnalyticsService(objectCollection)
                         .catch((err) => {
                             console.log("Error : ");
                             console.log(err);
-                            return Promise.reject(err);
+                            isError = true;
                         })
                 }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
             }
 
             for (var entry of verticalMap.entries()) {
@@ -2643,7 +2672,7 @@ function AnalyticsService(objectCollection)
 
         } catch (error) {
             console.log("error :; ", error);
-            return Promise.reject(error);
+            return Promise.resolve(request.verticalData.error_response);
         }
     }
 
