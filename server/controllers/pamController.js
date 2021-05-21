@@ -483,6 +483,16 @@ function PamController(objCollection) {
     		res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/phone_number/activity/list', async (req, res) => {
+        let [err,result] = await pamService.pamOrdersWithPhoneNumber(req.body)
+        console.log(err);
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;

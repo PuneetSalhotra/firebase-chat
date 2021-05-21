@@ -3831,7 +3831,109 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         }
         return [err,res];
     };
+
+
+    function assetListSelectPhoneNumber(request){
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6)
+            var paramsArr = new Array(
+                request.organization_id,
+                request.phone_number,
+                request.country_code,
+            )
+
+            var queryString = util.getQueryString("pm_v1_asset_list_select_phone_number", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    } 
+  
+    
+
+    // function assetMappingSelectMemberActivities(request,asset_id){
+    //     return new Promise((resolve, reject) => {
+    //         // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), IN p_asset_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value TINYINT(4)
+             
+    //         var paramsArr = new Array(
+    //             request.organization_id,
+    //             request.account_id,
+    //             asset_id,
+    //             request.activity_type_category_id,
+    //             request.page_start,
+    //             request.page_limit
+    //         )
+
+    //         var queryString = util.getQueryString("pm_v1_activity_asset_mapping_select_member_activities", paramsArr);
+    //         if (queryString != '') {
+    //             db.executeQuery(1, queryString, request, function (err, data) {
+    //                 if (err === false) {
+    //                     resolve(data);
+    //                 } else {
+    //                     console.log(err);
+    //                     reject(err);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+
+    this.pamOrdersWithPhoneNumber = async(request) => {
+            let err = true,response = [];
+            try{
+                let asset = await assetListSelectPhoneNumber(request)
+                console.log("asset.length !== 0 ::",asset.length !== 0);
+                if(asset.length !== 0)
+                {
+                    var [error, responseData] = await self.assetMappingSelectMemberActivities(request,asset[0].asset_id)
+                    console.log("response ::",responseData);
+                    err = false
+                    return[ err , responseData];
+                }
+            else{
+               return  [ err , -9995];
+            }
+            }catch(error){
+                console.log("error ::",error)
+               return [err, -9999];
+            }
+        }
+
+
+this.assetMappingSelectMemberActivities = async (request,asset_id) => {
+
+    let responseData = [],
+        error = true;
+    
+    var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            asset_id,
+            request.activity_type_category_id,
+            request.page_start,
+            request.page_limit
+        )
+
+    const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_member_activities', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    console.log("responseData ::",responseData)
+    return [error, responseData];
 }
-;
+};
 
 module.exports = PamService;
