@@ -2288,7 +2288,7 @@ function AnalyticsService(objectCollection)
 
             assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
                 .then(async (data) => {
-
+                    console.log("1");
                     let verticalMap = new Map();
 
                     if (data !== undefined && data.length >= 2) {
@@ -2313,31 +2313,37 @@ function AnalyticsService(objectCollection)
 
                         }
                     }
+                    console.log("2");
                     if (verticalMap.size == 0) {
-
+                        console.log("3");
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
                         let results = new Array();
                         results.push(request.verticalData[request.widget_type_id]);
                         resolve(results);
 
                     } else {
-
+                        console.log("4");
                         switch (request.widget_type_id) {
-
-                            case '128': {
+                            
+                            case 128: {
+                                console.log("128request.widget_type_id "+request.widget_type_id);
                                 let results = new Array();
                                 resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
                                 break;
                             }
-                            case '129': {
+                            case 129: {
+                                console.log("129request.widget_type_id "+request.widget_type_id);
                                 resolve(await this.prepareDataForWidgetType129(request, paramsArray, verticalMap));
                                 break;
                             }
-                            case '130': {
+                            case 130: {
+                                console.log("130request.widget_type_id "+request.widget_type_id);
                                 resolve(await this.prepareDataForWidgetType130(request, paramsArray, verticalMap));
                                 break;
                             }
-
+                            default:{
+                                console.log("defaultrequest.widget_type_id "+request.widget_type_id);
+                            }
                         }
 
                     }
@@ -2354,7 +2360,7 @@ function AnalyticsService(objectCollection)
     this.prepareDataForWidgetType128 = async (request, paramsArray, verticalMap) => {
 
         try {
-
+            console.log("prepareDataForWidgetType128 :: ");
             let results = new Array();
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
@@ -2455,7 +2461,7 @@ function AnalyticsService(objectCollection)
     }
 
     this.prepareDataForWidgetType129 = async (request, paramsArray, verticalMap) => {
-
+        console.log("prepareDataForWidgetType129 :: ");
         try {
 
             let results = new Array();
@@ -2558,7 +2564,7 @@ function AnalyticsService(objectCollection)
     this.prepareDataForWidgetType130 = async (request, paramsArray, verticalMap) => {
 
         try {
-
+            console.log("prepareDataForWidgetType130 :: ");
             let results = new Array();
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
