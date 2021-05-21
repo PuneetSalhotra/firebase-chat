@@ -6272,6 +6272,7 @@ function VodafoneService(objectCollection) {
                         query: String(query)
                     }
                 })
+                // console.log(global.config.elastiSearchNode)
                 responseData = setQueryResponse(result)
             }
             return [false, responseData];
@@ -6304,6 +6305,7 @@ function VodafoneService(objectCollection) {
             idRoleAsset = 0,
             resultData = [],
             error = false;
+            searchArr=[];
 
         switch (Number(flagParticipating)) {
             case 0: //
@@ -6341,8 +6343,11 @@ function VodafoneService(objectCollection) {
                     }
                     if (request.search_string && request.search_string != '') {
                         if (appendedAnd)
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
                             query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        }
                         appendedAnd = true;
                     }
                 } else {
@@ -6361,8 +6366,12 @@ function VodafoneService(objectCollection) {
                         }
                         if (request.search_string && request.search_string != '') {
                             if (appendedAnd)
-                                query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
+                                
+                                searchArr = request.search_string.split(' ');
+                                for(let i=0;i<searchArr.length;i++){
+                                    query += " AND ";
+                            query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                                }
                             appendedAnd = true;
                         }
                     } else {
@@ -6387,8 +6396,11 @@ function VodafoneService(objectCollection) {
                         }
                         if (request.search_string && request.search_string != '') {
                             if (appendedAnd)
+                            searchArr = request.search_string.split(' ');
+                            for(let i=0;i<searchArr.length;i++){
                                 query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + request.search_string + "%'"
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                            }
                             appendedAnd = true;
                         }
 
