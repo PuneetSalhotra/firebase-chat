@@ -232,31 +232,20 @@ async function eventMessageRouter(messageJSON, kafkaMessageID, serviceObjectColl
 async function GetCacheWrapper() {
     // Cache
     let redisClient;
-    let redisSubscriber;
     if (global.mode === 'local') {
         redisClient = redis.createClient(global.config.redisConfig);
-        redisSubscriber = redis.createClient(global.config.redisConfig);
     } else {
         redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-        redisSubscriber = redis.createClient(global.config.redisPort,global.config.redisIp);
     }
     redisClient.config('set','notify-keyspace-events','KEA');
-    redisSubscriber.subscribe('__keyevent@0__:set');
 
-    redisClient.on('connect',function (response) {
+    redisClient.on('connect',async function (response) {
         logger.info('Redis Client Connected',{type: 'redis',response});
-        getAndSetDbURL(redisClient);
     });
     
     redisClient.on('error',function (error) {
         logger.error('Redis Error',{type: 'redis',error: serializeError(error)});
         // console.log(error);
-    });
-    
-    redisSubscriber.on("message", function (channel, message) {
-        if (global.config.dbURLKeys.includes(message)) {
-            getAndSetDbURL(redisClient);
-        }
     });
 
     const cacheWrapper = new CacheWrapper(redisClient);
@@ -349,25 +338,6 @@ function GetKafkaProducer() {
             logger.error(`Kafka producer error`, { type: "kafka_producer_startup", error: serializeError(error) });
             reject(error);
         })
-    });
-}
-
-function getAndSetDbURL(redisClient) {
-    redisClient.mget(global.config.dbURLKeys, function (err, reply) {
-        if (err) {
-            logger.error('Redis Error',{type: 'redis',error: serializeError(err)});
-        } else {
-            console.log(reply);
-            global.config.masterIp = reply[0];
-            global.config.masterDatabase = reply[1];
-            global.config.masterDBUser = reply[2];
-            global.config.masterDBPassword = reply[3];
-
-            global.config.slave1Ip = reply[4];
-            global.config.slave1Database = reply[5];
-            global.config.slave1DBUser = reply[6];
-            global.config.slave1DBPassword = reply[7];
-        }
     });
 }
 

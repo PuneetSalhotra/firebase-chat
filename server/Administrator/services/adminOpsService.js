@@ -1663,8 +1663,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: mangerAssetID
             });
-        
-        let message = `Tony added ${assetData[0].operating_asset_first_name} to this Conversation`
+            
+            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
                 "organization_id":request.organization_id,
@@ -8997,6 +8998,95 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return "success";
     }
 
+    this.getStatusBasedPreRequisiteMetFormsListV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //Get the forms list based on status
+        let [err, statusBasedFormsList] = await getStatusBasedFormsV1(request);        
+
+        if(err) {
+            return [error, responseData];
+        } else {
+            error = false;
+        }
+        
+        let form_id_list = [];
+        console.log('statusBasedFormsList.length : ', statusBasedFormsList.length);
+
+        if(statusBasedFormsList.length > 0) {            
+            for(const i_iterator of statusBasedFormsList){
+                form_id_list.push(i_iterator.form_id);
+
+                let newReq = Object.assign({}, request);
+                    //newReq.organization_id = 0;
+                    newReq.form_id = i_iterator.form_id;
+                    newReq.field_id = 0;
+                    newReq.start_from = 0;
+                    newReq.limit_value = 1;
+                let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                //console.log('DATA : ', data);
+                (data.length> 0 && data[0].next_field_id > 0) ? i_iterator.is_smart = 1 : i_iterator.is_smart = 0;
+            }
+            
+            let newReq = Object.assign({}, request);
+                newReq.form_id_list = JSON.stringify(form_id_list);
+            let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
+            
+            console.log('dependencyFormsList.length : ', dependencyFormsList.length);
+            
+            if(err1) {
+                error = true;
+                return [error, responseData];
+            } else {
+                error = false;
+            }
+
+            
+            //Appending which form is delegated to whom?
+            let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+            console.log('activityData.length : ', activityData.length);
+
+            if(activityData.length > 0) {
+                console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
+                let activityMasterData;
+                let delegationData;
+
+                if(activityData[0].activity_master_data !== null) {
+                    activityMasterData = JSON.parse(activityData[0].activity_master_data);
+                    delegationData = activityMasterData.form_fill_request;
+
+                    console.log('delegationData : ', delegationData);
+                    //console.log('Array.isArray(delegationData) : ', Array.isArray(delegationData));
+
+                    if(Array.isArray(delegationData)) {
+                        for(const i_iterator of delegationData) {
+                            for(const j_iterator of statusBasedFormsList) {
+                                //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
+                                if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                                    (j_iterator.delegated_to_assests).push(i_iterator);
+                                }
+                            }                     
+                        }
+                    }
+                }
+            }// End of Appending
+
+            let finalFormsList = [];
+            for(const i_iterator of dependencyFormsList) {
+                for(const j_iterator of statusBasedFormsList) {
+                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id) && (i_iterator.isActive)) {
+                        finalFormsList.push(j_iterator);
+                        break;
+                    }
+                }       
+            }
+
+            responseData = finalFormsList;
+        }
+
+        return [error, responseData];
+    }
     this.getStatusBasedPreRequisiteMetFormsList = async (request) => {
         let responseData = [],
             error = true;
@@ -9084,6 +9174,39 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             responseData = finalFormsList;
         }
 
+        return [error, responseData];
+    }
+
+    async function getStatusBasedFormsV1(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.start_from || 0,
+            request.limit_value || 10,
+            request.activity_type_id
+        );
+        //const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_workforce_form_mapping_select_status', paramsArr); 
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    for(const i_iterator of data) {
+                        i_iterator.delegated_to_assests = [];
+                    }
+
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
         return [error, responseData];
     }
 

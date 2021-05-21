@@ -151,12 +151,13 @@ function RMBotService(objectCollection) {
             request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
         }
 
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         logger.info("callAddParticipant"+JSON.stringify(request,null,2));
         let timelineCollection = {};
-        timelineCollection.content="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
-        timelineCollection.subject="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
-        timelineCollection.mail_body="greneOS has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.content= defaultAssetName + " has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.subject= defaultAssetName + " has assigned "+request.target_status_lead_asset_name+" as Lead";
+        timelineCollection.mail_body= defaultAssetName + " has assigned "+request.target_status_lead_asset_name+" as Lead";
         timelineCollection.attachments=[];
         timelineCollection.asset_reference=[];
         timelineCollection.activity_reference=[];
@@ -1022,9 +1023,9 @@ function RMBotService(objectCollection) {
             request.activity_id = highest_score_workflow;
             request.rm_bot_scores = rm_bot_scores;
             let timelineCollection = {};
-            timelineCollection.content="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
-            timelineCollection.subject="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
-            timelineCollection.mail_body="Tony has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.content= defaultAssetName + " has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.subject= defaultAssetName + " has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
+            timelineCollection.mail_body= defaultAssetName + " has assigned "+rm_bot_scores[0].operating_asset_name+" as Lead";
             timelineCollection.attachments=[];
             timelineCollection.asset_reference=[];
             timelineCollection.activity_reference=[];
@@ -1964,9 +1965,9 @@ function RMBotService(objectCollection) {
                         request.timeline_stream_type_id = 718;
 
                         let timelineCollection = {};
-                        timelineCollection.content="greneOS has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                        timelineCollection.subject="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                        timelineCollection.mail_body="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.content= defaultAssetName + " has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.subject= defaultAssetName + " has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                        timelineCollection.mail_body= defaultAssetName + " has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
                         timelineCollection.attachments=[];
                         timelineCollection.asset_reference=[];
                         timelineCollection.activity_reference=[];
@@ -2144,9 +2145,9 @@ function RMBotService(objectCollection) {
         
                                             logger.info("PARTICIPANT EXISTS, HENCE ADDING AS LEAD ", {type:"rm_bot",request_body:objReq});
                                             let timelineCollection = {};
-                                            timelineCollection.content="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
-                                            timelineCollection.subject="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
-                                            timelineCollection.mail_body="Tony has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                            timelineCollection.content= defaultAssetName + " has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                            timelineCollection.subject= defaultAssetName + " has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
+                                            timelineCollection.mail_body= defaultAssetName + " has assigned "+roleAssetData[0].operating_asset_first_name+" as Lead";
                                             timelineCollection.attachments=[];
                                             timelineCollection.asset_reference=[];
                                             timelineCollection.activity_reference=[];
@@ -2605,12 +2606,12 @@ function RMBotService(objectCollection) {
 
                             if(data[0].push_status == 0){
 
-                                objR.message = "Tony has assigned you as lead"; 
+                                objR.message = " defaultAssetName +  has assigned you as lead"; 
                                 util.sendCustomPushNotification(objR,data); 
 
                                 /*
                                 if(Number(request.asset_id) === 100){
-                                    objR.message = "Tony has assigned you as lead"; 
+                                    objR.message = " defaultAssetName +  has assigned you as lead"; 
                                     util.sendCustomPushNotification(objR,data); 
                                 }
                                 if(Number(request.asset_id) !== 100){
@@ -2635,9 +2636,9 @@ function RMBotService(objectCollection) {
                             self.activityListUpdateRMFlags(request);
 
                             let timelineCollection = {};
-                            timelineCollection.content="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
-                            timelineCollection.subject="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
-                            timelineCollection.mail_body="Tony has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.content= defaultAssetName + " has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.subject= defaultAssetName + " has assigned "+data[0].new_lead_first_name+" as Lead";
+                            timelineCollection.mail_body= defaultAssetName + " has assigned "+data[0].new_lead_first_name+" as Lead";
                             timelineCollection.attachments=[];
                             timelineCollection.asset_reference=[];
                             timelineCollection.activity_reference=[];
@@ -2666,9 +2667,9 @@ function RMBotService(objectCollection) {
 
                                     logger.info("LEAD_UNASSIGNMENT"+request.lead_asset_id);;
                                     let timelineCollection = {};
-                                    timelineCollection.content="greneOS has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                                    timelineCollection.subject="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
-                                    timelineCollection.mail_body="greneOS has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.content= defaultAssetName + " has Unassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.subject= defaultAssetName + " has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
+                                    timelineCollection.mail_body= defaultAssetName + " has Unaassigned "+data[0].existing_lead_operating_asset_first_name+" as Lead";
                                     timelineCollection.attachments=[];
                                     timelineCollection.asset_reference=[];
                                     timelineCollection.activity_reference=[];
@@ -3093,7 +3094,8 @@ function RMBotService(objectCollection) {
                             
                             if(Number(request.asset_id) == 100) {
                                 request.stream_type_id = 718;
-                                name = "greneOS";
+                                const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                                name = defaultAssetName;
                             }
     
                             if(Number(request.asset_id) != 100 && (data[0].existing_lead_asset_id == 0 || data[0].existing_lead_asset_id === null)) {
