@@ -1,6 +1,3 @@
-/* 
- * author: A Sri Sai Venkatesh
- */
 
 var UtilityController = require('../controllers/utilityController');
 var ActivityConfigController = require('../controllers/activityConfigController');
@@ -161,6 +158,7 @@ function ControlInterceptor(objCollection) {
      
     //Payment Gateway
     new MerchantPaymentController(objCollection);
+
 }
 
 module.exports = ControlInterceptor;

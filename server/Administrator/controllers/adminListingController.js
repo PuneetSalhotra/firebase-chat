@@ -533,6 +533,16 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/common/currency/select', async (req, res) => {        
+        const [err, commonCurrency] = await adminListingService.selectCommonCurrency(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, commonCurrency, 200, req.body));
+        } else {
+            console.log("/admin/tag-entity/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, commonCurrency, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

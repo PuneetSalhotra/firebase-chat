@@ -2254,6 +2254,31 @@ function ActivityConfigService(db,util,objCollection) {
 
         return [true,[]]
     }
+
+    this.getActivityPreviousStatusList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.current_activity_status_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v2_activity_status_change_txn_select_previous_status', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
     
 
 }

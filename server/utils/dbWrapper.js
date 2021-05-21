@@ -5,6 +5,7 @@
 const logger = require("../logger/winstonLogger");
 
 var mysql = require('mysql');
+var redis = require('redis');
 
 var clusterConfig = {
     canRetry: true,
@@ -12,64 +13,106 @@ var clusterConfig = {
     restoreNodeTimeout: 1000, //Milliseconds
     defaultSelector: 'ORDER'
 };
-
+let slave1HealthCheckFlag = false;
 var writeCluster = mysql.createPoolCluster();
 var readCluster = mysql.createPoolCluster(clusterConfig);
 
 const writeClusterForHealthCheck = mysql.createPoolCluster();
-const readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
+var readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
 
 const readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
 
-//Adding Master
-writeCluster.add('MASTER', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
+let redisSubscriber;
+let redisClient;
+if(global.mode === 'local') {
+    redisClient = redis.createClient(global.config.redisConfig);
+    redisSubscriber = redis.createClient(global.config.redisConfig);
+} else {
+    redisClient = redis.createClient(global.config.redisPort,global.config.redisIp);
+    redisSubscriber = redis.createClient(global.config.redisPort,global.config.redisIp);
+}
+
+redisSubscriber.subscribe('__keyevent@0__:set');
+
+redisSubscriber.on("message", function (channel, message) {
+    if (global.config.dbURLKeys.includes(message)) {
+        getAndSetDbURL();
+    }
 });
 
-//Adding Slave
-readCluster.add('SLAVE1', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.slave1Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
+function initiateDB() {
 
-//Adding Master for healthCheck purpose
-writeClusterForHealthCheck.add('MASTER', {
-    connectionLimit: 1,
-    host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
+    redisClient.mget(global.config.dbURLKeys, function (err, reply) {
+        if (err) {
+            logger.error('Redis Error', { type: 'redis', error: serializeError(err) });
+        } else {
+            logger.info(`[DBCrendentialsFetched]`);
+            global.config.masterIp = reply[0];
+            global.config.masterDatabase = reply[1];
+            global.config.masterDBUser = reply[2];
+            global.config.masterDBPassword = reply[3];
 
-//Adding Slave for healthCheck purpose
-readClusterForHealthCheck.add('SLAVE1', {
-    connectionLimit: 1,
-    host: global.config.slave1Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
+            global.config.slave1Ip = reply[4];
+            global.config.slave1Database = reply[5];
+            global.config.slave1DBUser = reply[6];
+            global.config.slave1DBPassword = reply[7];
 
-readClusterForAccountSearch.add('SLAVE2', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.slave2Ip,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
 
+            //Adding Master
+            writeCluster.add('MASTER', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.masterIp,
+                user: global.config.masterDBUser,
+                password: global.config.masterDBPassword,
+                database: global.config.masterDatabase,
+                debug: false
+            });
+
+
+            //Adding Slave
+            readCluster.add('SLAVE1', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+            //Adding Master for healthCheck purpose
+            writeClusterForHealthCheck.add('MASTER', {
+                connectionLimit: 1,
+                host: global.config.masterIp,
+                user: global.config.masterDBUser,
+                password: global.config.masterDBPassword,
+                database: global.config.masterDatabase,
+                debug: false
+            });
+
+            //Adding Slave for healthCheck purpose
+            readClusterForHealthCheck.add('SLAVE1', {
+                connectionLimit: 1,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+            readClusterForAccountSearch.add('SLAVE2', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave2Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+        }
+    });
+}
+
+initiateDB();
 //Adding Master
 //readCluster.add('MASTER', {
 //    connectionLimit: global.config.conLimit,
@@ -117,9 +160,17 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
+                    if(flag === 0 ) {
+                        console.log("Slave1 is down so will read data from master");
+                        slave1HealthCheckFlag = false;
+                    }
                     //console.log('ERROR WHILE GETTING CONNECTON - ', err);
                     resolve([1, err]);
                 } else {
+                    if(flag === 0 ) {
+                        console.log("Slave1 is up");
+                        slave1HealthCheckFlag = true;
+                    }
                     conn.release();
                     resolve([0, 'up']);
                 }
@@ -150,14 +201,39 @@ var executeQuery = function (flag, queryString, request, callback) {
             //            console.log('slave1 pool is selected');
             break;
     }
-
+    if(flag === 1 && !slave1HealthCheckFlag) {
+        conPool = writeCluster;
+    }
     try {
-        conPool.getConnection(function (err, conn) {
+        conPool.getConnection(async function (err, conn) {
             if (err) {
                 logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: request, error: err });
-
-                callback(err, false);
-                return;
+                if(global.config.mysqlConnectionErrors[err['code']]) {
+                    getActiveAvailableDbConnection((e, connection) => {
+                        if(e) {
+                            logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                            callback(true,e);
+                        } else {
+                            connection.query(queryString, function (err, rows, fields) {
+                                if (!err) {
+                                    logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                    // global.logger.write('dbResponse', queryString, rows, request);
+                                    connection.release();
+                                    return callback(false, rows[0]);
+                                } else {
+                                    logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                    // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                    // global.logger.write('serverError', err, err, request);
+                                    connection.release();
+                                    return callback(false, rows[0]);
+                                }
+                            // console.timeEnd(label);
+                            });
+                        }
+                    });
+                } else {
+                    return callback(true, err);
+                }
             } else {                
                 // label = 'DB-Query-Execution-Callback' + Date.now();
                 // console.time(label);
@@ -168,7 +244,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         callback(false, rows[0]);
                         return;
                     } else {
-                        // console.log("error: err: ", err);
+                        console.log("error: err: ", err);
                         logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
                         conn.release();
                         callback(err, false);
@@ -200,12 +276,41 @@ var executeQueryPromise = function (flag, queryString, request) {
             console.log('Hitting the account search Read Replica DB');
         }
 
+        if(flag === 1 && !slave1HealthCheckFlag) {
+            conPool = writeCluster;
+        }
         try {            
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                    if(global.config.mysqlConnectionErrors[err['code']] && flag === 1) {
+                        getActiveAvailableDbConnection((e, connection) => {
+                            if(e) {
+                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                reject(e);
+                            } else {
+                                connection.query(queryString, function (err, rows, fields) {
+                                    if (!err) {
+                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        connection.release();
+                                        resolve(rows[0]);
+                                    } else {
+                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                        // global.logger.write('serverError', err, err, request);
+                                        connection.release();
+                                        reject(err);
+                                    }
+                                // console.timeEnd(label);
+                                });
+                            }
+                        });
+                    } else {
+                        // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                        reject(err);
+                    }
                     // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                    reject(err);
                 } else {
                     // label = 'DB-Query-Execution-Promise' + Date.now();
                     // console.time(label);
@@ -241,12 +346,40 @@ var executeRawQueryPromise = function (flag, queryString, request) {
         
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
+        if(flag === 1 && !slave1HealthCheckFlag) {
+            conPool = writeCluster;
+        }
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                    // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                    reject(err);
+                    if(global.config.mysqlConnectionErrors[err['code']]) {
+                        getActiveAvailableDbConnection((e, connection) => {
+                            if(e) {
+                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                reject(e);
+                            } else {
+                                connection.query(queryString, function (err, rows, fields) {
+                                    if (!err) {
+                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        connection.release();
+                                        resolve(rows[0]);
+                                    } else {
+                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                                        // global.logger.write('serverError', err, err, request);
+                                        connection.release();
+                                        reject(err);
+                                    }
+                                // console.timeEnd(label);
+                                });
+                            }
+                        });
+                    } else {
+                        // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                        reject(err);
+                    }
                 } else {
                     // label = 'DB-Query-Execution-Promise' + Date.now();
                     // console.time(label);
@@ -488,6 +621,55 @@ process.on('SIGINT', () => {
 //PID kill; PM2 Restart; nodemon Restart
 //process.on('SIGUSR1', ()=>{ process.exit(); });
 //process.on('SIGUSR2', ()=>{ process.exit(); });
+
+function getActiveAvailableDbConnection(callback) {
+    logger.info(`[1] GETTING MySQL MASTER CONNECTON AS BACKUP`);
+    writeCluster.getConnection(function (err, conn) {
+        if (err) {
+            //console.log('ERROR WHILE GETTING CONNECTON - ', err);
+            logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: {}, error: err });
+            callback(err);
+        } else {
+            callback(false, conn);
+        }
+    });
+}
+
+
+function getAndSetDbURL() {
+    redisClient.mget(global.config.dbURLKeys, function (err, reply) {
+        if (err) {
+            logger.error('Redis Error',{type: 'redis',error: serializeError(err)});
+        } else {
+            logger.warn(`[DBCrendentialsChanged]`, { type: 'mysql', db_response: null, request_body: null, error: null });
+            global.config.slave1Ip = reply[4];
+            global.config.slave1Database = reply[5];
+            global.config.slave1DBUser = reply[6];
+            global.config.slave1DBPassword = reply[7];
+
+            readCluster = mysql.createPoolCluster(clusterConfig);
+            readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
+            readCluster.add('SLAVE1', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+            //Adding Slave for healthCheck purpose
+            readClusterForHealthCheck.add('SLAVE1', {
+                connectionLimit: 1,
+                host: global.config.slave1Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
+        }
+    });
+}
 
 module.exports = {
     executeQuery: executeQuery,

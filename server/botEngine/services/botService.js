@@ -16,6 +16,7 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const CommnElasticService = require('../../elasticSearch/services/elasticSearchService');
+const AssetService = require('../../services/assetService')
 //var aspose = aspose || {};
 //aspose.cells = require("aspose.cells");
 //
@@ -79,6 +80,7 @@ function BotService(objectCollection) {
     //const workbookOpsService = new WorkbookOpsService(objectCollection);
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
+    const assetService = new AssetService(objectCollection);
     const rmBotService = new RMBotService(objectCollection);
 
     const nodeUtil = require('util');
@@ -2296,6 +2298,23 @@ function BotService(objectCollection) {
                     }
                     break;
 
+                case 50 : // Activity Update customer data 
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('pdf_edit');
+                    try {
+                        await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
+                    } catch (err) {
+                        logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
+
 
             }
 
@@ -2556,16 +2575,16 @@ function BotService(objectCollection) {
     // addCommentRequest.activity_type_id = request.activity_type_id;
     // addCommentRequest.activity_id = request.workflow_activity_id;
     // addCommentRequest.activity_timeline_collection = JSON.stringify({
-    //     "content": `Tony has added attachment(s).`,
-    //     "subject": `Tony has added attachment(s).`,
-    //     "mail_body": `Tony has added attachment(s).`,
+    //     "content": `${defaultAssetName} has added attachment(s).`,
+    //     "subject": `${defaultAssetName} has added attachment(s).`,
+    //     "mail_body": `${defaultAssetName} has added attachment(s).`,
     //     "attachments": [s3Url]
     // });
     // addCommentRequest.activity_stream_type_id = 325;
     // addCommentRequest.timeline_stream_type_id = 325;
     // addCommentRequest.activity_timeline_text = "";
     // addCommentRequest.activity_access_role_id = 27;
-    // addCommentRequest.operating_asset_first_name = "TONY"
+    // addCommentRequest.operating_asset_first_name = defaultAssetName;
     // addCommentRequest.datetime_log = util.getCurrentUTCTime();
     // addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
     // addCommentRequest.flag_timeline_entry = 1;
@@ -2635,6 +2654,35 @@ function BotService(objectCollection) {
       objectsContext.endIndirectObject();
   
       writer.end();
+  }
+
+  async function activityUpdateCustomerData(request,bot_details) {
+      let req_Json = bot_details.customer_data_set;
+      let field_value = await getFieldValueUsingFieldIdV1(request,req_Json.form_id,req_Json.field_id)
+let assetDetailsArr = field_value.split('|')
+    let responseData = [],
+    error = true;
+
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_id,
+    assetDetailsArr[0],
+    request.asset_id || 0,
+    util.getCurrentUTCTime()
+);
+const queryString = util.getQueryString('ds_v1_activity_list_update_customer', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(0, queryString, request)
+        .then((data) => {
+            responseData = data;
+            error = false;
+        })
+        .catch((err) => {
+            error = err;
+        })
+}
+return [error, responseData];
   }
 
    async function assetApprovalWorkflow(request,bot_data){
@@ -3052,12 +3100,14 @@ function BotService(objectCollection) {
             //     asset_id: request.asset_id
             // });
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-            // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+            // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             //Add a timeline entry
+            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
             let activityTimelineCollection =  JSON.stringify({                            
-                "content": `Tony removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "content": `${defaultAssetName} removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 "subject": `Note - ${util.getCurrentDate()}.`,
-                "mail_body": `Tony removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+                "mail_body": `${defaultAssetName} removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
                 "activity_reference": [],
                 "asset_reference": [],
                 "attachments": [],
@@ -3114,12 +3164,14 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     //     asset_id: request.asset_id
     // });
     // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-    // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+    // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
     //Add a timeline entry
+    const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
     let activityTimelineCollection =  JSON.stringify({                            
-        "content": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "content": `${defaultAssetName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
         "subject": `Note - ${util.getCurrentDate()}.`,
-        "mail_body": `Tony assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+        "mail_body": `${defaultAssetName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
         "activity_reference": [],
         "asset_reference": [],
         "attachments": [],
@@ -3501,22 +3553,24 @@ async function removeAsOwner(request,data)  {
 
         let addCommentRequest = Object.assign(request, {});
 
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
         addCommentRequest.activity_type_category_id = 48;
         addCommentRequest.activity_type_id = workflowActivityTypeID;
         addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added attachment(s).`,
-            "subject": `Tony has added attachment(s).`,
-            "mail_body": `Tony has added attachment(s).`,
+            "content": `${defaultAssetName} has added attachment(s).`,
+            "subject": `${defaultAssetName} has added attachment(s).`,
+            "mail_body": `${defaultAssetName} has added attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
         addCommentRequest.timeline_stream_type_id = 325;
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -3611,6 +3665,7 @@ async function removeAsOwner(request,data)  {
         console.log("attachmentsList: ", attachmentsList);
 
         let addCommentRequest = Object.assign(request, {});
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3618,9 +3673,9 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_type_id = workflowActivityTypeID;
         addCommentRequest.activity_id = workflowActivityID;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added attachment(s).`,
-            "subject": `Tony has added attachment(s).`,
-            "mail_body": `Tony has added attachment(s).`,
+            "content": `${defaultAssetName} has added attachment(s).`,
+            "subject": `${defaultAssetName} has added attachment(s).`,
+            "mail_body": `${defaultAssetName} has added attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
@@ -3628,7 +3683,7 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
         // addCommentRequest.data_entity_inline
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -3759,6 +3814,7 @@ async function removeAsOwner(request,data)  {
         }
 
         let attachments = [];
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});       
 
@@ -3824,7 +3880,7 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.activity_timeline_text = "";
             addCommentRequest.activity_access_role_id = 27;
             // addCommentRequest.data_entity_inline
-            addCommentRequest.operating_asset_first_name = "TONY"
+            addCommentRequest.operating_asset_first_name = defaultAssetName;
             addCommentRequest.datetime_log = util.getCurrentUTCTime();
             addCommentRequest.flag_timeline_entry = 1;
             addCommentRequest.log_asset_id = 100;
@@ -3911,6 +3967,8 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
         let addCommentRequest = Object.assign(request, {});
 
         addCommentRequest.asset_id = 100;
@@ -3919,9 +3977,9 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_type_id
         addCommentRequest.activity_id
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added attachment(s).`,
-            "subject": `Tony has added attachment(s).`,
-            "mail_body": `Tony has added attachment(s).`,
+            "content": `${defaultAssetName} has added attachment(s).`,
+            "subject": `${defaultAssetName} has added attachment(s).`,
+            "mail_body": `${defaultAssetName} has added attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
@@ -3929,7 +3987,7 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
         // addCommentRequest.data_entity_inline
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -4213,6 +4271,8 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
         let addCommentRequest = Object.assign(request, {});
 
         addCommentRequest.asset_id = 100;
@@ -4221,9 +4281,9 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_type_id
         addCommentRequest.activity_id
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added attachment(s).`,
-            "subject": `Tony has added attachment(s).`,
-            "mail_body": `Tony has added attachment(s).`,
+            "content": `${defaultAssetName} has added attachment(s).`,
+            "subject": `${defaultAssetName} has added attachment(s).`,
+            "mail_body": `${defaultAssetName} has added attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
@@ -4231,7 +4291,7 @@ async function removeAsOwner(request,data)  {
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
         // addCommentRequest.data_entity_inline
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -6769,9 +6829,11 @@ async function removeAsOwner(request,data)  {
         //     organization_id: request.organization_id,
         //     asset_id: request.asset_id
         // });
-        let logAssetFirstName = 'Tony';
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+
+        let logAssetFirstName = defaultAssetName;
             let message = `${logAssetFirstName} added ${assetData.asset_first_name} as collaborator.`;
-            // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+            // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
         let addParticipantRequest = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -6863,7 +6925,7 @@ async function removeAsOwner(request,data)  {
                         //Get the asset Details of the requestor
                         
 
-                        let requestAssetName = 'Tony';
+                        let requestAssetName = defaultAssetName;
                         if(dataResp.length > 0) {
                            let requestorAssetData = dataResp[0];
                             requestAssetName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
@@ -6914,12 +6976,12 @@ async function removeAsOwner(request,data)  {
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
-                        let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        let logAssetFirstName = defaultAssetName;//log_assetData[0].operating_asset_first_name;
                         if(dataResp.length > 0) {
                           let requestorAssetData = dataResp[0];
                             logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                         }
-                        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
                         let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`;
                         if(request.asset_id == assetData.desk_asset_id){
                        contentText = `${assetData.first_name} has made as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`
@@ -6966,12 +7028,12 @@ async function removeAsOwner(request,data)  {
                         //     organization_id: request.organization_id,
                         //     asset_id: request.asset_id
                         // });
-                        let logAssetFirstName = 'Tony';//log_assetData[0].operating_asset_first_name;
+                        let logAssetFirstName = defaultAssetName;//log_assetData[0].operating_asset_first_name;
                         if(dataResp.length > 0) {
                             let requestorAssetData = dataResp[0];
                               logAssetFirstName = requestorAssetData.operating_asset_first_name || requestorAssetData.asset_first_name;
                           }
-                        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+                        // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
                         let contentText = `${logAssetFirstName} assigned ${assetData.first_name} as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`;
                         if(request.asset_id == assetData.desk_asset_id){
                         contentText = `${assetData.first_name} has made as creator at ${moment().utcOffset('+05:30').format('LLLL')}.`
@@ -7175,9 +7237,10 @@ async function removeAsOwner(request,data)  {
                     }
                     break;
                 case 18: //Money with currency name
-                    var money = row.field_value.split('|');
-                    params[15] = money[0];
-                    params[18] = money[1];
+                    var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                    params[14] = money.value;
+                    params[18] = money.code;
+                    params[27] = JSON.stringify(money)
                     break;
                 case 19: //Short Text
                     params[18] = request.new_field_value || row.field_value;
@@ -7717,7 +7780,10 @@ async function removeAsOwner(request,data)  {
                 request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
-
+        // console.lo
+        let indutry_type_id = createCustomerInlineData['lov_type_id'];
+        const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
+        console.log('indData12',industryData)
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
@@ -7746,16 +7812,16 @@ async function removeAsOwner(request,data)  {
         }
 
         // Fetch the Customer Service Desk's asset_type_id
-        const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 45
-        });
-        if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 45
+        // });
+        // if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create the desk
         const deskName = `Customer Service Desk ${customerData.customer_cuid || ''}`;
         const createCustomerServiceDeskRequest = {
@@ -7772,7 +7838,7 @@ async function removeAsOwner(request,data)  {
             workforce_name: "Customer Floor",
             activity_stream_type_id: 11018,
             stream_type_id: 11018,
-            asset_type_id: serviceDeskAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.desk_asset_type_id,
             activity_inline_data: JSON.stringify({
                 "contact_profile_picture": "",
                 "contact_first_name": deskName,
@@ -7781,7 +7847,7 @@ async function removeAsOwner(request,data)  {
                 "contact_phone_country_code": countryCode,
                 "contact_phone_number": phoneNumber,
                 "contact_email_id": customerData.customer_email,
-                "contact_asset_type_id": serviceDeskAssetTypeData[0].asset_type_id,
+                "contact_asset_type_id": createCustomerInlineData.desk_asset_type_id,
                 "contact_organization": "",
                 "contact_asset_id": 0,
                 "contact_workforce_id": createCustomerInlineData.workforce_id,
@@ -7798,18 +7864,19 @@ async function removeAsOwner(request,data)  {
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
-
+       
+        const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id,industry_id:industryData[0].entity_id});
         // Fetch the Customer's asset_type_id
-        const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
-            organization_id: request.organization_id,
-            account_id: createCustomerInlineData.account_id,
-            workforce_id: createCustomerInlineData.workforce_id,
-            asset_type_category_id: 13
-        });
-        if (errThree || !(customerAssetTypeData.length > 0)) {
-            logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
-            return;
-        }
+        // const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+        //     organization_id: request.organization_id,
+        //     account_id: createCustomerInlineData.account_id,
+        //     workforce_id: createCustomerInlineData.workforce_id,
+        //     asset_type_category_id: 13
+        // });
+        // if (errThree || !(customerAssetTypeData.length > 0)) {
+        //     logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
+        //     return;
+        // }
         // Create Customer on the Service Desk
         const createCustomerRequest = {
             ...createCustomerServiceDeskRequest,
@@ -7819,7 +7886,7 @@ async function removeAsOwner(request,data)  {
             asset_type_category_id: 13,
             asset_access_role_id: 1,
             asset_access_level_id: 5,
-            asset_type_id: customerAssetTypeData[0].asset_type_id,
+            asset_type_id: createCustomerInlineData.asset_type_id,
             desk_asset_id: serviceDeskData.asset_id,
             country_code: countryCode,
             phone_number: phoneNumber,
@@ -7833,6 +7900,8 @@ async function removeAsOwner(request,data)  {
         };
 
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
+
+        const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.operating_asset_id,industry_id:industryData[0].entity_id});
         logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
@@ -7864,6 +7933,55 @@ async function removeAsOwner(request,data)  {
     //    }
     //    return [error, responseData];
     //}
+
+    async function assetListUpdateIndustry (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.industry_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function getIndustryIdByName(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+          request.id,
+          request.name
+        );
+
+        var queryString = util.getQueryString('ds_p3_lov_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
         let activity_id = request.workflow_activity_id;
@@ -8616,7 +8734,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
-                timelineReq.timeline_stream_type_id= 711;
+                timelineReq.timeline_stream_type_id= 734;
                 timelineReq.activity_stream_type_id= 711;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
@@ -9586,7 +9704,7 @@ async function removeAsOwner(request,data)  {
         
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -10630,12 +10748,14 @@ async function removeAsOwner(request,data)  {
         //     asset_id: request.asset_id
         // });
         // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-        // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+        // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
+
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
 
         let activityTimelineCollection =  JSON.stringify({
-            "content": `Tony assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "content": `${defaultAssetName} assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "subject": `Note - ${util.getCurrentDate()}.`,
-            "mail_body": `Tony assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "mail_body": `${defaultAssetName} assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
             "activity_reference": [],
             "asset_reference": [],
             "attachments": [],
@@ -13822,6 +13942,10 @@ async function removeAsOwner(request,data)  {
                     case 57: //Account
                         fieldValue = fieldData.field_value;
                         fieldValue = fieldValue.split('|')[1];
+                        break;
+                    case 18: //Money
+                        fieldValue = typeof fieldData.field_value=="string"?JSON.parse(fieldData.field_value):fieldData.field_value;
+                        fieldValue = fieldValue.value;
                         break;
                     //case 68: break;
                     default: fieldValue = fieldData.field_value;

@@ -16,6 +16,7 @@ const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -128,11 +129,18 @@ function AssetService(objectCollection) {
         console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
 
         let phoneNumber = request.asset_phone_number;
+        let email = request.email;
         let countryCode = undefined;
         let emailId = request.asset_email_id;
         let verificationMethod = Number(request.verification_method);
         let organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
+
+        // email wrapper
+
+        if(email) {
+            console.log("Got Email in the request--", email);
+        }
 
         let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
         if('1' === phoneNumverValidationFlag) {
@@ -230,14 +238,16 @@ function AssetService(objectCollection) {
                 //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
                 // });
 
-                smsEngine.emit('send-sinfini-sms', {
-                    type: 'NOTFCTN',
-                    countryCode,
-                    phoneNumber,
-                    msgString: smsMessage,
-                    failOver: true,
-                    appName: ''
-                });
+                if(!email) {
+                    smsEngine.emit('send-sinfini-sms', {
+                        type: 'NOTFCTN',
+                        countryCode,
+                        phoneNumber,
+                        msgString: smsMessage,
+                        failOver: true,
+                        appName: ''
+                    });
+                }
 
                 return;
             }
@@ -252,7 +262,7 @@ function AssetService(objectCollection) {
         }
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
-        if (verificationMethod === 1 || verificationMethod === 2) {
+        if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod == 3) {
             var paramsArr = new Array(
                 0, //organizationId,
                 phoneNumber,
@@ -303,6 +313,33 @@ function AssetService(objectCollection) {
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
                                 callback(false, { response }, 200);
                                 return;
+                            } else if (verificationMethod === 3) {
+                                request.passcode = selectData[0].asset_phone_passcode;
+                                forEachAsync(selectData, function (next, rowData) {
+                                    paramsArr = new Array(
+                                        rowData.asset_id,
+                                        rowData.organization_id,
+                                        verificationCode,
+                                        pwdValidDatetime
+                                    );
+                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                        assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                        });
+                                        next();
+                                    });
+
+                                });
+                                try {
+                                    await newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                } catch (error) {
+                                    console.log("getPhoneNumberAssetsV1 | Asset found | newUserPassCodeSet: ", error);
+                                }
+
+                                sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                callback(false, { response }, 200);
+                                return;
                             }
                         } else {
                             if (verificationMethod === 1) {
@@ -326,6 +363,17 @@ function AssetService(objectCollection) {
                                         // Operation error
                                         callback(false, {}, -9998);
                                     })
+                            } else if (verificationMethod === 3) {
+                                newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                    .then(function () {
+                                        // Passcode set in the DB
+                                        sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                        callback(false, { response }, 200);
+                                    }, function (err) {
+                                        // There was an error setting the passcode in the DB
+                                        callback(true, err, -9998);
+
+                                    });
                             }
                         }
                     } else {
@@ -905,6 +953,20 @@ function AssetService(objectCollection) {
             "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
             "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
             "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
+
+            //tags
+            "asset_tag_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_1']),
+            "asset_tag_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_name_1']),
+            "asset_tag_type_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_1']),
+            "asset_tag_type_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_1']),
+            "asset_tag_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_2']),
+            "asset_tag_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_name_2']),
+            "asset_tag_type_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_2']),
+            "asset_tag_type_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_2']),
+            "asset_tag_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_3']),
+            "asset_tag_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_name_3']),
+            "asset_tag_type_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_3']),
+            "asset_tag_type_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_3'])
         };
 
         callback(false, rowData);
@@ -1066,7 +1128,7 @@ function AssetService(objectCollection) {
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
             //appName = 'TONY';
-            appName = 'Grene Go app.';
+            appName = 'greneOS app.';
         } else {
             appName = appData[0].app_name;
         }
@@ -1242,6 +1304,14 @@ function AssetService(objectCollection) {
 
                 break;
             case 3: //email
+                request.email_receiver_name="";
+                request.email_sender_name="DESKER";
+                //request.email_id = request.email_id;
+                request.email_sender="admin@desker.co";
+                request.subject = "greneOS App One Time Password";
+                request.body = `Hi, <br/> ${verificationCode} is your verification code for the ${appName}.`;
+                request.email_id = request.email;
+                this.sendEmail(request);
                 break;
 
         }
@@ -1864,7 +1934,11 @@ function AssetService(objectCollection) {
         }
     };
 
-    var archiveAsset = function (request){
+    var archiveAsset = async function (request){
+
+        let error= true,
+         responseData = [];
+
         var paramsArr = new Array(
             request.asset_id,
             request.organization_id,
@@ -1875,24 +1949,28 @@ function AssetService(objectCollection) {
         );
         var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
         if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, assetData) {
-                if (err === false) {
-                    return[false, assetData];
-                } else {
-                    return[true, err];
-                }
-            });
+             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    //logger.info("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+        console.log(error ,":: ",responseData);
+        return [error, responseData];
     }
 
     var deleteAsset = function (request, callback) {
         var paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
-            request.asset_id,
+            request.target_asset_id,
             request.datetime_log
         );
-
+        console.log(paramsArr);
         var queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -2371,30 +2449,56 @@ function AssetService(objectCollection) {
      });
      
      };*/
-
+/*
     //PAM
-    this.removeAsset = async function (request, callback) {
+    this.removeAsset = async (request) => {
         console.log('util : ' + util);
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
         //archive asset data
-        let [archiveErr,_]=await archiveAsset(request)
-        if(archiveErr){
-            callback(err, {}, -9998);
-        }
         deleteAsset(request, function (err, AssetId) {
-            if (err === false) {
-                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
-                var responseDataCollection = {};
-                responseDataCollection.asset_id = AssetId;
-                callback(false, responseDataCollection, 200);
-            } else {
-                callback(err, {}, -9998);
-            }
-        });
+                if (err === false) {
+                    archiveAsset(request);
+                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+                    var responseDataCollection = {};
+                    responseDataCollection.asset_id = AssetId;
+                    return[false, responseDataCollection];
+                } else {
+                    return[err, {}]
+                }
+            });
     };
+*/
+    this.removeAsset = async (request) => {
 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.target_asset_id,
+            request.organization_id,
+            request.target_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                  archiveAsset(request);
+                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
     //PAM
     /*this.assetClockIn = function (request, callback) {
      var dateTimeLog = util.getCurrentUTCTime();
@@ -5499,11 +5603,12 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.tag_type_id || 0,
                 request.tag_id || 0,
                 request.cluster_tag_id || 0,
+                request.vertical_tag_id || 0,
                 request.flag || 1,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            const queryString = util.getQueryString('ds_p1_1_asset_access_level_mapping_select_flag', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_asset_access_level_mapping_select_flag', paramsArr);
             if (queryString !== '') {
                 db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
@@ -5984,6 +6089,49 @@ this.getQrBarcodeFeeback = async(request) => {
                                 if (data[0].tag_type_id == 0) {
 
                                     tagTypesforApplication(request).then((resData) => {
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 28) {
+                            if (data.length == 0) {
+                        
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].vertical_tag_id == 0) {
+
+                                    request.tag_type_category_id = 3;
+                                    request.tag_type_id = data[0].vertical_tag_type_id;
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+                                        singleData.tag_type_id = data[0].vertical_tag_type_id;
+                                        singleData.tag_type_name = data[0].vertical_tag_type_name;
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
@@ -7165,6 +7313,153 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+    this.assetListByEmail = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.asset_email_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_operating_asset_email', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.assetCertificateSet = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [     
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.professional_details,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_professional_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+
+    this.assetListUpdateTags = async (request) => {
+
+        /*
+            IF p_flag = 0 THEN update all tags
+            IF p_flag = 1 THEN update tag_1
+            IF p_flag = 2 THEN update tag_2
+            IF p_flag = 3 THEN update tag_3
+        */
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.asset_id,
+            request.tag_id_1,
+            request.tag_id_2,
+            request.tag_id_3,
+            request.organization_id,
+            request.workforce_id,
+            request.account_id,
+            request.flag || 0,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        
+        const queryString = util.getQueryString('ds_p1_asset_list_update_tag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.reporteeListByRoleOfAManager = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.manager_asset_id,
+              request.asset_type_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_role_reportees', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+    this.fetchCompanyDefaultAssetName = async function (request) {
+        let assetName = 'Tony',
+            error = true;
+
+        const paramsArr = new Array(
+            1,
+            100
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetName = data[0].asset_first_name;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetName];
+    };
 }
 
 module.exports = AssetService;

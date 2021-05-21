@@ -1113,9 +1113,10 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 18: //Money with currency name
-                        var money = row.field_value.split('|');
-                        params[15] = money[0];
-                        params[18] = money[1];
+                        var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                        params[14] = money.value;
+                        params[18] = money.code;
+                        params[27] = JSON.stringify(money)
                         break;
                     case 19: //Short Text
                         params[18] = request.new_field_value || row.field_value;
@@ -1373,6 +1374,8 @@ function FormConfigService(objCollection) {
     
                             global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
     
+                            self.activityFormListUpdateFieldValue(request);
+
                             let idWorkflow = 0;
                             let idWorkflowType = 0;
 
@@ -4911,6 +4914,9 @@ function FormConfigService(objCollection) {
                 } else if (transactionTypeID === 2) {
                     return -Number(transactionAmount);
                 }
+            case 18: // money data type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                return(fieldValue.value)
             default:
                 return Number(fieldValue);
         }
@@ -6478,11 +6484,7 @@ function FormConfigService(objCollection) {
     async function kafkaProdcucerForChildOrderCreation(topicName,message) {
         const kafka = new Kafka({
             clientId: 'child-order-creation',
-            brokers: [
-                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
-            ]
+            brokers: global.config.BROKER_HOST.split(",")
         })
         
         const producer = kafka.producer()
@@ -6651,6 +6653,30 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.activityFormListUpdateFieldValue = async function (request) {
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.activity_id, 
+            request.form_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.field_value,
+            request.datetime_log
+        );
+        
+        var queryString = util.getQueryString("ds_v1_activity_form_list_update_field_value",paramsArr);    
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {                   
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    };    
 }
 
 module.exports = FormConfigService;

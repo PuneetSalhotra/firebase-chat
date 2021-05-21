@@ -337,6 +337,10 @@ function ActivityService(objectCollection) {
                                 self.activityUpdateExpression(request);
                             }
 
+                            if([48,53,54,55].includes(activityTypeCategroyId)){
+                                await updateChannelActivity(request, 9, request.activity_id, activityTypeCategroyId);
+                            }
+
                             if (request.activity_type_category_id == 48) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
                                 if(request.activity_type_id == 152184 && request.activity_form_id == 4353){
@@ -350,8 +354,6 @@ function ActivityService(objectCollection) {
                                 //updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
 //
                                 //});
-
-                                await updateChannelActivity(request, 9, request.activity_id, 48);
 
                                 let totalvalue = 0;
                                 let finalValue = 0;
@@ -1563,6 +1565,8 @@ function ActivityService(objectCollection) {
                     if (err === false) {
                         if(activityTypeCategoryId != 9)
                             activtySearchListInsert(request);
+
+                            self.activityFormListInsert(request);
                         
                         //BETA                            
                         if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
@@ -4593,6 +4597,10 @@ function ActivityService(objectCollection) {
                 } else if (transactionTypeID === 2) {
                     return -Number(transactionAmount);
                 }
+
+            case 18: // money data type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                return(fieldValue.value)
             default:
                 return Number(fieldValue);
         }
@@ -5023,9 +5031,10 @@ function ActivityService(objectCollection) {
             //     organization_id: request.organization_id,
             //     asset_id: request.asset_id
             // });
-            // console.log("***********changed from tony to name****************",log_assetData[0].asset_id)
+            // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-            let message = `Tony added ${newAssetData[0].asset_first_name} to this Conversation`;
+            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+            let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
             
             //adding participant
               let newParticipantParams = {
@@ -5873,6 +5882,54 @@ function ActivityService(objectCollection) {
             }
         });
     }  
+
+    this.activityFormListInsert = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+            var activityInlineData = activityInlineDataConversion(
+            JSON.parse(request.activity_inline_data)
+            );
+
+            console.log(JSON.stringify(activityInlineData))
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                JSON.stringify(activityInlineData),
+                request.activity_type_category_id,
+                request.activity_type_id,
+                request.activity_form_id,
+                request.form_transaction_id,
+                request.workflow_activity_id || request.activity_channel_id,
+                request.asset_id,
+                request.datetime_log
+            );
+            //console.log(paramsArr);            
+            var queryString = util.getQueryString( "ds_v1_activity_form_list_insert",paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        };
+        
+        function activityInlineDataConversion(data) {
+            var convertedData = {};
+            let fieldId ="";
+            data.forEach((item) => {
+                //fieldId = "_" + item.field_id;
+                convertedData["_" + item.field_id] = item;
+            });
+            return convertedData;
+        }      
+
 }
 
 module.exports = ActivityService;

@@ -86,7 +86,9 @@ var ActivityCommonService = require("./server/services/activityCommonService");
 
 var map = new Map();
 
-redisClient.on('connect',function (response) {
+redisClient.config('set','notify-keyspace-events','KEA');
+
+redisClient.on('connect',async function (response) {
     logger.info('Redis Client Connected',{type: 'redis',response});
     connectToKafkaBroker();
 });
@@ -289,6 +291,7 @@ function connectToKafkaBroker() {
     });
 
 };
+
 
 process.on('uncaughtException',(error,origin) => {
     logger.error("Uncaught Exception",{type: 'uncaught_exception',origin,error: serializeError(error)});

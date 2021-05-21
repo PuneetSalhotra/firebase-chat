@@ -1428,12 +1428,12 @@ function PamListingService(objectCollection) {
         let paramsArr = new Array(
             request.organization_id,
             request.account_id || 452,
-            request.target_asset_id,
+            request.activity_id,
             request.asset_type_category_id,
             request.page_start,
             request.page_limit
         );
-        const queryString = util.getQueryString('pm_v1_asset_list_select_category', paramsArr);
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_activity_asset_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1495,6 +1495,28 @@ function PamListingService(objectCollection) {
             }
         });
         };
+
+    //Get PAM Role Module Mapping Details for the given asset_type_id
+    this.getPamRoleModuleMappingDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.asset_type_id,
+                request.start_limit,
+                request.end_limit
+            );
+            var queryString = util.getQueryString('ds_p1_pam_module_role_mapping_select_asset_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                        if(err === false) {
+                            resolve(data);	        			      			  
+                        } else {
+                            reject(err);
+                        }
+                });
+            }
+        });
+    };
 };
 
 module.exports = PamListingService;
