@@ -50,5 +50,12 @@ analyticsConfig.vertical = {
 		"Qualify": 144,
 		"Propose": 145,
 		"Negotiate": 147
+	},
+	"error_response": {
+		"vertical_name": "",
+		"flag_1": "",
+		"flag_2": "",
+		"flag_3": "",
+		"flag_4": ""
 	}
 };
