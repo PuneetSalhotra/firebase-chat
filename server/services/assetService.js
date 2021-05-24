@@ -139,8 +139,22 @@ function AssetService(objectCollection) {
         // email wrapper
 
         if(email) {
-            console.log("Got Email in the request--", email);
+            let [error, response] = await this.getAssetPhoneNumberDetals(request, email);
+
+            if(response.length > 1) {
+                return callback(true, {
+                    message: `Multiple resources are linked with your email`
+                }, 400);
+            }
+            if(response.length) {
+                phoneNumber = "+" + response[0].operating_asset_phone_country_code + response[0].operating_asset_phone_number;
+            }
+
+            request.asset_phone_number = phoneNumber;
+            console.log("Got Email in the request--", email, phoneNumber, response);
         }
+
+        console.log("Phone Number", phoneNumber);
 
         let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
         if('1' === phoneNumverValidationFlag) {
@@ -338,7 +352,7 @@ function AssetService(objectCollection) {
                                 }
 
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
-                                callback(false, { response }, 200);
+                                callback(false, response , 200);
                                 return;
                             }
                         } else {
@@ -366,6 +380,7 @@ function AssetService(objectCollection) {
                             } else if (verificationMethod === 3) {
                                 newUserPassCodeSet(phoneNumber, verificationCode, request)
                                     .then(function () {
+                                        request.passcode = data[0].phone_passcode;
                                         // Passcode set in the DB
                                         sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
                                         callback(false, { response }, 200);
@@ -387,6 +402,28 @@ function AssetService(objectCollection) {
             callback(false, {}, -3101);
         }
     };
+
+    this.getAssetPhoneNumberDetals = async function(request, email) {
+        let responseData = [];
+        let paramsArr = new Array(
+            email
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_operating_asset_email', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+            }
+
+        return [error, responseData];
+    
+    }
 
     async function checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request) {
         // IN p_phone_number VARCHAR(50), IN p_phone_country_code SMALLINT(6), 

@@ -4,6 +4,7 @@
 
 const { serializeError } = require("serialize-error");
 const logger = require("../logger/winstonLogger");
+const AssetService = require('../services/assetService')
 
 function ActivityListingService(objCollection) {
 
@@ -19,6 +20,7 @@ function ActivityListingService(objCollection) {
 
 	const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
+	const assetService = new AssetService(objCollection);
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
 		var queryString = '';
@@ -1763,7 +1765,7 @@ function ActivityListingService(objCollection) {
 
 	};
 
-	this.getOrganizationsOfANumber = function (requestHeaders, request, callback) {
+	this.getOrganizationsOfANumber = async function (requestHeaders, request, callback) {
 		var queryString = '';
 		let phoneNumber;
 		let countryCode;
@@ -1775,6 +1777,10 @@ function ActivityListingService(objCollection) {
 			if (requestHeaders.hasOwnProperty('x-grene-p-code-flag') && (Number(requestHeaders['x-grene-p-code-flag']) === 1)) {
 				phoneNumber = request.phone_number;
 				countryCode = request.country_code;
+			} else if(requestHeaders.hasOwnProperty('x-grene-e-flag') && (Number(requestHeaders['x-grene-e-flag']) === 1)) { // email OTP
+				let [err, response] = await assetService.getAssetPhoneNumberDetals(request, requestHeaders['x-grene-e']);
+				phoneNumber = response[0].operating_asset_phone_number;
+				countryCode = response[0].operating_asset_phone_country_code;
 			} else {
 				phoneNumber = requestHeaders['x-grene-p-code'];
 				countryCode = requestHeaders['x-grene-c-code'];
