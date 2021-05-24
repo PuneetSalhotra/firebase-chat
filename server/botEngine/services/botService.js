@@ -259,13 +259,14 @@ function BotService(objectCollection) {
                  new Array(
                      request.bot_operation_id,
                      request.bot_id,
+                     request.bot_name,
                      request.bot_inline_data,
                      request.bot_inline_data,
                      request.organization_id,
                      request.log_asset_id,
                      request.log_datetime,
                  );
-                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArray);
+                 const queryString = util.getQueryString('ds_p2_bot_operation_mapping_update_inline', paramsArray);
                  if (queryString != '') {
                      await db.executeQueryPromise(0, queryString, request)
                        .then((data)=>{
@@ -8735,7 +8736,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
                 timelineReq.timeline_stream_type_id= 734;
-                timelineReq.activity_stream_type_id= 711;
+                timelineReq.activity_stream_type_id= 734;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
                 timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
