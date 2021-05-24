@@ -6323,6 +6323,16 @@ function VodafoneService(objectCollection) {
                     query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
                     appendedAnd = true;
                 }
+                if (request.search_string && request.search_string != '') {
+                    if (appendedAnd)
+                        
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
+                            query += " AND ";
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        }
+                    appendedAnd = true;
+                }
                 query += " ORDER BY activity_title";
                 break;
             case 2: //
@@ -6408,7 +6418,7 @@ function VodafoneService(objectCollection) {
                 }
                 query += " ORDER BY activity_title";
                 break;
-            case 3: //
+            case 3: // aaa
                 paramsArr = [request.asset_id]
                 dbCall = 'ds_p1_asset_list_select_asset';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
@@ -6425,6 +6435,16 @@ function VodafoneService(objectCollection) {
                         query += ' asset_id = ' + Number(request.asset_id)
                         appendedAnd = true;
                     }
+                    if (request.search_string && request.search_string != '') {
+                        if (appendedAnd)
+                            
+                            searchArr = request.search_string.split(' ');
+                            for(let i=0;i<searchArr.length;i++){
+                                query += " AND ";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                            }
+                        appendedAnd = true;
+                    }
                     query += " ORDER BY activity_title";
                 } else {
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
@@ -6438,6 +6458,16 @@ function VodafoneService(objectCollection) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
+                        appendedAnd = true;
+                    }
+                    if (request.search_string && request.search_string != '') {
+                        if (appendedAnd)
+                            
+                            searchArr = request.search_string.split(' ');
+                            for(let i=0;i<searchArr.length;i++){
+                                query += " AND ";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                            }
                         appendedAnd = true;
                     }
                     query += " ORDER BY activity_title";
@@ -6458,16 +6488,26 @@ function VodafoneService(objectCollection) {
                         query += ' asset_id = ' + Number(request.asset_id)
                         appendedAnd = true;
                     }
-                    if (request.activity_type_category_id && request.activity_type_category_id > 0) {
-                        if (appendedAnd)
-                            query += " AND ";
-                        query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
-                        appendedAnd = true;
-                    }
+                    // if (request.activity_type_category_id && request.activity_type_category_id > 0) {
+                    //     if (appendedAnd)
+                    //         query += " AND ";
+                    //     query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
+                    //     appendedAnd = true;
+                    // }
                     if (request.asset_participant_access_id && request.asset_participant_access_id > 0) {
                         if (appendedAnd)
                             query += " AND ";
                         query += ' asset_participant_access_id =  ' + Number(request.asset_participant_access_id)
+                        appendedAnd = true;
+                    }
+                    if (request.search_string && request.search_string != '') {
+                        if (appendedAnd)
+                            
+                            searchArr = request.search_string.split(' ');
+                            for(let i=0;i<searchArr.length;i++){
+                                query += " AND ";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                            }
                         appendedAnd = true;
                     }
                     query += " ORDER BY activity_title";
@@ -6475,10 +6515,20 @@ function VodafoneService(objectCollection) {
                     tableName = 'activity_search_mapping'; // for distinct result mapping
                     query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
-                    if (request.activity_type_category_id && request.activity_type_category_id > 0) {
-                        query += ' activity_type_category_id =  ' + Number(request.activity_type_category_id)
+                    // if (request.activity_type_category_id && request.activity_type_category_id > 0) {
+                    //     query += ' AND activity_type_category_id =  ' + Number(request.activity_type_category_id)
+                    //     appendedAnd = true;
+                    // }
+                    if (request.search_string && request.search_string != '') {
+                        if (appendedAnd)
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
+                            query += " AND ";
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        }
                         appendedAnd = true;
                     }
+                   
                     query += " ORDER BY activity_title";
                 }
                 break;
