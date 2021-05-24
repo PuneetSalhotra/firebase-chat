@@ -194,8 +194,11 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                     };
                                 let phoneNumber = '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code'];
 
+                                if(req.headers['x-grene-e-flag'] == 1) {
+                                    phoneNumber = req.headers['x-grene-e'];
+                                }
                                 //console.log('decodedToken : ', decodedToken);
-                                console.log('UserName and phoneNumber from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
+                                console.log('UserName and phoneNumber/Email from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
                                 //console.log('PARAMS : ', params);
 
                                 //if(map.has(userNameFromAccessToken)) {
@@ -232,8 +235,8 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                         next();
                                     } else { 
                                         console.log('#########################################');
-                                        console.log('Phone Number from the Mapped Username in Redis: ', tempVar);
-                                        console.log('Phone Number from Request Headers: ', phoneNumber);
+                                        console.log('Phone Number/Email from the Mapped Username in Redis: ', tempVar);
+                                        console.log('Phone Number/Email from Request Headers: ', phoneNumber);
                                         console.log('');
                                         console.log('User Name from Access Token : ', userNameFromAccessToken);                                        
                                         console.log('');
