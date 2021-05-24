@@ -3024,13 +3024,28 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('dm_v1_report_list_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-              .then((data) => {
-                  responseData = data;
-                  error = false;
-              })
-              .catch((err) => {
-                  error = err;
-              })
+                .then(async (data) => {
+
+                    responseData = data;
+                    error = false;
+
+                    if (9 != request.report_type_id) {
+
+                        request.report_id = data[0].report_id;
+                        request.report_status_id = 1;
+                        request.report_url = "";
+
+                        let [err, responseData] = await this.insertAnalyticsReportTransaction(request);
+                        if (err) {
+                            error = err;
+                            console.log("error = " + error);
+                        }
+                    }
+
+                })
+                .catch((err) => {
+                    error = err;
+                })
         }
 
         return [error, responseData]
@@ -4323,7 +4338,35 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    // Insert new transaction for Analytics Report.
+    this.insertAnalyticsReportTransaction = async (request) => {
 
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.report_id,
+            request.report_status_id,
+            request.report_url,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 
 }
 
