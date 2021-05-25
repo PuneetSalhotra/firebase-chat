@@ -365,6 +365,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -608,6 +609,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4426,6 +4428,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4723,6 +4726,7 @@ case 729: // Report form BC Edit
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;

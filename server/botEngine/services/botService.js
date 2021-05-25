@@ -259,13 +259,14 @@ function BotService(objectCollection) {
                  new Array(
                      request.bot_operation_id,
                      request.bot_id,
+                     request.bot_name,
                      request.bot_inline_data,
                      request.bot_inline_data,
                      request.organization_id,
                      request.log_asset_id,
                      request.log_datetime,
                  );
-                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArray);
+                 const queryString = util.getQueryString('ds_p2_bot_operation_mapping_update_inline', paramsArray);
                  if (queryString != '') {
                      await db.executeQueryPromise(0, queryString, request)
                        .then((data)=>{
@@ -2315,7 +2316,23 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     break;
 
-
+                case 51: // Autopopulate BC excel
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('bc_auto_populate');
+                    try {
+                        console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations.condition.form_id);
+                        sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
+                    } catch (err) {
+                        logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -8735,7 +8752,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
                 timelineReq.timeline_stream_type_id= 734;
-                timelineReq.activity_stream_type_id= 711;
+                timelineReq.activity_stream_type_id= 734;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
                 timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
@@ -9701,10 +9718,11 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
-        
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+    
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = defaultAssetName
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
