@@ -1142,6 +1142,33 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+    app.post('/' + global.config.version + '/activity/asset/participating/status/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActivityUserParticipatingStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/asset/participating/status | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/activity/status/workforce/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getWorkflowBaseOnStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/status/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/activity/fetch/counts/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getCountForFilters(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/fetch/counts/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
     
 }
 
