@@ -749,7 +749,7 @@ function getAndSetDbURL() {
                 database: global.config.slave1Database,
                 debug: false
             });
-
+            logger.warn(`[DBConnectionReEstablished] ${moment().format('YYYY-MM-DD h:mm:ss')}`, { type: 'mysql', db_response: null, request_body: null, error: null });
         }
     });
 }
