@@ -275,7 +275,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                             return callback(true, err);
                         }
 
-                        callback(err, false);
+                        // callback(err, false);
                     }
                 // console.timeEnd(label);
                 });
