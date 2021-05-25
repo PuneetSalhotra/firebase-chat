@@ -3868,10 +3868,9 @@ function ActivityListingService(objCollection) {
 	};
 	
 	this.getActivityUserParticipatingStatus = async (request) => {
-
-		let responseData = [],
-			error = true;
-		const paramsArr = new Array(
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
       request.organization_id,
       request.account_id,
       request.workforce_id,
@@ -3884,59 +3883,65 @@ function ActivityListingService(objCollection) {
       request.start_from,
       request.limit_value
     );
-		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_status', paramsArr);
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_myqueue_status",
+      paramsArr
+    );
 
-		if (queryString !== '') {
-			await db.executeQueryPromise(1, queryString, request)
-				.then(async (data) => {
-					responseData = data;
-					error = false;
-				})
-				.catch((err) => {
-					error = err;
-				});
-		}
-		
-		return [error, responseData];
-	};	
-	
-	this.getWorkflowBaseOnStatus = async (request) => {
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
 
-		let responseData = [],
-			error = true;
-		const paramsArr = new Array(
+    return [error, responseData];
+  };
+
+  this.getWorkflowBaseOnStatus = async (request) => {
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
       request.organization_id,
       request.account_id,
       request.workforce_id,
       request.asset_id,
-      
+
       request.activity_status_id,
       request.activity_type_id,
-	  request.flag,
+      request.flag,
       request.start_from,
       request.limit_value
     );
-		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_status', paramsArr);
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_status",
+      paramsArr
+    );
 
-		if (queryString !== '') {
-			await db.executeQueryPromise(1, queryString, request)
-				.then(async (data) => {
-					responseData = data;
-					error = false;
-				})
-				.catch((err) => {
-					error = err;
-				});
-		}
-		
-		return [error, responseData];
-	};	
-	
-	this.getCountForFilters = async (request) => {
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
 
-		let responseData = [],
-			error = true;
-		const paramsArr = new Array(
+    return [error, responseData];
+  };
+
+  this.getCountForFilters = async (request) => {
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
       request.organization_id,
       request.account_id,
       request.workforce_id,
@@ -3945,24 +3950,27 @@ function ActivityListingService(objCollection) {
       request.start_from,
       request.limit_value
     );
-		const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_filter_count', paramsArr);
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_filter_count",
+      paramsArr
+    );
 
-		if (queryString !== '') {
-			await db.executeQueryPromise(1, queryString, request)
-				.then(async (data) => {
-					responseData = data;
-					error = false;
-				})
-				.catch((err) => {
-					error = err;
-				});
-		}
-		
-		return [error, responseData];
-	};	
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
+
+    return [error, responseData];
+  };	
 
 }
 
 module.exports = ActivityListingService;
-
 
