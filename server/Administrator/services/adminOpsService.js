@@ -4869,6 +4869,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_phone_number = request.phone_number;
             idCardJSON.employee_asset_type_id = request.asset_type_id;
             idCardJSON.employee_asset_type_name = request.asset_type_name;
+            idCardJSON.employee_manual_work_location_address = request.work_location_address;
+            idCardJSON.employee_location = request.work_location_address;
 
             // Update the ID Card's Activity List table
             try {
@@ -4943,7 +4945,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             contactCardJSON.contact_operating_asset_name = request.asset_first_name;
             contactCardJSON.contact_phone_country_code = request.country_code;
             contactCardJSON.contact_phone_number = request.phone_number;
-
+            contactCardJSON.contact_manual_work_location_address = request.work_location_address;
+            contactCardJSON.contact_location = request.work_location_address;
             // Update the Contact Card's Activity List table
             try {
                 await activityListUpdateInlineData({
