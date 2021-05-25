@@ -2316,7 +2316,23 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     break;
 
-
+                case 51: // Autopopulate BC excel
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('bc_auto_populate');
+                    try {
+                        console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations.condition.form_id);
+                        sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
+                    } catch (err) {
+                        logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -9702,10 +9718,11 @@ async function removeAsOwner(request,data)  {
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
-        
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+    
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = defaultAssetName
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
