@@ -8834,17 +8834,27 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        // console.log('Adding ', pool_id);
         console.log('*******************');
         console.log('Adding : ', username);
+
+        let userAttr = [];
+
+        if(username.toString().indexOf('@') > -1) {
+            userAttr.push({
+                Name: 'email', /* required */
+                Value: username
+            })
+        } else {
+            userAttr.push({
+                Name: 'phone_number', /* required */
+                Value: username
+              })
+        }
+
         let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username,
             
             //TemporaryPassword: 'STRING_VALUE',
-            UserAttributes: [
-              {
-                Name: 'phone_number', /* required */
-                Value: username
-              },            
-            ],            
+            UserAttributes: userAttr,            
           };
       
         await new Promise((resolve, reject)=>{
@@ -8986,7 +8996,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 let userAttributes = data.UserAttributes;
                 
                 for(const i_iterator of userAttributes) {
-                    if(i_iterator.Name === 'phone_number') {
+                    console.log("i_iterator.Name", i_iterator.Name)
+                    if(i_iterator.Name === 'phone_number' || i_iterator.Name === 'email') {
                         console.log('Phone Number: ', i_iterator.Value);
 
                         cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
@@ -10570,6 +10581,10 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
             else if(request.is_web_remove == 1)
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            else if(request.is_email_add == 1)   
+                await addUser(request.email, global.config.user_pool_id);
+            else if(request.is_email_remove == 1)
+                await removeUser(request.email, global.config.user_pool_id);
 
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
@@ -10577,6 +10592,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
         return[error, responseData];
     }
+
     this.typeMappingUpdateFlagDraft = async function(request){
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
