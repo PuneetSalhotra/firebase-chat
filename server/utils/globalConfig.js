@@ -105,11 +105,13 @@ config.documentTypes = {
 
 // codes to switch the slave to master in case of errors
 config.mysqlConnectionErrors = {
-    ENOTFOUND : 1,
-    ECONNREFUSED : 1,
-    ER_ACCESS_DENIED_ERROR : 1,
-    ER_DBACCESS_DENIED_ERROR : 1,
-    ER_SP_DOES_NOT_EXIST : 1
+    ENOTFOUND: 1,
+    EHOSTUNREACH: 1,
+    PROTOCOL_SEQUENCE_TIMEOUT: 1,
+    ECONNREFUSED: 1,
+    ER_ACCESS_DENIED_ERROR: 1,
+    ER_DBACCESS_DENIED_ERROR: 1,
+    ER_SP_DOES_NOT_EXIST: 1
 }
 
 config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD"];

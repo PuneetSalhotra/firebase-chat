@@ -1493,6 +1493,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         //Add the number to Cognito
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+        if(request.email_id) {
+            await addUser(request.email_id, global.config.user_pool_id);
+        }
 
         // Send SMS to the newly added employee
         try {
@@ -8839,27 +8842,33 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         console.log('Adding : ', username);
 
         let userAttr = [];
-
+      
         if(username.toString().indexOf('@') > -1) {
             userAttr.push({
                 Name: 'email', /* required */
                 Value: username
-            })
+            },{
+                Name : "email_verified",
+                Value : "true"
+            });
+            
         } else {
             userAttr.push({
                 Name: 'phone_number', /* required */
                 Value: username
-              })
+              });
         }
+
 
         let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username,
             
             //TemporaryPassword: 'STRING_VALUE',
-            UserAttributes: userAttr,            
+            UserAttributes: userAttr,
+            MessageAction : "SUPPRESS"          
           };
-      
+
         await new Promise((resolve, reject)=>{
             cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
                 if (err) {
@@ -10643,4 +10652,3 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 }
 
 module.exports = AdminOpsService;
-
