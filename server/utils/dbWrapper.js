@@ -225,7 +225,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                                     // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                                     // global.logger.write('serverError', err, err, request);
                                     connection.release();
-                                    return callback(false, rows[0]);
+                                    return callback(true,err);
                                 }
                             // console.timeEnd(label);
                             });
@@ -265,7 +265,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                                             // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                                             // global.logger.write('serverError', err, err, request);
                                             connection.release();
-                                            return callback(false, rows[0]);
+                                            return callback(true, err);
                                         }
                                     // console.timeEnd(label);
                                     });
