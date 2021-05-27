@@ -6081,7 +6081,7 @@ async function removeAsOwner(request,data)  {
     async function fireTextMsg(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
-
+console.log('inline data',JSON.stringify(inlineData))
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
@@ -6101,7 +6101,33 @@ async function removeAsOwner(request,data)  {
             resp = await getFieldValue(newReq);
             newReq.country_code = resp[0].data_entity_bigint_1;
             newReq.phone_number = resp[0].data_entity_text_1;
+        } else if (type[0]==='asset_reference') {
+            let target_form_id = inlineData[type[0]].form_id;
+            let target_field_id = inlineData[type[0]].field_id;
+            newReq.form_id = inlineData[type[0]].form_id;
+            newReq.field_id = inlineData[type[0]].field_id;
+            let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
+            let activityInlineData = activityData[0].activity_inline_data;
+            activityInlineData = JSON.parse(activityInlineData)
+            let assetfieldData = activityInlineData.find((item=>item.field_id == target_field_id));
+            if(assetfieldData){
+            let targetAssetId = typeof assetfieldData.field_value == 'string'?assetfieldData.field_value.split('|'):assetfieldData.field_value.toString().split('|');
+            console.log('tar asset id',targetAssetId)
+            let dataResp = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": targetAssetId[0]
+            });
+            newReq.country_code = dataResp[0].operating_asset_phone_country_code;
+            newReq.phone_number = dataResp[0].operating_asset_phone_number;
+            }
+
         }
+if(type[0]==='asset_reference'){
+    newReq.smsText = inlineData[type[0]].template;
+        newReq.line =  "";
+        newReq.form =  0;
+}
+else{
 
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
@@ -6110,7 +6136,7 @@ async function removeAsOwner(request,data)  {
         newReq.form = retrievedCommInlineData.communication_template.text.form || 0;
         global.logger.write('conLog', newReq.smsText, {}, {});
         request.debug_info.push('smsText: ' + newReq.smsText);
-
+}
         if (newReq.line) {
             newReq.smsText = newReq.smsText + " " + newReq.line;
         } else if (newReq.form != 0) {
@@ -9693,12 +9719,56 @@ async function removeAsOwner(request,data)  {
             
         }
         else {
-            addCommentRequest.activity_timeline_collection = JSON.stringify({
-                "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "attachments": []
-            });
+            let reminder_inline_data = request.reminder_inline_data?JSON.parse(request.reminder_inline_data):{};
+            if(reminder_inline_data.hasOwnProperty('date_reminder')){
+                if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
+                    let message_template = reminder_inline_data.date_reminder.message_template;
+                    let message_template_textArr = message_template.split(" ");
+                    const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+                    for(let i=0;i<message_template_textArr.length;i++){
+                        if(message_template_textArr[i]=="<<title>>"){
+                            
+                            message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_1>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_2>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_3>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<creator_name>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<lead_name>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
+                        }
+                        
+                    }
+                    let messageToSend = message_template_textArr.join(" ");
+                    addCommentRequest.activity_timeline_collection = JSON.stringify({
+                        "content": `${messageToSend}`,
+                        "subject": `${messageToSend}`,
+                        "mail_body": `${messageToSend}`,
+                        "attachments": []
+                    });
+                }
+                addCommentRequest.activity_timeline_collection = JSON.stringify({
+                    "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "attachments": []
+                });
+            }
+
+            
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }

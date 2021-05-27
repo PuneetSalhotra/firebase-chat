@@ -961,6 +961,13 @@ function Util(objectCollection) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
     };
+    this.differenceDatetimeInMin = function (timeString1, timeString2) {
+        console.log('came in')
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"),'minutes');
+        // let sss = moment.utc(value).format('mm');
+        return value;
+    };
+   
 
     /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
