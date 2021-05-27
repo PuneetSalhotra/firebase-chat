@@ -1526,8 +1526,8 @@ function PamListingService(objectCollection) {
                 request.organization_id,
                 request.activity_type_category_id,
                 request.parent_activity_id,
-                request.start_from || 0,
-                request.limit_value || 10,
+                request.page_start,
+                request.page_limit ,
             );
         const queryString = util.getQueryString('pm_v1_activity_list_select_parent_activity', paramsArr);
         if (queryString !== '') {
