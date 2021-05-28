@@ -7476,7 +7476,7 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }    
     this.fetchCompanyDefaultAssetName = async function (request) {
-        let assetName = 'Tony',
+        let assetName = 'greneOS',
             error = true;
 
         const paramsArr = new Array(
