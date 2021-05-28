@@ -530,7 +530,7 @@ function AdminOpsService(objectCollection) {
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_inline_data: JSON.stringify(inline),
+            activity_inline_data: inline,
             // activity_timeline_collection: "",
             // is_child_order: true,
             // child_order_activity_parent_id: Number(options.parent_activity_id),
@@ -1341,6 +1341,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             asset_id: deskAssetID
         });
+        request.operating_asset_id = assetData.asset_id;
         request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
         const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleDataDesk,request.desk_asset_id)
 
@@ -1581,6 +1582,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        request.asset_id = request.log_asset_id;
         //Check role has flag to add approval workflow
         if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+            console.log('role data321',JSON.stringify(roleData))
             request.activity_type_id = roleData[0].asset_type_approval_activity_type_id;
             request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
             request.form_id = roleData[0].asset_type_approval_origin_form_id;
@@ -1594,7 +1596,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                         "field_data_type_category_id": 4,
                         "data_type_combo_id": 0,
                         "data_type_combo_value": 0,
-                        "field_value": assetID,
+                        "field_value": `${assetID} | ${request.asset_first_name} | ${request.operating_asset_id} | ${request.asset_type_name}`,
                         "message_unique_id": 1608213215926
                       
                 }
@@ -1606,7 +1608,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
-
+console.log('new ActivityId321',newActivity_id)
             //make manager as lead
             await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
             
