@@ -288,7 +288,19 @@ function BotController(objCollection) {
             global.logger.write('/activity/set/status/due_date', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });      
+    });   
+    app.post('/' + global.config.version + '/activity/set/status/due_date/v1', async (req, res) => {
+        
+            let [err,result] = await rmbotService.getWorkflowStatusDueDateBasedOnAssetBusinessHoursV1(req.body);
+           if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+           }
+           else{      
+            global.logger.write('/activity/set/status/due_date', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+           }
+        
+    });     
     
     app.post('/' + global.config.version + '/asset/lead/summary', async (req, res) => {
         try {
