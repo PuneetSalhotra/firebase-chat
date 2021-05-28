@@ -2635,7 +2635,21 @@ function ActivityListingService(objCollection) {
 				request.page_start,
 				request.page_limit
 			);
-			const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+			// const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+
+			let queryString = '';
+			if(request.flag != 10)
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+		    elseif(request.flag == 10){
+			    paramsArr.pop();
+				paramsArr.pop();
+				paramsArr.push(request.activity_status_id);
+				paramsArr.push(request.activity_type_id);
+				paramsArr.push(request.page_start);
+				paramsArr.push(request.page_limit);
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v2', paramsArr);
+		    }
+
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
