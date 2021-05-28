@@ -6118,6 +6118,7 @@ console.log('inline data',JSON.stringify(inlineData))
             newReq.country_code = resp[0].data_entity_bigint_1;
             newReq.phone_number = resp[0].data_entity_text_1;
         } else if (type[0]==='asset_reference') {
+            newReq.communication_id = inlineData[type[0]].template_id;
             let target_form_id = inlineData[type[0]].form_id;
             let target_field_id = inlineData[type[0]].field_id;
             newReq.form_id = inlineData[type[0]].form_id;
@@ -6138,7 +6139,7 @@ console.log('inline data',JSON.stringify(inlineData))
             }
 
         }
-if(type[0]==='asset_reference'){
+if(type[0]==='asset_reference'&& !newReq.communication_id){
     newReq.smsText = inlineData[type[0]].template;
         newReq.line =  "";
         newReq.form =  0;
