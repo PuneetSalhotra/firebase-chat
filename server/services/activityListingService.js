@@ -2640,7 +2640,7 @@ function ActivityListingService(objCollection) {
 			let queryString = '';
 			if(request.flag != 10)
 				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
-		    elseif(request.flag == 10){
+		    else if(request.flag == 10){
 			    paramsArr.pop();
 				paramsArr.pop();
 				paramsArr.push(request.activity_status_id);
