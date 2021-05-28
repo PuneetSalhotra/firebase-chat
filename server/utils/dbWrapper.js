@@ -6,6 +6,7 @@ const logger = require("../logger/winstonLogger");
 
 var mysql = require('mysql');
 var redis = require('redis');
+var moment = require('moment');
 
 var clusterConfig = {
     canRetry: true,
@@ -13,7 +14,7 @@ var clusterConfig = {
     restoreNodeTimeout: 1000, //Milliseconds
     defaultSelector: 'ORDER'
 };
-let slave1HealthCheckFlag = false;
+let slave1HealthCheckFlag = true;
 var writeCluster = mysql.createPoolCluster();
 var readCluster = mysql.createPoolCluster(clusterConfig);
 
