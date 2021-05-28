@@ -1342,9 +1342,9 @@ function AssetService(objectCollection) {
                 break;
             case 3: //email
                 request.email_receiver_name="";
-                request.email_sender_name="DESKER";
+                request.email_sender_name="greneOS";
                 //request.email_id = request.email_id;
-                request.email_sender="admin@desker.co";
+                request.email_sender="support@greneos.com";
                 request.subject = "greneOS App One Time Password";
                 request.body = `Hi, <br/> ${verificationCode} is your verification code for the ${appName}.`;
                 request.email_id = request.email;
@@ -4981,9 +4981,9 @@ this.getQrBarcodeFeeback = async(request) => {
 
                 //send email
                 request.email_receiver_name="";
-                request.email_sender_name="DESKER";
+                request.email_sender_name="greneOS";
                 //request.email_id = request.email_id;
-                request.email_sender="admin@desker.co";
+                request.email_sender="support@greneos.com";
                 request.subject = "DESKER OTP";
                 request.body = "Hi, <br/> Desker signup verification code is "+verificationCode+".";
                 let self = this;
