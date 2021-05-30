@@ -259,13 +259,14 @@ function BotService(objectCollection) {
                  new Array(
                      request.bot_operation_id,
                      request.bot_id,
+                     request.bot_name,
                      request.bot_inline_data,
                      request.bot_inline_data,
                      request.organization_id,
                      request.log_asset_id,
                      request.log_datetime,
                  );
-                 const queryString = util.getQueryString('ds_p1_bot_operation_mapping_update_inline', paramsArray);
+                 const queryString = util.getQueryString('ds_p2_bot_operation_mapping_update_inline', paramsArray);
                  if (queryString != '') {
                      await db.executeQueryPromise(0, queryString, request)
                        .then((data)=>{
@@ -2315,7 +2316,23 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     break;
 
-
+                case 51: // Autopopulate BC excel
+                    console.log('****************************************************************');
+                    console.log('');
+                    logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
+                    request.debug_info.push('bc_auto_populate');
+                    try {
+                        console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations.condition.form_id);
+                        sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
+                    } catch (err) {
+                        logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -6080,7 +6097,7 @@ async function removeAsOwner(request,data)  {
     async function fireTextMsg(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
-
+console.log('inline data',JSON.stringify(inlineData))
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
@@ -6100,7 +6117,34 @@ async function removeAsOwner(request,data)  {
             resp = await getFieldValue(newReq);
             newReq.country_code = resp[0].data_entity_bigint_1;
             newReq.phone_number = resp[0].data_entity_text_1;
+        } else if (type[0]==='asset_reference') {
+            newReq.communication_id = inlineData[type[0]].template_id;
+            let target_form_id = inlineData[type[0]].form_id;
+            let target_field_id = inlineData[type[0]].field_id;
+            newReq.form_id = inlineData[type[0]].form_id;
+            newReq.field_id = inlineData[type[0]].field_id;
+            let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
+            let activityInlineData = activityData[0].activity_inline_data;
+            activityInlineData = JSON.parse(activityInlineData)
+            let assetfieldData = activityInlineData.find((item=>item.field_id == target_field_id));
+            if(assetfieldData){
+            let targetAssetId = typeof assetfieldData.field_value == 'string'?assetfieldData.field_value.split('|'):assetfieldData.field_value.toString().split('|');
+            console.log('tar asset id',targetAssetId)
+            let dataResp = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": targetAssetId[0]
+            });
+            newReq.country_code = dataResp[0].operating_asset_phone_country_code;
+            newReq.phone_number = dataResp[0].operating_asset_phone_number;
+            }
+
         }
+if(type[0]==='asset_reference'&& !newReq.communication_id){
+    newReq.smsText = inlineData[type[0]].template;
+        newReq.line =  "";
+        newReq.form =  0;
+}
+else{
 
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
@@ -6109,7 +6153,7 @@ async function removeAsOwner(request,data)  {
         newReq.form = retrievedCommInlineData.communication_template.text.form || 0;
         global.logger.write('conLog', newReq.smsText, {}, {});
         request.debug_info.push('smsText: ' + newReq.smsText);
-
+}
         if (newReq.line) {
             newReq.smsText = newReq.smsText + " " + newReq.line;
         } else if (newReq.form != 0) {
@@ -8735,7 +8779,7 @@ async function removeAsOwner(request,data)  {
                 timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
                 timelineReq.asset_id = 100;   
                 timelineReq.timeline_stream_type_id= 734;
-                timelineReq.activity_stream_type_id= 711;
+                timelineReq.activity_stream_type_id= 734;
                 timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
                 timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
@@ -9692,19 +9736,64 @@ async function removeAsOwner(request,data)  {
             
         }
         else {
-            addCommentRequest.activity_timeline_collection = JSON.stringify({
-                "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
-                "attachments": []
-            });
+            let reminder_inline_data = request.reminder_inline_data?JSON.parse(request.reminder_inline_data):{};
+            if(reminder_inline_data.hasOwnProperty('date_reminder')){
+                if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
+                    let message_template = reminder_inline_data.date_reminder.message_template;
+                    let message_template_textArr = message_template.split(" ");
+                    const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+                    for(let i=0;i<message_template_textArr.length;i++){
+                        if(message_template_textArr[i]=="<<title>>"){
+                            
+                            message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_1>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_2>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<cuid_3>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<creator_name>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
+                        }
+                        if(message_template_textArr[i]=="<<lead_name>>"){
+                            
+                            message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
+                        }
+                        
+                    }
+                    let messageToSend = message_template_textArr.join(" ");
+                    addCommentRequest.activity_timeline_collection = JSON.stringify({
+                        "content": `${messageToSend}`,
+                        "subject": `${messageToSend}`,
+                        "mail_body": `${messageToSend}`,
+                        "attachments": []
+                    });
+                }
+                addCommentRequest.activity_timeline_collection = JSON.stringify({
+                    "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
+                    "attachments": []
+                });
+            }
+
+            
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
-        
+        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+    
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = defaultAssetName
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;

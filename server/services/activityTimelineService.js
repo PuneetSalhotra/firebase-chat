@@ -782,7 +782,7 @@ function ActivityTimelineService(objectCollection) {
                             ) {
                                 throw new Error("ChildOrder::NoPush")
                             }
-                            if(activityStreamTypeId !== 711 && activityStreamTypeId !== 111 && activityStreamTypeId !== 112 && activityStreamTypeId !== 113) {
+                            if(activityStreamTypeId !== 711 && activityStreamTypeId !== 111 && activityStreamTypeId !== 112 && activityStreamTypeId !== 113 && activityStreamTypeId !== 734) {
                                 activityPushService.sendPush(request, objectCollection, 0, function () {});
                             }
                         } catch (error) {
@@ -800,7 +800,7 @@ function ActivityTimelineService(objectCollection) {
                         if(request.hasOwnProperty('signedup_asset_id')) {
                             activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) {}); //To increase unread cnt for marketing manager
                         } else {
-                            if(activityStreamTypeId === 711) {
+                            if(activityStreamTypeId === 711 || activityStreamTypeId === 734) {
                                 //Do Nothing
                                 //Send Push only to the Owner Asset ID
                             } else {
@@ -935,7 +935,7 @@ function ActivityTimelineService(objectCollection) {
                         ) {
                             throw new Error("ChildOrder::NoPush");
                         }
-                        if(activityStreamTypeId !== 711) {
+                        if(activityStreamTypeId !== 711 || activityStreamTypeId !== 734) {
                             await activityPushService.sendPushAsync(request, objectCollection, 0);
                         }                        
                     } catch (err) {
@@ -954,7 +954,7 @@ function ActivityTimelineService(objectCollection) {
                     if(request.hasOwnProperty('signedup_asset_id')) {
                         await activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0); //To increase unread cnt for marketing manager
                     } else {
-                        if(activityStreamTypeId === 711) {
+                        if(activityStreamTypeId === 711 || activityStreamTypeId === 734 ) {
                             //Do Nothing                            
                         } else {
                             await activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id));

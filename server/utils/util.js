@@ -961,6 +961,13 @@ function Util(objectCollection) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
     };
+    this.differenceDatetimeInMin = function (timeString1, timeString2) {
+        console.log('came in')
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"),'minutes');
+        // let sss = moment.utc(value).format('mm');
+        return value;
+    };
+   
 
     /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
@@ -2505,16 +2512,16 @@ function Util(objectCollection) {
         cacheWrapper.getKeyValueFromCache('ews_mail_send_enabled')
         .then(ewsMailSendEnabledFlag => {
             console.log("ewsMailSendEnabledFlag = " + ewsMailSendEnabledFlag);            
-            if('1' == ewsMailSendEnabledFlag || ewsMailSendEnabledFlag == null) {
+            if(ewsMailSendEnabledFlag == 1|| ewsMailSendEnabledFlag == null) {
                 console.log("ewsMailSendEnabledFlag = 1 :  send email and also insert into ews_mail_transaction table");
                 if(ewsMailSendEnabledFlag === null) {
                     ews_mail_error = JSON.stringify({"error" : "flag not available in cache"});
                 }
-            } else if('2' == ewsMailSendEnabledFlag) {
+            } else if(ewsMailSendEnabledFlag == 2) {
                 console.log("ewsMailSendEnabledFlag = 2 :  only insert into ews_mail_transaction table");
                 isSendEmail = false;
                 this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
-            } else if('0' == ewsMailSendEnabledFlag) {
+            } else if(ewsMailSendEnabledFlag == 0) {
                 console.log("ewsMailSendEnabledFlag = 0 : only send email");
             }
             console.log("isSendEmail " + isSendEmail);
@@ -2522,7 +2529,7 @@ function Util(objectCollection) {
                 ews.run(ewsFunction, ewsArgs)
                 .then(result => {
                     console.log('EWS Email - Result : ', JSON.stringify(result));
-                    if('1' == ewsMailSendEnabledFlag || ewsMailSendEnabledFlag == null) {
+                    if(ewsMailSendEnabledFlag == 1 || ewsMailSendEnabledFlag == null) {
                         this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
                     }
                 })

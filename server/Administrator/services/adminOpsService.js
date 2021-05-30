@@ -530,7 +530,7 @@ function AdminOpsService(objectCollection) {
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_inline_data: JSON.stringify(inline),
+            activity_inline_data: inline,
             // activity_timeline_collection: "",
             // is_child_order: true,
             // child_order_activity_parent_id: Number(options.parent_activity_id),
@@ -1341,6 +1341,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             asset_id: deskAssetID
         });
+        request.operating_asset_id = assetData.asset_id;
         request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
         const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleDataDesk,request.desk_asset_id)
 
@@ -1493,6 +1494,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         //Add the number to Cognito
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+        if(request.email_id) {
+            await addUser(request.email_id, global.config.user_pool_id);
+        }
 
         // Send SMS to the newly added employee
         try {
@@ -1578,6 +1582,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        request.asset_id = request.log_asset_id;
         //Check role has flag to add approval workflow
         if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+            console.log('role data321',JSON.stringify(roleData))
             request.activity_type_id = roleData[0].asset_type_approval_activity_type_id;
             request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
             request.form_id = roleData[0].asset_type_approval_origin_form_id;
@@ -1591,7 +1596,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                         "field_data_type_category_id": 4,
                         "data_type_combo_id": 0,
                         "data_type_combo_value": 0,
-                        "field_value": assetID,
+                        "field_value": `${assetID} | ${request.asset_first_name} | ${request.operating_asset_id} | ${request.asset_type_name}`,
                         "message_unique_id": 1608213215926
                       
                 }
@@ -1603,7 +1608,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
-
+console.log('new ActivityId321',newActivity_id)
             //make manager as lead
             await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
             
@@ -4869,6 +4874,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_phone_number = request.phone_number;
             idCardJSON.employee_asset_type_id = request.asset_type_id;
             idCardJSON.employee_asset_type_name = request.asset_type_name;
+            idCardJSON.employee_manual_work_location_address = request.work_location_address;
+            idCardJSON.employee_location = request.work_location_address;
 
             // Update the ID Card's Activity List table
             try {
@@ -4943,7 +4950,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             contactCardJSON.contact_operating_asset_name = request.asset_first_name;
             contactCardJSON.contact_phone_country_code = request.country_code;
             contactCardJSON.contact_phone_number = request.phone_number;
-
+            contactCardJSON.contact_manual_work_location_address = request.work_location_address;
+            contactCardJSON.contact_location = request.work_location_address;
             // Update the Contact Card's Activity List table
             try {
                 await activityListUpdateInlineData({
@@ -8834,19 +8842,35 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        // console.log('Adding ', pool_id);
         console.log('*******************');
         console.log('Adding : ', username);
+
+        let userAttr = [];
+      
+        if(username.toString().indexOf('@') > -1) {
+            userAttr.push({
+                Name: 'email', /* required */
+                Value: username
+            },{
+                Name : "email_verified",
+                Value : "true"
+            });
+            
+        } else {
+            userAttr.push({
+                Name: 'phone_number', /* required */
+                Value: username
+              });
+        }
+
+
         let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username,
             
             //TemporaryPassword: 'STRING_VALUE',
-            UserAttributes: [
-              {
-                Name: 'phone_number', /* required */
-                Value: username
-              },            
-            ],            
+            UserAttributes: userAttr,
+            MessageAction : "SUPPRESS"          
           };
-      
+
         await new Promise((resolve, reject)=>{
             cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
                 if (err) {
@@ -8986,7 +9010,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 let userAttributes = data.UserAttributes;
                 
                 for(const i_iterator of userAttributes) {
-                    if(i_iterator.Name === 'phone_number') {
+                    console.log("i_iterator.Name", i_iterator.Name)
+                    if(i_iterator.Name === 'phone_number' || i_iterator.Name === 'email') {
                         console.log('Phone Number: ', i_iterator.Value);
 
                         cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
@@ -10570,6 +10595,10 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
             else if(request.is_web_remove == 1)
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            else if(request.is_email_add == 1)   
+                await addUser(request.email, global.config.user_pool_id);
+            else if(request.is_email_remove == 1)
+                await removeUser(request.email, global.config.user_pool_id);
 
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
@@ -10577,6 +10606,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
         return[error, responseData];
     }
+
     this.typeMappingUpdateFlagDraft = async function(request){
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
@@ -10624,4 +10654,3 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 }
 
 module.exports = AdminOpsService;
-
