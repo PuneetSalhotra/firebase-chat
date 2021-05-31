@@ -5892,7 +5892,7 @@ function ActivityService(objectCollection) {
             JSON.parse(request.activity_inline_data)
             );
 
-            console.log(JSON.stringify(activityInlineData))
+            //console.log(JSON.stringify(activityInlineData))
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
