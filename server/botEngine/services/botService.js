@@ -3005,6 +3005,7 @@ return [error, responseData];
             if(wfActivityDetails.length > 0) {                    
                 let leadAssetID = Number(wfActivityDetails[0].activity_lead_asset_id);
                 let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
+                let ownerAssetID = Number(wfActivityDetails[0].activity_owner_asset_id)
                     
                 console.log('Asset ID : ', assetID);
                 console.log('Lead Asset ID : ', leadAssetID);
@@ -3026,7 +3027,7 @@ return [error, responseData];
                     request.debug_info.push('Remove as Owner');
                     let reqDataForRemovingAsOwner = { 
                         activity_id : workflowActivityID,
-                        target_asset_id : assetID,
+                        target_asset_id : ownerAssetID,
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     }
@@ -6193,7 +6194,7 @@ else{
 
         await new Promise((resolve, reject) => {
             if (Number(newReq.country_code) === 91) {
-                util.sendSmsSinfini(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {
+                util.sendSmsSinfiniV1(newReq.smsText, newReq.country_code, newReq.phone_number,'GRNEOS', function (err, res) {
                     global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
                     global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
                     resolve();
