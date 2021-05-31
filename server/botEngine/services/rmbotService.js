@@ -3876,7 +3876,7 @@ function businessDayCheckFun(curr_date,businessDays){
         return [false, {}];
     };
     async function fetchCompanyDefaultAssetName (request) {
-        let assetName = 'Tony',
+        let assetName = 'greneOS',
             error = true;
 
         const paramsArr = new Array(

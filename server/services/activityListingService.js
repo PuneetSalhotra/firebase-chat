@@ -1769,6 +1769,7 @@ function ActivityListingService(objCollection) {
 		var queryString = '';
 		let phoneNumber;
 		let countryCode;
+		let email;
 
 		if ((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
 			phoneNumber = request.phone_number;
@@ -1778,9 +1779,7 @@ function ActivityListingService(objCollection) {
 				phoneNumber = request.phone_number;
 				countryCode = request.country_code;
 			} else if(requestHeaders.hasOwnProperty('x-grene-e-flag') && (Number(requestHeaders['x-grene-e-flag']) === 1)) { // email OTP
-				let [err, response] = await assetService.getAssetPhoneNumberDetals(request, requestHeaders['x-grene-e']);
-				phoneNumber = response[0].operating_asset_phone_number;
-				countryCode = response[0].operating_asset_phone_country_code;
+				email = requestHeaders['x-grene-e'];
 			} else {
 				phoneNumber = requestHeaders['x-grene-p-code'];
 				countryCode = requestHeaders['x-grene-c-code'];
@@ -1793,7 +1792,13 @@ function ActivityListingService(objCollection) {
 			countryCode  //request.country_code
 		);
 
-		if (request.hasOwnProperty("allow_temp_organization")) {
+		if(email) {
+			const paramsArr = new Array(
+				request.organization_id || 0,
+				email
+			);
+			queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+		} else if (request.hasOwnProperty("allow_temp_organization")) {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
 		} else {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all_filter', paramsArr);
@@ -1802,16 +1807,26 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
+					let organizationMap = {}, duplicateOrganization = true;
 					if (Array.isArray(data)) {
 						data = data.map((assetData) => {
+
+							if(organizationMap[assetData.organization_id]) {
+								duplicateOrganization = true;
+							}
 							delete assetData.asset_phone_passcode;
 							delete assetData.asset_passcode_expiry_datetime;
 							delete assetData.asset_passcode_expiry_datetime;
 							delete assetData.asset_push_notification_id;
+							organizationMap[assetData.organization_id] = 1;
 							return assetData;
 						});
 					}
-					callback(false, data, 200);
+
+					if(duplicateOrganization) 
+						return callback({ message : "Your email is linked with more than one resource"}, {}, -3299);
+					else 
+						callback(false, data, 200);
 				} else {
 					callback(err, false, -9999);
 				}
@@ -2635,7 +2650,21 @@ function ActivityListingService(objCollection) {
 				request.page_start,
 				request.page_limit
 			);
-			const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+			// const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+
+			let queryString = '';
+			if(request.flag != 10)
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+		    else if(request.flag == 10){
+			    paramsArr.pop();
+				paramsArr.pop();
+				paramsArr.push(request.activity_status_id);
+				paramsArr.push(request.activity_type_id);
+				paramsArr.push(request.page_start);
+				paramsArr.push(request.page_limit);
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v2', paramsArr);
+		    }
+
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {

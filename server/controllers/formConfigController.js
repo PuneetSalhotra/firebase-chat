@@ -908,6 +908,16 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post("/" + global.config.version + "/activity/form/field/set",async function (req, res) {
+        
+        const [err, result] = await formConfigService.activityFormListUpdateFieldValue(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });       
+
 }
 
 module.exports = FormConfigController;
