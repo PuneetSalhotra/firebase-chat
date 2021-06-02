@@ -1295,7 +1295,7 @@ function ActivityUpdateService(objectCollection) {
 
                     newRequest.operation_type_id = 17;
                     const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
                     if(respData1.length > 0) {
                         //for(let i = 0; i<respData.length; i++) {
                         //    
