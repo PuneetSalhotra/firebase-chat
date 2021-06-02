@@ -21,6 +21,9 @@ function ActivityController(objCollection) {
     var activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add', function (req, res) {
+
+        req.body["log_uuid"] = util.getLogUUID();
+        console.log("::START:: ",req.body["log_uuid"]," ::");
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
