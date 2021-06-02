@@ -231,6 +231,39 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
+    this.updateActivityLogLastUpdatedDatetimeV1 = async function (request, assetId, callback) {
+
+        let [err,assetData]= await this.getAssetDetailsAsync({...request,asset_id:assetId});
+            let assetInfo = assetData[0];
+                var assetCollection = {
+                    asset_id: assetInfo['asset_id'],
+                    workforce_id: assetInfo['project_id'],
+                    account_id: assetInfo['account_id'],
+                    organization_id: assetInfo['organization_id']
+                };
+                updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
+                    if (err !== false) {
+                        //console.log(err);
+                        global.logger.write('conLog', err, err, {});
+                    }
+                });
+            
+        
+        // if (assetId > 0) {
+        //     this.getAllParticipantsExceptAsset(request, assetId, function (err, data) {
+        //         if (err === false) {
+        //             updateAssetsLogDatetime(data);
+        //         }
+        //     }.bind(this));
+        // } else {
+        //     this.getAllParticipants(request, function (err, data) {
+        //         if (err === false) {
+        //             updateAssetsLogDatetime(data);
+        //         }
+        //     }.bind(this));
+        // }
+    };
+
 
     this.activityListHistoryInsert = function (request, updateTypeId, callback) {
 

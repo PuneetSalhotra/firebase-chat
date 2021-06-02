@@ -3005,6 +3005,7 @@ return [error, responseData];
             if(wfActivityDetails.length > 0) {                    
                 let leadAssetID = Number(wfActivityDetails[0].activity_lead_asset_id);
                 let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
+                let ownerAssetID = Number(wfActivityDetails[0].activity_owner_asset_id)
                     
                 console.log('Asset ID : ', assetID);
                 console.log('Lead Asset ID : ', leadAssetID);
@@ -3231,6 +3232,37 @@ async function removeAsOwner(request,data)  {
                 error = e;
             }
         }
+        const [error2, assetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: data.target_asset_id
+        });
+        let assetName = assetData[0].operating_asset_first_name || assetData[0].asset_first_name;
+        const [error1, logassetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: request.asset_id
+        });
+        let logAssetname = logassetData[0].operating_asset_first_name || logassetData[0].asset_first_name;
+        let activityTimelineCollection =  JSON.stringify({                            
+            "content": `${logAssetname} revoke ownership ${assetName} @ ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "subject": `Note - ${util.getCurrentDate()}.`,
+            "mail_body": `${logAssetname} revoke ownership ${assetName} @ ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "activity_reference": [],
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+    
+        let timelineReq = Object.assign({}, request);
+            timelineReq.activity_id = request.workflow_activity_id;
+            timelineReq.activity_type_id = request.activity_type_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 325;
+            timelineReq.timeline_stream_type_id = 325;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         return [error,responseData];
     }
 
@@ -6193,7 +6225,7 @@ else{
 
         await new Promise((resolve, reject) => {
             if (Number(newReq.country_code) === 91) {
-                util.sendSmsSinfini(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {
+                util.sendSmsSinfiniV1(newReq.smsText, newReq.country_code, newReq.phone_number,'GRNEOS', function (err, res) {
                     global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
                     global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
                     resolve();
@@ -9803,7 +9835,7 @@ else{
         //addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
         
         try {
-            await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);        
+            await activityTimelineService.timelineStandardCallsAsyncV1(addCommentRequest);        
         } catch (error) {
             console.log("Reminder Bot trigger - timeline entry failed : ", error);
             //throw new Error(error);
@@ -13970,7 +14002,8 @@ else{
                         fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
                     }else if(request.is_cart == 1) {
                         //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
-                        fieldValue = JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key];
+                        fieldValue = JSON.parse(formInlineData[counter].field_value);
+                        fieldValue = typeof fieldValue.cart_items == 'string' ? JSON.parse(fieldValue.cart_items)[0][request.final_key] : fieldValue.cart_items[0][request.final_key];
                     }
                 }else{
                     fieldValue = formInlineData[counter].field_value;
