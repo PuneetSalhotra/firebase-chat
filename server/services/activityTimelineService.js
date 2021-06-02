@@ -913,7 +913,7 @@ function ActivityTimelineService(objectCollection) {
 
             activityTimelineCollection.form_field_preview_enabled = formFieldPreviewEnabled;
             console.log('***************');
-            console.log('activityTimelineCollection - ', activityTimelineCollection);
+            //console.log('activityTimelineCollection - ', activityTimelineCollection);
             console.log('***************');
             request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
         }

@@ -544,7 +544,7 @@ function ActivityService(objectCollection) {
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');
                                 let formInlineData = JSON.parse(request.activity_inline_data);
-                                console.log('formInlineData : ', formInlineData);
+                                //console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
