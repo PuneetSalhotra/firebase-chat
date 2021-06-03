@@ -58,6 +58,7 @@ function initiateDB() {
             global.config.slave1DBUser = reply[6];
             global.config.slave1DBPassword = reply[7];
 
+            global.config.slave2Ip = reply[8];
 
             //Adding Master
             writeCluster.add('MASTER', {
