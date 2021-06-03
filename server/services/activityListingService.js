@@ -1807,7 +1807,7 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
-					let organizationMap = {}, duplicateOrganization = true;
+					let organizationMap = {}, duplicateOrganization = false;
 					if (Array.isArray(data)) {
 						data = data.map((assetData) => {
 
