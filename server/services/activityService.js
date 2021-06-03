@@ -4195,7 +4195,7 @@ function ActivityService(objectCollection) {
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
                     console.log("queueId: ", queueId);
-                    console.log("queueInlineData: ", queueInlineData);
+                    //console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
                     for (const activityStatus of queueInlineData) {
@@ -4209,7 +4209,7 @@ function ActivityService(objectCollection) {
                         await activityCommonService
                             .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
-                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+                              //  console.log('queueActivityMappingData : ', queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
                                 if (queueActivityMappingData.length > 0) {
