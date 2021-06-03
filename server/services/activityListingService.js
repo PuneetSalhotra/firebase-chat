@@ -3482,7 +3482,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
+				.then(async (data) => {
 					//console.log('DATA : ', data);
 					for (const i of data) {
 						let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
