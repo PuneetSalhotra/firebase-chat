@@ -5468,7 +5468,7 @@ async function removeAsOwner(request,data)  {
         let newReq = Object.assign({}, request);
         let resp;
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
-        
+        request.debug_info=[]
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
@@ -6708,7 +6708,7 @@ else{
         assetData.contact_phone_number = deskAssetData.operating_asset_phone_number || deskAssetData.asset_phone_number;
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
-
+request.debug_info = []
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
         return await addDeskAsParticipant(request, assetData);
@@ -9772,36 +9772,50 @@ else{
             if(reminder_inline_data.hasOwnProperty('date_reminder')){
                 if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
                     let message_template = reminder_inline_data.date_reminder.message_template;
-                    let message_template_textArr = message_template.split(" ");
+                    console.log("message template",message_template);
+                    // let message_template_textArr = message_template.split(" ");
                     const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
-                    for(let i=0;i<message_template_textArr.length;i++){
-                        if(message_template_textArr[i]=="<<title>>"){
+
+                    message_template = message_template.replace('<<title>>',request.activity_title?request.activity_title:"'NA'");
+                    message_template = message_template.replace("<<cuid_1>>",workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'");
+                    message_template = message_template.replace("<<cuid_2>>",workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'");
+                    message_template = message_template.replace("<<cuid_3>>",workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'");
+                    message_template = message_template.replace("<<creator_name>>",workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'");
+                    message_template = message_template.replace("<<lead_name>>",workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'");
+                    let dueDate = workflowActivityData[0].activity_datetime_end_deferred;
+                    let dateObj = new Date(dueDate);
+                    dueDate = `${moment(dateObj).format('ddd DD MMM YYYY')}`
+                    message_template = message_template.replace("<<duedate>>",dueDate);
+                    console.log('message template after',message_template)
+                    // console.log("array",message_template_textArr)
+                    // for(let i=0;i<message_template_textArr.length;i++){
+                    //     if(message_template_textArr[i]=="<<title>>"){
                             
-                            message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_1>>"){
+                    //         message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_1>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_2>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_2>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_3>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_3>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<creator_name>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<creator_name>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<lead_name>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<lead_name>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
-                        }
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
+                    //     }
                         
-                    }
-                    let messageToSend = message_template_textArr.join(" ");
+                    // }
+                    let messageToSend = message_template
                     addCommentRequest.activity_timeline_collection = JSON.stringify({
                         "content": `${messageToSend}`,
                         "subject": `${messageToSend}`,
@@ -9809,12 +9823,14 @@ else{
                         "attachments": []
                     });
                 }
+                else{
                 addCommentRequest.activity_timeline_collection = JSON.stringify({
                     "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
                     "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
                     "mail_body": `This is a scheduled reminder for the file - ${request.activity_title}`,
                     "attachments": []
                 });
+            }
             }
 
             
