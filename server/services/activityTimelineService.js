@@ -851,6 +851,38 @@ function ActivityTimelineService(objectCollection) {
         });
     }
 
+    this.timelineStandardCallsAsyncV1 =async (request)=> {
+        console.log('#########################');
+        console.log('In timelineStandardCallsAsyncV1');
+        console.log('#########################');
+        let responseData = [],
+            error = false;
+
+        // try {
+        //     var formDataJson = JSON.parse(request.activity_timeline_collection);
+        // } catch (exception) {
+        //     global.logger.write('debug', exception, {}, request);
+        // }
+
+        let activityStreamTypeId = Number(request.activity_stream_type_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let isAddToTimeline = true;
+        let [err, data] = await activityCommonService.activityTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
+        let activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        console.log('activity data',activityData)
+        let activity_lead_asset_id = activityData[0].activity_lead_asset_id; 
+        let activity_creator_asset_id = activityData[0].activity_creator_asset_id;
+        if(activity_lead_asset_id&&activity_lead_asset_id>0){ 
+        await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_lead_asset_id));
+        await activityPushService.sendPushAsync(request, objectCollection, activity_lead_asset_id,Number(activity_lead_asset_id));
+        }
+        if(activity_creator_asset_id&&activity_creator_asset_id>0){ 
+            await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_creator_asset_id));
+            await activityPushService.sendPushAsync(request, objectCollection, activity_creator_asset_id,Number(activity_creator_asset_id));
+            }
+        return [error,responseData]
+    }
+
     async function timelineStandardCallsAsync(request) {
         console.log('#########################');
         console.log('In timelineStandardCallsAsync');
@@ -913,7 +945,7 @@ function ActivityTimelineService(objectCollection) {
 
             activityTimelineCollection.form_field_preview_enabled = formFieldPreviewEnabled;
             console.log('***************');
-            console.log('activityTimelineCollection - ', activityTimelineCollection);
+            //console.log('activityTimelineCollection - ', activityTimelineCollection);
             console.log('***************');
             request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
         }
