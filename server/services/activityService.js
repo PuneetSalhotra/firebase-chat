@@ -544,7 +544,7 @@ function ActivityService(objectCollection) {
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');
                                 let formInlineData = JSON.parse(request.activity_inline_data);
-                                console.log('formInlineData : ', formInlineData);
+                                //console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
@@ -2411,7 +2411,7 @@ function ActivityService(objectCollection) {
                     
                     newRequest.operation_type_id = 17;
                     const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
                     if(respData1.length > 0) {
                         activityCommonService.activityEntityMappingUpdateStatus(request, {
                             activity_id,
@@ -5892,7 +5892,7 @@ function ActivityService(objectCollection) {
             JSON.parse(request.activity_inline_data)
             );
 
-            console.log(JSON.stringify(activityInlineData))
+            //console.log(JSON.stringify(activityInlineData))
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,

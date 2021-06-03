@@ -8067,7 +8067,7 @@ request.debug_info = []
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateStatus(request, {
@@ -8079,7 +8079,7 @@ request.debug_info = []
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateStatus(request, {
@@ -8097,7 +8097,7 @@ request.debug_info = []
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8108,7 +8108,7 @@ request.debug_info = []
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData.length);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
