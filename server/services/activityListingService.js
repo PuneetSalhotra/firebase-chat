@@ -3490,6 +3490,15 @@ function ActivityListingService(objCollection) {
 						i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
 						i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
 					}
+
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						data = dataWithParticipant;
+					} catch (error) {
+						console.log("getQueueActivitiesAllFilters | Error", error);
+						// resolve(data);
+					}
+
 					responseData = data;
 					error = false;
 				})
