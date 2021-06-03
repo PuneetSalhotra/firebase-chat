@@ -2268,7 +2268,7 @@ function ActivityConfigService(db,util,objCollection) {
         );
         const queryString = util.getQueryString('ds_v2_activity_status_change_txn_select_previous_status', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
