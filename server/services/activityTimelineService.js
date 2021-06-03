@@ -871,14 +871,14 @@ function ActivityTimelineService(objectCollection) {
         let activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         console.log('activity data',activityData)
         let activity_lead_asset_id = activityData[0].activity_lead_asset_id; 
-        let activity_owner_asset_id = activityData[0].activity_owner_asset_id;
+        let activity_creator_asset_id = activityData[0].activity_creator_asset_id;
         if(activity_lead_asset_id&&activity_lead_asset_id>0){ 
         await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_lead_asset_id));
         await activityPushService.sendPushAsync(request, objectCollection, activity_lead_asset_id,Number(activity_lead_asset_id));
         }
-        if(activity_owner_asset_id&&activity_owner_asset_id>0){ 
-            await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_owner_asset_id));
-            await activityPushService.sendPushAsync(request, objectCollection, activity_owner_asset_id,Number(activity_owner_asset_id));
+        if(activity_creator_asset_id&&activity_creator_asset_id>0){ 
+            await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_creator_asset_id));
+            await activityPushService.sendPushAsync(request, objectCollection, activity_creator_asset_id,Number(activity_creator_asset_id));
             }
         return [error,responseData]
     }
