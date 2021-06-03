@@ -1405,8 +1405,11 @@ function businessDayCheckFun(curr_date,businessDays){
                 request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
             }
 
+            if(!request.hasOwnProperty("global_array"))
+            request.global_array = [];
+
             request.timeline_stream_type_id = 718;
-            await self.activityListLeadUpdateV1(request, leadAssetId);
+            await self.activityListLeadUpdateV2(request, leadAssetId);
             request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
             request.target_asset_id = leadAssetId;

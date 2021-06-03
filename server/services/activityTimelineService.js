@@ -871,14 +871,14 @@ function ActivityTimelineService(objectCollection) {
         let activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         console.log('activity data',activityData)
         let activity_lead_asset_id = activityData[0].activity_lead_asset_id; 
-        let activity_owner_asset_id = activityData[0].activity_owner_asset_id;
+        let activity_creator_asset_id = activityData[0].activity_creator_asset_id;
         if(activity_lead_asset_id&&activity_lead_asset_id>0){ 
         await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_lead_asset_id));
         await activityPushService.sendPushAsync(request, objectCollection, activity_lead_asset_id,Number(activity_lead_asset_id));
         }
-        if(activity_owner_asset_id&&activity_owner_asset_id>0){ 
-            await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_owner_asset_id));
-            await activityPushService.sendPushAsync(request, objectCollection, activity_owner_asset_id,Number(activity_owner_asset_id));
+        if(activity_creator_asset_id&&activity_creator_asset_id>0){ 
+            await activityCommonService.updateActivityLogLastUpdatedDatetimeV1(request, Number(activity_creator_asset_id));
+            await activityPushService.sendPushAsync(request, objectCollection, activity_creator_asset_id,Number(activity_creator_asset_id));
             }
         return [error,responseData]
     }
@@ -2509,7 +2509,7 @@ function ActivityTimelineService(objectCollection) {
         let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
         let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
         console.log("field ids");
-        console.log(annexureFields);
+        //console.log(annexureFields);
         if (request.hasOwnProperty('form_id')) {
 
             let formDataCollection;
@@ -2550,7 +2550,7 @@ function ActivityTimelineService(objectCollection) {
             console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson);
         }
 
-        console.log('formDataJson : ', formDataJson);
+        //console.log('formDataJson : ', formDataJson);
 
         let workflowReference,documentReference,assetReference;
 
@@ -3145,7 +3145,7 @@ function ActivityTimelineService(objectCollection) {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
-                    console.log("Data from function 'getActivityIdBasedOnTransIdAsync' : ", data);
+                    console.log("Data from function 'getActivityIdBasedOnTransIdAsync' : ", data.length);
                     error = false;
                 })
                 .catch((err) => {
@@ -3305,7 +3305,7 @@ async function addFormEntriesAsync(request) {
     let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
 
     console.log("annexureFields");
-    console.log(annexureFields);
+    //console.log(annexureFields);
     if (request.hasOwnProperty('form_id')) {
         let formDataCollection;
         try {
@@ -3338,7 +3338,7 @@ async function addFormEntriesAsync(request) {
         console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson);
     }
 
-    console.log('formDataJson : ', formDataJson);
+    //console.log('formDataJson : ', formDataJson);
 
     let workflowReference,documentReference,assetReference;
     var approvalFields = new Array();

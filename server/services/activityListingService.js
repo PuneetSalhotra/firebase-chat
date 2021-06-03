@@ -1807,7 +1807,7 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
-					let organizationMap = {}, duplicateOrganization = true;
+					let organizationMap = {}, duplicateOrganization = false;
 					if (Array.isArray(data)) {
 						data = data.map((assetData) => {
 
@@ -3482,7 +3482,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
+				.then(async (data) => {
 					//console.log('DATA : ', data);
 					for (const i of data) {
 						let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
@@ -3490,6 +3490,15 @@ function ActivityListingService(objCollection) {
 						i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
 						i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
 					}
+
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						data = dataWithParticipant;
+					} catch (error) {
+						console.log("getQueueActivitiesAllFilters | Error", error);
+						// resolve(data);
+					}
+
 					responseData = data;
 					error = false;
 				})
