@@ -3031,7 +3031,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     }
-                 await removeAsOwner(request,reqDataForRemovingAsOwner);
+                 await removeAsOwner(request,reqDataForRemovingAsOwner,0);
 
                 }
                 else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
@@ -3043,7 +3043,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     };
-                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner);
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,1);
 
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
@@ -3208,7 +3208,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 }
 
-async function removeAsOwner(request,data)  {
+async function removeAsOwner(request,data,addT = 0)  {
         let responseData = [],
             error = true;
 
@@ -3232,6 +3232,7 @@ async function removeAsOwner(request,data)  {
                 error = e;
             }
         }
+        if(addT==0){
         const [error2, assetData] = await activityCommonService.getAssetDetailsAsync({
             organization_id: request.organization_id,
             asset_id: data.target_asset_id
@@ -3257,12 +3258,13 @@ async function removeAsOwner(request,data)  {
             timelineReq.activity_type_id = request.activity_type_id;
             timelineReq.message_unique_id = util.getMessageUniqueId(100);
             timelineReq.track_gps_datetime = util.getCurrentUTCTime();
-            timelineReq.activity_stream_type_id = 325;
-            timelineReq.timeline_stream_type_id = 325;
+            timelineReq.activity_stream_type_id = 702;
+            timelineReq.timeline_stream_type_id = 702;
             timelineReq.activity_timeline_collection = activityTimelineCollection;
             timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
     
         await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+    }
         return [error,responseData];
     }
 
