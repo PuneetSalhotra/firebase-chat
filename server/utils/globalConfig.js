@@ -917,7 +917,7 @@ if(mode === 'preprod') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
+    config.user_pool_id = 'ap-south-1_jeS0OISHP';
     config.user_web_pool_id = 'ap-south-1_xCOITnm28';
     //Ports Config
     config.version = 'r1';
