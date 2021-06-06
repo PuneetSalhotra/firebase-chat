@@ -5033,8 +5033,8 @@ function ActivityService(objectCollection) {
             // });
             // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
-            let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+            let message = `${defaultAssetName} added ${assetsData[0].operating_asset_first_name} to this Conversation`
             
             //adding participant
               let newParticipantParams = {
