@@ -561,7 +561,7 @@ function ActivityPushService(objectCollection) {
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
                                     ) {
-                                        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                                        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
                                         senderName = defaultAssetName;
                                     }
@@ -793,7 +793,7 @@ function ActivityPushService(objectCollection) {
                             Number(request.asset_id) === 31993 ||
                             Number(request.asset_id) === 100
                         ) {
-                            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
                             senderName = defaultAssetName;
                         }

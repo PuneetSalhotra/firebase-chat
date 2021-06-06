@@ -2167,7 +2167,7 @@ function Util(objectCollection) {
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
         const assetPushARN = assetMapData.asset_push_arn;
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await objectCollection.activityCommonService.fetchCompanyDefaultAssetName(request);
 
         sns.publish({
             description: request.message,
