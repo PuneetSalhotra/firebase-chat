@@ -1821,7 +1821,7 @@ function ActivityListingService(objCollection) {
 						});
 					}
 
-					if(duplicateOrganization) 
+					if(requestHeaders.hasOwnProperty('x-grene-e-flag') && duplicateOrganization) 
 						return callback({ message : "Your email is linked with more than one resource"}, {}, -3299);
 					else 
 						callback(false, data, 200);

@@ -6329,7 +6329,7 @@ function VodafoneService(objectCollection) {
                         searchArr = request.search_string.split(' ');
                         for(let i=0;i<searchArr.length;i++){
                             query += " AND ";
-                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                         }
                     appendedAnd = true;
                 }
@@ -6356,7 +6356,7 @@ function VodafoneService(objectCollection) {
                         searchArr = request.search_string.split(' ');
                         for(let i=0;i<searchArr.length;i++){
                             query += " AND ";
-                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                         }
                         appendedAnd = true;
                     }
@@ -6380,7 +6380,7 @@ function VodafoneService(objectCollection) {
                                 searchArr = request.search_string.split(' ');
                                 for(let i=0;i<searchArr.length;i++){
                                     query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                            query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                                 }
                             appendedAnd = true;
                         }
@@ -6409,7 +6409,7 @@ function VodafoneService(objectCollection) {
                             searchArr = request.search_string.split(' ');
                             for(let i=0;i<searchArr.length;i++){
                                 query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                             }
                             appendedAnd = true;
                         }
@@ -6441,7 +6441,7 @@ function VodafoneService(objectCollection) {
                             searchArr = request.search_string.split(' ');
                             for(let i=0;i<searchArr.length;i++){
                                 query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                             }
                         appendedAnd = true;
                     }
@@ -6466,7 +6466,7 @@ function VodafoneService(objectCollection) {
                             searchArr = request.search_string.split(' ');
                             for(let i=0;i<searchArr.length;i++){
                                 query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                             }
                         appendedAnd = true;
                     }
@@ -6506,7 +6506,7 @@ function VodafoneService(objectCollection) {
                             searchArr = request.search_string.split(' ');
                             for(let i=0;i<searchArr.length;i++){
                                 query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                             }
                         appendedAnd = true;
                     }
@@ -6524,7 +6524,7 @@ function VodafoneService(objectCollection) {
                         searchArr = request.search_string.split(' ');
                         for(let i=0;i<searchArr.length;i++){
                             query += " AND ";
-                    query += ' activity_title LIKE ' + "'%" + searchArr[i] + "%'";
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
                         }
                         appendedAnd = true;
                     }
