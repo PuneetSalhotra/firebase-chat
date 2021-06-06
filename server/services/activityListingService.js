@@ -4,7 +4,6 @@
 
 const { serializeError } = require("serialize-error");
 const logger = require("../logger/winstonLogger");
-const AssetService = require('../services/assetService')
 
 function ActivityListingService(objCollection) {
 
@@ -20,7 +19,6 @@ function ActivityListingService(objCollection) {
 
 	const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
-	const assetService = new AssetService(objCollection);
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
 		var queryString = '';
@@ -3841,7 +3839,7 @@ function ActivityListingService(objCollection) {
 		let attachmentsList = [];
         attachmentsList.push(s3Url);
 		let addCommentRequest = Object.assign(request, {});
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;

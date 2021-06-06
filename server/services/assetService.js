@@ -379,7 +379,7 @@ function AssetService(objectCollection) {
                                     })
                             } else if (verificationMethod === 3) {
                                 newUserPassCodeSet(phoneNumber, verificationCode, request)
-                                    .then(function () {
+                                    .then(function (data) {
                                         request.passcode = data[0].phone_passcode;
                                         // Passcode set in the DB
                                         sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);

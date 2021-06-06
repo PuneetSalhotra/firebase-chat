@@ -16,7 +16,6 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const CommnElasticService = require('../../elasticSearch/services/elasticSearchService');
-const AssetService = require('../../services/assetService')
 //var aspose = aspose || {};
 //aspose.cells = require("aspose.cells");
 //
@@ -80,7 +79,6 @@ function BotService(objectCollection) {
     //const workbookOpsService = new WorkbookOpsService(objectCollection);
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
-    const assetService = new AssetService(objectCollection);
     const rmBotService = new RMBotService(objectCollection);
 
     const nodeUtil = require('util');
@@ -3120,7 +3118,7 @@ return [error, responseData];
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
             // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             //Add a timeline entry
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
             let activityTimelineCollection =  JSON.stringify({                            
                 "content": `${defaultAssetName} removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -3184,7 +3182,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
     // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
     //Add a timeline entry
-    const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+    const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
     let activityTimelineCollection =  JSON.stringify({                            
         "content": `${defaultAssetName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -3604,7 +3602,7 @@ async function removeAsOwner(request,data,addT = 0)  {
 
         let addCommentRequest = Object.assign(request, {});
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
         
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3716,7 +3714,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         console.log("attachmentsList: ", attachmentsList);
 
         let addCommentRequest = Object.assign(request, {});
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3865,7 +3863,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         }
 
         let attachments = [];
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});       
 
@@ -4018,7 +4016,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             return;
         }
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -4322,7 +4320,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             return;
         }
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -6907,7 +6905,7 @@ request.debug_info = []
         //     organization_id: request.organization_id,
         //     asset_id: request.asset_id
         // });
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let logAssetFirstName = defaultAssetName;
             let message = `${logAssetFirstName} added ${assetData.asset_first_name} as collaborator.`;
@@ -9839,7 +9837,7 @@ request.debug_info = []
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
     
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
@@ -10889,7 +10887,7 @@ request.debug_info = []
         // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let activityTimelineCollection =  JSON.stringify({
             "content": `${defaultAssetName} assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
