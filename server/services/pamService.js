@@ -3929,158 +3929,6 @@ this.assetMappingSelectMemberActivities = async (request,asset_id) => {
     }
     return [error, responseData];
 }
-this.addPamReservationViaPhoneNumber = async(request)=>{
-    err = true,responseData = -9999;
-    try{
-    let [error,data] = await self.pamOrdersWithPhoneNumber(request);
-    
-        if(!error){
-            const [eventErr,res] = await getEventId(request);
-           
-            if(!eventErr && res.length>0){
-                
-                request.event_id = res[0].activity_id;
-                request.asset_id = data[0].asset_id
-                const [err1, activityTypeId] = await getActivityTypeId(request)
-                const [err2, activityStatusId] = await getActivityStatusIdV1(request)
-                if(!err1&&!err2){
-                    request.activity_type_id = activityTypeId.activity_type_id
-                    request.activity_status_id = activityStatusId.activity_status_id
-                    const [error1, response] = await self.addParticipantMakeRequest(request);
-                            if(!error1){
-                                err = false
-                                responseData = response;    
-                            }
-                }
-            }
-          
-        }
-        else{
-            self.assetAddForPAM(request, async(error,data,statusCode,request)=>{
-                console.log(request);
-                const [eventErr,res] = await getEventId(request);
-                if(!eventErr && res.length>0){
-                    request.event_id = res[0].activity_id;
-                    const [err1, activityTypeId] = await getActivityTypeId(request)
-                    const [err2, activityStatusId] = await getActivityStatusIdV1(request)
-                    if(!err1&&!err2){
-                        request.activity_type_id = activityTypeId.activity_type_id
-                        request.activity_status_id = activityStatusId.activity_status_id
-                        const [error1, response] = await self.addParticipantMakeRequest(request);
-                        if(!error1){
-                            err = false
-                            responseData = response;    
-                        }
-                    }
-                }
-        })
-    }
-    }
-    catch(e){
-        console.log(e);
-        responseData = data
-    }
-    return [err,responseData];   
-}
-
-this.addParticipantMakeRequest = async function (request) {
-      let participantArray = [];
-      let participantCollection = {
-          organization_id: request.organization_id,
-          account_id: request.res_account_id,
-          workforce_id: request.res_workforce_id,
-          asset_type_id: request.res_asset_type_id,
-          asset_category_id:request.res_asset_category_id,
-          asset_id:request.res_asset_id,
-          access_role_id:0,
-          message_unique_id:util.getMessageUniqueId(request.asset_id)
-      }
-      participantArray.push(participantCollection);
-      const assignRequest = {
-        account_id: request.account_id,
-        activity_access_role_id: "121",
-        activity_channel_category_id: "0",
-        activity_channel_id: 0,
-        activity_datetime_end: utils.addUnitsToDateTime(utils.getCurrentISTTime(),2,"hours"),
-        activity_datetime_start:utils.getCurrentISTTime(),
-        activity_description: request.activity_name, 
-        activity_form_id: "0",
-        activity_inline_data: {},
-        activity_parent_id: request.event_id,
-        activity_status_id: request.status_id,
-        activity_sub_type_id: 0,
-        activity_sub_type_name: "",
-        activity_title: request.phone_number + request.table_name,
-        activity_type_category_id: 37,
-        activity_type_id: request.activity_status_id,
-        app_version: 1,
-        asset_id: 11031,
-        asset_message_counter: 0,
-        asset_token_auth: "40972200-f5bd-11e7-998f-876a9ef448ff",
-        channel_activity_categeory_id: 0,
-        device_os_id: 5,
-        flag_offline: 0,
-        flag_pin: 0,
-        flag_priority: 0,
-        flag_retry: 0,
-        message_unique_id: util.getMessageUniqueId(11031),
-        organization_id: request.organization_id,
-        owner_asset_id: 11031,
-        product_id: 2,
-        service_version: 1,
-        track_altitude: 0,
-        track_gps_accuracy: 0,
-        track_gps_datetime: utils.getCurrentUTCTime(),
-        track_gps_location: "hyd",
-        track_gps_status: 1,
-        track_latitude: 0,
-        track_longitude: 0,
-        workforce_id: request.workforce_id
-      };
-      const assignActAsync = nodeUtil.promisify(makingRequest.post);
-      const makeRequestOptions1 = {
-          form: assignRequest
-      };
-      try {
-          const response = await assignActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/participant/access/set', makeRequestOptions1);
-          const body = JSON.parse(response.body);
-          if (Number(body.status) === 200) {
-              logger.info("Activity Mapping Assign | Body: ", body);
-              return [false, {}];
-          }else{
-              logger.info("Error ", body);
-              return [true, {}];
-          }
-      } catch (error) {
-          logger.info("Activity Mapping Assign | Error: ", error);
-          return [true, {}];
-      } 
-}
-
-const getEventId = async () => {
-
-    let responseData = [],
-        error = true;
-    // N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_current_datetime DATETIME
-
-    var paramsArr = new Array(
-        request.organization_id,
-        request.account_id,
-        dateTimeLog
-    )
-    const queryString = util.getQueryString('ds_v2_activity_list_select_event_datetime', paramsArr);
-    if (queryString !== '') {
-        await db.executeQueryPromise(1, queryString, request)
-          .then((data) => {
-              responseData = data;
-              error = false;
-          })
-          .catch((err) => {
-              error = err;
-          })
-    }
-    return [error, responseData];
-}
 
 const getActivityTypeId = async () => {
 
@@ -4157,6 +4005,230 @@ const getPamActivityStatusId = () => {
             });
         }
     });
+}
+
+this.addParticipantMakeRequest = async function (request) {
+	const assignActAsync = nodeUtil.promisify(makingRequest.post);
+	const makeRequestOptions1 = {
+		form: request,
+	};
+	try {
+		const response = await assignActAsync(
+			global.config.mobileBaseUrl +
+				global.config.version +
+				"/activity/participant/access/set",
+			makeRequestOptions1,
+		);
+		const body = JSON.parse(response.body);
+		if (Number(body.status) === 200) {
+			logger.info("Activity Mapping Assign | Body: ", body);
+			return [false, {}];
+		} else {
+			logger.info("Error ", body);
+			return [true, {}];
+		}
+	} catch (error) {
+		logger.info("Activity Mapping Assign | Error: ", error);
+		return [true, {}];
+	}
+};
+
+const addActivity = async (request) => {
+	const assignActAsync = nodeUtil.promisify(makingRequest.post);
+	const makeRequestOptions1 = {
+		form: request,
+	};
+	try {
+		const response = await assignActAsync(
+			global.config.mobileBaseUrl + global.config.version + "/activity/add",
+			makeRequestOptions1,
+		);
+		const body = JSON.parse(response.body);
+		if (Number(body.status) === 200) {
+			logger.info("Activity Add | Body: ", body);
+			return [false, body];
+		} else {
+			logger.info("Error ", body);
+			return [true, {}];
+		}
+	} catch (error) {
+		logger.info("Activity Add | Error: ", error);
+		return [true, {}];
+	}
+};
+
+const getEventId = async (request) => {
+	var dateTimeLog = util.getCurrentUTCTime();
+	request["datetime_log"] = dateTimeLog;
+
+	let responseData = [],
+		error = true;
+	// N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_current_datetime DATETIME
+
+	var paramsArr = new Array(
+		request.organization_id,
+		request.account_id,
+		dateTimeLog,
+	);
+	const queryString = util.getQueryString(
+		"ds_v2_activity_list_select_event_datetime",
+		paramsArr,
+	);
+	if (queryString !== "") {
+		await db
+			.executeQueryPromise(1, queryString, request)
+			.then((data) => {
+				responseData = data;
+				error = false;
+			})
+			.catch((err) => {
+				error = err;
+			});
+	}
+	return [error, responseData];
+};
+
+this.addPamReservationViaPhoneNumber = async (request) => {
+	(err = true), (responseData = -9999);
+
+	const assignedrequest = {
+		account_id: 351,
+		activity_access_role_id: 121,
+		activity_channel_category_id: "0",
+		activity_channel_id: 0,
+		activity_datetime_end: util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours"),
+		activity_datetime_start: util.getCurrentISTTime(),
+		// activity_description: request.activity_name,
+		// activity_parent_id: request.event_id,
+		// activity_status_id: request.activity_status_id,
+		// activity_title: request.asset_first_name + request.table_name,
+		// activity_type_id: request.activity_status_id,
+		activity_form_id: "0",
+		activity_inline_data: {},
+		activity_sub_type_id: 0,
+		activity_sub_type_name: "",
+		activity_type_category_id: 37,
+		app_version: 1,
+		asset_id: 11031,
+		asset_type_id: 10,
+		asset_message_counter: 0,
+		asset_token_auth: "40972200-f5bd-11e7-998f-876a9ef448ff",
+		channel_activity_categeory_id: 0,
+		device_os_id: 5,
+		flag_offline: 0,
+		flag_pin: 0,
+		flag_priority: 0,
+		flag_retry: 0,
+		message_unique_id: util.getMessageUniqueId(11031),
+		organization_id: request.organization_id,
+		owner_asset_id: 11031,
+		product_id: 2,
+		service_version: 1,
+		track_altitude: 0,
+		track_gps_accuracy: 0,
+		track_gps_datetime: util.getCurrentUTCTime(),
+		track_gps_location: "hyd",
+		track_gps_status: 1,
+		track_latitude: 0,
+		track_longitude: 0,
+		workforce_id: request.workforce_id,
+		phone_number: request.phone_number,
+		country_code: request.country_code,
+	};
+	request = { ...assignedrequest };
+	try {
+		let [error, data] = await self.pamOrdersWithPhoneNumber(request);
+
+		if (!error) {
+			request.asset_id = data[0].asset_id;
+			const [err3, res1] = await addActivity(request);
+			const [eventErr, res2] = await getEventId(request);
+			// request.event_id = res2[0].activity_id;
+			request.activity_parent_id = res2[0].activity_id;
+
+			request = { ...request, ...res2 };
+			if (!eventErr && res.length > 0) {
+				const [err1, activityTypeId] = await getActivityTypeId(request);
+				request.activity_type_id = activityTypeId.activity_type_id;
+				const [err2, activityStatusId] = await getActivityStatusIdV1(request);
+				request.activity_status_id = activityStatusId.activity_status_id;
+
+				request.activity_description = res.activity_name;
+				request.activity_title =
+					request.asset_first_name + request.table_name;
+				if (!err1 && !err2 && !err3) {
+					const [error1, response] = await self.addParticipantMakeRequest(
+						request,
+					);
+					if (!error1) {
+						err = false;
+						responseData = response;
+					}
+				}
+			}
+		} else {
+			request.asset_first_name = "vijay";
+			request.asset_last_name = "kumar";
+			request.asset_description = "vijay";
+			request.customer_unique_id = 0;
+			request.asset_profile_picture = "";
+			request.asset_inline_data = "[{}]";
+			request.phone_country_code = request.phone_country_code;
+			request.asset_phone_number = request.phone_number;
+			request.asset_email_id = "";
+			request.asset_timezone_id = 0;
+			request.asset_type_id = 30;
+			request.asset_type_category_id = 30;
+			request.asset_type_name = "Member";
+			request.operating_asset_id = 0;
+			request.manager_asset_id = 0;
+			request.organization_id = 351;
+			request.code = "";
+			request.enc_token = "";
+			request.is_member = 1;
+			request.invite_sent = 0;
+			request.discount_percent = 0;
+
+		self.assetAddForPAM(request,async (error, data, statusCode, request) => {
+		if (!error) {
+			request.asset_id = data[0].asset_id;
+			const [err3, res1] = await addActivity(request);
+
+			request.event_id = res1[0].activity_id;
+			// request.activity_parent_id = res1[0].activity_id;
+			const [eventErr, res2] = await getEventId(request);
+			request.activity_parent_id = res2[0].activity_id;
+
+			request = { ...request, ...res1 };
+			if (!eventErr && res.length > 0) {
+				const [err1, activityTypeId] = await getActivityTypeId(request);
+				request.activity_type_id = activityTypeId.activity_type_id;
+				const [err2, activityStatusId] = await getActivityStatusIdV1(
+					request,
+				);
+				request.activity_status_id =
+					activityStatusId.activity_status_id;
+
+				request.activity_description = res.activity_name;
+				request.activity_title =
+					request.asset_first_name + request.table_name;
+				if (!err1 && !err2 && !err3) {
+					const [error1, response] =
+						await self.addParticipantMakeRequest(request);
+					if (!error1) {
+						err = false;
+						responseData = response;
+					}
+				}
+			}
+		}
+		});
+	}
+	} catch (e) {
+		console.log(e);
+		// responseData = data
+	}
+	return [err, responseData];
 }
 };
 
