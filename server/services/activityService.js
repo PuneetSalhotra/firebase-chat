@@ -1157,16 +1157,17 @@ function ActivityService(objectCollection) {
         new Promise((resolve, reject) => {
             if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
-
+                console.log(activityTypeCategoryId)
                 function generateUniqueCode() {
                     reserveCode = util.randomInt(50001, 99999).toString();
-                    activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
-                        if (err === false) {
+                    //activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
+                        console.log("generateUniqueCode")
+                       // if (err === false) {
                             // console.log('activitySubTypeName : ' + data);
-                            global.logger.write('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
+                            //logger.info('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
 
-                            activitySubTypeName = data;
-                            responseactivityData.reservation_code = data;
+                            activitySubTypeName = '';
+                            responseactivityData.reservation_code = '';
                             activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
                                 if (err === false) {
                                     var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
@@ -1178,10 +1179,10 @@ function ActivityService(objectCollection) {
                                     return resolve();
                                 }
                             });
-                        } else {
+                       /* } else {
                             generateUniqueCode();
-                        }
-                    });
+                        }*/
+                    //});
                 }
                 generateUniqueCode();
             } else if (activityTypeCategoryId === 37 && request.hasOwnProperty('member_code')) {

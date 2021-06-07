@@ -4,6 +4,8 @@
 var fs = require('fs');
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
+var makingRequest = require('request');
+const nodeUtil = require('util');
 
 function PamService(objectCollection) {
 
@@ -3833,7 +3835,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
 
 
-    function assetListSelectPhoneNumber(request){
+    this.assetListSelectPhoneNumber = async(request) => {
         return new Promise((resolve, reject) => {
             // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6)
             var paramsArr = new Array(
@@ -3887,12 +3889,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     this.pamOrdersWithPhoneNumber = async(request) => {
             let err = true,response = [];
             try{
-                let asset = await assetListSelectPhoneNumber(request)
+                let asset = await self.assetListSelectPhoneNumber(request)
                 if(asset.length !== 0)
                 {
                     var [error, responseData] = await self.assetMappingSelectMemberActivities(request,asset[0].asset_id)
                     err = false
-                    return[ err , responseData];
+                    
                 }
             else{
                return  [ err , -9995];
@@ -3900,6 +3902,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             }catch(error){
                return [err, -9999];
             }
+
         }
 
 this.assetMappingSelectMemberActivities = async (request,asset_id) => {
@@ -3929,13 +3932,12 @@ this.assetMappingSelectMemberActivities = async (request,asset_id) => {
     }
     return [error, responseData];
 }
-
-const getActivityTypeId = async () => {
+///get/activity/category/type
+const getActivityType = async (request) => {
 
     let responseData = [],
         error = true;
-        // N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6)
-
+ 
     var paramsArr = new Array(
         request.organization_id,
         request.account_id,
@@ -3955,8 +3957,8 @@ const getActivityTypeId = async () => {
     }
     return [error, responseData];
 }
-
-const getActivityStatusIdV1 = async () => {
+//get First Status of an activityTypeCategory // /get/activity/category/status
+const getActivityStatusV1 = async (request) => {
 
     let responseData = [],
         error = true;
@@ -4008,6 +4010,35 @@ const getPamActivityStatusId = () => {
 }
 
 this.addParticipantMakeRequest = async function (request) {
+    let participantArray = [];
+    //console.log("addParticipantMakeRequest1 "+JSON.stringify(request,null,2));
+    let memberCollection = {
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workforce_id: request.workforce_id,
+        asset_type_id: 0,
+        asset_category_id:request.member_asset_type_category_id,
+        asset_id:request.member_asset_id,
+        access_role_id:0,
+        message_unique_id:util.getMessageUniqueId(request.asset_id)
+    }
+    let tableCollection = {
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workforce_id: request.workforce_id,
+        asset_type_id: 0,
+        asset_category_id:31,
+        asset_id:request.table_asset_id||0,
+        access_role_id:0,
+        message_unique_id:util.getMessageUniqueId(request.asset_id)
+    }
+
+    participantArray.push(memberCollection);
+    participantArray.push(tableCollection);
+
+    request.activity_participant_collection=JSON.stringify(participantArray);
+    request.url = '/activity/participant/access/set'
+    console.log("addParticipantMakeRequest2 "+JSON.stringify(request,null,2));
 	const assignActAsync = nodeUtil.promisify(makingRequest.post);
 	const makeRequestOptions1 = {
 		form: request,
@@ -4021,19 +4052,20 @@ this.addParticipantMakeRequest = async function (request) {
 		);
 		const body = JSON.parse(response.body);
 		if (Number(body.status) === 200) {
-			logger.info("Activity Mapping Assign | Body: ", body);
+			console.log("Activity Mapping Assign | Body: "+ body);
 			return [false, {}];
 		} else {
-			logger.info("Error ", body);
+			console.log("Error "+ body);
 			return [true, {}];
 		}
 	} catch (error) {
-		logger.info("Activity Mapping Assign | Error: ", error);
+		console.log("Activity Mapping Assign | Error: "+ error);
 		return [true, {}];
 	}
 };
 
 const addActivity = async (request) => {
+    request.url = '/activity/add';
 	const assignActAsync = nodeUtil.promisify(makingRequest.post);
 	const makeRequestOptions1 = {
 		form: request,
@@ -4045,30 +4077,27 @@ const addActivity = async (request) => {
 		);
 		const body = JSON.parse(response.body);
 		if (Number(body.status) === 200) {
-			logger.info("Activity Add | Body: ", body);
+			console.log("Activity Add | Body: ", body);
 			return [false, body];
 		} else {
-			logger.info("Error ", body);
+			console.log("Error ", body);
 			return [true, {}];
 		}
 	} catch (error) {
-		logger.info("Activity Add | Error: ", error);
+		console.log("Activity Add | Error: ", error);
 		return [true, {}];
 	}
 };
 
-const getEventId = async (request) => {
-	var dateTimeLog = util.getCurrentUTCTime();
-	request["datetime_log"] = dateTimeLog;
+const getEvent = async (request) => {
 
 	let responseData = [],
 		error = true;
-	// N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_current_datetime DATETIME
 
 	var paramsArr = new Array(
 		request.organization_id,
 		request.account_id,
-		dateTimeLog,
+		util.getCurrentUTCTime(),
 	);
 	const queryString = util.getQueryString(
 		"ds_v2_activity_list_select_event_datetime",
@@ -4089,83 +4118,81 @@ const getEventId = async (request) => {
 };
 
 this.addPamReservationViaPhoneNumber = async (request) => {
+
 	(err = true), (responseData = -9999);
 
-	const assignedrequest = {
-		account_id: 351,
-		activity_access_role_id: 121,
-		activity_channel_category_id: "0",
-		activity_channel_id: 0,
-		activity_datetime_end: util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours"),
-		activity_datetime_start: util.getCurrentISTTime(),
-		// activity_description: request.activity_name,
-		// activity_parent_id: request.event_id,
-		// activity_status_id: request.activity_status_id,
-		// activity_title: request.asset_first_name + request.table_name,
-		// activity_type_id: request.activity_status_id,
-		activity_form_id: "0",
-		activity_inline_data: {},
-		activity_sub_type_id: 0,
-		activity_sub_type_name: "",
-		activity_type_category_id: 37,
-		app_version: 1,
-		asset_id: 11031,
-		asset_type_id: 10,
-		asset_message_counter: 0,
-		asset_token_auth: "40972200-f5bd-11e7-998f-876a9ef448ff",
-		channel_activity_categeory_id: 0,
-		device_os_id: 5,
-		flag_offline: 0,
-		flag_pin: 0,
-		flag_priority: 0,
-		flag_retry: 0,
-		message_unique_id: util.getMessageUniqueId(11031),
-		organization_id: request.organization_id,
-		owner_asset_id: 11031,
-		product_id: 2,
-		service_version: 1,
-		track_altitude: 0,
-		track_gps_accuracy: 0,
-		track_gps_datetime: util.getCurrentUTCTime(),
-		track_gps_location: "hyd",
-		track_gps_status: 1,
-		track_latitude: 0,
-		track_longitude: 0,
-		workforce_id: request.workforce_id,
-		phone_number: request.phone_number,
-		country_code: request.country_code,
-	};
-	request = { ...assignedrequest };
+    let member_asset_type_category_id = 30;
+    let assetData = await self.assetListSelectPhoneNumber(request);
+    console.log(assetData[0].asset_id)
+    if(assetData.length > 0)
+        request.member_asset_id = assetData[0].asset_id;
+    else{
+        // create the asset
+        return [false, []]
+    }      
+    const [eventErr, eventData] = await getEvent(request);
+   
+    if(!eventErr && eventData.length === 0){
+            // No Event Exists
+            console.log("No Event exists, hence no reservation created");
+    }else{
+
+        request.activity_parent_id = eventData[0].activity_id;
+        request.activity_type_category_id = 37;
+        const [err1, activityType] = await getActivityType(request);
+        request.activity_type_id = activityType[0].activity_type_id;
+        request.activity_status_type_id = 95;
+        const [err2, activityStatus] = await getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
+
+        request.activity_title = assetData[0].asset_first_name + (request.table_name||'');
+        request.activity_description = request.activity_title;
+		request.activity_access_role_id=121;
+		request.activity_channel_category_id= 0;
+		request.activity_channel_id=0;
+		request.activity_datetime_end=util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours");
+		request.activity_datetime_start=util.getCurrentISTTime(); 
+        request.owner_asset_id=request.asset_id;
+		request.activity_form_id=0;
+		request.activity_inline_data=JSON.stringify([]);
+		request.activity_sub_type_id=0
+		request.activity_sub_type_name=''
+		request.app_version=1
+		request.asset_message_counter=0
+		request.channel_activity_categeory_id=0
+		request.device_os_id=5;
+		request.flag_offline=0;
+		request.flag_pin=0;
+		request.flag_priority=0
+		request.flag_retry=0
+		request.message_unique_id=util.getMessageUniqueId(request.asset_id)	
+		request.product_id=2
+		request.service_version=1
+		request.track_altitude=0
+		request.track_gps_accuracy=0
+		request.track_gps_datetime=util.getCurrentUTCTime()
+		request.track_gps_location=''
+		request.track_gps_status=1
+		request.track_latitude=0
+		request.track_longitude=0         
+        
+        const [error, activityData] = await addActivity(request);
+            console.log("activityData "+activityData.response.activity_id)
+            request.activity_id = activityData.response.activity_id;
+            const [error1, response] = self.addParticipantMakeRequest(request);             
+            return [false,activityData];
+                  
+      
+    }
+
+/*
 	try {
-		let [error, data] = await self.pamOrdersWithPhoneNumber(request);
-
 		if (!error) {
-			request.asset_id = data[0].asset_id;
-			const [err3, res1] = await addActivity(request);
-			const [eventErr, res2] = await getEventId(request);
-			// request.event_id = res2[0].activity_id;
-			request.activity_parent_id = res2[0].activity_id;
+			
+			
 
-			request = { ...request, ...res2 };
-			if (!eventErr && res.length > 0) {
-				const [err1, activityTypeId] = await getActivityTypeId(request);
-				request.activity_type_id = activityTypeId.activity_type_id;
-				const [err2, activityStatusId] = await getActivityStatusIdV1(request);
-				request.activity_status_id = activityStatusId.activity_status_id;
 
-				request.activity_description = res.activity_name;
-				request.activity_title =
-					request.asset_first_name + request.table_name;
-				if (!err1 && !err2 && !err3) {
-					const [error1, response] = await self.addParticipantMakeRequest(
-						request,
-					);
-					if (!error1) {
-						err = false;
-						responseData = response;
-					}
-				}
-			}
+			
 		} else {
 			request.asset_first_name = "vijay";
 			request.asset_last_name = "kumar";
@@ -4190,44 +4217,13 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.discount_percent = 0;
 
 		self.assetAddForPAM(request,async (error, data, statusCode, request) => {
-		if (!error) {
-			request.asset_id = data[0].asset_id;
-			const [err3, res1] = await addActivity(request);
+        })
 
-			request.event_id = res1[0].activity_id;
-			// request.activity_parent_id = res1[0].activity_id;
-			const [eventErr, res2] = await getEventId(request);
-			request.activity_parent_id = res2[0].activity_id;
-
-			request = { ...request, ...res1 };
-			if (!eventErr && res.length > 0) {
-				const [err1, activityTypeId] = await getActivityTypeId(request);
-				request.activity_type_id = activityTypeId.activity_type_id;
-				const [err2, activityStatusId] = await getActivityStatusIdV1(
-					request,
-				);
-				request.activity_status_id =
-					activityStatusId.activity_status_id;
-
-				request.activity_description = res.activity_name;
-				request.activity_title =
-					request.asset_first_name + request.table_name;
-				if (!err1 && !err2 && !err3) {
-					const [error1, response] =
-						await self.addParticipantMakeRequest(request);
-					if (!error1) {
-						err = false;
-						responseData = response;
-					}
-				}
-			}
-		}
-		});
 	}
 	} catch (e) {
 		console.log(e);
 		// responseData = data
-	}
+	} */
 	return [err, responseData];
 }
 };
