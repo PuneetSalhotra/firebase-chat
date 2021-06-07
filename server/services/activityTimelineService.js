@@ -4157,7 +4157,7 @@ async function addFormEntriesAsync(request) {
         const Template = "";*/
         let dateTime = await util.mentionsDateFormat();
         console.log('dateTime : ', dateTime);
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         
         let emailSubject = `You have been mentioned on ${request.workflow_title} @ ${await util.mentionsDateFormat()} By ${request.email_sender_name}`;
