@@ -149,7 +149,7 @@ async function SetMessageHandlerForConsumer(consumerGroup, eventMessageRouter, s
                 tracerScope.activate(span, async () => {
 
                     const [errorZero, partitionOffsetData] = await activityCommonService.checkingPartitionOffsetAsync(request);
-                    if (errorZero || Number(partitionOffsetData.length) > 0) {
+                    if (false) {
                         // Don't know why we need this call here
                         // I haven't handled the error here, please do if you need to
                         const [errorOne, _] = await activityCommonService.duplicateMsgUniqueIdInsertAsync(request);

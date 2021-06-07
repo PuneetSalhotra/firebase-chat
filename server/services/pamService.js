@@ -1886,7 +1886,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     request.enc_token = uuid.v1();                                          
                     addAssetPamSubfn(request, callback);
                 } else {
-                    callback(true,err,-9999,request);
+                    callback(true,err,-9999);
                 }
             });
         } else {
@@ -1963,10 +1963,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         });
                     }
                     
-                    callback(false, {"asset_id": assetData[0]['asset_id']}, 200,request);
+                    callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
                 } else {
                     // some thing is wrong and have to be dealt
-                    callback(true, err, -9999,request);
+                    callback(true, err, -9999);
                     }
                 });
             }        
@@ -3933,7 +3933,7 @@ this.assetMappingSelectMemberActivities = async (request,asset_id) => {
     return [error, responseData];
 }
 ///get/activity/category/type
-const getActivityType = async (request) => {
+this.getActivityType = async (request) => {
 
     let responseData = [],
         error = true;
@@ -3958,7 +3958,7 @@ const getActivityType = async (request) => {
     return [error, responseData];
 }
 //get First Status of an activityTypeCategory // /get/activity/category/status
-const getActivityStatusV1 = async (request) => {
+this.getActivityStatusV1 = async (request) => {
 
     let responseData = [],
         error = true;
@@ -4139,10 +4139,10 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 
         request.activity_parent_id = eventData[0].activity_id;
         request.activity_type_category_id = 37;
-        const [err1, activityType] = await getActivityType(request);
+        const [err1, activityType] = await self.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
         request.activity_status_type_id = 95;
-        const [err2, activityStatus] = await getActivityStatusV1(request);
+        const [err2, activityStatus] = await self.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;
 
         request.activity_title = assetData[0].asset_first_name + (request.table_name||'');

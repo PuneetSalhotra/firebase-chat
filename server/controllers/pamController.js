@@ -502,6 +502,24 @@ function PamController(objCollection) {
     		res.send(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/get/activity/category/status', async (req, res) => {
+        let [err,result] = await pamService.getActivityStatusV1(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/get/activity/category/type', async (req, res) => {
+        let [err,result] = await pamService.getActivityType(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;
