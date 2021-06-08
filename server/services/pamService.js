@@ -4233,7 +4233,6 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 
         request.member_asset_id = assetData[0].asset_id;
 		request.asset_first_name = assetData[0].asset_first_name 
-		console.log(assetData);
 	}
     else{
         // create the asset
@@ -4258,9 +4257,9 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.invite_sent = 0;
 			request.discount_percent = 0;
 
-			const [error,assetData] = await self.assetAddForPAMV1(request);
+			const [error,newAssetData] = await self.assetAddForPAMV1(request);
 			if(!error){
-				request.member_asset_id = assetData[0].asset_id
+				request.member_asset_id = newAssetData[0].asset_id
 			}
 			else{
 				return [err,responseData]
