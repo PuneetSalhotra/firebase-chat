@@ -4,6 +4,8 @@
 var fs = require('fs');
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
+var makingRequest = require('request');
+const nodeUtil = require('util');
 
 function PamService(objectCollection) {
 
@@ -3833,7 +3835,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
 
 
-    function assetListSelectPhoneNumber(request){
+    this.assetListSelectPhoneNumber = async(request) => {
         return new Promise((resolve, reject) => {
             // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6)
             var paramsArr = new Array(
@@ -3887,24 +3889,21 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     this.pamOrdersWithPhoneNumber = async(request) => {
             let err = true,response = [];
             try{
-                let asset = await assetListSelectPhoneNumber(request)
-                console.log("asset.length !== 0 ::",asset.length !== 0);
+                let asset = await self.assetListSelectPhoneNumber(request)
                 if(asset.length !== 0)
                 {
                     var [error, responseData] = await self.assetMappingSelectMemberActivities(request,asset[0].asset_id)
-                    console.log("response ::",responseData);
                     err = false
-                    return[ err , responseData];
+                    
                 }
             else{
                return  [ err , -9995];
             }
             }catch(error){
-                console.log("error ::",error)
                return [err, -9999];
             }
-        }
 
+        }
 
 this.assetMappingSelectMemberActivities = async (request,asset_id) => {
 
@@ -3931,8 +3930,439 @@ this.assetMappingSelectMemberActivities = async (request,asset_id) => {
               error = err;
           })
     }
-    console.log("responseData ::",responseData)
     return [error, responseData];
+}
+///get/activity/category/type
+this.getActivityType = async (request) => {
+
+    let responseData = [],
+        error = true;
+ 
+    var paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        request.activity_type_category_id,
+    )
+    const queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_select_category', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    return [error, responseData];
+}
+//get First Status of an activityTypeCategory // /get/activity/category/status
+this.getActivityStatusV1 = async (request) => {
+
+    let responseData = [],
+        error = true;
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+    var paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        request.activity_type_category_id,
+        request.activity_status_type_id
+    )
+    const queryString = util.getQueryString('pm_v1_workforce_activity_status_mapping_select_first_status', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    return [error, responseData];
+}
+
+const getPamActivityStatusId = () => {
+    return new Promise((resolve, reject) => {
+        // N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_status_type_id
+        )
+
+        var queryString = util.getQueryString("pm_v1_workforce_activity_status_mapping_select_first_status", paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    resolve(data);
+                } else {
+                    reject(err);
+                }
+            });
+        }
+    });
+}
+
+this.addParticipantMakeRequest = async function (request) {
+    let participantArray = [];
+    //console.log("addParticipantMakeRequest1 "+JSON.stringify(request,null,2));
+    let memberCollection = {
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workforce_id: request.workforce_id,
+        asset_type_id: 0,
+        asset_category_id:request.member_asset_type_category_id,
+        asset_id:request.member_asset_id,
+        access_role_id:0,
+        message_unique_id:util.getMessageUniqueId(request.asset_id)
+    }
+    let tableCollection = {
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workforce_id: request.workforce_id,
+        asset_type_id: 0,
+        asset_category_id:31,
+        asset_id:request.table_asset_id||0,
+        access_role_id:0,
+        message_unique_id:util.getMessageUniqueId(request.asset_id)
+    }
+
+    participantArray.push(memberCollection);
+    participantArray.push(tableCollection);
+
+    request.activity_participant_collection=JSON.stringify(participantArray);
+    request.url = '/activity/participant/access/set'
+    console.log("addParticipantMakeRequest2 "+JSON.stringify(request,null,2));
+	const assignActAsync = nodeUtil.promisify(makingRequest.post);
+	const makeRequestOptions1 = {
+		form: request,
+	};
+	try {
+		const response = await assignActAsync(
+			global.config.mobileBaseUrl +
+				global.config.version +
+				"/activity/participant/access/set",
+			makeRequestOptions1,
+		);
+		const body = JSON.parse(response.body);
+		if (Number(body.status) === 200) {
+			console.log("Activity Mapping Assign | Body: "+ body);
+			return [false, {}];
+		} else {
+			console.log("Error "+ body);
+			return [true, {}];
+		}
+	} catch (error) {
+		console.log("Activity Mapping Assign | Error: "+ error);
+		return [true, {}];
+	}
+};
+
+const addActivity = async (request) => {
+    request.url = '/activity/add';
+	const assignActAsync = nodeUtil.promisify(makingRequest.post);
+	const makeRequestOptions1 = {
+		form: request,
+	};
+	try {
+		const response = await assignActAsync(
+			global.config.mobileBaseUrl + global.config.version + "/activity/add",
+			makeRequestOptions1,
+		);
+		const body = JSON.parse(response.body);
+		if (Number(body.status) === 200) {
+			console.log("Activity Add | Body: ", body);
+			return [false, body];
+		} else {
+			console.log("Error ", body);
+			return [true, {}];
+		}
+	} catch (error) {
+		console.log("Activity Add | Error: ", error);
+		return [true, {}];
+	}
+};
+
+this.getEvent = async (request) => {
+
+	let responseData = [],
+		error = true;
+
+	var paramsArr = new Array(
+		request.organization_id,
+		request.account_id,
+		util.getCurrentUTCTime(),
+	);
+	const queryString = util.getQueryString(
+		"ds_v2_activity_list_select_event_datetime",
+		paramsArr,
+	);
+	if (queryString !== "") {
+		await db
+			.executeQueryPromise(1, queryString, request)
+			.then((data) => {
+				responseData = data;
+				error = false;
+			})
+			.catch((err) => {
+				error = err;
+			});
+	}
+	return [error, responseData];
+};
+this.assetAddForPAMV1 = async function (request) {
+	var dateTimeLog = util.getCurrentUTCTime();
+	request['datetime_log'] = dateTimeLog;
+	
+	var assetTypeCtgId;
+	(request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
+	
+	if(assetTypeCtgId == 29) {
+		activityCommonService.generateUniqueCode(request, async function(err, code){
+			if(err === false){
+				request.code = code;
+				request.enc_token = uuid.v1();                                          
+				const [error,assetData] = await addAssetPamSubfnV1(request);
+				return [error,assetData]
+			} else {
+				return [true, {}];
+			}
+		});
+	} else {
+		request.code = '';
+		request.enc_token = '';
+		const [error,assetData] = await  addAssetPamSubfnV1(request);
+		return [error,assetData]
+	}
+};
+
+var addAssetPamSubfnV1 = async function (request) {
+		var paramsArr = new Array(
+			request.asset_first_name,
+			request.asset_last_name,
+			request.asset_description,
+			request.customer_unique_id,
+			request.asset_profile_picture,
+			request.asset_inline_data,
+			request.phone_country_code,
+			request.asset_phone_number,
+			request.asset_email_id,
+			request.asset_timezone_id,
+			request.asset_type_id,
+			request.operating_asset_id,
+			request.manager_asset_id,
+			request.workforce_id,
+			request.account_id,
+			request.organization_id,
+			request.asset_id,
+			request.datetime_log,
+			request.code,
+			request.enc_token,
+			request.is_member || 0,
+			request.invite_sent || 0,
+			request.discount_percent || 0
+			);
+
+	var queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
+	if (queryString != '') {
+		//global.logger.write(queryString, request, 'asset', 'trace');
+		db.executeQuery(0, queryString, request, function (err, assetData) {
+			if (err === false) {
+				assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
+				request.ingredient_asset_id = assetData[0]['asset_id'];
+				//sss.createAssetBucket(request, function(){});
+				
+				if(assetData[0].asset_type_category_id == 41) {
+					retrieveAccountWorkforces(request).then((data)=>{
+						//console.log('Workforces : ', data);
+						forEachAsync(data, function (next, x) {
+								createActivityTypeForAllWorkforces(request, x.workforce_id).then((resp)=>{
+									request.activity_type_id = resp[0].activity_type_id;
+									workForceActivityTypeHistoryInsert(request).then(()=>{})
+									next();
+								 })
+						}).then(()=>{});
+					});
+				}
+				
+				if(assetData[0].asset_type_category_id == 29) {
+					var authTokenCollection = {
+						"asset_id": assetData[0]['asset_id'],
+						"workforce_id": request.workforce_id,
+						"account_id": request.account_id,
+						"organization_id": request.organization_id,
+						"asset_token_push": "",
+						"asset_push_arn": "",
+						"asset_auth_token": request.enc_token
+					};
+
+					cacheWrapper.setTokenAuth(assetData[0]['asset_id'], JSON.stringify(authTokenCollection), function (err, reply) {
+						if (!err) {
+							console.log('Sucessfully data created in Redis');
+						}
+					});
+				}
+		          return [false ,{"asset_id": assetData[0]['asset_id']} ]		
+				// callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
+			} else {
+				// some thing is wrong and have to be dealt
+				// callback(true, err, -9999);
+
+				return [true,{}]	
+				}
+			});
+		} 
+		return [true, {}]       
+};
+
+
+this.addPamReservationViaPhoneNumber = async (request) => {
+
+	(err = true), (responseData = -9999);
+
+    let member_asset_type_category_id = 30;
+    try{
+	let assetData = await self.assetListSelectPhoneNumber(request);
+    if(assetData.length > 0){
+
+        request.member_asset_id = assetData[0].asset_id;
+		request.asset_first_name = assetData[0].asset_first_name 
+	}
+    else{
+        // create the asset
+			request.asset_first_name = request.phone_number;
+			request.asset_last_name = "";
+			request.asset_description = "";
+			request.customer_unique_id = 0;
+			request.asset_profile_picture = "";
+			request.asset_inline_data = "[{}]";
+			request.phone_country_code = request.country_code;
+			request.asset_phone_number = request.phone_number;
+			request.asset_email_id = "";
+			request.asset_timezone_id = 0;
+			request.asset_type_id = 36868;
+			request.asset_type_category_id = 30;
+			request.asset_type_name = "Member";
+			request.operating_asset_id = 0;
+			request.manager_asset_id = 0;
+			request.code = "";
+			request.enc_token = "";
+			request.is_member = 1;
+			request.invite_sent = 0;
+			request.discount_percent = 0;
+
+			const [error,newAssetData] = await self.assetAddForPAMV1(request);
+			if(!error){
+				request.member_asset_id = newAssetData[0].asset_id
+			}
+			else{
+				return [err,responseData]
+			}
+    } 
+    const [eventErr, eventData] = await self.getEvent(request);
+   
+    if(!eventErr && eventData.length === 0){
+            // No Event Exists
+            console.log("No Event exists, hence no reservation created");
+    }else{
+
+        request.activity_parent_id = eventData[0].activity_id;
+        request.activity_type_category_id = 37;
+        const [err1, activityType] = await self.getActivityType(request);
+        request.activity_type_id = activityType[0].activity_type_id;
+        request.activity_status_type_id = 95;
+        const [err2, activityStatus] = await self.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
+
+        request.activity_title = request.asset_first_name + (request.table_name||'');
+        request.activity_description = request.activity_title;
+		request.activity_access_role_id=121;
+		request.activity_channel_category_id= 0;
+		request.activity_channel_id=0;
+		request.activity_datetime_end=util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours");
+		request.activity_datetime_start=util.getCurrentISTTime(); 
+        request.owner_asset_id=request.asset_id;
+		request.activity_form_id=0;
+		request.activity_inline_data=JSON.stringify([]);
+		request.activity_sub_type_id=0
+		request.activity_sub_type_name=''
+		request.app_version=1
+		request.asset_message_counter=0
+		request.channel_activity_categeory_id=0
+		request.device_os_id=5;
+		request.flag_offline=0;
+		request.flag_pin=0;
+		request.flag_priority=0
+		request.flag_retry=0
+		request.message_unique_id=util.getMessageUniqueId(request.asset_id)	
+		request.product_id=2
+		request.service_version=1
+		request.track_altitude=0
+		request.track_gps_accuracy=0
+		request.track_gps_datetime=util.getCurrentUTCTime()
+		request.track_gps_location=''
+		request.track_gps_status=1
+		request.track_latitude=0
+		request.track_longitude=0         
+        
+        const [error, activityData] = await addActivity(request);
+            console.log("activityData "+activityData.response.activity_id)
+            request.activity_id = activityData.response.activity_id;
+            const [error1, response] = await self.addParticipantMakeRequest(request);             
+            return [false,activityData.response];
+    }
+
+}
+catch(e){
+	console.log(e);
+}
+
+/*
+	try {
+		if (!error) {
+			
+			
+
+
+			
+		} else {
+			request.asset_first_name = "vijay";
+			request.asset_last_name = "kumar";
+			request.asset_description = "vijay";
+			request.customer_unique_id = 0;
+			request.asset_profile_picture = "";
+			request.asset_inline_data = "[{}]";
+			request.phone_country_code = request.phone_country_code;
+			request.asset_phone_number = request.phone_number;
+			request.asset_email_id = "";
+			request.asset_timezone_id = 0;
+			request.asset_type_id = 30;
+			request.asset_type_category_id = 30;
+			request.asset_type_name = "Member";
+			request.operating_asset_id = 0;
+			request.manager_asset_id = 0;
+			request.organization_id = 351;
+			request.code = "";
+			request.enc_token = "";
+			request.is_member = 1;
+			request.invite_sent = 0;
+			request.discount_percent = 0;
+
+		self.assetAddForPAM(request,async (error, data, statusCode, request) => {
+        })
+
+	}
+	} catch (e) {
+		console.log(e);
+		// responseData = data
+	} */
+	return [err, responseData];
 }
 };
 
