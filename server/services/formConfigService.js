@@ -24,6 +24,8 @@ function FormConfigService(objCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const self = this;
+    const logger = require("../logger/winstonLogger");
+    const serializeError = require("serialize-error");
 
     function isArray(obj) {
         return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
@@ -2956,14 +2958,8 @@ function FormConfigService(objCollection) {
         //If origin Form and workflow Enabled?
         //Create a Workflow Activity
         //Make a 705 timeline entry with activity category 48
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
-        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
-        console.log('# # # # # # # # # # # # ENTRY # # # # # # # # # #  # # # # # # # # # # # # ');
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
+        let logUUID = request.log_uuid || "";
+        logger.info(`[${logUUID}] # # Entry Add Workflow - File: formConfigService Func: workflowEngineAsync # # `);
 
         let workflowActivityId = request.workflow_activity_id || 0;
 
@@ -2971,13 +2967,10 @@ function FormConfigService(objCollection) {
 
         // Fetch form's config data
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
-        console.log('formConfigError : ', formConfigError);
-
+        logger.error(`[${logUUID}] formConfigError`, { type: 'workflow_engine', error: serializeError(formConfigError) });
         if (formConfigError !== false) {
             return [formConfigError, formConfigData];
         }
-
-        console.log('formConfigData.length : ', formConfigData.length);
 
         if (Number(formConfigData.length) > 0) {
             // Check if the form has an origin flag set
@@ -2995,8 +2988,6 @@ function FormConfigService(objCollection) {
                     workflowActivityTypeDefaultDurationDays = 5;
                 }
 
-            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            console.log('originFlagSet : ', originFlagSet);
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
                 await cacheWrapper
@@ -3012,8 +3003,7 @@ function FormConfigService(objCollection) {
                         return [err, formConfigData];
                     });
 
-                global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
-
+                logger.info(`[${logUUID}] New activityId is %j`,{activityId});
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);
                     createWorkflowRequest.activity_id = Number(activityId);
@@ -3108,14 +3098,7 @@ function FormConfigService(objCollection) {
             }
         }
 
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
-        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
-        console.log('# # # # # # # # # # # # EXIT # # # # # # # # # #  # # # # # # # # # ');
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
+        logger.info('# # Exit Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
 
         return [formConfigError, {formConfigData}];
     };

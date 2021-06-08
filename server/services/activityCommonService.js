@@ -4,6 +4,8 @@ function ActivityCommonService(db, util, forEachAsync) {
     const self = this;
     const nodeUtil = require('util');
     var elasticsearch = require('elasticsearch');
+    const logger = require("../logger/winstonLogger");
+    const serializeError = require("serialize-error");
     var client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
@@ -2031,6 +2033,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateParticipantCount = function (activityId, organizationId, request, callback) {
+        let logUUID = request.log_uuid || "";
         var paramsArr = new Array(
             activityId,
             organizationId
@@ -2041,7 +2044,6 @@ this.getAllParticipantsAsync = async (request) => {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('conLog', 'participant count retrieved from query is: ' + participantCount, request);
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -2080,7 +2082,7 @@ this.getAllParticipantsAsync = async (request) => {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('conLog', err, {}, request);
+                                logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                                 return;
                             }
                         });
@@ -2088,7 +2090,7 @@ this.getAllParticipantsAsync = async (request) => {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('conLog', err, {}, request);
+                    logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                     return;
                 }
             });
@@ -4365,7 +4367,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         let responseData = [],
             error = true;
-
+        let logUUID = request.log_uuid;
         //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         let assetId = request.asset_id;
         let organizationId = request.organization_id;
@@ -4412,9 +4414,7 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'activityTimelineTransactionInsertAsync - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
-
+        logger.info(`[${logUUID}] activityTimelineTransactionInsertAsync streamTypeId ${streamTypeId}`);
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -4550,7 +4550,7 @@ case 729: // Report form BC Edit
                         isAttachment = 1;
                     }
                 } catch (err) {
-                    console.log("activityTimelineTransactionInsert | 325 | Parsing and retrieving attachments | Error: ", err);
+                    logger.error(`[${logUUID}] Parsing and retrieving attachments`, { type: 'timeline_insert', error: serializeError(err) });
                 }
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -4596,8 +4596,7 @@ case 729: // Report form BC Edit
             return;
         }
 
-        console.log('formID : ', formId);
-        console.log('formID : ', request.form_id);
+
         const paramsArr = new Array(
             request.activity_id,
             assetId,
@@ -4649,7 +4648,6 @@ case 729: // Report form BC Edit
         //let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         let queryString = util.getQueryString("ds_v1_7_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
-            global.logger.write('conLog', `ds_v1_7_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
             responseData = [];
             error = false;
         }
@@ -4661,7 +4659,6 @@ case 729: // Report form BC Edit
                         error = false;
                     })
                     .catch((err) => {
-                        global.logger.write('conLog', JSON.stringify(err), err, request);
                         error = true;
                     });
             }
@@ -4880,7 +4877,6 @@ case 729: // Report form BC Edit
         );
         const queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
         if (assetId === 0 || assetId === null) {
-            console.log(`ds_v1_3_asset_timeline_transaction_insert is not called as assetId is ${assetId}`);
             error = false;
             responseData = [];
         }
@@ -4890,10 +4886,11 @@ case 729: // Report form BC Edit
                     .then((data) => {
                         responseData = data;
                         error = false;
+                        logger.info(`[${request.log_uuid || ""}] asset_timeline_insert_sucess`);
                     })
                     .catch((err) => {
                         //error = true;                
-                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        logger.error(`[${request.log_uuid || ""}] errorinaddindassettimelineentry`, { type: 'add_activity', error: serializeError(err) });
                     });
             }
         }
@@ -5362,27 +5359,24 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.updateCustomerOnWorkflowAsync = async function(request, requestFormData) {
+    this.updateCustomerOnWorkflowAsync = async function (request, requestFormData) {
         let self = this;
-
+        let logUUID = request.log_uuid || "";
         forEachAsync(requestFormData, function (next, fieldObj) {
-            global.logger.write('conLog', '*****CHECKING FOR CUSTOMER *******'+fieldObj.field_id+" "+fieldObj.field_data_type_id, {}, request);
-            if(fieldObj.field_data_type_id == 59){
+            if (fieldObj.field_data_type_id == 59) {
                 let assetReference = fieldObj.field_value.split('|');
-                if(assetReference.length>1){
+                if (assetReference.length > 1) {
                     request['customer_asset_id'] = assetReference[0];
                     self.updateCustomerOnWorkflow(request);
-                     
-                }else{
-                    console.log("CUSTOMER REFERENCE VALUE IS IMPROPER "+fieldObj.field_value);
+                } else {
+                    logger.error(`[${logUUID}] CUSTOMER REFERENCE VALUE IS IMPROPER ${fieldObj.field_value}`, { type: 'update_customer_workflow' });
                 }
                 next();
-            }else{
+            } else {
                 next();
             }
-           
-        }).then(()=>{
-            console.log("DONE WITH CUSTOMER CHECK");
+
+        }).then(() => {
         });
     };
 
@@ -5551,6 +5545,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.makeGenericRequest = async function(request){
 
+        let logUUID = request.log_uuid || "";
+
         const genericAsync = nodeUtil.promisify(makingRequest.post);
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const makeRequestOptions = {
@@ -5561,15 +5557,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             // global.config.mobileBaseUrl + global.config.version
             const response = await genericAsync(global.config.mobileBaseUrl + global.config.version + request.generic_url, makeRequestOptions);
             const body = JSON.parse(response.body);
+            logger.info(`[${logUUID}] makeGenericRequest ${request.generic_url} %j`, body);
             if (Number(body.status) === 200) {
-                console.log("makeGenericRequest "+request.generic_url+" | Body: ", body);
                 return [false, {}];
             }else{
-                console.log("Error ", body);
                 return [true, {}];
             }
         } catch (error) {
-            console.log("makeGenericRequest "+request.generic_url+" | Error: ", error);
+            logger.error(`[${logUUID}] makeGenericRequest ${request.generic_url}`, { type: 'makeGenericRequest', error: serializeError(error) });
             return [true, {}];
         } 
     };
@@ -5976,6 +5971,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     };
 
     this.activityUpdateExpression  = async function (request) {
+        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
         let paramsArr = new Array(
@@ -5993,7 +5989,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = false;
         })
         .catch((err)=>{
-                console.log('[Error] activityUpdateExpression ',err);
+            logger.error(`[${logUUID}] activityUpdateExpression`, { type: 'activityUpdateExpression', error: serializeError(err) });
             error = err;
         });
         }
