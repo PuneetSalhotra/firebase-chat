@@ -4206,6 +4206,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.is_member = 1;
 			request.invite_sent = 0;
 			request.discount_percent = 0;
+
 			const [error,newAssetData] = await self.addAssetPamSubfnV1(request);
 			if(newAssetData.length>0){
 				request.member_asset_id = newAssetData[0].asset_id
@@ -4255,7 +4256,8 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.track_gps_location=''
 		request.track_gps_status=1
 		request.track_latitude=0
-		request.track_longitude=0         
+		request.track_longitude=0
+		request.member_code = '0'         
         
         const [error, activityData] = await addActivity(request);
             console.log("activityData "+activityData.response.activity_id)
