@@ -4040,7 +4040,7 @@ this.addParticipantMakeRequest = async function (request) {
 
     request.activity_participant_collection=JSON.stringify(participantArray);
     request.url = '/activity/participant/access/set'
-    console.log("addParticipantMakeRequest2 "+JSON.stringify(request,null,2));
+    //console.log("addParticipantMakeRequest2 "+JSON.stringify(request,null,2));
 	const assignActAsync = nodeUtil.promisify(makingRequest.post);
 	const makeRequestOptions1 = {
 		form: request,
