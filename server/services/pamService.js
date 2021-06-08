@@ -4089,7 +4089,7 @@ const addActivity = async (request) => {
 	}
 };
 
-const getEvent = async (request) => {
+this.getEvent = async (request) => {
 
 	let responseData = [],
 		error = true;
@@ -4116,21 +4116,157 @@ const getEvent = async (request) => {
 	}
 	return [error, responseData];
 };
+this.assetAddForPAMV1 = async function (request) {
+	var dateTimeLog = util.getCurrentUTCTime();
+	request['datetime_log'] = dateTimeLog;
+	
+	var assetTypeCtgId;
+	(request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
+	
+	if(assetTypeCtgId == 29) {
+		activityCommonService.generateUniqueCode(request, async function(err, code){
+			if(err === false){
+				request.code = code;
+				request.enc_token = uuid.v1();                                          
+				const [error,assetData] = await addAssetPamSubfnV1(request);
+				return [error,assetData]
+			} else {
+				return [true, {}];
+			}
+		});
+	} else {
+		request.code = '';
+		request.enc_token = '';
+		const [error,assetData] = await  addAssetPamSubfnV1(request);
+		return [error,assetData]
+	}
+};
+
+var addAssetPamSubfnV1 = async function (request) {
+		var paramsArr = new Array(
+			request.asset_first_name,
+			request.asset_last_name,
+			request.asset_description,
+			request.customer_unique_id,
+			request.asset_profile_picture,
+			request.asset_inline_data,
+			request.phone_country_code,
+			request.asset_phone_number,
+			request.asset_email_id,
+			request.asset_timezone_id,
+			request.asset_type_id,
+			request.operating_asset_id,
+			request.manager_asset_id,
+			request.workforce_id,
+			request.account_id,
+			request.organization_id,
+			request.asset_id,
+			request.datetime_log,
+			request.code,
+			request.enc_token,
+			request.is_member || 0,
+			request.invite_sent || 0,
+			request.discount_percent || 0
+			);
+
+	var queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
+	if (queryString != '') {
+		//global.logger.write(queryString, request, 'asset', 'trace');
+		db.executeQuery(0, queryString, request, function (err, assetData) {
+			if (err === false) {
+				assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
+				request.ingredient_asset_id = assetData[0]['asset_id'];
+				//sss.createAssetBucket(request, function(){});
+				
+				if(assetData[0].asset_type_category_id == 41) {
+					retrieveAccountWorkforces(request).then((data)=>{
+						//console.log('Workforces : ', data);
+						forEachAsync(data, function (next, x) {
+								createActivityTypeForAllWorkforces(request, x.workforce_id).then((resp)=>{
+									request.activity_type_id = resp[0].activity_type_id;
+									workForceActivityTypeHistoryInsert(request).then(()=>{})
+									next();
+								 })
+						}).then(()=>{});
+					});
+				}
+				
+				if(assetData[0].asset_type_category_id == 29) {
+					var authTokenCollection = {
+						"asset_id": assetData[0]['asset_id'],
+						"workforce_id": request.workforce_id,
+						"account_id": request.account_id,
+						"organization_id": request.organization_id,
+						"asset_token_push": "",
+						"asset_push_arn": "",
+						"asset_auth_token": request.enc_token
+					};
+
+					cacheWrapper.setTokenAuth(assetData[0]['asset_id'], JSON.stringify(authTokenCollection), function (err, reply) {
+						if (!err) {
+							console.log('Sucessfully data created in Redis');
+						}
+					});
+				}
+		          return [false ,{"asset_id": assetData[0]['asset_id']} ]		
+				// callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
+			} else {
+				// some thing is wrong and have to be dealt
+				// callback(true, err, -9999);
+
+				return [true,{}]	
+				}
+			});
+		} 
+		return [true, {}]       
+};
+
 
 this.addPamReservationViaPhoneNumber = async (request) => {
 
 	(err = true), (responseData = -9999);
 
     let member_asset_type_category_id = 30;
-    let assetData = await self.assetListSelectPhoneNumber(request);
-    console.log(assetData[0].asset_id)
-    if(assetData.length > 0)
+    try{
+	let assetData = await self.assetListSelectPhoneNumber(request);
+    if(assetData.length > 0){
+
         request.member_asset_id = assetData[0].asset_id;
+		request.asset_first_name = assetData[0].asset_first_name 
+		console.log(assetData);
+	}
     else{
         // create the asset
-        return [false, []]
-    }      
-    const [eventErr, eventData] = await getEvent(request);
+			request.asset_first_name = request.phone_number;
+			request.asset_last_name = "";
+			request.asset_description = "";
+			request.customer_unique_id = 0;
+			request.asset_profile_picture = "";
+			request.asset_inline_data = "[{}]";
+			request.phone_country_code = request.country_code;
+			request.asset_phone_number = request.phone_number;
+			request.asset_email_id = "";
+			request.asset_timezone_id = 0;
+			request.asset_type_id = 36868;
+			request.asset_type_category_id = 30;
+			request.asset_type_name = "Member";
+			request.operating_asset_id = 0;
+			request.manager_asset_id = 0;
+			request.code = "";
+			request.enc_token = "";
+			request.is_member = 1;
+			request.invite_sent = 0;
+			request.discount_percent = 0;
+
+			const [error,assetData] = await self.assetAddForPAMV1(request);
+			if(!error){
+				request.member_asset_id = assetData[0].asset_id
+			}
+			else{
+				return [err,responseData]
+			}
+    } 
+    const [eventErr, eventData] = await self.getEvent(request);
    
     if(!eventErr && eventData.length === 0){
             // No Event Exists
@@ -4145,7 +4281,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         const [err2, activityStatus] = await self.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;
 
-        request.activity_title = assetData[0].asset_first_name + (request.table_name||'');
+        request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
 		request.activity_channel_category_id= 0;
@@ -4179,11 +4315,14 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         const [error, activityData] = await addActivity(request);
             console.log("activityData "+activityData.response.activity_id)
             request.activity_id = activityData.response.activity_id;
-            const [error1, response] = self.addParticipantMakeRequest(request);             
-            return [false,activityData];
-                  
-      
+            const [error1, response] = await self.addParticipantMakeRequest(request);             
+            return [false,activityData.response];
     }
+
+}
+catch(e){
+	console.log(e);
+}
 
 /*
 	try {
