@@ -5566,7 +5566,7 @@ function FormConfigService(objCollection) {
             error = true;
 
         let formTransactionID = await cacheWrapper.getFormTransactionIdPromise();        
-
+        
         const paramsArr = new Array(
             request.organization_id, 
             request.account_id, 
@@ -5610,7 +5610,10 @@ function FormConfigService(objCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {                    
+                .then((data) => {  
+                    for(let row of data) {
+                        row.form_draft_inline_data = JSON.parse(row.form_draft_inline_data);
+                    }                  
                     responseData = data;
                     error = false;
                 })

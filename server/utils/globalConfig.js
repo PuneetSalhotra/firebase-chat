@@ -103,32 +103,39 @@ config.documentTypes = {
     }
 }
 
+config.masterIp = "";
+config.masterDBUser = "";
+config.masterDBPassword = "";
+config.masterDatabase = "";
+
+config.slave1Ip = "";
+config.slave1Database = "";
+config.slave1DBUser = "";
+config.slave1DBPassword = "";
+config.transactionsLogsDatabase = "";
+
+config.slave2Ip = "";
+
 // codes to switch the slave to master in case of errors
 config.mysqlConnectionErrors = {
-    ENOTFOUND : 1,
-    ECONNREFUSED : 1,
-    ER_ACCESS_DENIED_ERROR : 1,
-    ER_DBACCESS_DENIED_ERROR : 1,
-    ER_SP_DOES_NOT_EXIST : 1
+    ENOTFOUND: 1,
+    EHOSTUNREACH: 1,
+    PROTOCOL_SEQUENCE_TIMEOUT: 1,
+    ECONNREFUSED: 1,
+    ER_ACCESS_DENIED_ERROR: 1,
+    ER_DBACCESS_DENIED_ERROR: 1,
+    ER_SP_DOES_NOT_EXIST: 1,
+    POOL_NONEONLINE: 1
 }
 
-config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD"];
+config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD", "SLAVE2_IP"];
+
 if(mode === 'testingprodissueenv') {
 
     //Ports Config
     config.version = 'r0';
     config.servicePort = 4000;
-    
-    //Mysql Config
-    config.masterIp = 'preprodmysql.worlddesk.cloud';
-    config.slave1Ip = 'stagingmysql.worlddesk.cloud';
 
-    config.slave1DBUser = 'apiuser';
-    config.masterDBUser = 'apiuser';
-    config.masterDatabase = 'worlddesk_staging';
-    config.slave1Database = 'worlddesk_staging';
-    config.masterDBPassword = 'apidbuser';
-    config.slave1DBPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -220,16 +227,6 @@ if(mode === 'masimukku') {
 
     config.sqsConsumer = 4300;
 
-    //Mysql Config
-    config.masterIp = '';
-    config.slave1Ip = '';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
     config.conLimit = 2;
 
     //Redis Config    
@@ -315,7 +312,7 @@ if(mode === 'local') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_pool_id = 'ap-south-1_9vPl6RcPo';
     config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
     
 
@@ -333,21 +330,6 @@ if(mode === 'local') {
 
     config.sqsConsumer = 7300;
 
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.masterIp = '';
-    config.slave1Ip = '';
-
-    //This is for Account Search
-    //config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
     config.conLimit = 5;
 
     //Log Mysql Config
@@ -485,13 +467,6 @@ if(mode === 'dev') {
 
     config.sqsConsumer = 3300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
-    config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
     config.logMasterIp = '10.0.0.169';
@@ -580,16 +555,6 @@ if(mode === 'demo') {
     config.servicePort = 8000;
     config.standAlonePamServicePort = 6100;
 
-    //Mysql Config
-    config.masterIp = '';
-    config.slave1Ip = '';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
 
     config.conLimit = 2;
 
@@ -705,23 +670,6 @@ if(mode === 'sprint') {
     config.consumerFive = 6205;
 
     config.sqsConsumer = 6300;
-
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.masterIp = '';
-    config.slave1Ip = '';
-    //config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.masterIp = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
 
     config.conLimit = 2;
 
@@ -840,18 +788,6 @@ if(mode === 'staging') {
 
     config.sqsConsumer = 4300;
 
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
-    config.masterIp = '';
-    config.slave1Ip = '';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
 
     config.conLimit = 2;
 
@@ -981,7 +917,7 @@ if(mode === 'preprod') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
+    config.user_pool_id = 'ap-south-1_jeS0OISHP';
     config.user_web_pool_id = 'ap-south-1_xCOITnm28';
     //Ports Config
     config.version = 'r1';
@@ -997,18 +933,6 @@ if(mode === 'preprod') {
 
     config.sqsConsumer = 6300;
 
-    // Mysql Config
-    config.masterIp = '';
-    config.slave1Ip = '';
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.slave1DBUser = '';
-    config.masterDBUser = '';
-    config.masterDatabase = '';
-    config.slave1Database = '';
-    config.masterDBPassword = '';
-    config.slave1DBPassword = '';
 
     config.conLimit = 2;
 

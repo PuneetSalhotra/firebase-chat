@@ -231,6 +231,39 @@ this.getAllParticipantsAsync = async (request) => {
         }
     };
 
+    this.updateActivityLogLastUpdatedDatetimeV1 = async function (request, assetId, callback) {
+
+        let [err,assetData]= await this.getAssetDetailsAsync({...request,asset_id:assetId});
+            let assetInfo = assetData[0];
+                var assetCollection = {
+                    asset_id: assetInfo['asset_id'],
+                    workforce_id: assetInfo['project_id'],
+                    account_id: assetInfo['account_id'],
+                    organization_id: assetInfo['organization_id']
+                };
+                updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
+                    if (err !== false) {
+                        //console.log(err);
+                        global.logger.write('conLog', err, err, {});
+                    }
+                });
+            
+        
+        // if (assetId > 0) {
+        //     this.getAllParticipantsExceptAsset(request, assetId, function (err, data) {
+        //         if (err === false) {
+        //             updateAssetsLogDatetime(data);
+        //         }
+        //     }.bind(this));
+        // } else {
+        //     this.getAllParticipants(request, function (err, data) {
+        //         if (err === false) {
+        //             updateAssetsLogDatetime(data);
+        //         }
+        //     }.bind(this));
+        // }
+    };
+
 
     this.activityListHistoryInsert = function (request, updateTypeId, callback) {
 
@@ -365,6 +398,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -608,6 +642,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4426,6 +4461,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4723,6 +4759,7 @@ case 729: // Report form BC Edit
                 break;
             case 704: // form: status alter
             case 711: //alered the due date
+            case 734: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -6428,6 +6465,28 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error,responseData];
     }
 
+    this.fetchCompanyDefaultAssetName = async function (request) {
+        let assetName = 'greneOS',
+            error = true;
+
+        const paramsArr = new Array(
+            1,
+            100
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetName = data[0].asset_first_name;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetName];
+    };
 }
 
 

@@ -1067,11 +1067,11 @@ function AnalyticsService(objectCollection)
         {
             let results = new Array();
             let paramsArray;
-
+            /*
             let idAsset = request.target_asset_id;
             if(idAsset == 0){
                 idAsset = request.asset_id;
-            }
+            } */
 
             paramsArray = 
             new Array
@@ -1081,12 +1081,13 @@ function AnalyticsService(objectCollection)
                 request.workforce_id,
                 request.tag_type_id,
                 global.analyticsConfig.parameter_flag_sort,
-                idAsset,
+                request.target_asset_id,
+                request.asset_id,
                 request.page_start || 0,
                 request.page_limit || 50
             );
 
-            results[0] = await db.callDBProcedureR2(request, 'ds_p1_1_activity_list_select_management_widgets', paramsArray, 1);
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_2_activity_list_select_management_widgets', paramsArray, 1);
             if(request.is_kpi_value_required == 1){
                 console.log('results[0].length '+results[0].length);
                 
@@ -2075,8 +2076,8 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+            //arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
@@ -2105,13 +2106,16 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
+            if([131,132,133,134].includes(request.widget_type_id))
+                request.filter_asset_id = request.asset_id;
+
             console.log('request.filter_is_datetime_considered :: '+ request.filter_is_datetime_considered);
 
             try{
             
-                for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-                {
-                    console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+            //    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            //    {
+                    console.log('request.tag_type_id '+request.tag_type_id);
 
                     paramsArray = 
                     new Array
@@ -2127,7 +2131,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_workforce_type_id),
                         parseInt(request.filter_workforce_id),
                         parseInt(request.filter_asset_id),
-                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.tag_type_id),
                         parseInt(request.filter_tag_id),
                         parseInt(request.filter_activity_type_id),
                         global.analyticsConfig.activity_id_all, //Activity ID,
@@ -2171,12 +2175,12 @@ function AnalyticsService(objectCollection)
                         results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": responseArray,
                                 }
                             );
                         iterator++
-                    } else if (['128', '129', '130'].includes(request.widget_type_id)) {
+                    } else if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
                         request.verticalData = global.analyticsConfig.vertical;
                         results = await this.prepareWidgetData(request, paramsArray);
                     } else {
@@ -2194,7 +2198,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": tempResult,
                                 }
                             );
@@ -2208,7 +2212,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult,
                                 }
@@ -2221,7 +2225,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult[0].value,
                                     "target": tempResult[0].target,
@@ -2244,7 +2248,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": totalValue,
                                 }
@@ -2252,7 +2256,7 @@ function AnalyticsService(objectCollection)
                         }
                     }
                     iterator++;
-                }
+            //    }
 
             }catch(e){
                 console.log('error ::', e);
@@ -2288,7 +2292,7 @@ function AnalyticsService(objectCollection)
 
             assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
                 .then(async (data) => {
-
+                    console.log("1");
                     let verticalMap = new Map();
 
                     if (data !== undefined && data.length >= 2) {
@@ -2313,31 +2317,37 @@ function AnalyticsService(objectCollection)
 
                         }
                     }
+                    console.log("2");
                     if (verticalMap.size == 0) {
-
+                        console.log("3");
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
                         let results = new Array();
                         results.push(request.verticalData[request.widget_type_id]);
                         resolve(results);
 
                     } else {
-
+                        console.log("4");
                         switch (request.widget_type_id) {
-
-                            case '128': {
+                            
+                            case 128: {
+                                console.log("128request.widget_type_id "+request.widget_type_id);
                                 let results = new Array();
                                 resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
                                 break;
                             }
-                            case '129': {
+                            case 129: {
+                                console.log("129request.widget_type_id "+request.widget_type_id);
                                 resolve(await this.prepareDataForWidgetType129(request, paramsArray, verticalMap));
                                 break;
                             }
-                            case '130': {
+                            case 130: {
+                                console.log("130request.widget_type_id "+request.widget_type_id);
                                 resolve(await this.prepareDataForWidgetType130(request, paramsArray, verticalMap));
                                 break;
                             }
-
+                            default:{
+                                console.log("defaultrequest.widget_type_id "+request.widget_type_id);
+                            }
                         }
 
                     }
@@ -2354,7 +2364,7 @@ function AnalyticsService(objectCollection)
     this.prepareDataForWidgetType128 = async (request, paramsArray, verticalMap) => {
 
         try {
-
+            console.log("prepareDataForWidgetType128 :: ");
             let results = new Array();
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
@@ -2455,7 +2465,7 @@ function AnalyticsService(objectCollection)
     }
 
     this.prepareDataForWidgetType129 = async (request, paramsArray, verticalMap) => {
-
+        console.log("prepareDataForWidgetType129 :: ");
         try {
 
             let results = new Array();
@@ -2558,7 +2568,7 @@ function AnalyticsService(objectCollection)
     this.prepareDataForWidgetType130 = async (request, paramsArray, verticalMap) => {
 
         try {
-
+            console.log("prepareDataForWidgetType130 :: ");
             let results = new Array();
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
@@ -2714,8 +2724,8 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+           // arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
@@ -2755,10 +2765,12 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
+            if([131,132,133,134].includes(request.widget_type_id))
+                request.filter_asset_id = request.asset_id;
             
-            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-            {
-                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+          //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+          //  {
+                console.log('request.tag_type_id '+request.tag_type_id);
 
                  paramsArray = 
                  new Array(
@@ -2773,7 +2785,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_workforce_type_id),
                     parseInt(request.filter_workforce_id),
                     parseInt(request.filter_asset_id),
-                    parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                    parseInt(request.tag_type_id),
                     parseInt(request.filter_tag_id),
                     parseInt(request.filter_activity_type_id),
                     global.analyticsConfig.activity_id_all, //Activity ID,
@@ -2818,7 +2830,7 @@ function AnalyticsService(objectCollection)
                 results[iterator] =
                 (
                     {
-                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                        "tag_type_id": request.tag_type_id,
                         "status_type_id": request.filter_activity_status_type_id,
                         "result": tempResult,
                     }
@@ -2826,7 +2838,7 @@ function AnalyticsService(objectCollection)
 
                 iterator++; 
 
-            }
+          //  }
 
             return results;
         }
@@ -3018,13 +3030,28 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('dm_v1_report_list_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-              .then((data) => {
-                  responseData = data;
-                  error = false;
-              })
-              .catch((err) => {
-                  error = err;
-              })
+                .then(async (data) => {
+
+                    responseData = data;
+                    error = false;
+
+                    if (9 != request.report_type_id) {
+
+                        request.report_id = data[0].report_id;
+                        request.report_status_id = 1;
+                        request.report_url = "";
+
+                        let [err, responseData] = await this.insertAnalyticsReportTransaction(request);
+                        if (err) {
+                            error = err;
+                            console.log("error = " + error);
+                        }
+                    }
+
+                })
+                .catch((err) => {
+                    error = err;
+                })
         }
 
         return [error, responseData]
@@ -4317,7 +4344,35 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    // Insert new transaction for Analytics Report.
+    this.insertAnalyticsReportTransaction = async (request) => {
 
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.report_id,
+            request.report_status_id,
+            request.report_url,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 
 }
 

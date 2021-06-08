@@ -2,7 +2,7 @@ const logger = require("../../logger/winstonLogger");
 //var ActivityService = require('../../services/activityService.js');
 //var ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
-//var ActivityTimelineService = require('../../services/activityTimelineService.js');
+
 const moment = require('moment');
 var makingRequest = require('request');
 const nodeUtil = require('util');
@@ -10,7 +10,8 @@ const nodeUtil = require('util');
 function RMBotService(objectCollection) {
 
     const self = this;
-
+    // const AssetService = require('../../services/assetService.js');
+    // const assetService = new AssetService(objectCollection);
     const util = objectCollection.util;
     const db = objectCollection.db;
     var forEachAsync = objectCollection.forEachAsync;
@@ -151,7 +152,7 @@ function RMBotService(objectCollection) {
             request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
         }
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonservice.fetchCompanyDefaultAssetName(request);
 
         logger.info("callAddParticipant"+JSON.stringify(request,null,2));
         let timelineCollection = {};
@@ -380,7 +381,305 @@ function RMBotService(objectCollection) {
         return [error, responseData];
     }       
 
-  
+  this.getWorkflowStatusDueDateBasedOnAssetBusinessHoursV1 = async function(request){
+      try{
+
+        // const [err, assetData] = await self.assetListSelectAssetWorkforce(request); 
+// console.log(assetData);
+//  const business_hours_json = await setRequiredWorkingHoursJson(assetData[0]);
+let business_hours_json={
+    business_days: [
+      { label: 'THURSDAY', value: 'THURSDAY' },
+      { label: 'TUESDAY', value: 'TUESDAY' },
+      { label: 'MONDAY', value: 'MONDAY' },
+      { label: 'WEDNESDAY', value: 'WEDNESDAY' }
+    ],
+    business_hours: [
+      {
+        business_hour_end_time: '12:30 PM',
+        business_hour_start_time: '10:00 AM'
+      },
+      {
+        business_hour_end_time: '4:00 PM',
+        business_hour_start_time: '1:30 PM'
+      },
+      {
+        business_hour_end_time: '7:00 PM',
+        business_hour_start_time: '4:30 PM'
+      }
+    ],
+    public_holidays: [
+      '23-Jan-2021',
+      '26-Jan-2021',
+      '05-Jun-2021',
+      '15-Aug-2021',
+      '25-Dec-2021',
+      '10-Aug-2021',
+      '31-Dec-2021',
+      '24-May-2021'
+    //   '23-Mar-2021'
+    ]
+  }
+//  console.log(business_hours_json)
+let finalDateToShow = "";
+const {duration_in_minutes,activity_start_time} = request;
+let totalMinutesToCalculate = duration_in_minutes;
+let givenDate = new Date(activity_start_time);
+// let timeIncrementing = givenDate.toLocaleString('en-US', { hour: 'numeric', hour12: true });
+let timeIncrementing = givenDate.getHours();
+let dateIncrementing = moment(activity_start_time).format('DD-MM-YYYY');
+let totalMinutesAvailableInDayArr = getDurationByHours(business_hours_json);
+let totalMinutesAvailableInDay = totalMinutesAvailableInDayArr.reduce((a, b) => a + b)
+let [shortestTime,largestTime,businessHour24] = shortestTimeFun(business_hours_json.business_hours);
+console.log(timeIncrementing,shortestTime,largestTime,"time constr")
+if(timeIncrementing>=largestTime){
+    timeIncrementing=shortestTime
+}
+console.log('shortestTime',shortestTime,"largestTime",largestTime,'business24',businessHour24)
+
+while(totalMinutesToCalculate>0){
+console.log('totalminutes to calulate',totalMinutesToCalculate)
+    let holidayCheck = currentDateWithHoliday(dateIncrementing,business_hours_json.public_holidays);
+    console.log(dateIncrementing,holidayCheck)
+    if(holidayCheck){
+     dateIncrementing = await moment(dateIncrementing,'DD-MM-YYYY').add(1,'days').format('DD-MM-YYYY')
+        continue;
+    }
+    let businessDayCheck = businessDayCheckFun(dateIncrementing,business_hours_json.business_days);
+    console.log(dateIncrementing,businessDayCheck)
+    if(!businessDayCheck){
+        dateIncrementing = await moment(dateIncrementing,'DD-MM-YYYY').add(1,'days').format('DD-MM-YYYY')
+        continue;
+    };
+    
+    let returnData = await businessHoursCal(shortestTime,timeIncrementing,dateIncrementing,business_hours_json.business_hours,businessHour24,totalMinutesAvailableInDay,totalMinutesToCalculate,totalMinutesAvailableInDayArr);
+    console.log(returnData);
+break;
+        totalMinutesToCalculate = returnData.minutesToCalculate;
+        dateIncrementing=returnData.date;
+        if(returnData.finalHourf>0){
+        let dateOfFinal = moment(dateIncrementing,'DD-MM-YYYY').toDate();
+        console.log('dd',dateOfFinal.getHours()+returnData.finalHourf)
+        finalDateToShow = dateOfFinal.setHours(dateOfFinal.getHours()+returnData.finalHourf);
+        finalDateToShow = new Date(finalDateToShow);
+        finalDateToShow = moment(finalDateToShow).format('YYYY-MM-DD HH:mm:ss')
+        console.log(finalDateToShow,"final")
+        }
+ 
+// returncurr_time,date,minutesToCalculate,finalHourf
+    
+
+}
+      
+
+// let rrrr = await fullWorkingDays(business_hours_json);
+// console.log(rrrr)
+
+
+
+
+// let ss = await util.differenceDatetimeInMin(activity_start_time,"2021-05-21 00:39:51");
+
+
+return [false,[finalDateToShow]]
+      }
+      catch(err){
+          console.log(err)
+return [true,err]
+      }
+  }
+
+function currentDateWithHoliday(curr_date,holiday_date){
+    let curr = moment(curr_date,'DD-MM-YYYY').format('DD-MMM-YYYY');
+for(let i=0;i<holiday_date.length;i++){
+    console.log(curr,holiday_date[i])
+    if(curr==holiday_date[i]){
+        return true
+    }
+}
+return false;
+
+}
+async function businessHoursCal(shortestTime,curr_time,curr_date,businessHours,businessHour24,totalMinutesAvailableInDay,totalMinutesToCalculate,totalMinutesAvailableInDayArr){
+   let finalHourf=0;
+//    let time = curr_time;
+   let date = curr_date;
+   let minutesToCalculate = 0;
+    curr_time=curr_time<shortestTime?shortestTime:curr_time;
+   console.log('time we got',timeToCal)
+   businessHour24 =  sort_by_field(businessHour24);
+   console.log(businessHour24,timeToCal,shortestTime);
+   if(shortestTime!=curr_time){
+   for(let i=0;i<businessHour24.length;i++){
+       if(curr_time<businessHour24[i].endTime){
+           let minn = (businessHour24[i].endTime-curr_time)*60;
+        let timeToArr = totalMinutesAvailableInDayArr.slice(i+1,totalMinutesAvailableInDayArr.length+1);
+        let remainingTime2 = timeToArr.reduce((a, b) => a + b);
+        minutesToCalculate = remainingTime2+minn
+        console.log(minutesToCalculate,"minnnnn");
+        curr_time = businessHour24[i].endTime;
+       }
+       else{
+           break;
+       }
+    }
+   }
+   else{
+minutesToCalculate=totalMinutesAvailableInDay;
+   }
+   console.log('min to cal',totalMinutesToCalculate,minutesToCalculate)
+//    console.log("came in",curr_date,businessHour24,totalMinutesToCalculate,totalMinutesAvailableInDay)
+if(totalMinutesToCalculate<=minutesToCalculate){
+    // console.log('came in single day')
+   
+    
+    let hoursCal = totalMinutesToCalculate/60;
+    // console.log('hours to cal',hoursCal)
+    for(let i=0;i<businessHour24.length;i++){
+        console.log("end",businessHour24[i].endTime,businessHour24[i].startTime,businessHour24[i].endTime-businessHour24[i].startTime)
+         hoursCal = hoursCal - (businessHour24[i].endTime-businessHour24[i].startTime);
+         console.log(hoursCal)
+         if(hoursCal<=0){
+             let finalHours = businessHour24[i].endTime-Math.abs(hoursCal);
+             finalHourf = Math.ceil(finalHours);
+             console.log(finalHours,'final');
+             minutesToCalculate=0;
+             break;
+         }
+       
+        
+    }
+    
+}
+else{
+ minutesToCalculate = shortestTime==curr_time? totalMinutesToCalculate-totalMinutesAvailableInDayArr:totalMinutesToCalculate-minutesToCalculate;
+ date = await moment(date,'DD-MM-YYYY').add(1,'days').format('DD-MM-YYYY');
+ console.log("dsdsds",date,minutesToCalculate)
+ curr_time=shortestTime;
+// return [curr_time,date,remainingTime,0]
+}
+console.log('came to return');
+
+return {curr_time,date,minutesToCalculate,finalHourf}
+};
+
+function sort_by_field(businessHour24){
+    return businessHour24.sort(function(a, b){
+        if( a["startTime"] > b["startTime"] ){
+            return 1;
+        }
+        if( a["startTime"] < b["startTime"] ){
+            return -1;
+        }
+        return 0;
+    });
+}
+function businessDayCheckFun(curr_date,businessDays){
+    let weekdays = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+    let currDayIndex = moment(curr_date,'DD-MM-YYYY').toDate().getDay();
+    let currDay = weekdays[currDayIndex];
+    console.log('current day',currDay)
+    for(let i=0;i<businessDays.length;i++){
+        
+
+        if(currDay==businessDays[i].value){
+            return true
+        }
+    }
+    return false;
+    
+    }
+    function shortestTimeFun(businessHours){
+        let shortestTime = 24;
+        let largestTime = 0;
+        let businessHour24=[];
+        for(let i=0;i<businessHours.length;i++){
+            let endTimeArr = businessHours[i].business_hour_end_time.split(" ");
+            
+            let endTimeSplitArr = endTimeArr[0].split(':');
+            console.log(endTimeSplitArr)
+            let endTime = Number(endTimeSplitArr[0])+Number(endTimeSplitArr[1]*0.0166);
+            console.log(endTime);
+            endTime = endTimeArr[1]=="AM"?endTime:endTime>=12?endTime:endTime+12;
+            console.log('final',endTime);
+            let startTimeArr = businessHours[i].business_hour_start_time.split(" ");
+            
+            let startTimeSplitArr = startTimeArr[0].split(':');
+            console.log(startTimeSplitArr)
+            let startTime = Number(startTimeSplitArr[0])+Number(startTimeSplitArr[1]*0.0166);
+            console.log('start',startTime)
+            startTime = startTimeArr[1]=="AM"?startTime:startTime>=12?startTime:startTime+12;
+            console.log('start final',startTime)
+            businessHour24.push({startTime,endTime})
+            if(endTime>largestTime){
+                largestTime=endTime;
+            };
+            if(startTime<shortestTime){
+                shortestTime = startTime
+            }
+        }
+    return [shortestTime,largestTime,businessHour24]
+    }
+
+  function getDurationByHours(business_hours_json) {
+    let minutes = [];
+    for (let i = 0; i < business_hours_json.business_hours.length; i++) {
+        let startTime = new Date(`1/24/2014 ${business_hours_json.business_hours[i].business_hour_start_time}`);
+        // console.log("start :", startTime.getHours(), startTime.getMinutes());
+        let endTime = new Date(`1/24/2014 ${business_hours_json.business_hours[i].business_hour_end_time}`);
+        // console.log("end :", endTime.getHours(), endTime.getMinutes());
+        let delta = Math.abs(endTime - startTime) / 1000;
+        let diff = [
+            60
+        ].reduce((acc, value) => (acc = Math.floor(delta / value), delta -= acc * value, acc), {});
+        // console.log("shift time in hours :", diff);
+        minutes.push(diff);
+    }
+    return minutes;
+}
+
+
+  function setRequiredWorkingHoursJson(assetData){
+      let businessHoursInAsset = false;
+      let businessDaysInWorkforce = false;
+    let business_hours_json ={
+        business_days:[],
+        business_hours:[],
+        public_holidays:[]
+    }  
+    if(assetData.hasOwnProperty('asset_arp_data')&&assetData.asset_arp_data){
+        let {asset_arp_data} = assetData;
+        let dataJson = typeof asset_arp_data=="string"?JSON.parse(asset_arp_data):asset_arp_data;
+        business_hours_json.business_hours = dataJson.business_hours;
+        businessHoursInAsset = true;
+    }
+    if(assetData.hasOwnProperty('workforce_arp_data')&&assetData.workforce_arp_data){
+        let {workforce_arp_data} = assetData;
+        let dataJson = typeof workforce_arp_data=="string"?JSON.parse(workforce_arp_data):workforce_arp_data;
+        if(!businessHoursInAsset){
+        business_hours_json.business_hours = dataJson.business_hours;
+        businessHoursInAsset = true;
+        }
+        business_hours_json.business_days = dataJson.business_days;
+        businessDaysInWorkforce = true;
+    }
+    if(assetData.hasOwnProperty('account_arp_data')&&assetData.account_arp_data){
+        let {account_arp_data} = assetData;
+        let dataJson = typeof account_arp_data=="string"?JSON.parse(account_arp_data):account_arp_data;
+        if(!businessHoursInAsset){
+        business_hours_json.business_hours = dataJson.business_hours;
+        businessHoursInAsset = true;
+        }
+        if(!businessDaysInWorkforce){
+        business_hours_json.business_days = dataJson.business_days;
+        businessDaysInWorkforce = true;
+        }
+        business_hours_json.public_holidays = dataJson.public_holidays
+    }
+    return business_hours_json
+  }
+
+
    this.getWorkflowStatusDueDateBasedOnAssetBusinessHours = async function(request, flag){
 
     try{
@@ -1106,8 +1405,11 @@ function RMBotService(objectCollection) {
                 request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
             }
 
+            if(!request.hasOwnProperty("global_array"))
+            request.global_array = [];
+
             request.timeline_stream_type_id = 718;
-            await self.activityListLeadUpdateV1(request, leadAssetId);
+            await self.activityListLeadUpdateV2(request, leadAssetId);
             request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
             request.target_asset_id = leadAssetId;
@@ -3094,7 +3396,7 @@ function RMBotService(objectCollection) {
                             
                             if(Number(request.asset_id) == 100) {
                                 request.stream_type_id = 718;
-                                const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                                const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
                                 name = defaultAssetName;
                             }
     

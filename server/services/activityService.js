@@ -544,7 +544,7 @@ function ActivityService(objectCollection) {
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');
                                 let formInlineData = JSON.parse(request.activity_inline_data);
-                                console.log('formInlineData : ', formInlineData);
+                                //console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
@@ -2412,7 +2412,7 @@ function ActivityService(objectCollection) {
                     
                     newRequest.operation_type_id = 17;
                     const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
                     if(respData1.length > 0) {
                         activityCommonService.activityEntityMappingUpdateStatus(request, {
                             activity_id,
@@ -4196,7 +4196,7 @@ function ActivityService(objectCollection) {
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
                     console.log("queueId: ", queueId);
-                    console.log("queueInlineData: ", queueInlineData);
+                    //console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
                     for (const activityStatus of queueInlineData) {
@@ -4210,7 +4210,7 @@ function ActivityService(objectCollection) {
                         await activityCommonService
                             .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
-                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+                              //  console.log('queueActivityMappingData : ', queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
                                 if (queueActivityMappingData.length > 0) {
@@ -5034,8 +5034,8 @@ function ActivityService(objectCollection) {
             // });
             // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
-            let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+            let message = `${defaultAssetName} added ${assetsData[0].operating_asset_first_name} to this Conversation`
             
             //adding participant
               let newParticipantParams = {
@@ -5893,7 +5893,7 @@ function ActivityService(objectCollection) {
             JSON.parse(request.activity_inline_data)
             );
 
-            console.log(JSON.stringify(activityInlineData))
+            //console.log(JSON.stringify(activityInlineData))
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -5903,6 +5903,7 @@ function ActivityService(objectCollection) {
                 request.activity_form_id,
                 request.form_transaction_id,
                 request.workflow_activity_id || request.activity_channel_id,
+                request.activity_parent_id || 0,
                 request.asset_id,
                 request.datetime_log
             );
