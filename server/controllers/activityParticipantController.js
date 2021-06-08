@@ -50,7 +50,7 @@ function ActivityParticipantController(objCollection) {
             productId = req.body.product_id;
         }
         
-        if(productId == 2) {
+        /*if(productId == 2) {
             activityCommonService.getActivityDetails(req.body, 0, function(err, data){
                 var x = data[0].activity_type_category_id;                
                 // console.log('X : ', data[0].activity_type_category_id);
@@ -58,7 +58,7 @@ function ActivityParticipantController(objCollection) {
 
                 req.body.activity_type_category_id = x;
             });
-        }
+        } */
         
         var proceedParticipantAccessSet = function () {
             var event = {
@@ -114,7 +114,7 @@ function ActivityParticipantController(objCollection) {
                 });
 
             } else if (deviceOsId === 5 || deviceOsId === 6) {
-                if(productId == 2) {
+                /*if(productId == 2) {
                     activityCommonService.getActivityDetails(req.body, 0, function(err, data){
                         var x = data[0].activity_type_category_id;                
                         // console.log('X : ', data[0].activity_type_category_id);
@@ -126,8 +126,8 @@ function ActivityParticipantController(objCollection) {
                     });
                 } else {
                     proceedParticipantAccessSet();
-                }
-
+                } */
+                proceedParticipantAccessSet();
             } else {
                 res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
