@@ -4118,35 +4118,17 @@ this.getEvent = async (request) => {
 	}
 	return [error, responseData];
 };
-this.assetAddForPAMV1 = async function (request) {
+
+this.addAssetPamSubfnV1 = async function (request) {
+	err = true ,responseData = [];
 	var dateTimeLog = util.getCurrentUTCTime();
 	request['datetime_log'] = dateTimeLog;
-	
+
 	var assetTypeCtgId;
 	(request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
-	
-	if(assetTypeCtgId == 29) {
-		activityCommonService.generateUniqueCode(request, async function(err, code){
-			if(err === false){
-				request.code = code;
-				request.enc_token = uuid.v1();                                          
-				const [error,assetData] = await addAssetPamSubfnV1(request);
-				return [error,assetData]
-			} else {
-				return [true, {}];
-			}
-		});
-	} else {
-		request.code = '';
-		request.enc_token = '';
-		const [error,assetData] = await  addAssetPamSubfnV1(request);
-		return [error,assetData]
-	}
-	return [true,[]]
-};
 
-var addAssetPamSubfnV1 = async function (request) {
-	err = true ,responseData = [];
+		request.code = (request.code||'');
+		request.enc_token =(request.enc_token|| '');
 		var paramsArr = new Array(
 			request.asset_first_name,
 			request.asset_last_name,
@@ -4180,38 +4162,6 @@ var addAssetPamSubfnV1 = async function (request) {
 			if (err === false) {
 				assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
 				request.ingredient_asset_id = assetData[0]['asset_id'];
-				//sss.createAssetBucket(request, function(){});
-				
-				if(assetData[0].asset_type_category_id == 41) {
-					retrieveAccountWorkforces(request).then((data)=>{
-						//console.log('Workforces : ', data);
-						forEachAsync(data, function (next, x) {
-								createActivityTypeForAllWorkforces(request, x.workforce_id).then((resp)=>{
-									request.activity_type_id = resp[0].activity_type_id;
-									workForceActivityTypeHistoryInsert(request).then(()=>{})
-									next();
-								 })
-						}).then(()=>{});
-					});
-				}
-				
-				if(assetData[0].asset_type_category_id == 29) {
-					var authTokenCollection = {
-						"asset_id": assetData[0]['asset_id'],
-						"workforce_id": request.workforce_id,
-						"account_id": request.account_id,
-						"organization_id": request.organization_id,
-						"asset_token_push": "",
-						"asset_push_arn": "",
-						"asset_auth_token": request.enc_token
-					};
-
-					cacheWrapper.setTokenAuth(assetData[0]['asset_id'], JSON.stringify(authTokenCollection), function (err, reply) {
-						if (!err) {
-							console.log('Sucessfully data created in Redis');
-						}
-					});
-				}
 				err = false 
 				responseData = assetData
 		        // return [false ,{"asset_id": assetData[0]['asset_id']} ]		
@@ -4231,12 +4181,11 @@ this.addPamReservationViaPhoneNumber = async (request) => {
     try{
 	let assetData = await self.assetListSelectPhoneNumber(request);
     if(assetData.length > 0){
-
         request.member_asset_id = assetData[0].asset_id;
 		request.asset_first_name = assetData[0].asset_first_name 
 	}
     else{
-        // create the asset
+        	// create the asset
 			request.asset_first_name = request.phone_number;
 			request.asset_last_name = "";
 			request.asset_description = "";
@@ -4257,9 +4206,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.is_member = 1;
 			request.invite_sent = 0;
 			request.discount_percent = 0;
-
-			const [error,newAssetData] = await self.assetAddForPAMV1(request);
-			console.log("newAssetData::",newAssetData);
+			const [error,newAssetData] = await self.addAssetPamSubfnV1(request);
 			if(newAssetData.length>0){
 				request.member_asset_id = newAssetData[0].asset_id
 			}
