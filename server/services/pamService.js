@@ -4146,6 +4146,7 @@ this.assetAddForPAMV1 = async function (request) {
 };
 
 var addAssetPamSubfnV1 = async function (request) {
+	err = true ,responseData = [];
 		var paramsArr = new Array(
 			request.asset_first_name,
 			request.asset_last_name,
@@ -4211,17 +4212,14 @@ var addAssetPamSubfnV1 = async function (request) {
 						}
 					});
 				}
-		          return [false ,{"asset_id": assetData[0]['asset_id']} ]		
-				// callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
-			} else {
-				// some thing is wrong and have to be dealt
-				// callback(true, err, -9999);
-
-				return [true,{}]	
-				}
+				err = false 
+				responseData = assetData
+		        // return [false ,{"asset_id": assetData[0]['asset_id']} ]		
+			 // callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
+			} 
 			});
-		} 
-		return [true, {}]       
+		}
+		return [err, responseData]       
 };
 
 
@@ -4261,11 +4259,9 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.discount_percent = 0;
 
 			const [error,newAssetData] = await self.assetAddForPAMV1(request);
-			if(!error){
+			console.log("newAssetData::",newAssetData);
+			if(newAssetData.length>0){
 				request.member_asset_id = newAssetData[0].asset_id
-			}
-			else{
-				return [err,responseData]
 			}
     } 
     const [eventErr, eventData] = await self.getEvent(request);
