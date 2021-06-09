@@ -10651,6 +10651,50 @@ console.log('new ActivityId321',newActivity_id)
     
         return [error, responseData];
     }
+
+    this.updatePreviewEnabledFlag = async function(request){
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+
+        logger.info("updatePreviewEnabledFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+
+        try {
+            let paramsArr = new Array(      
+                request.field_id,      
+                request.form_id,                 
+                request.organization_id,
+                request.field_preview_enabled,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            let queryString = util.getQueryString(
+                "ds_p1_workforce_form_field_mapping_update_preview_enabled",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_workforce_form_field_mapping_update_preview_enabled : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updatePreviewEnabledFlag : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
