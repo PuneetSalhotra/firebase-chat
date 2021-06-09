@@ -85,8 +85,6 @@ this.getAllParticipantsAsync = async (request) => {
             50
         );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
-        global.logger.write('conLog', "getAllParticipantsExceptAsset", {}, request);
-        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -143,7 +141,6 @@ this.getAllParticipantsAsync = async (request) => {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -183,8 +180,6 @@ this.getAllParticipantsAsync = async (request) => {
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
 
-        global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
-        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -4920,7 +4915,6 @@ case 729: // Report form BC Edit
                 })
                 .catch((err) => {
                     //error = true;
-                    console.log("Error in function 'activityAssetMappingUpdateLastUpdateDateTimeOnlyAsync' : ", err);
                 });
         }
 
@@ -4970,9 +4964,7 @@ async function updateActivityLogDiffDatetimeAssetAsync(request, assetId){
                 error = false;
             })
             .catch((err) => {
-                //error = true;
-                global.logger.write('conLog', JSON.stringify(err), err, request);
-                console.log("Error in function 'updateActivityLogDiffDatetimeAssetAsync' : ", err);
+                logger.error(`[${request.log_uuid || ""}] updateActivityLogDiffDatetimeAssetAsync`, { type: 'add_activity', error: serializeError(err) });
             });
     }
 
@@ -5024,8 +5016,6 @@ this.getAllParticipantsExceptAssetAsync = async (request, assetId) => {
     
     const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
     
-    global.logger.write('conLog', "getAllParticipantsExceptAssetAsync", {}, request);
-    global.logger.write('conLog', queryString, {}, request);
 
     if (queryString != '') {
         await db.executeQueryPromise(1, queryString, request)
