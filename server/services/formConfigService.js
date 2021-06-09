@@ -6706,6 +6706,33 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     }    
+
+    this.activityFormFieldUpdatePreview = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.field_id,            
+            request.form_id,
+            request.organization_id,
+            request.field_preview_enabled,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_preview_enabled', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
 }
 
 module.exports = FormConfigService;
