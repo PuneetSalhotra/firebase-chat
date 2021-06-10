@@ -1157,13 +1157,14 @@ function ActivityService(objectCollection) {
         new Promise((resolve, reject) => {
             if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
-
+                console.log(activityTypeCategoryId)
                 function generateUniqueCode() {
                     reserveCode = util.randomInt(50001, 99999).toString();
                     activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
+                        console.log("generateUniqueCode")
                         if (err === false) {
                             // console.log('activitySubTypeName : ' + data);
-                            global.logger.write('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
+                            //logger.info('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
 
                             activitySubTypeName = data;
                             responseactivityData.reservation_code = data;
@@ -5884,15 +5885,21 @@ function ActivityService(objectCollection) {
     }  
 
     this.activityFormListInsert = async function (request) {
-
         let responseData = [],
             error = true;
-
-            var activityInlineData = activityInlineDataConversion(
-            JSON.parse(request.activity_inline_data)
-            );
-
-            //console.log(JSON.stringify(activityInlineData))
+            
+            let activityInlineData = {};
+            if(request.activity_inline_data){
+                let data = JSON.parse(request.activity_inline_data)
+                if(Array.isArray(data)){
+                    activityInlineData = activityInlineDataConversion(
+                        JSON.parse(request.activity_inline_data)
+                        );
+                }
+                else{
+                    activityInlineData = JSON.parse(request.activity_inline_data)
+                }
+            }
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
