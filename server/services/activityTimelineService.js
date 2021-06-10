@@ -6,6 +6,8 @@ const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
 const { Kafka } = require('kafkajs');
+const logger = require("../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 
 function ActivityTimelineService(objectCollection) {
 

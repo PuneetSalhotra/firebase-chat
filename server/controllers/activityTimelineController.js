@@ -4,6 +4,8 @@
  */
 
 var ActivityTimelineService = require("../services/activityTimelineService");
+const logger = require("../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 
 function ActivityTimelineController(objCollection) {
 
@@ -15,9 +17,8 @@ function ActivityTimelineController(objCollection) {
 
     var activityTimelineService = new ActivityTimelineService(objCollection);
 
-    app.post('/' + global.config.version + '/activity/timeline/entry/add', function (req, res) {
-        let logUUID = await util.getLogUUID();
-        req.body["log_uuid"] = logUUID;
+    app.post('/' + global.config.version + '/activity/timeline/entry/add',async function (req, res) {
+        let logUUID = req.body.log_uuid || "";
         logger.info(`::START:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
         logger.info(`${logUUID} Request Params %j`,JSON.stringify(req.body,null, 4));
         

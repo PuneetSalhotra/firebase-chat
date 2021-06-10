@@ -755,7 +755,7 @@ function ActivityService(objectCollection) {
                                     //console.log("error in setting in message unique id look up");
                                     logger.error(`[${logUUID}] error in setting in message unique id look up`, { type: 'add_activity', error: serializeError(err) });
                                 } else
-                                logger.error(`[${logUUID}] message unique id look up is set successfully`, { type: 'add_activity', error: serializeError(err) });
+                                logger.info(`[${logUUID}] message unique id look up is set successfully`);
                                     //console.log("message unique id look up is set successfully")
                             });
                             //return;

@@ -498,6 +498,7 @@ function FormConfigService(objCollection) {
 
     this.alterFormActivity = async function (request, callback) {
 
+        let logUUID = request.log_uuid || "";
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
@@ -510,32 +511,32 @@ function FormConfigService(objCollection) {
 
         //If the parameter activity_id is form_activity_id then proceed else check and the get the form_activity_id and append
         let [err, responseData] = await checkWhetherFormWorkflowActID({
+            log_uuid : request.log_uuid,
             form_transaction_id: request.form_transaction_id,
             organization_id: request.organization_id
         });
 
         let activityTypeID = 0;
         let workflowActID = 0;
-        if(responseData.length > 0) {            
-            console.log('Form Activity ID - ', responseData[0].form_activity_id);
-            console.log('Workflow Activity ID - ', responseData[0].workflow_activity_id);
-            console.log('request.activity_id - ', request.activity_id);
-            console.log('responseData[0].activity_type_id - ', responseData[0].activity_type_id);
+        if(responseData.length > 0) {
+            logger.info(`[${logUUID}] Form Activity ID %j`,responseData[0].form_activity_id);
+            logger.info(`[${logUUID}] Workflow Activity ID -  %j`,responseData[0].workflow_activity_id);
+            logger.info(`[${logUUID}] request.activity_id -  %j`,request.activity_id);
+            logger.info(`[${logUUID}] responseData[0].activity_type_id - %j`,responseData[0].activity_type_id);
             
             workflowActID = responseData[0].workflow_activity_id;
             activityTypeID = Number(responseData[0].activity_type_id);
 
             if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
-                console.log('Received workflow_Activity_Id instead of form_activity_id from request');
+                logger.info(`[${logUUID}] Received workflow_Activity_Id instead of form_activity_id from request`);
                 request.activity_id = responseData[0].form_activity_id;
             } else {
-                console.log('Received form_activity_id from request. Hence proceeeding!');
+                logger.info(`[${logUUID}] Received form_activity_id from request. Hence proceeeding!`);
             }
         }        
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var newData = activityInlineData[0];        
-        console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         var dataTypeId = Number(newData.field_data_type_id);
         //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
@@ -5216,7 +5217,7 @@ function FormConfigService(objCollection) {
     
     async function addAssetToWorkflow(request){
         let flag = 1;
-
+        let logUUID = request.log_uuid || "";
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
             return [workflowError, workflowData];
@@ -5234,8 +5235,9 @@ function FormConfigService(objCollection) {
             newReq.page_start = 0;
 
         participantService.getParticipantsList(newReq, async (err, resp)=>{
+
             let participantData = resp.data;
-            console.log('********* participantData : ', participantData);
+            logger.info(`[${logUUID}] ********* participantData :  %j`,participantData);
 
             for(let i = 0; i<participantData.length; i++) {
                 if(Number(participantData[i].asset_id) === Number(request.asset_id)) {
@@ -5243,16 +5245,14 @@ function FormConfigService(objCollection) {
                 }
             }
 
-            console.log('FLAG : ', flag);
+            logger.info(`[${logUUID}] FLAG :  %j`,flag);
             if(flag === 1) {
-                console.log('request.asset_id', request.asset_id);
                 
                 //Add the asset as participant
                 const [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); 
                 if(err) {
                     return "failure";
-                }               
-                console.log('ASSETDATA : ', assetData[0]);
+                }
 
                 if(assetData.length > 0) {
                     let participantCollection = [];

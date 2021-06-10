@@ -23,8 +23,7 @@ function ActivityController(objCollection) {
     var activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add',async function (req, res) {
-        let logUUID = await util.getLogUUID();
-        req.body["log_uuid"] = logUUID;
+        let logUUID = req.body.log_uuid || "";
         logger.info(`::START:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
@@ -278,8 +277,7 @@ function ActivityController(objCollection) {
 
     //Add Activity New Version
     app.post('/' + global.config.version + '/activity/add/v1',async function (req, res) {
-        let logUUID = await util.getLogUUID();
-        req.body["log_uuid"] = logUUID;
+        let logUUID = req.body.log_uuid || "";
         logger.info(`[${logUUID}]   ::START:: `);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))

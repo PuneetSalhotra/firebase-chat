@@ -3059,11 +3059,6 @@ function Util(objectCollection) {
        }];
    };
 
-
-    this.getLogUUID = async function () {
-        return `${uuidv4()}${Math.floor((Math.random()*100) + 1)}`
-    };
-
 }
 
 module.exports = Util;
