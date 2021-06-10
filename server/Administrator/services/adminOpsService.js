@@ -1284,6 +1284,17 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             }]
         }
 
+        // Check if an Employee with the given email exists
+        const [errZero_13, checkEmailData] = await assetListSelectCategoryEmail({
+            operating_asset_email: request.email_id
+        }, organizationID);
+        if (errZero_13 || Number(checkEmailData.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryEmail | Error: ", errZero_13);
+            return [true, {
+                message: `An employee with this ${request.email_id} email already exists.`
+            }]
+        }
+
         // Check if an Employee with the given phone nunmber exists
         const [errZero_2, checkCUIDData] = await assetListSelectCustomerUniqueID({
             account_id: 0,
@@ -1864,6 +1875,31 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_category_id
         );
         const queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function assetListSelectCategoryEmail(request, organizationID) {
+        // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), 
+        // IN p_country_code SMALLINT(6), IN p_asset_type_category_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.operating_asset_email,
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
