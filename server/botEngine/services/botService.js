@@ -16,7 +16,6 @@ const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
 const AdminListingService = require("../../Administrator/services/adminListingService");
 const AdminOpsService = require('../../Administrator/services/adminOpsService');
 const CommnElasticService = require('../../elasticSearch/services/elasticSearchService');
-const AssetService = require('../../services/assetService')
 //var aspose = aspose || {};
 //aspose.cells = require("aspose.cells");
 //
@@ -80,7 +79,6 @@ function BotService(objectCollection) {
     //const workbookOpsService = new WorkbookOpsService(objectCollection);
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
-    const assetService = new AssetService(objectCollection);
     const rmBotService = new RMBotService(objectCollection);
 
     const nodeUtil = require('util');
@@ -3005,6 +3003,7 @@ return [error, responseData];
             if(wfActivityDetails.length > 0) {                    
                 let leadAssetID = Number(wfActivityDetails[0].activity_lead_asset_id);
                 let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
+                let ownerAssetID = Number(wfActivityDetails[0].activity_owner_asset_id)
                     
                 console.log('Asset ID : ', assetID);
                 console.log('Lead Asset ID : ', leadAssetID);
@@ -3030,7 +3029,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     }
-                 await removeAsOwner(request,reqDataForRemovingAsOwner);
+                 await removeAsOwner(request,reqDataForRemovingAsOwner,0);
 
                 }
                 else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
@@ -3042,7 +3041,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     };
-                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner);
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,1);
 
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
@@ -3119,7 +3118,7 @@ return [error, responseData];
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
             // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             //Add a timeline entry
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
             let activityTimelineCollection =  JSON.stringify({                            
                 "content": `${defaultAssetName} removed ${leadOperatingAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -3183,7 +3182,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
     // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
     //Add a timeline entry
-    const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+    const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
     let activityTimelineCollection =  JSON.stringify({                            
         "content": `${defaultAssetName} assigned ${leadAssetFirstName} as lead at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -3207,7 +3206,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 }
 
-async function removeAsOwner(request,data)  {
+async function removeAsOwner(request,data,addT = 0)  {
         let responseData = [],
             error = true;
 
@@ -3231,6 +3230,39 @@ async function removeAsOwner(request,data)  {
                 error = e;
             }
         }
+        if(addT==0){
+        const [error2, assetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: data.target_asset_id
+        });
+        let assetName = assetData[0].operating_asset_first_name || assetData[0].asset_first_name;
+        const [error1, logassetData] = await activityCommonService.getAssetDetailsAsync({
+            organization_id: request.organization_id,
+            asset_id: request.asset_id
+        });
+        let logAssetname = logassetData[0].operating_asset_first_name || logassetData[0].asset_first_name;
+        let activityTimelineCollection =  JSON.stringify({                            
+            "content": `${logAssetname} revoke ownership ${assetName} @ ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "subject": `Note - ${util.getCurrentDate()}.`,
+            "mail_body": `${logAssetname} revoke ownership ${assetName} @ ${moment().utcOffset('+05:30').format('LLLL')}.`,
+            "activity_reference": [],
+            "asset_reference": [],
+            "attachments": [],
+            "form_approval_field_reference": []
+        });
+    
+        let timelineReq = Object.assign({}, request);
+            timelineReq.activity_id = request.workflow_activity_id;
+            timelineReq.activity_type_id = request.activity_type_id;
+            timelineReq.message_unique_id = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id = 702;
+            timelineReq.timeline_stream_type_id = 702;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline = timelineReq.activity_timeline_collection;
+    
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+    }
         return [error,responseData];
     }
 
@@ -3570,7 +3602,7 @@ async function removeAsOwner(request,data)  {
 
         let addCommentRequest = Object.assign(request, {});
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
         
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3682,7 +3714,7 @@ async function removeAsOwner(request,data)  {
         console.log("attachmentsList: ", attachmentsList);
 
         let addCommentRequest = Object.assign(request, {});
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3831,7 +3863,7 @@ async function removeAsOwner(request,data)  {
         }
 
         let attachments = [];
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
         for (const comment of comments) {
             let addCommentRequest = Object.assign(request, {});       
 
@@ -3984,7 +4016,7 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -4288,7 +4320,7 @@ async function removeAsOwner(request,data)  {
             return;
         }
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -5436,7 +5468,7 @@ async function removeAsOwner(request,data)  {
         let newReq = Object.assign({}, request);
         let resp;
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
-        
+        request.debug_info=[]
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
@@ -6193,7 +6225,7 @@ else{
 
         await new Promise((resolve, reject) => {
             if (Number(newReq.country_code) === 91) {
-                util.sendSmsSinfini(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {
+                util.sendSmsSinfiniV1(newReq.smsText, newReq.country_code, newReq.phone_number,'GRNEOS', function (err, res) {
                     global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
                     global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
                     resolve();
@@ -6676,7 +6708,7 @@ else{
         assetData.contact_phone_number = deskAssetData.operating_asset_phone_number || deskAssetData.asset_phone_number;
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
-
+request.debug_info = []
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
         return await addDeskAsParticipant(request, assetData);
@@ -6873,7 +6905,7 @@ else{
         //     organization_id: request.organization_id,
         //     asset_id: request.asset_id
         // });
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let logAssetFirstName = defaultAssetName;
             let message = `${logAssetFirstName} added ${assetData.asset_first_name} as collaborator.`;
@@ -8035,7 +8067,7 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateStatus(request, {
@@ -8047,7 +8079,7 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateStatus(request, {
@@ -8065,7 +8097,7 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8076,7 +8108,7 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData.length);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -9740,36 +9772,50 @@ else{
             if(reminder_inline_data.hasOwnProperty('date_reminder')){
                 if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
                     let message_template = reminder_inline_data.date_reminder.message_template;
-                    let message_template_textArr = message_template.split(" ");
+                    console.log("message template",message_template);
+                    // let message_template_textArr = message_template.split(" ");
                     const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
-                    for(let i=0;i<message_template_textArr.length;i++){
-                        if(message_template_textArr[i]=="<<title>>"){
+
+                    message_template = message_template.replace('<<title>>',request.activity_title?request.activity_title:"'NA'");
+                    message_template = message_template.replace("<<cuid_1>>",workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'");
+                    message_template = message_template.replace("<<cuid_2>>",workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'");
+                    message_template = message_template.replace("<<cuid_3>>",workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'");
+                    message_template = message_template.replace("<<creator_name>>",workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'");
+                    message_template = message_template.replace("<<lead_name>>",workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'");
+                    let dueDate = workflowActivityData[0].activity_datetime_end_deferred;
+                    let dateObj = new Date(dueDate);
+                    dueDate = `${moment(dateObj).format('ddd DD MMM YYYY')}`
+                    message_template = message_template.replace("<<duedate>>",dueDate);
+                    console.log('message template after',message_template)
+                    // console.log("array",message_template_textArr)
+                    // for(let i=0;i<message_template_textArr.length;i++){
+                    //     if(message_template_textArr[i]=="<<title>>"){
                             
-                            message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_1>>"){
+                    //         message_template_textArr[i] = request.activity_title?request.activity_title:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_1>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_2>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_2>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<cuid_3>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<cuid_3>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<creator_name>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_cuid_3?workflowActivityData[0].activity_cuid_3:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<creator_name>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
-                        }
-                        if(message_template_textArr[i]=="<<lead_name>>"){
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_creator_operating_asset_first_name?workflowActivityData[0].activity_creator_operating_asset_first_name:"'NA'";
+                    //     }
+                    //     if(message_template_textArr[i]=="<<lead_name>>"){
                             
-                            message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
-                        }
+                    //         message_template_textArr[i] = workflowActivityData[0].activity_lead_operating_asset_first_name?workflowActivityData[0].activity_lead_operating_asset_first_name:"'NA'";
+                    //     }
                         
-                    }
-                    let messageToSend = message_template_textArr.join(" ");
+                    // }
+                    let messageToSend = message_template
                     addCommentRequest.activity_timeline_collection = JSON.stringify({
                         "content": `${messageToSend}`,
                         "subject": `${messageToSend}`,
@@ -9777,6 +9823,7 @@ else{
                         "attachments": []
                     });
                 }
+                else{
                 addCommentRequest.activity_timeline_collection = JSON.stringify({
                     "content": `This is a scheduled reminder for the file - ${request.activity_title}`,
                     "subject": `This is a scheduled reminder for the file - ${request.activity_title}`,
@@ -9784,12 +9831,13 @@ else{
                     "attachments": []
                 });
             }
+            }
 
             
             addCommentRequest.activity_stream_type_id = 325;
             addCommentRequest.timeline_stream_type_id = 325;
         }
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
     
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
@@ -9803,7 +9851,7 @@ else{
         //addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
         
         try {
-            await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);        
+            await activityTimelineService.timelineStandardCallsAsyncV1(addCommentRequest);        
         } catch (error) {
             console.log("Reminder Bot trigger - timeline entry failed : ", error);
             //throw new Error(error);
@@ -10839,7 +10887,7 @@ else{
         // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
         // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
 
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         let activityTimelineCollection =  JSON.stringify({
             "content": `${defaultAssetName} assigned ${assetOperatingAssetFirstName} as owner at ${moment().utcOffset('+05:30').format('LLLL')}.`,
@@ -13970,7 +14018,8 @@ else{
                         fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
                     }else if(request.is_cart == 1) {
                         //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
-                        fieldValue = JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key];
+                        fieldValue = JSON.parse(formInlineData[counter].field_value);
+                        fieldValue = typeof fieldValue.cart_items == 'string' ? JSON.parse(fieldValue.cart_items)[0][request.final_key] : fieldValue.cart_items[0][request.final_key];
                     }
                 }else{
                     fieldValue = formInlineData[counter].field_value;

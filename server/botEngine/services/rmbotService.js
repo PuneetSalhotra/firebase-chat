@@ -152,7 +152,7 @@ function RMBotService(objectCollection) {
             request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
         }
 
-        const [error1, defaultAssetName] = await fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonservice.fetchCompanyDefaultAssetName(request);
 
         logger.info("callAddParticipant"+JSON.stringify(request,null,2));
         let timelineCollection = {};
@@ -1405,8 +1405,11 @@ function businessDayCheckFun(curr_date,businessDays){
                 request.global_array = JSON.parse(logData[0].activity_ai_bot_transaction_inline_data);
             }
 
+            if(!request.hasOwnProperty("global_array"))
+            request.global_array = [];
+
             request.timeline_stream_type_id = 718;
-            await self.activityListLeadUpdateV1(request, leadAssetId);
+            await self.activityListLeadUpdateV2(request, leadAssetId);
             request.global_array.push({"leadUpdate":"UPDATING NEW LEAD "+leadAssetId+" ON WORKFLOW "+request.activity_id});
 
             request.target_asset_id = leadAssetId;
@@ -3393,7 +3396,7 @@ function businessDayCheckFun(curr_date,businessDays){
                             
                             if(Number(request.asset_id) == 100) {
                                 request.stream_type_id = 718;
-                                const [error1, defaultAssetName] = await fetchCompanyDefaultAssetName(request);
+                                const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
                                 name = defaultAssetName;
                             }
     
@@ -3874,28 +3877,6 @@ function businessDayCheckFun(curr_date,businessDays){
         }
         logger.info('request '+JSON.stringify(request, null,2));
         return [false, {}];
-    };
-    async function fetchCompanyDefaultAssetName (request) {
-        let assetName = 'greneOS',
-            error = true;
-
-        const paramsArr = new Array(
-            1,
-            100
-        );
-        const queryString = util.getQueryString('ds_p1_asset_list_select', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    assetName = data[0].asset_first_name;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, assetName];
     };
 
     }

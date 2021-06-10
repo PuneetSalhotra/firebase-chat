@@ -1067,11 +1067,11 @@ function AnalyticsService(objectCollection)
         {
             let results = new Array();
             let paramsArray;
-
+            /*
             let idAsset = request.target_asset_id;
             if(idAsset == 0){
                 idAsset = request.asset_id;
-            }
+            } */
 
             paramsArray = 
             new Array
@@ -1081,12 +1081,13 @@ function AnalyticsService(objectCollection)
                 request.workforce_id,
                 request.tag_type_id,
                 global.analyticsConfig.parameter_flag_sort,
-                idAsset,
+                request.target_asset_id,
+                request.asset_id,
                 request.page_start || 0,
                 request.page_limit || 50
             );
 
-            results[0] = await db.callDBProcedureR2(request, 'ds_p1_1_activity_list_select_management_widgets', paramsArray, 1);
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_2_activity_list_select_management_widgets', paramsArray, 1);
             if(request.is_kpi_value_required == 1){
                 console.log('results[0].length '+results[0].length);
                 

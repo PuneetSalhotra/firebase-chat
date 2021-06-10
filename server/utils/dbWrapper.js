@@ -58,6 +58,7 @@ function initiateDB() {
             global.config.slave1DBUser = reply[6];
             global.config.slave1DBPassword = reply[7];
 
+            global.config.slave2Ip = reply[8];
 
             //Adding Master
             writeCluster.add('MASTER', {
@@ -419,10 +420,10 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
                                         // global.logger.write('dbResponse', queryString, rows, request);
                                         connection.release();
-                                        resolve(rows[0]);
+                                        resolve(rows);
                                     } else {
                                         logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
                                         // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
@@ -460,10 +461,10 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                                                logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
                                                 // global.logger.write('dbResponse', queryString, rows, request);
                                                 connection.release();
-                                                resolve(rows[0]);
+                                                resolve(rows);
                                             } else {
                                                 logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
                                                 // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);

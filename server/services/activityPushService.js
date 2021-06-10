@@ -561,7 +561,7 @@ function ActivityPushService(objectCollection) {
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
                                     ) {
-                                        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                                        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
                                         senderName = defaultAssetName;
                                     }
@@ -769,6 +769,12 @@ function ActivityPushService(objectCollection) {
                                             pushString = {};
                                             break;
                                     }
+
+                                    if(pushString.body) {
+                                        pushString.body = pushString.body.replace(/<[^>]*>?/gm, '');
+                                        pushString.body = pushString.body.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '');
+                                    }
+                                    
                                     console.log("getPushString | request.url: ", request.url);
                                     console.log("getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
                                     console.log("getPushString | pushString: ", pushString);
@@ -793,7 +799,7 @@ function ActivityPushService(objectCollection) {
                             Number(request.asset_id) === 31993 ||
                             Number(request.asset_id) === 100
                         ) {
-                            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+                            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
                             senderName = defaultAssetName;
                         }

@@ -1036,6 +1036,16 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }    
     }); 
+
+    app.post('/' + global.config.version + '/asset/desk/archive/list', async (req, res) => {        
+
+        let [err,result] = await assetService.getDeskAssetArchiveList(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }    
+    });
            
 }
 module.exports = AssetController;

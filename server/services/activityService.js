@@ -544,7 +544,7 @@ function ActivityService(objectCollection) {
                                 //Form Submission - When the form has data type reference type
                                 console.log('Listener: Form Submission - When the form has data type reference type');
                                 let formInlineData = JSON.parse(request.activity_inline_data);
-                                console.log('formInlineData : ', formInlineData);
+                                //console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
@@ -1157,13 +1157,14 @@ function ActivityService(objectCollection) {
         new Promise((resolve, reject) => {
             if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
-
+                console.log(activityTypeCategoryId)
                 function generateUniqueCode() {
                     reserveCode = util.randomInt(50001, 99999).toString();
                     activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
+                        console.log("generateUniqueCode")
                         if (err === false) {
                             // console.log('activitySubTypeName : ' + data);
-                            global.logger.write('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
+                            //logger.info('conLog', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
 
                             activitySubTypeName = data;
                             responseactivityData.reservation_code = data;
@@ -2411,7 +2412,7 @@ function ActivityService(objectCollection) {
                     
                     newRequest.operation_type_id = 17;
                     const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
                     if(respData1.length > 0) {
                         activityCommonService.activityEntityMappingUpdateStatus(request, {
                             activity_id,
@@ -4195,7 +4196,7 @@ function ActivityService(objectCollection) {
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
                     console.log("queueId: ", queueId);
-                    console.log("queueInlineData: ", queueInlineData);
+                    //console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
                     for (const activityStatus of queueInlineData) {
@@ -4209,7 +4210,7 @@ function ActivityService(objectCollection) {
                         await activityCommonService
                             .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
-                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+                              //  console.log('queueActivityMappingData : ', queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
                                 if (queueActivityMappingData.length > 0) {
@@ -5033,8 +5034,8 @@ function ActivityService(objectCollection) {
             // });
             // console.log("***********changed from ${defaultAssetName} to name****************",log_assetData[0].asset_id)
             // let logAssetFirstName = log_assetData[0].operating_asset_first_name;
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
-            let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+            let message = `${defaultAssetName} added ${assetsData[0].operating_asset_first_name} to this Conversation`
             
             //adding participant
               let newParticipantParams = {
@@ -5884,15 +5885,21 @@ function ActivityService(objectCollection) {
     }  
 
     this.activityFormListInsert = async function (request) {
-
         let responseData = [],
             error = true;
-
-            var activityInlineData = activityInlineDataConversion(
-            JSON.parse(request.activity_inline_data)
-            );
-
-            console.log(JSON.stringify(activityInlineData))
+            
+            let activityInlineData = {};
+            if(request.activity_inline_data){
+                let data = JSON.parse(request.activity_inline_data)
+                if(Array.isArray(data)){
+                    activityInlineData = activityInlineDataConversion(
+                        JSON.parse(request.activity_inline_data)
+                        );
+                }
+                else{
+                    activityInlineData = JSON.parse(request.activity_inline_data)
+                }
+            }
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,

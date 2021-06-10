@@ -1284,6 +1284,17 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             }]
         }
 
+        // Check if an Employee with the given email exists
+        const [errZero_13, checkEmailData] = await assetListSelectCategoryEmail({
+            operating_asset_email: request.email_id
+        }, organizationID);
+        if (errZero_13 || Number(checkEmailData.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryEmail | Error: ", errZero_13);
+            return [true, {
+                message: `An employee with this ${request.email_id} email already exists.`
+            }]
+        }
+
         // Check if an Employee with the given phone nunmber exists
         const [errZero_2, checkCUIDData] = await assetListSelectCustomerUniqueID({
             account_id: 0,
@@ -1669,7 +1680,7 @@ console.log('new ActivityId321',newActivity_id)
                 asset_id: mangerAssetID
             });
             
-            const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
         let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
@@ -1864,6 +1875,31 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_category_id
         );
         const queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function assetListSelectCategoryEmail(request, organizationID) {
+        // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), 
+        // IN p_country_code SMALLINT(6), IN p_asset_type_category_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.operating_asset_email,
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -10647,6 +10683,50 @@ console.log('new ActivityId321',newActivity_id)
             }
         } catch (err) {
             logger.error("typeMappingUpdateFlagDraft : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    this.updatePreviewEnabledFlag = async function(request){
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+
+        logger.info("updatePreviewEnabledFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+
+        try {
+            let paramsArr = new Array(      
+                request.field_id,      
+                request.form_id,                 
+                request.organization_id,
+                request.field_preview_enabled,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            let queryString = util.getQueryString(
+                "ds_p1_workforce_form_field_mapping_update_preview_enabled",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_workforce_form_field_mapping_update_preview_enabled : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updatePreviewEnabledFlag : Error " + err);
         }
     
         return [error, responseData];

@@ -4,7 +4,6 @@
 
 const { serializeError } = require("serialize-error");
 const logger = require("../logger/winstonLogger");
-const AssetService = require('../services/assetService')
 
 function ActivityListingService(objCollection) {
 
@@ -20,7 +19,6 @@ function ActivityListingService(objCollection) {
 
 	const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
-	const assetService = new AssetService(objCollection);
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
 		var queryString = '';
@@ -1807,7 +1805,7 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
-					let organizationMap = {}, duplicateOrganization = true;
+					let organizationMap = {}, duplicateOrganization = false;
 					if (Array.isArray(data)) {
 						data = data.map((assetData) => {
 
@@ -1823,7 +1821,7 @@ function ActivityListingService(objCollection) {
 						});
 					}
 
-					if(duplicateOrganization) 
+					if(requestHeaders.hasOwnProperty('x-grene-e-flag') && duplicateOrganization) 
 						return callback({ message : "Your email is linked with more than one resource"}, {}, -3299);
 					else 
 						callback(false, data, 200);
@@ -3482,7 +3480,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
+				.then(async (data) => {
 					//console.log('DATA : ', data);
 					for (const i of data) {
 						let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
@@ -3490,6 +3488,15 @@ function ActivityListingService(objCollection) {
 						i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
 						i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
 					}
+
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						data = dataWithParticipant;
+					} catch (error) {
+						console.log("getQueueActivitiesAllFilters | Error", error);
+						// resolve(data);
+					}
+
 					responseData = data;
 					error = false;
 				})
@@ -3832,7 +3839,7 @@ function ActivityListingService(objCollection) {
 		let attachmentsList = [];
         attachmentsList.push(s3Url);
 		let addCommentRequest = Object.assign(request, {});
-        const [error1, defaultAssetName] = await assetService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;

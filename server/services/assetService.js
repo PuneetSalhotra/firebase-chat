@@ -379,7 +379,7 @@ function AssetService(objectCollection) {
                                     })
                             } else if (verificationMethod === 3) {
                                 newUserPassCodeSet(phoneNumber, verificationCode, request)
-                                    .then(function () {
+                                    .then(function (data) {
                                         request.passcode = data[0].phone_passcode;
                                         // Passcode set in the DB
                                         sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
@@ -7497,6 +7497,33 @@ this.getQrBarcodeFeeback = async(request) => {
         }
         return [error, assetName];
     };
+
+    this.getDeskAssetArchiveList = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.asset_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_archive_list_select_asset_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
 }
 
 module.exports = AssetService;

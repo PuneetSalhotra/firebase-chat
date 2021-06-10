@@ -988,6 +988,16 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/workflow/preview_enabled/flag/update', async function (req, res) {
+        const [err, flagData] = await adminOpsService.updatePreviewEnabledFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/preview_enabled/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminOpsController;
