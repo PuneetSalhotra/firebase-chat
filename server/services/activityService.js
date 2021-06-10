@@ -5786,15 +5786,21 @@ function ActivityService(objectCollection) {
     }  
 
     this.activityFormListInsert = async function (request) {
-
         let responseData = [],
             error = true;
-
-            var activityInlineData = activityInlineDataConversion(
-            JSON.parse(request.activity_inline_data)
-            );
-
-            //console.log(JSON.stringify(activityInlineData))
+            
+            let activityInlineData = {};
+            if(request.activity_inline_data){
+                let data = JSON.parse(request.activity_inline_data)
+                if(Array.isArray(data)){
+                    activityInlineData = activityInlineDataConversion(
+                        JSON.parse(request.activity_inline_data)
+                        );
+                }
+                else{
+                    activityInlineData = JSON.parse(request.activity_inline_data)
+                }
+            }
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
