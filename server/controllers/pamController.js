@@ -520,6 +520,23 @@ function PamController(objCollection) {
     		res.send(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/get/whatsapp/access/token', async (req, res) => {
+        let [err,result] = await pamService.whatsappAccessToken(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/send/whatsapp/message', async (req, res) => {
+        let [err,result] = await pamService.sendWhatsAppTemplateMessage(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;
