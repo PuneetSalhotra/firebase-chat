@@ -912,7 +912,7 @@ function ActivityController(objCollection) {
         });
 
     app.post("/" + global.config.version + "/activity/form/insert",async function (req, res) {
-        req.body.activity_inline_data = JSON.parse(req.body.activity_inline_data);
+        req.body.activity_inline_data = req.body.activity_inline_data;
         const [err, result] = await activityService.activityFormListInsert(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
