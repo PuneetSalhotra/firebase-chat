@@ -1946,7 +1946,12 @@ function AssetService(objectCollection) {
 
     var checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
 
+       
+
         var activityInlineData = JSON.parse(request.activity_inline_data);
+        if(activityInlineData.contact_phone_number==""){
+            callback(false, []); 
+          }
         if (contactAssetTypeId === 0) {
             contactAssetTypeId = activityInlineData.contact_asset_type_id;
         }
@@ -7524,6 +7529,30 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }  
+
+    this.getEmailResourceList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.operating_asset_email
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;
