@@ -4272,6 +4272,189 @@ catch(e){
 }
 	return [err, responseData];
 }
+
+this.whatsappAccessToken = async() =>{
+	let client_id = "PRPCLIENTID"
+	let client_secret="PRPCLIENTSECRET";
+	let password = "7669933483";
+	let user_name = "20048"
+		url = `https://wa.chatmybot.in/gateway/auth/v1/oauth/token?username=${user_name}&password=${password}&grant_type=password&client_secret=${client_secret}&client_id=${client_id}`;
+		const assignActAsync = nodeUtil.promisify(makingRequest.post);
+		const makeRequestOptions1 = {
+			headers:{authorization:"Basic UFJQQ0xJRU5USUQ6UFJQQ0xJRU5UU0VDUkVU"},
+		};
+		try {
+			const response = await assignActAsync(url,makeRequestOptions1);
+			const body = JSON.parse(response.body);
+			if (body.hasOwnProperty("access_token")) {
+				console.log("Activity Add | Body: ", body);
+				return [false, body];
+			} else {
+				console.log("Error ", body);
+				return [true, {}];
+			}
+		} catch (error) {
+			console.log("Activity Add | Error: ", error);
+			return [true, {}];
+		}
+}
+
+this.sendWhatsAppTemplateMessage = async(request)=>{
+	request.url = `https://wa.chatmybot.in/gateway/wabuissness/v1/message/batch`;
+	const assignActAsync = nodeUtil.promisify(makingRequest.post);
+	let [error,access] =  await self.whatsappAccessToken();
+	
+	if(!error){
+		request.access_token = access["access_token"];
+		request.token_type = access["token_type"]
+	}
+	request.template_id = "c14c5e43-d053-4414-a0d1-75ffdccd23b6";
+	request.account_id = 20048;
+	request.namespace = "60c813f1_bf7f_4aee_afa4_2a87cc648e98";
+	request.campaing_id = 118
+	request.template_name ="otp_alert"
+	request.parameters.length< 2 ? request.parameters = ["",""]:null;
+	request.parameters = JSON.parse(request.parameters)
+	
+	 try {
+	 if(request.phone_number.length<10){
+		let pamAssetDetails = await pamGetAssetDetails(request); 
+			console.log("pamAssetDetails",pamAssetDetails)
+		 	request.phone_number = pamAssetDetails[0].operating_asset_phone_number
+			request.country_code = pamAssetDetails[0].operating_asset_phone_country_code
+	}
+	request.form_data = [
+		{
+		   "template":{
+			  "id":request.template_id,
+			  "status":true,
+			  "namespace":request.namespace,
+			  "name":request.template_name,
+			  "language":{
+				 "policy":"deterministic",
+				 "code":"en"
+			  },
+			  "components":[
+				 {
+					"type":"body",
+					"parameters":[
+					   {
+						  "type":"text",
+						  "text":request.parameters[
+							 0
+						  ],
+						  "caption":null,
+						  "link":null,
+						  "payload":null,
+						  "currency":{
+							 "fallback_value":0,
+							 "code":"USD",
+							 "amount_1000":0
+						  },
+						  "date_time":{
+							 "fallback_value":0,
+							 "day_of_week":0,
+							 "day_of_month":1,
+							 "year":1,
+							 "month":1,
+							 "hour":1,
+							 "minute":1
+						  },
+						  "document":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "video":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "image":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "nameOfParams":"{{1}}"
+					   },
+					   {
+						  "type":"text",
+						  "text":request.parameters[
+							 1
+						  ],
+						  "caption":null,
+						  "link":null,
+						  "payload":null,
+						  "currency":{
+							 "fallback_value":0,
+							 "code":"USD",
+							 "amount_1000":0
+						  },
+						  "date_time":{
+							 "fallback_value":0,
+							 "day_of_week":0,
+							 "day_of_month":1,
+							 "year":1,
+							 "month":1,
+							 "hour":1,
+							 "minute":1
+						  },
+						  "document":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "video":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "image":{
+							 "link":0,
+							 "filename":0
+						  },
+						  "nameOfParams":"{{2}}"
+					   }
+					]
+				 }
+			  ],
+			  "application":null,
+			  "accountId":request.account_id
+		   },
+		   "to":request.country_code+request.phone_number,
+		   "type":"template",
+		   "campaingId":request.campaing_id,
+		   "date":0,
+		   "dlrTime":0,
+		   "viewTime":0,
+		   "messageId":"SENT",
+		   "messageStatus":"SENT",
+		   "chatSide":"User",
+		   "text":null,
+		   "image":null,
+		   "video":null,
+		   "document":null,
+		   "audio":null
+		}
+	 ]
+	const makeRequestOptions1 = {
+		headers:{
+			authorization:`Bearer ${request.access_token}`,
+			"Content-type": "application/json",
+		},
+		json:request.form_data
+	}
+	
+		const response = await assignActAsync(request.url,makeRequestOptions1);
+		const body = response.body;
+		if (body.hasOwnProperty("status")) {
+			console.log("Activity Add | Body: ", body);
+			body.to = request.country_code+request.phone_number;
+			return [false, body];
+		} else {
+			console.log("Error ", body);
+			return [true, -9995];
+		}
+	} catch (error) {
+		console.log("Activity Add | Error: ", error);
+		return [true,-9999];
+	}
+}
 };
 
 module.exports = PamService;

@@ -875,6 +875,40 @@ function DrsService(objectCollection) {
 
     return [error, responseData];
   };
+
+  this.docAssetMappingSearch = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = [
+        request.organization_id ,
+        request.activity_type_type_id ,
+        request.parent_doc_repository_id ,
+        request.asset_id ,
+        request.asset_type_id ,
+        request.flag,
+        request.search_string,
+        request.workforce_id ,
+        request.account_id ,
+        request.start_from,
+        request.limit_value 
+                      ];
+
+    const queryString = util.getQueryString('ds_p1_document_repository_asset_mapping_search', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async (data) => {
+              responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+  };
   
 }
 module.exports = DrsService;
+
