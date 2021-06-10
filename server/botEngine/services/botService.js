@@ -14830,6 +14830,72 @@ request.debug_info = []
         }
         return [error, responseData];
     }
+    this.addParticipantByEmail = async (request) => {
+      let responseData = [],
+        error = false,
+        deskAssetData,
+        assetData={};
+      for (let i = 0; i < request.emails.length; i++) {
+        let [err, assetDetails] = await getAssetByEmail({
+          organization_id: request.organization_id,
+          email: request.emails[i],
+        });
+        console.log("assetData",assetDetails)
+        if(assetDetails.length>0){
+            deskAssetData = assetDetails[0];
+        }
+        else{
+            let result = await createAssetContactDesk(request, {
+                "contact_designation": "contact",
+                "contact_email_id": request.emails[i],
+                "first_name": request.emails[i],
+                "contact_phone_number": "",
+                "contact_phone_country_code": 91,
+                "asset_email_id":request.emails[i],
+                "workforce_id": request._workforce_id,
+                "account_id": request.account_id
+            });
+            deskAssetData = result.response;
+            assetData.desk_asset_id = deskAssetData.desk_asset_id;
+        }
+        if (!assetData.desk_asset_id||assetData.desk_asset_id === 0) {
+            assetData.desk_asset_id = deskAssetData.asset_id;
+        }
+        assetData.first_name = deskAssetData.operating_asset_first_name || deskAssetData.asset_first_name;
+        assetData.contact_phone_number = deskAssetData.operating_asset_phone_number || deskAssetData.asset_phone_number;
+        assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
+        assetData.asset_type_id = deskAssetData.asset_type_id;
+        request.debug_info = []
+        logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
+        request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
+         await addDeskAsParticipant(request, assetData);
+      }
+
+      return [error, responseData];
+    };
+
+    async function getAssetByEmail(request) {
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(request.organization_id, request.email);
+      const queryString = util.getQueryString(
+        "ds_p1_asset_list_select_email_all",
+        paramsArr
+      );
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(1, queryString, request)
+          .then((data) => {
+            responseData = data;
+            error = false;
+          })
+          .catch((err) => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    }
 }
 
 
