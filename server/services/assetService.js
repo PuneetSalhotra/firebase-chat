@@ -1946,7 +1946,12 @@ function AssetService(objectCollection) {
 
     var checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
 
+       
+
         var activityInlineData = JSON.parse(request.activity_inline_data);
+        if(activityInlineData.contact_phone_number==""){
+            callback(false, []); 
+          }
         if (contactAssetTypeId === 0) {
             contactAssetTypeId = activityInlineData.contact_asset_type_id;
         }
