@@ -1623,7 +1623,8 @@ function MerchantPaymentService(objectCollection) {
             null,
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
-            Number("0.00").toFixed(2)
+            Number("0.00").toFixed(2),
+            request.reservation_id
             //"REQ"
         );
 

@@ -4223,7 +4223,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         request.activity_type_category_id = 37;
         const [err1, activityType] = await self.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
-        request.activity_status_type_id = 95;
+        request.activity_status_type_id = 150;
         const [err2, activityStatus] = await self.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;
 
