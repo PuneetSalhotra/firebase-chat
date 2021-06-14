@@ -1045,18 +1045,20 @@ function BotService(objectCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    this.initBotEngine = async (request) => {        
+    this.initBotEngine = async (request) => {
+        let logUUID = request.log_uuid || "";
+        logger.info(`[${logUUID}] Initiating BOT Request Params %j`, request);
         request.debug_info = [];
         request.debug_info.push("initBotEngine" +JSON.stringify(request));
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
 
         logger.silly(' ');
-        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
         logger.silly(' ');
-        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
         logger.silly(' ');
-        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
         logger.silly(' ');
 
         request['datetime_log'] = util.getCurrentUTCTime();
@@ -1081,10 +1083,10 @@ function BotService(objectCollection) {
                 formInlineData = JSON.parse(request.activity_inline_data);
             }
             for (const field of formInlineData) {
-                formInlineDataMap.set(Number(field.field_id), field);
+                formInlineDataMap.set(Number(field.field_id), {...field,bot_count : 1});
             }
         } catch (error) {
-            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+            logger.error(`[${logUUID}]Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
         }
 
         let wfSteps;
@@ -1103,7 +1105,8 @@ function BotService(objectCollection) {
 
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
-            console.log('In form_field_alter');
+            logger.info(`[${logUUID}] In form_field_alter`);
+            console.log('');
             console.log("formInlineDataMap: ", formInlineDataMap);
             console.log(' ');
             request.debug_info.push('In form_field_alter');
