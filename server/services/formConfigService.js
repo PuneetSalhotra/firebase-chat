@@ -893,14 +893,13 @@ function FormConfigService(objCollection) {
     }
 
     function putLatestUpdateSeqId(request, activityInlineData, completeInlineData = []) {
-        console.log('Activity Inline Data : ', activityInlineData);
+        let logUUID = request.log_uuid || "";
+        logger.info(`[${logUUID}] Activity Inline Data :  %j`, activityInlineData);
         return new Promise(async (resolve, reject) => {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
             let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
             let annexureExcelFilePath = "";
-            console.log("field ids");
-            console.log(annexureFields);
             let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
             let OTC_1_ValueFields = widgetFieldsStatusesData.OTC_1;
             let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
@@ -935,9 +934,9 @@ function FormConfigService(objCollection) {
                     default: break;
                 }
             }
-            console.log("[putLatestUpdateSeqId | widgets] otc_1: ", otc_1);
-            console.log("[putLatestUpdateSeqId | widgets] arc_1: ", arc_1);
-            console.log("[putLatestUpdateSeqId | widgets] arc_2: ", arc_2);
+            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] otc_1: ${otc_1}`);
+            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
+            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
 
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
@@ -979,7 +978,6 @@ function FormConfigService(objCollection) {
 
                 var dataTypeId = Number(row.field_data_type_id);
                 request['field_value'] = row.field_value;
-                console.log('dataTypeId : ', dataTypeId);
                 switch (dataTypeId) {
                     case 1: // Date
                     case 2: // future Date
@@ -1018,8 +1016,6 @@ function FormConfigService(objCollection) {
                         break;
                     case 52: // Excel Document
                         annexureExcelFilePath = row.field_value;
-                        console.log("annexureExcelFilePath");
-                        console.log(annexureExcelFilePath);
                         params[18] = row.field_value;
                         break;
                     case 53: // IP Address Form
@@ -1200,7 +1196,7 @@ function FormConfigService(objCollection) {
                                 params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                console.log('ERROR in field edit - 57 : ', err);
+                                logger.error(`[${logUUID}] ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1238,7 +1234,7 @@ function FormConfigService(objCollection) {
 
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                console.log('ERROR in field edit - 57 : ', err);
+                                logger.error(`[${logUUID}] ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1273,7 +1269,7 @@ function FormConfigService(objCollection) {
                                 params[16] = amount; // Debit
                             params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                         } catch (err) {
-                            console.log(err);
+                            logger.error(`[${logUUID}] ERROR in field edit - 62 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                         }
                         break;
                     case 64: // Address DataType
@@ -1359,18 +1355,18 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                logger.info(`[${logUUID}] In formConfigService - addFormEntries params %j`, JSON.stringify(params));
 
                 // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                  let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
-                    global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                    logger.info(`[${logUUID}] ds_p1_1_activity_form_transaction_insert_field_update as asset_id is %j`, request.asset_id);
                 }
                 else {
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, async function (err, data) {
     
-                            global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
+                            logger.info(`[${logUUID}] update field_value in widget row.field_id ${row.field_id}  row.field_value ${row.field_value} request.asset_id ${request.asset_id}`);
     
                             self.activityFormListUpdateFieldValue(request);
 
@@ -1383,9 +1379,9 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
-                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF                                                                           
-                                        console.log("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
-                                        addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
+                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
+                                    logger.info(`[${logUUID}] addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  WorkflowActivityId ${WorkflowActivityTypeId} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
                         });
@@ -1403,10 +1399,10 @@ function FormConfigService(objCollection) {
                                                 widgetAggrFieldValueUpdateWorkflow(request);
                                                 //await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
                                             } else {
-                                                console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                                logger.info(`[${logUUID}] Field Value is not a number || Total Order Value Field ${row.field_value}`);
                                             }                                            
                                         }else{
-                                                console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                            logger.info(`[${logUUID}] This field is not configured to update in intermediate table ${row.field_id}`);
                                         }                                        
                                     }                                
                                 });
@@ -1427,10 +1423,9 @@ function FormConfigService(objCollection) {
                                              //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                     }
     
-                                    console.log('valueflag :: '+valueflag);
+                                    logger.info(`[${logUUID}] valueflag ::  ${valueflag}`);
                                     request['flag'] = valueflag;
-    
-                                    console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+                                    logger.info(`[${logUUID}] row.field_value :: ${row.field_value}`);
                                     let finalValue = 0;
                                     if(valueflag > 0){
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
@@ -1462,7 +1457,7 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                    logger.info(`[${logUUID}] Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }else{
     
@@ -1470,7 +1465,7 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                    logger.info(`[${logUUID}] Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }
                                         }
@@ -1498,20 +1493,19 @@ function FormConfigService(objCollection) {
                                             }           
                                                 
                                         });                                    
-    
-                                        console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                        logger.info(`[${logUUID}] This field is not configured to update in intermediate table ${row.field_value}`);
                                     }
                                 }catch(err){
-                                    console.log('Error in updating Intermediate Table : ', err);
+                                    logger.error(`[${logUUID}] Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
                                 }                             
     
                             }
     
-                             global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
+                            logger.info(`[${logUUID}] *****Update: update po_date in widget1 ******* ${row.field_id}`);
                              if(Object.keys(poFields).includes(String(row.field_id))){
-                                    global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
+                                logger.info(`[${logUUID}] *****Update: update po_date in widget1 ******* ${row.field_id}`);
                                     activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
-                                        global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
+                                        logger.info(`[${logUUID}] *****Update: update po_date in widget3 ******* ${activityData[0].channel_activity_id}`);                                     
                                         request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
                                         request['order_po_date'] = row.field_value;
                                         request['flag'] = 1;
@@ -1533,11 +1527,7 @@ function FormConfigService(objCollection) {
                                 let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
                                 let isFirstTimeExcelUploaded = true;
                                 let oldFormsData = await activityCommonService.getActivityTimelineTransactionByFormId(request, workflowData[0].activity_id, request.form_id);
-                                console.log(oldFormsData);
-                                console.log("oldFormsDataAkshay");
                                 for (const row of oldFormsData) {
-                                    console.log("row.data_entity_inline");
-                                    console.log(row.data_entity_inline);
                                     let dataEntityInline = [];
                                     try {
                                         if (typeof row.data_entity_inline === 'string') {
@@ -1547,13 +1537,13 @@ function FormConfigService(objCollection) {
                                         }
 
                                     } catch (e) {
-                                        console.log("error in checking old forms data");
+                                        logger.error(`[${logUUID}] error in checking old forms data`, { type: 'add_activity', error: serializeError(e) });
                                     }
                                     for (const formFields of dataEntityInline) {
                                         if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
                                             if (formFields.field_value !== "") {
                                                 isFirstTimeExcelUploaded = false;
-                                                console.log("Excel file found in previous submission so do not create child order");
+                                                logger.info(`[${logUUID}] Excel file found in previous submission so do not create child order`);
                                             }
                                         }
                                     }
@@ -1561,12 +1551,8 @@ function FormConfigService(objCollection) {
                                 }
 
                                 if (isFirstTimeExcelUploaded && annexureExcelFilePath.length > 0) {
-                                    console.log("Excel is uploaded for 1st time so proceed");
-                                    console.log("childOrdersCreationTopicName");
-                                    console.log(childOrdersCreationTopicName);
-                                    console.log({
+                                    logger.info(`[${logUUID}] ${childOrdersCreationTopicName} %j`, {
                                         ...request,
-                                        workflow_activity_id: workflowData[0].activity_id,
                                         s3UrlOfExcel: annexureExcelFilePath
                                     });
 
@@ -1591,21 +1577,22 @@ function FormConfigService(objCollection) {
     }
 
     async function updateWFTotalOrderValueinActList(request, workflowActID) {
+        let logUUID = request.log_uuid || "";
         let finalValueOfCAF;
             try{
                 let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, workflowActID);
-                console.log('activityDataResp:', activityDataResp);
+                logger.info(`[${logUUID}] activityDataResp: %j`, activityDataResp);
                 if (activityDataResp.length > 0) {
                     finalValueOfCAF = Number(activityDataResp[0].activity_workflow_value_1) +
                                       Number(activityDataResp[0].activity_workflow_value_2) +
                                       Number(activityDataResp[0].activity_workflow_value_3) +
                                       Number(activityDataResp[0].activity_workflow_value_4) +
                                       Number(activityDataResp[0].activity_workflow_value_5);
-                }                
-                console.log('FINAL VALUE OF CAF : ', finalValueOfCAF);
+                }
+                logger.info(`[${logUUID}] FINAL VALUE OF CAF :  %j`, finalValueOfCAF);                
                 await activityCommonService.analyticsUpdateWidgetValue(request, workflowActID, 0, finalValueOfCAF);
             }catch(err){
-                console.log('ERROR : ', err);
+                logger.error(`[${logUUID}] ERROR`, { type: 'add_activity', error: serializeError(err) });
             }
     }
 
@@ -3325,7 +3312,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 3000);
                 } catch (error) {
-                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'add_activity', error: serializeError(error) });
+                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
         }
@@ -3368,7 +3355,7 @@ function FormConfigService(objCollection) {
         } catch (error) {
             // [LOGGING] Error fetching bots for this form 
             activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
-            logger.error(`[${logUUID}] botListData `, { type: 'alter_form', error: serializeError(error) });
+            logger.error(`[${logUUID}] botListData `, { type: 'alter_form'});
         }
         
         // Fire the Bot Engine
@@ -5180,7 +5167,7 @@ function FormConfigService(objCollection) {
                         try{
                             parsedFieldValue = JSON.parse(fieldValue);
                         } catch(err) {
-                            logger.error(`[${logUUID}] Error in parsing workflow reference datatype : `, { type: 'add_activity', error: serializeError(err) });
+                            logger.error(`[${logUUID}] Error in parsing workflow reference datatype : `, { type: 'fireBotUpdateIntTables', error: serializeError(err) });
                             logger.info(`[${logUUID}] Switching to backward compatibility parsedFieldValue: %j`,parsedFieldValue);
                             
                             //Backward Compatibility "workflowactivityid|workflowactivitytitle"
