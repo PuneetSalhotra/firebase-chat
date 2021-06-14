@@ -5905,34 +5905,36 @@ function FormConfigService(objCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue, flag) {
-        console.log('In formConfigService activityActivityMappingInsertV1');
+        let logUUID = request.log_uuid || "";
+        logger.info(`[${logUUID}] In formConfigService activityActivityMappingInsertV1`);
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
-        if(Number(request.activity_type_category_id) === 9) {            
-            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-            if (workflowError !== false || workflowData.length === 0) {
-                console.log('workflowError : ', workflowError);
-                console.log('workflowData : ', workflowData);
-                
-                //if(cnt <= 2) {
-                //    await sleep(2000);
-                //    cnt++;
-                //    await activityActivityMappingInsertV1(request, fieldData, cnt);
-                //} else {
-                //    return [workflowError, workflowData];
-                //}
-
-                return [workflowError, workflowData];
+        if(Number(request.activity_type_category_id) === 9) {
+            if(request.hasOwnProperty("workflow_activity_id")) {
+                currentWorkflowActivityId = Number(request.workflow_activity_id);
+            } else {
+                const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, request.form_id);
+                if (workflowError !== false || workflowData.length === 0) {
+                    logger.error(`[${logUUID}] workflowError | No data`, { type: 'activity_activty_mapping_update', error: serializeError(workflowError) });
+                    
+                    //if(cnt <= 2) {
+                    //    await sleep(2000);
+                    //    cnt++;
+                    //    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                    //} else {
+                    //    return [workflowError, workflowData];
+                    //}
+    
+                    return [workflowError, workflowData];
+                }
+                currentWorkflowActivityId = Number(workflowData[0].activity_id);
             }
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+
         }
 
-        console.log('fieldData V1: ', fieldData);
-        console.log('typeof fieldData.field_value', typeof fieldData.field_value);
-        console.log('fieldData.field_value', fieldData.field_value);
-        console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
-        console.log('oldFieldValue: ', oldFieldValue);
-        console.log('flag : ', flag);
+        logger.info(`[${logUUID}] fieldData V1: %j`, fieldData);
+        logger.info(`[${logUUID}] flag :  %j`, flag);
+
         
         //Unmap the existing one
         let processedOldFieldValue;
@@ -5941,7 +5943,6 @@ function FormConfigService(objCollection) {
         try{
             if(flag === 'multi') {
                 processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
-                console.log(request.device_os_id);
                 //let cartItems = (typeof processedOldFieldValue.cart_items === 'string') ? JSON.parse(processedOldFieldValue.cart_items): processedOldFieldValue.cart_items;
                 //let productActId;
                 /*for(const i_iterator of cartItems) {
@@ -5967,8 +5968,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype old V1 field edit: ', processedOldFieldValue);
-            console.log(err);
+            logger.error(`[${logUUID}] Error in parsing workflow reference datatype old V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             //return "Failure";
         }
 
@@ -6016,8 +6016,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype new  V1 field edit: ', fieldValue);
-            console.log(err);
+            logger.error(`[${logUUID}] Error in parsing workflow reference datatype new  V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             return "Failure";
         }
 
