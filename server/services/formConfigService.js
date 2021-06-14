@@ -560,7 +560,7 @@ function FormConfigService(objCollection) {
 
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             if (err === false) {
-                console.log('Data from activity_list: ', data);
+                logger.info(`[${logUUID}] Data from activity_list: %j`, data);
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
@@ -589,10 +589,10 @@ function FormConfigService(objCollection) {
                                 newFieldValue = jsonData.transaction_data.transaction_amount;
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
 
-                                console.log('Old Transaction Amount: ', oldFieldValue);
-                                console.log('New Transaction Amount: ', newFieldValue);
+                                logger.info(`[${logUUID}] Old Transaction Amount: %j`, oldFieldValue);
+                                logger.info(`[${logUUID}] New Transaction Amount: %j`, newFieldValue);
                             } catch (err) {
-                                console.log(err);
+                                logger.error(`[${logUUID}] alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         
@@ -626,7 +626,7 @@ function FormConfigService(objCollection) {
                                 
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
                             } catch (err) {
-                                console.log(err);
+                                logger.error(`[${logUUID}] alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         // newData.field_name = row.field_name;
@@ -636,7 +636,7 @@ function FormConfigService(objCollection) {
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
-                    console.log("/activity/form/alter data_type_category_id "+newData.field_data_type_category_id+" exists in simple categories : "+simpleDataTypes.includes(newData.field_data_type_category_id));
+                    logger.info(`[${logUUID}] /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
                     if(simpleDataTypes.includes(newData.field_data_type_category_id)){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
@@ -664,15 +664,15 @@ function FormConfigService(objCollection) {
 
                         if (data.length > 0) {
                             let x = data[0];
-                            console.log('update_sequence_id : ', x.update_sequence_id);
                             request.update_sequence_id = ++x.update_sequence_id;
+                            logger.info(`[${logUUID}] update_sequence_id : ${request.update_sequence_id}`);
                         } else {
                             request.update_sequence_id = 1;
                         }
 
                         activityInlineData[0].old_field_value = oldFieldValue;
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
-                        console.log('After putLatestUpdateSeqId');                            
+                            logger.info(`[${logUUID}] After putLatestUpdateSeqId`);                       
 
                             var event = {
                                 name: "alterActivityInline",
@@ -683,11 +683,10 @@ function FormConfigService(objCollection) {
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                 } else {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                    logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`,resp);
                                 }
                             });
 
@@ -705,18 +704,17 @@ function FormConfigService(objCollection) {
 
                                 queueWrapper.raiseActivityEvent(event, workflowActID, (err, resp) => {
                                     if (err) {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
+                                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
-                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, newReq);
+                                        logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`, resp);
                                     }
                                 }); 
                             }
 
                         }).catch((err) => {
                             // global.logger.write(err);
-                            console.log(err);
+                            logger.error(`[${logUUID}] Error in putLatestUpdateSeqId`, { type: 'alter_form', error: serializeError(err) });
                         });
 
                         //Analytics for Widget
@@ -726,8 +724,7 @@ function FormConfigService(objCollection) {
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
                         if (formConfigError !== false) {
                             // return [formConfigError, formConfigData];
-                            console.log("Error: ", formConfigError);
-
+                            logger.error(`[${logUUID}] formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
                                 workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
@@ -735,7 +732,7 @@ function FormConfigService(objCollection) {
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
-                                console.log("[alterFormActivity] Workflow trigger on form edit: ", error);
+                                logger.error(`[${logUUID}] [alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
                             }
                         }
 
@@ -761,7 +758,7 @@ function FormConfigService(objCollection) {
                             let rebuildCafRequest = Object.assign({}, request);
                             rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
 
-                            console.log("[regenerateAndSubmitCAF] activityInlineData: ", activityInlineData);
+                            logger.info(`[${logUUID}] [regenerateAndSubmitCAF] activityInlineData: %j`, activityInlineData);
 
                             let rebuildCafEvent = {
                                 name: "vodafoneService",
@@ -820,8 +817,7 @@ function FormConfigService(objCollection) {
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
                             global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
-                                global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
-                                global.logger.write('debug', data, {}, request);
+                                logger.info(`[${logUUID}] workflow_activity_id %j`,data[0].activity_id);
 
                                 if (data.length > 0) {
                                     let newOrderFormActivityId = Number(data[0].activity_id);
@@ -850,24 +846,23 @@ function FormConfigService(objCollection) {
                                         payload: fire713OnNewOrderFileRequest
                                     };
 
-                                    global.logger.write('conLog', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m", {}, request);
+                                    logger.info(`[${logUUID}] Raising 713 entry onto New Order Form %j`,fire713OnNewOrderFileRequest);
                                     queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                                         if (err) {
-                                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         } else {
-                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`,resp);
                                         }
                                     });
                                 } else {
-                                    global.logger.write('conLog', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m", {}, request);
+                                    logger.info(`[${logUUID}] Data from this call fetchReferredFormActivityId is empty`);
                                 }
 
                             });
                         }
 
                     }).catch((err) => {
-                        global.logger.write(err);
+                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     });
                 });
 
@@ -3135,6 +3130,7 @@ function FormConfigService(objCollection) {
 
     this.workflowOnFormEdit = async function (request) {
 
+        let logUUID = request.log_uuid || ""; 
         // Fetch form's config data
         request.page_start = 0;
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
@@ -3160,8 +3156,9 @@ function FormConfigService(objCollection) {
         }
         workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+        logger.info(`[${logUUID}] workflowActivityId %j`, workflowActivityId);
+        logger.info(`[${logUUID}] workflowActivityTypeID %j`, workflowActivityTypeID);
+
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
@@ -3178,7 +3175,7 @@ function FormConfigService(objCollection) {
         if (Number(formConfigData.length) > 0) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
-            console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+            logger.info(`[${logUUID}] formWorkflowActivityTypeId %{formWorkflowActivityTypeId}`);
 
             formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48;
             workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
@@ -3190,10 +3187,10 @@ function FormConfigService(objCollection) {
                     await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
                     //await addTimelineTransactionAsync(workflowFile713Request);
                 } catch (error) {
-                    console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
+                    logger.error(`[${logUUID}] addTimelineTransactionAsync`, { type: 'alter_form', error: serializeError(error) });
                 }
+                logger.info(`[${logUUID}] Calling [regenerateAndSubmitTargetForm]: %j`, request.activity_inline_data);
                 // Regenerate target form (if required/mapping exists), and then submit a 713 entry
-                console.log("Calling [regenerateAndSubmitTargetForm]: ", request.activity_inline_data);
 
                 const rebuildTargetFormEvent = {
                     name: "vodafoneService",
@@ -3203,10 +3200,9 @@ function FormConfigService(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(rebuildTargetFormEvent, request.activity_id, (err, resp) => {
                     if (err) {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     } else {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`, resp);
                     }
                 });
             }
@@ -3264,7 +3260,7 @@ function FormConfigService(objCollection) {
             let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
-            console.log("formFieldMapping: ", formFieldMapping);
+            logger.info(`[${logUUID}] formFieldMapping: %j`, formFieldMapping);
             //if (formFieldMapping.length > 0) {
 
             let fieldCopyOperations = [];
@@ -3276,7 +3272,7 @@ function FormConfigService(objCollection) {
                     Number(mapping.source_form_id) === Number(request.form_id) &&
                     Number(mapping.source_field_id) === Number(request.field_id)
                 ) {
-                    console.log("Match Found: ", mapping);
+                    logger.info(`[${logUUID}] Match Found: %j`,mapping);
                     fieldCopyOperations.push(mapping);
                     await activityCommonService
                         .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
@@ -3310,8 +3306,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 2500);
                 } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
-                    console.log("botService.initBotEngine Error!", error);
+                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
 
@@ -3330,8 +3325,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 3000);
                 } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
-                    console.log("botService.initBotEngine Error!", error);
+                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'add_activity', error: serializeError(error) });
                 }
             }
         }
@@ -3374,7 +3368,7 @@ function FormConfigService(objCollection) {
         } catch (error) {
             // [LOGGING] Error fetching bots for this form 
             activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
-            console.log("workflowOnFormEdit | botListData | Error: ", error);
+            logger.error(`[${logUUID}] botListData `, { type: 'alter_form', error: serializeError(error) });
         }
         
         // Fire the Bot Engine
@@ -3404,13 +3398,10 @@ function FormConfigService(objCollection) {
         }
         // ############################## BOT ENGINE REQUEST START ##############################
         
-        console.log();
-        console.log();
-        console.log("targetFormActivityId: ", targetFormActivityId);
-        console.log("targetFormTransactionId: ", targetFormTransactionId);
-        // console.log("targetFormInlineData: ", targetFormInlineData)
-        console.log("targetFormSubmittedData: ", targetFormSubmittedData);
-        console.log("targetFormName: ", targetFormName);
+        logger.info(`[${logUUID}] targetFormActivityId %j`, targetFormActivityId);
+        logger.info(`[${logUUID}] targetFormTransactionId %j`, targetFormTransactionId);
+        logger.info(`[${logUUID}] targetFormSubmittedData %j`, targetFormSubmittedData);
+        logger.info(`[${logUUID}] targetFormName %j`, targetFormName);
 
         return [formConfigError, {
             formConfigData
@@ -5135,8 +5126,10 @@ function FormConfigService(objCollection) {
 
     //update the Intermediate tables - For workflow Reference, Combo Field data types
     async function fireBotUpdateIntTables(request, fieldData) {
+        let logUUID = request.log_uuid || "";
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
+            logger.error(`[${logUUID}][fireBotUpdateIntTables] couldn't find workflow`);
             return [workflowError, workflowData];
         }
         let workflowActivityId = Number(workflowData[0].activity_id);
@@ -5157,7 +5150,7 @@ function FormConfigService(objCollection) {
                 botIsDefined = 1;
             }
         } catch (botInitError) {
-            global.logger.write('error', botInitError, botInitError, request);
+            logger.error(`[${logUUID}] formtransactioniderror`, { type: 'formtransactioniderror', error: serializeError(botInitError) });
         }
 
         let newRequest = Object.assign({}, request);
@@ -5170,7 +5163,7 @@ function FormConfigService(objCollection) {
         newRequest.log_asset_id = request.asset_id;
         newRequest.log_datetime = util.getCurrentUTCTime();
 
-        console.log('botIsDefined : ', botIsDefined);
+        logger.info(`[${logUUID}] botIsDefined %j`, botIsDefined);
 
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
@@ -5187,8 +5180,8 @@ function FormConfigService(objCollection) {
                         try{
                             parsedFieldValue = JSON.parse(fieldValue);
                         } catch(err) {
-                            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
-                            console.log('Switching to backward compatibility');
+                            logger.error(`[${logUUID}] Error in parsing workflow reference datatype : `, { type: 'add_activity', error: serializeError(err) });
+                            logger.info(`[${logUUID}] Switching to backward compatibility parsedFieldValue: %j`,parsedFieldValue);
                             
                             //Backward Compatibility "workflowactivityid|workflowactivitytitle"
                             mappingActivityId = fieldData.field_value.split('|');

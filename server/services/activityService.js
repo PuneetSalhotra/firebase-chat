@@ -5178,23 +5178,28 @@ function ActivityService(objectCollection) {
 
         const formID = request.form_id || request.activity_form_id;
         
-        if(Number(request.activity_type_category_id) === 9) {            
-            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, formID);
-            if (workflowError !== false || workflowData.length === 0) {
-                
-                //if(cnt <= 2) {
-                //    await sleep(2000);
-                //    cnt++;
-                //    await activityActivityMappingInsertV1(request, fieldData, cnt);
-                //} else {                    
-                //    return [workflowError, workflowData];
-                //}
-                await sleep(2000);
-                return workflowData;
-            }            
-            
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);  
-            finalWorkflowData = workflowData;
+        if (Number(request.activity_type_category_id) === 9) {
+            if (request.hasOwnProperty("workflow_activity_id")) {
+                currentWorkflowActivityId = request.workflow_activity_id;
+            } else {
+                const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, formID);
+                if (workflowError !== false || workflowData.length === 0) {
+
+                    //if(cnt <= 2) {
+                    //    await sleep(2000);
+                    //    cnt++;
+                    //    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                    //} else {                    
+                    //    return [workflowError, workflowData];
+                    //}
+                    await sleep(2000);
+                    return workflowData;
+                }
+
+                currentWorkflowActivityId = Number(workflowData[0].activity_id);
+                finalWorkflowData = workflowData;
+            }
+
         }
         
         if(request.hasOwnProperty('is_refill') && Number(request.is_refill) === 1) {
