@@ -309,7 +309,7 @@ function DiffbotService(objectCollection) {
         console.log('QUERY : ', query);
         
         responseData = await client.search({
-          index: 'crawling_accounts',
+          index: global.config.elasticCrawlingAccountTable,
           body: query
         });
         
