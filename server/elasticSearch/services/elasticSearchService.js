@@ -459,7 +459,7 @@ function CommnElasticService(objectCollection) {
     this.getAccountName = async(request) => {
         let error = false;
         let responseData = await client.search({
-            index: 'crawling_group_accounts',
+            index: global.config.elasticCrawlingGroupAccounts,
             body: {
                 query: {
                     match: {activity_title_expression : request.activityTitleExpression}
@@ -473,7 +473,7 @@ function CommnElasticService(objectCollection) {
     this.insertAccountName = async(request) => {
         let error = false;
         let responseData = await client.index({
-            index: 'crawling_group_accounts',
+            index: global.config.elasticCrawlingGroupAccounts,
             body: {
                 organization_id: Number(request.organization_id),
                 account_id: Number(request.account_id),
@@ -519,7 +519,7 @@ function CommnElasticService(objectCollection) {
         console.log("updateAccountCode : " + JSON.stringify(body));
         request.debug_info.push("updateAccountCode : " + JSON.stringify(body));
         let resultData = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
               query: {
                 bool: {
@@ -538,7 +538,7 @@ function CommnElasticService(objectCollection) {
 
         if (resultData.hits.hits.length > 0) {
             client.updateByQuery({
-                index: 'crawling_accounts',
+                index: global.config.elasticCrawlingAccountTable,
                 "body": {
                     "query": {
                         "match": {
@@ -557,7 +557,7 @@ function CommnElasticService(objectCollection) {
         }
         else {
             client.index({
-                index: "crawling_accounts",
+                index: global.config.elasticCrawlingAccountTable,
                 body: {
                     ...body
                 }
@@ -641,7 +641,7 @@ function CommnElasticService(objectCollection) {
                     //     }
                     // })
                     client.updateByQuery({
-                        index: 'activity_search_mapping',
+                        index: global.config.elasticActivitySearchTable,
                         "body": {
                             "query": {
                                 "match": {
@@ -684,7 +684,7 @@ function CommnElasticService(objectCollection) {
         switch(flag) {
             case 1: console.log('Searching Acount Code...');
                     result = await client.search({
-                                    index: 'vidm',
+                                    index: global.config.elasticVidmTable,
                                     body: {
                                     size : request.page_size,
                                     from : request.page_no,
@@ -699,7 +699,7 @@ function CommnElasticService(objectCollection) {
 
             case 2: console.log('Searching Customer Name...');
                     result = await client.search({
-                                    index: 'vidm',
+                                    index: global.config.elasticVidmTable,
                                     body: {
                                     size : request.page_size,
                                     from : request.page_no,
@@ -714,7 +714,7 @@ function CommnElasticService(objectCollection) {
             
             case 3: console.log('Searching for Date Range...');
                     result = await client.search({
-                                    index: 'vidm',
+                                    index: global.config.elasticVidmTable,
                                     body: {
                                     size : request.page_size,
                                     from : request.page_no,
@@ -729,7 +729,7 @@ function CommnElasticService(objectCollection) {
         }
         //console.log("res",result);
         /*const result = await client.search({
-            index: 'vidm',
+            index: global.config.elasticVidmTable,
             body: {
             size : request.page_size,
             from : request.page_no,

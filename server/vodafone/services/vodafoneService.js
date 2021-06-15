@@ -6685,12 +6685,12 @@ function VodafoneService(objectCollection) {
                             }
                         }
                         let resultData = await client.search({
-                            index: 'activity_search_mapping',
+                            index: global.config.elasticActivitySearchTable,
                             body: esQueue
                         });
                         if (resultData.hits.hits.length > 0) {
                             await client.deleteByQuery({
-                                index: 'activity_search_mapping',
+                                index: global.config.elasticActivitySearchTable,
                                 "body": esQueue
                             })
                         }
@@ -6721,7 +6721,7 @@ function VodafoneService(objectCollection) {
                             "tag_type_id": responseData[i].tag_type_id
                         }
                         const insertEsData = await client.index({
-                            index: 'activity_search_mapping',
+                            index: global.config.elasticActivitySearchTable,
                             body: insertData
                         });
                     }
@@ -6771,12 +6771,12 @@ function VodafoneService(objectCollection) {
                             }
                         }
                         let resultData = await client.search({
-                            index: 'activity_asset_search_mapping',
+                            index: global.config.elasticActivityAssetTable,
                             body: esQueue
                         });
                         if (resultData.hits.hits.length > 0) {
                             await client.deleteByQuery({
-                                index: 'activity_asset_search_mapping',
+                                index: global.config.elasticActivityAssetTable,
                                 "body": esQueue
                             })
                         }
@@ -6807,7 +6807,7 @@ function VodafoneService(objectCollection) {
                             "tag_type_id": responseData[i].tag_type_id
                         }
                         const insertEsData = await client.index({
-                            index: 'activity_asset_search_mapping',
+                            index: global.config.elasticActivityAssetTable,
                             body: insertData
                         });
                     }
