@@ -4223,7 +4223,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         request.activity_type_category_id = 37;
         const [err1, activityType] = await self.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
-        request.activity_status_type_id = 95;
+        request.activity_status_type_id = 150;
         const [err2, activityStatus] = await self.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;
 
@@ -4308,12 +4308,12 @@ this.sendWhatsAppTemplateMessage = async(request)=>{
 		request.access_token = access["access_token"];
 		request.token_type = access["token_type"]
 	}
-	request.template_id = "c14c5e43-d053-4414-a0d1-75ffdccd23b6";
+	request.template_id = "d5cce67c-d65b-444e-8818-8b80d1b9ecd2";
 	request.account_id = 20048;
 	request.namespace = "60c813f1_bf7f_4aee_afa4_2a87cc648e98";
 	request.campaing_id = 118
-	request.template_name ="otp_alert"
-	request.parameters.length< 2 ? request.parameters = ["",""]:null;
+	request.template_name ="reserve2"
+	request.parameters.length< 3 ? request.parameters = ["","",""]:null; // [no_of_people,time,date] 
 	request.parameters = JSON.parse(request.parameters)
 	
 	 try {
@@ -4409,7 +4409,43 @@ this.sendWhatsAppTemplateMessage = async(request)=>{
 							 "filename":0
 						  },
 						  "nameOfParams":"{{2}}"
-					   }
+					   },
+                       {
+                        "type":"text",
+                        "text":request.parameters[
+                           2
+                        ],
+                        "caption":null,
+                        "link":null,
+                        "payload":null,
+                        "currency":{
+                           "fallback_value":0,
+                           "code":"USD",
+                           "amount_1000":0
+                        },
+                        "date_time":{
+                           "fallback_value":0,
+                           "day_of_week":0,
+                           "day_of_month":1,
+                           "year":1,
+                           "month":1,
+                           "hour":1,
+                           "minute":1
+                        },
+                        "document":{
+                           "link":0,
+                           "filename":0
+                        },
+                        "video":{
+                           "link":0,
+                           "filename":0
+                        },
+                        "image":{
+                           "link":0,
+                           "filename":0
+                        },
+                        "nameOfParams":"{{3}}"
+                     }
 					]
 				 }
 			  ],
