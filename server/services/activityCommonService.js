@@ -6378,18 +6378,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                 match: {
                                   activity_id:request.activity_id
                                 }
-                              },
-                              {
-                                match: {
-                                  asset_id:request.asset_id
-                                }
                               }
                             ],
                     
                         }
                     }
                 }
-            })
+            });
             if(resultData.hits.hits.length>0){
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
@@ -6402,11 +6397,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                               {
                                 match: {
                                   activity_id:request.activity_id
-                                }
-                              },
-                              {
-                                match: {
-                                  asset_id:request.asset_id
                                 }
                               }
                             ],
