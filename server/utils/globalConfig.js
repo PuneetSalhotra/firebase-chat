@@ -771,7 +771,7 @@ if(mode === 'staging') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_pool_id = 'ap-south-1_9vPl6RcPo';
     config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
 
     //Ports Config
