@@ -181,6 +181,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_order_id = null;
         let razorpay_signature = null;
         let isSuccess = false;
+        request.isSuccess = false;
         
         if(!paymentUtil.isNotEmpty(razorpayApiKey)) {
             logger.error('Please configure `razorpayApiKey` in globalConfig.js file');
@@ -196,8 +197,13 @@ function MerchantPaymentService(objectCollection) {
             razorpay_order_id = success_response.razorpay_order_id;
             razorpay_signature = success_response.razorpay_signature;
             isSuccess = true;
+            request.isSuccess = true;
+            await this.alterStatusMakeRequest(request)                          
+            // calling the status/alter/ api for and changing status to paid status_type_id = 99
+            // 
         } else if(request.hasOwnProperty("failure_response")) {
             let failure_response = JSON.parse(request.failure_response);
+            await this.alterStatusMakeRequest(request)
             if(failure_response.hasOwnProperty("error")) {
                 let errorObj = failure_response.error;
                 if(errorObj !== null) {
@@ -483,6 +489,7 @@ function MerchantPaymentService(objectCollection) {
                 let payment = payload.payment;
                 if(payment.hasOwnProperty("entity")) {
                     request_entity = payment.entity;
+
                     if(request_entity === {}) {
                         logger.error('Invalid payment response | Invalid parameter `entity`');
                         return [true, { 
@@ -530,6 +537,7 @@ function MerchantPaymentService(objectCollection) {
         }
 
         if("refund.processed" === request_payload.event) {
+            await this.alterStatusMakeRequest(request)
             return await this.handleWebhookRefundResponse(request);
         } else {
             return await this.handleWebhookPaymentResponse(request);
@@ -729,10 +737,12 @@ function MerchantPaymentService(objectCollection) {
                                     let order_status = 'FAI';
                                     let response_code = "39"; 
                                     let response_description = 'FAILED';
+                                    request.isSuccess = false
                                     if("captured" === payment.status) {
                                         order_status = 'SUC';
                                         response_code = "00";
                                         response_description = "SUCCESS";
+                                        request.isSuccess = true
                                     } 
 
                                     let payment_datetime = moment(payment.payment_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
@@ -748,6 +758,7 @@ function MerchantPaymentService(objectCollection) {
                                         payment_response_code: response_code,
                                         payment_response_desc: response_description
                                     };
+                                    await this.alterStatusMakeRequest(request);                         
                                     logger.info("finalResponse = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
@@ -1623,7 +1634,8 @@ function MerchantPaymentService(objectCollection) {
             null,
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
-            Number("0.00").toFixed(2)
+            Number("0.00").toFixed(2),
+            request.reservation_id
             //"REQ"
         );
 
@@ -1850,6 +1862,212 @@ function MerchantPaymentService(objectCollection) {
         logger.info("all parameters are valid");
         return 'Ok';
     }
+
+    this.alterStatusMakeRequest = async function (request) {
+
+        let rollback_status_name = request.activity_status_name;
+
+        let x = JSON.stringify({
+                "activity_reference": [{
+                    "activity_id": request.activity_id,
+                    "activity_title": ""
+                }],
+                "asset_reference": [{}],
+                "attachments": [],
+                "content": "Status updated to "+rollback_status_name,
+                "mail_body": "Status updated to "+rollback_status_name,
+                "subject": "Status updated to "+rollback_status_name
+            });
+            
+        request.activity_status_type_id = 99;
+        const [err2, activityStatus] = await self.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;              
+        const alterStatusRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: request.asset_id,
+            auth_asset_id:request.auth_asset_id,
+            asset_token_auth: request.asset_token_auth,
+            asset_message_counter: 0,
+            activity_id: request.activity_id,
+            activity_type_id: 0,  
+            activity_type_category_id: 37, 
+            activity_access_role_id: request.activity_access_role_id || 0,   
+            activity_status_id: request.activity_status_id,
+            activity_status_type_id: activityStatusId, // paid
+            activity_status_type_category_id: request.activity_status_type_category_id || 0,        
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0.0,
+            track_gps_status: 1,
+            track_gps_location: '',
+            service_version: request.service_version,
+            app_version: request.app_version,
+            device_os_id: 5,
+            datetime_log: util.getCurrentUTCTime(),
+            insufficient_data: true,
+            is_status_rollback:1,
+            activity_stream_type_id:704,
+            timeline_stream_type_id:704,
+            //global_array:request.global_array,
+            activity_timeline_collection:x
+        };
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const makeRequestOptions1 = {
+            form: alterStatusRequest
+        };
+        try {
+             //logger.info("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await alterStatusActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/status/alter', makeRequestOptions1);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                logger.info("Activity Status Alter | Body: ", body);
+                await addActivity(request)                                              
+                return [false, {}];
+            }else{
+                logger.info("Error ", body);
+                return [true, {}];
+            }
+        } catch (error) {
+            logger.info("Activity Status Alter | Error: ", error);
+            return [true, {}];
+        } 
+    }
+
+    ///get/activity/category/type
+    this.getActivityType = async (request) => {
+
+        let responseData = [],
+            error = true;
+    
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+        )
+        const queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+                
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+    
+
+    }
+
+    //get First Status of an activityTypeCategory // /get/activity/category/status
+    this.getActivityStatusV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_status_type_id
+        )
+        const queryString = util.getQueryString('pm_v1_workforce_activity_status_mapping_select_first_status', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+    }
+
+    const addActivity = async (request) => {
+
+        // const [eventErr, eventData] = await self.getEvent(request);
+        request.activity_parent_id = request.reservation_id                                  
+        // eventData[0].activity_id;
+        request.activity_type_category_id = 40;                                             
+        const [err1, activityType] = await this.getActivityType(request);
+        request.activity_type_id = activityType[0].activity_type_id;
+        request.activity_status_type_id = 115;                                              
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
+
+        request.activity_title = request.asset_first_name + (request.table_name||'');
+        request.activity_description = request.activity_title;
+		request.activity_access_role_id=121;
+		request.activity_channel_category_id= 0;
+		request.activity_channel_id=0;
+		request.activity_datetime_end=util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours");
+		request.activity_datetime_start=util.getCurrentISTTime(); 
+        request.owner_asset_id=request.asset_id;
+		request.activity_form_id=0;
+		request.activity_inline_data=JSON.stringify([{"total_amount": request.amount, "refunded_amount": request.refund_amount, "remaining_amount":request.remaining_amount}]);              // added activity_inline_data for payment
+		request.activity_sub_type_id=0
+		request.activity_sub_type_name=''
+		request.app_version=1
+		request.asset_message_counter=0
+		request.channel_activity_categeory_id=0
+		request.device_os_id=5;
+		request.flag_offline=0;
+		request.flag_pin=0;
+		request.flag_priority=0
+		request.flag_retry=0
+		request.message_unique_id=util.getMessageUniqueId(request.asset_id)	
+		request.product_id=2
+		request.service_version=1
+		request.track_altitude=0
+		request.track_gps_accuracy=0
+		request.track_gps_datetime=util.getCurrentUTCTime()
+		request.track_gps_location=''
+		request.track_gps_status=1
+		request.track_latitude=0
+		request.track_longitude=0
+		request.member_code = '0' 
+        request.url = '/activity/add';
+
+        const assignActAsync = nodeUtil.promisify(makingRequest.post);
+        const makeRequestOptions1 = {
+            form: request,
+        };
+        try {
+            const response = await assignActAsync(
+                global.config.mobileBaseUrl + global.config.version + "/activity/add",
+                makeRequestOptions1,
+            );
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("Activity Add | Body: ", body);
+                return [false, body];
+            } else {
+                console.log("Error ", body);
+                return [true, {}];
+            }
+        } catch (error) {
+            console.log("Activity Add | Error: ", error);
+            return [true, {}];
+        }
+    };
+    
 }
 
 module.exports = MerchantPaymentService;
