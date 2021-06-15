@@ -255,7 +255,7 @@ function ActivityTimelineService(objectCollection) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
         }
-        logger.info(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+        logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
            (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
@@ -264,7 +264,7 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 55 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
            ){
-            logger.info(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+            logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
         }
 
         await activityCommonService.updateAssetLocationPromise(request);
@@ -439,7 +439,7 @@ function ActivityTimelineService(objectCollection) {
         }
 
         //commentWithMentions(request);
-        logger.info(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT  🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+        logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT  🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
 
         return [error, responseData];
@@ -1192,6 +1192,7 @@ function ActivityTimelineService(objectCollection) {
     }
 
     async function fireBotEngineInitWorkflow(request) {
+        let logUUID = request.log_uuid || "";
         try {
             if (
                 request.hasOwnProperty("fire_bot_engine") &&

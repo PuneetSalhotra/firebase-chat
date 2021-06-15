@@ -1106,11 +1106,8 @@ function BotService(objectCollection) {
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
             logger.info(`[${logUUID}] In form_field_alter`);
-            console.log('');
-            console.log("formInlineDataMap: ", formInlineDataMap);
-            console.log(' ');
-            request.debug_info.push('In form_field_alter');
-            request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);            
+            logger.info(`[${logUUID}] formInlineDataMap:  %j`, formInlineDataMap);
+
             /*In case of Refill 
                 1) trigger all form level bots 
                 2) trigger bots on the respective field i.e. altered*/
@@ -1150,7 +1147,7 @@ function BotService(objectCollection) {
             }            
 
         } else if(Number(request.is_refill) === 1) { 
-            console.log('This is smart form - Refill case');
+            logger.info(`[${logUUID}] This is smart form - Refill case`);
             //This is Form refill SMART FORM 
             //1) Retrigger all form level bots
             //2) Retrigger all the impacted field level
@@ -1164,8 +1161,8 @@ function BotService(objectCollection) {
                     start_from: 0,
                     limit_value: 50
                 }, 2);
+            logger.info(`[${logUUID}] Number of form Level Bots form_id : ${request.form_id} %j`,botResponse.length);
 
-            console.log('Number of form Level Bots : ',  botResponse.length);
             let totalBots = botResponse; //Assigning form based bots
 
             //2) Retrigger all the impacted field level
@@ -1179,8 +1176,7 @@ function BotService(objectCollection) {
                     "page_start": 0,
                     "page_limit": 50
                 });
-
-                console.log('Field Level Bots : ',tempResponse.length);
+                logger.info(`[${logUUID}] Number of field Level Bots field_id : ${i_iterator.field_id} %j`,tempResponse.length);
                 if(tempResponse.length > 0) {
                     totalBots = totalBots.concat(tempResponse); //Assigning field level bots
                 }                
@@ -1189,7 +1185,7 @@ function BotService(objectCollection) {
             wfSteps = totalBots;            
 
         } else if(Number(request.is_resubmit) === 1) {
-            console.log('This is non-smart - Resubmit case');
+            logger.info(`[${logUUID}] This is non-smart - Resubmit case`);
             //This is Form resubmit NON-SMART FORM 
             //Retrigger all form level bots
             let [err, botResponse] = await activityCommonService.getMappedBotSteps({
@@ -1202,8 +1198,8 @@ function BotService(objectCollection) {
             }, 2);
 
             wfSteps = botResponse; //Assigning form based bots
-        } else {   
-            console.log('This is generic case!! - First time form Submission!!');
+        } else {
+            logger.info(`[${logUUID}] This is generic case!! - First time form Submission!!`);   
             //trigger both the form level bots & field level - Normally happens for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
@@ -1223,7 +1219,7 @@ function BotService(objectCollection) {
 
         //Print what are all the bots are there
         for (const temp_iterator of wfSteps) {
-            console.log('bot_operation_type_id : ', temp_iterator.bot_operation_type_id);
+            logger.info(`[${logUUID}] bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);   
             console.table([{
                 bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
                 bot_operation_id: temp_iterator.bot_operation_id,
@@ -1235,10 +1231,10 @@ function BotService(objectCollection) {
             }]);
         }
 
-        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(`[${logUUID}]🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
    
         for (let i of wfSteps) {
-            global.logger.write('conLog', i.bot_operation_type_id, {}, {});
+            logger.info(`[${logUUID}] i.bot_operation_type_id ${i.bot_operation_type_id}`);   
 
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
@@ -1272,7 +1268,7 @@ function BotService(objectCollection) {
                     botOperationFieldID > 0 &&
                     !formInlineDataMap.has(botOperationFieldID)
                 ) {
-                    logger.silly("\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m");
+                    logger.silly(`[${logUUID}]\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m`);
                     request.debug_info.push('This bot operation is field specific & cannot be applied.');
                     continue;
                 }
@@ -1284,19 +1280,19 @@ function BotService(objectCollection) {
                     formInlineDataMap.has(botOperationFieldID) &&
                     !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
                 ) {
-                    logger.silly("\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m");
+                    logger.silly(`${logUUID}]\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m`);
                     request.debug_info.push('This bot operation is field and data_type_combo_id specific & cannot be applied.');
                     continue;
                 }
             } catch (error) {
-                logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
+                logger.error(`[${logUUID}] Error checking field/data_type_combo_id trigger specificity`, { type: 'bot_service', error: serializeError(error) });
                 request.debug_info.push('Error checking field/data_type_combo_id trigger specificity');
                 request.debug_info.push(error);                
             }
 
-            console.log('i.bot_operation_inline_data : ', i.bot_operation_inline_data);
-            console.log('Value of i : ', i)
-            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+            logger.info(`[${logUUID}] i.bot_operation_inline_data : %j`, i.bot_operation_inline_data);
+            logger.info(`[${logUUID}] Value of i :  %j`, i);
+            logger.silly(`[${logUUID}] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
 
             // Skipping form enable bot because it is causing other to fail
             if(Number(i.bot_operation_type_id) === 20 ) {
@@ -1306,13 +1302,13 @@ function BotService(objectCollection) {
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             } catch (error) {
-                logger.error("[botOperationsJson] Error parsing bot_operation_inline_data", { type: "bot_engine", request_body: request, error: serializeError(error) });
+                logger.error(`[${logUUID}][botOperationsJson] Error parsing bot_operation_inline_data`, { type: "bot_engine", error: serializeError(error) });
             }
             try {
                 botSteps = Object.keys(botOperationsJson.bot_operations);
-                logger.silly("botSteps: %j", botSteps);
+                logger.silly(`[${logUUID}]botSteps: %j`, botSteps);
             } catch (error) {
-                logger.error("[botSteps] Error listing bot_operations keys", { type: "bot_engine", request_body: request, error: serializeError(error) });
+                logger.error(`[${logUUID}][botSteps] Error listing bot_operations keys`, { type: "bot_engine", error: serializeError(error) });
             }
 
             // Check for condition, if any
@@ -1320,10 +1316,10 @@ function BotService(objectCollection) {
             try {
                 canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
             } catch (error) {
-                console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);               
+                logger.error(`[${logUUID}]canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: `, { type: "bot_engine", error: serializeError(error) });         
             }
             if (!canPassthrough) {
-                console.log("The bot operation condition failed, so the bot operation will not be executed.");                
+                logger.error(`[${logUUID}]The bot operation condition failed, so the bot operation will not be executed.`, { type: "bot_engine"});                
                 continue;
             }
 
@@ -1336,22 +1332,21 @@ function BotService(objectCollection) {
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'PARTICIPANT ADD', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);                    
+                    logger.silly(`[${logUUID}]****************************************************************`);
+                    logger.info(`[${logUUID}] PARTICIPANT ADD`);
                     request.debug_info.push('PARTICIPANT ADD');
+                    request["bot_operation_id"] = i.bot_operation_id;
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing addParticipant Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        logger.error(`[${logUUID}] Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });                        
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    logger.silly(`[${logUUID}] ****************************************************************`);
                     break;
 
                 //case 'status_alter': 
@@ -5468,23 +5463,23 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         let newReq = Object.assign({}, request);
         let resp;
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         request.debug_info=[]
-        global.logger.write('conLog', inlineData, {}, {});
+        logger.info(`[${logUUID}][${botOperationId}] inlineData %j`,inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
-        logger.info(request.workflow_activity_id + " : addParticipant : inlineData : "+ JSON.stringify(inlineData));
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let type = Object.keys(inlineData);
-        global.logger.write('conLog', type, {}, {});
         request.debug_info.push('type: ' + type);
-        logger.info(request.workflow_activity_id + " : addParticipant : type : "+ type);
 
         if (type[0] === 'static') {
-            logger.info(request.workflow_activity_id + " : addParticipant : Processing Static ");
+            logger.info(`[${logUUID}][${botOperationId}] addParticipant : Processing Static`);
+            logger.info(request.workflow_activity_id + " : ");
             request.debug_info.push('Inside Static');
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
@@ -5492,7 +5487,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
-            logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
+            logger.info(`[${logUUID}][${botOperationId}] addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -5511,9 +5506,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                 newReq.phone_number = phone[1]; //phone number                      
             }
 
-            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
-
         } else if (type[0] === 'dynamic') {
+            logger.info(`[${logUUID}][${botOperationId}] Inside dynamic`);
             request.debug_info.push('Inside dynamic');
             newReq.desk_asset_id = 0;
             // Phone number
@@ -5528,12 +5522,11 @@ async function removeAsOwner(request,data,addT = 0)  {
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
-            logger.info(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
+            logger.info(`[${logUUID}][${botOperationId}] addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
             request.debug_info.push(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
-            logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
             request.debug_info.push(request.workflow_activity_id + " : addParticipant : resp : " + resp.length);
             if (resp.length > 0) {
                 newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
@@ -5563,16 +5556,15 @@ async function removeAsOwner(request,data,addT = 0)  {
                     ) {
                         request.debug_info.push('Grab the name : '+i.field_value);
                         newReq.customer_name = i.field_value;
-                        console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
                         request.debug_info.push('BotEngine | addParticipant | From Form | newReq.customer_name: ' +  newReq.customer_name);
                     }
                 }
             }
             request.debug_info.push('End of Dynamic : Country Code : '+newReq.country_code);
             request.debug_info.push('End of Dynamic : PhoneNumber : '+newReq.phone_number);
-            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
 
         } else if (type[0] === 'asset_reference') {
+            logger.info(`[${logUUID}][${botOperationId}] Inside asset_reference`);
             request.debug_info.push('Inside asset_reference');
 
             const formID = Number(inlineData["asset_reference"].form_id),
@@ -5584,7 +5576,6 @@ async function removeAsOwner(request,data,addT = 0)  {
             isLead = (inlineData["asset_reference"].hasOwnProperty('is_lead')) ? inlineData["asset_reference"].is_lead : 0;
             isOwner = (inlineData["asset_reference"].hasOwnProperty('is_owner')) ? inlineData["asset_reference"].is_owner : 0;
             flagCreatorAsOwner = (inlineData["asset_reference"].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
-            logger.info(request.workflow_activity_id + " : addParticipant : resp : " + JSON.stringify(resp));
 
             if(Number(flagCreatorAsOwner) === 1) {
                 await addParticipantCreatorOwner(request);
@@ -5592,12 +5583,14 @@ async function removeAsOwner(request,data,addT = 0)  {
             }
 
             if (!formInlineDataMap.has(fieldID)) {
+                logger.info(`[${logUUID}][${botOperationId}] Inside !formInlineDataMap.has(fieldID) `);
                 request.debug_info.push('Inside !formInlineDataMap.has(fieldID)');
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
                 // newReq.desk_asset_id = fieldValue[0];
                 // newReq.customer_name = fieldValue[1]
 
             } else {
+                logger.info(`[${logUUID}][${botOperationId}] ELSE !formInlineDataMap.has(fieldID) `);
                 request.debug_info.push('ELSE !formInlineDataMap.has(fieldID)');
                 const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
@@ -5625,8 +5618,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                     newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
                     newReq.customer_name = fieldData[0].data_entity_text_1;
 
-                    console.log('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ', fieldData[0].data_entity_bigint_1);
-                    console.log('newReq.customer_name = fieldData[0].data_entity_text_1 - ', fieldData[0].data_entity_text_1);
+                    logger.info(`[${logUUID}][${botOperationId}] newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ${fieldData[0].data_entity_bigint_1} `);
+                    logger.info(`[${logUUID}][${botOperationId}] nnewReq.customer_name = fieldData[0].data_entity_text_1 -  ${fieldData[0].data_entity_text_1} `);
                     request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
                     request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
                 }else{
@@ -5634,32 +5627,29 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
             }
 
-            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
+            
 
             if (Number(newReq.desk_asset_id) > 0) {
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
                 });
-                console.log('assetData.length - ', assetData.length);
-                logger.info(request.workflow_activity_id + " : addParticipant : assetData : "+ JSON.stringify(assetData));
+                logger.info(`[${logUUID}][${botOperationId}]  addParticipant : assetData.length %j`, assetData.length);
                 request.debug_info.push('assetData.length: ' + assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
                     newReq.phone_number = Number(assetData[0].operating_asset_phone_number) || Number(assetData[0].asset_phone_number);
 
-                    console.log('newReq.phone_number - ', newReq.phone_number);
-                    logger.info(request.workflow_activity_id + " : addParticipant : phone_number : "+ newReq.phone_number);
                     request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
                 }
             }
 
-            logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
         }
 
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
-            console.log('Customer Name is empty hence fetching from DB');
+            logger.info(`[${logUUID}][${botOperationId}]  Customer Name is empty hence fetching from DB`);
+
             request.debug_info.push('Customer Name is empty hence fetching from DB');
             try {
                 let fieldData = await getFieldValue({
@@ -5668,14 +5658,13 @@ async function removeAsOwner(request,data,addT = 0)  {
                     field_id: newReq.name_field_id,
                     organization_id: newReq.organization_id
                 });
-               logger.info(request.workflow_activity_id + " : addParticipant : fieldData : "+ JSON.stringify(fieldData));
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
-                    console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                    logger.info(`[${logUUID}][${botOperationId}]  BotEngine | addParticipant | getFieldValue | Customer Name:  %j`,newReq.customer_name);
                     request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: " + newReq.customer_name);
                 }
             } catch (error) {
-                logger.error("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", { type: "bot_engine", error: serializeError(error), request_body: request });
+                logger.error(`${logUUID}][${botOperationId}] BotEngine | addParticipant | getFieldValue | Customer Name | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
         }
 
@@ -5683,20 +5672,17 @@ async function removeAsOwner(request,data,addT = 0)  {
         newReq.is_owner = isOwner;
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
-        logger.info(request.workflow_activity_id + " : addParticipant : newReq : "+ JSON.stringify(newReq));
-        console.log('newReq.phone_number : ', newReq.phone_number);
+        logger.info(`[${logUUID}][${botOperationId}]  BotEngine | addParticipant | newReq  %j`,newReq);
         request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
-            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
-            logger.info(request.workflow_activity_id + " : addParticipant : BotService | addParticipant | Message: : "+ newReq.phone_number);
             request.debug_info.push("BotService | addParticipant | Message: " + newReq.phone_number + " | " + typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
-            logger.error(`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
+            logger.error(`${logUUID}][${botOperationId}]BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 
@@ -6660,7 +6646,9 @@ else{
     }
 
     async function addParticipantStep(request) {
-        logger.info(request.workflow_activity_id + " : addParticipant : request :"+ JSON.stringify(request));
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
         let dataResp,
             deskAssetData;
         let assetData = {};
@@ -6698,10 +6686,7 @@ else{
             });
             deskAssetData = dataResp[0];
         }
-
-        logger.info(request.workflow_activity_id + " : addParticipant : deskAssetData :"+ JSON.stringify(deskAssetData));
-
-        global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData, {});
+        logger.info(`[${logUUID}][${botOperationId}] deskAssetData %j`,deskAssetData);
 
         if (assetData.desk_asset_id === 0) {
             assetData.desk_asset_id = deskAssetData.asset_id;
@@ -6711,8 +6696,8 @@ else{
         assetData.contact_phone_number = deskAssetData.operating_asset_phone_number || deskAssetData.asset_phone_number;
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
-request.debug_info = []
-        logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
+        request.debug_info = []
+        logger.info(`[${logUUID}][${botOperationId}] assetData %j`,assetData);
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
         return await addDeskAsParticipant(request, assetData);
 
@@ -6801,6 +6786,8 @@ request.debug_info = []
     }
 
     function createAssetContactDesk(request, customerData) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         return new Promise((resolve, reject) => {
 
             //Get asset_type_id for category 3 for the specific workforce
@@ -6876,15 +6863,16 @@ request.debug_info = []
                     device_os_id: 5
                 };
 
-                global.logger.write('conLog', "customerServiceDeskRequest: ", customerServiceDeskRequest, {});
+                logger.info(`[${logUUID}][${botOperationId}] customerServiceDeskRequest %j`,customerServiceDeskRequest);
 
                 const requestOptions = {
                     form: customerServiceDeskRequest
                 };
 
-                global.logger.write('conLog', 'Before Making Request', {}, {});
+
+                logger.info(`[${logUUID}][${botOperationId}] Before Making Request `);
                 makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', requestOptions, function (error, response, body) {
-                    global.logger.write('conLog', "[customerServiceDeskRequest] Body: ", body, {});
+                    logger.info(`[${logUUID}][${botOperationId}] [customerServiceDeskRequest] Body:  %j`,body);
                     //global.logger.write('conLog', "[customerServiceDeskRequest] Error: ", error, {});
                     //console.log("[customerServiceDeskRequest] Response: ", response);
 
@@ -6904,6 +6892,8 @@ request.debug_info = []
     }
 
     async function addDeskAsParticipant(request, assetData) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
         //     asset_id: request.asset_id
@@ -6969,14 +6959,14 @@ request.debug_info = []
             device_os_id: 9
         };
 
-        logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest));
+        logger.info(`[${logUUID}][${botOperationId}] addDeskAsParticipant %j`,addParticipantRequest);
+
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest))
         return await new Promise((resolve, reject) => {
             activityParticipantService.assignCoworker(addParticipantRequest, async (err, resp) => {
                 if(err === false) {                    
                     
                     //Check for lead flag                    
-                    console.log('request.is_lead in BotService: ',request.is_lead);
                     request.debug_info.push("request.is_lead : "+request.is_lead);
                     request.debug_info.push("request.is_owner : "+request.is_owner);
                     request.debug_info.push("request.flag_creator_as_owner : "+request.flag_creator_as_owner);
@@ -6986,9 +6976,8 @@ request.debug_info = []
                         "asset_id": request.asset_id
                     });
 
-                    logger.info(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : is lead :"+ request.is_lead + " : is_owner :" + request.is_owner + " : flag_creator_as_owner : " + request.workflow_percentageflag_creator_as_owner);
                     if(Number(request.is_lead) === 1) {
-                        console.log('Inside IF');
+                        logger.info(`[${logUUID}][${botOperationId}] Inside is_lead `);
                         let newReq = {};
                             newReq.organization_id = request.organization_id;
                             newReq.account_id = request.account_id;
@@ -7041,7 +7030,7 @@ request.debug_info = []
                     }
                     if(parseInt(request.is_owner) == 1) {
 
-                        console.log("making owner bot");
+                        logger.info(`[${logUUID}][${botOperationId}] making owner bot `);
                         let params = {
                             activity_id : Number(request.workflow_activity_id),
                             target_asset_id : assetData.desk_asset_id,
@@ -7091,7 +7080,7 @@ request.debug_info = []
                         activityTimelineService.addTimelineTransactionAsync(timelineReq);
                     }
                     if(parseInt(request.flag_creator_as_owner) == 1) {
-                        console.log("making creator bot");
+                        logger.info(`[${logUUID}][${botOperationId}] making creator bot`);
                         let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
                         let assetID = activityData[0].activity_creator_asset_id;
                         let params = {

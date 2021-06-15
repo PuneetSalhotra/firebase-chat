@@ -1059,6 +1059,7 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var updateParticipantCount = function (activityId, organizationId, request, callback) {
+        let logUUID = request.log_uuid || "";
         var paramsArr = new Array(
             activityId,
             organizationId
