@@ -128,6 +128,12 @@ config.mysqlConnectionErrors = {
     POOL_NONEONLINE: 1
 }
 
+config.elasticActivityAssetTable = 'activity_asset_search_mapping';
+config.elasticActivitySearchTable = 'activity_search_mapping';
+config.elasticCrawlingAccountTable = 'crawling_accounts';
+config.elasticVidmTable = 'vidm';
+config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+
 config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD", "SLAVE2_IP"];
 
 if(mode === 'testingprodissueenv') {
@@ -449,6 +455,12 @@ if(mode === 'local') {
         'http://localhost:3000',
         'https://d1g3r3ihuqqg05.cloudfront.net'
     ];
+
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'dev') {
@@ -771,7 +783,7 @@ if(mode === 'staging') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_pool_id = 'ap-south-1_9vPl6RcPo';
     config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
 
     //Ports Config
@@ -911,6 +923,11 @@ if(mode === 'staging') {
         "https://vibusinesshub.myvi.in",
         "http://vibusinesshub.myvi.in" 
     ];
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'preprod') {
@@ -1032,6 +1049,11 @@ if(mode === 'preprod') {
         "https://vibusinesshub.myvi.in",
         "http://vibusinesshub.myvi.in" 
     ];
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping';
+    config.elasticActivitySearchTable = 'activity_search_mapping';
+    config.elasticCrawlingAccountTable = 'crawling_accounts';
+    config.elasticVidmTable = 'vidm';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
 }
 
 
