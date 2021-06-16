@@ -1755,6 +1755,14 @@ function WorkbookOpsService(objectCollection) {
 
         let responseData = [],
             error = true;
+            // N p_input_type_name VARCHAR(50),
+            // IN p_input_type_description VARCHAR(300),
+            // IN p_input_type_category_id SMALLINT(6),
+            // IN p_input_type_template_url varchar(255),
+            // IN p_input_type_inline_data json,
+            // IN p_organization_id BIGINT(20),
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME)
             
         var paramsArr = new Array(
             request.input_type_name,
@@ -1782,7 +1790,7 @@ function WorkbookOpsService(objectCollection) {
        
     }
 
-    this.getInputTypeMaster = async (request) => {
+    this.getInPutTypeMaster = async (request) => {
 
         let responseData = [],
             error = true;
@@ -1811,7 +1819,7 @@ function WorkbookOpsService(objectCollection) {
 
         let responseData = [],
             error = true;
-        
+            // IN p_organization_id BIGINT(20), IN p_input_type_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
         var paramsArr = new Array(
             request.organization_id,
             request.input_type_id,
@@ -1839,7 +1847,17 @@ function WorkbookOpsService(objectCollection) {
 
         let responseData = [],
             error = true;
-        
+
+            // IN p_input_name VARCHAR(50),
+            // IN p_input_type_id SMALLINT(6),
+            // IN p_input_url VARCHAR(255),
+            // IN p_input_text VARCHAR(255),
+            // IN p_input_inline_data JSON,
+            // IN p_input_upload_datetime DATETIME,
+            // IN p_organization_id BIGINT(20),
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME
+            
         var paramsArr = new Array(
             request.input_name,
             request.input_type_id,
@@ -1875,6 +1893,14 @@ function WorkbookOpsService(objectCollection) {
         let responseData = [],
             error = true;
 
+
+            // IN p_organization_id BIGINT(20),  
+            // IN p_input_id BIGINT(20),
+            // IN p_flag_is_processed TINYINT(4),
+            // IN p_processed_datetime DATETIME,
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME
+            
         var paramsArr = new Array(
             request.organization_id,
             request.input_id,
@@ -1906,6 +1932,8 @@ function WorkbookOpsService(objectCollection) {
         let responseData = [],
             error = true;
             
+            // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
         var paramsArr = new Array(
             request.organization_id,
             request.input_id,
@@ -1935,7 +1963,8 @@ function WorkbookOpsService(objectCollection) {
         let responseData = [],
             error = true;
             
-          var paramsArr = new Array(
+            // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_update_type_id INT(11), IN p_update_datetime DATETIME)
+        var paramsArr = new Array(
             request.organization_id,
             request.input_id,
             request.update_type_id,
