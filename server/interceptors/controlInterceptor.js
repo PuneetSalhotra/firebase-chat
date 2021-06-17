@@ -77,6 +77,9 @@ const MerchantPaymentController = require('../payments/controllers/merchantPayme
 //ARP Controller
 const ArpController = require('../ARP/controllers/arpController')
 
+//TASI COntroller
+const TasiController = require('../TASI/controllers/tasiController')
+
 
 function ControlInterceptor(objCollection) {
 
@@ -127,6 +130,9 @@ function ControlInterceptor(objCollection) {
 
     //Arp Service
     new ArpController(objCollection);
+
+    //TASI Service
+    new TasiController(objCollection);
 
     // URL Services
     new UrlListingController(objCollection);
