@@ -318,10 +318,9 @@ if(mode === 'local') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_9vPl6RcPo';
-    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
+    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
+    config.user_web_pool_id = 'ap-south-1_9vPl6RcPo';
     
-
     //Ports Config
     config.version = 'r1';
     config.servicePort = 7000;
@@ -780,11 +779,11 @@ if(mode === 'sprint') {
 }
 
 if(mode === 'staging') {
-
+    
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_9vPl6RcPo';
-    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
+    config.user_pool_id = 'ap-south-1_b7x0MLSHi'; // phone number
+    config.user_web_pool_id = 'ap-south-1_9vPl6RcPo'; // email and phone number
 
     //Ports Config
     config.version = 'r0';
@@ -934,8 +933,10 @@ if(mode === 'preprod') {
 
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_jeS0OISHP';
-    config.user_web_pool_id = 'ap-south-1_xCOITnm28';
+    config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
+    config.user_web_pool_id = 'ap-south-1_jeS0OISHP';
+
+
     //Ports Config
     config.version = 'r1';
     config.servicePort = 6000;
