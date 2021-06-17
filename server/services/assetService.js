@@ -1003,7 +1003,12 @@ function AssetService(objectCollection) {
             "asset_tag_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_3']),
             "asset_tag_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_name_3']),
             "asset_tag_type_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_3']),
-            "asset_tag_type_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_3'])
+            "asset_tag_type_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_3']),
+
+            //TASI 
+            "organization_flag_enable_sip_module" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_sip_module']),
+            "asset_flag_sip_admin_access" : util.replaceDefaultNumber(rowArray[0]['asset_flag_sip_admin_access']),
+            "asset_flag_frontline" : util.replaceDefaultNumber(rowArray[0]['asset_flag_frontline'])
         };
 
         callback(false, rowData);
