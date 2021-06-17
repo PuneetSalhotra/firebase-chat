@@ -6118,7 +6118,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     responseData = data;
                     error = false;
                     client.deleteByQuery({
-                        index:'activity_asset_search_mapping',
+                        index:global.config.elasticActivityAssetTable,
                         "body": {
                             "query": {
                                 bool: {
@@ -6172,7 +6172,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 if(data.length>0){
                 let dataTobeSent = responseData[0];
                    let resultData = await client.search({
-                index: 'activity_asset_search_mapping',
+                index: global.config.elasticActivityAssetTable,
                 body: {
                     query: {
                         bool: {
@@ -6200,7 +6200,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              let dataToBeUpdated = {...previousData,...dataTobeSent};
             //  dataToBeUpdated.operating_asset_first_name = "esha"
              client.updateByQuery({
-                index: 'activity_asset_search_mapping',
+                index: global.config.elasticActivityAssetTable,
                 "body": {
                     "query": {
                         bool: {
@@ -6264,7 +6264,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 if(data.length>0){
                 let dataTobeSent = responseData[0];
                    let resultData = await client.search({
-                index: 'activity_asset_search_mapping',
+                index: global.config.elasticActivityAssetTable,
                 body: {
                     query: {
                         bool: {
@@ -6313,7 +6313,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             //  console.log(dataToBeUpdated)
              
              client.updateByQuery({
-                index: 'activity_asset_search_mapping',
+                index: global.config.elasticActivityAssetTable,
                 "body": {
                     "query": {
                         bool: {
@@ -6369,7 +6369,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 if(data.length>0){
                 let dataTobeSent = responseData[0];
                    let resultData = await client.search({
-                index: 'activity_search_mapping',
+                index: global.config.elasticActivitySearchTable,
                 body: {
                     query: {
                         bool: {
@@ -6378,23 +6378,18 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                 match: {
                                   activity_id:request.activity_id
                                 }
-                              },
-                              {
-                                match: {
-                                  asset_id:request.asset_id
-                                }
                               }
                             ],
                     
                         }
                     }
                 }
-            })
+            });
             if(resultData.hits.hits.length>0){
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
              client.updateByQuery({
-                index: 'activity_search_mapping',
+                index: global.config.elasticActivitySearchTable,
                 "body": {
                     "query": {
                         bool: {
@@ -6402,11 +6397,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                               {
                                 match: {
                                   activity_id:request.activity_id
-                                }
-                              },
-                              {
-                                match: {
-                                  asset_id:request.asset_id
                                 }
                               }
                             ],

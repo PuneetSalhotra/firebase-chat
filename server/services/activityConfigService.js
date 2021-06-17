@@ -1251,7 +1251,7 @@ function ActivityConfigService(db,util,objCollection) {
                     "activity_title_expression":activity_title
                 })
                 client.updateByQuery({
-                    index: 'crawling_accounts',
+                    index: global.config.elasticCrawlingAccountTable,
                     "body": {
                         "query": {
                             "match": {
@@ -1277,7 +1277,7 @@ function ActivityConfigService(db,util,objCollection) {
                 });
             } else {
                 client.index({
-                    index: 'crawling_accounts',
+                    index: global.config.elasticCrawlingAccountTable,
                     body: {
                         activity_cuid_3: accountCode,
                         activity_type_id: Number(request.activity_type_id),
@@ -1323,7 +1323,7 @@ function ActivityConfigService(db,util,objCollection) {
         let activities = [];
         console.log('Searching elastisearch for pan number : ',request.pan_number);
         const response = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 query: {
                     match: {activity_cuid_1: request.pan_number}
@@ -1366,7 +1366,7 @@ function ActivityConfigService(db,util,objCollection) {
 
             console.log('Searching elastisearch for pan number : ',panNumber);
             const response = await client.search({
-                index: 'crawling_accounts',
+                index: global.config.elasticCrawlingAccountTable,
                 body: {
                     query: {
                         match: {activity_cuid_1: panNumber}
@@ -1403,7 +1403,7 @@ function ActivityConfigService(db,util,objCollection) {
 
         console.log('Searching elastisearch for Accounyt title : ',title);
         let resultData = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 query: {
                     bool: {
@@ -2064,7 +2064,7 @@ function ActivityConfigService(db,util,objCollection) {
         //accountCode = 'S-CCMOTO17317-2HARDW';
         console.log('Searching elastisearch for account-code : ',accountCode);
         const response = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 query: {
                     match: {activity_cuid_3: accountCode}
@@ -2235,7 +2235,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.panElasticEntry = async (request) => {
        await client.index({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 activity_cuid_3: '',
                 activity_type_id: Number(request.activity_type_id),
