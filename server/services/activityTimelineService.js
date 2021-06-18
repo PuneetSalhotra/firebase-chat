@@ -262,6 +262,8 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 48 && activityStreamTypeId === 726) ||
            (activityTypeCategoryId === 54 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 55 && activityStreamTypeId === 705) ||
+           (activityTypeCategoryId === 31 && activityStreamTypeId === 705) ||
+           (activityTypeCategoryId === 63 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
            ){
             logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
@@ -376,6 +378,8 @@ function ActivityTimelineService(objectCollection) {
                 activityTypeCategoryId === 54 ||
                 activityTypeCategoryId === 55 ||
                 activityTypeCategoryId === 59 ||
+                activityTypeCategoryId === 31 ||
+                activityTypeCategoryId === 63 ||
                 activityTypeCategoryId === 60
             ) &&
             (
@@ -421,6 +425,8 @@ function ActivityTimelineService(objectCollection) {
                     activityTypeCategoryId === 53 ||
                     activityTypeCategoryId === 54 ||
                     activityTypeCategoryId === 59 ||
+                    activityTypeCategoryId === 31 ||
+                    activityTypeCategoryId === 63 ||
                     activityTypeCategoryId === 60
                 ) && request.device_os_id !== 9) {
                     await fireBotEngineInitWorkflow(request);
