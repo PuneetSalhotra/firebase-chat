@@ -81,6 +81,7 @@ function AssetConfigService() {
             request.asset_type_flag_hide_organization_details,
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_sip_admin_access || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),

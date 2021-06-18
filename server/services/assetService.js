@@ -1008,7 +1008,8 @@ function AssetService(objectCollection) {
             //TASI 
             "organization_flag_enable_sip_module" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_sip_module']),
             "asset_flag_sip_admin_access" : util.replaceDefaultNumber(rowArray[0]['asset_flag_sip_admin_access']),
-            "asset_flag_frontline" : util.replaceDefaultNumber(rowArray[0]['asset_flag_frontline'])
+            "asset_flag_frontline" : util.replaceDefaultNumber(rowArray[0]['asset_flag_frontline']),
+            "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled'])
         };
 
         callback(false, rowData);
