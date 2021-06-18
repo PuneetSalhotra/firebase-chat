@@ -76,7 +76,7 @@ function AdminOpsService(objectCollection) {
         if(!request.enterprise_feature_data) {
             [errTwo, orgData] = await organizationListInsert(request);
         } else {
-            [errTwo, orgData] = await organizationListInsertV1(request);
+            [errTwo, orgData] = await organizationListInsertV2(request);
         }
         
         if (errTwo || orgData.length === 0) {
@@ -905,6 +905,49 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_2_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function organizationListInsertV2(request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+          request.organization_name,
+          request.organization_domain_name,
+          request.organization_image_path || "",
+          request.organization_address || "",
+          request.organization_phone_country_code || 0,
+          request.organization_phone_number || 0,
+          request.organization_email || "",
+          request.contact_person || "Admin",
+          request.contact_phone_country_code || 0,
+          request.contact_phone_number || 0,
+          request.contact_email || "",
+          request.org_enterprise_feature_data || '{}',
+          request.flag_email || 0,
+          request.flag_doc_repo || 0,
+          request.flag_ent_features || 0,
+          request.flag_ai_bot || 0,
+          request.flag_manager_proxy || 0,
+          request.flag_enable_form_tag || 0,
+          request.flag_enable_sip_module || 0,
+          request.organization_type_id || 1,
+          request.log_asset_id || 1,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_3_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -5760,6 +5803,7 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_flag_hide_organization_details||"",
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_sip_admin_access || 0,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
@@ -10593,6 +10637,51 @@ console.log('new ActivityId321',newActivity_id)
                 request.flag_manager_proxy, 
                 request.flag_enable_form_tag, 
                 util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_1_organization_list_update_flags",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_activity_asset_search_mapping_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updateOrganizationFormTagFlag : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    this.updateOrganizationFormTagFlagV1 = async function(request) {
+        logger.info("updateOrganizationFormTagFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+              request.organization_id,
+              request.org_enterprise_feature_data,
+              request.flag_email,
+              request.flag_doc_repo,
+              request.flag_ent_features,
+              request.flag_ai_bot,
+              request.flag_manager_proxy,
+              request.flag_enable_form_tag,
+              request.flag_enable_sip_module,
+              request.flag_enable_elasticsearch,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
             );
             let queryString = util.getQueryString(
                 "ds_p1_1_organization_list_update_flags",

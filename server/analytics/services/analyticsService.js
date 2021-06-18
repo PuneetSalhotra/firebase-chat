@@ -2940,6 +2940,52 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    this.insertWidgetTypeV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.widget_type_name,
+          request.widget_type_description,
+          request.widget_type_category_id,
+          request.widget_type_chart_id,
+          request.flag_mobile_enabled,
+          request.widget_type_flag_target,
+          request.widget_type_flag_sip_enabled,
+          request.widget_type_flag_role_enabled,
+          request.widget_type_flag_prediction_enabled,
+          request.widget_type_sip_contribution_percentage,
+          request.widget_type_inline_data,
+          request.widget_type_measurement_id,
+          request.widget_type_timeline_id,
+          request.asset_tag_id,
+          request.customer_account_type_id,
+          request.widget_type_start_datetime,
+          request.widget_type_end_datetime,
+          request.asset_type_id,
+          request.asset_type_sequence_id,
+          request.activity_type_id,
+          request.tag_id,
+          request.workforce_type_id,
+          request.organization_id,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_widget_type_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    const [err1,resData] = payoutHistoryInsert(request,2703)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.selectWidgetType = async (request) => {
 
         let responseData = [],
@@ -3420,11 +3466,12 @@ function AnalyticsService(objectCollection)
               request.organization_id,
               request.tag_type_id,
               request.is_export || 0,
+              request.report_type_id || 9,
               request.page_start || 0,
               request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_1_organization_filter_tag_type_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_organization_filter_tag_type_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
