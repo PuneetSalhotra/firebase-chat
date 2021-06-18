@@ -441,6 +441,15 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
+    app.post('/' + global.config.version + '/bot/participant/add/email', async (req, res) => {
+        const [err, data] = await botService.addParticipantByEmail(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /bot/participant/add/email : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = BotController;
