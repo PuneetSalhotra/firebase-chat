@@ -152,9 +152,9 @@ function ControlInterceptor(objCollection) {
     // data management export
     new DataManagementController(objCollection);
 
-    if(process.env.ENABLE_CUSTOM_EXCEL_BOT) {
+    // if(process.env.ENABLE_CUSTOM_EXCEL_BOT) {
         new WorkbookOpsController_VodafoneCustom(objCollection);
-    }
+    // }
 
     //Document Repository System
     new DrsController(objCollection);

@@ -66,7 +66,7 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     });
 
     app.post('/' + global.config.version + '/excel/upload_type/list', async (req, res) => {
-        const [err, responseData] = await workbookOpsService_VodafoneCustom.getInputTypeMaster(req.body);        
+        const [err, responseData] = await workbookOpsService_VodafoneCustom.getInPutTypeMaster(req.body);        
         if (!err) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
