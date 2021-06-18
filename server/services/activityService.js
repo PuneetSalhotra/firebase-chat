@@ -4106,6 +4106,9 @@ function ActivityService(objectCollection) {
     };
 
     this.updateWorkflowQueueMapping = async function name(request) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+        
         request.flag = 0;
         let workflowActivityPercentage = 0, workflowActivityCreationTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         let workflowActivityTypeCategoryID;
@@ -4127,10 +4130,10 @@ function ActivityService(objectCollection) {
                     }
                 })
                 .catch((error) => {
-                    console.log("updateWorkflowQueueMapping | getActivityDetailsPromise | error: ", error);
+                    logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | getActivityDetailsPromise | error: `, { type: "change_status", error: serializeError(error) });
                 });
         } catch (error) {
-            console.log("updateWorkflowQueueMapping | Activity Details Fetch Error | error: ", error);
+            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
         }
         try {
             request.page_limit = 100;
@@ -4154,7 +4157,7 @@ function ActivityService(objectCollection) {
                     let queueId = Number(queue.queue_id);
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
-                    console.log("queueId: ", queueId);
+                    logger.info(`[${logUUID}][${botOperationId}] queueId %j`,queueId);
                     //console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
@@ -4163,7 +4166,8 @@ function ActivityService(objectCollection) {
                             isStatusMapped = true;
                         }
                     }
-                    console.log("isStatusMapped: ", isStatusMapped);
+                    logger.info(`[${logUUID}][${botOperationId}] isStatusMapped:  %j`,isStatusMapped);
+
                     if (isStatusMapped) {
                         // console.log("isStatusMapped: ", isStatusMapped)
                         await activityCommonService
@@ -4180,16 +4184,14 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
+                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | Re-Enable | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                 } else {
 
-                                    console.log('*******************************************************');
-                                    console.log('Number(request.activity_type_category_id) - ', Number(request.activity_type_category_id));
-                                    console.log('*******************************************************');
+                                    logger.silly('*******************************************************');
                                     
                                     //do this only for activity_type_category_id= 48
                                     if(Number(request.activity_type_category_id) === 48 || Number(request.activity_type_category_id) === 53 || Number(request.activity_type_category_id) === 60) {
@@ -4207,17 +4209,15 @@ function ActivityService(objectCollection) {
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                             activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(() => {});
                                         })
                                         .catch((error) => {
-
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
-                                            console.log("Object.keys(error): ", Object.keys(error));
+                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | mapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                         
                                     } else {
-                                        console.log('The activity_type_category_id is either not 48');
+                                        logger.info(`[${logUUID}][${botOperationId}] The activity_type_category_id is either not 48 `);
                                     }
                                     
                                 }
@@ -4228,7 +4228,7 @@ function ActivityService(objectCollection) {
                         await activityCommonService
                             .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
-                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+                                logger.info(`[${logUUID}][${botOperationId}] queueActivityMappingData %j`,queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
                                 if (
@@ -4244,10 +4244,10 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(newRequest, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | Error: ", error);
+                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(err) });
                                         });
                                 }
                             });
@@ -4266,7 +4266,7 @@ function ActivityService(objectCollection) {
                 return [];
             }
         } catch (error) {
-            console.log("updateWorkflowQueueMapping | queueMap | Error: ", error);
+            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | queueMap | Error: `, { type: "bot_engine", error: serializeError(error) });
             return [];
         }
     };

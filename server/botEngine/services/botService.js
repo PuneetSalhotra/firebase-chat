@@ -1327,71 +1327,71 @@ function BotService(objectCollection) {
             //   i.bot_operation_type_id === 17 || 
             //   i.bot_operation_type_id === 28) {
             //    continue;
-            //}            
-            
+            //}
+
+            // Adding bot_operation_id into request for logs
+            request["bot_operation_id"] = i.bot_operation_id;
+
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
-                    logger.silly(`[${logUUID}]****************************************************************`);
-                    logger.info(`[${logUUID}] PARTICIPANT ADD`);
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
+                    logger.info(`[${logUUID}][${i.bot_operation_id}] PARTICIPANT ADD`);
                     request.debug_info.push('PARTICIPANT ADD');
-                    request["bot_operation_id"] = i.bot_operation_id;
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
-                        logger.error(`[${logUUID}] Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
+                        logger.error(`[${logUUID}][${i.bot_operation_id}] Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });                        
                         //return Promise.reject(err);
                     }
-                    logger.silly(`[${logUUID}] ****************************************************************`);
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}] ****************************************************************`);
                     break;
 
                 //case 'status_alter': 
                 case 2: // Alter Status
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'STATUS ALTER', {}, {});
-                    logger.silly("Request Params received from Request: %j", request);
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
+                    logger.silly(`${logUUID}][${i.bot_operation_id}] STATUS ALTER BOT %j`, request);
                     try {
                         let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
-                            });                            
+                            });
                         }
                     } catch (err) {
-                        logger.error("serverError | Error in executing changeStatus Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        logger.error(`[${logUUID}][${i.bot_operation_id}] serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });                        
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}] ****************************************************************`);
                     break;
 
                 //case 'form_field_copy':
                 case 3: //Copy Form field
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'FORM FIELD', {}, {});
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
+                    logger.silly(`${logUUID}][${i.bot_operation_id}] FORM FIELD %j`, request);
+
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        console.log('form_field_copy | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        logger.error(`[${logUUID}][${i.bot_operation_id}] Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });                        
+                        });
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
                     break;
 
                 //case 'workflow_percentage_alter': 
@@ -2819,9 +2819,6 @@ return [error, responseData];
     }
 
     async function checkForThresholdCondition(value, threshold, operation) {
-        console.log("checkForThresholdCondition | value: ", value);
-        console.log("checkForThresholdCondition | threshold: ", threshold);
-        console.log("checkForThresholdCondition | operation: ", operation);
         switch (operation) {
             case "gt":
                 if (value > threshold) {
@@ -4535,6 +4532,8 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     // Bot Step to change the status
     async function changeStatus(request, inlineData = {}) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         const workflowActivityID = request.workflow_activity_id;
 
         // Status alter or substatus completion bot incorporating arithmetic condition
@@ -4573,7 +4572,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                         form_transaction_id: formTransactionID,
                         form_id: formID,
                         field_id: fieldID,
-                        organization_id: request.organization_id
+                        organization_id: request.organization_id,
+                        log_uuid : request.log_uuid
                     });
                     const fieldDataTypeID = Number(fieldData[0].data_type_id) || 0;
                     const fieldValue = fieldData[0][getFielDataValueColumnName(fieldDataTypeID)] || 0;
@@ -4591,12 +4591,12 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
             }
 
-            logger.silly("conditionChain: %j", conditionChain);
+            logger.silly(`[${logUUID}][${botOperationId}] conditionChain: %j`, conditionChain);
             
             // Process the condition chain
             const conditionReducer = (accumulator, currentValue) => {
                 let value = 0;
-                logger.silly(`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                logger.silly(`[${logUUID}][${botOperationId}] accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
                 // AND
                 if (accumulator.join_condition === "AND") {
                     value = accumulator.value && currentValue.value;
@@ -4614,7 +4614,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             };
 
             const finalCondition = conditionChain.reduce(conditionReducer);
-            logger.silly("finalCondition: %j", finalCondition);
+            logger.silly(`[${logUUID}][${botOperationId}] finalCondition: %j`, finalCondition);
 
             // Select the status based on the condition arrived
             if (finalCondition.value) {
@@ -4626,13 +4626,13 @@ async function removeAsOwner(request,data,addT = 0)  {
                 inlineData.flag_trigger_resource_manager = inlineData.fail.flag_trigger_resource_manager;
 
             } else {
-                logger.error("Error processing the condition chain", { type: 'bot_engine', request_body: request, condition_chain: conditionChain, final_condition: finalCondition });
+                logger.error(`[${logUUID}][${botOperationId}] Error processing the condition chain`, { type: 'change_status' });
                 return [true, "Error processing the condition chain"];
             }
         }
 
         let newReq = Object.assign({}, request);
-        logger.silly("inlineData: %j", inlineData);
+        logger.silly(`[${logUUID}][${botOperationId}] inlineData: %j`, inlineData);
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -4696,12 +4696,12 @@ async function removeAsOwner(request,data,addT = 0)  {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
-            logger.error("Error updating the workflow's queue mapping", { type: 'bot_engine', error: err, request_body: request });
+            logger.error(`[${logUUID}][${botOperationId}] Error updating the workflow's queue mapping`, { type: 'bot_engine', error: err });
             return [true, "unknown Error"];
         }
 
         let resp = await getQueueActivity(newReq, request.workflow_activity_id);
-        logger.silly("getQueueActivity | resp: %j", resp);
+        logger.silly(`[${logUUID}][${botOperationId}] getQueueActivity | resp: %j`, resp);
 
         if (resp.length > 0) {
             let workflowActivityPercentage = 0;
@@ -4714,18 +4714,18 @@ async function removeAsOwner(request,data,addT = 0)  {
                         }
                     })
                     .catch((error) => {
-                        logger.error("changeStatus | getActivityDetailsPromise | error", { type: 'bot_engine', error: error, request_body: request });
+                        logger.error(`[${logUUID}][${botOperationId}] changeStatus | getActivityDetailsPromise | error`, { type: 'bot_engine', error: error});
                     });
             } catch (error) {
-                logger.error("changeStatus | Activity Details Fetch Error | error", { type: 'bot_engine', error: error, request_body: request });
+                logger.error(`[${logUUID}][${botOperationId}] changeStatus | Activity Details Fetch Error | error`, { type: 'bot_engine', error: error });
             }
 
             // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
-            logger.silly("Status Alter BOT Step - status Name: %j ", statusName, { type: 'bot_engine' });
+            logger.silly(`[${logUUID}][${botOperationId}] Status Alter BOT Step - status Name: %j `, statusName, { type: 'bot_engine' });
 
             let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);
 
-            logger.silly("queues Data: %j ", queuesData, { type: 'bot_engine' });
+            logger.silly(`[${logUUID}][${botOperationId}] queues Data: %j `, queuesData, { type: 'bot_engine' });
 
             let queueActMapInlineData;
             let data;
@@ -4742,7 +4742,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
 
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
-                logger.silly("Status Alter BOT Step - Updating the Queue Json: %j ", data, { type: 'bot_engine' });
+                logger.silly(`[${logUUID}][${botOperationId}] Status Alter BOT Step - Updating the Queue Json: %j `, data, { type: 'bot_engine' });
 
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
@@ -4785,7 +4785,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         }*/
             return [false, {}];
         } else {
-            logger.error("No workflow to queue mappings found", { type: 'bot_engine', request_body: request });
+            logger.error(`[${logUUID}][${botOperationId}] No workflow to queue mappings found`, { type: 'bot_engine'});
             return [true, "No workflow to queue mappings found"];
         }
     }
@@ -4802,7 +4802,8 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     //Bot Step Copying the fields
     async function copyFields(request, fieldCopyInlineData, condition = {}) {
-
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         //enable_target_form_submission = 1 then submit the target form
         //enable_target_form_submission = 0 then do not submit the target form
         let shouldSubmitTargetForm;
@@ -4843,20 +4844,20 @@ async function removeAsOwner(request,data,addT = 0)  {
                 //workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
                 //formName = String(formConfigData[0].form_name),
                 //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
-        
-            console.log('##################################');
-            console.log('originFlagSet : ', originFlagSet);
-            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
-            console.log('workflowActivityTypeId : ', workflowActivityTypeId);            
+            
+            logger.info(`[${logUUID}][${botOperationId}] originFlagSet %j`,originFlagSet);
+            logger.info(`[${logUUID}][${botOperationId}] isWorkflowEnabled %j`,isWorkflowEnabled);
+            logger.info(`[${logUUID}][${botOperationId}] sourceFormActivityTypeID %j`,sourceFormActivityTypeID);
+            logger.info(`[${logUUID}][${botOperationId}] workflowActivityTypeId %j`,workflowActivityTypeId);
+
+
             request.debug_info.push('originFlagSet: ' + originFlagSet);
             request.debug_info.push('isWorkflowEnabled: ' + isWorkflowEnabled);
             request.debug_info.push('sourceFormActivityTypeID: ' + sourceFormActivityTypeID);
             request.debug_info.push('workflowActivityTypeId: ' + workflowActivityTypeId);
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
-                console.log('Target Form Process is different from the Source form');
-                console.log('##################################');
+                logger.info(`[${logUUID}][${botOperationId}] Target Form Process is different from the Source form `);
                 request.debug_info.push('Target Form Process is different from the Source form');
 
                 esmsFlag = 1;
@@ -4885,21 +4886,19 @@ async function removeAsOwner(request,data,addT = 0)  {
                     targetFormActivityID = targetFormTransactionData[0].data_activity_id;
 
                     if(Number(esmsFlag) === 1) {
-                        console.log('Target Form Submitted!');
-                        console.log(targetFormTransactionID);
-                        console.log(targetFormActivityID);
+                        logger.info(`[${logUUID}][${botOperationId}] Target Form Submitted! ${targetFormTransactionID} ${targetFormActivityID} %j`,inlineData);
                         request.debug_info.push('Target Form Submitted!');
                         request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
                         request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
                     }
                 } else {
                     if(Number(esmsFlag) === 1) {
-                        console.log('Target Form Not Submitted!');
+                        logger.info(`[${logUUID}][${botOperationId}] Target Form Not Submitted! `);
                         request.debug_info.push('Target Form Not Submitted!');
                     }
                 }
             } catch (error) {
-                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] copyFields | Fetch Target Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         //}
@@ -4908,7 +4907,6 @@ async function removeAsOwner(request,data,addT = 0)  {
             activityInlineDataMap = new Map(),
             REQUEST_FIELD_ID = 0;
 
-        console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
         request.debug_info.push('fieldCopyInlineData.length: ' +  fieldCopyInlineData.length);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
@@ -4920,7 +4918,8 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 sourceFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
-                    account_id: request.account_id
+                    account_id: request.account_id,
+                    log_uuid : request.log_uuid
                 }, workflowActivityID, sourceFormID);
     
                 if (Number(sourceFormTransactionData.length) > 0) {                    
@@ -4929,7 +4928,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                     sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
                 }
             } catch (error) {
-                console.log("copyFields | Fetch Source Form Transaction Data | Error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] copyFields | Fetch Source Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
             if (
@@ -4947,14 +4946,17 @@ async function removeAsOwner(request,data,addT = 0)  {
                 form_transaction_id: sourceFormTransactionID,
                 form_id: sourceFormID,
                 field_id: sourceFieldID,
+                log_uuid : request.log_uuid,
                 organization_id: request.organization_id
             });
 
             try {
-                console.log('sourceFieldData[0] : ', sourceFieldData[0]);
-                const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);            
-                console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
-                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
+
+                logger.info(`[${logUUID}][${botOperationId}] sourceFieldData[0] %j`,sourceFieldData[0]);
+                logger.info(`[${logUUID}][${botOperationId}] sourceFieldDataTypeID %j`,sourceFieldDataTypeID);
+                logger.info(`[${logUUID}][${botOperationId}] getFielDataValueColumnName(sourceFieldDataTypeID) :  %j`,sourceFieldDataTypeID);
+
                 request.debug_info.push('sourceFieldData[0]: ' + sourceFieldData[0]);
                 request.debug_info.push('sourceFieldDataTypeID: ' + sourceFieldDataTypeID);
                 request.debug_info.push('getFielDataValueColumnNameNew(sourceFieldDataTypeID): ' + getFielDataValueColumnNameNew(sourceFieldDataTypeID));
@@ -4973,17 +4975,18 @@ async function removeAsOwner(request,data,addT = 0)  {
                     "message_unique_id": 123123123123123123
                 });
             } catch(err) {
-                console.log(`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`);
+                logger.error(`[${logUUID}][${botOperationId}] Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`, { type: "bot_engine", error: serializeError(err) });
             }
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
-        console.log("copyFields | activityInlineData: ", activityInlineData);
+        logger.info(`[${logUUID}][${botOperationId}] copyFields | activityInlineData: %j`,activityInlineData);
         request.debug_info.push('activityInlineData: ' + activityInlineData);
         request.activity_title = activityInlineData[0].field_value;
         
-        console.log("targetFormTransactionID: ", targetFormTransactionID);
-        console.log("targetFormActivityID: ", targetFormActivityID);
+        logger.info(`[${logUUID}][${botOperationId}] targetFormTransactionID %j`,targetFormTransactionID);
+        logger.info(`[${logUUID}][${botOperationId}] targetFormTransactionID %j`,targetFormActivityID);
+
         request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
         request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
 
@@ -5000,12 +5003,12 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await alterFormActivityFieldValues(fieldsAlterRequest);
             } catch (error) {
-                console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] copyFields | alterFormActivityFieldValues | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            logger.info(`[${logUUID}][${botOperationId}] shouldSubmitTargetForm %j`,shouldSubmitTargetForm);
             request.debug_info.push('shouldSubmitTargetForm: ' + shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
@@ -5031,7 +5034,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
                 } catch (error) {
-                    console.log("copyFields | createTargetFormActivity | Error: ", error);
+                    logger.error(`[${logUUID}][${botOperationId}] copyFields | createTargetFormActivity | Error: `, { type: "bot_engine", error: serializeError(error) });
                 }
             }
             
@@ -5262,6 +5265,8 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
@@ -5335,9 +5340,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
 
-        console.log('createTargetFormRequest.isESMS : ', createTargetFormRequest.isESMS);
-        console.log('createTargetFormRequest.isEsmsOriginFlag : ', createTargetFormRequest.isEsmsOriginFlag);
-        console.log('createTargetFormRequest.activity_flag_created_by_bot : ', createTargetFormRequest.activity_flag_created_by_bot);        
+        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
+        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
+        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(createTargetFormRequest);
@@ -5370,7 +5375,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
             } catch (error) {
-                console.log("createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         }
@@ -7189,6 +7194,9 @@ else{
     }
 
     async function putLatestUpdateSeqId(request, activityInlineData) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
         for (let row of activityInlineData) {
             const params = new Array(
                 request.form_transaction_id, //0
@@ -7223,7 +7231,8 @@ else{
 
             const dataTypeId = Number(row.field_data_type_id);
             request['field_value'] = row.field_value;
-            console.log('dataTypeId : ', dataTypeId);
+            logger.info(`[${logUUID}][${botOperationId}] dataTypeId :  %j`,dataTypeId);
+
             switch (dataTypeId) {
                 case 1: // Date
                 case 2: // future Date
@@ -7443,7 +7452,7 @@ else{
                             params[19] = tempVar[4] || tempVar[2] || "";
                             params[27] = JSON.stringify(tempObj);
                         } catch (err) {
-                            console.log('ERROR in field edit - 57 : ', err);
+                            logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 57 : `, { type: "bot_engine", error: serializeError(err) });
                         }
                     }
                     break;
@@ -7458,7 +7467,7 @@ else{
                             params[16] = jsonData.transaction_data.transaction_amount; // Debit
                         params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                     } catch (err) {
-                        console.log(err);
+                        logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 62 : `, { type: "bot_engine", error: serializeError(err) });
                     }
                     break;
                 case 64: // Address DataType
@@ -7487,7 +7496,7 @@ else{
                             params[13] = JSON.parse(row.field_value).cart_total_cost:
                             params[13] = Number(fieldValue.cart_total_cost);
                     } catch(err) {
-                        console.log('field alter data type 71 : ', err);
+                        logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 71 : `, { type: "bot_engine", error: serializeError(err) });
                     }
                     break;
                 case 72: //Multi Type File Attachment 
@@ -7517,19 +7526,19 @@ else{
             params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
             params.push(request.update_sequence_id);
 
-            global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            logger.info(`[${logUUID}][${botOperationId}] In BotService - addFormEntries params %j`,params);
          
             // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
             let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
             if(request.asset_id === 0 || request.asset_id === null) {
-                global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                logger.info(`[${logUUID}][${botOperationId}] ds_p1_1_activity_form_transaction_insert_field_update as asset_id is ${request.asset_id}`);
             }
             else {
                 if (queryString != '') {
                     try {
                         await db.executeQueryPromise(0, queryString, request);
                     } catch (err) {
-                        global.logger.write('debug', err, {}, {});
+                        logger.error(`[${logUUID}][${botOperationId}] serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
                     }
                 }
             }
@@ -7609,20 +7618,23 @@ else{
     }
 
     async function alterFormActivityFieldValues(request) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
         let fieldsNewValues = [],
             fieldsNewValuesMap = new Map();
         fieldsNewValues = JSON.parse(request.activity_inline_data);
         for (const field of fieldsNewValues) {
             fieldsNewValuesMap.set(Number(field.field_id), field);
         }
-        console.log("fieldsNewValuesMap: ", fieldsNewValuesMap);
+        logger.info(`[${logUUID}][${botOperationId}] fieldsNewValuesMap:  %j`,fieldsNewValuesMap);
 
         let activityData = [];
         // Fetch the activity data from the DB
         try {
             activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
         } catch (error) {
-            console.log("alterFormActivityFieldValues | getActivityByFormTransaction | Error", error)
+            logger.error(`[${logUUID}][${botOperationId}] alterFormActivityFieldValues | getActivityByFormTransaction | Error`, { type: "bot_engine", error: serializeError(error) });
             return [error, []];
         }
         // If the activity exists, retrieve and parse the inline data
@@ -7653,7 +7665,8 @@ else{
                     form_transaction_id: request.form_transaction_id,
                     form_id: request.form_id,
                     field_id: fieldID,
-                    organization_id: request.organization_id
+                    organization_id: request.organization_id,
+                    log_uuid : request.log_uuid
                 })
                     .then(async (data) => {
                         let newRequest = Object.assign({}, request);
@@ -7721,7 +7734,7 @@ else{
                         };
                     })
                     .catch((error) => {
-                        console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
+                        logger.error(`[${logUUID}][${botOperationId}] fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: `, { type: "bot_engine", error: serializeError(error) });
                         return 'Ghotala';
                     })
             );
@@ -7729,14 +7742,14 @@ else{
 
         await Promise.all(fetchUpdateSeqIdPromises)
             .then((updateSequenceIDs) => {
-                console.log("updateSequenceIDs: ", updateSequenceIDs);
+                logger.info(`[${logUUID}][${botOperationId}] updateSequenceIDs:  %j`,updateSequenceIDs);
             })
             .catch((error) => {
-                console.log("Promise.all | fetchUpdateSeqIdPromises | error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] Promise.all | fetchUpdateSeqIdPromises | error: `, { type: "bot_engine", error: serializeError(error) });
                 return [error, []];
             });
 
-        console.log("content: ", content);
+        logger.info(`[${logUUID}][${botOperationId}] content:  %j`,content);
         // update the activity's inline data as well
         activityInlineData = [...activityInlineDataMap.values()];
 
@@ -7787,11 +7800,10 @@ else{
 
         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                logger.error(`[${logUUID}][${botOperationId}] Error in queueWrapper raiseActivityEvent: `, { type: "bot_engine", error: serializeError(err) });
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                logger.info(`[${logUUID}][${botOperationId}] Response from queueWrapper raiseActivityEvent:  %j`,resp);
             }
         });
 
@@ -7813,7 +7825,7 @@ else{
             try {
                 await addTimelineTransactionAsync(workflowFile713Request);
             } catch (error) {
-                console.log("alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: ", error);
+                logger.error(`[${logUUID}][${botOperationId}] alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
         }
 
@@ -8052,6 +8064,9 @@ else{
     };
 
     async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+        
         let activity_id = request.workflow_activity_id;
         let activity_status_id = inlineData.activity_status_id;
         let activity_status_type_id = inlineData.activity_status_id
@@ -8059,7 +8074,8 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
+        logger.info(`[${logUUID}][${botOperationId}] Workflow Reference Bots for this activity_type :  %j`,respData.length);
+
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateStatus(request, {
@@ -8071,7 +8087,8 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
+        logger.info(`[${logUUID}][${botOperationId}] Combo Field Reference Bots for this activity_type :  %j`,respData1.length);
+
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateStatus(request, {
