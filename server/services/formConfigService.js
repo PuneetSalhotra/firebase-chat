@@ -25,7 +25,7 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
 
     function isArray(obj) {
         return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;

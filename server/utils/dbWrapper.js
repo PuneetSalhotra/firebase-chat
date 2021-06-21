@@ -214,7 +214,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                         } else {
                             connection.query(queryString, function (err, rows, fields) {
                                 if (!err) {
-                                    logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                                    logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                     connection.release();
                                     return callback(false, rows[0]);
                                 } else {
@@ -231,7 +231,7 @@ var executeQuery = function (flag, queryString, request, callback) {
             } else {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
-                        logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                        logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                         conn.release();
                         callback(false, rows[0]);
                         return;
@@ -248,7 +248,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                                 } else {
                                     connection.query(queryString, function (err, rows, fields) {
                                         if (!err) {
-                                            logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                                            logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                             connection.release();
                                             return callback(false, rows[0]);
                                         } else {
@@ -301,7 +301,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows[0]);
                                     } else {
@@ -318,7 +318,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows[0]);
                         } else {
@@ -332,7 +332,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows[0].length, request_body: null, error: err });
+                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows[0]);
                                             } else {
@@ -380,7 +380,7 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows.length, request_body: null, error: err });
+                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows);
                                     } else {
@@ -397,7 +397,7 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: rows.length, request_body: null, error: err });
+                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows);
                         } else {
@@ -411,7 +411,7 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: rows.length, request_body: null, error: err });
+                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows);
                                             } else {
