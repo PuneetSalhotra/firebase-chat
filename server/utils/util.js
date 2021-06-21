@@ -17,6 +17,7 @@ const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
 const path = require('path');
 const ip = require("ip");
+const uuidv4 = require('uuid/v4');
 const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
@@ -3057,7 +3058,7 @@ function Util(objectCollection) {
            message: `Push sent to ${idChannel}`
        }];
    };
-   
+
 }
 
 module.exports = Util;
