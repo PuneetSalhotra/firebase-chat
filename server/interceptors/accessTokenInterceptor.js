@@ -2,10 +2,11 @@ const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
+const uuidv4 = require('uuid/v4');
 
 function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
-    app.use((req, res, next) => {
+    app.use(async (req, res, next) => {
         // console.log('REQ : ', req.headers);
         // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
                 
@@ -13,7 +14,11 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         req.body.service_id = "";
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
-                
+
+        if(!req.body.hasOwnProperty("log_uuid")) {
+            req.body["log_uuid"] = await getLogUUID();
+        }
+
         //Check for flag - Cognito or Redis Auth
         //x-grene-auth-flag = 1 - Redis
         //x-grene-auth-flag = 2 - Cognito
@@ -346,6 +351,9 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         //}); //getServiceId
     }); //app.use
      
+    let getLogUUID = function () {
+        return `${uuidv4()}${Math.floor((Math.random()*100) + 1)}`
+    };
 }
 
 module.exports = AccessTokenInterceptor;
