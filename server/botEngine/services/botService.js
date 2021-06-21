@@ -5272,7 +5272,6 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
-        let botOperationId = request.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
