@@ -2244,9 +2244,8 @@ function BotService(objectCollection) {
 
                     
                     case 46 : //Forcast Category, Product Quantity in drilldown
-                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
-                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    logger.silly(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
+                    logger.info(`[${logUUID}][${i.bot_operation_id}] ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
                         if(botOperationsJson.bot_operations.is_product == 1){
@@ -2257,7 +2256,7 @@ function BotService(objectCollection) {
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
                     } catch (error) {
-                        logger.error("[Widget drilldown additional fields] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        logger.error(`[${logUUID}][${i.bot_operation_id}] [Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "log":request.debug_info,
@@ -14011,18 +14010,25 @@ else{
     }
 
     async function getFormFieldValue(request, idField) {
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
         let fieldValue = '';
         try{
-        logger.info(request.workflow_activity_id+": idField: %j", idField);        
+        logger.info(`[${logUUID}][${botOperationId}]${request.workflow_activity_id} : idField: %j`, idField);
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
-            logger.info(Number(formInlineData[counter].field_id)+": idField: %j", idField);
+            logger.info(`[${logUUID}][${botOperationId}] idField: %j`,Number(formInlineData[counter].field_id));
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.info(request.workflow_activity_id+": datatypeid "+formInlineData[counter].field_data_type_id+" is_cart "+request.is_cart+" : final_key : "+request.final_key+ " product_data"+formInlineData[counter].field_value);             
-                if(Number(formInlineData[counter].field_data_type_id) === 71){ 
-                    logger.info(request.workflow_activity_id+": Field Matched: %j", JSON.parse(formInlineData[counter].field_value).cart_items);
+                logger.info(`[${logUUID}][${botOperationId}] datatypeid: %j`,formInlineData[counter].field_data_type_id);
+                logger.info(`[${logUUID}][${botOperationId}] is_cart: %j`,request.is_cart);
+                logger.info(`[${logUUID}][${botOperationId}] final_key: %j`,request.final_key);
+                logger.info(`[${logUUID}][${botOperationId}] product_data: %j`,formInlineData[counter].field_value);
+
+                if(Number(formInlineData[counter].field_data_type_id) === 71){
+                    logger.info(`[${logUUID}][${botOperationId}] Field Matched: %j`,JSON.parse(formInlineData[counter].field_value).cart_items);
                     if(request.is_cart == 0){
                         fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
                     }else if(request.is_cart == 1) {
@@ -14036,9 +14042,9 @@ else{
                 break;
             }
         }
-            logger.info("getFormFieldValue: fieldValue: %j", fieldValue);        
+        logger.info(`[${logUUID}][${botOperationId}] getFormFieldValue: fieldValue: %j`,fieldValue); 
         }catch(error){
-            logger.info(error);
+            logger.error(`[${logUUID}][${botOperationId}] getFormFieldValue Error`, { type: "bot_engine", error: serializeError(error) });
         }
         request.debug_info.push("getFormFieldValue "+ fieldValue);
         return fieldValue;
