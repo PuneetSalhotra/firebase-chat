@@ -560,7 +560,7 @@ function FormConfigService(objCollection) {
 
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             if (err === false) {
-                logger.info(`[${logUUID}] Data from activity_list: %j`, data);
+                logger.info(`[${logUUID}] Data from activity_list: %j`, data.length);
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;

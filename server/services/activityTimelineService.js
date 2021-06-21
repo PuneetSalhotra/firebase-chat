@@ -1244,7 +1244,7 @@ function ActivityTimelineService(objectCollection) {
                     //Bot log - Bot is defined
                     await activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    console.log("fireBotEngineInitWorkflow | botEngineRequest: ", botEngineRequest);
+                    logger.info(`[${logUUID}] fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
                     await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                         .then(async (resp) => {
                             logger.info(`[${logUUID}] Bot Engine Trigger Response: %j`,resp);
@@ -1266,7 +1266,7 @@ function ActivityTimelineService(objectCollection) {
                         });
                 } else {
                     //Bot is not defined
-                    console.log('activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined');
+                    logger.info(`[${logUUID}] activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined`);
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
