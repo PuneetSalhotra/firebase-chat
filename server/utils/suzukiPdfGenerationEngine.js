@@ -130,14 +130,11 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
 
     const pdfFilePath = `pdfs/${request.activity_parent_id}.pdf`;
 
-    console.log("form_id: ", form_id);
     // console.log("formSubmissionData: ", formSubmissionData);
 
     if (activityFormDataInDB === null || activityFormDataInDB === '' || activityFormDataInDB === '{}') {
         // pdfDocumentDefinition = formSubmissionData;
-        console.log("1");
     } else {
-        console.log("2");
         pdfDocumentDefinition = JSON.parse(activityFormDataInDB);
     }
 

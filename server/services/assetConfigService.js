@@ -81,6 +81,7 @@ function AssetConfigService() {
             request.asset_type_flag_hide_organization_details,
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_sip_admin_access || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
@@ -158,6 +159,272 @@ function AssetConfigService() {
 
         return [error, responseData];
     };
+
+
+    this.inputTypeMasterInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+            // N p_input_type_name VARCHAR(50),
+            // IN p_input_type_description VARCHAR(300),
+            // IN p_input_type_category_id SMALLINT(6),
+            // IN p_input_type_template_url varchar(255),
+            // IN p_input_type_inline_data json,
+            // IN p_organization_id BIGINT(20),
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME)
+            
+        var paramsArr = new Array(
+            request.input_type_name,
+            request.input_type_description,
+            request.input_type_category_id,
+            request.input_type_template_url,
+            JSON.stringify(request.input_type_inline_data),
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        )
+        const queryString = util.getQueryString('ds_p1_input_type_master_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.getInPutTypeMaster = async (request) => {
+
+        let responseData = [],
+            error = true;
+        var paramsArr = new Array(
+            request.organization_id,
+            request.start_from || 0,
+            request.page_limit || 10
+        )
+        const queryString = util.getQueryString('ds_p1_input_type_master_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.inputTypeMasterDelete = async (request) => {
+
+        let responseData = [],
+            error = true;
+            // IN p_organization_id BIGINT(20), IN p_input_type_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+            request.organization_id,
+            request.input_type_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        )
+        const queryString = util.getQueryString('ds_p1_input_type_master_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then(async (data) => {
+                  responseData = data;
+                  error = false;
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+
+    this.inputListInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+            // IN p_input_name VARCHAR(50),
+            // IN p_input_type_id SMALLINT(6),
+            // IN p_input_url VARCHAR(255),
+            // IN p_input_text VARCHAR(255),
+            // IN p_input_inline_data JSON,
+            // IN p_input_upload_datetime DATETIME,
+            // IN p_organization_id BIGINT(20),
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME
+            
+        var paramsArr = new Array(
+            request.input_name,
+            request.input_type_id,
+            request.input_url,
+            request.input_text,
+            JSON.stringify(request.input_inline_data),
+            util.getCurrentUTCTime(),
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        )
+        const queryString = util.getQueryString('ds_p1_input_list_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then(async (data) => {
+                  responseData = data;
+                  error = false;
+                  request.input_id = data[0].input_id 
+                  request.update_type_id = 2801;
+                await this.inputListHistoryInsert(request)
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.inputListUpdate = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+
+            // IN p_organization_id BIGINT(20),  
+            // IN p_input_id BIGINT(20),
+            // IN p_flag_is_processed TINYINT(4),
+            // IN p_processed_datetime DATETIME,
+            // IN p_log_asset_id BIGINT(20),
+            // IN p_log_datetime DATETIME
+            
+        var paramsArr = new Array(
+            request.organization_id,
+            request.input_id,
+            request.flag_is_processed,
+            util.getCurrentUTCTime(),
+            request.asset_id,
+            util.getCurrentUTCTime()
+        )
+        const queryString = util.getQueryString('ds_p1_input_list_update_flag_processed', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then(async(data) => {
+                  responseData = data;
+                  error = false;
+                  request.update_type_id = 2803;
+                  await this.inputListHistoryInsert(request)
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.inputListDelete = async (request) => {
+
+        let responseData = [],
+            error = true;
+            
+            // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.input_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        )
+        const queryString = util.getQueryString('ds_p1_input_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then(async(data) => {
+                  responseData = data;
+                  error = false;
+                  request.update_type_id = 2803;
+                  await this.inputListHistoryInsert(request)
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.inputListHistoryInsert = async (request) => {
+
+        let responseData = [],
+            error = true;
+            
+            // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_update_type_id INT(11), IN p_update_datetime DATETIME)
+        var paramsArr = new Array(
+            request.organization_id,
+            request.input_id,
+            request.update_type_id,
+            util.getCurrentUTCTime(),
+        )
+        const queryString = util.getQueryString('ds_p1_input_list_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
+    this.getInputList = async (request) => {
+
+        let responseData = [],
+            error = true;
+            
+            // IN p_organization_id BIGINT(20), IN p_input_type_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+            var paramsArr = new Array(
+                request.organization_id,
+                request.input_type_id,           
+                request.start_from || 0,
+                request.limit_value || 10
+            )
+        const queryString = util.getQueryString('ds_p1_input_list_select', paramsArr);
+        if (queryString !== '') {
+            console.log("ds_p1_input_list_select")
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                  console.log("ds_p1_input_list_select")
+                 
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
+    }
+
 }
 
 module.exports = AssetConfigService;
