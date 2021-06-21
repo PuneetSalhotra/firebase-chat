@@ -1601,8 +1601,6 @@ function VodafoneService(objectCollection) {
             CAF_BOT_ASSET_ID,
             CAF_BOT_ENC_TOKEN;
 
-        let logUUID = request.log_uuid || ""; 
-
         switch (Number(request.organization_id)) {
             case 860: // CAF
                 CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
@@ -1845,7 +1843,7 @@ function VodafoneService(objectCollection) {
                 try {
                     cafFormJson = await setAsPerCAFAnnexure(request, cafFormJson);
                 } catch (error) {
-                    logger.error(`[${logUUID}] cafFormJson | setAsPerCAFAnnexure`, { type: 'caf_form', error: serializeError(error) });
+                    util.logError(request,`cafFormJson | setAsPerCAFAnnexure`, { type: 'caf_form', error: serializeError(error) });
                 }
 
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
@@ -1966,7 +1964,7 @@ function VodafoneService(objectCollection) {
 
                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                             if (err) {
-                                logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent: `, { type: 'event_error', error: serializeError(err) });
+                                util.logError(request,`Error in queueWrapper raiseActivityEvent: `, { type: 'event_error', error: serializeError(err) });
                                 // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                             } else {
                                 // Calculate the percentage completion of CAF Form and store it in the inline data of the file form
@@ -1982,11 +1980,11 @@ function VodafoneService(objectCollection) {
                                     activityCommonService
                                         .fetchQueueByQueueName(request, 'HLD')
                                         .then((queueListData) => {
-                                            logger.info(`[${logUUID}] data[0].queue_id: ${queueListData[0].queue_id}`);
+                                            util.logInfo(request,` data[0].queue_id: ${queueListData[0].queue_id}`);
                                             return activityCommonService.fetchQueueActivityMappingId(request, queueListData[0].queue_id);
                                         })
                                         .then((queueActivityMappingData) => {
-                                            logger.info(`[${logUUID}] queueActivityMappingData[0].queue_activity_mapping_id: ${queueActivityMappingData[0].queue_activity_mapping_id}`);
+                                            util.logInfo(request,` queueActivityMappingData[0].queue_activity_mapping_id: ${queueActivityMappingData[0].queue_activity_mapping_id}`);
                                             hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                             let queueActivityUnmapRequest = Object.assign({}, request);
                                             queueActivityUnmapRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
@@ -1998,7 +1996,7 @@ function VodafoneService(objectCollection) {
                                             activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1403, hldQueueActivityMappingId).then(() => { });
                                         })
                                         .catch((error) => {
-                                            logger.error(`[${logUUID}] Error Unmapping the form file from HLD queue: `, { type: 'caf_form', error: serializeError(error) });
+                                            util.logError(request,`Error Unmapping the form file from HLD queue: `, { type: 'caf_form', error: serializeError(error) });
                                         });
 
                                     // Alter the status of the form file to Validation Pending
@@ -2020,11 +2018,11 @@ function VodafoneService(objectCollection) {
 
                                     queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
                                         if (err) {
-                                            logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent: `, { type: 'caf_form', error: serializeError(err) });
+                                            util.logError(request,`Error in queueWrapper raiseActivityEvent: `, { type: 'caf_form', error: serializeError(err) });
                                             // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                         } else {
                                             // 
-                                            logger.info(`[${logUUID}] Form status changed to validation pending`);
+                                            util.logInfo(request,`Form status changed to validation pending`);
                                             let omtQueueActivityMappingId;
 
                                             // Also modify the last status alter time and current status 
@@ -2032,7 +2030,7 @@ function VodafoneService(objectCollection) {
                                             activityCommonService
                                                 .fetchQueueByQueueName(request, 'OMT')
                                                 .then((queueListData) => {
-                                                    logger.info(`[${logUUID}] data[0].queue_id: ${queueListData[0].queue_id}`);
+                                                    util.logInfo(request,`data[0].queue_id: ${queueListData[0].queue_id}`);
                                                     return activityCommonService.fetchQueueActivityMappingId(request, queueListData[0].queue_id);
                                                 })
                                                 .then((queueActivityMappingData) => {
@@ -2059,7 +2057,7 @@ function VodafoneService(objectCollection) {
                                                     activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1402, omtQueueActivityMappingId).then(() => { });
                                                 })
                                                 .catch((error) => {
-                                                    logger.error(`[${logUUID}] Error modifying the form file activity entry in the OMT queue: `, { type: 'caf_form', error: serializeError(error) });
+                                                    util.logError(request,`Error modifying the form file activity entry in the OMT queue: `, { type: 'caf_form', error: serializeError(error) });
                                                 });
 
                                             return callback(false, true);
@@ -2072,14 +2070,14 @@ function VodafoneService(objectCollection) {
 
                     } else {
                         // If the CAF Form submission wasn't successful    
-                        logger.error(`[${logUUID}] CAF Form submission wasnt successful:`, { type: 'caf_form' });
+                        util.logError(request,`CAF Form submission wasnt successful:`, { type: 'caf_form' });
                         return callback(true, false);
                     }
 
                 });
             })
             .catch((error) => {
-                logger.error(`[${logUUID}] [buildAndSubmitCafForm] Promise Chain Error:`, { type: 'caf_form',error :error  });
+                util.logError(request,`[buildAndSubmitCafForm] Promise Chain Error:`, { type: 'caf_form',error :error  });
                 callback(true, false);
                 return;
             });
@@ -3820,7 +3818,6 @@ function VodafoneService(objectCollection) {
     }
 
     this.buildAndSubmitCafFormV1 = async function (request) {
-        let logUUID = request.log_uuid || "";
         // [ABORT] For non vodafone organizations, don't proceed
         if (Number(request.organization_id) !== 868) {
             return [false, {}];
@@ -3839,7 +3836,7 @@ function VodafoneService(objectCollection) {
                     formWorkflowActivityTypeId = workflowActivityData[0].activity_type_id;
                     // console.log("Number(workflowActivityData[0].parent_activity_id): ", Number(workflowActivityData[0].parent_activity_id));
                 } else {
-                    logger.error(`[${logUUID}] Unable to fetch workflow data ${request.workflow_activity_id}`, { type: "vodafone" });
+                    util.logError(request,`Unable to fetch workflow data ${request.workflow_activity_id}`, { type: "vodafone" });
                 }
                 // Check for child order for a bulk order
                 // If this workflow has a parent activity, this is a child order and
@@ -3848,7 +3845,7 @@ function VodafoneService(objectCollection) {
                     workflowActivityData.length > 0 &&
                     Number(workflowActivityData[0].parent_activity_id) !== 0
                 ) {
-                    logger.info(`[${logUUID}] buildAndSubmitCafFormV1 | getActivityDetailsPromise | Child Workflow: DO NOT GENERATE CAF/CRF`);
+                    util.logInfo(request,`buildAndSubmitCafFormV1 | getActivityDetailsPromise | Child Workflow: DO NOT GENERATE CAF/CRF`);
                     return [true, {
                         message: "Child Workflow: DO NOT GENERATE CAF/CRF"
                     }];
@@ -3861,11 +3858,11 @@ function VodafoneService(objectCollection) {
                     isParentOrder = true;
                 }
             } catch (error) {
-                logger.error(`[${logUUID}] buildAndSubmitCafFormV1 | getActivityDetailsPromise | Error:`, { type: 'vodafone', error: serializeError(error) });
+                util.logError(request,`buildAndSubmitCafFormV1 | getActivityDetailsPromise | Error:`, { type: 'vodafone', error: serializeError(error) });
                 return [error, false];
             }
         } else {
-            logger.info(`[${logUUID}] buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.`);
+            util.logInfo(request,`buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.`);
             return [new Error("workflow_activity_id not found in the request."), false];
         }
 
@@ -3873,7 +3870,7 @@ function VodafoneService(objectCollection) {
         try{
             TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
         } catch(err) {
-            logger.error(`[${logUUID}] ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].`, { type: 'vodafone', error: serializeError(err) });
+            util.logError(request,`ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].`, { type: 'vodafone', error: serializeError(err) });
             return [false, {}];
         }
 
@@ -3883,7 +3880,7 @@ function VodafoneService(objectCollection) {
         if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
             !(request.hasOwnProperty("non_dedicated_file") && Number(request.non_dedicated_file) === 1)
         ) {
-            logger.info(`[${logUUID}] buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm`);
+            util.logInfo(request,`buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm`);
             return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
         }
 
@@ -3899,7 +3896,7 @@ function VodafoneService(objectCollection) {
             .catch((error) => {
                 return [error, false];
             });
-            logger.info(`[${logUUID}] TargetFormExists %j`,targetFormExists);
+            util.logInfo(request,`TargetFormExists %j`,targetFormExists);
 
         if (targetFormExists &&
             request.hasOwnProperty("non_dedicated_file") &&
@@ -4820,7 +4817,6 @@ function VodafoneService(objectCollection) {
     }
 
     this.regenerateAndSubmitTargetForm = async function (request) {
-        let logUUID = request.log_uuid || "";
         // [ABORT] For non vodafone organizations, don't proceed
         if (Number(request.organization_id) !== 868) {
             return [false, {}];
@@ -4865,7 +4861,7 @@ function VodafoneService(objectCollection) {
                 return [error, []];
             }
         }
-        logger.info(`[${logUUID}] regenerateAndSubmitTargetForm | workflowActivityId:  %j`,workflowActivityId);
+        util.logInfo(request,`regenerateAndSubmitTargetForm | workflowActivityId:  %j`,workflowActivityId);
         let isParentOrder = false;
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityId);
@@ -4876,7 +4872,7 @@ function VodafoneService(objectCollection) {
                 workflowActivityData.length > 0 &&
                 Number(workflowActivityData[0].parent_activity_id) !== 0
             ) {
-                logger.info(`[${logUUID}] buildAndSubmitCafFormV1 | getActivityDetailsPromise | Child Workflow %j`,'DO NOT RE-GENERATE CAF/CRF');
+                util.logInfo(request,`buildAndSubmitCafFormV1 | getActivityDetailsPromise | Child Workflow %j`,'DO NOT RE-GENERATE CAF/CRF');
                 return [true, {
                     message: "Child Workflow: DO NOT RE-GENERATE CAF/CRF"
                 }];
@@ -4889,7 +4885,7 @@ function VodafoneService(objectCollection) {
                 isParentOrder = true;
             }
         } catch (error) {
-            logger.error(`[${logUUID}] regenerateAndSubmitTargetForm | getActivityDetailsPromise | Error:`, { type: 'vodafone', error: serializeError(error) });
+            util.logError(request,`regenerateAndSubmitTargetForm | getActivityDetailsPromise | Error:`, { type: 'vodafone', error: serializeError(error) });
             return [error, []];
         }
 
@@ -4897,7 +4893,7 @@ function VodafoneService(objectCollection) {
         try {
             TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
         } catch(err) {
-            logger.error(`[${logUUID}] ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - `, { type: 'vodafone', error: serializeError(err) });
+            util.logError(request,`ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - `, { type: 'vodafone', error: serializeError(err) });
             return [err, []];
         }
         
@@ -4936,7 +4932,7 @@ function VodafoneService(objectCollection) {
                 throw new Error("TargetFormDoesNotExist");
             }
         } catch (error) {
-            logger.error(`[${logUUID}] regenerateAndSubmitTargetForm | Error: `, { type: 'vodafone', error: serializeError(error) });
+            util.logError(request,`regenerateAndSubmitTargetForm | Error: `, { type: 'vodafone', error: serializeError(error) });
             return [error, []];
         }
 
@@ -4994,7 +4990,7 @@ function VodafoneService(objectCollection) {
                 REQUEST_FIELD_ID = targetFieldID;
                 if (targetFieldID === -10001) {
                     // Do nothing
-                    logger.info(`[${logUUID}] IGNORE THE DUMMY MAPPING`);
+                    util.logInfo(request,`IGNORE THE DUMMY MAPPING`);
 
                 } else if (targetFormDataMap.has(targetFieldID)) {
                     // Get the entire object
@@ -5046,8 +5042,8 @@ function VodafoneService(objectCollection) {
             UPDATED_ROMS_FIELDS[i].form_transaction_id = targetFormTransactionId;
             UPDATED_ROMS_FIELDS[i].form_name = targetFormName;
         }
-        logger.info(`[${logUUID}] targetFieldsUpdated: ${targetFieldsUpdated}`);
-        logger.info(`[${logUUID}] UPDATED_ROMS_FIELDS ${UPDATED_ROMS_FIELDS}`);
+        util.logInfo(request,`targetFieldsUpdated: ${targetFieldsUpdated}`);
+        util.logInfo(request,`UPDATED_ROMS_FIELDS ${UPDATED_ROMS_FIELDS}`);
 
         // Final list of fields to be updated
         targetFieldsUpdated = targetFieldsUpdated.concat(UPDATED_ROMS_FIELDS);
@@ -5083,7 +5079,7 @@ function VodafoneService(objectCollection) {
 
         queueWrapper.raiseActivityEvent(event, fieldsAlterRequest.activity_id, (err, resp) => {
             if (err) {
-                logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent: `, { type: 'vodafone', error: serializeError(err) });
+                util.logError(request,`Error in queueWrapper raiseActivityEvent: `, { type: 'vodafone', error: serializeError(err) });
             }
         });
 

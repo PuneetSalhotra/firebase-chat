@@ -2868,7 +2868,6 @@ function businessDayCheckFun(curr_date,businessDays){
     }
 
     this.activityListLeadUpdateV1 = async function (request, lead_asset_id) {
-        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
         if(!request.hasOwnProperty("global_array"))
@@ -2906,7 +2905,7 @@ function businessDayCheckFun(curr_date,businessDays){
                             let objR = Object.assign({},request);
                             objR.target_asset_id = lead_asset_id;
                             objR.target_lead_asset_id = lead_asset_id;
-                            logger.info(`[${logUUID}] ROLLBACK:: LOGASSET ${request.asset_id} PUSH_STATUS ${data[0].push_status}`);
+                            util.logError(request,`ROLLBACK:: LOGASSET ${request.asset_id} PUSH_STATUS ${data[0].push_status}`);
 
                             if(data[0].push_status == 0){
 

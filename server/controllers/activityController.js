@@ -23,14 +23,13 @@ function ActivityController(objCollection) {
     var activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add',async function (req, res) {
-        let logUUID = req.body.log_uuid || "";
-        logger.info(`::START:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(request,`::START:: ${req.body.activity_id || ""}`);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            logger.info(`[${logUUID}] proceedAddActivity %j`, req.body);
+            util.logInfo(request,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -95,7 +94,7 @@ function ActivityController(objCollection) {
                             cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                                 if (err) {
                                     // console.log(err);
-                                    logger.error(`[${logUUID}] formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(request,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
                                     res.send(responseWrapper.getResponse(false, {
                                         activity_id: 0
                                     }, -7998, req.body));
@@ -144,7 +143,7 @@ function ActivityController(objCollection) {
                         case 37: //Reservation PAM                   
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
-                                    logger.error(`[${logUUID}] getActivityIderror`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(request,`getActivityIderror`, { type: 'add_activity', error: serializeError(err) });
                                     callback(true, 0);
                                     return;
                                 } else {
@@ -167,7 +166,7 @@ function ActivityController(objCollection) {
                             //fs.readFile('/var/node/Bharat/server/utils/pamConfig.txt', function(err, data){
                             fs.readFile(`${__dirname}/../utils/pamConfig.txt`, function (err, data) {
                                 if (err) {
-                                    logger.error(`[${logUUID}] readfileerror`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(request,`readfileerror`, { type: 'add_activity', error: serializeError(err) });
 
                                 } else {
                                     threshold = Number(data.toString());
@@ -193,7 +192,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            logger.info(`[${logUUID}] generating activity id via default condition`);
+                            util.logInfo(request,`generating activity id via default condition`);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -247,7 +246,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling proceedAddActivity");
-                        logger.info(`[${logUUID}] proceedAddActivity %j`, req.body);
+                        util.logInfo(request,`proceedAddActivity %j`, req.body);
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
@@ -271,20 +270,19 @@ function ActivityController(objCollection) {
                 activity_id: 0
             }, -3304, req.body));
         }
-        logger.info(`::END:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(request,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
 
     //Add Activity New Version
     app.post('/' + global.config.version + '/activity/add/v1',async function (req, res) {
-        let logUUID = req.body.log_uuid || "";
-        logger.info(`[${logUUID}]   ::START:: `);
+        util.logInfo(req.body,`::START:: `);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            logger.info(`[${logUUID}] proceedAddActivity %j`, req.body);
+            util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -319,7 +317,7 @@ function ActivityController(objCollection) {
                                                 };
                                                 res.send(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
                                             } else {
-                                                logger.error(`[${logUUID}] addActivityerror`, { type: 'add_activity', error: serializeError(err) });
+                                                util.logError(req.body,`addActivityerror`, { type: 'add_activity', error: serializeError(err) });
                                                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             }
                                         });
@@ -330,7 +328,7 @@ function ActivityController(objCollection) {
 
                                 } else {
                                     //console.log('did not get proper rseponse');
-                                    logger.error(`[${logUUID}] addAsseterror`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(req.body,`addAsseterror`, { type: 'add_activity', error: serializeError(err) });
 
                                     res.send(responseWrapper.getResponse(err, {}, statusCode, req.body));
                                     return;
@@ -361,7 +359,7 @@ function ActivityController(objCollection) {
                             //generate a form transaction id first and give it back to the client along with new activity id
                             cacheWrapper.getFormTransactionId((err, formTransactionId) => {
                                 if (err) {                                    
-                                    logger.error(`[${logUUID}] formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                     return;
                                 } else {
@@ -436,7 +434,7 @@ function ActivityController(objCollection) {
                                         message_unique_id: req.body.message_unique_id
                                     }, 200, req.body));
                                 } else {
-                                    logger.error(`[${logUUID}] addActivityError`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(req.body,`addActivityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     (activityId === 0) ?
                                     res.send(responseWrapper.getResponse(false, {
@@ -455,7 +453,7 @@ function ActivityController(objCollection) {
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
                                     // console.log(err);
-                                    logger.error(`[${logUUID}] getActivityError`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(req.body,`getActivityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     callback(true, 0);
                                     return;
@@ -482,7 +480,7 @@ function ActivityController(objCollection) {
                             fs.readFile(`${__dirname}/../utils/pamConfig.txt`, function (err, data) {
                                 if (err) {
                                     //  console.log(err)   
-                                    logger.error(`[${logUUID}] fileReadError`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(req.body,`fileReadError`, { type: 'add_activity', error: serializeError(err) });
 
                                 } else {
                                     threshold = Number(data.toString());
@@ -508,7 +506,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            logger.info(`[${logUUID}] generating activity id via default condition`);
+                            util.logInfo(req.body,`generating activity id via default condition`);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -556,7 +554,7 @@ function ActivityController(objCollection) {
         if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5 && deviceOsId !== 6) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
-                    logger.error(`[${logUUID}] formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
+                    util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
 
                     res.send(responseWrapper.getResponse(false, {
                         activity_id: 0
@@ -600,14 +598,13 @@ function ActivityController(objCollection) {
                 activity_id: 0
             }, -3304, req.body));
         }
-        logger.info(`::END:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(req.body,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
     var addActivity = function (req, callback) {
-        let logUUID = req.log_uuid || "";
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
-                logger.error(`[${logUUID}] getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
+                util.logError(req.body,`getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
 
                 callback(true, 0);
                 return;
@@ -621,7 +618,7 @@ function ActivityController(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                     if (err) {
-                        logger.error(`[${logUUID}] eventError`, { type: 'add_activity', error: serializeError(err) });
+                        util.logError(req.body,`eventError`, { type: 'add_activity', error: serializeError(err) });
 
                         callback(true, 1);
 
@@ -631,15 +628,15 @@ function ActivityController(objCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        logger.error(`[${logUUID}] setParityError`, { type: 'add_activity', error: serializeError(err) });
+                                        util.logError(req.body,`setParityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     } else
-                                        logger.info(`[${logUUID}] asset parity is set successfully`);
+                                    util.logInfo(req.body,`asset parity is set successfully`);
 
                                 });
                             }
                         }
-                        logger.info(`[${logUUID}] New activityId is : ${activityId}`);
+                        util.logInfo(req.body,`New activityId is : ${activityId}`);
                         callback(false, activityId);
                     }
                 });

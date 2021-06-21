@@ -3059,6 +3059,74 @@ function Util(objectCollection) {
        }];
    };
 
+    this.logInfo = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.info(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+
+    this.logDebug = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.debug(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+    };
+
+    this.logVerbose = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.verbose(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logWarning = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.warn(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logError = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.error(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logSilly = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.silly(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    let attachlogUUID = (logUUID, botOperationId) => {
+
+        let text = "";
+
+        if (logUUID) {
+            text += `[${logUUID}]`;
+        }
+
+        if (botOperationId) {
+            text += `[${botOperationId}]`;
+        }
+        return text;
+    }
+
 }
 
 module.exports = Util;

@@ -2028,7 +2028,6 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateParticipantCount = function (activityId, organizationId, request, callback) {
-        let logUUID = request.log_uuid || "";
         var paramsArr = new Array(
             activityId,
             organizationId
@@ -2077,7 +2076,7 @@ this.getAllParticipantsAsync = async (request) => {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
+                                util.logError(request,`participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                                 return;
                             }
                         });
@@ -2085,7 +2084,7 @@ this.getAllParticipantsAsync = async (request) => {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
+                    util.logError(request,`participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                     return;
                 }
             });
@@ -4397,7 +4396,6 @@ this.getAllParticipantsAsync = async (request) => {
 
         let responseData = [],
             error = true;
-        let logUUID = request.log_uuid;
         //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         let assetId = request.asset_id;
         let organizationId = request.organization_id;
@@ -4444,7 +4442,7 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        logger.info(`[${logUUID}] activityTimelineTransactionInsertAsync streamTypeId ${streamTypeId}`);
+        util.logInfo(request,`activityTimelineTransactionInsertAsync streamTypeId ${streamTypeId}`);
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -4580,7 +4578,7 @@ case 729: // Report form BC Edit
                         isAttachment = 1;
                     }
                 } catch (err) {
-                    logger.error(`[${logUUID}] Parsing and retrieving attachments`, { type: 'timeline_insert', error: serializeError(err) });
+                    util.logError(request,`Parsing and retrieving attachments`, { type: 'timeline_insert', error: serializeError(err) });
                 }
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -5386,7 +5384,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.updateCustomerOnWorkflowAsync = async function (request, requestFormData) {
         let self = this;
-        let logUUID = request.log_uuid || "";
         forEachAsync(requestFormData, function (next, fieldObj) {
             if (fieldObj.field_data_type_id == 59) {
                 let assetReference = fieldObj.field_value.split('|');
@@ -5394,7 +5391,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     request['customer_asset_id'] = assetReference[0];
                     self.updateCustomerOnWorkflow(request);
                 } else {
-                    logger.error(`[${logUUID}] CUSTOMER REFERENCE VALUE IS IMPROPER ${fieldObj.field_value}`, { type: 'update_customer_workflow' });
+                    util.logError(request,`CUSTOMER REFERENCE VALUE IS IMPROPER ${fieldObj.field_value}`, { type: 'update_customer_workflow' });
                 }
                 next();
             } else {
@@ -5570,8 +5567,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.makeGenericRequest = async function(request){
 
-        let logUUID = request.log_uuid || "";
-
         const genericAsync = nodeUtil.promisify(makingRequest.post);
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const makeRequestOptions = {
@@ -5582,14 +5577,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             // global.config.mobileBaseUrl + global.config.version
             const response = await genericAsync(global.config.mobileBaseUrl + global.config.version + request.generic_url, makeRequestOptions);
             const body = JSON.parse(response.body);
-            logger.info(`[${logUUID}] makeGenericRequest ${request.generic_url} %j`, body);
+            util.logInfo(request,`makeGenericRequest ${request.generic_url} %j`, body);
             if (Number(body.status) === 200) {
                 return [false, {}];
             }else{
                 return [true, {}];
             }
         } catch (error) {
-            logger.error(`[${logUUID}] makeGenericRequest ${request.generic_url}`, { type: 'makeGenericRequest', error: serializeError(error) });
+            util.logError(request,`makeGenericRequest ${request.generic_url}`, { type: 'makeGenericRequest', error: serializeError(error) });
             return [true, {}];
         } 
     };
@@ -5996,7 +5991,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     };
 
     this.activityUpdateExpression  = async function (request) {
-        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
         let paramsArr = new Array(
@@ -6014,7 +6008,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = false;
         })
         .catch((err)=>{
-            logger.error(`[${logUUID}] activityUpdateExpression`, { type: 'activityUpdateExpression', error: serializeError(err) });
+            util.logError(request,`activityUpdateExpression`, { type: 'activityUpdateExpression', error: serializeError(err) });
             error = err;
         });
         }
