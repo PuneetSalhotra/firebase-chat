@@ -1009,7 +1009,8 @@ function AssetService(objectCollection) {
             "organization_flag_enable_sip_module" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_sip_module']),
             "asset_flag_sip_admin_access" : util.replaceDefaultNumber(rowArray[0]['asset_flag_sip_admin_access']),
             "asset_flag_frontline" : util.replaceDefaultNumber(rowArray[0]['asset_flag_frontline']),
-            "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled'])
+            "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
+            "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export'])
         };
 
         callback(false, rowData);
