@@ -200,11 +200,16 @@ function MerchantPaymentService(objectCollection) {
             razorpay_signature = success_response.razorpay_signature;
             isSuccess = true;
             request.isSuccess = true;
+            request.activity_status_type_id = 99;
+            request.activity_type_category_id = 40;
             await this.alterStatusMakeRequest(request)                          
             // calling the status/alter/ api for and changing status to paid status_type_id = 99
             // 
         } else if(request.hasOwnProperty("failure_response")) {
             let failure_response = JSON.parse(request.failure_response);
+
+            request.activity_status_type_id = 115;
+            request.activity_type_category_id = 40;
             await this.alterStatusMakeRequest(request)
             if(failure_response.hasOwnProperty("error")) {
                 let errorObj = failure_response.error;
@@ -762,8 +767,7 @@ function MerchantPaymentService(objectCollection) {
                                         transaction_id: transaction_id,
                                         payment_response_code: response_code,
                                         payment_response_desc: response_description
-                                    };
-                                    //await this.alterStatusMakeRequest(request);                         
+                                    };                       
                                     logger.info("finalResponse = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
@@ -2009,13 +2013,13 @@ function MerchantPaymentService(objectCollection) {
 
         // const [eventErr, eventData] = await self.getEvent(request);
         request.activity_parent_id = request.reservation_id                                  
-        // eventData[0].activity_id;
-        request.activity_type_category_id = 40;                                             
+        // // eventData[0].activity_id;
+        // request.activity_type_category_id = 40;                                             
         const [err1, activityType] = await this.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
-        request.activity_status_type_id = 115;                                              
-        const [err2, activityStatus] = await this.getActivityStatusV1(request);
-        request.activity_status_id = activityStatus[0].activity_status_id;
+        // request.activity_status_type_id = 115;                                              
+        // const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        // request.activity_status_id = activityStatus[0].activity_status_id;
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
