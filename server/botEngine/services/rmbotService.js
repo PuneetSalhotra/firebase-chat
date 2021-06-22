@@ -1,4 +1,5 @@
 const logger = require("../../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 //var ActivityService = require('../../services/activityService.js');
 //var ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
@@ -2867,6 +2868,7 @@ function businessDayCheckFun(curr_date,businessDays){
     }
 
     this.activityListLeadUpdateV1 = async function (request, lead_asset_id) {
+        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
         if(!request.hasOwnProperty("global_array"))
@@ -2904,7 +2906,7 @@ function businessDayCheckFun(curr_date,businessDays){
                             let objR = Object.assign({},request);
                             objR.target_asset_id = lead_asset_id;
                             objR.target_lead_asset_id = lead_asset_id;
-                            logger.info("ROLLBACK:: LOGASSET "+request.asset_id+" PUSH_STATUS "+data[0].push_status);
+                            logger.info(`[${logUUID}] ROLLBACK:: LOGASSET ${request.asset_id} PUSH_STATUS ${data[0].push_status}`);
 
                             if(data[0].push_status == 0){
 
@@ -2993,7 +2995,6 @@ function businessDayCheckFun(curr_date,businessDays){
                                 self.activityListUpdateRMFlags(request);
 
                                 request.global_array.push({"calculateAssetNewSummary":""});
-                                logger.info();
                                 //self.calculateAssetNewSummary(ObjReq);
 
                             }else{
@@ -3048,7 +3049,7 @@ function businessDayCheckFun(curr_date,businessDays){
                 });
             }
         }catch(error){
-            logger.info("error :: "+error);
+            logger.error(`[${request.log_uuid || ""}] formtransactioniderror`, { type: 'add_activity', error: serializeError(error) });
         }    
     }      
 

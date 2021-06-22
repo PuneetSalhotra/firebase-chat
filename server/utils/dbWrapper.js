@@ -156,7 +156,6 @@ initiateDB();
 
 //Test the connection pool error
 const checkDBInstanceAvailablityV1 = async (flag) => {
-    //console.log('checkDBInstanceAvailablityV1');
     const conPool = (Number(flag) === 1) ? writeClusterForHealthCheck: readClusterForHealthCheck;   
     return await new Promise((resolve) => {
         try {
@@ -166,7 +165,6 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
                         console.log("Slave1 is down so will read data from master");
                         slave1HealthCheckFlag = false;
                     }
-                    //console.log('ERROR WHILE GETTING CONNECTON - ', err);
                     resolve([1, err]);
                 } else {
                     if(flag === 0 ) {
@@ -178,7 +176,6 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
                 }
             });
         } catch (exception) {
-            //console.log('Exception Occurred - ' , exception);
             resolve([0, exception]);
         }
     });
@@ -186,6 +183,7 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
 
 var executeQuery = function (flag, queryString, request, callback) {
     let label;
+    let logUUID = request.log_uuid || "";
     /*
      * flag = 0 --> master
      * flag = 1 --> slave 1
@@ -196,11 +194,9 @@ var executeQuery = function (flag, queryString, request, callback) {
     switch (flag) {
         case 0:
             conPool = writeCluster;
-            //            console.log('master pool is selected');
             break;
         case 1:
             conPool = readCluster;
-            //            console.log('slave1 pool is selected');
             break;
     }
     if(flag === 1 && !slave1HealthCheckFlag) {
@@ -209,85 +205,69 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(async function (err, conn) {
             if (err) {
-                logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: request, error: err });
+                logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', error: err });
                 if(global.config.mysqlConnectionErrors[err['code']]) {
                     getActiveAvailableDbConnection((e, connection) => {
                         if(e) {
-                            logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                            logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                             callback(true,e);
                         } else {
                             connection.query(queryString, function (err, rows, fields) {
                                 if (!err) {
-                                    logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                                    // global.logger.write('dbResponse', queryString, rows, request);
+                                    logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                     connection.release();
                                     return callback(false, rows[0]);
                                 } else {
-                                    logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                    // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                    // global.logger.write('serverError', err, err, request);
+                                    logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                     connection.release();
                                     return callback(true,err);
                                 }
-                            // console.timeEnd(label);
                             });
                         }
                     });
                 } else {
                     return callback(true, err);
                 }
-            } else {                
-                // label = 'DB-Query-Execution-Callback' + Date.now();
-                // console.time(label);
+            } else {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
-                        logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
+                        logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
                         console.log("error: err: ", err);
-                        logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                        logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                         conn.release();
 
                         if(global.config.mysqlConnectionErrors[err['code']]) {
                             getActiveAvailableDbConnection((e, connection) => {
                                 if(e) {
-                                    logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                    logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                     callback(true,e);
                                 } else {
                                     connection.query(queryString, function (err, rows, fields) {
                                         if (!err) {
-                                            logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                                            // global.logger.write('dbResponse', queryString, rows, request);
+                                            logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                             connection.release();
                                             return callback(false, rows[0]);
                                         } else {
-                                            logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                            // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                            // global.logger.write('serverError', err, err, request);
+                                            logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                             connection.release();
                                             return callback(true, err);
                                         }
-                                    // console.timeEnd(label);
                                     });
                                 }
                             });
                         } else {
                             return callback(true, err);
                         }
-
-                        // callback(err, false);
                     }
-                // console.timeEnd(label);
                 });
             }
         });
-    } catch (exception) {
-        //console.log(queryString);
-        //console.log(exception);        
-        logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
-        // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+    } catch (exception) {     
+        logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
     }
 };
 
@@ -295,7 +275,7 @@ var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
-        
+        let logUUID = request.log_uuid || "";
         //(flag === 0) ? conPool = writeCluster : conPool = readCluster;
         if(flag === 0) {
             conPool = writeCluster;
@@ -303,96 +283,76 @@ var executeQueryPromise = function (flag, queryString, request) {
             conPool = readCluster;
         } else {
             conPool = readClusterForAccountSearch;
-            console.log('Hitting the account search Read Replica DB');
         }
 
         if(flag === 1 && !slave1HealthCheckFlag) {
             conPool = writeCluster;
-            console.log("Using Write cluster");
         }
 
         try {            
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err, flag });
+                    logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err, flag });
                     if(global.config.mysqlConnectionErrors[err['code']] && flag === 1) {
                         getActiveAvailableDbConnection((e, connection) => {
                             if(e) {
-                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                 reject(e);
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows[0]);
                                     } else {
-                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                        // global.logger.write('serverError', err, err, request);
+                                        logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         reject(err);
                                     }
-                                // console.timeEnd(label);
                                 });
                             }
                         });
                     } else {
-                        // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                         reject(err);
                     }
-                    // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                 } else {
-                    // label = 'DB-Query-Execution-Promise' + Date.now();
-                    // console.time(label);
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                            // global.logger.write('dbResponse', queryString, rows, request);
+                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows[0]);
                         } else {
-                            logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                            // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                            // global.logger.write('serverError', err, err, request);
+                            logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             if(global.config.mysqlConnectionErrors[err['code']] && flag === 1) {
                                 getActiveAvailableDbConnection((e, connection) => {
                                     if(e) {
-                                        logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                        logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                         reject(e);
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                                                // global.logger.write('dbResponse', queryString, rows, request);
+                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows[0]);
                                             } else {
-                                                logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                                // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                                // global.logger.write('serverError', err, err, request);
+                                                logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 reject(err);
                                             }
-                                        // console.timeEnd(label);
                                         });
                                     }
                                 });
                             } else {
-                                // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                                 reject(err);
                             }
 
                         }
-                    // console.timeEnd(label);
                     });
                 }
             });
         } catch (exception) {
-            logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
-            // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+            logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
             reject(exception);
         }
     });
@@ -402,7 +362,7 @@ var executeRawQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
-        
+        let logUUID = request.log_uuid || "";
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
         if(flag === 1 && !slave1HealthCheckFlag) {
@@ -411,83 +371,66 @@ var executeRawQueryPromise = function (flag, queryString, request) {
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                    logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err });
                     if(global.config.mysqlConnectionErrors[err['code']]) {
                         getActiveAvailableDbConnection((e, connection) => {
                             if(e) {
-                                logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                 reject(e);
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
-                                        // global.logger.write('dbResponse', queryString, rows, request);
+                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows);
                                     } else {
-                                        logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                        // global.logger.write('serverError', err, err, request);
+                                        logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         reject(err);
                                     }
-                                // console.timeEnd(label);
                                 });
                             }
                         });
                     } else {
-                        // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                         reject(err);
                     }
                 } else {
-                    // label = 'DB-Query-Execution-Promise' + Date.now();
-                    // console.time(label);
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
-                            // global.logger.write('dbResponse', queryString, rows, request);
+                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows);
                         } else {
-                            logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                            // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                            // global.logger.write('serverError', err, err, request);
+                            logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             if(global.config.mysqlConnectionErrors[err['code']]) {
                                 getActiveAvailableDbConnection((e, connection) => {
                                     if(e) {
-                                        logger.error(`[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: request, error: e });
+                                        logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                         reject(e);
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[1] ${queryString}`, { type: 'mysql', db_response: rows, request_body: request, error: err });
-                                                // global.logger.write('dbResponse', queryString, rows, request);
+                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows);
                                             } else {
-                                                logger.error(`[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
-                                                // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                                                // global.logger.write('serverError', err, err, request);
+                                                logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 reject(err);
                                             }
-                                        // console.timeEnd(label);
                                         });
                                     }
                                 });
                             } else {
-                                // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                                 reject(err);
                             }
                         }
-                    // console.timeEnd(label);
                     });
                 }
             });
         } catch (exception) {
-            logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
-            // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+            logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
             reject(exception);
         }
     });
@@ -585,12 +528,12 @@ let callDBProcedure =
                     return Promise.reject(result);
                 }
             } else {
-                logger.error(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                logger.error(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: "Invalid Query String" });
                 // global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            logger.error(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            logger.error(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: null, error: error });
             // global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
@@ -628,12 +571,12 @@ let callDBProcedureR2 =
                     return result;
                 }
             } else {
-                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: "Invalid Query String" });
                 // global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: null, error: error });
             // global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
@@ -660,7 +603,7 @@ let callDBProcedureRecursive =
 
                 if (result.length > 0) {
                     if (result[0].query_status === 0) {
-                        logger.verbose(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: request, error: null });
+                        logger.verbose(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: null, error: null });
 
                         returnData = returnData.concat(result);
 
@@ -674,19 +617,19 @@ let callDBProcedureRecursive =
                             return returnData;
                         }
                     } else {
-                        logger.error(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: request, error: "query_status is not equal to 0" });
+                        logger.error(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: null, error: "query_status is not equal to 0" });
                         return Promise.reject(result);
                     }
                 } else {
                     return result;
                 }
             } else {
-                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: "Invalid Query String" });
 
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: null, error: error });
 
             return Promise.reject(error);
         }
