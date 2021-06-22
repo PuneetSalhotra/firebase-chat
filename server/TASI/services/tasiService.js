@@ -464,8 +464,10 @@ function TasiService(objectCollection) {
             error = true;
         const paramsArr = new Array(
           request.payout_name,
+          request.payout_description, 
           request.payout_type_id,
           request.payout_inline_data,
+          request.timeline_id,
           request.payout_policy_document_url,
           request.payout_matrix_document_url,
           request.payout_accelerator_document_url,
@@ -934,9 +936,3 @@ function TasiService(objectCollection) {
 }
 
 module.exports = TasiService;
-
-
-
-
-
-
