@@ -1813,7 +1813,7 @@ function BotService(objectCollection) {
                     logger.silly("Due date edit Bot - ESMS");
                     logger.silly("Due date edit Bot - ESMS: %j", request);
                     try {
-                        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
+                        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit, botOperationsJson.bot_operations.condition);
                     } catch (error) {
                         logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
@@ -8598,7 +8598,7 @@ else{
         return [false, []];
     }
     
-    this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit) => {
+    this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit, inlineData) => {
         let responseData = [],
             error = false,
             oldDate,
@@ -8736,7 +8736,16 @@ else{
             activityCoverData.duedate = {};
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
-        
+        console.log("inlineData", inlineData);
+        if(Number(inlineData.is_meeting)) {
+           activityCoverData.start_date = {};
+           let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
+           activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
+
+           console.log("EDC bot update details", activityCoverData, "current date", request.activity_datetime_start);
+        }
+
         console.log('activityCoverData : ', activityCoverData);
         request.debug_info.push('activityCoverData: ' + activityCoverData);
         try{
