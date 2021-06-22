@@ -4191,7 +4191,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			request.asset_description = "";
 			request.customer_unique_id = 0;
 			request.asset_profile_picture = "";
-			request.asset_inline_data = "[{}]";
+			request.asset_inline_data = [{}];
 			request.phone_country_code = request.country_code;
 			request.asset_phone_number = request.phone_number;
 			request.asset_email_id = "";
@@ -4236,7 +4236,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.activity_datetime_start=util.getCurrentISTTime(); 
         request.owner_asset_id=request.asset_id;
 		request.activity_form_id=0;
-		request.activity_inline_data=JSON.stringify([]);
+		request.activity_inline_data=JSON.stringify([{item_count:request.item_count}]);
 		request.activity_sub_type_id=0
 		request.activity_sub_type_name=''
 		request.app_version=1
