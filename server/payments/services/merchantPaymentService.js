@@ -1638,7 +1638,7 @@ function MerchantPaymentService(objectCollection) {
             request.reservation_id,
             request.workforce_id || 2085,
             request.account_id || 452,
-            request.organization_id || 868
+            request.organization_id || 351
             //"REQ"
         );
 
