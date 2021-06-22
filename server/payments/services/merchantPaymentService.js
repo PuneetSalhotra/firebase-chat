@@ -4,6 +4,8 @@ const RazorPaymentGatewayService = require('./razorpayGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
+var makingRequest = require('request');
+const nodeUtil = require('util');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
@@ -537,6 +539,9 @@ function MerchantPaymentService(objectCollection) {
         }
 
         if("refund.processed" === request_payload.event) {
+                        
+            request.activity_status_type_id = 99;
+            request.activity_type_category_id = 37;
             await this.alterStatusMakeRequest(request)
             return await this.handleWebhookRefundResponse(request);
         } else {
@@ -758,7 +763,7 @@ function MerchantPaymentService(objectCollection) {
                                         payment_response_code: response_code,
                                         payment_response_desc: response_description
                                     };
-                                    await this.alterStatusMakeRequest(request);                         
+                                    //await this.alterStatusMakeRequest(request);                         
                                     logger.info("finalResponse = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
@@ -1865,7 +1870,7 @@ function MerchantPaymentService(objectCollection) {
 
     this.alterStatusMakeRequest = async function (request) {
 
-        let rollback_status_name = request.activity_status_name;
+        request.activity_status_name;
 
         let x = JSON.stringify({
                 "activity_reference": [{
@@ -1874,12 +1879,11 @@ function MerchantPaymentService(objectCollection) {
                 }],
                 "asset_reference": [{}],
                 "attachments": [],
-                "content": "Status updated to "+rollback_status_name,
-                "mail_body": "Status updated to "+rollback_status_name,
-                "subject": "Status updated to "+rollback_status_name
+                "content": "Status updated to "+request.activity_status_name,
+                "mail_body": "Status updated to "+request.activity_status_name,
+                "subject": "Status updated to "+request.activity_status_name
             });
-            
-        request.activity_status_type_id = 99;
+
         const [err2, activityStatus] = await self.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;              
         const alterStatusRequest = {
@@ -1892,10 +1896,10 @@ function MerchantPaymentService(objectCollection) {
             asset_message_counter: 0,
             activity_id: request.activity_id,
             activity_type_id: 0,  
-            activity_type_category_id: 37, 
+            activity_type_category_id: request.activity_type_category_id, 
             activity_access_role_id: request.activity_access_role_id || 0,   
             activity_status_id: request.activity_status_id,
-            activity_status_type_id: activityStatusId, // paid
+            activity_status_type_id: request.activity_status_type_id, // paid
             activity_status_type_category_id: request.activity_status_type_category_id || 0,        
             flag_offline: 0,
             flag_retry: 0,
@@ -1911,8 +1915,6 @@ function MerchantPaymentService(objectCollection) {
             app_version: request.app_version,
             device_os_id: 5,
             datetime_log: util.getCurrentUTCTime(),
-            insufficient_data: true,
-            is_status_rollback:1,
             activity_stream_type_id:704,
             timeline_stream_type_id:704,
             //global_array:request.global_array,
