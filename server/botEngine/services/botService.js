@@ -5265,7 +5265,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
-        let logUUID = request.log_uuid || "";
+        let logUUID = createTargetFormRequest.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();

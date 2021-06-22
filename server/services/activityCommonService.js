@@ -6186,7 +6186,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
     console.log(queryString)
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
                 console.log(data)
@@ -6251,7 +6251,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             }
             else{
              client.index({
-                 index:"activity_asset_search_mapping",
+                 index:global.config.elasticActivityAssetTable,
                  body:{
                      ...dataTobeSent
                  }
@@ -6279,7 +6279,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                       ];
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
                 if(data.length>0){
@@ -6384,7 +6384,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                       ];
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
     if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
+        await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
                 if(data.length>0){
@@ -6406,7 +6406,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     }
                 }
             });
+            logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length);
+            // logger.info(resultData.hits.hits[0]._source);
             if(resultData.hits.hits.length>0){
+                logger.info('came in elastic activity 1 update :'+JSON.stringify(resultData.hits.hits[0]._source))
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
              client.updateByQuery({
@@ -6434,8 +6437,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             });
             }
             else{
+                logger.info('came in elastic activity 1 insert :')
                 client.index({
-                    index:"activity_search_mapping",
+                    index:global.config.elasticActivitySearchTable,
                     body:{
                         ...dataTobeSent
                     }
