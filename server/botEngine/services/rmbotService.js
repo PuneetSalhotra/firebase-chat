@@ -2905,7 +2905,7 @@ function businessDayCheckFun(curr_date,businessDays){
                             let objR = Object.assign({},request);
                             objR.target_asset_id = lead_asset_id;
                             objR.target_lead_asset_id = lead_asset_id;
-                            util.logError(request,`ROLLBACK:: LOGASSET ${request.asset_id} PUSH_STATUS ${data[0].push_status}`);
+                            util.logInfo(request,`ROLLBACK:: LOGASSET ${request.asset_id} PUSH_STATUS ${data[0].push_status}`);
 
                             if(data[0].push_status == 0){
 
