@@ -1635,7 +1635,10 @@ function MerchantPaymentService(objectCollection) {
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
             Number("0.00").toFixed(2),
-            request.reservation_id
+            request.reservation_id,
+            request.workforce_id || 2085,
+            request.account_id || 452,
+            request.organization_id || 868
             //"REQ"
         );
 
@@ -1880,7 +1883,7 @@ function MerchantPaymentService(objectCollection) {
             });
             
         request.activity_status_type_id = 99;
-        const [err2, activityStatus] = await self.getActivityStatusV1(request);
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;              
         const alterStatusRequest = {
             organization_id: request.organization_id,
@@ -2011,7 +2014,6 @@ function MerchantPaymentService(objectCollection) {
         request.activity_status_type_id = 115;                                              
         const [err2, activityStatus] = await this.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;
-
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
