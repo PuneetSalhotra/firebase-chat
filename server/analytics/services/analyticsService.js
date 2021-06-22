@@ -2106,8 +2106,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if([131,132,133,134].includes(request.widget_type_id))
-                request.filter_asset_id = request.asset_id;
+            //if([131,132,133,134].includes(request.widget_type_id))
+             //   request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: '+ request.filter_is_datetime_considered);
 
@@ -2765,8 +2765,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if([131,132,133,134].includes(request.widget_type_id))
-                request.filter_asset_id = request.asset_id;
+            //if([131,132,133,134].includes(request.widget_type_id))
+            //    request.filter_asset_id = request.asset_id;
             
           //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
           //  {
@@ -2977,7 +2977,7 @@ function AnalyticsService(objectCollection)
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2703)
+                    const [err1,resData] = widgetTypeHistoryInsert(request,3101)
                 })
                 .catch((err) => {
                     error = err;
@@ -2986,6 +2986,39 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    this.widgetTypeMasterUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.widget_type_id,
+            request.widget_type_name,
+            request.flag_mobile_enabled,
+            request.widget_type_flag_target,
+            request.widget_type_flag_sip_enabled,
+            request.widget_type_flag_role_enabled,
+            request.widget_type_flag_prediction_enabled,
+            request.widget_type_sip_contribution_percentage,
+            request.widget_type_inline_data,
+            request.organization_id,
+            request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_widget_type_master_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    const [err1,resData] = widgetTypeHistoryInsert(request,3102)
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
     this.selectWidgetType = async (request) => {
 
         let responseData = [],
@@ -3038,6 +3071,7 @@ function AnalyticsService(objectCollection)
             await db.executeQueryPromise(0, queryString, request)
               .then((data) => {
                   responseData = responseData = {'message': 'widget type deleted successfully!'};;
+                  const [err1,resData] = widgetTypeHistoryInsert(request,3103)
                   error = false;
               })
               .catch((err) => {
@@ -3047,6 +3081,32 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData]
     }
+
+    async function widgetTypeHistoryInsert(request,id){
+        let responseData = [],
+        error = true;
+    
+    const paramsArr = [  
+          request.organization_id,  
+          request.widget_type_id,
+          id,
+          util.getCurrentUTCTime()
+    ];
+
+    const queryString = util.getQueryString('ds_p1_widget_type_master_history_insert', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+
+    return [error, responseData]
+    } 
 
     this.addReport = async (request) => {
 
