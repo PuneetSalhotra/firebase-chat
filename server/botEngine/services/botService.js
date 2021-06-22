@@ -5266,7 +5266,7 @@ async function removeAsOwner(request,data,addT = 0)  {
 
     async function createTargetFormActivity(createTargetFormRequest) {
         let logUUID = createTargetFormRequest.log_uuid || "";
-        let botOperationId = request.bot_operation_id || "";
+        let botOperationId = createTargetFormRequest.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
@@ -9950,6 +9950,7 @@ else{
             opportunityID = "",
             sqsQueueUrl = "",
             solutionDocumentUrl = "";
+        let workflowActivityData;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -9977,7 +9978,7 @@ else{
                 break;
         }
         try {
-            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
             if (Number(workflowActivityData.length) > 0) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
@@ -9995,6 +9996,21 @@ else{
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
+        if(workflowActivityData[0].parent_activity_id !== 0) {
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "Error",
+                    organization_id: request.organization_id
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: "Your request is not processed. Child Opportunity cannot be created on a child Opportunity.",
+                    mail_body: "Your request is not processed. Child Opportunity cannot be created on a child Opportunity.",
+                    attachments: []
+                }
+            );
+            return;
+        }
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
             organization_id: request.organization_id,
@@ -10188,6 +10204,29 @@ else{
                     if (childOpportunity[dependentFieldName] === dependentValue && value === "") {
                         mandatoryFieldsMissing = true;
                         errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                    }
+                }
+            }
+
+            //Mandatory checks for Existing Feasbility
+            if(childOpportunity.IsNewFeasibilityRequest === "Existing") {
+                mandatoryChecks = checksForBulkUpload["mandatory"]["Existing_Feasibility"] || [];
+                for (const field of mandatoryChecks) {
+                    if (!isObject(field)) {
+                        let fieldName = field;
+                        let value = childOpportunity[fieldName] || "";
+                        if (value === "") {
+                            mandatoryFieldsMissing = true;
+                            errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                        }
+                    } else {
+                        let fieldName = Object.keys(field)[0];
+                        let value = childOpportunity[fieldName] || "";
+                        let [dependentFieldName, dependentValue] = Object.entries(field[fieldName])[0];
+                        if (childOpportunity[dependentFieldName] === dependentValue && value === "") {
+                            mandatoryFieldsMissing = true;
+                            errorMessageForMandatoryFieldsMissing += `${fieldName} is empty in Row ${i + 1}.\n`;
+                        }
                     }
                 }
             }
