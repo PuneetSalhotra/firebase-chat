@@ -40,7 +40,7 @@ function MerchantPaymentController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            logger.error("| Error: ", err);
+            logger.error("/pam/payment/response| Error: ", err);
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
