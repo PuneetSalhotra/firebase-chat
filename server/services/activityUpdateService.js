@@ -671,6 +671,8 @@ function ActivityUpdateService(objectCollection) {
 
     this.alterActivityInline = function (request, callback) {
 
+        let logUUID = request.log_uuid || "";
+        
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -769,7 +771,7 @@ function ActivityUpdateService(objectCollection) {
                     newRequest.message_unique_id = request.message_unique_id;
 
                     // console.log('newRequest: ', newRequest);
-                    global.logger.write('debug', 'newRequest: ' + JSON.stringify(newRequest, null, 2), {}, request);
+                    logger.info(`[${logUUID}] newRequest  %j`, JSON.stringify(newRequest, null, 2));
 
                     var options = {
                         form: newRequest
@@ -777,12 +779,15 @@ function ActivityUpdateService(objectCollection) {
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         // console.log('body:', body);
-                        global.logger.write('debug', 'body: ' + JSON.stringify(body), {}, request);
+
+                        if(error) {
+                            logger.error(`[${logUUID}] error`, { type: 'alter_activity_inline', error: serializeError(error) });
+                        }
+                        logger.info(`[${logUUID}] body  %j`, JSON.stringify(body));
 
                         body = JSON.parse(body);
 
                         // console.log('error : ', error);
-                        global.logger.write('debug', error, error, request);
 
                         var resp = {
                             status: body.status,
