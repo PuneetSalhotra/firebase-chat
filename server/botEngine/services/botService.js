@@ -5264,7 +5264,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                     createTargetFormRequest.activity_flag_created_by_bot = 1;
                 }
 
-                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.workflow_activity_id : 0;
+                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.activity_id : 0;
                 
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
@@ -5292,7 +5292,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         }
 
         createTargetFormRequest.activity_id = targetFormActivityID;
-        createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        if(!createTargetFormRequest.start_workflow_activity_parent_id) {
+            createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        }
 
         // Fetch the activity_type_id
         let targetFormctivityTypeID = 0;
@@ -5344,6 +5346,27 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.asset_participant_access_id = 21;
         createTargetFormRequest.activity_flag_file_enabled = -1;
         createTargetFormRequest.activity_parent_id = createTargetFormRequest.start_workflow_activity_parent_id || 0;
+        if(createTargetFormRequest.start_workflow_activity_parent_id) {
+            let [err, resp] = await workforceActivityTypeMappingSelectCategory({...createTargetFormRequest, activity_type_category_id : 63 });
+
+            console.log("resp", resp);
+            let [err1, resp1] = await workforceActivityStatusMappingSelectStatusType({...createTargetFormRequest, activity_status_type_id : 184, 
+                activity_type_category_id : 63, // MOM type
+                activity_type_id : resp[0].activity_type_id
+            });
+
+            console.log("resp1", resp1);
+
+            createTargetFormRequest.activity_status_id = resp1[0].activity_status_id;
+            createTargetFormRequest.activity_status_type_id = 184;
+            createTargetFormRequest.activity_type_id = resp[0].activity_type_id;
+            createTargetFormRequest.activity_type_category_id = 63;
+
+            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 184,
+                activity_sub_type_name : "MOM"})
+            
+        }
+
         createTargetFormRequest.flag_pin = 0;
         createTargetFormRequest.flag_offline = 0;
         createTargetFormRequest.flag_retry = 0;
@@ -5358,17 +5381,29 @@ async function removeAsOwner(request,data,addT = 0)  {
         logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-        await addActivityAsync(createTargetFormRequest);
+        try {
+            await addActivityAsync(createTargetFormRequest);
+
+        } catch(e ) {
+
+        }
 
         // Make a 705 timeline transaction entry in the workflow file
+        console.log("createTargetFormRequest.hasOwnProperty(workflow_activity_id", createTargetFormRequest.hasOwnProperty("workflow_activity_id"));
         if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
             let workflowFile705Request = Object.assign({}, createTargetFormRequest);
             workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
+            if(createTargetFormRequest.start_workflow_activity_parent_id) {
+                workflowFile705Request.activity_id = createTargetFormRequest.activity_id;
+            }
             workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
             workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
             workflowFile705Request.activity_type_category_id = 48;
             workflowFile705Request.activity_stream_type_id = 705;
             workflowFile705Request.flag_timeline_entry = 0;
+            if(createTargetFormRequest.start_workflow_activity_parent_id) {
+                workflowFile705Request.flag_timeline_entry = 1;
+            }
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
@@ -5384,6 +5419,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 "attachments": []
             });
 
+            console.log("workflowFile705Request", JSON.stringify(workflowFile705Request));
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
@@ -5393,6 +5429,85 @@ async function removeAsOwner(request,data,addT = 0)  {
             }
         }
         return;
+    }
+
+    function activityListUpdateSubtype(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.activity_sub_type_id,
+                request.activity_sub_type_name,
+                request.asset_id,
+                request.datetime_log
+            );
+            queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
+    };
+
+    async function workforceActivityTypeMappingSelectCategory(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 1
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function workforceActivityStatusMappingSelectStatusType(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.activity_status_type_id,
+            0,
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_2_workforce_activity_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function workforceActivityTypeMappingSelect(request) {
