@@ -2011,15 +2011,15 @@ function MerchantPaymentService(objectCollection) {
 
     const addActivity = async (request) => {
 
-        // const [eventErr, eventData] = await self.getEvent(request);
+       // const [eventErr, eventData] = await self.getEvent(request);
         request.activity_parent_id = request.reservation_id                                  
-        // // eventData[0].activity_id;
-        // request.activity_type_category_id = 40;                                             
+       // // eventData[0].activity_id;
+       // request.activity_type_category_id = 40;                                             
         const [err1, activityType] = await this.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
         // request.activity_status_type_id = 115;                                              
-        // const [err2, activityStatus] = await this.getActivityStatusV1(request);
-        // request.activity_status_id = activityStatus[0].activity_status_id;
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
@@ -2075,7 +2075,7 @@ function MerchantPaymentService(objectCollection) {
             return [true, {}];
         }
     };
-    
+
 }
 
 module.exports = MerchantPaymentService;
