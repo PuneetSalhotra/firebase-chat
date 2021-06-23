@@ -1380,7 +1380,7 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
-                                    logger.info(`[${logUUID}] addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  WorkflowActivityId ${WorkflowActivityTypeId} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    logger.info(`[${logUUID}] addValueToWidgetForAnalyticsWF request.activity_id ${request.activity_id}  WorkflowActivityId ${workflowData[0].activity_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
