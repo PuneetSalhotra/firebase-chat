@@ -455,11 +455,11 @@ if(mode === 'local') {
         'https://d1g3r3ihuqqg05.cloudfront.net'
     ];
 
-    config.elasticActivityAssetTable = 'activity_asset_search_mapping';
-    config.elasticActivitySearchTable = 'activity_search_mapping';
-    config.elasticCrawlingAccountTable = 'crawling_accounts';
-    config.elasticVidmTable = 'vidm';
-    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'dev') {
@@ -922,11 +922,11 @@ if(mode === 'staging') {
         "https://vibusinesshub.myvi.in",
         "http://vibusinesshub.myvi.in" 
     ];
-    config.elasticActivityAssetTable = 'activity_asset_search_mapping';
-    config.elasticActivitySearchTable = 'activity_search_mapping';
-    config.elasticCrawlingAccountTable = 'crawling_accounts';
-    config.elasticVidmTable = 'vidm';
-    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'preprod') {
