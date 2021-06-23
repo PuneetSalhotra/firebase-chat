@@ -6303,7 +6303,7 @@ function VodafoneService(objectCollection) {
                 query += " ORDER BY activity_title";
                 break;
             case 2: //
-                tableName = 'activity_search_mapping'; // for distinct result mapping
+                tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
                 query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " where "
                 if (request.activity_type_id > 0) {
                     if (request.activity_type_id && request.activity_type_id > 0) {
@@ -6495,7 +6495,7 @@ function VodafoneService(objectCollection) {
                     }
                     query += " ORDER BY activity_title";
                 } else {
-                    tableName = 'activity_search_mapping'; // for distinct result mapping
+                    tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
                     query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     // if (request.activity_type_category_id && request.activity_type_category_id > 0) {
