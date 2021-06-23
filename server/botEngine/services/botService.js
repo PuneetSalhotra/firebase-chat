@@ -28,6 +28,7 @@ const RMBotService = require('./rmbotService');
 
 const uuidv4 = require('uuid/v4');
 const _ = require('lodash');
+const ics = require('ics')
 
 const AWS = require('aws-sdk');
 AWS.config.update({
@@ -14926,10 +14927,41 @@ else{
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
          await addDeskAsParticipant(request, assetData);
+         await icsEventCreation(request,request.emails[i],assetData.first_name);
       }
 
       return [error, responseData];
     };
+
+    async function icsEventCreation(request,email,receiver_name){
+        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+// console.log(wfActivityDetails[0].activity_datetime_created,wfActivityDetails[0].activity_datetime_end_expected);
+
+var timeDifference = moment(wfActivityDetails[0].activity_datetime_end_expected).diff(moment(wfActivityDetails[0].activity_datetime_created));
+var timeDifferenceDuration = moment.duration(timeDifference);
+var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
+// console.log(s)
+let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
+let today = new Date();
+        ics.createEvent({
+            title: wfActivityDetails[0].activity_title,
+            description: wfActivityDetails[0].activity_description,
+            busyStatus: 'FREE',
+            start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
+            duration: { minutes: timeDifferenceInMinutes }
+          }, (error, value) => {
+            if (error) {
+              console.log(error)
+            }
+          let fileName = `${global.config.efsPath}/${request.asset_id}-${today.getTime()}.ics`
+          
+            fs.writeFileSync(fileName, value);
+            request.email_sender_name = 'GreneOS';
+            request.email_receiver_name = receiver_name;
+            request.email_sender = "admin@grenerobotics.com"
+            util.sendEmailMailgunV2(request, email, wfActivityDetails[0].activity_title, fileName, "",  "html")
+          });
+    }
 
     async function getAssetByEmail(request) {
       let responseData = [],
