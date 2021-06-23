@@ -6288,14 +6288,17 @@ function VodafoneService(objectCollection) {
                     appendedAnd = true;
                 }
                 if (request.search_string && request.search_string != '') {
-                    if (appendedAnd)
-                        
-                        searchArr = request.search_string.split(' ');
-                        for(let i=0;i<searchArr.length;i++){
-                            query += " AND ";
-                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                        }
-                    appendedAnd = true;
+                            
+                    searchArr = request.search_string.split(' ');
+                    for(let i=0;i<searchArr.length;i++){
+                        if(appendedAnd){
+                            query += " AND "; 
+                        }     
+                query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
+                appendedAnd=true;
+            }
+                    
+                
                 }
                 query += " ORDER BY activity_title";
                 break;
@@ -6339,14 +6342,17 @@ function VodafoneService(objectCollection) {
                             appendedAnd = true;
                         }
                         if (request.search_string && request.search_string != '') {
-                            if (appendedAnd)
-                                
-                                searchArr = request.search_string.split(' ');
-                                for(let i=0;i<searchArr.length;i++){
-                                    query += " AND ";
-                            query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                                }
-                            appendedAnd = true;
+                            
+                            searchArr = request.search_string.split(' ');
+                            for(let i=0;i<searchArr.length;i++){
+                                if(appendedAnd){
+                                    query += " AND "; 
+                                }     
+                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
+                        appendedAnd=true;
+                    }
+                            
+                        
                         }
                     } else {
 
@@ -6369,13 +6375,17 @@ function VodafoneService(objectCollection) {
                             appendedAnd = true;
                         }
                         if (request.search_string && request.search_string != '') {
-                            if (appendedAnd)
+                            
                             searchArr = request.search_string.split(' ');
                             for(let i=0;i<searchArr.length;i++){
-                                query += " AND ";
+                                if(appendedAnd){
+                                    query += " AND "; 
+                                }     
                         query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                            }
-                            appendedAnd = true;
+                        appendedAnd=true;
+                    }
+                            
+                        
                         }
 
                     }
@@ -6400,14 +6410,17 @@ function VodafoneService(objectCollection) {
                         appendedAnd = true;
                     }
                     if (request.search_string && request.search_string != '') {
-                        if (appendedAnd)
                             
-                            searchArr = request.search_string.split(' ');
-                            for(let i=0;i<searchArr.length;i++){
-                                query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                            }
-                        appendedAnd = true;
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
+                            if(appendedAnd){
+                                query += " AND "; 
+                            }     
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
+                    appendedAnd=true;
+                }
+                        
+                    
                     }
                     query += " ORDER BY activity_title";
                 } else {
@@ -6425,14 +6438,17 @@ function VodafoneService(objectCollection) {
                         appendedAnd = true;
                     }
                     if (request.search_string && request.search_string != '') {
-                        if (appendedAnd)
                             
-                            searchArr = request.search_string.split(' ');
-                            for(let i=0;i<searchArr.length;i++){
-                                query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                            }
-                        appendedAnd = true;
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
+                            if(appendedAnd){
+                                query += " AND "; 
+                            }     
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
+                    appendedAnd=true;
+                }
+                        
+                    
                     }
                     query += " ORDER BY activity_title";
                 }
@@ -6465,14 +6481,17 @@ function VodafoneService(objectCollection) {
                         appendedAnd = true;
                     }
                     if (request.search_string && request.search_string != '') {
-                        if (appendedAnd)
                             
-                            searchArr = request.search_string.split(' ');
-                            for(let i=0;i<searchArr.length;i++){
-                                query += " AND ";
-                        query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                            }
-                        appendedAnd = true;
+                        searchArr = request.search_string.split(' ');
+                        for(let i=0;i<searchArr.length;i++){
+                            if(appendedAnd){
+                                query += " AND "; 
+                            }     
+                    query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
+                    appendedAnd=true;
+                }
+                        
+                    
                     }
                     query += " ORDER BY activity_title";
                 } else {
@@ -6484,13 +6503,17 @@ function VodafoneService(objectCollection) {
                     //     appendedAnd = true;
                     // }
                     if (request.search_string && request.search_string != '') {
-                        if (appendedAnd)
+                            
                         searchArr = request.search_string.split(' ');
                         for(let i=0;i<searchArr.length;i++){
-                            query += " AND ";
+                            if(appendedAnd){
+                                query += " AND "; 
+                            }     
                     query += ' activity_title LIKE ' + "'%" + searchArr[i].toLowerCase() + "%'";
-                        }
-                        appendedAnd = true;
+                    appendedAnd=true;
+                }
+                        
+                    
                     }
                    
                     query += " ORDER BY activity_title";
@@ -6638,11 +6661,6 @@ function VodafoneService(objectCollection) {
                                             match: {
                                                 activity_id: responseData[i].activity_id
                                             }
-                                        },
-                                        {
-                                            match: {
-                                                asset_id: request.asset_id
-                                            }
                                         }
                                     ],
                                 }
@@ -6652,12 +6670,12 @@ function VodafoneService(objectCollection) {
                             index: global.config.elasticActivitySearchTable,
                             body: esQueue
                         });
-                        if (resultData.hits.hits.length > 0) {
-                            await client.deleteByQuery({
-                                index: global.config.elasticActivitySearchTable,
-                                "body": esQueue
-                            })
-                        }
+                        // if (resultData.hits.hits.length > 0) {
+                        //     await client.deleteByQuery({
+                        //         index: global.config.elasticActivitySearchTable,
+                        //         "body": esQueue
+                        //     })
+                        // }
                         var insertData = {
                             "activity_creator_asset_first_name": responseData[i].activity_creator_asset_first_name,
                             "activity_creator_asset_id": responseData[i].activity_creator_asset_id,
@@ -6684,10 +6702,40 @@ function VodafoneService(objectCollection) {
                             "query_status": responseData[i].query_status,
                             "tag_type_id": responseData[i].tag_type_id
                         }
+                        if(resultData.hits.hits.length>0){
+                            let previousData = resultData.hits.hits[0]._source;
+                            // let dataToBeUpdated = {...previousData,...dataTobeSent};
+                            client.updateByQuery({
+                               index: global.config.elasticActivitySearchTable,
+                               "body": {
+                                   "query": {
+                                       bool: {
+                                           must: [
+                                             {
+                                               match: {
+                                                 activity_id:responseData[i].activity_id
+                                               }
+                                             }
+                                           ],
+                                   
+                                       }
+                                   },
+                                   "script": {
+                                       "source": "ctx._source = params",
+                                       "lang": "painless",
+                                       "params": {...insertData
+                                       }
+                                   }
+                               }
+                           });
+                           }
+                        
+                        else{
                         const insertEsData = await client.index({
                             index: global.config.elasticActivitySearchTable,
                             body: insertData
                         });
+                    }
                     }
                 }
             }
