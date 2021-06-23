@@ -1516,7 +1516,10 @@ function Util(objectCollection) {
                         reject(error);
                     }
                     resolve(body);
-                    fs.unlink(filepath)
+                    fs.unlink(filepath,function(err){
+                        if(err) return console.log(err);
+                        console.log('file deleted successfully');
+                   });  
                 });
         });
     }
