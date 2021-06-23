@@ -5182,6 +5182,7 @@ function ActivityService(objectCollection) {
             if (request.hasOwnProperty("workflow_activity_id")) {
                 currentWorkflowActivityId = request.workflow_activity_id;
             } else {
+                await sleep(10000);
                 const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, formID);
                 if (workflowError !== false || workflowData.length === 0) {
 
@@ -5191,8 +5192,7 @@ function ActivityService(objectCollection) {
                     //    await activityActivityMappingInsertV1(request, fieldData, cnt);
                     //} else {                    
                     //    return [workflowError, workflowData];
-                    //}
-                    await sleep(2000);
+                    //}                    
                     return workflowData;
                 }
 
