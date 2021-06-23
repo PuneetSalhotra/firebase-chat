@@ -1246,12 +1246,12 @@ function BotService(objectCollection) {
 
             logger.info(`[${logUUID}][${i.bot_operation_id}]------------START EXECUTING BOT----------------------`);
             logger.info(`[${logUUID}][${i.bot_operation_id}] i.bot_operation_type_id ${i.bot_operation_type_id}`);   
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${temp_iterator.form_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${temp_iterator.field_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${i.bot_operation_type_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${i.form_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${i.field_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${i.data_type_combo_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${i.data_type_combo_name}`);
 
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
@@ -2258,9 +2258,9 @@ function BotService(objectCollection) {
 
                     
                     case 46 : //Forcast Category, Product Quantity in drilldown
-                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
-                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': ****************************************************************', {}, {});
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    //logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
                         if(botOperationsJson.bot_operations.is_product == 1){
@@ -4495,7 +4495,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     async function botOperationTxnInsertV1(request, botData) {
         console.log(' ');
         console.log('***********************');
-        console.log('request.debug_info - ', request.debug_info);
+        //console.log('request.debug_info - ', request.debug_info);
         console.log('***********************');
         console.log(' ');
         let debugInfo = {

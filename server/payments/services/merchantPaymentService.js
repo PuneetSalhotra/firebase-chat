@@ -1891,7 +1891,7 @@ function MerchantPaymentService(objectCollection) {
                 "subject": "Status updated to "+request.activity_status_name
             });
 
-        const [err2, activityStatus] = await self.getActivityStatusV1(request);
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;              
         const alterStatusRequest = {
             organization_id: request.organization_id,
