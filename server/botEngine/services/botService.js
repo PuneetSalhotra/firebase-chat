@@ -28,6 +28,7 @@ const RMBotService = require('./rmbotService');
 
 const uuidv4 = require('uuid/v4');
 const _ = require('lodash');
+const ics = require('ics')
 
 const AWS = require('aws-sdk');
 AWS.config.update({
@@ -1245,12 +1246,12 @@ function BotService(objectCollection) {
 
             logger.info(`[${logUUID}][${i.bot_operation_id}]------------START EXECUTING BOT----------------------`);
             logger.info(`[${logUUID}][${i.bot_operation_id}] i.bot_operation_type_id ${i.bot_operation_type_id}`);   
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${temp_iterator.form_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${temp_iterator.field_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${i.bot_operation_type_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${i.form_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${i.field_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${i.data_type_combo_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${i.data_type_combo_name}`);
 
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
@@ -2257,9 +2258,9 @@ function BotService(objectCollection) {
 
                     
                     case 46 : //Forcast Category, Product Quantity in drilldown
-                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
-                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': ****************************************************************', {}, {});
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    //logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
                         if(botOperationsJson.bot_operations.is_product == 1){
@@ -4494,7 +4495,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     async function botOperationTxnInsertV1(request, botData) {
         console.log(' ');
         console.log('***********************');
-        console.log('request.debug_info - ', request.debug_info);
+        //console.log('request.debug_info - ', request.debug_info);
         console.log('***********************');
         console.log(' ');
         let debugInfo = {
@@ -5264,7 +5265,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                     createTargetFormRequest.activity_flag_created_by_bot = 1;
                 }
 
-                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.workflow_activity_id : 0;
+                createTargetFormRequest.start_workflow_activity_parent_id = condition.flag_is_child_workflow ? request.activity_id : 0;
                 
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
@@ -5292,7 +5293,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         }
 
         createTargetFormRequest.activity_id = targetFormActivityID;
-        createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        if(!createTargetFormRequest.start_workflow_activity_parent_id) {
+            createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        }
 
         // Fetch the activity_type_id
         let targetFormctivityTypeID = 0;
@@ -5344,6 +5347,27 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.asset_participant_access_id = 21;
         createTargetFormRequest.activity_flag_file_enabled = -1;
         createTargetFormRequest.activity_parent_id = createTargetFormRequest.start_workflow_activity_parent_id || 0;
+        if(createTargetFormRequest.start_workflow_activity_parent_id) {
+            let [err, resp] = await workforceActivityTypeMappingSelectCategory({...createTargetFormRequest, activity_type_category_id : 63 });
+
+            console.log("resp", resp);
+            let [err1, resp1] = await workforceActivityStatusMappingSelectStatusType({...createTargetFormRequest, activity_status_type_id : 184, 
+                activity_type_category_id : 63, // MOM type
+                activity_type_id : resp[0].activity_type_id
+            });
+
+            console.log("resp1", resp1);
+
+            createTargetFormRequest.activity_status_id = resp1[0].activity_status_id;
+            createTargetFormRequest.activity_status_type_id = 184;
+            createTargetFormRequest.activity_type_id = resp[0].activity_type_id;
+            createTargetFormRequest.activity_type_category_id = 63;
+
+            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 184,
+                activity_sub_type_name : "MOM"})
+            
+        }
+
         createTargetFormRequest.flag_pin = 0;
         createTargetFormRequest.flag_offline = 0;
         createTargetFormRequest.flag_retry = 0;
@@ -5358,17 +5382,29 @@ async function removeAsOwner(request,data,addT = 0)  {
         logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-        await addActivityAsync(createTargetFormRequest);
+        try {
+            await addActivityAsync(createTargetFormRequest);
+
+        } catch(e ) {
+
+        }
 
         // Make a 705 timeline transaction entry in the workflow file
+        console.log("createTargetFormRequest.hasOwnProperty(workflow_activity_id", createTargetFormRequest.hasOwnProperty("workflow_activity_id"));
         if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
             let workflowFile705Request = Object.assign({}, createTargetFormRequest);
             workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
+            if(createTargetFormRequest.start_workflow_activity_parent_id) {
+                workflowFile705Request.activity_id = createTargetFormRequest.activity_id;
+            }
             workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
             workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
             workflowFile705Request.activity_type_category_id = 48;
             workflowFile705Request.activity_stream_type_id = 705;
             workflowFile705Request.flag_timeline_entry = 0;
+            if(createTargetFormRequest.start_workflow_activity_parent_id) {
+                workflowFile705Request.flag_timeline_entry = 1;
+            }
             workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
             workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile705Request.device_os_id = 8;
@@ -5384,6 +5420,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 "attachments": []
             });
 
+            console.log("workflowFile705Request", JSON.stringify(workflowFile705Request));
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
@@ -5393,6 +5430,85 @@ async function removeAsOwner(request,data,addT = 0)  {
             }
         }
         return;
+    }
+
+    function activityListUpdateSubtype(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.activity_sub_type_id,
+                request.activity_sub_type_name,
+                request.asset_id,
+                request.datetime_log
+            );
+            queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
+    };
+
+    async function workforceActivityTypeMappingSelectCategory(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 1
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    async function workforceActivityStatusMappingSelectStatusType(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.activity_status_type_id,
+            0,
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_2_workforce_activity_status_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function workforceActivityTypeMappingSelect(request) {
@@ -14939,10 +15055,41 @@ else{
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
          await addDeskAsParticipant(request, assetData);
+         await icsEventCreation(request,request.emails[i],assetData.first_name);
       }
 
       return [error, responseData];
     };
+
+    async function icsEventCreation(request,email,receiver_name){
+        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+// console.log(wfActivityDetails[0].activity_datetime_created,wfActivityDetails[0].activity_datetime_end_expected);
+
+var timeDifference = moment(wfActivityDetails[0].activity_datetime_end_expected).diff(moment(wfActivityDetails[0].activity_datetime_created));
+var timeDifferenceDuration = moment.duration(timeDifference);
+var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
+// console.log(s)
+let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
+let today = new Date();
+        ics.createEvent({
+            title: wfActivityDetails[0].activity_title,
+            description: wfActivityDetails[0].activity_description,
+            busyStatus: 'FREE',
+            start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
+            duration: { minutes: timeDifferenceInMinutes }
+          }, (error, value) => {
+            if (error) {
+              console.log(error)
+            }
+          let fileName = `${global.config.efsPath}/${request.asset_id}-${today.getTime()}.ics`
+          
+            fs.writeFileSync(fileName, value);
+            request.email_sender_name = 'GreneOS';
+            request.email_receiver_name = receiver_name;
+            request.email_sender = "admin@grenerobotics.com"
+            util.sendEmailMailgunV2(request, email, wfActivityDetails[0].activity_title, fileName, "",  "html")
+          });
+    }
 
     async function getAssetByEmail(request) {
       let responseData = [],
