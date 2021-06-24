@@ -1217,14 +1217,14 @@ function BotService(objectCollection) {
         //Print what are all the bots are there
         logger.info(`[${logUUID}] Printing all the bots attached`);
         for (const temp_iterator of wfSteps) {
-            logger.info(`[${logUUID}]------------START----------------------`);
-            logger.info(`[${logUUID}] bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
-            logger.info(`[${logUUID}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-            logger.info(`[${logUUID}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-            logger.info(`[${logUUID}] form_id ${temp_iterator.form_id}`);
-            logger.info(`[${logUUID}] field_id ${temp_iterator.field_id}`);
-            logger.info(`[${logUUID}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-            logger.info(`[${logUUID}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+         //   logger.info(`[${logUUID}]------------START----------------------`);
+         //   logger.info(`[${logUUID}] bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
+         //   logger.info(`[${logUUID}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
+         //   logger.info(`[${logUUID}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
+         //   logger.info(`[${logUUID}] form_id ${temp_iterator.form_id}`);
+         //   logger.info(`[${logUUID}] field_id ${temp_iterator.field_id}`);
+         //   logger.info(`[${logUUID}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
+         //   logger.info(`[${logUUID}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
 
             console.table([{
                 bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
@@ -1235,7 +1235,7 @@ function BotService(objectCollection) {
                 data_type_combo_id: temp_iterator.data_type_combo_id,
                 data_type_combo_name: temp_iterator.data_type_combo_name
             }]);
-            logger.info(`[${logUUID}]--------------END--------------------`);
+           // logger.info(`[${logUUID}]--------------END--------------------`);
         }
 
         logger.info(`[${logUUID}]🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
@@ -8865,8 +8865,8 @@ else{
             activityCoverData.duedate = {};
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
-        console.log("inlineData", inlineData);
-        if(Number(inlineData.is_meeting)) {
+        // console.log("inlineData", inlineData);
+        if(inlineData && Number(inlineData.is_meeting)) {
            activityCoverData.start_date = {};
            let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
            activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");

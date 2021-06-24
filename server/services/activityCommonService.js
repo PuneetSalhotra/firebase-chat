@@ -6146,12 +6146,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                     must: [
                                       {
                                         match: {
-                                          activity_id:request.activity_id
+                                          activity_id:Number(request.activity_id)
                                         }
                                       },
                                       {
                                         match: {
-                                          asset_id:request.asset_id
+                                          asset_id:Number(request.asset_id)
                                         }
                                       }
                                     ],
@@ -6189,7 +6189,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
-                console.log(data)
+                // console.log(data)
                 if(data.length>0){
                 let dataTobeSent = responseData[0];
                    let resultData = await client.search({
@@ -6200,12 +6200,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:request.asset_id
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
@@ -6228,12 +6228,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:request.asset_id
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
@@ -6292,7 +6292,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               }
                             ],
@@ -6309,6 +6309,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              previousData.activity_status_id = dataTobeSent.activity_status_id;
              previousData.activity_status_type_id = dataTobeSent.activity_status_type_id;
              previousData.activity_title = dataTobeSent.activity_title;
+             previousData.asset_flag_is_owner = dataTobeSent.asset_flag_is_owner;
+             logger.info('came in elastic activity 2 update :'+JSON.stringify(dataTobeSent));
             //  let dd ={ activity_title: 'FR01621483',
             //  activity_cuid_1: null,
             //  activity_cuid_2: null,
@@ -6341,12 +6343,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:previousData.asset_id
+                                  asset_id:Number(previousData.asset_id)
                                 }
                               }
                             ],
@@ -6403,7 +6405,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
-                if(data.length>0&&data[0].activity_creator_asset_id==request.asset_id){
+                if(data.length>0 && data[0].activity_creator_asset_id==request.asset_id){
+                // if(data.length>0){
                 let dataTobeSent = responseData[0];
               
                    let resultData = await client.search({
@@ -6423,6 +6426,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     }
                 }
             });
+            
             logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
             // logger.info(resultData.hits.hits[0]._source);
             if(resultData.hits.hits.length>0){
@@ -6437,7 +6441,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               }
                             ],
