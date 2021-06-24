@@ -2108,10 +2108,13 @@ function ActivityConfigService(db,util,objCollection) {
         );
 
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
+                await activityCommonService.insertAssetMappingsinElastic({...request,asset_id:request.target_asset_id})
                 await botService.callAddTimelineEntry(request);
+                
                 responseData = data;
                 error = false;
             } catch(e) {
