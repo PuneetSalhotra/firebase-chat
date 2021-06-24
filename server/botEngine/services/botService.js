@@ -2258,9 +2258,9 @@ function BotService(objectCollection) {
 
                     
                     case 46 : //Forcast Category, Product Quantity in drilldown
-                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                    global.logger.write('conLog', request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
-                    logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': ****************************************************************', {}, {});
+                    logger.info(logUUID +" : "+ request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
+                    //logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
                         if(botOperationsJson.bot_operations.is_product == 1){
@@ -4495,7 +4495,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     async function botOperationTxnInsertV1(request, botData) {
         console.log(' ');
         console.log('***********************');
-        console.log('request.debug_info - ', request.debug_info);
+        //console.log('request.debug_info - ', request.debug_info);
         console.log('***********************');
         console.log(' ');
         let debugInfo = {
