@@ -1246,12 +1246,12 @@ function BotService(objectCollection) {
 
             logger.info(`[${logUUID}][${i.bot_operation_id}]------------START EXECUTING BOT----------------------`);
             logger.info(`[${logUUID}][${i.bot_operation_id}] i.bot_operation_type_id ${i.bot_operation_type_id}`);   
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${temp_iterator.form_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${temp_iterator.field_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${i.bot_operation_type_name}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${i.form_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${i.field_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${i.data_type_combo_id}`);
+            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${i.data_type_combo_name}`);
 
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
