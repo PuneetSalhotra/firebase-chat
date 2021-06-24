@@ -8865,8 +8865,8 @@ else{
             activityCoverData.duedate = {};
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
-        console.log("inlineData", inlineData);
-        if(Number(inlineData.is_meeting)) {
+        // console.log("inlineData", inlineData);
+        if(inlineData && Number(inlineData.is_meeting)) {
            activityCoverData.start_date = {};
            let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
            activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
