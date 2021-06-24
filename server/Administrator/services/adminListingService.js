@@ -2089,7 +2089,7 @@ function AdminListingService(objectCollection) {
         );
         const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_flag_default', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2114,7 +2114,7 @@ function AdminListingService(objectCollection) {
         
         const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_flag_default', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
