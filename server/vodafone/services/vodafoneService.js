@@ -6281,12 +6281,11 @@ function VodafoneService(objectCollection) {
                     query += ' asset_id = ' + Number(request.asset_id)
                     appendedAnd = true;
                 }
-                if (request.asset_flag_is_owner && request.asset_flag_is_owner > 0) {
                     if (appendedAnd)
                         query += " AND ";
-                    query += ' asset_flag_is_owner =  ' + Number(request.asset_flag_is_owner)
+                    query += ' asset_flag_is_owner =  ' + 1;
                     appendedAnd = true;
-                }
+                
                 if (request.search_string && request.search_string != '') {
                             
                     searchArr = request.search_string.split(' ');
