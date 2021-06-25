@@ -2427,7 +2427,7 @@ function BotService(objectCollection) {
    }
 
   async function editPDF(request,bot_data){
-      request.debug_info = [];
+    //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
     await sleep(9000);
