@@ -1138,8 +1138,8 @@ function ActivityConfigService(db,util,objCollection) {
 
         //Check the uniqueness of the account title
         if (isNameDedupeRequired) {
-            let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
-            if (accountTitleResponse.hits.hits.length > 0) {
+            let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+            if (isAccountPresent) {
                 console.log("Account name already exists!")
                 responseData.push({ 'message': 'Account Name already exists!' });
                 return [true, responseData];
@@ -1307,8 +1307,8 @@ function ActivityConfigService(db,util,objCollection) {
         accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
         accountTitle = accountTitle.split(' ').join('')
 
-        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
-        if (accountTitleResponse.hits.hits.length > 0) {
+        let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+        if (isAccountPresent) {
             console.log("Account name already exists!")
             responseData.push({ 'message': 'Account Name already exists!' });
             return [true, responseData];
@@ -1401,6 +1401,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     let duplicateAccountNameElasticSearch = async function (title) {
 
+        let isAccountPresent = false;
         console.log('Searching elastisearch for Accounyt title : ',title);
         let resultData = await client.search({
             index: global.config.elasticCrawlingAccountTable,
@@ -1412,6 +1413,9 @@ function ActivityConfigService(db,util,objCollection) {
                                 match_phrase: {
                                     activity_title_expression: title
                                 }
+                            },
+                            {
+                              "range" : {"log_state" : {"lt" : 3}}
                             }
                         ],
 
@@ -1419,8 +1423,16 @@ function ActivityConfigService(db,util,objCollection) {
                 }
             }
         });
-        console.log('response from ElastiSearch: ',resultData);
-        return resultData;
+
+        console.log('response from ElastiSearch: ',JSON.stringify(resultData));
+
+        for(const i_iterator of resultData.hits.hits) {
+            if(i_iterator._source.log_state < 3 && i_iterator._source.activity_title_expression === title) {
+                isAccountPresent = true;
+                break;
+            }
+        }
+        return isAccountPresent;
     }
 
     async function generateAccountCode(request,botInlineData) {
