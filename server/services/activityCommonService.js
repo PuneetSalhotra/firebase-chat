@@ -6491,6 +6491,127 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     return [error, responseData];
     }
+
+    this.delteAndInsertInElastic = async function (request){
+        let responseData = [],
+        error = true;
+        let checkEntry = [];
+
+// const paramsArr2 = [ request.activity_id,
+//     request.asset_id,
+//     request.organization_id ];
+//     const queryString2 = util.getQueryString('ds_v1_activity_asset_search_mapping_update_elasticsearch_insert', paramsArr2);
+//     if (queryString2 !== '') {
+//         await db.executeQueryPromise(0, queryString2, request)
+//             .then(async (data) => {
+//                 console.log(data[0].updated_rows)
+//                 checkEntry = data;
+//             }).catch(err=>console.log(err))}
+// if(checkEntry.length>0){
+//     return [false, []];
+// }
+// else{
+    
+    const paramsArr = [
+                        request.activity_id,
+                        request.asset_id,
+                        0                           
+                      ];
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                
+                // if(data.length>0){
+                
+              
+                // console.log(global.config.elasticActivitySearchTable,global.config.elasticActivityAssetTable)
+            // logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
+            // logger.info(resultData.hits.hits[0]._source);
+            
+             await client.deleteByQuery({
+                index: global.config.elasticActivitySearchTable,
+                "body": {
+                    "query": {
+                       
+                                match: {
+                                  activity_id:Number(request.activity_id)
+                                }
+                    },
+                }
+            })
+            await client.deleteByQuery({
+                index: global.config.elasticActivityAssetTable,
+                "body": {
+                    "query": {
+                       
+                                match: {
+                                  activity_id:Number(request.activity_id)
+                                }
+                    },
+                }
+            });
+
+            if(responseData.length>0){
+                console.log(responseData)
+                let insertedResponse = await new Promise((resolve)=>{ client.index({
+                    index:global.config.elasticActivitySearchTable,
+                    body:{
+                        ...responseData[0]
+                    }
+                }).then(res=>{
+                    logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+                    resolve()
+                }).catch(err=>resolve())})
+
+                for(let i=0;i<responseData.length;i++){
+                    let insertedResponse = await new Promise((resolve)=>{ client.index({
+                        index:global.config.elasticActivityAssetTable,
+                        body:{
+                            ...responseData[i]
+                        }
+                    }).then(res=>{
+                        logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+                        resolve()
+                    }).catch(err=>resolve())})
+                }
+            }
+            
+            // else{
+            //     logger.info('came in elastic activity 1 insert :')
+            //     // const paramsArr1 = [request.activity_id, request.asset_id,request.organization_id];
+            //     // const queryString1 = util.getQueryString(
+            //     //   "ds_v1_activity_asset_search_mapping_update_elasticsearch_insert",
+            //     //   paramsArr1
+            //     // );
+            //     // if (queryString1 !== "") {
+            //     //   await db
+            //     //     .executeQueryPromise(0, queryString1, request)
+            //     //     .then(async (data) => {})
+            //     //     .catch((err) => console.log(err));
+            //     // }
+
+            //    let insertedResponse = await new Promise((resolve)=>{ client.index({
+            //         index:global.config.elasticActivitySearchTable,
+            //         body:{
+            //             ...dataTobeSent
+            //         }
+            //     }).then(res=>{
+            //         logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+            //         resolve()
+            //     }).catch(err=>resolve())})
+            // }
+        
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
        
     this.insertConsumerError = async (request) => {
         let responseData = [],
