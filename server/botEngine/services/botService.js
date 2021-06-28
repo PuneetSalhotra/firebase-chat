@@ -5294,6 +5294,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
+        let reqActivityId = createTargetFormRequest.activity_id
         let logUUID = createTargetFormRequest.log_uuid || "";
         let botOperationId = createTargetFormRequest.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
@@ -5378,8 +5379,15 @@ async function removeAsOwner(request,data,addT = 0)  {
             createTargetFormRequest.activity_type_id = resp[0].activity_type_id;
             createTargetFormRequest.activity_type_category_id = 63;
 
-            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 184,
-                activity_sub_type_name : "MOM"})
+            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            });
+
+            activityAssetMappingUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            })
             
         }
 
@@ -5462,6 +5470,29 @@ async function removeAsOwner(request,data,addT = 0)  {
                 request.datetime_log
             );
             queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
+    };
+
+    function activityAssetMappingUpdateSubtype(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id, 
+                request.activity_sub_type_id, 
+                request.activity_sub_type_name,
+                request.asset_id,
+                request.datetime_log
+            );
+            queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_sub_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(): reject(err);
