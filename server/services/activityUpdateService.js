@@ -49,6 +49,7 @@ function ActivityUpdateService(objectCollection) {
             callback(true, false);
         }
         
+        console.log("Update JSon,", coverJson);
         var paramsArr = new Array();
         var queryString = '';
         /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
@@ -78,6 +79,7 @@ function ActivityUpdateService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
             );
+           
             queryString = util.getQueryString('ds_v1_activity_list_update_calender_cover', paramsArr);
         } else if (coverJson.hasOwnProperty('activity_completion_percentage')) {
             paramsArr = new Array(

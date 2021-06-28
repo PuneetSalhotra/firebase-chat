@@ -4,6 +4,8 @@ const RazorPaymentGatewayService = require('./razorpayGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
+var makingRequest = require('request');
+const nodeUtil = require('util');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
@@ -198,11 +200,16 @@ function MerchantPaymentService(objectCollection) {
             razorpay_signature = success_response.razorpay_signature;
             isSuccess = true;
             request.isSuccess = true;
+            request.activity_status_type_id = 99;
+            request.activity_type_category_id = 40;
             await this.alterStatusMakeRequest(request)                          
             // calling the status/alter/ api for and changing status to paid status_type_id = 99
             // 
         } else if(request.hasOwnProperty("failure_response")) {
             let failure_response = JSON.parse(request.failure_response);
+
+            request.activity_status_type_id = 115;
+            request.activity_type_category_id = 40;
             await this.alterStatusMakeRequest(request)
             if(failure_response.hasOwnProperty("error")) {
                 let errorObj = failure_response.error;
@@ -537,6 +544,9 @@ function MerchantPaymentService(objectCollection) {
         }
 
         if("refund.processed" === request_payload.event) {
+                        
+            request.activity_status_type_id = 99;
+            request.activity_type_category_id = 37;
             await this.alterStatusMakeRequest(request)
             return await this.handleWebhookRefundResponse(request);
         } else {
@@ -757,8 +767,7 @@ function MerchantPaymentService(objectCollection) {
                                         transaction_id: transaction_id,
                                         payment_response_code: response_code,
                                         payment_response_desc: response_description
-                                    };
-                                    await this.alterStatusMakeRequest(request);                         
+                                    };                       
                                     logger.info("finalResponse = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
@@ -1635,7 +1644,10 @@ function MerchantPaymentService(objectCollection) {
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
             Number("0.00").toFixed(2),
-            request.reservation_id
+            request.reservation_id,
+            request.workforce_id || 2085,
+            request.account_id || 452,
+            request.organization_id || 351
             //"REQ"
         );
 
@@ -1865,7 +1877,7 @@ function MerchantPaymentService(objectCollection) {
 
     this.alterStatusMakeRequest = async function (request) {
 
-        let rollback_status_name = request.activity_status_name;
+        request.activity_status_name;
 
         let x = JSON.stringify({
                 "activity_reference": [{
@@ -1874,13 +1886,12 @@ function MerchantPaymentService(objectCollection) {
                 }],
                 "asset_reference": [{}],
                 "attachments": [],
-                "content": "Status updated to "+rollback_status_name,
-                "mail_body": "Status updated to "+rollback_status_name,
-                "subject": "Status updated to "+rollback_status_name
+                "content": "Status updated to "+request.activity_status_name,
+                "mail_body": "Status updated to "+request.activity_status_name,
+                "subject": "Status updated to "+request.activity_status_name
             });
-            
-        request.activity_status_type_id = 99;
-        const [err2, activityStatus] = await self.getActivityStatusV1(request);
+
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
         request.activity_status_id = activityStatus[0].activity_status_id;              
         const alterStatusRequest = {
             organization_id: request.organization_id,
@@ -1892,10 +1903,10 @@ function MerchantPaymentService(objectCollection) {
             asset_message_counter: 0,
             activity_id: request.activity_id,
             activity_type_id: 0,  
-            activity_type_category_id: 37, 
+            activity_type_category_id: request.activity_type_category_id, 
             activity_access_role_id: request.activity_access_role_id || 0,   
             activity_status_id: request.activity_status_id,
-            activity_status_type_id: activityStatusId, // paid
+            activity_status_type_id: request.activity_status_type_id, // paid
             activity_status_type_category_id: request.activity_status_type_category_id || 0,        
             flag_offline: 0,
             flag_retry: 0,
@@ -1911,8 +1922,6 @@ function MerchantPaymentService(objectCollection) {
             app_version: request.app_version,
             device_os_id: 5,
             datetime_log: util.getCurrentUTCTime(),
-            insufficient_data: true,
-            is_status_rollback:1,
             activity_stream_type_id:704,
             timeline_stream_type_id:704,
             //global_array:request.global_array,
@@ -2004,14 +2013,13 @@ function MerchantPaymentService(objectCollection) {
 
         // const [eventErr, eventData] = await self.getEvent(request);
         request.activity_parent_id = request.reservation_id                                  
-        // eventData[0].activity_id;
-        request.activity_type_category_id = 40;                                             
+        // // eventData[0].activity_id;
+        // request.activity_type_category_id = 40;                                             
         const [err1, activityType] = await this.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
-        request.activity_status_type_id = 115;                                              
-        const [err2, activityStatus] = await this.getActivityStatusV1(request);
-        request.activity_status_id = activityStatus[0].activity_status_id;
-
+        // request.activity_status_type_id = 115;                                              
+        // const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        // request.activity_status_id = activityStatus[0].activity_status_id;
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;

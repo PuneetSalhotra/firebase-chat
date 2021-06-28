@@ -5905,6 +5905,7 @@ function FormConfigService(objCollection) {
             if(request.hasOwnProperty("workflow_activity_id")) {
                 currentWorkflowActivityId = Number(request.workflow_activity_id);
             } else {
+                await sleep(10000);
                 const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, request.form_id);
                 if (workflowError !== false || workflowData.length === 0) {
                     util.logError(request,`workflowError | No data`, { type: 'activity_activty_mapping_update', error: serializeError(workflowError) });

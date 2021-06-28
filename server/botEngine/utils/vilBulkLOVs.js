@@ -114,7 +114,8 @@ const vilBulkLOVs = {
         "mandatory": {
             "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
             "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
-            "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }]
+            "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+            "Existing_Feasibility": ["UpgradeOrDowngrade", "OrderID", "CircuitID"]
         },
         "char_limit": {
             "SearchCityEndA": 50,

@@ -1479,6 +1479,51 @@ function Util(objectCollection) {
         });
     }
 
+    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html") => {
+        console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
+        // if (htmlTemplateEncoding === "base64") {
+        //     let buff = new Buffer(htmlTemplate, 'base64');
+        //     htmlTemplate = buff.toString('ascii');
+        // }
+
+        const mailOptions = {
+            from: `${request.email_sender_name} <${request.email_sender}>`,
+            to: `${request.email_receiver_name} <${email}>`,
+            // cc: 'baz@example.com',
+            // bcc: 'bar@example.com',
+            subject: subject,
+            text: 'Grene os has created event',
+            // html: htmlTemplate,
+            attachment: filepath
+        };
+
+      
+            // let attachments = [];
+            // // attachments = request.bot_operation_email_attachment;
+            // mailOptions.attachment = attachments.map(attachment => {
+            //     return mailgun.Attachment({
+            //         data: Buffer.from(attachment.content, 'base64'),
+            //         filename: attachment.name
+            //     });
+            // });
+        
+
+        return new Promise((resolve, reject) => {
+            mailgun
+                .messages()
+                .send(mailOptions, function (error, body) {
+                    if (error) {
+                        reject(error);
+                    }
+                    resolve(body);
+                    fs.unlink(filepath,function(err){
+                        if(err) return console.log(err);
+                        console.log('file deleted successfully');
+                   });  
+                });
+        });
+    }
+
     // SendInBlue, htmlTemplate is sent as base64 encoded
     this.sendEmailV4 = async function (request, email, subject, text, base64EncodedHtmlTemplate, callback) {
         console.log('email : ', email);
