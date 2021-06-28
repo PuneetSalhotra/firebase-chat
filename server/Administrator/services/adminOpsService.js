@@ -120,6 +120,8 @@ function AdminOpsService(objectCollection) {
             request.flag_ai_bot,
             request.flag_manager_proxy,
             request.flag_form_tag,
+            request.flag_enable_sip_module,
+            request.flag_enable_elasticsearch,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
