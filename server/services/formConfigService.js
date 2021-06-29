@@ -1821,6 +1821,7 @@ function FormConfigService(objCollection) {
                         let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
                         let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
                         let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
+                        let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 1 : Number(formField.field_preview_enabled);
 
                         let dataTypeId = Number(formField.datatypeid);                                           
 
@@ -1850,7 +1851,7 @@ function FormConfigService(objCollection) {
                                         inline_data: inlineData,
                                         field_sequence_id: fieldSequenceId,
                                         field_mandatory_enabled: fieldMandatoryEnabled,
-                                        field_preview_enabled: 0, // THIS NEEDS WORK
+                                        field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                                         field_value_edit_enabled: fieldValueEditEnabled,
                                         data_type_combo_id: index + 1,
                                         data_type_combo_value: comboEntry.label,
@@ -1887,7 +1888,7 @@ function FormConfigService(objCollection) {
                                     inline_data: inlineData,
                                     field_sequence_id: fieldSequenceId,
                                     field_mandatory_enabled: fieldMandatoryEnabled,
-                                    field_preview_enabled: 0, // THIS NEEDS WORK
+                                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                                     field_value_edit_enabled: fieldValueEditEnabled,
                                     data_type_combo_id: 0,
                                     data_type_combo_value: '',
@@ -3481,7 +3482,7 @@ function FormConfigService(objCollection) {
                         data_type_combo_value: dataTypeComboValue,
                         field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
-                        field_preview_enabled: '0',
+                        field_preview_enabled: field.field_preview_enabled,
                         field_value_edit_enabled: field.field_value_edit_enabled,
                         inline_data: JSON.stringify(field.inline_data)
                     });
@@ -3517,7 +3518,7 @@ function FormConfigService(objCollection) {
                     data_type_combo_value: dataTypeComboValue,
                     field_sequence_id: field.sequence_id,
                     field_mandatory_enabled: fieldMandatoryEnabled,
-                    field_preview_enabled: '0',
+                    field_preview_enabled: field.field_preview_enabled,
                     field_value_edit_enabled: field.field_value_edit_enabled,
                     inline_data: JSON.stringify(field.inline_data)
                 });
@@ -3903,6 +3904,7 @@ function FormConfigService(objCollection) {
             let fieldSequenceId = Number(formField.sequence_id);
             let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
             let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
+            let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 1 : Number(formField.field_preview_enabled);
 
             //console.log('typeof inlineData : ', typeof inlineData);
 
@@ -3934,7 +3936,7 @@ function FormConfigService(objCollection) {
                             inline_data: inlineData,
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
-                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                             field_value_edit_enabled: fieldValueEditEnabled,
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
@@ -3965,7 +3967,7 @@ function FormConfigService(objCollection) {
                             field_description: fieldDescription,
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
-                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
                             data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
@@ -3997,7 +3999,7 @@ function FormConfigService(objCollection) {
                         inline_data: inlineData,
                         field_sequence_id: fieldSequenceId,
                         field_mandatory_enabled: fieldMandatoryEnabled,
-                        field_preview_enabled: 0, // THIS NEEDS WORK
+                        field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                         field_value_edit_enabled: fieldValueEditEnabled,
                         data_type_combo_id: 0,
                         data_type_combo_value: '',
