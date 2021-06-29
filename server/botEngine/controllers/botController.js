@@ -342,6 +342,16 @@ function BotController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/calendar/set', async (req, res) =>{
+        const [err, responseData] = await botService.generateCalendarEventID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/calendar/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/bot_step/datetime/set', async (req, res) =>{
         const [err, responseData] = await botService.setDueDateOfWorkflow(req.body);
         if (!err) {
