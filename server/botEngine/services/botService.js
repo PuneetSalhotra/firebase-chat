@@ -2427,6 +2427,7 @@ function BotService(objectCollection) {
    }
 
   async function editPDF(request,bot_data){
+    //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     console.log('sleeping for 9 secs')
     await sleep(9000);
@@ -2437,30 +2438,30 @@ function BotService(objectCollection) {
             "pdf_url":"https://worlddesk-staging-j21qqcnj.s3.ap-south-1.amazonaws.com/868/1102/5918/41535/2021/04/103/1618390937999/Proposal---SocGen---Mobility.pdf",
             "fields":[
                {
-                  "field_id":311062,
+                  "field_id":304213,
                   "pdf_search_name":"viperiod",
                   "sheet":6
                },
                {
-                  "field_id":311065,
+                  "field_id":304210,
+                  "pdf_search_name":"viassetname",
+                  "sheet":2
+               },
+               {
+                  "field_id":304224,
                   "pdf_search_name":"viplan",
                   "sheet":6
                },
                {
-                  "field_id":311066,
-                  "pdf_search_name":"viplan",
-                  "sheet":6
-               },
-               {
-                  "field_id":311067,
+                  "field_id":304316,
                   "pdf_search_name":"viaov",
                   "sheet":6
                },
-               {
-                  "field_id":311068,
-                  "pdf_search_name":"vitcv",
-                  "sheet":6
-               }
+            //    {
+            //       "field_id":311068,
+            //       "pdf_search_name":"vitcv",
+            //       "sheet":6
+            //    }
             ]
          },
         feasibility_json:{"feasibility_feild_ids":[
@@ -2494,18 +2495,18 @@ function BotService(objectCollection) {
         mobility_feild_ids:[311043,311044,311045,311046,311047,311048,311049,311050,311051,311052]
     };
     
-    let isMobility = false;
+    let isMobility = true;
     request.debug_info.push("checking which type of form it is");
-    let product_name = "";
+    let product_name = "Mobility";
 
-    for(let i=0;i<pdfJson.mobility_feild_ids.length;i++){
-      let field_value =  await getFormFieldValue(request,pdfJson.mobility_feild_ids[i]);
-      if(field_value){
-          product_name = field_value;
-          isMobility=true;
-          request.debug_info.push("it is a mobility type form");
-      }
-    }
+    // for(let i=0;i<pdfJson.mobility_feild_ids.length;i++){
+    //   let field_value =  await getFormFieldValue(request,pdfJson.mobility_feild_ids[i]);
+    //   if(field_value){
+    //       product_name = field_value;
+    //       isMobility=true;
+    //       request.debug_info.push("it is a mobility type form");
+    //   }
+    // }
     console.log("is mob",isMobility);
 
     let pdf_edit_json = {}
@@ -2538,20 +2539,22 @@ function BotService(objectCollection) {
     let accountName = accountDetails[0].activity_title;
     request.debug_info.push("account name ",accountName);
 
-    //getting asset Details
+    // getting asset Details
     const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
         organization_id: request.organization_id,
         asset_id: request.asset_id
     });
     let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
     request.debug_info.push("customer name ",customerName);
-
+let aovValue = 0;
+let periodValue = 0;
    for(let i=0;i<pdf_edit_json.fields.length;i++){
        console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
       
     let field_value = "";
     if(isMobility){
-    field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    // field_value =  await getFormFieldValue(request,pdf_edit_json.fields[i].field_id);
+    field_value =  await getFieldValueUsingFieldIdV1(request,50294,pdf_edit_json.fields[i].field_id);
     }
     else{
         field_value =  await getFieldValueUsingFieldIdV1(request,50633,pdf_edit_json.fields[i].field_id);
@@ -2567,12 +2570,19 @@ function BotService(objectCollection) {
             console.log(err)
         }
     }
+    if(pdf_edit_json.fields[i].pdf_search_name == 'viaov' && field_value){
+        aovValue= Number(field_value);
+    }
+    if(pdf_edit_json.fields[i].pdf_search_name == 'viperiod' && field_value){
+        periodValue= Number(field_value);
+    }
    }
    //adding account name
    await pdfreplaceText(pdfPath, pdfPath,0 , "viaccna", accountName);
+// await pdfreplaceText(pdfPath, pdfPath,0 , "viaccna", "Shankar Reddy");
 
    //adding customer name
-   await pdfreplaceText(pdfPath, pdfPath,2 , "viassetname", customerName);
+//    await pdfreplaceText(pdfPath, pdfPath,2 , "viassetname", customerName);
 
    //adding product name
    await pdfreplaceText(pdfPath, pdfPath,0 , "viprodhead", `Proposal for Product Name -${product_name}`);
@@ -2580,52 +2590,57 @@ function BotService(objectCollection) {
    //adding product name
    await pdfreplaceText(pdfPath, pdfPath,isMobility?6:16 , "viprod", product_name);
 
+   //adding tcv value
+   await pdfreplaceText(pdfPath, pdfPath,isMobility?6:16 , "vitcv", aovValue*periodValue);
+
    //adding current date
    let currentDate = (util.getCurrentDate()).toString();
    await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
-
+// return [false,[]]
    let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
     // let addCommentRequest = Object.assign(request, {});
     let s3Url = pdfS3urlnew[1][0].location;
-    request.form_id = 50639;
-    request.activity_form_id = 50639
-    request.activity_inline_data = JSON.stringify([
-        {"form_id":50639,"field_id":"311124","field_name":"PDF Scan",
-        "field_data_type_id":51,"field_data_type_category_id":13,
-        "data_type_combo_id":0,"data_type_combo_value":"0",
-        "field_value":s3Url,
-        "message_unique_id":1618208278588}])
-    await submitFormV1(request);
-    // addCommentRequest.asset_id = 100;
-    // addCommentRequest.device_os_id = 7;
-    // addCommentRequest.activity_type_category_id = 48;
-    // addCommentRequest.activity_type_id = request.activity_type_id;
-    // addCommentRequest.activity_id = request.workflow_activity_id;
-    // addCommentRequest.activity_timeline_collection = JSON.stringify({
-    //     "content": `${defaultAssetName} has added attachment(s).`,
-    //     "subject": `${defaultAssetName} has added attachment(s).`,
-    //     "mail_body": `${defaultAssetName} has added attachment(s).`,
-    //     "attachments": [s3Url]
-    // });
-    // addCommentRequest.activity_stream_type_id = 325;
-    // addCommentRequest.timeline_stream_type_id = 325;
-    // addCommentRequest.activity_timeline_text = "";
-    // addCommentRequest.activity_access_role_id = 27;
-    // addCommentRequest.operating_asset_first_name = defaultAssetName;
-    // addCommentRequest.datetime_log = util.getCurrentUTCTime();
-    // addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
-    // addCommentRequest.flag_timeline_entry = 1;
-    // addCommentRequest.log_asset_id = 100;
-    // addCommentRequest.attachment_type_id = 17;
-    // addCommentRequest.attachment_type_name = path.basename(s3Url);
+    // request.form_id = request.form_id;
+    // request.activity_form_id = request.form_id
+    // request.activity_inline_data = JSON.stringify([
+    //     {"form_id":50639,"field_id":"311124","field_name":"PDF Scan",
+    //     "field_data_type_id":51,"field_data_type_category_id":13,
+    //     "data_type_combo_id":0,"data_type_combo_value":"0",
+    //     "field_value":s3Url,
+    //     "message_unique_id":1618208278588}])
+    // await submitFormV1(request);
+    let addCommentRequest = request;
+    addCommentRequest.asset_id = 100;
+    addCommentRequest.device_os_id = 7;
+    addCommentRequest.activity_type_category_id = 48;
+    addCommentRequest.activity_type_id = request.activity_type_id;
+    addCommentRequest.activity_id = request.workflow_activity_id;
+    addCommentRequest.activity_timeline_collection = JSON.stringify({
+        "content": `${customerName} has added attachment(s).`,
+        "subject": `${customerName} has added attachment(s).`,
+        "mail_body": `${customerName} has added attachment(s).`,
+        "attachments": [s3Url]
+    });
+    addCommentRequest.activity_stream_type_id = 325;
+    addCommentRequest.timeline_stream_type_id = 325;
+    addCommentRequest.activity_timeline_text = "";
+    addCommentRequest.activity_access_role_id = 27;
+    addCommentRequest.operating_asset_first_name = customerName;
+    addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    addCommentRequest.flag_timeline_entry = 1;
+    addCommentRequest.log_asset_id = 100;
+    addCommentRequest.attachment_type_id = 17;
+    addCommentRequest.attachment_type_name = path.basename(s3Url);
+    addCommentRequest.message_unique_id=1618208278588;
 
-    // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-    // try {
-    //     await addTimelineTransactionAsync(addCommentRequest);
-    // } catch (error) {
-    //     console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
-    //     throw new Error(error);
-    // }
+    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    try {
+        await addTimelineTransactionAsync(addCommentRequest);
+    } catch (error) {
+        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        throw new Error(error);
+    }
     fs.unlink(pdfPath,()=>{});
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
@@ -5279,6 +5294,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
+        let reqActivityId = createTargetFormRequest.activity_id
         let logUUID = createTargetFormRequest.log_uuid || "";
         let botOperationId = createTargetFormRequest.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
@@ -5363,8 +5379,15 @@ async function removeAsOwner(request,data,addT = 0)  {
             createTargetFormRequest.activity_type_id = resp[0].activity_type_id;
             createTargetFormRequest.activity_type_category_id = 63;
 
-            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 184,
-                activity_sub_type_name : "MOM"})
+            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            });
+
+            activityAssetMappingUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            })
             
         }
 
@@ -5447,6 +5470,29 @@ async function removeAsOwner(request,data,addT = 0)  {
                 request.datetime_log
             );
             queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
+    };
+
+    function activityAssetMappingUpdateSubtype(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id, 
+                request.activity_sub_type_id, 
+                request.activity_sub_type_name,
+                request.asset_id,
+                request.datetime_log
+            );
+            queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_sub_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(): reject(err);
@@ -8331,6 +8377,8 @@ else{
                 fieldValue = cuidValue;
             } else if(request.hasOwnProperty("account_code_update")) {
                 fieldValue = cuidValue;
+            } else if(request.hasOwnProperty("calendar_event_id_update")) {
+                fieldValue = cuidValue;
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
@@ -8641,6 +8689,34 @@ else{
             try {
                 request.opportunity_update = true;
                 await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+            } catch (error) {
+                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+        } catch (e) {
+            error = true;
+            console.log("error : ", e);
+        }
+        return [error, responseData];
+    }
+
+    this.generateCalendarEventID = async (request) => {
+        let responseData = [],
+            error = false,
+            generatedCalendarEventID = "MT";
+
+        try {
+
+            let targetCalendarEventID = await cacheWrapper.getCalendarEventIdPromise();
+
+            generatedCalendarEventID += targetCalendarEventID;
+            responseData.push(generatedCalendarEventID);
+
+            logger.silly("Update CUID Bot");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.calendar_event_id_update = true;
+                await updateCUIDBotOperation(request, {}, { "CUID3": generatedCalendarEventID });
             } catch (error) {
                 logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
