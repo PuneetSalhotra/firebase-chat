@@ -5294,6 +5294,7 @@ async function removeAsOwner(request,data,addT = 0)  {
     }
 
     async function createTargetFormActivity(createTargetFormRequest) {
+        let reqActivityId = createTargetFormRequest.activity_id
         let logUUID = createTargetFormRequest.log_uuid || "";
         let botOperationId = createTargetFormRequest.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
@@ -5378,8 +5379,15 @@ async function removeAsOwner(request,data,addT = 0)  {
             createTargetFormRequest.activity_type_id = resp[0].activity_type_id;
             createTargetFormRequest.activity_type_category_id = 63;
 
-            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 184,
-                activity_sub_type_name : "MOM"})
+            activityListUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            });
+
+            activityAssetMappingUpdateSubtype({...createTargetFormRequest, activity_sub_type_id : 1,
+                activity_sub_type_name : "",
+                activity_id : reqActivityId
+            })
             
         }
 
@@ -5462,6 +5470,29 @@ async function removeAsOwner(request,data,addT = 0)  {
                 request.datetime_log
             );
             queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
+    };
+
+    function activityAssetMappingUpdateSubtype(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id, 
+                request.activity_sub_type_id, 
+                request.activity_sub_type_name,
+                request.asset_id,
+                request.datetime_log
+            );
+            queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_sub_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(): reject(err);
@@ -8346,6 +8377,8 @@ else{
                 fieldValue = cuidValue;
             } else if(request.hasOwnProperty("account_code_update")) {
                 fieldValue = cuidValue;
+            } else if(request.hasOwnProperty("calendar_event_id_update")) {
+                fieldValue = cuidValue;
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
@@ -8610,9 +8643,9 @@ else{
             limit_value: 50
         });
 
-        console.log('segmentData : ', segmentData);
-        let segmentName = (segmentData[0].parent_activity_tag_name)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        console.log('segmentData : ', segmentName);
+        logger.info('segmentData : ', segmentData);
+        let segmentName = (segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+        logger.info('segmentData : ', segmentName);
         switch (segmentName) {
             case 'la': generatedOpportunityID += 'C-';
                 break;
@@ -8656,6 +8689,34 @@ else{
             try {
                 request.opportunity_update = true;
                 await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+            } catch (error) {
+                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+        } catch (e) {
+            error = true;
+            console.log("error : ", e);
+        }
+        return [error, responseData];
+    }
+
+    this.generateCalendarEventID = async (request) => {
+        let responseData = [],
+            error = false,
+            generatedCalendarEventID = "MT";
+
+        try {
+
+            let targetCalendarEventID = await cacheWrapper.getCalendarEventIdPromise();
+
+            generatedCalendarEventID += targetCalendarEventID;
+            responseData.push(generatedCalendarEventID);
+
+            logger.silly("Update CUID Bot");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.calendar_event_id_update = true;
+                await updateCUIDBotOperation(request, {}, { "CUID3": generatedCalendarEventID });
             } catch (error) {
                 logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
