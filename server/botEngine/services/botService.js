@@ -8595,9 +8595,9 @@ else{
             limit_value: 50
         });
 
-        console.log('segmentData : ', segmentData);
-        let segmentName = (segmentData[0].parent_activity_tag_name)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        console.log('segmentData : ', segmentName);
+        logger.info('segmentData : ', segmentData);
+        let segmentName = (segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+        logger.info('segmentData : ', segmentName);
         switch (segmentName) {
             case 'la': generatedOpportunityID += 'C-';
                 break;

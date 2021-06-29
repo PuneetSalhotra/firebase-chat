@@ -1532,8 +1532,8 @@ function PamListingService(objectCollection) {
         const queryString = util.getQueryString('pm_v1_activity_list_select_parent_activity', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                	responseData = data;
+                .then(async (data) => {
+                    responseData = data;              	
                     error = false;
                 })
                 .catch((err) => {
@@ -1543,6 +1543,61 @@ function PamListingService(objectCollection) {
 
         return [error, responseData];
     };
+
+    this.getReservationStatusTrack = async(request) => {
+        let responseData = {},
+              error = true;
+  
+          var paramsArr = new Array(
+                  request.organization_id,
+                  request.activity_type_category_id,
+                  request.parent_activity_id,
+                  request.page_start,
+                  request.page_limit ,
+              );
+          const queryString = util.getQueryString('pm_v1_activity_list_select_parent_activity', paramsArr);
+          if (queryString !== '') {
+              await db.executeQueryPromise(1, queryString, request)
+                  .then(async (data) => {
+                      responseData.orders = data;
+                      if(request.is_track == 1){
+                          responseData.status =  await this.listSelectActivityHistory(request);
+                      }                      
+                      error = false;
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+          }
+  
+          return [error, responseData];
+      };
+
+    this.listSelectActivityHistory = async(request) => {
+        let responseData = [],
+              error = true;
+  
+          var paramsArr = new Array(
+                  request.organization_id,
+                  request.activity_type_category_id,
+                  request.parent_activity_id,
+                  request.page_start,
+                  request.page_limit ,
+              );
+          const queryString = util.getQueryString('pm_v1_activity_list_history_select_activity', paramsArr);
+          if (queryString !== '') {
+              await db.executeQueryPromise(1, queryString, request)
+                  .then((data) => {
+                      responseData = data;
+                      error = false;
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+          }
+  
+          return responseData;
+      };    
 };
 
 module.exports = PamListingService;
