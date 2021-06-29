@@ -8377,6 +8377,8 @@ else{
                 fieldValue = cuidValue;
             } else if(request.hasOwnProperty("account_code_update")) {
                 fieldValue = cuidValue;
+            } else if(request.hasOwnProperty("calendar_event_id_update")) {
+                fieldValue = cuidValue;
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
 
@@ -8687,6 +8689,34 @@ else{
             try {
                 request.opportunity_update = true;
                 await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+            } catch (error) {
+                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+            }
+
+        } catch (e) {
+            error = true;
+            console.log("error : ", e);
+        }
+        return [error, responseData];
+    }
+
+    this.generateCalendarEventID = async (request) => {
+        let responseData = [],
+            error = false,
+            generatedCalendarEventID = "MT";
+
+        try {
+
+            let targetCalendarEventID = await cacheWrapper.getCalendarEventIdPromise();
+
+            generatedCalendarEventID += targetCalendarEventID;
+            responseData.push(generatedCalendarEventID);
+
+            logger.silly("Update CUID Bot");
+            logger.silly("Update CUID Bot Request: ", request);
+            try {
+                request.calendar_event_id_update = true;
+                await updateCUIDBotOperation(request, {}, { "CUID3": generatedCalendarEventID });
             } catch (error) {
                 logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
