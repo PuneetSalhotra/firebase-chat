@@ -2995,14 +2995,21 @@ function Util(objectCollection) {
         }
         
         let [err, assetData] = await this.getAssetDetails(data);
-        const assetPushARN = assetData[0].asset_push_arn;
+        let assetPushARN = "";
+        if(assetData.length > 0){
+            assetPushARN = assetData[0].asset_push_arn;
 
-        sns.logOutPublish(message, assetPushARN, 1);
-        pubnubWrapper.publish(request.target_asset_id, message);
+            sns.logOutPublish(message, assetPushARN, 1);
+            pubnubWrapper.publish(request.target_asset_id, message);
 
-        return [error, {
-            message: `Push sent to ${request.target_asset_id}`
-        }];
+            return [error, {
+                message: `Push sent to ${request.target_asset_id}`
+            }];
+        }else{
+            return [error, {
+                message: `No resource exists hence push not sent to ${request.target_asset_id}`
+            }];
+        }
     }
 
     this.sendPushToEntity = async function(request) {

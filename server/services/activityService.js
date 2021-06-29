@@ -593,6 +593,14 @@ function ActivityService(objectCollection) {
                                     activityCommonService.makeGenericRequest(opportunityRequest);
                             }
 
+                            if (request.activity_type_category_id == 31 && request.activity_type_id == 190797) {
+
+                                let calendarEventIDRequest = Object.assign({}, request);
+                                calendarEventIDRequest.workflow_activity_id = request.activity_id;
+                                calendarEventIDRequest.generic_url = '/activity/calendar/set';
+                                activityCommonService.makeGenericRequest(calendarEventIDRequest);
+                            }
+
                             if(request.activity_type_category_id == 53 && (request.activity_type_id == 149277
                                 || request.activity_type_id == 149809 || request.activity_type_id == 150443
                                 || request.activity_type_id == 150254 || request.activity_type_id == 150442

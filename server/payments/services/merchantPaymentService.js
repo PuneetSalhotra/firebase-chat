@@ -545,9 +545,9 @@ function MerchantPaymentService(objectCollection) {
 
         if("refund.processed" === request_payload.event) {
                         
-            request.activity_status_type_id = 99;
-            request.activity_type_category_id = 37;
-            await this.alterStatusMakeRequest(request)
+            //request.activity_status_type_id = 99;
+            //request.activity_type_category_id = 37;
+            //await this.alterStatusMakeRequest(request)
             return await this.handleWebhookRefundResponse(request);
         } else {
             return await this.handleWebhookPaymentResponse(request);
@@ -689,13 +689,24 @@ function MerchantPaymentService(objectCollection) {
                             if(request.hasOwnProperty("failure_response")) {
                                 response_description = request_entity.error_reason;
                             }
-                            
+                            request.activity_id = paymentTransactionData.reservation_activity_id;
+                            request.organization_id = paymentTransactionData.organization_id;
+                            request.account_id = paymentTransactionData.account_id;
+                            request.workforce_id = paymentTransactionData.workforce_id;
+                            request.activity_type_category_id = 37;
+                            request.asset_id=11031;
                             if("captured" === payment.status) {
                                 payment_status = 'SUC';
                                 response_code = "00";
                                 response_description = "SUCCESS";
+                               
+                                request.activity_status_type_id = 99;  // paid                             
+                                
+                            }else{
+                                request.activity_status_type_id = 191; // payment failed
+                                
                             }
-
+                            this.alterStatusMakeRequest(request)
                             payment.response_code = response_code;
                             payment.response_desc = response_description;
                             payment.payment_status = payment_status;
@@ -1898,8 +1909,8 @@ function MerchantPaymentService(objectCollection) {
             account_id: request.account_id,
             workforce_id: request.workforce_id,
             asset_id: request.asset_id,
-            auth_asset_id:request.auth_asset_id,
-            asset_token_auth: request.asset_token_auth,
+            auth_asset_id:100,
+            asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
             asset_message_counter: 0,
             activity_id: request.activity_id,
             activity_type_id: 0,  
@@ -1940,7 +1951,7 @@ function MerchantPaymentService(objectCollection) {
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 logger.info("Activity Status Alter | Body: ", body);
-                await addActivity(request)                                              
+                //await addActivity(request)                                              
                 return [false, {}];
             }else{
                 logger.info("Error ", body);
