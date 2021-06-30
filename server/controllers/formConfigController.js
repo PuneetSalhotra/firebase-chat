@@ -170,7 +170,6 @@ function FormConfigController(objCollection) {
 
     app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
 
-        let logUUID = req.body.log_uuid || "";
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -195,10 +194,10 @@ function FormConfigController(objCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    logger.error(`[${logUUID}] error in setting in asset parity`, { type: 'form_activity_alter', error: serializeError(err) });
+                                    util.logError(req.body,`error in setting in asset parity`, { type: 'form_activity_alter', error: serializeError(err) });
                                     //console.log("error in setting in asset parity");
                                 } else
-                                logger.info(`[${logUUID}] asset parity is set successfully`);
+                                util.logInfo(req.body,`asset parity is set successfully`);
 
                             });
                         }
@@ -214,7 +213,7 @@ function FormConfigController(objCollection) {
             // console.log('json is fine');
 
         } catch (exeption) {
-            logger.error(`[${logUUID}] JSON error `, { type: 'form_activity_alter', error: serializeError(exeption) });
+            util.logError(req.body,`JSON error `, { type: 'form_activity_alter', error: serializeError(exeption) });
             res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }

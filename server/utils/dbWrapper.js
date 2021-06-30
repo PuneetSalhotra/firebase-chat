@@ -183,7 +183,6 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
 
 var executeQuery = function (flag, queryString, request, callback) {
     let label;
-    let logUUID = request.log_uuid || "";
     /*
      * flag = 0 --> master
      * flag = 1 --> slave 1
@@ -205,20 +204,20 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(async function (err, conn) {
             if (err) {
-                logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', error: err });
+                logger.error(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', error: err });
                 if(global.config.mysqlConnectionErrors[err['code']]) {
                     getActiveAvailableDbConnection((e, connection) => {
                         if(e) {
-                            logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                            logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                             callback(true,e);
                         } else {
                             connection.query(queryString, function (err, rows, fields) {
                                 if (!err) {
-                                    logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                    logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                     connection.release();
                                     return callback(false, rows[0]);
                                 } else {
-                                    logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                    logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                     connection.release();
                                     return callback(true,err);
                                 }
@@ -231,28 +230,28 @@ var executeQuery = function (flag, queryString, request, callback) {
             } else {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
-                        logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                        logger.verbose(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
                         console.log("error: err: ", err);
-                        logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                        logger.error(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                         conn.release();
 
                         if(global.config.mysqlConnectionErrors[err['code']]) {
                             getActiveAvailableDbConnection((e, connection) => {
                                 if(e) {
-                                    logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                                    logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                     callback(true,e);
                                 } else {
                                     connection.query(queryString, function (err, rows, fields) {
                                         if (!err) {
-                                            logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                            logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                             connection.release();
                                             return callback(false, rows[0]);
                                         } else {
-                                            logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                            logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                             connection.release();
                                             return callback(true, err);
                                         }
@@ -267,7 +266,7 @@ var executeQuery = function (flag, queryString, request, callback) {
             }
         });
     } catch (exception) {     
-        logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
+        logger.crit(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
     }
 };
 
@@ -275,7 +274,6 @@ var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
-        let logUUID = request.log_uuid || "";
         //(flag === 0) ? conPool = writeCluster : conPool = readCluster;
         if(flag === 0) {
             conPool = writeCluster;
@@ -292,20 +290,20 @@ var executeQueryPromise = function (flag, queryString, request) {
         try {            
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err, flag });
+                    logger.error(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err, flag });
                     if(global.config.mysqlConnectionErrors[err['code']] && flag === 1) {
                         getActiveAvailableDbConnection((e, connection) => {
                             if(e) {
-                                logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                                logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                 reject(e);
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                        logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows[0]);
                                     } else {
-                                        logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                        logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         reject(err);
                                     }
@@ -318,25 +316,25 @@ var executeQueryPromise = function (flag, queryString, request) {
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                            logger.verbose(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows[0]);
                         } else {
-                            logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                            logger.error(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             if(global.config.mysqlConnectionErrors[err['code']] && flag === 1) {
                                 getActiveAvailableDbConnection((e, connection) => {
                                     if(e) {
-                                        logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                                        logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                         reject(e);
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                                logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows[0]);
                                             } else {
-                                                logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                                logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 reject(err);
                                             }
@@ -352,7 +350,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                 }
             });
         } catch (exception) {
-            logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
+            logger.crit(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
             reject(exception);
         }
     });
@@ -362,7 +360,6 @@ var executeRawQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
-        let logUUID = request.log_uuid || "";
         (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
         if(flag === 1 && !slave1HealthCheckFlag) {
@@ -371,20 +368,20 @@ var executeRawQueryPromise = function (flag, queryString, request) {
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    logger.error(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                    logger.error(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: err });
                     if(global.config.mysqlConnectionErrors[err['code']]) {
                         getActiveAvailableDbConnection((e, connection) => {
                             if(e) {
-                                logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                                logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                 reject(e);
                             } else {
                                 connection.query(queryString, function (err, rows, fields) {
                                     if (!err) {
-                                        logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                        logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         resolve(rows);
                                     } else {
-                                        logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                        logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                         connection.release();
                                         reject(err);
                                     }
@@ -397,25 +394,25 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
-                            logger.verbose(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                            logger.verbose(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             resolve(rows);
                         } else {
-                            logger.error(`[${logUUID}][${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                            logger.error(`${attachlogUUID(request)}[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                             conn.release();
                             if(global.config.mysqlConnectionErrors[err['code']]) {
                                 getActiveAvailableDbConnection((e, connection) => {
                                     if(e) {
-                                        logger.error(`[${logUUID}][1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
+                                        logger.error(`${attachlogUUID(request)}[1] ERROR WHILE GETTING MySQL CONNECTON MASTER AS BACKUP`, { type: 'mysql', db_response: null, request_body: null, error: e });
                                         reject(e);
                                     } else {
                                         connection.query(queryString, function (err, rows, fields) {
                                             if (!err) {
-                                                logger.verbose(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                                logger.verbose(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 resolve(rows);
                                             } else {
-                                                logger.error(`[${logUUID}][1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
+                                                logger.error(`${attachlogUUID(request)}[1] ${queryString}`, { type: 'mysql', db_response: null, request_body: null, error: err });
                                                 connection.release();
                                                 reject(err);
                                             }
@@ -430,7 +427,7 @@ var executeRawQueryPromise = function (flag, queryString, request) {
                 }
             });
         } catch (exception) {
-            logger.crit(`[${logUUID}][${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
+            logger.crit(`${attachlogUUID(request)}[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: null, error: exception });
             reject(exception);
         }
     });
@@ -697,6 +694,23 @@ function getAndSetDbURL() {
             logger.warn(`[DBConnectionReEstablished] ${moment().format('YYYY-MM-DD h:mm:ss')}`, { type: 'mysql', db_response: null, request_body: null, error: null });
         }
     });
+}
+
+let attachlogUUID = (request) => {
+
+    let logUUID = request.log_uuid || "";
+    let botOperationId = request.bot_operation_id || "";
+    
+    let text = "";
+
+    if (logUUID) {
+        text += `[${logUUID}]`;
+    }
+
+    if (botOperationId) {
+        text += `[${botOperationId}]`;
+    }
+    return text;
 }
 
 module.exports = {

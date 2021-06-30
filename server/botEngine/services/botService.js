@@ -1047,16 +1047,17 @@ function BotService(objectCollection) {
     }
 
     this.initBotEngine = async (request) => {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] Initiating BOT Request Params %j`, request);
+
+        util.logInfo(request,`Initiating BOT Request Params %j`, request);
+
         request.debug_info = [];
         request.debug_info.push("initBotEngine" +JSON.stringify(request));
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
 
-        logger.info(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-        logger.info(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-        logger.info(`${logUUID}🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
 
         request['datetime_log'] = util.getCurrentUTCTime();
         // console.log("initBotEngine | request: ", request);
@@ -1083,7 +1084,7 @@ function BotService(objectCollection) {
                 formInlineDataMap.set(Number(field.field_id), {...field,bot_count : 1});
             }
         } catch (error) {
-            logger.error(`[${logUUID}]Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
+            util.logError(request,`Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
         }
 
         let wfSteps;
@@ -1102,8 +1103,8 @@ function BotService(objectCollection) {
 
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
-            logger.info(`[${logUUID}] In form_field_alter`);
-            logger.info(`[${logUUID}] formInlineDataMap:  %j`, formInlineDataMap);
+            util.logInfo(request,`In form_field_alter`);
+            util.logInfo(request,`formInlineDataMap:  %j`, formInlineDataMap);
 
             /*In case of Refill 
                 1) trigger all form level bots 
@@ -1144,7 +1145,7 @@ function BotService(objectCollection) {
             }            
 
         } else if(Number(request.is_refill) === 1) { 
-            logger.info(`[${logUUID}] This is smart form - Refill case`);
+            util.logInfo(request,`This is smart form - Refill case`);
             //This is Form refill SMART FORM 
             //1) Retrigger all form level bots
             //2) Retrigger all the impacted field level
@@ -1158,7 +1159,7 @@ function BotService(objectCollection) {
                     start_from: 0,
                     limit_value: 50
                 }, 2);
-            logger.info(`[${logUUID}] Number of form Level Bots form_id : ${request.form_id} %j`,botResponse.length);
+                util.logInfo(request,`Number of form Level Bots form_id : ${request.form_id} %j`,botResponse.length);
 
             let totalBots = botResponse; //Assigning form based bots
 
@@ -1173,7 +1174,7 @@ function BotService(objectCollection) {
                     "page_start": 0,
                     "page_limit": 50
                 });
-                logger.info(`[${logUUID}] Number of field Level Bots field_id : ${i_iterator.field_id} %j`,tempResponse.length);
+                util.logInfo(request,`Number of field Level Bots field_id : ${i_iterator.field_id} %j`,tempResponse.length);
                 if(tempResponse.length > 0) {
                     totalBots = totalBots.concat(tempResponse); //Assigning field level bots
                 }                
@@ -1182,7 +1183,7 @@ function BotService(objectCollection) {
             wfSteps = totalBots;            
 
         } else if(Number(request.is_resubmit) === 1) {
-            logger.info(`[${logUUID}] This is non-smart - Resubmit case`);
+            util.logInfo(request,`This is non-smart - Resubmit case`);
             //This is Form resubmit NON-SMART FORM 
             //Retrigger all form level bots
             let [err, botResponse] = await activityCommonService.getMappedBotSteps({
@@ -1196,7 +1197,7 @@ function BotService(objectCollection) {
 
             wfSteps = botResponse; //Assigning form based bots
         } else {
-            logger.info(`[${logUUID}] This is generic case!! - First time form Submission!!`);   
+            util.logInfo(request,`This is generic case!! - First time form Submission!!`);   
             //trigger both the form level bots & field level - Normally happens for the first time form submission
             wfSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
@@ -1213,18 +1214,19 @@ function BotService(objectCollection) {
         
         //console.log("formInlineDataMap: ", formInlineDataMap);
         //console.log('wfSteps : ', wfSteps);
-
+        util.logInfo(request,`Attached bots list`);
         //Print what are all the bots are there
-        logger.info(`[${logUUID}] Printing all the bots attached`);
+        util.logInfo(request,`Printing all the bots attached`);
         for (const temp_iterator of wfSteps) {
-         //   logger.info(`[${logUUID}]------------START----------------------`);
-         //   logger.info(`[${logUUID}] bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
-         //   logger.info(`[${logUUID}] bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-         //   logger.info(`[${logUUID}] bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-         //   logger.info(`[${logUUID}] form_id ${temp_iterator.form_id}`);
-         //   logger.info(`[${logUUID}] field_id ${temp_iterator.field_id}`);
-         //   logger.info(`[${logUUID}] data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-         //   logger.info(`[${logUUID}] data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+            util.logInfo(request,`***************************************`);
+            util.logInfo(request,`bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
+            util.logInfo(request,`bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
+            util.logInfo(request,`bot_operation_id ${temp_iterator.bot_operation_id}`);
+            util.logInfo(request,`bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
+            util.logInfo(request,`form_id ${temp_iterator.form_id}`);
+            util.logInfo(request,`field_id ${temp_iterator.field_id}`);
+            util.logInfo(request,`data_type_combo_id ${temp_iterator.data_type_combo_id}`);
+            util.logInfo(request,`data_type_combo_name ${temp_iterator.data_type_combo_name}`);
 
             console.table([{
                 bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
@@ -1235,23 +1237,23 @@ function BotService(objectCollection) {
                 data_type_combo_id: temp_iterator.data_type_combo_id,
                 data_type_combo_name: temp_iterator.data_type_combo_name
             }]);
-           // logger.info(`[${logUUID}]--------------END--------------------`);
+            util.logInfo(request,`***************************************`);
         }
 
-        logger.info(`[${logUUID}]🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-   
+        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+
         for (let i of wfSteps) {
             // Adding bot_operation_id into request for logs
             request["bot_operation_id"] = i.bot_operation_id;
 
-            logger.info(`[${logUUID}][${i.bot_operation_id}]------------START EXECUTING BOT----------------------`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] i.bot_operation_type_id ${i.bot_operation_type_id}`);   
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] bot_operation_type_name ${i.bot_operation_type_name}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] form_id ${i.form_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] field_id ${i.field_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_id ${i.data_type_combo_id}`);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] data_type_combo_name ${i.data_type_combo_name}`);
+            util.logInfo(request,`------------START EXECUTING BOT----------------------`);
+            util.logInfo(request,` i.bot_operation_type_id ${i.bot_operation_type_id}`);   
+            util.logInfo(request,` bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
+            util.logInfo(request,` bot_operation_type_name ${i.bot_operation_type_name}`);
+            util.logInfo(request,` form_id ${i.form_id}`);
+            util.logInfo(request,` field_id ${i.field_id}`);
+            util.logInfo(request,` data_type_combo_id ${i.data_type_combo_id}`);
+            util.logInfo(request,` data_type_combo_name ${i.data_type_combo_name}`);
 
             // Check whether the bot operation should be triggered for a specific field_id only
             console.table([{
@@ -1285,7 +1287,8 @@ function BotService(objectCollection) {
                     botOperationFieldID > 0 &&
                     !formInlineDataMap.has(botOperationFieldID)
                 ) {
-                    logger.info(`[${logUUID}][${i.bot_operation_id}]\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m`);
+                    util.logInfo(request,`Not triggering bot`);
+                    util.logInfo(request,`\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m`);
                     request.debug_info.push('This bot operation is field specific & cannot be applied.');
                     continue;
                 }
@@ -1297,35 +1300,37 @@ function BotService(objectCollection) {
                     formInlineDataMap.has(botOperationFieldID) &&
                     !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
                 ) {
-                    logger.info(`${logUUID}][${i.bot_operation_id}]\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m`);
+                    util.logInfo(request,`Not triggering bot`);
+                    util.logInfo(request,`\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m`);
                     request.debug_info.push('This bot operation is field and data_type_combo_id specific & cannot be applied.');
                     continue;
                 }
             } catch (error) {
-                logger.error(`[${logUUID}][${i.bot_operation_id}] Error checking field/data_type_combo_id trigger specificity`, { type: 'bot_service', error: serializeError(error) });
+                util.logError(request,`Error checking field/data_type_combo_id trigger specificity`, { type: 'bot_service', error: serializeError(error) });
                 request.debug_info.push('Error checking field/data_type_combo_id trigger specificity');
                 request.debug_info.push(error);                
             }
 
-            logger.info(`[${logUUID}][${i.bot_operation_id}] i.bot_operation_inline_data : %j`, i.bot_operation_inline_data);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] Value of i :  %j`, i);
-            logger.info(`[${logUUID}][${i.bot_operation_id}] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+            util.logInfo(request,`i.bot_operation_inline_data : %j`, i.bot_operation_inline_data);
+            util.logInfo(request,`Value of i :  %j`, i);
+            util.logInfo(request,`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
 
             // Skipping form enable bot because it is causing other to fail
             if(Number(i.bot_operation_type_id) === 20 ) {
+                util.logInfo(request,"Skipping form enable bot because it is causing other to fail")
                continue;
             }       
 
             try {
                 botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             } catch (error) {
-                logger.error(`[${logUUID}][${i.bot_operation_id}][botOperationsJson] Error parsing bot_operation_inline_data`, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`[botOperationsJson] Error parsing bot_operation_inline_data`, { type: "bot_engine", error: serializeError(error) });
             }
             try {
                 botSteps = Object.keys(botOperationsJson.bot_operations);
-                logger.info(`[${logUUID}][${i.bot_operation_id}]botSteps: %j`, botSteps);
+                util.logInfo(request,`botSteps: %j`, botSteps);
             } catch (error) {
-                logger.error(`[${logUUID}][${i.bot_operation_id}][botSteps] Error listing bot_operations keys`, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`[botSteps] Error listing bot_operations keys`, { type: "bot_engine", error: serializeError(error) });
             }
 
             // Check for condition, if any
@@ -1333,10 +1338,10 @@ function BotService(objectCollection) {
             try {
                 canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
             } catch (error) {
-                logger.error(`[${logUUID}][${i.bot_operation_id}]canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: `, { type: "bot_engine", error: serializeError(error) });         
+                util.logError(request,`canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: `, { type: "bot_engine", error: serializeError(error) });         
             }
             if (!canPassthrough) {
-                logger.error(`[${logUUID}][${i.bot_operation_id}]The bot operation condition failed, so the bot operation will not be executed.`, { type: "bot_engine"});                
+                util.logError(request,`The bot operation condition failed, so the bot operation will not be executed.`, { type: "bot_engine"});
                 continue;
             }
 
@@ -1349,26 +1354,26 @@ function BotService(objectCollection) {
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
-                    logger.info(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
-                    logger.info(`[${logUUID}][${i.bot_operation_id}] PARTICIPANT ADD`);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`PARTICIPANT ADD`);
                     request.debug_info.push('PARTICIPANT ADD');
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                     } catch (err) {
-                        logger.error(`[${logUUID}][${i.bot_operation_id}] Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
+                        util.logError(request,`Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });                        
                         //return Promise.reject(err);
                     }
-                    logger.info(`[${logUUID}][${i.bot_operation_id}] ****************************************************************`);
+                    util.logInfo(request,`****************************************************************`);
                     break;
 
                 //case 'status_alter': 
                 case 2: // Alter Status
-                    logger.info(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
-                    logger.info(`${logUUID}][${i.bot_operation_id}] STATUS ALTER BOT %j`, request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`STATUS ALTER BOT %j`, request);
                     try {
                         let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
@@ -1378,34 +1383,34 @@ function BotService(objectCollection) {
                             });
                         }
                     } catch (err) {
-                        logger.error(`[${logUUID}][${i.bot_operation_id}] serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
+                        util.logError(request,`serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });                        
                         //return Promise.reject(err);
                     }
-                    logger.info(`[${logUUID}][${i.bot_operation_id}] ****************************************************************`);
+                    util.logInfo(request,`****************************************************************`);
                     break;
 
                 //case 'form_field_copy':
                 case 3: //Copy Form field
-                    logger.info(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
-                    logger.info(`${logUUID}][${i.bot_operation_id}] FORM FIELD %j`, request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,` FORM FIELD %j`, request);
 
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
-                        logger.error(`[${logUUID}][${i.bot_operation_id}] Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
+                        util.logError(request,`Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
                         //return Promise.reject(err);
                     }
-                    logger.info(`[${logUUID}][${i.bot_operation_id}]****************************************************************`);
+                    util.logInfo(request,`****************************************************************`);
                     break;
 
                 //case 'workflow_percentage_alter': 
@@ -2258,9 +2263,8 @@ function BotService(objectCollection) {
 
                     
                     case 46 : //Forcast Category, Product Quantity in drilldown
-                    logger.info(logUUID +" : "+ request.workflow_activity_id+': ****************************************************************', {}, {});
-                    logger.info(logUUID +" : "+ request.workflow_activity_id+': Widget drilldown additional fields', {}, {});
-                    //logger.info(request.workflow_activity_id+": Widget drilldown additional fields: Request Params received from Request: %j", request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,` ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
                         if(botOperationsJson.bot_operations.is_product == 1){
@@ -2271,7 +2275,7 @@ function BotService(objectCollection) {
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
                     } catch (error) {
-                        logger.error("[Widget drilldown additional fields] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        util.logError(request,`[Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "log":request.debug_info,
@@ -4561,7 +4565,6 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     // Bot Step to change the status
     async function changeStatus(request, inlineData = {}) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         const workflowActivityID = request.workflow_activity_id;
 
@@ -4620,12 +4623,12 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
             }
 
-            logger.info(`[${logUUID}][${botOperationId}] conditionChain: %j`, conditionChain);
+            util.logInfo(request,`conditionChain: %j`, conditionChain);
             
             // Process the condition chain
             const conditionReducer = (accumulator, currentValue) => {
                 let value = 0;
-                logger.info(`[${logUUID}][${botOperationId}] accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
+                util.logInfo(request,`accumulator: ${JSON.stringify(accumulator)} | currentValue: ${JSON.stringify(currentValue)}`);
                 // AND
                 if (accumulator.join_condition === "AND") {
                     value = accumulator.value && currentValue.value;
@@ -4643,7 +4646,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             };
 
             const finalCondition = conditionChain.reduce(conditionReducer);
-            logger.info(`[${logUUID}][${botOperationId}] finalCondition: %j`, finalCondition);
+            util.logInfo(request,`finalCondition: %j`, finalCondition);
 
             // Select the status based on the condition arrived
             if (finalCondition.value) {
@@ -4655,13 +4658,13 @@ async function removeAsOwner(request,data,addT = 0)  {
                 inlineData.flag_trigger_resource_manager = inlineData.fail.flag_trigger_resource_manager;
 
             } else {
-                logger.error(`[${logUUID}][${botOperationId}] Error processing the condition chain`, { type: 'change_status' });
+                util.logError(request,`Error processing the condition chain`, { type: 'change_status' });
                 return [true, "Error processing the condition chain"];
             }
         }
 
         let newReq = Object.assign({}, request);
-        logger.info(`[${logUUID}][${botOperationId}] inlineData: %j`, inlineData);
+        util.logInfo(request,` inlineData: %j`, inlineData);
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -4725,12 +4728,12 @@ async function removeAsOwner(request,data,addT = 0)  {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
-            logger.error(`[${logUUID}][${botOperationId}] Error updating the workflow's queue mapping`, { type: 'bot_engine', error: err });
+            util.logError(request,`Error updating the workflow's queue mapping`, { type: 'bot_engine', error: err });
             return [true, "unknown Error"];
         }
 
         let resp = await getQueueActivity(newReq, request.workflow_activity_id);
-        logger.info(`[${logUUID}][${botOperationId}] getQueueActivity | resp: %j`, resp);
+        util.logInfo(request,` getQueueActivity | resp: %j`, resp);
 
         if (resp.length > 0) {
             let workflowActivityPercentage = 0;
@@ -4743,18 +4746,18 @@ async function removeAsOwner(request,data,addT = 0)  {
                         }
                     })
                     .catch((error) => {
-                        logger.error(`[${logUUID}][${botOperationId}] changeStatus | getActivityDetailsPromise | error`, { type: 'bot_engine', error: error});
+                        util.logError(request,`changeStatus | getActivityDetailsPromise | error`, { type: 'bot_engine', error: error});
                     });
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] changeStatus | Activity Details Fetch Error | error`, { type: 'bot_engine', error: error });
+                util.logError(request,`changeStatus | Activity Details Fetch Error | error`, { type: 'bot_engine', error: error });
             }
 
             // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
-            logger.info(`[${logUUID}][${botOperationId}] Status Alter BOT Step - status Name: %j `, statusName, { type: 'bot_engine' });
+            util.logInfo(request,` Status Alter BOT Step - status Name: %j `, statusName, { type: 'bot_engine' });
 
             let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);
 
-            logger.info(`[${logUUID}][${botOperationId}] queues Data: %j `, queuesData, { type: 'bot_engine' });
+            util.logInfo(request,`queues Data: %j `, queuesData, { type: 'bot_engine' });
 
             let queueActMapInlineData;
             let data;
@@ -4771,7 +4774,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
 
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
-                logger.info(`[${logUUID}][${botOperationId}] Status Alter BOT Step - Updating the Queue Json: %j `, data, { type: 'bot_engine' });
+                util.logInfo(request,`Status Alter BOT Step - Updating the Queue Json: %j `, data, { type: 'bot_engine' });
 
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
@@ -4814,7 +4817,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         }*/
             return [false, {}];
         } else {
-            logger.error(`[${logUUID}][${botOperationId}] No workflow to queue mappings found`, { type: 'bot_engine'});
+            util.logError(request,`No workflow to queue mappings found`, { type: 'bot_engine'});
             return [true, "No workflow to queue mappings found"];
         }
     }
@@ -4831,7 +4834,6 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     //Bot Step Copying the fields
     async function copyFields(request, fieldCopyInlineData, condition = {}) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         //enable_target_form_submission = 1 then submit the target form
         //enable_target_form_submission = 0 then do not submit the target form
@@ -4874,10 +4876,10 @@ async function removeAsOwner(request,data,addT = 0)  {
                 //formName = String(formConfigData[0].form_name),
                 //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
             
-            logger.info(`[${logUUID}][${botOperationId}] originFlagSet %j`,originFlagSet);
-            logger.info(`[${logUUID}][${botOperationId}] isWorkflowEnabled %j`,isWorkflowEnabled);
-            logger.info(`[${logUUID}][${botOperationId}] sourceFormActivityTypeID %j`,sourceFormActivityTypeID);
-            logger.info(`[${logUUID}][${botOperationId}] workflowActivityTypeId %j`,workflowActivityTypeId);
+                util.logInfo(request,`originFlagSet %j`,originFlagSet);
+                util.logInfo(request,`isWorkflowEnabled %j`,isWorkflowEnabled);
+                util.logInfo(request,`sourceFormActivityTypeID %j`,sourceFormActivityTypeID);
+                util.logInfo(request,`workflowActivityTypeId %j`,workflowActivityTypeId);
 
 
             request.debug_info.push('originFlagSet: ' + originFlagSet);
@@ -4886,7 +4888,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             request.debug_info.push('workflowActivityTypeId: ' + workflowActivityTypeId);
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
-                logger.info(`[${logUUID}][${botOperationId}] Target Form Process is different from the Source form `);
+                util.logInfo(request,`Target Form Process is different from the Source form `);
                 request.debug_info.push('Target Form Process is different from the Source form');
 
                 esmsFlag = 1;
@@ -4915,19 +4917,19 @@ async function removeAsOwner(request,data,addT = 0)  {
                     targetFormActivityID = targetFormTransactionData[0].data_activity_id;
 
                     if(Number(esmsFlag) === 1) {
-                        logger.info(`[${logUUID}][${botOperationId}] Target Form Submitted! ${targetFormTransactionID} ${targetFormActivityID} %j`,inlineData);
+                        util.logInfo(request,`Target Form Submitted! ${targetFormTransactionID} ${targetFormActivityID} %j`,inlineData);
                         request.debug_info.push('Target Form Submitted!');
                         request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
                         request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
                     }
                 } else {
                     if(Number(esmsFlag) === 1) {
-                        logger.info(`[${logUUID}][${botOperationId}] Target Form Not Submitted! `);
+                        util.logInfo(request,`Target Form Not Submitted! `);
                         request.debug_info.push('Target Form Not Submitted!');
                     }
                 }
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] copyFields | Fetch Target Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`copyFields | Fetch Target Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         //}
@@ -4957,7 +4959,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                     sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
                 }
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] copyFields | Fetch Source Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`copyFields | Fetch Source Form Transaction Data | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
             if (
@@ -4982,9 +4984,9 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
 
-                logger.info(`[${logUUID}][${botOperationId}] sourceFieldData[0] %j`,sourceFieldData[0]);
-                logger.info(`[${logUUID}][${botOperationId}] sourceFieldDataTypeID %j`,sourceFieldDataTypeID);
-                logger.info(`[${logUUID}][${botOperationId}] getFielDataValueColumnName(sourceFieldDataTypeID) :  %j`,sourceFieldDataTypeID);
+                util.logInfo(request,`sourceFieldData[0] %j`,sourceFieldData[0]);
+                util.logInfo(request,`sourceFieldDataTypeID %j`,sourceFieldDataTypeID);
+                util.logInfo(request,`getFielDataValueColumnName(sourceFieldDataTypeID) :  %j`,sourceFieldDataTypeID);
 
                 request.debug_info.push('sourceFieldData[0]: ' + sourceFieldData[0]);
                 request.debug_info.push('sourceFieldDataTypeID: ' + sourceFieldDataTypeID);
@@ -5004,17 +5006,17 @@ async function removeAsOwner(request,data,addT = 0)  {
                     "message_unique_id": 123123123123123123
                 });
             } catch(err) {
-                logger.error(`[${logUUID}][${botOperationId}] Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`, { type: "bot_engine", error: serializeError(err) });
+                util.logError(request,`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`, { type: "bot_engine", error: serializeError(err) });
             }
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
-        logger.info(`[${logUUID}][${botOperationId}] copyFields | activityInlineData: %j`,activityInlineData);
+        util.logInfo(request,`copyFields | activityInlineData: %j`,activityInlineData);
         request.debug_info.push('activityInlineData: ' + activityInlineData);
         request.activity_title = activityInlineData[0].field_value;
         
-        logger.info(`[${logUUID}][${botOperationId}] targetFormTransactionID %j`,targetFormTransactionID);
-        logger.info(`[${logUUID}][${botOperationId}] targetFormTransactionID %j`,targetFormActivityID);
+        util.logInfo(request,`targetFormTransactionID %j`,targetFormTransactionID);
+        util.logInfo(request,`targetFormTransactionID %j`,targetFormActivityID);
 
         request.debug_info.push('targetFormTransactionID: ' + targetFormTransactionID);
         request.debug_info.push('targetFormActivityID: ' + targetFormActivityID);
@@ -5032,12 +5034,12 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await alterFormActivityFieldValues(fieldsAlterRequest);
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] copyFields | alterFormActivityFieldValues | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`copyFields | alterFormActivityFieldValues | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            logger.info(`[${logUUID}][${botOperationId}] shouldSubmitTargetForm %j`,shouldSubmitTargetForm);
+            util.logInfo(request,`shouldSubmitTargetForm %j`,shouldSubmitTargetForm);
             request.debug_info.push('shouldSubmitTargetForm: ' + shouldSubmitTargetForm);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
@@ -5063,7 +5065,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
                 } catch (error) {
-                    logger.error(`[${logUUID}][${botOperationId}] copyFields | createTargetFormActivity | Error: `, { type: "bot_engine", error: serializeError(error) });
+                    util.logError(request,`copyFields | createTargetFormActivity | Error: `, { type: "bot_engine", error: serializeError(error) });
                 }
             }
             
@@ -5295,8 +5297,6 @@ async function removeAsOwner(request,data,addT = 0)  {
 
     async function createTargetFormActivity(createTargetFormRequest) {
         let reqActivityId = createTargetFormRequest.activity_id
-        let logUUID = createTargetFormRequest.log_uuid || "";
-        let botOperationId = createTargetFormRequest.bot_operation_id || "";
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
@@ -5400,9 +5400,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
 
-        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
-        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
-        logger.info(`[${logUUID}][${botOperationId}] createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
+        util.logInfo(request,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
+        util.logInfo(request,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
+        util.logInfo(request,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -5448,7 +5448,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         }
@@ -5643,13 +5643,12 @@ async function removeAsOwner(request,data,addT = 0)  {
     
     // Bot Step Adding a participant
     async function addParticipant(request, inlineData, formInlineDataMap = new Map()) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         let newReq = Object.assign({}, request);
         let resp;
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         request.debug_info=[]
-        logger.info(`[${logUUID}][${botOperationId}] inlineData %j`,inlineData);
+        util.logInfo(request,`inlineData %j`,inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push((typeof inlineData === 'object') ? JSON.stringify(inlineData):inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -5658,7 +5657,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
-            logger.info(`[${logUUID}][${botOperationId}] addParticipant : Processing Static`);
+            util.logInfo(request,`addParticipant : Processing Static`);
             logger.info(request.workflow_activity_id + " : ");
             request.debug_info.push('Inside Static');
             newReq.flag_asset = inlineData[type[0]].flag_asset;
@@ -5667,7 +5666,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
 
-            logger.info(`[${logUUID}][${botOperationId}] addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
+            util.logInfo(request,`addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
 
             if (newReq.flag_asset === 1) {
                 //Use Asset Id
@@ -5687,7 +5686,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             }
 
         } else if (type[0] === 'dynamic') {
-            logger.info(`[${logUUID}][${botOperationId}] Inside dynamic`);
+            util.logInfo(request,`Inside dynamic`);
             request.debug_info.push('Inside dynamic');
             newReq.desk_asset_id = 0;
             // Phone number
@@ -5702,7 +5701,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
             flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
-            logger.info(`[${logUUID}][${botOperationId}] addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
+            util.logInfo(request,`addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
             request.debug_info.push(request.workflow_activity_id + " : addParticipant : isLead : "+ isLead + " : isOwner : " + isOwner + " : flagCreatorAsOwner : " + flagCreatorAsOwner);
             let activityInlineData;
 
@@ -5744,7 +5743,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             request.debug_info.push('End of Dynamic : PhoneNumber : '+newReq.phone_number);
 
         } else if (type[0] === 'asset_reference') {
-            logger.info(`[${logUUID}][${botOperationId}] Inside asset_reference`);
+            util.logInfo(request,`Inside asset_reference`);
             request.debug_info.push('Inside asset_reference');
 
             const formID = Number(inlineData["asset_reference"].form_id),
@@ -5763,14 +5762,14 @@ async function removeAsOwner(request,data,addT = 0)  {
             }
 
             if (!formInlineDataMap.has(fieldID)) {
-                logger.info(`[${logUUID}][${botOperationId}] Inside !formInlineDataMap.has(fieldID) `);
+                util.logInfo(request,`Inside !formInlineDataMap.has(fieldID) `);
                 request.debug_info.push('Inside !formInlineDataMap.has(fieldID)');
                 // const fieldValue = String(formInlineDataMap.get(fieldID).field_value).split("|");
                 // newReq.desk_asset_id = fieldValue[0];
                 // newReq.customer_name = fieldValue[1]
 
             } else {
-                logger.info(`[${logUUID}][${botOperationId}] ELSE !formInlineDataMap.has(fieldID) `);
+                util.logInfo(request,`ELSE !formInlineDataMap.has(fieldID) `);
                 request.debug_info.push('ELSE !formInlineDataMap.has(fieldID)');
                 const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
@@ -5798,8 +5797,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                     newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
                     newReq.customer_name = fieldData[0].data_entity_text_1;
 
-                    logger.info(`[${logUUID}][${botOperationId}] newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ${fieldData[0].data_entity_bigint_1} `);
-                    logger.info(`[${logUUID}][${botOperationId}] nnewReq.customer_name = fieldData[0].data_entity_text_1 -  ${fieldData[0].data_entity_text_1} `);
+                    util.logInfo(request,`newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 - ${fieldData[0].data_entity_bigint_1} `);
+                    util.logInfo(request,`newReq.customer_name = fieldData[0].data_entity_text_1 -  ${fieldData[0].data_entity_text_1} `);
                     request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
                     request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
                 }else{
@@ -5814,7 +5813,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
                 });
-                logger.info(`[${logUUID}][${botOperationId}]  addParticipant : assetData.length %j`, assetData.length);
+                util.logInfo(request,`addParticipant : assetData.length %j`, assetData.length);
                 request.debug_info.push('assetData.length: ' + assetData.length);
                 if (assetData.length > 0) {
                     newReq.country_code = Number(assetData[0].operating_asset_phone_country_code) || Number(assetData[0].asset_phone_country_code);
@@ -5828,7 +5827,7 @@ async function removeAsOwner(request,data,addT = 0)  {
 
         // Fetch participant name from the DB
         if (newReq.customer_name === '') {
-            logger.info(`[${logUUID}][${botOperationId}]  Customer Name is empty hence fetching from DB`);
+            util.logInfo(request,`Customer Name is empty hence fetching from DB`);
 
             request.debug_info.push('Customer Name is empty hence fetching from DB');
             try {
@@ -5840,11 +5839,11 @@ async function removeAsOwner(request,data,addT = 0)  {
                 });
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
-                    logger.info(`[${logUUID}][${botOperationId}]  BotEngine | addParticipant | getFieldValue | Customer Name:  %j`,newReq.customer_name);
+                    util.logInfo(request,`BotEngine | addParticipant | getFieldValue | Customer Name:  %j`,newReq.customer_name);
                     request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: " + newReq.customer_name);
                 }
             } catch (error) {
-                logger.error(`${logUUID}][${botOperationId}] BotEngine | addParticipant | getFieldValue | Customer Name | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`BotEngine | addParticipant | getFieldValue | Customer Name | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
         }
 
@@ -5852,7 +5851,7 @@ async function removeAsOwner(request,data,addT = 0)  {
         newReq.is_owner = isOwner;
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
-        logger.info(`[${logUUID}][${botOperationId}]  BotEngine | addParticipant | newReq  %j`,newReq);
+        util.logInfo(request,`BotEngine | addParticipant | newReq  %j`,newReq);
         request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
@@ -5862,7 +5861,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             request.debug_info.push("BotService | addParticipant | Message: " + newReq.phone_number + " | " + typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
-            logger.error(`${logUUID}][${botOperationId}]BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
+            util.logError(request,`BotService | addParticipant | Error: Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 
@@ -6826,7 +6825,6 @@ else{
     }
 
     async function addParticipantStep(request) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
 
         let dataResp,
@@ -6866,7 +6864,7 @@ else{
             });
             deskAssetData = dataResp[0];
         }
-        logger.info(`[${logUUID}][${botOperationId}] deskAssetData %j`,deskAssetData);
+        util.logInfo(request,`deskAssetData %j`,deskAssetData);
 
         if (assetData.desk_asset_id === 0) {
             assetData.desk_asset_id = deskAssetData.asset_id;
@@ -6877,7 +6875,7 @@ else{
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code || deskAssetData.asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
         request.debug_info = []
-        logger.info(`[${logUUID}][${botOperationId}] assetData %j`,assetData);
+        util.logInfo(request,`assetData %j`,assetData);
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
         return await addDeskAsParticipant(request, assetData);
 
@@ -6966,7 +6964,6 @@ else{
     }
 
     function createAssetContactDesk(request, customerData) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         return new Promise((resolve, reject) => {
 
@@ -7043,16 +7040,16 @@ else{
                     device_os_id: 5
                 };
 
-                logger.info(`[${logUUID}][${botOperationId}] customerServiceDeskRequest %j`,customerServiceDeskRequest);
+                util.logInfo(request,`customerServiceDeskRequest %j`,customerServiceDeskRequest);
 
                 const requestOptions = {
                     form: customerServiceDeskRequest
                 };
 
 
-                logger.info(`[${logUUID}][${botOperationId}] Before Making Request `);
+                util.logInfo(request,`Before Making Request `);
                 makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', requestOptions, function (error, response, body) {
-                    logger.info(`[${logUUID}][${botOperationId}] [customerServiceDeskRequest] Body:  %j`,body);
+                    util.logInfo(request,`[customerServiceDeskRequest] Body:  %j`,body);
                     //global.logger.write('conLog', "[customerServiceDeskRequest] Error: ", error, {});
                     //console.log("[customerServiceDeskRequest] Response: ", response);
 
@@ -7072,7 +7069,6 @@ else{
     }
 
     async function addDeskAsParticipant(request, assetData) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
@@ -7139,7 +7135,7 @@ else{
             device_os_id: 9
         };
 
-        logger.info(`[${logUUID}][${botOperationId}] addDeskAsParticipant %j`,addParticipantRequest);
+        util.logInfo(request,`addDeskAsParticipant %j`,addParticipantRequest);
 
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : addDeskAsParticipant : addParticipantRequest :"+ JSON.stringify(addParticipantRequest))
         return await new Promise((resolve, reject) => {
@@ -7157,7 +7153,7 @@ else{
                     });
 
                     if(Number(request.is_lead) === 1) {
-                        logger.info(`[${logUUID}][${botOperationId}] Inside is_lead `);
+                        util.logInfo(request,`Inside is_lead `);
                         let newReq = {};
                             newReq.organization_id = request.organization_id;
                             newReq.account_id = request.account_id;
@@ -7210,7 +7206,7 @@ else{
                     }
                     if(parseInt(request.is_owner) == 1) {
 
-                        logger.info(`[${logUUID}][${botOperationId}] making owner bot `);
+                        util.logInfo(request,`making owner bot `);
                         let params = {
                             activity_id : Number(request.workflow_activity_id),
                             target_asset_id : assetData.desk_asset_id,
@@ -7260,7 +7256,7 @@ else{
                         activityTimelineService.addTimelineTransactionAsync(timelineReq);
                     }
                     if(parseInt(request.flag_creator_as_owner) == 1) {
-                        logger.info(`[${logUUID}][${botOperationId}] making creator bot`);
+                        util.logInfo(request,`making creator bot`);
                         let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
                         let assetID = activityData[0].activity_creator_asset_id;
                         let params = {
@@ -7369,7 +7365,6 @@ else{
     }
 
     async function putLatestUpdateSeqId(request, activityInlineData) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
 
         for (let row of activityInlineData) {
@@ -7406,7 +7401,7 @@ else{
 
             const dataTypeId = Number(row.field_data_type_id);
             request['field_value'] = row.field_value;
-            logger.info(`[${logUUID}][${botOperationId}] dataTypeId :  %j`,dataTypeId);
+            util.logInfo(request,`dataTypeId :  %j`,dataTypeId);
 
             switch (dataTypeId) {
                 case 1: // Date
@@ -7627,7 +7622,7 @@ else{
                             params[19] = tempVar[4] || tempVar[2] || "";
                             params[27] = JSON.stringify(tempObj);
                         } catch (err) {
-                            logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 57 : `, { type: "bot_engine", error: serializeError(err) });
+                            util.logError(request,`ERROR in field edit - 57 : `, { type: "bot_engine", error: serializeError(err) });
                         }
                     }
                     break;
@@ -7642,7 +7637,7 @@ else{
                             params[16] = jsonData.transaction_data.transaction_amount; // Debit
                         params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                     } catch (err) {
-                        logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 62 : `, { type: "bot_engine", error: serializeError(err) });
+                        util.logError(request,`ERROR in field edit - 62 : `, { type: "bot_engine", error: serializeError(err) });
                     }
                     break;
                 case 64: // Address DataType
@@ -7671,7 +7666,7 @@ else{
                             params[13] = JSON.parse(row.field_value).cart_total_cost:
                             params[13] = Number(fieldValue.cart_total_cost);
                     } catch(err) {
-                        logger.error(`[${logUUID}][${botOperationId}] ERROR in field edit - 71 : `, { type: "bot_engine", error: serializeError(err) });
+                        util.logError(request,`ERROR in field edit - 71 : `, { type: "bot_engine", error: serializeError(err) });
                     }
                     break;
                 case 72: //Multi Type File Attachment 
@@ -7701,19 +7696,19 @@ else{
             params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
             params.push(request.update_sequence_id);
 
-            logger.info(`[${logUUID}][${botOperationId}] In BotService - addFormEntries params %j`,params);
+            util.logInfo(request,`In BotService - addFormEntries params %j`,params);
          
             // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
             let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
             if(request.asset_id === 0 || request.asset_id === null) {
-                logger.info(`[${logUUID}][${botOperationId}] ds_p1_1_activity_form_transaction_insert_field_update as asset_id is ${request.asset_id}`);
+                util.logInfo(request,`ds_p1_1_activity_form_transaction_insert_field_update as asset_id is ${request.asset_id}`);
             }
             else {
                 if (queryString != '') {
                     try {
                         await db.executeQueryPromise(0, queryString, request);
                     } catch (err) {
-                        logger.error(`[${logUUID}][${botOperationId}] serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
+                        util.logError(request,`serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
                     }
                 }
             }
@@ -7793,7 +7788,6 @@ else{
     }
 
     async function alterFormActivityFieldValues(request) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
 
         let fieldsNewValues = [],
@@ -7802,14 +7796,14 @@ else{
         for (const field of fieldsNewValues) {
             fieldsNewValuesMap.set(Number(field.field_id), field);
         }
-        logger.info(`[${logUUID}][${botOperationId}] fieldsNewValuesMap:  %j`,fieldsNewValuesMap);
+        util.logInfo(request,`fieldsNewValuesMap:  %j`,fieldsNewValuesMap);
 
         let activityData = [];
         // Fetch the activity data from the DB
         try {
             activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
         } catch (error) {
-            logger.error(`[${logUUID}][${botOperationId}] alterFormActivityFieldValues | getActivityByFormTransaction | Error`, { type: "bot_engine", error: serializeError(error) });
+            util.logError(request,`alterFormActivityFieldValues | getActivityByFormTransaction | Error`, { type: "bot_engine", error: serializeError(error) });
             return [error, []];
         }
         // If the activity exists, retrieve and parse the inline data
@@ -7909,7 +7903,7 @@ else{
                         };
                     })
                     .catch((error) => {
-                        logger.error(`[${logUUID}][${botOperationId}] fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: `, { type: "bot_engine", error: serializeError(error) });
+                        util.logError(request,`fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: `, { type: "bot_engine", error: serializeError(error) });
                         return 'Ghotala';
                     })
             );
@@ -7917,14 +7911,14 @@ else{
 
         await Promise.all(fetchUpdateSeqIdPromises)
             .then((updateSequenceIDs) => {
-                logger.info(`[${logUUID}][${botOperationId}] updateSequenceIDs:  %j`,updateSequenceIDs);
+                util.logInfo(request,`updateSequenceIDs:  %j`,updateSequenceIDs);
             })
             .catch((error) => {
-                logger.error(`[${logUUID}][${botOperationId}] Promise.all | fetchUpdateSeqIdPromises | error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`Promise.all | fetchUpdateSeqIdPromises | error: `, { type: "bot_engine", error: serializeError(error) });
                 return [error, []];
             });
 
-        logger.info(`[${logUUID}][${botOperationId}] content:  %j`,content);
+            util.logInfo(request,`content:  %j`,content);
         // update the activity's inline data as well
         activityInlineData = [...activityInlineDataMap.values()];
 
@@ -7975,10 +7969,10 @@ else{
 
         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
             if (err) {
-                logger.error(`[${logUUID}][${botOperationId}] Error in queueWrapper raiseActivityEvent: `, { type: "bot_engine", error: serializeError(err) });
+                util.logError(request,`Error in queueWrapper raiseActivityEvent: `, { type: "bot_engine", error: serializeError(err) });
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
-                logger.info(`[${logUUID}][${botOperationId}] Response from queueWrapper raiseActivityEvent:  %j`,resp);
+                util.logInfo(request,`Response from queueWrapper raiseActivityEvent:  %j`,resp);
             }
         });
 
@@ -8000,7 +7994,7 @@ else{
             try {
                 await addTimelineTransactionAsync(workflowFile713Request);
             } catch (error) {
-                logger.error(`[${logUUID}][${botOperationId}] alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(request,`alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
             }
         }
 
@@ -8239,7 +8233,6 @@ else{
     };
 
     async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         
         let activity_id = request.workflow_activity_id;
@@ -8249,7 +8242,7 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        logger.info(`[${logUUID}][${botOperationId}] Workflow Reference Bots for this activity_type :  %j`,respData.length);
+        util.logInfo(request,`Workflow Reference Bots for this activity_type :  %j`,respData.length);
 
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
@@ -8262,7 +8255,7 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        logger.info(`[${logUUID}][${botOperationId}] Combo Field Reference Bots for this activity_type :  %j`,respData1.length);
+        util.logInfo(request,`Combo Field Reference Bots for this activity_type :  %j`,respData1.length);
 
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
@@ -14264,18 +14257,24 @@ else{
     }
 
     async function getFormFieldValue(request, idField) {
+        let botOperationId = request.bot_operation_id || "";
+
         let fieldValue = '';
         try{
-        logger.info(request.workflow_activity_id+": idField: %j", idField);        
+            util.logInfo(request,`${request.workflow_activity_id} : idField: %j`, idField);
         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.data_activity_id);
         let formInlineData = JSON.parse(workflowActivityData[0].activity_inline_data);
 
         for (let counter = 0; counter < formInlineData.length; counter++) {
-            logger.info(Number(formInlineData[counter].field_id)+": idField: %j", idField);
+            util.logInfo(request,`idField: %j`,Number(formInlineData[counter].field_id));
             if (Number(formInlineData[counter].field_id) === Number(idField)) {
-                logger.info(request.workflow_activity_id+": datatypeid "+formInlineData[counter].field_data_type_id+" is_cart "+request.is_cart+" : final_key : "+request.final_key+ " product_data"+formInlineData[counter].field_value);             
-                if(Number(formInlineData[counter].field_data_type_id) === 71){ 
-                    logger.info(request.workflow_activity_id+": Field Matched: %j", JSON.parse(formInlineData[counter].field_value).cart_items);
+                util.logInfo(request,`datatypeid: %j`,formInlineData[counter].field_data_type_id);
+                util.logInfo(request,`is_cart: %j`,request.is_cart);
+                util.logInfo(request,`final_key: %j`,request.final_key);
+                util.logInfo(request,`product_data: %j`,formInlineData[counter].field_value);
+
+                if(Number(formInlineData[counter].field_data_type_id) === 71){
+                    util.logInfo(request,`Field Matched: %j`,JSON.parse(formInlineData[counter].field_value).cart_items);
                     if(request.is_cart == 0){
                         fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
                     }else if(request.is_cart == 1) {
@@ -14289,9 +14288,9 @@ else{
                 break;
             }
         }
-            logger.info("getFormFieldValue: fieldValue: %j", fieldValue);        
+        util.logInfo(request,`getFormFieldValue: fieldValue: %j`,fieldValue); 
         }catch(error){
-            logger.info(error);
+            util.logError(request,`getFormFieldValue Error`, { type: "bot_engine", error: serializeError(error) });
         }
         request.debug_info.push("getFormFieldValue "+ fieldValue);
         return fieldValue;
