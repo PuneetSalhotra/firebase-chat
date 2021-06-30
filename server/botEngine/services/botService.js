@@ -2347,6 +2347,25 @@ function BotService(objectCollection) {
                     }
                     console.log('****************************************************************');
                     break;
+
+                case 52: // update Start Date time
+                console.log('****************************************************************');
+                console.log('');
+                logger.silly('Update Start Date time Event | Request Params received by BOT ENGINE: %j', request);
+                request.debug_info.push('bc_auto_populate');
+                try {
+                    console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations);
+                    await this.updateStartDateTime(request, botOperationsJson.bot_operations);
+                } catch (err) {
+                    logger.error("Autopopulate | Error in updating", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                    i.bot_operation_status_id = 2;
+                    i.bot_operation_inline_data = JSON.stringify({
+                        "err": err
+                    });
+                }
+                console.log('****************************************************************');
+                break;
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -8921,7 +8940,7 @@ else{
             newReq.track_gps_datetime = util.getCurrentUTCTime();
             newReq.datetime_log = newReq.track_gps_datetime;
             newReq.message_unique_id = util.getMessageUniqueId(100);
-
+            
         let activityCoverData = {};
             activityCoverData.title = {};
                 activityCoverData.title.old = workflowActivityDetails[0].activity_title;
@@ -9691,7 +9710,7 @@ else{
 
     }
 
-    async function getFormInlineData(request, flag) {
+async function getFormInlineData(request, flag) {
         //flag 
         // 1. Send the entire formdata 713
         // 2. Send only the submitted form_data
@@ -15188,6 +15207,70 @@ let today = new Date();
       }
       return [error, responseData];
     }
+
+    this.updateStartDateTime = async function (request, inlineData) {
+        try {
+            // request.workflow_activity_id = request.activity_id;
+            let fieldId = inlineData.field_id;
+            let fieldValue = '';
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            for(let data of activityInlineData) {
+                if(data.field_id === fieldId)  {
+                    fieldValue = data.field_value;
+                }
+            }
+
+            console.log("fieldValue", fieldValue, "fieldId", fieldId)
+            // let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+
+            let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);
+
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = request.activity_title;
+                activityCoverData.title.new = request.activity_title;
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.new = util.getFormatedLogDatetimeV1(fieldValue.end_date_time, "DD-MM-YYYY HH:mm:ss");;
+
+                activityCoverData.start_date = {};
+                activityCoverData.start_date.new = util.getFormatedLogDatetimeV1(fieldValue.start_date_time, "DD-MM-YYYY HH:mm:ss");
+        // console.log("inlineData", inlineData);
+        
+        console.log('activityCoverData : ', activityCoverData);
+        // request.debug_info.push('activityCoverData: ' + activityCoverData);
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            console.log(err);
+        }
+        
+        newReq.asset_id = 100;
+        newReq.activity_id = Number(request.workflow_activity_id);
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+        console.log('request.workflow_activity_id : ', request.workflow_activity_id);
+        // request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
+        await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
+
+
+        } catch(e) {
+            console.log("Error in update date time",e, e.stack );
+            return;
+        }
+    }
+
 }
 
 

@@ -897,7 +897,7 @@ function ActivityTimelineService(objectCollection) {
                         temp.field_name = i.field_name;
                         temp.field_value = i.field_value;
 
-                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57) {
+                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57 || i.field_data_type_id == 77) {
                             try {
                                 temp.field_value = i.field_value.split('|')[1]; //get the name
                             } catch (e) {
@@ -3637,6 +3637,17 @@ async function addFormEntriesAsync(request) {
             case 76: //Drop box data type
                      params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                      break;
+            case 77: //scheduling event
+                    try {
+                        let fieldValues = row.field_value;
+                        params[12] = fieldValues.duration // duration
+                        params[9]  = fieldValues.start_datetime// start time 
+                        params[17]  = fieldValues.end_datetime// end
+                        params[27] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
+                    } catch(e) {
+                        console.log("Error while handling scheduling data type", row.value, e,e.stack);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
