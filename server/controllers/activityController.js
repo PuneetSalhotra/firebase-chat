@@ -23,13 +23,13 @@ function ActivityController(objCollection) {
     var activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add',async function (req, res) {
-        util.logInfo(request,`::START:: ${req.body.activity_id || ""}`);
+        util.logInfo(req.body,`::START:: ${req.body.activity_id || ""}`);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            util.logInfo(request,`proceedAddActivity %j`, req.body);
+            util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -192,7 +192,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            util.logInfo(request,`generating activity id via default condition`);
+                            util.logInfo(req.body,`generating activity id via default condition`);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -246,7 +246,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling proceedAddActivity");
-                        util.logInfo(request,`proceedAddActivity %j`, req.body);
+                        util.logInfo(req.body,`proceedAddActivity %j`, req.body);
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
@@ -270,7 +270,7 @@ function ActivityController(objCollection) {
                 activity_id: 0
             }, -3304, req.body));
         }
-        util.logInfo(request,`::END:: activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(req.body,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
 
