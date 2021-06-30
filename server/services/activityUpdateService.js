@@ -672,8 +672,6 @@ function ActivityUpdateService(objectCollection) {
 
 
     this.alterActivityInline = function (request, callback) {
-
-        let logUUID = request.log_uuid || "";
         
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -773,7 +771,7 @@ function ActivityUpdateService(objectCollection) {
                     newRequest.message_unique_id = request.message_unique_id;
 
                     // console.log('newRequest: ', newRequest);
-                    logger.info(`[${logUUID}] newRequest  %j`, JSON.stringify(newRequest, null, 2));
+                    util.logInfo(request,`newRequest  %j`, JSON.stringify(newRequest, null, 2));
 
                     var options = {
                         form: newRequest
@@ -783,9 +781,9 @@ function ActivityUpdateService(objectCollection) {
                         // console.log('body:', body);
 
                         if(error) {
-                            logger.error(`[${logUUID}] error`, { type: 'alter_activity_inline', error: serializeError(error) });
+                            util.logError(request,`error`, { type: 'alter_activity_inline', error: serializeError(error) });
                         }
-                        logger.info(`[${logUUID}] body  %j`, JSON.stringify(body));
+                        util.logInfo(request,`body  %j`, JSON.stringify(body));
 
                         body = JSON.parse(body);
 

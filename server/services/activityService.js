@@ -44,7 +44,6 @@ function ActivityService(objectCollection) {
     const self = this;
 
     this.addActivity = function (request, callback) {
-        let logUUID = request.log_uuid || "";
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
 
@@ -196,7 +195,7 @@ function ActivityService(objectCollection) {
                             break;
                     }
                     //console.log('streamtype id is: ' + activityStreamTypeId)
-                    logger.info(`[${logUUID}] streamtype id is: ${activityStreamTypeId}`);
+                    util.logInfo(request,`streamtype id is: ${activityStreamTypeId}`);
                     assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
 
@@ -677,7 +676,7 @@ function ActivityService(objectCollection) {
                                                             if (err === false) {
                                                                 var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                                 // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
-                                                                logger.info(`[${logUUID}] setting new datetime for contact as %j`, newEndEstimatedDatetime);
+                                                                util.logInfo(request,`setting new datetime for contact as %j`, newEndEstimatedDatetime);
                                                                 coverAlterJson.description = {
                                                                     old: activityData[0]['activity_datetime_end_estimated'],
                                                                     new: newEndEstimatedDatetime
@@ -761,15 +760,15 @@ function ActivityService(objectCollection) {
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in message unique id look up");
-                                    logger.error(`[${logUUID}] error in setting in message unique id look up`, { type: 'add_activity', error: serializeError(err) });
+                                    util.logError(request,`error in setting in message unique id look up`, { type: 'add_activity', error: serializeError(err) });
                                 } else
-                                logger.info(`[${logUUID}] message unique id look up is set successfully`);
+                                util.logInfo(request,`message unique id look up is set successfully`);
                                     //console.log("message unique id look up is set successfully")
                             });
                             //return;
                         } else {
                             // console.log("not inserted to asset activity list");
-                            logger.error(`[${logUUID}] not inserted to asset activity list`);
+                            util.logError(request,`not inserted to asset activity list`);
 
                             //setTimeout(() => {
                             //    callback(false, responseactivityData, 200);
@@ -826,7 +825,7 @@ function ActivityService(objectCollection) {
                                         // request.log_datetime = util.getCurrentUTCTime();
 
                                     } else {
-                                        logger.info(`[${logUUID}] No sales executive`);
+                                        util.logInfo(request,`No sales executive`);
                                     }
 
                                     // Generate PDF Proforma Invoice and Upload to AWS S3
@@ -852,7 +851,7 @@ function ActivityService(objectCollection) {
 
                                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                             if (err) {
-                                                logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent`, { type: 'add_activity', error: serializeError(err) });
+                                                util.logError(request,`Error in queueWrapper raiseActivityEvent`, { type: 'add_activity', error: serializeError(err) });
 
                                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                             }
@@ -899,7 +898,7 @@ function ActivityService(objectCollection) {
             });
         }).catch((err) => {
             //console.log(err);
-            logger.error(`[${logUUID}] serverError`, { type: 'add_activity', error: serializeError(err) });
+            util.logError(request,`serverError`, { type: 'add_activity', error: serializeError(err) });
         });
     };
 
@@ -1011,10 +1010,9 @@ function ActivityService(objectCollection) {
     } */
 
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId) {
-        let logUUID = request.log_uuid || "";
         return new Promise((resolve, reject) => {
             // console.log('coverAlterJson : ', coverAlterJson);
-            logger.info(`[${logUUID}] callAlterActivityCover start`);
+            util.logInfo(request,`callAlterActivityCover start`);
             var event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
@@ -4114,7 +4112,6 @@ function ActivityService(objectCollection) {
     };
 
     this.updateWorkflowQueueMapping = async function name(request) {
-        let logUUID = request.log_uuid || "";
         let botOperationId = request.bot_operation_id || "";
         
         request.flag = 0;
@@ -4138,10 +4135,10 @@ function ActivityService(objectCollection) {
                     }
                 })
                 .catch((error) => {
-                    logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | getActivityDetailsPromise | error: `, { type: "change_status", error: serializeError(error) });
+                    util.logError(request,`updateWorkflowQueueMapping | getActivityDetailsPromise | error: `, { type: "change_status", error: serializeError(error) });
                 });
         } catch (error) {
-            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
+            util.logError(request,`updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
         }
         try {
             request.page_limit = 100;
@@ -4165,7 +4162,7 @@ function ActivityService(objectCollection) {
                     let queueId = Number(queue.queue_id);
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
-                    logger.info(`[${logUUID}][${botOperationId}] queueId %j`,queueId);
+                    util.logInfo(request,`queueId %j`,queueId);
                     //console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
@@ -4174,7 +4171,7 @@ function ActivityService(objectCollection) {
                             isStatusMapped = true;
                         }
                     }
-                    logger.info(`[${logUUID}][${botOperationId}] isStatusMapped:  %j`,isStatusMapped);
+                    util.logInfo(request,`isStatusMapped:  %j`,isStatusMapped);
 
                     if (isStatusMapped) {
                         // console.log("isStatusMapped: ", isStatusMapped)
@@ -4192,10 +4189,10 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
+                                            util.logInfo(request,`updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | Re-Enable | Error: `, { type: "bot_engine", error: serializeError(error) });
+                                            util.logError(request,`updateWorkflowQueueMapping | Re-Enable | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                 } else {
 
@@ -4217,15 +4214,15 @@ function ActivityService(objectCollection) {
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
-                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
+                                            util.logInfo(request,`updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                             activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(() => {});
                                         })
                                         .catch((error) => {
-                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | mapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
+                                            util.logError(request,`updateWorkflowQueueMapping | mapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                         
                                     } else {
-                                        logger.info(`[${logUUID}][${botOperationId}] The activity_type_category_id is either not 48 `);
+                                        util.logInfo(request,`The activity_type_category_id is either not 48 `);
                                     }
                                     
                                 }
@@ -4236,7 +4233,7 @@ function ActivityService(objectCollection) {
                         await activityCommonService
                             .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
-                                logger.info(`[${logUUID}][${botOperationId}] queueActivityMappingData %j`,queueActivityMappingData);
+                                util.logInfo(request,`queueActivityMappingData %j`,queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
                                 if (
@@ -4252,10 +4249,10 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(newRequest, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            logger.info(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
+                                            util.logInfo(request,`updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(err) });
+                                            util.logError(request,`updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(err) });
                                         });
                                 }
                             });
@@ -4274,7 +4271,7 @@ function ActivityService(objectCollection) {
                 return [];
             }
         } catch (error) {
-            logger.error(`[${logUUID}][${botOperationId}] updateWorkflowQueueMapping | queueMap | Error: `, { type: "bot_engine", error: serializeError(error) });
+            util.logError(request,`updateWorkflowQueueMapping | queueMap | Error: `, { type: "bot_engine", error: serializeError(error) });
             return [];
         }
     };
@@ -4649,7 +4646,6 @@ function ActivityService(objectCollection) {
 
     //Insert in the Intermediate tables - For workflow Reference - 57, Combo Field data types - 33
     async function fireBotInsertIntTables(request, fieldData) {
-        let logUUID = request.log_uuid || "";
         let workflowActivityId = request.activity_id; //workflow activity id
         if(Number(request.activity_type_category_id) === 9) {
             //await sleep(2000); 
@@ -4677,7 +4673,7 @@ function ActivityService(objectCollection) {
             }
 
         } catch (botInitError) {
-            logger.error(`[${logUUID}] botinlineerror`, { type: 'fire_bot_insert', error: serializeError(botInitError) });
+            util.logError(request,`botinlineerror`, { type: 'fire_bot_insert', error: serializeError(botInitError) });
         }
 
       let newRequest = Object.assign({}, request);          
@@ -4744,8 +4740,7 @@ function ActivityService(objectCollection) {
     }
 
     async function handleRollBackFormSubmission(request) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] handleRollBackFormSubmission`);
+        util.logInfo(request,`handleRollBackFormSubmission`);
         //if(request.workflow_activity_id)
         //let workflowActivityId = 0;
         //await sleep(2000); 
@@ -4781,7 +4776,7 @@ function ActivityService(objectCollection) {
 
                     await activityCommonService.makeRequest(newReq, "bot_step/status/alter", 1)
                     .then((resp) => {
-                        logger.info(`[${logUUID}] bot_step/status/alter Response: ${JSON.stringify(resp)}`);
+                        util.logInfo(request,`bot_step/status/alter Response: ${JSON.stringify(resp)}`);
                     });              
                     break;
                 }
@@ -4799,7 +4794,7 @@ function ActivityService(objectCollection) {
         if(newReq.activity_status_workflow_percentage > 0) {            
             await activityCommonService.makeRequest(newReq, "bot_step/wf_percentage/alter", 1)
             .then((resp) => {
-                logger.info(`[${logUUID}] bot_step/wf_percentage/alter Response: ${JSON.stringify(resp)}`);
+                util.logInfo(request,`bot_step/wf_percentage/alter Response: ${JSON.stringify(resp)}`);
             });
         }
             
@@ -5180,8 +5175,7 @@ function ActivityService(objectCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingInsertV1(request, fieldData, cnt) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In activityActivityMappingInsertV1 ${fieldData.field_data_type_id}`);
+        util.logInfo(request,`In activityActivityMappingInsertV1 ${fieldData.field_data_type_id}`);
         let finalworkflowData;
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
 
@@ -5238,7 +5232,7 @@ function ActivityService(objectCollection) {
                         break;
                 }
         } catch(err) {
-            logger.error(`[${logUUID}] Error in parsing workflow reference datatype V1`, { type: 'activity_activity_mapping_insert_v1', error: serializeError(err) });
+            util.logError(request,`Error in parsing workflow reference datatype V1`, { type: 'activity_activity_mapping_insert_v1', error: serializeError(err) });
             return "Failure";
         }
 
@@ -5369,11 +5363,10 @@ function ActivityService(objectCollection) {
     }
 
     async function UpdateGeneratedAccountCode(request) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In UpdateGeneratedAccountCode func`);
+        util.logInfo(request,`In UpdateGeneratedAccountCode func`);
         
         let generatedAccountCode = request.generated_account_code;
-        logger.info(`[${logUUID}] receieved generatedAccountCode %j`,generatedAccountCode);
+        util.logInfo(request,`receieved generatedAccountCode %j`,generatedAccountCode);
 
         let panNumber ="";
         let gstNumber = "";
@@ -5386,7 +5379,7 @@ function ActivityService(objectCollection) {
         let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         activityTitleExpression = activityTitleExpression.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
         activityTitleExpression = activityTitleExpression.split(' ').join('')
-        logger.info(`[${logUUID}] receieved activityTitleExpression %j`,activityTitleExpression);
+        util.logInfo(request,`receieved activityTitleExpression %j`,activityTitleExpression);
 
         let newReq = Object.assign({}, request);
 
@@ -5400,10 +5393,10 @@ function ActivityService(objectCollection) {
             newReq.workflow_activity_id = request.activity_id;
             await activityCommonService.makeRequest(newReq, "bot_step/cuid/set", 1)
                 .then((resp) => {
-                    logger.info(`[${logUUID}] bot_step/cuid/set Trigger Response %j`,JSON.stringify(resp));
+                    util.logInfo(request,`bot_step/cuid/set Trigger Response %j`,JSON.stringify(resp));
                 });
         } catch(error) {
-            logger.error(`[${logUUID}] Error running the CUID update bot - CUID3`, { type: 'Update_generated_accountCode', error: serializeError(error) });
+            util.logError(request,`Error running the CUID update bot - CUID3`, { type: 'Update_generated_accountCode', error: serializeError(error) });
         }
         newReq.cuid_1 = panNumber;
         newReq.cuid_2 = gstNumber;
@@ -5417,8 +5410,7 @@ function ActivityService(objectCollection) {
 
     async function UpdateGroupAccountName(request) {
 
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In UpdateGroupAccountName Func`);
+        util.logInfo(request,`In UpdateGroupAccountName Func`);
         let groupaccountName = request.generated_group_account_name;
 
         let newReq = Object.assign({}, request);
@@ -5579,7 +5571,6 @@ function ActivityService(objectCollection) {
 
     async function processFieldWidgetData(request, fieldData){
 
-        let logUUID = request.log_uuid || "";
         let WidgetFieldRequest = Object.assign({}, request);
         let activityTypeCategroyId = parseInt(request.activity_type_category_id);
         WidgetFieldRequest.field_id = fieldData.field_id;
@@ -5607,7 +5598,7 @@ function ActivityService(objectCollection) {
 
         let [errorWidget, responseWidget] = await checkFieldOrReferenceWidget(WidgetFieldRequest); 
         if(responseWidget.length > 0){
-            logger.info(`[${logUUID}] FieldWidget exists for this Field :: ${fieldData.field_id}`);
+            util.logInfo(request,`FieldWidget exists for this Field :: ${fieldData.field_id}`);
 
             if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54)
             {
@@ -5624,15 +5615,15 @@ function ActivityService(objectCollection) {
                         activtyReferenceFieldInsert(WidgetFieldRequest);
 
                     }else{
-                        logger.info(`[${logUUID}] Origin Form submitted, hence no widget data insert`);
+                        util.logInfo(request,`Origin Form submitted, hence no widget data insert`);
                     }
                 }else{
-                    logger.info(`[${logUUID}] No Form Exists with this FormId`);
+                    util.logInfo(request,`No Form Exists with this FormId`);
                 }
             }
         } else{
             WidgetFieldRequest = null;
-            logger.info(`[${logUUID}] No FieldWidget for this Field ${fieldData.field_id}`);
+            util.logInfo(request,`No FieldWidget for this Field ${fieldData.field_id}`);
         }
     }
     this.activityTypeMappingInsert = async function(request){
