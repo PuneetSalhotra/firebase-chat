@@ -498,7 +498,6 @@ function FormConfigService(objCollection) {
 
     this.alterFormActivity = async function (request, callback) {
 
-        let logUUID = request.log_uuid || "";
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
@@ -519,19 +518,19 @@ function FormConfigService(objCollection) {
         let activityTypeID = 0;
         let workflowActID = 0;
         if(responseData.length > 0) {
-            logger.info(`[${logUUID}] Form Activity ID %j`,responseData[0].form_activity_id);
-            logger.info(`[${logUUID}] Workflow Activity ID -  %j`,responseData[0].workflow_activity_id);
-            logger.info(`[${logUUID}] request.activity_id -  %j`,request.activity_id);
-            logger.info(`[${logUUID}] responseData[0].activity_type_id - %j`,responseData[0].activity_type_id);
+            util.logInfo(request,`Form Activity ID %j`,responseData[0].form_activity_id);
+            util.logInfo(request,`Workflow Activity ID -  %j`,responseData[0].workflow_activity_id);
+            util.logInfo(request,`request.activity_id -  %j`,request.activity_id);
+            util.logInfo(request,`responseData[0].activity_type_id - %j`,responseData[0].activity_type_id);
             
             workflowActID = responseData[0].workflow_activity_id;
             activityTypeID = Number(responseData[0].activity_type_id);
 
             if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
-                logger.info(`[${logUUID}] Received workflow_Activity_Id instead of form_activity_id from request`);
+                util.logInfo(request,`Received workflow_Activity_Id instead of form_activity_id from request`);
                 request.activity_id = responseData[0].form_activity_id;
             } else {
-                logger.info(`[${logUUID}] Received form_activity_id from request. Hence proceeeding!`);
+                util.logInfo(request,`Received form_activity_id from request. Hence proceeeding!`);
             }
         }        
 
@@ -560,7 +559,7 @@ function FormConfigService(objCollection) {
 
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             if (err === false) {
-                logger.info(`[${logUUID}] Data from activity_list: %j`, data.length);
+                util.logInfo(request,`Data from activity_list: %j`, data.length);
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
@@ -589,10 +588,10 @@ function FormConfigService(objCollection) {
                                 newFieldValue = jsonData.transaction_data.transaction_amount;
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
 
-                                logger.info(`[${logUUID}] Old Transaction Amount: %j`, oldFieldValue);
-                                logger.info(`[${logUUID}] New Transaction Amount: %j`, newFieldValue);
+                                util.logInfo(request,`Old Transaction Amount: %j`, oldFieldValue);
+                                util.logInfo(request,`New Transaction Amount: %j`, newFieldValue);
                             } catch (err) {
-                                logger.error(`[${logUUID}] alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
+                                util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         
@@ -626,7 +625,7 @@ function FormConfigService(objCollection) {
                                 
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
                             } catch (err) {
-                                logger.error(`[${logUUID}] alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
+                                util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         // newData.field_name = row.field_name;
@@ -636,7 +635,7 @@ function FormConfigService(objCollection) {
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
-                    logger.info(`[${logUUID}] /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
+                    util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
                     if(simpleDataTypes.includes(newData.field_data_type_category_id)){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
@@ -665,14 +664,14 @@ function FormConfigService(objCollection) {
                         if (data.length > 0) {
                             let x = data[0];
                             request.update_sequence_id = ++x.update_sequence_id;
-                            logger.info(`[${logUUID}] update_sequence_id : ${request.update_sequence_id}`);
+                            util.logInfo(request,`update_sequence_id : ${request.update_sequence_id}`);
                         } else {
                             request.update_sequence_id = 1;
                         }
 
                         activityInlineData[0].old_field_value = oldFieldValue;
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
-                            logger.info(`[${logUUID}] After putLatestUpdateSeqId`);                       
+                            util.logInfo(request,`After putLatestUpdateSeqId`);                       
 
                             var event = {
                                 name: "alterActivityInline",
@@ -683,10 +682,10 @@ function FormConfigService(objCollection) {
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
-                                    logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                                    util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                 } else {
-                                    logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`,resp);
+                                    util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
                                 }
                             });
 
@@ -704,17 +703,17 @@ function FormConfigService(objCollection) {
 
                                 queueWrapper.raiseActivityEvent(event, workflowActID, (err, resp) => {
                                     if (err) {
-                                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
-                                        logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`, resp);
+                                        util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`, resp);
                                     }
                                 }); 
                             }
 
                         }).catch((err) => {
                             // global.logger.write(err);
-                            logger.error(`[${logUUID}] Error in putLatestUpdateSeqId`, { type: 'alter_form', error: serializeError(err) });
+                            util.logError(request,`Error in putLatestUpdateSeqId`, { type: 'alter_form', error: serializeError(err) });
                         });
 
                         //Analytics for Widget
@@ -724,7 +723,7 @@ function FormConfigService(objCollection) {
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
                         if (formConfigError !== false) {
                             // return [formConfigError, formConfigData];
-                            logger.error(`[${logUUID}] formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
+                            util.logError(request,`formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
                                 workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
@@ -732,7 +731,7 @@ function FormConfigService(objCollection) {
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
-                                logger.error(`[${logUUID}] [alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
+                                util.logError(request,`[alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
                             }
                         }
 
@@ -758,7 +757,7 @@ function FormConfigService(objCollection) {
                             let rebuildCafRequest = Object.assign({}, request);
                             rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
 
-                            logger.info(`[${logUUID}] [regenerateAndSubmitCAF] activityInlineData: %j`, activityInlineData);
+                            util.logInfo(request,`[regenerateAndSubmitCAF] activityInlineData: %j`, activityInlineData);
 
                             let rebuildCafEvent = {
                                 name: "vodafoneService",
@@ -817,7 +816,7 @@ function FormConfigService(objCollection) {
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
                             global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
-                                logger.info(`[${logUUID}] workflow_activity_id %j`,data[0].activity_id);
+                                util.logInfo(request,`workflow_activity_id %j`,data[0].activity_id);
 
                                 if (data.length > 0) {
                                     let newOrderFormActivityId = Number(data[0].activity_id);
@@ -846,23 +845,23 @@ function FormConfigService(objCollection) {
                                         payload: fire713OnNewOrderFileRequest
                                     };
 
-                                    logger.info(`[${logUUID}] Raising 713 entry onto New Order Form %j`,fire713OnNewOrderFileRequest);
+                                    util.logInfo(request,`Raising 713 entry onto New Order Form %j`,fire713OnNewOrderFileRequest);
                                     queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                                         if (err) {
-                                            logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                                            util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         } else {
-                                            logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`,resp);
+                                            util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
                                         }
                                     });
                                 } else {
-                                    logger.info(`[${logUUID}] Data from this call fetchReferredFormActivityId is empty`);
+                                    util.logInfo(request,`Data from this call fetchReferredFormActivityId is empty`);
                                 }
 
                             });
                         }
 
                     }).catch((err) => {
-                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     });
                 });
 
@@ -893,8 +892,7 @@ function FormConfigService(objCollection) {
     }
 
     function putLatestUpdateSeqId(request, activityInlineData, completeInlineData = []) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] Activity Inline Data :  %j`, activityInlineData);
+        util.logInfo(request,`Activity Inline Data :  %j`, activityInlineData);
         return new Promise(async (resolve, reject) => {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
@@ -934,9 +932,9 @@ function FormConfigService(objCollection) {
                     default: break;
                 }
             }
-            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] otc_1: ${otc_1}`);
-            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
-            logger.info(`[${logUUID}] [putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] otc_1: ${otc_1}`);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
 
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
@@ -1196,7 +1194,7 @@ function FormConfigService(objCollection) {
                                 params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                logger.error(`[${logUUID}] ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
+                                util.logError(request,`ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1234,7 +1232,7 @@ function FormConfigService(objCollection) {
 
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                logger.error(`[${logUUID}] ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
+                                util.logError(request,`ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1269,7 +1267,7 @@ function FormConfigService(objCollection) {
                                 params[16] = amount; // Debit
                             params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                         } catch (err) {
-                            logger.error(`[${logUUID}] ERROR in field edit - 62 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
+                            util.logError(request,`ERROR in field edit - 62 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                         }
                         break;
                     case 64: // Address DataType
@@ -1355,18 +1353,18 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                logger.info(`[${logUUID}] In formConfigService - addFormEntries params %j`, JSON.stringify(params));
+                util.logInfo(request,`In formConfigService - addFormEntries params %j`, JSON.stringify(params));
 
                 // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                  let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
-                    logger.info(`[${logUUID}] ds_p1_1_activity_form_transaction_insert_field_update as asset_id is %j`, request.asset_id);
+                    util.logInfo(request,`ds_p1_1_activity_form_transaction_insert_field_update as asset_id is %j`, request.asset_id);
                 }
                 else {
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, async function (err, data) {
     
-                            logger.info(`[${logUUID}] update field_value in widget row.field_id ${row.field_id}  row.field_value ${row.field_value} request.asset_id ${request.asset_id}`);
+                            util.logInfo(request,`update field_value in widget row.field_id ${row.field_id}  row.field_value ${row.field_value} request.asset_id ${request.asset_id}`);
     
                             self.activityFormListUpdateFieldValue(request);
 
@@ -1380,7 +1378,7 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
-                                    logger.info(`[${logUUID}] addValueToWidgetForAnalyticsWF request.activity_id ${request.activity_id}  WorkflowActivityId ${workflowData[0].activity_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  WorkflowActivityId ${WorkflowActivityTypeId} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
@@ -1399,10 +1397,10 @@ function FormConfigService(objCollection) {
                                                 widgetAggrFieldValueUpdateWorkflow(request);
                                                 //await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
                                             } else {
-                                                logger.info(`[${logUUID}] Field Value is not a number || Total Order Value Field ${row.field_value}`);
+                                                util.logInfo(request,`Field Value is not a number || Total Order Value Field ${row.field_value}`);
                                             }                                            
                                         }else{
-                                            logger.info(`[${logUUID}] This field is not configured to update in intermediate table ${row.field_id}`);
+                                            util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_id}`);
                                         }                                        
                                     }                                
                                 });
@@ -1423,9 +1421,9 @@ function FormConfigService(objCollection) {
                                              //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                     }
     
-                                    logger.info(`[${logUUID}] valueflag ::  ${valueflag}`);
+                                    util.logInfo(request,`valueflag ::  ${valueflag}`);
                                     request['flag'] = valueflag;
-                                    logger.info(`[${logUUID}] row.field_value :: ${row.field_value}`);
+                                    util.logInfo(request,`row.field_value :: ${row.field_value}`);
                                     let finalValue = 0;
                                     if(valueflag > 0){
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
@@ -1457,7 +1455,7 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    logger.info(`[${logUUID}] Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
+                                                    util.logInfo(request,`Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }else{
     
@@ -1465,7 +1463,7 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    logger.info(`[${logUUID}] Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
+                                                    util.logInfo(request,`Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }
                                         }
@@ -1493,19 +1491,19 @@ function FormConfigService(objCollection) {
                                             }           
                                                 
                                         });                                    
-                                        logger.info(`[${logUUID}] This field is not configured to update in intermediate table ${row.field_value}`);
+                                        util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_value}`);
                                     }
                                 }catch(err){
-                                    logger.error(`[${logUUID}] Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
+                                    util.logError(request,`Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
                                 }                             
     
                             }
     
-                            logger.info(`[${logUUID}] *****Update: update po_date in widget1 ******* ${row.field_id}`);
+                            util.logInfo(request,`*****Update: update po_date in widget1 ******* ${row.field_id}`);
                              if(Object.keys(poFields).includes(String(row.field_id))){
-                                logger.info(`[${logUUID}] *****Update: update po_date in widget1 ******* ${row.field_id}`);
+                                util.logInfo(request,`*****Update: update po_date in widget1 ******* ${row.field_id}`);
                                     activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
-                                        logger.info(`[${logUUID}] *****Update: update po_date in widget3 ******* ${activityData[0].channel_activity_id}`);                                     
+                                        util.logInfo(request,`*****Update: update po_date in widget3 ******* ${activityData[0].channel_activity_id}`);                                     
                                         request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
                                         request['order_po_date'] = row.field_value;
                                         request['flag'] = 1;
@@ -1537,13 +1535,13 @@ function FormConfigService(objCollection) {
                                         }
 
                                     } catch (e) {
-                                        logger.error(`[${logUUID}] error in checking old forms data`, { type: 'add_activity', error: serializeError(e) });
+                                        lutil.logError(request,`error in checking old forms data`, { type: 'add_activity', error: serializeError(e) });
                                     }
                                     for (const formFields of dataEntityInline) {
                                         if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
                                             if (formFields.field_value !== "") {
                                                 isFirstTimeExcelUploaded = false;
-                                                logger.info(`[${logUUID}] Excel file found in previous submission so do not create child order`);
+                                                util.logInfo(request,`Excel file found in previous submission so do not create child order`);
                                             }
                                         }
                                     }
@@ -1551,7 +1549,7 @@ function FormConfigService(objCollection) {
                                 }
 
                                 if (isFirstTimeExcelUploaded && annexureExcelFilePath.length > 0) {
-                                    logger.info(`[${logUUID}] ${childOrdersCreationTopicName} %j`, {
+                                    util.logInfo(request,` ${childOrdersCreationTopicName} %j`, {
                                         ...request,
                                         s3UrlOfExcel: annexureExcelFilePath
                                     });
@@ -1577,11 +1575,10 @@ function FormConfigService(objCollection) {
     }
 
     async function updateWFTotalOrderValueinActList(request, workflowActID) {
-        let logUUID = request.log_uuid || "";
         let finalValueOfCAF;
             try{
                 let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, workflowActID);
-                logger.info(`[${logUUID}] activityDataResp: %j`, activityDataResp);
+                util.logInfo(request,`activityDataResp: %j`, activityDataResp);
                 if (activityDataResp.length > 0) {
                     finalValueOfCAF = Number(activityDataResp[0].activity_workflow_value_1) +
                                       Number(activityDataResp[0].activity_workflow_value_2) +
@@ -1589,10 +1586,10 @@ function FormConfigService(objCollection) {
                                       Number(activityDataResp[0].activity_workflow_value_4) +
                                       Number(activityDataResp[0].activity_workflow_value_5);
                 }
-                logger.info(`[${logUUID}] FINAL VALUE OF CAF :  %j`, finalValueOfCAF);                
+                util.logInfo(request,`FINAL VALUE OF CAF :  %j`, finalValueOfCAF);                
                 await activityCommonService.analyticsUpdateWidgetValue(request, workflowActID, 0, finalValueOfCAF);
             }catch(err){
-                logger.error(`[${logUUID}] ERROR`, { type: 'add_activity', error: serializeError(err) });
+                util.logError(request,`ERROR`, { type: 'add_activity', error: serializeError(err) });
             }
     }
 
@@ -2942,8 +2939,7 @@ function FormConfigService(objCollection) {
         //If origin Form and workflow Enabled?
         //Create a Workflow Activity
         //Make a 705 timeline entry with activity category 48
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] # # Entry Add Workflow - File: formConfigService Func: workflowEngineAsync # # `);
+        util.logInfo(request,`# # Entry Add Workflow - File: formConfigService Func: workflowEngineAsync # # `);
 
         let workflowActivityId = request.workflow_activity_id || 0;
 
@@ -2951,7 +2947,7 @@ function FormConfigService(objCollection) {
 
         // Fetch form's config data
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
-        logger.error(`[${logUUID}] formConfigError`, { type: 'workflow_engine', error: serializeError(formConfigError) });
+        util.logError(request,`formConfigError`, { type: 'workflow_engine', error: serializeError(formConfigError) });
         if (formConfigError !== false) {
             return [formConfigError, formConfigData];
         }
@@ -2987,7 +2983,7 @@ function FormConfigService(objCollection) {
                         return [err, formConfigData];
                     });
 
-                logger.info(`[${logUUID}] New activityId is %j`,{activityId});
+                    util.logInfo(request,`New activityId is %j`,{activityId});
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);
                     createWorkflowRequest.activity_id = Number(activityId);
@@ -3118,7 +3114,6 @@ function FormConfigService(objCollection) {
 
     this.workflowOnFormEdit = async function (request) {
 
-        let logUUID = request.log_uuid || ""; 
         // Fetch form's config data
         request.page_start = 0;
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
@@ -3144,8 +3139,8 @@ function FormConfigService(objCollection) {
         }
         workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        logger.info(`[${logUUID}] workflowActivityId %j`, workflowActivityId);
-        logger.info(`[${logUUID}] workflowActivityTypeID %j`, workflowActivityTypeID);
+        util.logInfo(request,`workflowActivityId %j`, workflowActivityId);
+        util.logInfo(request,`workflowActivityTypeID %j`, workflowActivityTypeID);
 
 
         // Make a 713 timeline transaction entry in the workflow file
@@ -3163,7 +3158,7 @@ function FormConfigService(objCollection) {
         if (Number(formConfigData.length) > 0) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
-            logger.info(`[${logUUID}] formWorkflowActivityTypeId %{formWorkflowActivityTypeId}`);
+            util.logInfo(request,`formWorkflowActivityTypeId %{formWorkflowActivityTypeId}`);
 
             formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48;
             workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
@@ -3175,9 +3170,9 @@ function FormConfigService(objCollection) {
                     await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
                     //await addTimelineTransactionAsync(workflowFile713Request);
                 } catch (error) {
-                    logger.error(`[${logUUID}] addTimelineTransactionAsync`, { type: 'alter_form', error: serializeError(error) });
+                    util.logError(request,`addTimelineTransactionAsync`, { type: 'alter_form', error: serializeError(error) });
                 }
-                logger.info(`[${logUUID}] Calling [regenerateAndSubmitTargetForm]: %j`, request.activity_inline_data);
+                util.logInfo(request,`Calling [regenerateAndSubmitTargetForm]: %j`, request.activity_inline_data);
                 // Regenerate target form (if required/mapping exists), and then submit a 713 entry
 
                 const rebuildTargetFormEvent = {
@@ -3188,9 +3183,9 @@ function FormConfigService(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(rebuildTargetFormEvent, request.activity_id, (err, resp) => {
                     if (err) {
-                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     } else {
-                        logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`, resp);
+                        util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`, resp);
                     }
                 });
             }
@@ -3248,7 +3243,7 @@ function FormConfigService(objCollection) {
             let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
-            logger.info(`[${logUUID}] formFieldMapping: %j`, formFieldMapping);
+            util.logInfo(request,`formFieldMapping: %j`, formFieldMapping);
             //if (formFieldMapping.length > 0) {
 
             let fieldCopyOperations = [];
@@ -3260,7 +3255,7 @@ function FormConfigService(objCollection) {
                     Number(mapping.source_form_id) === Number(request.form_id) &&
                     Number(mapping.source_field_id) === Number(request.field_id)
                 ) {
-                    logger.info(`[${logUUID}] Match Found: %j`,mapping);
+                    util.logInfo(request,`Match Found: %j`,mapping);
                     fieldCopyOperations.push(mapping);
                     await activityCommonService
                         .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
@@ -3294,7 +3289,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 2500);
                 } catch (error) {
-                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
+                    util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
 
@@ -3313,7 +3308,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 3000);
                 } catch (error) {
-                    logger.error(`[${logUUID}] botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
+                    util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
         }
@@ -3356,7 +3351,7 @@ function FormConfigService(objCollection) {
         } catch (error) {
             // [LOGGING] Error fetching bots for this form 
             activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
-            logger.error(`[${logUUID}] botListData `, { type: 'alter_form'});
+            util.logError(request,`botListData `, { type: 'alter_form'});
         }
         
         // Fire the Bot Engine
@@ -3386,10 +3381,10 @@ function FormConfigService(objCollection) {
         }
         // ############################## BOT ENGINE REQUEST START ##############################
         
-        logger.info(`[${logUUID}] targetFormActivityId %j`, targetFormActivityId);
-        logger.info(`[${logUUID}] targetFormTransactionId %j`, targetFormTransactionId);
-        logger.info(`[${logUUID}] targetFormSubmittedData %j`, targetFormSubmittedData);
-        logger.info(`[${logUUID}] targetFormName %j`, targetFormName);
+        util.logInfo(request,`targetFormActivityId %j`, targetFormActivityId);
+        util.logInfo(request,` targetFormTransactionId %j`, targetFormTransactionId);
+        util.logInfo(request,`targetFormSubmittedData %j`, targetFormSubmittedData);
+        util.logInfo(request,`targetFormName %j`, targetFormName);
 
         return [formConfigError, {
             formConfigData
@@ -5115,10 +5110,9 @@ function FormConfigService(objCollection) {
 
     //update the Intermediate tables - For workflow Reference, Combo Field data types
     async function fireBotUpdateIntTables(request, fieldData) {
-        let logUUID = request.log_uuid || "";
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
-            logger.error(`[${logUUID}][fireBotUpdateIntTables] couldn't find workflow`);
+            util.logError(request,`[fireBotUpdateIntTables] couldn't find workflow`);
             return [workflowError, workflowData];
         }
         let workflowActivityId = Number(workflowData[0].activity_id);
@@ -5139,7 +5133,7 @@ function FormConfigService(objCollection) {
                 botIsDefined = 1;
             }
         } catch (botInitError) {
-            logger.error(`[${logUUID}] formtransactioniderror`, { type: 'formtransactioniderror', error: serializeError(botInitError) });
+            util.logError(request,`formtransactioniderror`, { type: 'formtransactioniderror', error: serializeError(botInitError) });
         }
 
         let newRequest = Object.assign({}, request);
@@ -5152,7 +5146,7 @@ function FormConfigService(objCollection) {
         newRequest.log_asset_id = request.asset_id;
         newRequest.log_datetime = util.getCurrentUTCTime();
 
-        logger.info(`[${logUUID}] botIsDefined %j`, botIsDefined);
+        util.logInfo(request,`botIsDefined %j`, botIsDefined);
 
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
@@ -5169,8 +5163,8 @@ function FormConfigService(objCollection) {
                         try{
                             parsedFieldValue = JSON.parse(fieldValue);
                         } catch(err) {
-                            logger.error(`[${logUUID}] Error in parsing workflow reference datatype : `, { type: 'fireBotUpdateIntTables', error: serializeError(err) });
-                            logger.info(`[${logUUID}] Switching to backward compatibility parsedFieldValue: %j`,parsedFieldValue);
+                            util.logError(request,`Error in parsing workflow reference datatype : `, { type: 'fireBotUpdateIntTables', error: serializeError(err) });
+                            util.logInfo(request,`Switching to backward compatibility parsedFieldValue: %j`,parsedFieldValue);
                             
                             //Backward Compatibility "workflowactivityid|workflowactivitytitle"
                             mappingActivityId = fieldData.field_value.split('|');
@@ -5199,7 +5193,6 @@ function FormConfigService(objCollection) {
     
     async function addAssetToWorkflow(request){
         let flag = 1;
-        let logUUID = request.log_uuid || "";
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
             return [workflowError, workflowData];
@@ -5219,7 +5212,7 @@ function FormConfigService(objCollection) {
         participantService.getParticipantsList(newReq, async (err, resp)=>{
 
             let participantData = resp.data;
-            logger.info(`[${logUUID}] ********* participantData :  %j`,participantData);
+            util.logInfo(request,`********* participantData :  %j`,participantData);
 
             for(let i = 0; i<participantData.length; i++) {
                 if(Number(participantData[i].asset_id) === Number(request.asset_id)) {
@@ -5227,7 +5220,7 @@ function FormConfigService(objCollection) {
                 }
             }
 
-            logger.info(`[${logUUID}] FLAG :  %j`,flag);
+            util.logInfo(request,`FLAG :  %j`,flag);
             if(flag === 1) {
                 
                 //Add the asset as participant
@@ -5907,8 +5900,7 @@ function FormConfigService(objCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue, flag) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In formConfigService activityActivityMappingInsertV1`);
+        util.logInfo(request,`In formConfigService activityActivityMappingInsertV1`);
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
         if(Number(request.activity_type_category_id) === 9) {
@@ -5918,7 +5910,7 @@ function FormConfigService(objCollection) {
                 await sleep(10000);
                 const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, request.form_id);
                 if (workflowError !== false || workflowData.length === 0) {
-                    logger.error(`[${logUUID}] workflowError | No data`, { type: 'activity_activty_mapping_update', error: serializeError(workflowError) });
+                    util.logError(request,`workflowError | No data`, { type: 'activity_activty_mapping_update', error: serializeError(workflowError) });
                     
                     //if(cnt <= 2) {
                     //    await sleep(2000);
@@ -5935,8 +5927,8 @@ function FormConfigService(objCollection) {
 
         }
 
-        logger.info(`[${logUUID}] fieldData V1: %j`, fieldData);
-        logger.info(`[${logUUID}] flag :  %j`, flag);
+        util.logInfo(request,`fieldData V1: %j`, fieldData);
+        util.logInfo(request,`flag :  %j`, flag);
 
         
         //Unmap the existing one
@@ -5971,7 +5963,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            logger.error(`[${logUUID}] Error in parsing workflow reference datatype old V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
+            util.logError(request,`Error in parsing workflow reference datatype old V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             //return "Failure";
         }
 
@@ -6019,7 +6011,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            logger.error(`[${logUUID}] Error in parsing workflow reference datatype new  V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
+            util.logError(request,`Error in parsing workflow reference datatype new  V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             return "Failure";
         }
 

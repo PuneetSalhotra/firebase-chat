@@ -18,9 +18,8 @@ function ActivityTimelineController(objCollection) {
     var activityTimelineService = new ActivityTimelineService(objCollection);
 
     app.post('/' + global.config.version + '/activity/timeline/entry/add',async function (req, res) {
-        let logUUID = req.body.log_uuid || "";
-        logger.info(`::START:: LOG_UUID-${logUUID}-activity_id-${req.body.activity_id || ""}`);
-        logger.info(`${logUUID} Request Params %j`,JSON.stringify(req.body,null, 4));
+        util.logInfo(req.body,`::START:: activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(req.body,`Request Params %j`,JSON.stringify(req.body,null, 4));
         
         var assetMessageCounter = 0;
         var deviceOsId = 0;
@@ -61,10 +60,10 @@ function ActivityTimelineController(objCollection) {
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
-                                    logger.error(`[${logUUID}] error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
+                                    util.logError(req.body,`error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    logger.info(`[${logUUID}] asset parity is set successfully`);
+                                    util.logInfo(req.body,`asset parity is set successfully`);
                             });
                         }
                     }
@@ -95,9 +94,9 @@ function ActivityTimelineController(objCollection) {
                                     proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
                                     cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
                                         if (err) {
-                                            logger.error(`[${logUUID}] error in setting in message unique id look up`, { type: 'activity_timeline', error: serializeError(err) });
+                                            util.logError(req.body,`error in setting in message unique id look up`, { type: 'activity_timeline', error: serializeError(err) });
                                         } else {
-                                            logger.info(`[${logUUID}] message unique id look up is set successfully`);
+                                            util.logInfo(req.body,` message unique id look up is set successfully`);
                                         }
                                     });
 
@@ -108,15 +107,15 @@ function ActivityTimelineController(objCollection) {
                                 cacheWrapper.setAssetParity(req.body.asset_id, req.body.asset_message_counter, function (err, status) {
                                     if (err) {
                                         console.log("");
-                                        logger.error(`[${logUUID}] error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
+                                        util.logError(req.body,`error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
                                     } else {
-                                        logger.info(`[${logUUID}] asset parity is set successfully`);
+                                        util.logInfo(req.body,`asset parity is set successfully`);
                                     }
 
                                 });
                             } else { // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
-                                logger.info(`[${logUUID}] this is a duplicate hit`);
+                                util.logInfo(request,`this is a duplicate hit`);
                                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
                             }
                         }

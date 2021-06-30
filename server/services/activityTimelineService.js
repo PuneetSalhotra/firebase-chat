@@ -29,8 +29,7 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] IN addTimelineTransaction :: `);
+        util.logInfo(request,`IN addTimelineTransaction :: `);
         const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403];
 
         //const self = this;
@@ -55,9 +54,9 @@ function ActivityTimelineService(objectCollection) {
                             //act id in request is different from retrieved one
                             // Adding 705 entires onto a diff file not a dedicated file
                             //Should not do Form Transaction Insertion as it is not a dedicated file
-                            logger.info(`[${logUUID}] request.activity_id - ${request.activity_id} data[0].activity_id - ${data[0].activity_id}`);
+                            util.logInfo(request,`request.activity_id - ${request.activity_id} data[0].activity_id - ${data[0].activity_id}`);
                             if (Number(request.activity_id) !== Number(data[0].activity_id)) {
-                                logger.info(`[${logUUID}] Activity_ID from request is different from retrived Activity_id hence proceeding `);
+                                util.logInfo(request,`Activity_ID from request is different from retrived Activity_id hence proceeding `);
                                 request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
                                 request.non_dedicated_file = 1;
 
@@ -78,19 +77,19 @@ function ActivityTimelineService(objectCollection) {
                                             targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id)
                                             initiateTargetFormGeneration(targetFormGenerationRequest);
                                         } catch (error) {
-                                            logger.error(`[${logUUID}][VODAFONE] Patch | Error firing initiateTargetFormGeneration:`, { type: 'timeline', error: serializeError(error) });
+                                            util.logError(request,`[VODAFONE] Patch | Error firing initiateTargetFormGeneration:`, { type: 'timeline', error: serializeError(error) });
                                         }
                                     }
                                 } else {
                                     timelineStandardCalls(request)
                                         .then(() => {})
                                         .catch((err) => {
-                                            logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
+                                            util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
                                         });
                                 }
 
                             } else {
-                                logger.info(`[${logUUID}] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7`);
+                                lutil.logInfo(request,` Activity_ID from request is same as retrived Activity_id hence checking for device os id 7`);
 
                                 //705 for Dedicated file
                                 if (Number(request.device_os_id) === 7) {
@@ -101,7 +100,7 @@ function ActivityTimelineService(objectCollection) {
                                         retrievingFormIdandProcess(request, data).then(() => {});
                                     } else {
                                         timelineStandardCalls(request).then(() => {}).catch((err) => {
-                                            logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
+                                            util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
                                         });
                                     }
 
@@ -110,14 +109,14 @@ function ActivityTimelineService(objectCollection) {
                                 }
 
                                 if (Number(request.device_os_id) === 8) {
-                                    logger.info(`[${logUUID}] Activity_ID from request is same as retrived Activity_id and device_os_id 8`);
+                                    util.logInfo(request,`Activity_ID from request is same as retrived Activity_id and device_os_id 8`);
                                     // If request for dedicated file, and if there should not be any form entries for this
                                     // timeline transaction request
                                     retrievingFormIdandProcess(request, data).then(() => {});
                                 }
                             }
                         } else {
-                            logger.info(`[${logUUID}] There is no data hence checking for device os id`);
+                            util.logInfo(request,`There is no data hence checking for device os id`);
 
                             if (Number(request.device_os_id) === 7) { //7 means calling internal from services
                                 //retrievingFormIdandProcess(request, data).then(()=>{});  
@@ -125,7 +124,7 @@ function ActivityTimelineService(objectCollection) {
                                     retrievingFormIdandProcess(request, data).then(() => {});
                                 } else {
                                     timelineStandardCalls(request).then(() => {}).catch((err) => {
-                                        logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
+                                        util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) });
                                     });
                                 }
 
@@ -144,14 +143,14 @@ function ActivityTimelineService(objectCollection) {
                                 // await fireBotEngineInitForm(request);
                             }
                         } catch (error) {
-                            logger.error(`[${logUUID}] addTimelineTransaction | fireBotEngineInitForm | Error:`, { type: 'timeline', error: serializeError(err) });
+                            util.logError(request,`addTimelineTransaction | fireBotEngineInitForm | Error:`, { type: 'timeline', error: serializeError(err) });
                         }
                     }).catch(() => {});
             }, 2000);
         } else if (activityTypeCategoryId === 9 && activityStreamTypeId === 713) {
 
             timelineStandardCalls(request).then(() => {}).catch((err) => {
-                logger.error(`[${logUUID}] Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) });
+                util.logError(request,`Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) });
             });
 
         } else if (
@@ -180,7 +179,7 @@ function ActivityTimelineService(objectCollection) {
                         await timelineStandardCalls(request)
                             .then(() => {})
                             .catch((err) => {
-                                logger.error(`[${logUUID}] Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) });
+                                util.logError(request,`Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) });
                             });
 
                         // [VODAFONE]
@@ -190,7 +189,7 @@ function ActivityTimelineService(objectCollection) {
                                 targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id)
                                 initiateTargetFormGeneration(targetFormGenerationRequest);
                             } catch (error) {
-                                logger.error(`[${logUUID}] Error firing initiateTargetFormGeneration:  `, { type: 'timeline', error: serializeError(error) });
+                                util.logError(request,`Error firing initiateTargetFormGeneration:  `, { type: 'timeline', error: serializeError(error) });
                             }
                         }
                         // 
@@ -206,7 +205,7 @@ function ActivityTimelineService(objectCollection) {
                                 await fireBotEngineInitWorkflow(request);
                             }
                         } catch (error) {
-                            logger.error(`[${logUUID}] addTimelineTransaction | fireBotEngineInitWorkflow `, { type: 'timeline_service', error: serializeError(error) });
+                            util.logError(request,`addTimelineTransaction | fireBotEngineInitWorkflow `, { type: 'timeline_service', error: serializeError(error) });
                         }
                     }).catch(() => {});
             }, 2000);
@@ -217,7 +216,7 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = 0;
             }
             timelineStandardCalls(request).then(() => {}).catch((err) => {
-                logger.error(`[${logUUID}] Error in timelineStandardCalls  `, { type: 'timeline', error: serializeError(err) });
+                util.logError(request,`Error in timelineStandardCalls  `, { type: 'timeline', error: serializeError(err) });
             });
         }
 
@@ -233,8 +232,7 @@ function ActivityTimelineService(objectCollection) {
     };
 
     this.addTimelineTransactionAsync = async (request) => {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] IN addTimelineTransactionAsync :: START`);
+        util.logInfo(request,`IN addTimelineTransactionAsync :: START`);
 
         //IF      | 9 & 705
         //ELSE IF | 9 & 713
@@ -255,7 +253,7 @@ function ActivityTimelineService(objectCollection) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
         }
-        logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+        util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
            (activityTypeCategoryId === 48 && activityStreamTypeId === 713) ||
@@ -266,7 +264,7 @@ function ActivityTimelineService(objectCollection) {
            (activityTypeCategoryId === 63 && activityStreamTypeId === 705) ||
            (activityTypeCategoryId === 60 && activityStreamTypeId === 705)
            ){
-            logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+            util.logInfo(request,`🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 Bots will be triggerred 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
         }
 
         await activityCommonService.updateAssetLocationPromise(request);
@@ -278,7 +276,7 @@ function ActivityTimelineService(objectCollection) {
                 //act id in request is different from retrieved one
                 //Adding 705 entires onto a diff file not a dedicated file
                 //Should not do Form Transaction Insertion as it is not a dedicated file
-                logger.info(`[${logUUID}] request.activity_id - ${request.activity_id} data[0].activity_id - ${data[0].activity_id}`);
+                util.logInfo(request,`request.activity_id - ${request.activity_id} data[0].activity_id - ${data[0].activity_id}`);
 
                 if (Number(request.activity_id) !== Number(data[0].activity_id)) {
                     request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
@@ -302,14 +300,14 @@ function ActivityTimelineService(objectCollection) {
                                         targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id)
                                     await initiateTargetFormGenerationPromise(targetFormGenerationRequest);
                                 } catch (error) {
-                                    logger.error(`[${logUUID}] [VODAFONE] Patch | Error firing initiateTargetFormGeneration:`, { type: 'timeline_service', error: serializeError(error) });
+                                    util.logError(request,`[VODAFONE] Patch | Error firing initiateTargetFormGeneration:`, { type: 'timeline_service', error: serializeError(error) });
                                 }
                             }
 
                         } else { //Organizations other than 860, 858, 868
                             let [err, data] = await timelineStandardCallsAsync(request);
                             (err) ?
-                            logger.error(`[${logUUID}] Error in timelineStandardCalls:`, { type: 'timeline_service', error: serializeError(err) }):
+                            util.logError(request,`Error in timelineStandardCalls:`, { type: 'timeline_service', error: serializeError(err) }):
                                 error=false; 
                         }
 
@@ -323,7 +321,7 @@ function ActivityTimelineService(objectCollection) {
                                     await retrievingFormIdandProcessAsync(request, data);
                             } else {
                                 let [err, data] = await timelineStandardCallsAsync(request);
-                                (err) ?logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
+                                (err) ?util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
                                     error=false; 
                             }
                             
@@ -332,14 +330,14 @@ function ActivityTimelineService(objectCollection) {
                         }
 
                         if (Number(request.device_os_id) === 8) {
-                            logger.info(`[${logUUID}] Activity_ID from request is same as retrived Activity_id and device_os_id 8`);
+                            util.logInfo(request,`Activity_ID from request is same as retrived Activity_id and device_os_id 8`);
                             // If request for dedicated file, and if there should not be any form entries for this
                             // timeline transaction request
                             await retrievingFormIdandProcessAsync(request, data);
                         }
                     }
             } else { // No DATA from getActivityIdBasedOnTransIdAsync(request);
-                logger.info(`[${logUUID}] There is no data hence checking for device os id `);
+                util.logInfo(request,`There is no data hence checking for device os id `);
                 
                 if (Number(request.device_os_id) === 7) { //7 means calling internal from services                    
                     if (Number(request.organization_id) === 860 || 
@@ -349,7 +347,7 @@ function ActivityTimelineService(objectCollection) {
                     } else {
                         let [err, data] = await timelineStandardCallsAsync(request);
                         (err) ?
-                        logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline_serviec', error: serializeError(err) }):
+                        util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline_serviec', error: serializeError(err) }):
                             error=false; 
                 
                     //Form Transaction Insertion should happen only for dedicated files
@@ -366,7 +364,7 @@ function ActivityTimelineService(objectCollection) {
         } else if (activityTypeCategoryId === 9 && activityStreamTypeId === 713) { //ELSE IF | 9 & 713
             //Make Standard Timeline Entries
             let [err, data] = await timelineStandardCallsAsync(request);
-            (err) ?logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
+            (err) ?util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
                 error=false;
 
         } else if ( //ELSE IF | 48,50,51,53,54,55 & 705,713,715,716
@@ -402,7 +400,7 @@ function ActivityTimelineService(objectCollection) {
             //Make Standard Timeline Entrie*
             let [err1, data1] = await timelineStandardCallsAsync(request);
             (err1) ?
-            logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
+            util.logError(request,`Error in timelineStandardCalls`, { type: 'timeline', error: serializeError(err) }):
                 error=false;
 
             // [VODAFONE]
@@ -412,7 +410,7 @@ function ActivityTimelineService(objectCollection) {
                         targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id);
                     await initiateTargetFormGenerationPromise(targetFormGenerationRequest);
                 } catch (error) {
-                    logger.error(`[${logUUID}] Error firing initiateTargetFormGeneration: `, { type: 'timeline', error: serializeError(error) });
+                    util.logError(request,`Error firing initiateTargetFormGeneration: `, { type: 'timeline', error: serializeError(error) });
                 }
             }
 
@@ -432,7 +430,7 @@ function ActivityTimelineService(objectCollection) {
                     await fireBotEngineInitWorkflow(request);
                 }
             } catch (error) {
-                logger.error(`[${logUUID}] addTimelineTransaction | fireBotEngineInitWorkflow | Error: `, { type: 'timeline', error: serializeError(error) });
+                util.logError(request,`addTimelineTransaction | fireBotEngineInitWorkflow | Error: `, { type: 'timeline', error: serializeError(error) });
             }
         
         }///////////////////////// 
@@ -440,12 +438,12 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = (request.hasOwnProperty('form_id')) ? request.form_id: 0;
             let [err, data] = await timelineStandardCallsAsync(request);
             (err) ?
-            logger.error(`[${logUUID}] Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) }):
+            util.logError(request,`Error in timelineStandardCalls `, { type: 'timeline', error: serializeError(err) }):
                 error=false; 
         }
 
         //commentWithMentions(request);
-        logger.silly(`[${logUUID}] 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT  🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
+        util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT  🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
 
         return [error, responseData];
@@ -453,7 +451,6 @@ function ActivityTimelineService(objectCollection) {
 
     // [VODAFONE]
     function initiateTargetFormGeneration(request) {
-        let logUUID = request.log_uuid || "";
         // Process/Workflow ROMS Target Form Generation Trigger
         if (
             Number(request.activity_stream_type_id) === 705 &&
@@ -462,7 +459,7 @@ function ActivityTimelineService(objectCollection) {
         ) {
             //Wait for 5 seconds
             setTimeout(()=>{
-                logger.info(`[${logUUID}] CALLING buildAndSubmitCafFormV1`);
+                util.logInfo(request,` CALLING buildAndSubmitCafFormV1`);
                 const romsTargetFormGenerationEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -471,9 +468,9 @@ function ActivityTimelineService(objectCollection) {
                 };
                 queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
                     if (err) {
-                        logger.error(`[${logUUID}] Error in queueWrapper raiseActivityEvent`, { type: 'initiateTargetFormGeneration', error: serializeError(err) });
+                        util.logError(request,`Error in queueWrapper raiseActivityEvent`, { type: 'initiateTargetFormGeneration', error: serializeError(err) });
                     } else {
-                        logger.info(`[${logUUID}] Response from queueWrapper raiseActivityEvent: %j`,resp);
+                        util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
                     }
                 });
             }, 5000);
@@ -498,7 +495,6 @@ function ActivityTimelineService(objectCollection) {
     }
 
     function retrievingFormIdandProcess(request, data) {
-        let logUUID = request.log_uuid || "";
         return new Promise((resolve, reject) => {
 
             let activityStreamTypeId = Number(request.activity_stream_type_id);
@@ -507,9 +503,9 @@ function ActivityTimelineService(objectCollection) {
                 let formDataJson = JSON.parse(request.activity_timeline_collection);
                 request.form_id = formDataJson[0]['form_id'];
                 let lastObject = formDataJson[formDataJson.length - 1];
-                logger.info(`[${logUUID}] Last object :  %j`, JSON.stringify(lastObject, null, 2));
+                util.logInfo(request,`Last object :  %j`, JSON.stringify(lastObject, null, 2));
                 if (lastObject.hasOwnProperty('field_value')) {
-                    logger.info(`[${logUUID}] Has the field value in the last object`);
+                    util.logInfo(request,`Has the field value in the last object`);
                     //remote Analytics
                     if (request.form_id == 325) {
                         monthlySummaryTransInsert(request).then(() => {});
@@ -521,14 +517,14 @@ function ActivityTimelineService(objectCollection) {
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
 
                 if (Number(request.organization_id) !== 868) {
-                    logger.info(`[${logUUID}] [Log] Triggering the BOT 1`);
+                    util.logInfo(request,`[Log] Triggering the BOT 1`);
 
                     //makeRequest to /vodafone/neworder_form/queue/add
                     let newRequest = Object.assign({}, request);
                         newRequest.activity_inline_data = {};
                     
                     activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp) => {
-                        logger.info(`[${logUUID}] resp %j`,resp);
+                        util.logInfo(request,`resp %j`,resp);
                     });
                 }
             }
@@ -536,17 +532,17 @@ function ActivityTimelineService(objectCollection) {
             //Triggering BOT 2
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) ||
                     Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
-                        logger.info(`[${logUUID}] [Log] Triggering the BOT 2`);
+                        util.logInfo(request,`[Log] Triggering the BOT 2`);
 
                 activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp) => {
-                    logger.info(`[${logUUID}] resp %j`,resp);
+                    util.logInfo(request,`resp %j`,resp);
                 });
             }
 
             //BOT to send email on CRM form submission
             //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
             if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
-                logger.info(`[${logUUID}] [Log] Triggering BOT to send email on CRM form submission`);
+                util.logInfo(request,`[Log] Triggering BOT to send email on CRM form submission`);
                 let newRequest = Object.assign({}, request);
                 const crmFormData = JSON.parse(request.activity_inline_data);
 
@@ -576,7 +572,7 @@ function ActivityTimelineService(objectCollection) {
                 });
 
                 activityCommonService.makeRequest(newRequest, "vodafone/send/email", 1).then((resp) => {
-                    logger.info(`[${logUUID}] resp %j`,resp);
+                    util.logInfo(request,`resp %j`,resp);
                 });
             }
 
@@ -720,20 +716,19 @@ function ActivityTimelineService(objectCollection) {
             // }
 
             timelineStandardCalls(request).then(() => {}).catch((err) => {
-                logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'retrievingFormIdandProcess', error: serializeError(err) });
+                util.logError(request,`Error in timelineStandardCalls`, { type: 'retrievingFormIdandProcess', error: serializeError(err) });
             });
             resolve();
         });
     }
 
     function timelineStandardCalls(request) {
-        let logUUID = request.log_uuid || "";
         return new Promise((resolve, reject) => {
 
             try {
                 var formDataJson = JSON.parse(request.activity_timeline_collection);
             } catch (exception) {
-                logger.error(`[${logUUID}] exception`, { type: 'timelineStandardCalls', error: serializeError(exception) });
+                util.logError(request,`exception`, { type: 'timelineStandardCalls', error: serializeError(exception) });
             }
 
             let activityStreamTypeId = Number(request.activity_stream_type_id);
@@ -746,7 +741,7 @@ function ActivityTimelineService(objectCollection) {
             if (isAddToTimeline) {
                 activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
                     if (err) {
-                        logger.error(`[${logUUID}] timelineStandardCalls`, { type: 'timelineStandardCalls', error: serializeError(err) });
+                        util.logError(request,`timelineStandardCalls`, { type: 'timelineStandardCalls', error: serializeError(err) });
                     } else {
 
                         // activityPushService.sendPush(request, objectCollection, 0, function () {});
@@ -764,7 +759,7 @@ function ActivityTimelineService(objectCollection) {
                                 activityPushService.sendPush(request, objectCollection, 0, function () {});
                             }
                         } catch (error) {
-                            logger.error(`[${logUUID}] [WARNING] No Push Sent: `, { type: 'timelineStandardCalls', error: serializeError(error) });
+                            util.logError(request,`[WARNING] No Push Sent: `, { type: 'timelineStandardCalls', error: serializeError(error) });
                         }
                         activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
 
@@ -820,7 +815,7 @@ function ActivityTimelineService(objectCollection) {
                                 });
                             }
                         } else {
-                            logger.error(`[${logUUID}] asset_reference is not available`, { type: 'timelinestandardcall' });
+                            util.logError(request,`asset_reference is not available`, { type: 'timelinestandardcall' });
                         }
                     }
                 });
@@ -830,8 +825,7 @@ function ActivityTimelineService(objectCollection) {
     }
 
     this.timelineStandardCallsAsyncV1 =async (request)=> {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] timelineStandardCallsAsyncV1`);
+        util.logInfo(request,`timelineStandardCallsAsyncV1`);
         let responseData = [],
             error = false;
 
@@ -860,15 +854,14 @@ function ActivityTimelineService(objectCollection) {
     }
 
     async function timelineStandardCallsAsync(request) {
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In timelineStandardCallsAsync`);
+        util.logInfo(request,`In timelineStandardCallsAsync`);
         let responseData = [],
             error = true;
 
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
-            logger.error(`[${logUUID}] exception`, { type: 'timeline_stanadard', error: serializeError(exception) });
+            util.logError(request,`exception`, { type: 'timeline_stanadard', error: serializeError(exception) });
         }
 
         let activityStreamTypeId = Number(request.activity_stream_type_id);
@@ -904,11 +897,11 @@ function ActivityTimelineService(objectCollection) {
                         temp.field_name = i.field_name;
                         temp.field_value = i.field_value;
 
-                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57) {
+                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57 || i.field_data_type_id == 77) {
                             try {
                                 temp.field_value = i.field_value.split('|')[1]; //get the name
                             } catch (e) {
-                                logger.error(`[${logUUID}] Could not parse the data type id ${i.field_data_type_id} ${i.field_value}`, { type: 'timeline_stanadard', error: serializeError(e) });
+                                util.logError(request,`Could not parse the data type id ${i.field_data_type_id} ${i.field_value}`, { type: 'timeline_stanadard', error: serializeError(e) });
                             }
                         }
                         formFieldPreviewEnabled.push(temp);
@@ -942,7 +935,7 @@ function ActivityTimelineService(objectCollection) {
                             await activityPushService.sendPushAsync(request, objectCollection, 0);
                         }                        
                     } catch (err) {
-                        logger.error(`[${logUUID}] [WARNING] No Push Sent:`, { type: 'timeline_service', error: serializeError(err) });
+                        util.logError(request,`[WARNING] No Push Sent:`, { type: 'timeline_service', error: serializeError(err) });
                     }
                             
                     await activityCommonService.assetTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
@@ -979,7 +972,7 @@ function ActivityTimelineService(objectCollection) {
                             // Update the activity's inline data with the last send chat message
                             activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), ()=>{});
                         } catch(err) {
-                            logger.error(`[${logUUID}] Error`, { type: 'timeline_standard', error: serializeError(err) });
+                            util.logError(request,`Error`, { type: 'timeline_standard', error: serializeError(err) });
                         }
                     }
     
@@ -996,7 +989,7 @@ function ActivityTimelineService(objectCollection) {
                             }
                         }
                     } else {
-                        logger.info(`[${logUUID}] asset_reference is not available`);
+                        util.logInfo(request,`asset_reference is not available`);
                     }
                 }
             } //end of if (isAddToTimeline)
@@ -1198,7 +1191,6 @@ function ActivityTimelineService(objectCollection) {
     }
 
     async function fireBotEngineInitWorkflow(request) {
-        let logUUID = request.log_uuid || "";
         try {
             if (
                 request.hasOwnProperty("fire_bot_engine") &&
@@ -1207,7 +1199,7 @@ function ActivityTimelineService(objectCollection) {
                 return;
             }
         } catch (error) {
-            logger.error(`[${logUUID}] fireBotEngineInitWorkflow | fire_bot_engine Check | Error: `, { type: 'fireBotEngineInitWorkflow', error: serializeError(error) });
+            util.logError(request,`fireBotEngineInitWorkflow | fire_bot_engine Check | Error: `, { type: 'fireBotEngineInitWorkflow', error: serializeError(error) });
         }
         try {
             let botEngineRequest = Object.assign({}, request);
@@ -1244,10 +1236,10 @@ function ActivityTimelineService(objectCollection) {
                     //Bot log - Bot is defined
                     await activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    logger.info(`[${logUUID}] fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
+                    util.logInfo(request,`fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
                     await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                         .then(async (resp) => {
-                            logger.info(`[${logUUID}] Bot Engine Trigger Response: %j`,resp);
+                            util.logInfo(request,`Bot Engine Trigger Response: %j`,resp);
                             //Bot log - Update Bot status
                             //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
                             //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
@@ -1266,14 +1258,14 @@ function ActivityTimelineService(objectCollection) {
                         });
                 } else {
                     //Bot is not defined
-                    logger.info(`[${logUUID}] activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined`);
+                    util.logInfo(request,`activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined`);
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
-                logger.error(`[${logUUID}] formConfigError ${formConfigError}`, { type: 'fireBotEngineInitWorkflow' });
+                util.logError(request,`formConfigError ${formConfigError}`, { type: 'fireBotEngineInitWorkflow' });
             }
         } catch (botInitError) {
-            logger.error(`[${logUUID}] botInitError`, { type: 'fireBotEngineInitWorkflow', error: serializeError(botInitError) });
+            util.logError(request,`botInitError`, { type: 'fireBotEngineInitWorkflow', error: serializeError(botInitError) });
         }
     }
 
@@ -2471,8 +2463,7 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        let logUUID = request.log_uuid || "";
-        logger.info(`[${logUUID}] In ActivtiyTimelineService - Inside the addFormEntries() function.`);
+        util.logInfo(request,`In ActivtiyTimelineService - Inside the addFormEntries() function.`);
         let formDataJson;
         let annexureExcelFilePath = "";
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
@@ -2486,7 +2477,7 @@ function ActivityTimelineService(objectCollection) {
             try {
                 formDataCollection = JSON.parse(request.activity_timeline_collection);
             } catch (err) {
-                logger.error(`[${logUUID}] Error in addFormEntries() function - ONE. JSON Error`, { type: 'addFormEntries', error: serializeError(err) });
+                util.logError(request,`Error in addFormEntries() function - ONE. JSON Error`, { type: 'addFormEntries', error: serializeError(err) });
             }
 
             if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
@@ -2496,7 +2487,7 @@ function ActivityTimelineService(objectCollection) {
                 try {
                     formDataJson = JSON.parse(formDataCollection.form_submitted);
                 } catch (err) {
-                    logger.error(`[${logUUID}] Error in addFormEntries() function - TWO. JSON Error`, { type: 'addFormEntries', error: serializeError(err) });
+                    util.logError(request,`Error in addFormEntries() function - TWO. JSON Error`, { type: 'addFormEntries', error: serializeError(err) });
                 }
 
             }
@@ -2513,7 +2504,7 @@ function ActivityTimelineService(objectCollection) {
             } else {
                 formDataJson = JSON.parse(request.incremental_form_data);
             }
-            logger.info(`[${logUUID}] [Incremental Form Data Submission] formDataJson: %j`, formDataJson);
+            util.logInfo(request,`[Incremental Form Data Submission] formDataJson: %j`, formDataJson);
         }
 
         //console.log('formDataJson : ', formDataJson);
@@ -2778,7 +2769,7 @@ function ActivityTimelineService(objectCollection) {
                         // p_entity_text_2 19
                         params[19] = workflowReference[4] || workflowReference[2] || "";
                     } catch (err) {
-                        logger.error(`[${logUUID}][57] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                        util.logError(request,`[57] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
 
                         if (typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
@@ -2805,7 +2796,7 @@ function ActivityTimelineService(objectCollection) {
                         // p_entity_text_3 20
                         params[20] = assetReference[3] || "";
                     } catch (err) {
-                        logger.error(`[${logUUID}][59] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                        util.logError(request,`[59] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
                         if (typeof row.field_value === 'object') {
                             params[27] = JSON.stringify(row.field_value);
                         } else {
@@ -2824,7 +2815,7 @@ function ActivityTimelineService(objectCollection) {
                             params[16] = jsonData.transaction_data.transaction_amount; // Debit
                         params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                     } catch (err) {
-                        logger.error(`[${logUUID}][62] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                        util.logError(request,`[62] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
                     }
                     break;
                 case 64: // Address DataType
@@ -2854,7 +2845,7 @@ function ActivityTimelineService(objectCollection) {
                             params[13] = JSON.parse(row.field_value).cart_total_cost:
                             params[13] = Number(fieldValue.cart_total_cost);
                     } catch(err) {
-                        logger.error(`[${logUUID}][71] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                        util.logError(request,`[71] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
                     }
                     break;                
                 case 72: 
@@ -2875,7 +2866,7 @@ function ActivityTimelineService(objectCollection) {
                             params[27] = JSON.stringify(fieldValue);
                         }
                     } catch (err) {
-                        logger.error(`[${logUUID}][74] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                        util.logError(request,`[74] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
                     }
                     break;
                 case 76: //Drop box data type
@@ -2898,7 +2889,7 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
 
-            logger.info(`[${logUUID}] addFormEntries params %j`, params);
+            util.logInfo(request,`addFormEntries params %j`, params);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
@@ -2920,7 +2911,7 @@ function ActivityTimelineService(objectCollection) {
                     if (Object.keys(annexureFields).includes(String(row.field_id))) {
                         if (annexureExcelFilePath.length > 0) {
                             let childOrdersCreationTopicName = global.config.CHILD_ORDER_TOPIC_NAME;
-                            logger.info(`[${logUUID}] ${childOrdersCreationTopicName} %j`, {
+                            util.logInfo(request,`${childOrdersCreationTopicName} %j`, {
                                 ...request,
                                 s3UrlOfExcel: annexureExcelFilePath
                             });
@@ -2975,7 +2966,7 @@ function ActivityTimelineService(objectCollection) {
             }
 
         }).then(function () {
-            logger.info(`[${logUUID}] ******AFTER FORM DATA ENTRY *********`);
+            util.logInfo(request,`******AFTER FORM DATA ENTRY *********`);
             request['source_id'] = 2;
             //sendRequesttoWidgetEngine(request);
 
@@ -2984,13 +2975,13 @@ function ActivityTimelineService(objectCollection) {
             order_caf_approval_form_ids = widgetFieldsStatusesData.AUTH_SIGNATORY_FORM_IDS; //new Array(282556, 282586, 282640, 282622, 282669); //
             order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS; //new Array(282624, 282642, 282671, 282557, 282588);//
             order_documents_form_ids = widgetFieldsStatusesData.ORDER_DOCUMETS_FORM_IDS;
-            logger.info(`[${logUUID}] order_caf_approval_form_ids ${Object.keys(order_caf_approval_form_ids)}`);
-            logger.info(`[${logUUID}] order_logged_form_ids ${Object.keys(order_logged_form_ids)}`);
+            util.logInfo(request,`order_caf_approval_form_ids ${Object.keys(order_caf_approval_form_ids)}`);
+            util.logInfo(request,`order_logged_form_ids ${Object.keys(order_logged_form_ids)}`);
 
 
             if (Object.keys(order_caf_approval_form_ids).includes(String(request.form_id))) {
                 activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                    logger.info(`[${logUUID}] ******ALTER CAF APPROVAL STATUS DATETIME*********`);
+                    util.logInfo(request,`******ALTER CAF APPROVAL STATUS DATETIME*********`);
                     request['workflow_activity_id'] = activityData[0].channel_activity_id;
                     request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                     request['order_caf_approval_log_diff'] = 0;
@@ -3001,7 +2992,7 @@ function ActivityTimelineService(objectCollection) {
 
             } else if (Object.keys(order_logged_form_ids).includes(String(request.form_id))) {
                 activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                    logger.info(`[${logUUID}] ******ALTER ORDER LOGGED STATUS DATETIME*********`);
+                    util.logInfo(request,`******ALTER ORDER LOGGED STATUS DATETIME*********`);
                     request['workflow_activity_id'] = activityData[0].channel_activity_id;
                     request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                     request['order_trigger_log_diff'] = 0;
@@ -3013,7 +3004,7 @@ function ActivityTimelineService(objectCollection) {
                 })
             } else if (Object.keys(order_documents_form_ids).includes(String(request.form_id))) {
                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                logger.info(`[${logUUID}] ******ORDER DOCUMENTS SUBMITTED*********`);
+                util.logInfo(request,`******ORDER DOCUMENTS SUBMITTED*********`);
                    request['activity_id'] = activityData[0].channel_activity_id;
                    request['documents_submitted'] = 1;
                    activityCommonService.activityUpdateDocumentsSubmitted(request);
@@ -3244,8 +3235,7 @@ function ActivityTimelineService(objectCollection) {
 
 
 async function addFormEntriesAsync(request) {
-    let logUUID = request.log_uuid || "";
-    logger.info(`[${logUUID}] In AddFormEntries`);
+    util.logInfo(request,`In AddFormEntries`);
 
     let responseData = [],
             error = true;
@@ -3262,7 +3252,7 @@ async function addFormEntriesAsync(request) {
         try {
             formDataCollection = JSON.parse(request.activity_timeline_collection);
         } catch (err) {
-            logger.error(`[${logUUID}] Error in addFormEntriesAsync()`, { type: 'add_form_entries', error: serializeError(err) });
+            util.logError(request,`Error in addFormEntriesAsync()`, { type: 'add_form_entries', error: serializeError(err) });
         }
         if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
             formDataJson = formDataCollection.form_submitted;
@@ -3270,7 +3260,7 @@ async function addFormEntriesAsync(request) {
             try {
                 formDataJson = JSON.parse(formDataCollection.form_submitted);
             } catch (err) {
-                logger.error(`[${logUUID}] Error in addFormEntriesAsync()`, { type: 'add_form_entries', error: serializeError(err) });
+                util.logError(request,`Error in addFormEntriesAsync()`, { type: 'add_form_entries', error: serializeError(err) });
             }
         }
     } else {
@@ -3284,7 +3274,7 @@ async function addFormEntriesAsync(request) {
         } else {
             formDataJson = JSON.parse(request.incremental_form_data);
         }
-        logger.info(`[${logUUID}] [Incremental Form Data Submission] formDataJson %j`, formDataJson);
+        util.logInfo(request,`[Incremental Form Data Submission] formDataJson %j`, formDataJson);
     }
 
     //console.log('formDataJson : ', formDataJson);
@@ -3552,7 +3542,7 @@ async function addFormEntriesAsync(request) {
                     // p_entity_text_2 19
                     params[19] = workflowReference[4] || workflowReference[2] || "";
                 } catch (err) {
-                    logger.error(`[${logUUID}] addFormEntriesAsync case 57`, { type: 'addFormEntriesAsync', error: serializeError(err) });
+                    util.logError(request,`addFormEntriesAsync case 57`, { type: 'addFormEntriesAsync', error: serializeError(err) });
                     if (typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);
                     } else {
@@ -3578,7 +3568,7 @@ async function addFormEntriesAsync(request) {
                     // p_entity_text_3 20
                     params[20] = assetReference[3] || "";
                 } catch (err) {
-                    logger.error(`[${logUUID}] addFormEntriesAsync case 59`, { type: 'addFormEntriesAsync', error: serializeError(err) });
+                    util.logError(request,`addFormEntriesAsync case 59`, { type: 'addFormEntriesAsync', error: serializeError(err) });
                     if (typeof row.field_value === 'object') {
                         params[27] = JSON.stringify(row.field_value);
                     } else {
@@ -3591,14 +3581,14 @@ async function addFormEntriesAsync(request) {
                 break;
             case 62: //Credit/Debit DataType
                 try {
-                        logger.info(`[${logUUID}] row.field_value 62`);
+                    util.logInfo(request,`row.field_value 62`);
                         let jsonData = row.field_value.transaction_data;
                         (Number(jsonData.transaction_type_id) === 1) ?
                             params[15] = jsonData.transaction_amount: //credit
                             params[16] = jsonData.transaction_amount; // Debit
                             params[13] = jsonData.activity_id; //Activity_id i.e account(ledger)_activity_id
                     } catch (err) {
-                        logger.error(`[${logUUID}] row.field_value 62`, { type: 'addFormEntriesAsync', error: serializeError(err) });
+                        util.logError(request,`row.field_value 62`, { type: 'addFormEntriesAsync', error: serializeError(err) });
                     }
                 break;
             case 64: // Address DataType
@@ -3647,6 +3637,17 @@ async function addFormEntriesAsync(request) {
             case 76: //Drop box data type
                      params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                      break;
+            case 77: //scheduling event
+                    try {
+                        let fieldValues = row.field_value;
+                        params[12] = fieldValues.duration // duration
+                        params[9]  = fieldValues.start_datetime// start time 
+                        params[17]  = fieldValues.end_datetime// end
+                        params[27] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
+                    } catch(e) {
+                        console.log("Error while handling scheduling data type", row.value, e,e.stack);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3664,7 +3665,7 @@ async function addFormEntriesAsync(request) {
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
 
-            logger.info(`[${logUUID}] addFormEntriesAsync params %j`,params);
+            util.logInfo(request,`addFormEntriesAsync params %j`,params);
 
             // const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             const queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
@@ -3684,7 +3685,7 @@ async function addFormEntriesAsync(request) {
                     if (Object.keys(annexureFields).includes(String(row.field_id))) {
                         if (annexureExcelFilePath.length > 0) {
                             let childOrdersCreationTopicName = global.config.CHILD_ORDER_TOPIC_NAME;
-                            logger.info(`[${logUUID}] ${childOrdersCreationTopicName} %j`, {
+                            util.logInfo(request,`${childOrdersCreationTopicName} %j`, {
                                 ...request,
                                 s3UrlOfExcel: annexureExcelFilePath
                             });
@@ -3703,7 +3704,7 @@ async function addFormEntriesAsync(request) {
         } //end of For loop
 
         //AFTER FORM DATA ENTRY
-        logger.info(`[${logUUID}] AFTER FORM DATA ENTRY`);
+        util.logInfo(request,`AFTER FORM DATA ENTRY`);
         request['source_id'] = 2;
         //sendRequesttoWidgetEngine(request);
 
@@ -3712,13 +3713,13 @@ async function addFormEntriesAsync(request) {
         order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS; //new Array(282624, 282642, 282671, 282557, 282588);//
         order_documents_form_ids = widgetFieldsStatusesData.ORDER_DOCUMETS_FORM_IDS;
 
-        logger.info(`[${logUUID}] order_caf_approval_form_ids ${Object.keys(order_caf_approval_form_ids)}`);
-        logger.info(`[${logUUID}] order_logged_form_ids ${Object.keys(order_logged_form_ids)}`);
+        util.logInfo(request,`order_caf_approval_form_ids ${Object.keys(order_caf_approval_form_ids)}`);
+        util.logInfo(request,`order_logged_form_ids ${Object.keys(order_logged_form_ids)}`);
 
         if (Object.keys(order_caf_approval_form_ids).includes(String(request.form_id))) {
             activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
 
-                logger.info(`[${logUUID}] *****ALTER CAF APPROVAL STATUS DATETIME*****`);
+                util.logInfo(request,`*****ALTER CAF APPROVAL STATUS DATETIME*****`);
                 request['workflow_activity_id'] = activityData[0].channel_activity_id;
                 request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                 request['order_caf_approval_log_diff'] = 0;
@@ -3728,7 +3729,7 @@ async function addFormEntriesAsync(request) {
             });
         } else if (Object.keys(order_logged_form_ids).includes(String(request.form_id))) {
             activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                    logger.info(`[${logUUID}] *****ALTER ORDER LOGGED STATUS DATETIME******`);
+                util.logInfo(request,`*****ALTER ORDER LOGGED STATUS DATETIME******`);
                     request['workflow_activity_id'] = activityData[0].channel_activity_id;
                     request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                     request['order_trigger_log_diff'] = 0;
@@ -3740,7 +3741,7 @@ async function addFormEntriesAsync(request) {
                 });
             } else if (Object.keys(order_documents_form_ids).includes(String(request.form_id))) {
                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
-                    logger.info(`[${logUUID}] ***** ORDER DOCUMENTS SUBMITTED*******`);
+                util.logInfo(request,`***** ORDER DOCUMENTS SUBMITTED*******`);
                    request['activity_id'] = activityData[0].channel_activity_id;
                    request['documents_submitted'] = 1;
                    activityCommonService.activityUpdateDocumentsSubmitted(request);
@@ -3753,7 +3754,6 @@ async function addFormEntriesAsync(request) {
 
 
     async function retrievingFormIdandProcessAsync(request, data) {
-        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
 
@@ -3775,13 +3775,13 @@ async function addFormEntriesAsync(request) {
         // Triggering BOT 1
         if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
             if (Number(request.organization_id) !== 868) {
-                logger.info(`[${logUUID}] [Log] Triggering the BOT 1`);
+                util.logInfo(request,`[Log] Triggering the BOT 1`);
                 //makeRequest to /vodafone/neworder_form/queue/add
                 let newRequest = Object.assign({}, request);
                     newRequest.activity_inline_data = {};
                 
                 activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp) => {
-                    logger.info(`[${logUUID}] resp %j`,resp);
+                    util.logInfo(request,`resp %j`,resp);
                 });
             }
         }
@@ -3789,16 +3789,16 @@ async function addFormEntriesAsync(request) {
         //Triggering BOT 2
         if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) ||
                 Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
-                    logger.info(`[${logUUID}] [Log] Triggering the BOT 2`);
+                    util.logInfo(request,`[Log] Triggering the BOT 2`);
             activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp) => {
-                logger.info(`[${logUUID}] resp %j`,resp);
+                util.logInfo(request,`resp %j`,resp);
             });
         }
 
         //BOT to send email on CRM form submission
         //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
         if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
-            logger.info(`[${logUUID}] [Log] Triggering BOT to send email on CRM form submission`);
+            util.logInfo(request,`[Log] Triggering BOT to send email on CRM form submission`);
             let newRequest = Object.assign({}, request);
             const crmFormData = JSON.parse(request.activity_inline_data);
             crmFormData.forEach(formEntry => {
@@ -3826,7 +3826,7 @@ async function addFormEntriesAsync(request) {
             });
                 
             activityCommonService.makeRequest(newRequest, "vodafone/send/email", 1).then((resp) => {
-                logger.info(`[${logUUID}] resp %j`,resp);
+                util.logInfo(request,`resp %j`,resp);
                 });
             }
 
@@ -3874,7 +3874,7 @@ async function addFormEntriesAsync(request) {
                     Number(request.form_id) === HLD_FORM_ID // HLD
                 )
             ) {
-                logger.info(`[${logUUID}] CALLING buildAndSubmitCafForm`);
+                util.logInfo(request,`CALLING buildAndSubmitCafForm`);
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -3905,7 +3905,7 @@ async function addFormEntriesAsync(request) {
                     Number(request.form_id) === CUSTOMER_APPROVAL_FORM_ID
                 )
             ) {
-                logger.info(`[${logUUID}] CALLING setStatusApprovalPendingAndFireEmail`);
+                util.logInfo(request,`CALLING setStatusApprovalPendingAndFireEmail`);
                 const omtApprovalRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -3948,7 +3948,7 @@ async function addFormEntriesAsync(request) {
             let err;
             [err, data] = await timelineStandardCallsAsync(request);
             (err) ?
-            logger.error(`[${logUUID}] Error in timelineStandardCalls`, { type: 'retrievingFormIdandProcessAsync', error: serializeError(err) }):
+            util.logError(request,`Error in timelineStandardCalls`, { type: 'retrievingFormIdandProcessAsync', error: serializeError(err) }):
                 error=false;
 
             return [error, responseData];
