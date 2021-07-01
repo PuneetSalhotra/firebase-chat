@@ -40,7 +40,7 @@ function ActivityService(objectCollection) {
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     const self = this;
 
     this.addActivity = function (request, callback) {

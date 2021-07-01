@@ -5,7 +5,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     const nodeUtil = require('util');
     var elasticsearch = require('elasticsearch');
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     var client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
