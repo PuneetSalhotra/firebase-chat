@@ -3302,7 +3302,7 @@ async function addFormEntriesAsync(request) {
             request.organization_id, //8
             '', //IN p_entity_date_1 DATE                                   9
             request.entity_datetime_1 || '', //IN p_entity_datetime_1 DATETIME            10
-            '', //IN p_entity_tinyint_1 TINYINT(4)                          11
+            '', //IN p_entity_tinyint_1 TINYINT(4)                         11
             '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
             '', //IN p_entity_bigint_1 BIGINT(20)                           13
             '', //IN p_entity_double_1 DOUBLE(16,4),                        14
@@ -3635,14 +3635,15 @@ async function addFormEntriesAsync(request) {
                      params[18] = row.field_value;
                      break;
             case 76: //Drop box data type
-                     params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
+                     params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;    
                      break;
             case 77: //scheduling event
                     try {
+                        console.log("handling 77", row.field_value);
                         let fieldValues = row.field_value;
-                        params[12] = fieldValues.duration // duration
-                        params[9]  = fieldValues.start_datetime// start time 
-                        params[17]  = fieldValues.end_datetime// end
+                        params[13] = fieldValues.duration 
+                        params[9]  = await util.getFormatedLogDatetimeV1(fieldValues.start_date_time, "DD-MM-YYYY HH:mm:ss")
+                        params[18]  = await util.getFormatedLogDatetimeV1(fieldValues.end_date_time, "DD-MM-YYYY HH:mm:ss") 
                         params[27] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                     } catch(e) {
                         console.log("Error while handling scheduling data type", row.value, e,e.stack);
