@@ -699,14 +699,12 @@ function MerchantPaymentService(objectCollection) {
                                 payment_status = 'SUC';
                                 response_code = "00";
                                 response_description = "SUCCESS";
-                               
                                 request.activity_status_type_id = 99;  // paid                             
-                                
-                            }else{
+                            } else {
                                 request.activity_status_type_id = 191; // payment failed
-                                
                             }
-                            this.alterStatusMakeRequest(request)
+                            this.alterStatusMakeRequest(request);
+
                             payment.response_code = response_code;
                             payment.response_desc = response_description;
                             payment.payment_status = payment_status;
@@ -985,6 +983,22 @@ function MerchantPaymentService(objectCollection) {
                                     refund_resp_desc = "Refund Processed";
                                 }
 
+                                request.activity_id = paymentTransactionData.reservation_activity_id;
+                                request.organization_id = paymentTransactionData.organization_id;
+                                request.account_id = paymentTransactionData.account_id;
+                                request.workforce_id = paymentTransactionData.workforce_id;
+                                request.activity_type_category_id = 37;
+                                request.asset_id = 11031;
+                                if ("processed" === refund.status) {
+                                    refund_status = 'SUC';
+                                    refund_resp_code = "00";
+                                    refund_resp_desc = "Refund Processed";
+                                    request.activity_status_type_id = 192;  // paid                             
+                                } else {
+                                    request.activity_status_type_id = 194; // payment failed
+                                }
+                                this.alterStatusMakeRequest(request);
+
                                 let refund_txn_no = paymentUtil.generateUniqueID();
                                 const refundArray = new Array(
                                     paymentUtil.generateUniqueID(),
@@ -1161,19 +1175,27 @@ function MerchantPaymentService(objectCollection) {
                                             
                                             let transaction_id = paymentTransactionData.transaction_id;
                                             logger.debug("transaction_id = " + transaction_id);
-                                            
-
                                             //-------------------------
                                             payment.payment_date_time = moment(payment.created_at).utc().format("YYYY-MM-DD HH:mm:ss");
                                             let payment_status = 'FAI';
                                             let response_code = "39"; 
                                             let response_description = payment.error_reason || 'FAIELD';
                                             
+                                            request.activity_id = paymentTransactionData.reservation_activity_id;
+                                            request.organization_id = paymentTransactionData.organization_id;
+                                            request.account_id = paymentTransactionData.account_id;
+                                            request.workforce_id = paymentTransactionData.workforce_id;
+                                            request.activity_type_category_id = 37;
+                                            request.asset_id = 11031;
                                             if("captured" === payment.status) {
                                                 payment_status = 'SUC';
                                                 response_code = "00";
                                                 response_description = "SUCCESS";
+                                                request.activity_status_type_id = 99;  // paid                             
+                                            } else {
+                                                request.activity_status_type_id = 191; // payment failed
                                             }
+                                            this.alterStatusMakeRequest(request);
 
                                             payment.response_code = response_code;
                                             payment.response_desc = response_description;
