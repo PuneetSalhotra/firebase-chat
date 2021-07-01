@@ -4252,7 +4252,7 @@ function ActivityService(objectCollection) {
                                             util.logInfo(request,`updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            util.logError(request,`updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(err) });
+                                            util.logError(request,`updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                 }
                             });
