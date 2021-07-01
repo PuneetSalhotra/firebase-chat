@@ -993,9 +993,9 @@ function MerchantPaymentService(objectCollection) {
                                     refund_status = 'SUC';
                                     refund_resp_code = "00";
                                     refund_resp_desc = "Refund Processed";
-                                    request.activity_status_type_id = 99;  // paid                             
+                                    request.activity_status_type_id = 192;  // paid                             
                                 } else {
-                                    request.activity_status_type_id = 191; // payment failed
+                                    request.activity_status_type_id = 194; // payment failed
                                 }
                                 this.alterStatusMakeRequest(request);
 
