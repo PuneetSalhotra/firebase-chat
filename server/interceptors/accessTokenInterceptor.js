@@ -3,6 +3,8 @@ const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 const uuidv4 = require('uuid/v4');
+const logger = require("../logger/winstonLogger");
+const moment = require('moment');
 
 function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
@@ -15,8 +17,9 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
 
-        if(!req.body.hasOwnProperty("log_uuid")) {
+        if (!req.body.hasOwnProperty("log_uuid") && !req.url.includes('/' + global.config.version + '/healthcheck')) {
             req.body["log_uuid"] = await getLogUUID();
+            addInitialLog(req);
         }
 
         //Check for flag - Cognito or Redis Auth
@@ -351,9 +354,38 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         //}); //getServiceId
     }); //app.use
      
-    let getLogUUID = function () {
-        return `${uuidv4()}${Math.floor((Math.random()*100) + 1)}`
+    let getLogUUID = async function () {
+        return `log-${await cacheWrapper.getLogID()}-uuid`
     };
+
+    let addInitialLog = async function (request) {
+        try {
+            
+            let activityID = "-";
+            let assetID = "-";
+            let assetPhoneNumber = "-";
+            let logUUID = request.body["log_uuid"];
+            let emailID = "-";
+            let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+
+            if (request.body.hasOwnProperty("activity_id")) {
+                activityID = request.body.activity_id;
+            }
+
+            if (request.body.hasOwnProperty("asset_id")) {
+                assetID = request.body.asset_id;
+            }
+
+            if (request.headers.hasOwnProperty('x-grene-p-code')) {
+                assetPhoneNumber = request.headers['x-grene-p-code'];
+            }
+
+            logger.info(`MAIN_REQUEST_START | ${request.url} | ${activityID} | ${logUUID} | ${assetID} | ${assetPhoneNumber} | ${emailID} | ${dateTime} `);
+        } catch (e) {
+
+        }
+
+    }
 }
 
 module.exports = AccessTokenInterceptor;

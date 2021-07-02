@@ -97,7 +97,6 @@ function ActivityParticipantService(objectCollection) {
 
     this.assignCoworker = async function (request, callback) { //Addparticipant Request
         
-        let logUUID = request.log_uuid || "";
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
 
@@ -114,10 +113,10 @@ function ActivityParticipantService(objectCollection) {
                     }
                 })
                 .catch((error) => {
-                    logger.error(`[${logUUID}] BotEngine: changeStatus | getActivityDetailsPromise | error: `, { type: 'assignCoworker', error: serializeError(error) });
+                    util.logError(request,`BotEngine: changeStatus | getActivityDetailsPromise | error: `, { type: 'assignCoworker', error: serializeError(error) });
                 });
         } catch (error) {
-            logger.error(`[${logUUID}] BotEngine: changeStatus | Activity Details Fetch Error | error: `, { type: 'assignCoworker', error: serializeError(error) });
+            util.logError(request,`BotEngine: changeStatus | Activity Details Fetch Error | error: `, { type: 'assignCoworker', error: serializeError(error) });
         }
 
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
@@ -127,7 +126,7 @@ function ActivityParticipantService(objectCollection) {
                         updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     }
                 } else {
-                    logger.error(`[${logUUID}] something is not right in adding a participant `, { type: 'assignCoworker', error: serializeError(err) });
+                    util.logError(request,`something is not right in adding a participant `, { type: 'assignCoworker', error: serializeError(err) });
                     //console.log("something is not wright in adding a participant");
                 }
             });
@@ -141,7 +140,7 @@ function ActivityParticipantService(objectCollection) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, async function (err, data) {
                         if (err === false) {
-                            logger.info(`[${logUUID}] ******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate`);
+                            util.logInfo(request,` ******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate`);
                             //console.log("participant successfully added");
 
                             if(request.activity_type_category_id == 16){
@@ -911,7 +910,6 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
-        let logUUID = request.log_uuid || "";
         var fieldId = 0;
         var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
         var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
@@ -959,7 +957,7 @@ function ActivityParticipantService(objectCollection) {
                     }*/
 
                     //Inserting into activity asset table for account search
-                    logger.info(`[${logUUID}] Account Search :- Updating Activity Asset Table`);
+                    util.logInfo(request,` Account Search :- Updating Activity Asset Table`);
                     activityCommonService.actAssetSearchMappingInsert({
                         activity_id: request.activity_id,
                         //asset_id: request.asset_id,
@@ -1059,7 +1057,6 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var updateParticipantCount = function (activityId, organizationId, request, callback) {
-        let logUUID = request.log_uuid || "";
         var paramsArr = new Array(
             activityId,
             organizationId
@@ -1070,7 +1067,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    logger.info(`[${logUUID}] participant count retrieved from query is: %j`, participantCount);
+                    util.logInfo(request,`participant count retrieved from query is: %j`, participantCount);
 
                     paramsArr = new Array(
                         activityId,
@@ -1119,7 +1116,7 @@ function ActivityParticipantService(objectCollection) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                logger.error(`[${logUUID}] serverError`, { type: 'update_participant_count', error: serializeError(err) });
+                                util.logError(request,`serverError`, { type: 'update_participant_count', error: serializeError(err) });
                                 return;
                             }
                         });
@@ -1127,7 +1124,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    logger.error(`[${logUUID}] serverError`, { type: 'update_participant_count', error: serializeError(err) });
+                    util.logError(request,`serverError`, { type: 'update_participant_count', error: serializeError(err) });
                     return;
                 }
             });

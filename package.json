@@ -51,6 +51,7 @@
     "html-pdf": "^2.2.0",
     "hummus": "^1.0.110",
     "hummus-recipe": "^1.9.9",
+    "ics": "^2.29.0",
     "ip": "^1.1.5",
     "jwk-to-pem": "^2.0.4",
     "kafka-node": "^5.0.0",

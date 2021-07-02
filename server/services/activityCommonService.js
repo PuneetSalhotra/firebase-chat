@@ -5,7 +5,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     const nodeUtil = require('util');
     var elasticsearch = require('elasticsearch');
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     var client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
@@ -2028,7 +2028,6 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateParticipantCount = function (activityId, organizationId, request, callback) {
-        let logUUID = request.log_uuid || "";
         var paramsArr = new Array(
             activityId,
             organizationId
@@ -2077,7 +2076,7 @@ this.getAllParticipantsAsync = async (request) => {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
+                                util.logError(request,`participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                                 return;
                             }
                         });
@@ -2085,7 +2084,7 @@ this.getAllParticipantsAsync = async (request) => {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    logger.error(`[${logUUID}] participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
+                    util.logError(request,`participantupdateerror`, { type: 'update_participant', error: serializeError(err) });
                     return;
                 }
             });
@@ -4397,7 +4396,6 @@ this.getAllParticipantsAsync = async (request) => {
 
         let responseData = [],
             error = true;
-        let logUUID = request.log_uuid;
         //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         let assetId = request.asset_id;
         let organizationId = request.organization_id;
@@ -4444,7 +4442,7 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        logger.info(`[${logUUID}] activityTimelineTransactionInsertAsync streamTypeId ${streamTypeId}`);
+        util.logInfo(request,`activityTimelineTransactionInsertAsync streamTypeId ${streamTypeId}`);
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -4580,7 +4578,7 @@ case 729: // Report form BC Edit
                         isAttachment = 1;
                     }
                 } catch (err) {
-                    logger.error(`[${logUUID}] Parsing and retrieving attachments`, { type: 'timeline_insert', error: serializeError(err) });
+                    util.logError(request,`Parsing and retrieving attachments`, { type: 'timeline_insert', error: serializeError(err) });
                 }
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -5386,7 +5384,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.updateCustomerOnWorkflowAsync = async function (request, requestFormData) {
         let self = this;
-        let logUUID = request.log_uuid || "";
         forEachAsync(requestFormData, function (next, fieldObj) {
             if (fieldObj.field_data_type_id == 59) {
                 let assetReference = fieldObj.field_value.split('|');
@@ -5394,7 +5391,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     request['customer_asset_id'] = assetReference[0];
                     self.updateCustomerOnWorkflow(request);
                 } else {
-                    logger.error(`[${logUUID}] CUSTOMER REFERENCE VALUE IS IMPROPER ${fieldObj.field_value}`, { type: 'update_customer_workflow' });
+                    util.logError(request,`CUSTOMER REFERENCE VALUE IS IMPROPER ${fieldObj.field_value}`, { type: 'update_customer_workflow' });
                 }
                 next();
             } else {
@@ -5570,8 +5567,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.makeGenericRequest = async function(request){
 
-        let logUUID = request.log_uuid || "";
-
         const genericAsync = nodeUtil.promisify(makingRequest.post);
         //console.log("assignRequest :: ",JSON.stringify(assignRequest, null,2));
         const makeRequestOptions = {
@@ -5582,14 +5577,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             // global.config.mobileBaseUrl + global.config.version
             const response = await genericAsync(global.config.mobileBaseUrl + global.config.version + request.generic_url, makeRequestOptions);
             const body = JSON.parse(response.body);
-            logger.info(`[${logUUID}] makeGenericRequest ${request.generic_url} %j`, body);
+            util.logInfo(request,`makeGenericRequest ${request.generic_url} %j`, body);
             if (Number(body.status) === 200) {
                 return [false, {}];
             }else{
                 return [true, {}];
             }
         } catch (error) {
-            logger.error(`[${logUUID}] makeGenericRequest ${request.generic_url}`, { type: 'makeGenericRequest', error: serializeError(error) });
+            util.logError(request,`makeGenericRequest ${request.generic_url}`, { type: 'makeGenericRequest', error: serializeError(error) });
             return [true, {}];
         } 
     };
@@ -5996,7 +5991,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     };
 
     this.activityUpdateExpression  = async function (request) {
-        let logUUID = request.log_uuid || "";
         let responseData = [],
             error = true;
         let paramsArr = new Array(
@@ -6014,7 +6008,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = false;
         })
         .catch((err)=>{
-            logger.error(`[${logUUID}] activityUpdateExpression`, { type: 'activityUpdateExpression', error: serializeError(err) });
+            util.logError(request,`activityUpdateExpression`, { type: 'activityUpdateExpression', error: serializeError(err) });
             error = err;
         });
         }
@@ -6146,12 +6140,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                     must: [
                                       {
                                         match: {
-                                          activity_id:request.activity_id
+                                          activity_id:Number(request.activity_id)
                                         }
                                       },
                                       {
                                         match: {
-                                          asset_id:request.asset_id
+                                          asset_id:Number(request.asset_id)
                                         }
                                       }
                                     ],
@@ -6189,7 +6183,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
-                console.log(data)
+                // console.log(data)
                 if(data.length>0){
                 let dataTobeSent = responseData[0];
                    let resultData = await client.search({
@@ -6200,12 +6194,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:request.asset_id
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
@@ -6228,12 +6222,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:request.asset_id
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
@@ -6292,7 +6286,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               }
                             ],
@@ -6309,6 +6303,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              previousData.activity_status_id = dataTobeSent.activity_status_id;
              previousData.activity_status_type_id = dataTobeSent.activity_status_type_id;
              previousData.activity_title = dataTobeSent.activity_title;
+             previousData.asset_flag_is_owner = dataTobeSent.asset_flag_is_owner;
+             logger.info('came in elastic activity 2 update :'+JSON.stringify(dataTobeSent));
             //  let dd ={ activity_title: 'FR01621483',
             //  activity_cuid_1: null,
             //  activity_cuid_2: null,
@@ -6341,12 +6337,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               },
                               {
                                 match: {
-                                  asset_id:previousData.asset_id
+                                  asset_id:Number(previousData.asset_id)
                                 }
                               }
                             ],
@@ -6403,7 +6399,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
-                if(data.length>0&&data[0].activity_creator_asset_id==request.asset_id){
+                if(data.length>0 && data[0].activity_creator_asset_id==request.asset_id){
+                // if(data.length>0){
                 let dataTobeSent = responseData[0];
               
                    let resultData = await client.search({
@@ -6423,6 +6420,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     }
                 }
             });
+            
             logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
             // logger.info(resultData.hits.hits[0]._source);
             if(resultData.hits.hits.length>0){
@@ -6437,7 +6435,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             must: [
                               {
                                 match: {
-                                  activity_id:request.activity_id
+                                  activity_id:Number(request.activity_id)
                                 }
                               }
                             ],
@@ -6478,6 +6476,127 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }).catch(err=>resolve())})
             }
         }
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+    }
+
+    return [error, responseData];
+    }
+
+    this.delteAndInsertInElastic = async function (request){
+        let responseData = [],
+        error = true;
+        let checkEntry = [];
+
+// const paramsArr2 = [ request.activity_id,
+//     request.asset_id,
+//     request.organization_id ];
+//     const queryString2 = util.getQueryString('ds_v1_activity_asset_search_mapping_update_elasticsearch_insert', paramsArr2);
+//     if (queryString2 !== '') {
+//         await db.executeQueryPromise(0, queryString2, request)
+//             .then(async (data) => {
+//                 console.log(data[0].updated_rows)
+//                 checkEntry = data;
+//             }).catch(err=>console.log(err))}
+// if(checkEntry.length>0){
+//     return [false, []];
+// }
+// else{
+    
+    const paramsArr = [
+                        request.activity_id,
+                        request.asset_id,
+                        0                           
+                      ];
+    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async (data) => {
+                responseData = data;
+                
+                // if(data.length>0){
+                
+              
+                // console.log(global.config.elasticActivitySearchTable,global.config.elasticActivityAssetTable)
+            // logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
+            // logger.info(resultData.hits.hits[0]._source);
+            
+             await client.deleteByQuery({
+                index: global.config.elasticActivitySearchTable,
+                "body": {
+                    "query": {
+                       
+                                match: {
+                                  activity_id:Number(request.activity_id)
+                                }
+                    },
+                }
+            })
+            await client.deleteByQuery({
+                index: global.config.elasticActivityAssetTable,
+                "body": {
+                    "query": {
+                       
+                                match: {
+                                  activity_id:Number(request.activity_id)
+                                }
+                    },
+                }
+            });
+
+            if(responseData.length>0){
+                console.log(responseData)
+                let insertedResponse = await new Promise((resolve)=>{ client.index({
+                    index:global.config.elasticActivitySearchTable,
+                    body:{
+                        ...responseData[0]
+                    }
+                }).then(res=>{
+                    logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+                    resolve()
+                }).catch(err=>resolve())})
+
+                for(let i=0;i<responseData.length;i++){
+                    let insertedResponse = await new Promise((resolve)=>{ client.index({
+                        index:global.config.elasticActivityAssetTable,
+                        body:{
+                            ...responseData[i]
+                        }
+                    }).then(res=>{
+                        logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+                        resolve()
+                    }).catch(err=>resolve())})
+                }
+            }
+            
+            // else{
+            //     logger.info('came in elastic activity 1 insert :')
+            //     // const paramsArr1 = [request.activity_id, request.asset_id,request.organization_id];
+            //     // const queryString1 = util.getQueryString(
+            //     //   "ds_v1_activity_asset_search_mapping_update_elasticsearch_insert",
+            //     //   paramsArr1
+            //     // );
+            //     // if (queryString1 !== "") {
+            //     //   await db
+            //     //     .executeQueryPromise(0, queryString1, request)
+            //     //     .then(async (data) => {})
+            //     //     .catch((err) => console.log(err));
+            //     // }
+
+            //    let insertedResponse = await new Promise((resolve)=>{ client.index({
+            //         index:global.config.elasticActivitySearchTable,
+            //         body:{
+            //             ...dataTobeSent
+            //         }
+            //     }).then(res=>{
+            //         logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+            //         resolve()
+            //     }).catch(err=>resolve())})
+            // }
+        
                 error = false;
             })
             .catch((err) => {

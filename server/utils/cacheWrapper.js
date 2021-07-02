@@ -555,6 +555,23 @@ function CacheWrapper(client) {
         });
     };
 
+    this.getCalendarEventIdPromise = () => {
+        return new Promise((resolve, reject) => {
+            client.incr('calendar_event_id', function (err, id) {
+                if (err) {
+                    logger.error(`INCR calendar_event_id`, { type: 'redis', cache_response: id, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `INCR opportunity_id`, err, reqBodyObject);
+                    resolve(0);
+                }
+
+                logger.verbose(`INCR calendar_event_id`, { type: 'redis', cache_response: id, error: err });
+                // global.logger.write('cacheResponse', `INCR opportunity_id`, id, reqBodyObject);
+                resolve(id);
+            });
+        });
+    };
+
     this.setOppurtunity = (setValue) => {
         return new Promise((resolve, reject) => {
             client.set('opportunity_id', setValue, function (err, reply) {
@@ -917,6 +934,23 @@ function CacheWrapper(client) {
                 }
             });
 
+        });
+    };
+
+    this.getLogID = () => {
+        return new Promise((resolve, reject) => {
+            client.incr('log_id', function (err, id) {
+                if (err) {
+                    logger.error(`INCR log_id`, { type: 'redis', cache_response: id, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `INCR opportunity_id`, err, reqBodyObject);
+                    resolve(0);
+                }
+
+                logger.verbose(`INCR log_id`, { type: 'redis', cache_response: id, error: err });
+                // global.logger.write('cacheResponse', `INCR opportunity_id`, id, reqBodyObject);
+                resolve(id);
+            });
         });
     };
 

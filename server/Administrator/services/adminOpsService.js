@@ -120,10 +120,12 @@ function AdminOpsService(objectCollection) {
             request.flag_ai_bot,
             request.flag_manager_proxy,
             request.flag_form_tag,
+            request.flag_enable_sip_module,
+            request.flag_enable_elasticsearch,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_1_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
