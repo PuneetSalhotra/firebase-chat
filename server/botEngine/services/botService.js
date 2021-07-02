@@ -5401,9 +5401,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
 
-        util.logInfo(request,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
-        util.logInfo(request,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
-        util.logInfo(request,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -5449,7 +5449,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
             } catch (error) {
-                util.logError(request,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         }
