@@ -5824,6 +5824,38 @@ async function removeAsOwner(request,data,addT = 0)  {
                 }
             }
 
+        } else if(type[0] === 'workflow_reference') {
+            util.logInfo(request,`addParticipant : Processing Static`);
+            logger.info(request.workflow_activity_id + " : ");
+            request.debug_info.push('Inside workflow_reference');
+            // newReq.flag_asset = inlineData[type[0]].flag_asset;
+            console.log("request.activity_inline_data", request.activity_inline_data);
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let fieldDetails;
+            for(let row of activityInlineData) {
+                if(row.field_id == inlineData[type[0]].field_id) {
+                    fieldDetails = row.field_value;
+                    break;
+                }
+            }
+
+            fieldDetails = fieldDetails.split('|');
+
+            let activityId = fieldDetails[0];
+            let [er,activityDetails] = await activityCommonService
+            .getActivityDetailsPromise(request, activityId);
+
+            if(inlineData[type[0]].participant_type == 'creator') {
+                newReq.desk_asset_id = activityDetails[0].activity_creator_asset_id;
+                newReq.phone_number = 0;
+            };
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            util.logInfo(request,`addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
+
         }
 
         // Fetch participant name from the DB
