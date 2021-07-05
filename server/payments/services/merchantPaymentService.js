@@ -10,7 +10,7 @@ function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
     const util = objectCollection.util;
-    const activitycommonService = objectCollection.activitycommonService;
+    const activityCommonService = objectCollection.activityCommonService;
     const razorPaymentGatewayService = new RazorPaymentGatewayService(objectCollection);
     const paymentUtil = new PaymentUtil(objectCollection);
     function sleep(ms) {
@@ -713,15 +713,8 @@ function MerchantPaymentService(objectCollection) {
                             if(request.is_pam){
                                 await sleep(1000);
                                 request.access_role_id = 2;
-                                let [notErr, notData] = await activitycommonService.getResourceByRole(request);
                                 request.message = "Order Received";
-                                request.target_asset_id = (notData.length > 0)?notData[0].asset_id:0;
-                                let activityData = [{
-                                                    activity_type_id:0,
-                                                    activity_type_category_id:request.activity_type_category_id,
-                                                    activity_title:request.activity_title || "",
-                                                }]
-                                await util.sendCustomPushNotification(request,activityData);
+                                activityCommonService.sendPushOnReservationAdd(request);
                             }
 
                             payment.response_code = response_code;
