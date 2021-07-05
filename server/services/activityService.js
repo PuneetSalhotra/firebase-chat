@@ -315,6 +315,10 @@ function ActivityService(objectCollection) {
                             if (activityTypeCategroyId === 38) {
                                 addIngredients(request);
                             }
+                            
+                            if (activityTypeCategroyId === 37){                                
+                                sendPushOnReservationAdd(request);
+                            }
 
                             if (activityTypeCategroyId === 40) {
                                 //if(request.hasOwnProperty('is_room_posting'))
@@ -5844,6 +5848,18 @@ function ActivityService(objectCollection) {
             return convertedData;
         }      
 
+        function sendPushOnReservationAdd(request) {
+            request.access_role_id = 2;
+            let [notErr, notData] = await activityCommonService.getResourceByRole(request);
+            request.message = "Order Received";
+            request.target_asset_id = (notData.length > 0)?notData[0].asset_id:0;
+            let activityData = [{
+                                activity_type_id:request.activity_type_id,
+                                activity_type_category_id:request.activity_type_category_id,
+                                activity_title:request.activity_title || "",
+                            }]
+            util.sendCustomPushNotification(request,activityData);     
+        }
 }
 
 module.exports = ActivityService;
