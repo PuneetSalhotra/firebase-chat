@@ -12,6 +12,9 @@ function MerchantPaymentService(objectCollection) {
     const util = objectCollection.util;
     const razorPaymentGatewayService = new RazorPaymentGatewayService(objectCollection);
     const paymentUtil = new PaymentUtil(objectCollection);
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     //API 1 : getSignature 
     this.getSignature = async function (request) {
@@ -699,11 +702,26 @@ function MerchantPaymentService(objectCollection) {
                                 payment_status = 'SUC';
                                 response_code = "00";
                                 response_description = "SUCCESS";
+                                request.is_pam = true;
                                 request.activity_status_type_id = 99;  // paid                             
                             } else {
                                 request.activity_status_type_id = 191; // payment failed
+                                request.is_pam = false
                             }
                             this.alterStatusMakeRequest(request);
+                            if(request.is_pam){
+                                await sleep(1000);
+                                request.access_role_id = 2;
+                                let [notErr, notData] = await this.getResourceByRole(request);
+                                request.message = "Order Received";
+                                request.target_asset_id = (notData.length > 0)?notData[0].asset_id:0;
+                                let activityData = [{
+                                                    activity_type_id:0,
+                                                    activity_type_category_id:request.activity_type_category_id,
+                                                    activity_title:request.activity_title || "",
+                                                }]
+                                await this.sendCustomPushNotification(request,activityData);
+                            }
 
                             payment.response_code = response_code;
                             payment.response_desc = response_description;
@@ -2044,15 +2062,15 @@ function MerchantPaymentService(objectCollection) {
 
     const addActivity = async (request) => {
 
-        // const [eventErr, eventData] = await self.getEvent(request);
+       // const [eventErr, eventData] = await self.getEvent(request);
         request.activity_parent_id = request.reservation_id                                  
-        // // eventData[0].activity_id;
-        // request.activity_type_category_id = 40;                                             
+       // // eventData[0].activity_id;
+       // request.activity_type_category_id = 40;                                             
         const [err1, activityType] = await this.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
         // request.activity_status_type_id = 115;                                              
-        // const [err2, activityStatus] = await this.getActivityStatusV1(request);
-        // request.activity_status_id = activityStatus[0].activity_status_id;
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
@@ -2108,7 +2126,34 @@ function MerchantPaymentService(objectCollection) {
             return [true, {}];
         }
     };
-    
+
+    this.getResourceByRole = async(request)=>{
+
+        let responseData = [],
+            error = true;
+        //IN p_organization_id BIGINT(20), IN p_access_role_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+       // let access_role_id = 2
+        var paramsArr = new Array(
+            request.organization_id,
+            request.access_role_id,
+            request.start_from || 0,
+            request.limit_value||50
+            )
+        const queryString = util.getQueryString('pm_v1_asset_list_select_role', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = [{asset_id:request.asset_id}];
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+
+    }
+
 }
 
 module.exports = MerchantPaymentService;
