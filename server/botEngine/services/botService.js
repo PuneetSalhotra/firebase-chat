@@ -5448,6 +5448,29 @@ async function removeAsOwner(request,data,addT = 0)  {
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
+                //Adding cuid 3 for child mom points
+                if (createTargetFormRequest.start_workflow_activity_parent_id) {
+                    let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: createTargetFormRequest.organization_id }, reqActivityId);
+                    if (activityData.length > 0) {
+                        let parentCUID3 = activityData[0].activity_cuid_3;
+                        let childCount = 1;
+                        const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
+                            organization_id: createTargetFormRequest.organization_id,
+                            activity_type_category_id: 63,
+                            activity_type_id: 190797,
+                            parent_activity_id: reqActivityId,
+                        });
+                        
+                        if (childWorkflowCount.length > 0) {
+                            childCount = Number(childWorkflowCount[0].count) + 1;
+                        }
+                        let cuid3 = parentCUID3 + "-" + childCount;
+                        createTargetFormRequest.calendar_event_id_update = true;
+                        createTargetFormRequest.workflow_activity_id = targetFormActivityID;
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                    }
+
+                }
             } catch (error) {
                 util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
