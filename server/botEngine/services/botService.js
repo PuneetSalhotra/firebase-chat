@@ -2346,24 +2346,6 @@ function BotService(objectCollection) {
                         });
                     }
                     console.log('****************************************************************');
-                    break;
-
-                case 52: // update Start Date time
-                console.log('****************************************************************');
-                console.log('');
-                logger.silly('Update Start Date time Event | Request Params received by BOT ENGINE: %j', request);
-                request.debug_info.push('bc_auto_populate');
-                try {
-                    console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations);
-                    await this.updateStartDateTime(request, botOperationsJson.bot_operations);
-                } catch (err) {
-                    logger.error("Autopopulate | Error in updating", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                    i.bot_operation_status_id = 2;
-                    i.bot_operation_inline_data = JSON.stringify({
-                        "err": err
-                    });
-                }
-                console.log('****************************************************************');
                 break;
 
             }
@@ -5419,9 +5401,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
 
-        util.logInfo(request,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
-        util.logInfo(request,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
-        util.logInfo(request,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -5467,7 +5449,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
             } catch (error) {
-                util.logError(request,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         }
@@ -8816,6 +8798,7 @@ else{
     }
     
     this.setDueDateOfWorkflow = async(request, formInlineDataMap, dueDateEdit, inlineData) => {
+
         let responseData = [],
             error = false,
             oldDate,
@@ -8842,6 +8825,11 @@ else{
             for(const i_iterator of dateFormData) {
                 if(Number(i_iterator.field_id) === Number(dueDateEdit.date_field_id)) {                
                     newDate = i_iterator.field_value;
+                    if(inlineData && Number(inlineData.is_meeting) && i_iterator.field_data_type_id == 77) {
+                        let data = i_iterator.field_value;
+                        newDate =  data.end_date_time;
+                    }
+
                     newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     break;
                 }
@@ -8853,6 +8841,13 @@ else{
                 request.debug_info.push('fieldData: ' + fieldData);
 
                 newDate = fieldData.field_value;
+
+                if(inlineData && Number(inlineData.is_meeting) && fieldData.field_data_type_id == 77) {
+                    console.log("Parsing Data type 77", fieldData.field_value);
+                    let data = fieldData.field_value;
+                    newDate =  data.end_date_time;
+                }
+
                 console.log('New Date b4 converting - ', newDate);
                 console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
                 request.debug_info.push('newDate: ' + newDate);
@@ -8954,13 +8949,20 @@ else{
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
         // console.log("inlineData", inlineData);
-        if(inlineData && Number(inlineData.is_meeting)) {
+        let fieldDetails = formInlineDataMap.get(Number(dueDateEdit.field_id));
+        console.log("fieldDetails", fieldDetails);
+        if(inlineData && Number(inlineData.is_meeting) && fieldDetails.field_data_type_id == 77) {
+            let parseDetails = fieldDetails.field_value;
            activityCoverData.start_date = {};
-           let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
-           activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
-           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
 
-           console.log("EDC bot update details", activityCoverData, "current date", request.activity_datetime_start);
+           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(parseDetails.start_date_time, "DD-MM-YYYY HH:mm:ss");
+           
+           
+        //    let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
+        //    activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+        //    activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
+
+           console.log("EDC bot update details", activityCoverData, "current date", parseDetails.start_date_time);
         }
 
         console.log('activityCoverData : ', activityCoverData);
@@ -15206,69 +15208,6 @@ let today = new Date();
           });
       }
       return [error, responseData];
-    }
-
-    this.updateStartDateTime = async function (request, inlineData) {
-        try {
-            // request.workflow_activity_id = request.activity_id;
-            let fieldId = inlineData.field_id;
-            let fieldValue = '';
-            let activityInlineData = JSON.parse(request.activity_inline_data);
-            for(let data of activityInlineData) {
-                if(data.field_id === fieldId)  {
-                    fieldValue = data.field_value;
-                }
-            }
-
-            console.log("fieldValue", fieldValue, "fieldId", fieldId)
-            // let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-
-            let newReq = Object.assign({}, request);
-            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
-            newReq.track_gps_datetime = util.getCurrentUTCTime();
-            newReq.datetime_log = newReq.track_gps_datetime;
-            newReq.message_unique_id = util.getMessageUniqueId(100);
-
-        let activityCoverData = {};
-            activityCoverData.title = {};
-                activityCoverData.title.old = request.activity_title;
-                activityCoverData.title.new = request.activity_title;
-            activityCoverData.description = {};
-                activityCoverData.description.old = "";
-                activityCoverData.description.new = "";
-
-            activityCoverData.duedate = {};
-                activityCoverData.duedate.new = util.getFormatedLogDatetimeV1(fieldValue.end_date_time, "DD-MM-YYYY HH:mm:ss");;
-
-                activityCoverData.start_date = {};
-                activityCoverData.start_date.new = util.getFormatedLogDatetimeV1(fieldValue.start_date_time, "DD-MM-YYYY HH:mm:ss");
-        // console.log("inlineData", inlineData);
-        
-        console.log('activityCoverData : ', activityCoverData);
-        // request.debug_info.push('activityCoverData: ' + activityCoverData);
-        try{
-            newReq.activity_cover_data = JSON.stringify(activityCoverData);
-        } catch(err) {
-            console.log(err);
-        }
-        
-        newReq.asset_id = 100;
-        newReq.activity_id = Number(request.workflow_activity_id);
-        const event = {
-            name: "alterActivityCover",
-            service: "activityUpdateService",
-            method: "alterActivityCover",
-            payload: newReq
-        };
-        console.log('request.workflow_activity_id : ', request.workflow_activity_id);
-        // request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
-        await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
-
-
-        } catch(e) {
-            console.log("Error in update date time",e, e.stack );
-            return;
-        }
     }
 
 }

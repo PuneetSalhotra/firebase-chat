@@ -40,7 +40,7 @@ function ActivityService(objectCollection) {
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     const self = this;
 
     this.addActivity = function (request, callback) {
@@ -4252,7 +4252,7 @@ function ActivityService(objectCollection) {
                                             util.logInfo(request,`updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
                                         })
                                         .catch((error) => {
-                                            util.logError(request,`updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(err) });
+                                            util.logError(request,`updateWorkflowQueueMapping | unmapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
                                         });
                                 }
                             });

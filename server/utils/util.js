@@ -2224,14 +2224,17 @@ function Util(objectCollection) {
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
 
-        pubnubWrapper.publish(request.target_asset_id, {
-            type: "activity_unread",
-            organization_id: Number(request.organization_id),
-            activity_type_category_id: activityTypeCategoryID,
-            activity_id: activityID,
-            activity_title: activityTitle,
-            description: request.message
-        });
+
+        if(!request.is_pam){
+            pubnubWrapper.publish(request.target_asset_id, {
+                type: "activity_unread",
+                organization_id: Number(request.organization_id),
+                activity_type_category_id: activityTypeCategoryID,
+                activity_id: activityID,
+                activity_title: activityTitle,
+                description: request.message
+            });
+        }
 
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
