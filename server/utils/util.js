@@ -2224,6 +2224,8 @@ function Util(objectCollection) {
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
 
+
+    if(request.is_pam){
         pubnubWrapper.publish(request.target_asset_id, {
             type: "activity_unread",
             organization_id: Number(request.organization_id),
@@ -2232,6 +2234,7 @@ function Util(objectCollection) {
             activity_title: activityTitle,
             description: request.message
         });
+    }
 
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
