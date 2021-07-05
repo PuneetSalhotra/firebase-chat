@@ -711,9 +711,10 @@ function MerchantPaymentService(objectCollection) {
                             this.alterStatusMakeRequest(request);
                             if(request.is_pam){
                                 await sleep(1000);
-                                await this.handlePushNotification(request);
-                                request.message = "Order Received: MemberName";
-                                request.target_asset_id = request.asset_id
+                                request.access_role_id = 2;
+                                let [notErr, notData] = await this.getResourceByRole(request);
+                                request.message = "Order Received";
+                                request.target_asset_id = (notData.length > 0)?notData[0].asset_id:0;
                                 let activityData = [{
                                                     activity_type_id:0,
                                                     activity_type_category_id:request.activity_type_category_id,
@@ -2126,15 +2127,15 @@ function MerchantPaymentService(objectCollection) {
         }
     };
 
-    this.handlePushNotification = async(request)=>{
+    this.getResourceByRole = async(request)=>{
 
         let responseData = [],
             error = true;
         //IN p_organization_id BIGINT(20), IN p_access_role_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
-        let access_role_id = 2
+       // let access_role_id = 2
         var paramsArr = new Array(
             request.organization_id,
-            access_role_id,
+            request.access_role_id,
             request.start_from || 0,
             request.limit_value||50
             )
