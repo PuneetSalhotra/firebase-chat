@@ -2213,7 +2213,7 @@ function Util(objectCollection) {
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
         const assetPushARN = assetMapData.asset_push_arn;
-        const [error1, defaultAssetName] = await objectCollection.activityCommonService.fetchCompanyDefaultAssetName(request);
+        const [error1, defaultAssetName] = await this.fetchCompanyDefaultAssetName(request);
 
         sns.publish({
             description: request.message,
@@ -3182,6 +3182,34 @@ function Util(objectCollection) {
         return text;
     }
 
+    this.fetchCompanyDefaultAssetName = async function (request) {
+        let assetName = 'greneOS',
+            error = true,
+            idOrganization = 1;
+        let assetId = 100;
+        if(request.is_pam){
+            assetId = 9841;
+            idOrganization = 351;
+        }
+
+        let paramsArr = new Array(
+            idOrganization,
+            assetId
+        );
+        const queryString = this.getQueryString('ds_p1_asset_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetName = data[0].asset_first_name;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetName];
+    };
 }
 
 module.exports = Util;
