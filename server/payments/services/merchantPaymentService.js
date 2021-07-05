@@ -720,7 +720,7 @@ function MerchantPaymentService(objectCollection) {
                                                     activity_type_category_id:request.activity_type_category_id,
                                                     activity_title:request.activity_title || "",
                                                 }]
-                                await this.sendCustomPushNotification(request,activityData);
+                                await util.sendCustomPushNotification(request,activityData);
                             }
 
                             payment.response_code = response_code;
