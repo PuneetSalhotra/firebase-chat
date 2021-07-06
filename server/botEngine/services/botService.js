@@ -15223,11 +15223,13 @@ var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
 let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
 let today = new Date();
         ics.createEvent({
-            title: wfActivityDetails[0].activity_title,
+            title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
             busyStatus: 'FREE',
             start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-            duration: { minutes: timeDifferenceInMinutes }
+            duration: { minutes: timeDifferenceInMinutes },
+            organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+            attendees: [{ name: receiver_name, email: email }]
           }, (error, value) => {
             if (error) {
               console.log(error)
