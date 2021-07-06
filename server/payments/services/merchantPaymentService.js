@@ -10,8 +10,12 @@ function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
     const util = objectCollection.util;
+    const activityCommonService = objectCollection.activityCommonService;
     const razorPaymentGatewayService = new RazorPaymentGatewayService(objectCollection);
     const paymentUtil = new PaymentUtil(objectCollection);
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     //API 1 : getSignature 
     this.getSignature = async function (request) {
@@ -699,14 +703,20 @@ function MerchantPaymentService(objectCollection) {
                                 payment_status = 'SUC';
                                 response_code = "00";
                                 response_description = "SUCCESS";
-                               
+                                request.is_pam = true;
                                 request.activity_status_type_id = 99;  // paid                             
-                                
-                            }else{
+                            } else {
                                 request.activity_status_type_id = 191; // payment failed
-                                
+                                request.is_pam = false
                             }
-                            this.alterStatusMakeRequest(request)
+                            this.alterStatusMakeRequest(request);
+                            if(request.is_pam){
+                                await sleep(1000);
+                                request.access_role_id = 2;
+                                request.message = "Order Received";
+                                activityCommonService.sendPushOnReservationAdd(request);
+                            }
+
                             payment.response_code = response_code;
                             payment.response_desc = response_description;
                             payment.payment_status = payment_status;
@@ -985,6 +995,22 @@ function MerchantPaymentService(objectCollection) {
                                     refund_resp_desc = "Refund Processed";
                                 }
 
+                                request.activity_id = paymentTransactionData.reservation_activity_id;
+                                request.organization_id = paymentTransactionData.organization_id;
+                                request.account_id = paymentTransactionData.account_id;
+                                request.workforce_id = paymentTransactionData.workforce_id;
+                                request.activity_type_category_id = 37;
+                                request.asset_id = 11031;
+                                if ("processed" === refund.status) {
+                                    refund_status = 'SUC';
+                                    refund_resp_code = "00";
+                                    refund_resp_desc = "Refund Processed";
+                                    request.activity_status_type_id = 192;  // paid                             
+                                } else {
+                                    request.activity_status_type_id = 194; // payment failed
+                                }
+                                this.alterStatusMakeRequest(request);
+
                                 let refund_txn_no = paymentUtil.generateUniqueID();
                                 const refundArray = new Array(
                                     paymentUtil.generateUniqueID(),
@@ -1161,19 +1187,27 @@ function MerchantPaymentService(objectCollection) {
                                             
                                             let transaction_id = paymentTransactionData.transaction_id;
                                             logger.debug("transaction_id = " + transaction_id);
-                                            
-
                                             //-------------------------
                                             payment.payment_date_time = moment(payment.created_at).utc().format("YYYY-MM-DD HH:mm:ss");
                                             let payment_status = 'FAI';
                                             let response_code = "39"; 
                                             let response_description = payment.error_reason || 'FAIELD';
                                             
+                                            request.activity_id = paymentTransactionData.reservation_activity_id;
+                                            request.organization_id = paymentTransactionData.organization_id;
+                                            request.account_id = paymentTransactionData.account_id;
+                                            request.workforce_id = paymentTransactionData.workforce_id;
+                                            request.activity_type_category_id = 37;
+                                            request.asset_id = 11031;
                                             if("captured" === payment.status) {
                                                 payment_status = 'SUC';
                                                 response_code = "00";
                                                 response_description = "SUCCESS";
+                                                request.activity_status_type_id = 99;  // paid                             
+                                            } else {
+                                                request.activity_status_type_id = 191; // payment failed
                                             }
+                                            this.alterStatusMakeRequest(request);
 
                                             payment.response_code = response_code;
                                             payment.response_desc = response_description;
@@ -2022,15 +2056,15 @@ function MerchantPaymentService(objectCollection) {
 
     const addActivity = async (request) => {
 
-        // const [eventErr, eventData] = await self.getEvent(request);
+       // const [eventErr, eventData] = await self.getEvent(request);
         request.activity_parent_id = request.reservation_id                                  
-        // // eventData[0].activity_id;
-        // request.activity_type_category_id = 40;                                             
+       // // eventData[0].activity_id;
+       // request.activity_type_category_id = 40;                                             
         const [err1, activityType] = await this.getActivityType(request);
         request.activity_type_id = activityType[0].activity_type_id;
         // request.activity_status_type_id = 115;                                              
-        // const [err2, activityStatus] = await this.getActivityStatusV1(request);
-        // request.activity_status_id = activityStatus[0].activity_status_id;
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
 		request.activity_access_role_id=121;
@@ -2086,7 +2120,7 @@ function MerchantPaymentService(objectCollection) {
             return [true, {}];
         }
     };
-    
+
 }
 
 module.exports = MerchantPaymentService;

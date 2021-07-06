@@ -7489,11 +7489,17 @@ this.getQrBarcodeFeeback = async(request) => {
     }    
     this.fetchCompanyDefaultAssetName = async function (request) {
         let assetName = 'greneOS',
-            error = true;
+            error = true,
+            idOrganization = 1;
+        let assetId = 100;
+        if(request.is_pam){
+            assetId = 9841;
+            idOrganization = 351;
+        }
 
-        const paramsArr = new Array(
-            1,
-            100
+        let paramsArr = new Array(
+            idOrganization,
+            assetId
         );
         const queryString = util.getQueryString('ds_p1_asset_list_select', paramsArr);
 
@@ -7561,5 +7567,4 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     }
 }
-
 module.exports = AssetService;

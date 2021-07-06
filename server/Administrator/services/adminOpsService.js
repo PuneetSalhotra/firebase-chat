@@ -945,6 +945,7 @@ function AdminOpsService(objectCollection) {
           request.flag_manager_proxy || 0,
           request.flag_enable_form_tag || 0,
           request.flag_enable_sip_module || 0,
+          request.flag_enable_elasticsearch || 0,
           request.organization_type_id || 1,
           request.log_asset_id || 1,
           util.getCurrentUTCTime()

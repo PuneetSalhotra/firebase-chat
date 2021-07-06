@@ -5,7 +5,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     const nodeUtil = require('util');
     var elasticsearch = require('elasticsearch');
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     var client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
@@ -6653,6 +6653,47 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, assetName];
     };
+
+    this.getResourceByRole = async(request)=>{
+
+        let responseData = [],
+            error = true;
+        //IN p_organization_id BIGINT(20), IN p_access_role_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+       // let access_role_id = 2
+        let paramsArr = new Array(
+            request.organization_id,
+            request.access_role_id,
+            request.start_from || 0,
+            request.limit_value||50
+            )
+        const queryString = util.getQueryString('pm_v1_asset_list_select_role', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = [{asset_id:request.asset_id}];
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+
+    } 
+
+    this.sendPushOnReservationAdd = async function (request) {
+
+        request.access_role_id = 2;
+        let [notErr, notData] = await self.getResourceByRole(request);
+        request.message = "Order Received";
+        request.target_asset_id = (notData.length > 0)?notData[0].asset_id:0;
+        let activityData = [{
+                            activity_type_id:request.activity_type_id,
+                            activity_type_category_id:request.activity_type_category_id,
+                            activity_title:request.activity_title || "",
+                        }]
+        util.sendCustomPushNotification(request,activityData);     
+    }    
 }
 
 

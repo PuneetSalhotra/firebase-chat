@@ -40,7 +40,7 @@ function ActivityService(objectCollection) {
     //const fridsJson = require('../vodafone/utils/frids');
 
     const logger = require("../logger/winstonLogger");
-    const serializeError = require("serialize-error");
+    const { serializeError } = require("serialize-error");
     const self = this;
 
     this.addActivity = function (request, callback) {
@@ -314,6 +314,10 @@ function ActivityService(objectCollection) {
                             // do the timeline transactions here..                    
                             if (activityTypeCategroyId === 38) {
                                 addIngredients(request);
+                            }
+                            
+                            if (activityTypeCategroyId === 37){                                
+                                activityCommonService.sendPushOnReservationAdd(request);
                             }
 
                             if (activityTypeCategroyId === 40) {
