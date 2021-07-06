@@ -5401,9 +5401,9 @@ async function removeAsOwner(request,data,addT = 0)  {
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
 
-        util.logInfo(request,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
-        util.logInfo(request,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
-        util.logInfo(request,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
+        util.logInfo(createTargetFormRequest,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -5448,8 +5448,31 @@ async function removeAsOwner(request,data,addT = 0)  {
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
+                //Adding cuid 3 for child mom points
+                if (createTargetFormRequest.start_workflow_activity_parent_id) {
+                    let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: createTargetFormRequest.organization_id }, reqActivityId);
+                    if (activityData.length > 0) {
+                        let parentCUID3 = activityData[0].activity_cuid_3;
+                        let childCount = 1;
+                        const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
+                            organization_id: createTargetFormRequest.organization_id,
+                            activity_type_category_id: 63,
+                            activity_type_id: 190797,
+                            parent_activity_id: reqActivityId,
+                        });
+                        
+                        if (childWorkflowCount.length > 0) {
+                            childCount = Number(childWorkflowCount[0].count) + 1;
+                        }
+                        let cuid3 = parentCUID3 + "-" + childCount;
+                        createTargetFormRequest.calendar_event_id_update = true;
+                        createTargetFormRequest.workflow_activity_id = targetFormActivityID;
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                    }
+
+                }
             } catch (error) {
-                util.logError(request,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
+                util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
             }
         }
@@ -5823,6 +5846,38 @@ async function removeAsOwner(request,data,addT = 0)  {
                     request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
                 }
             }
+
+        } else if(type[0] === 'workflow_reference') {
+            util.logInfo(request,`addParticipant : Processing Static`);
+            logger.info(request.workflow_activity_id + " : ");
+            request.debug_info.push('Inside workflow_reference');
+            // newReq.flag_asset = inlineData[type[0]].flag_asset;
+            console.log("request.activity_inline_data", request.activity_inline_data);
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let fieldDetails;
+            for(let row of activityInlineData) {
+                if(row.field_id == inlineData[type[0]].field_id) {
+                    fieldDetails = row.field_value;
+                    break;
+                }
+            }
+
+            fieldDetails = fieldDetails.split('|');
+
+            let activityId = fieldDetails[0];
+            let [er,activityDetails] = await activityCommonService
+            .getActivityDetailsPromise(request, activityId);
+
+            if(inlineData[type[0]].participant_type == 'creator') {
+                newReq.desk_asset_id = activityDetails[0].activity_creator_asset_id;
+                newReq.phone_number = 0;
+            };
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            util.logInfo(request,`addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
 
         }
 
@@ -15168,11 +15223,13 @@ var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
 let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
 let today = new Date();
         ics.createEvent({
-            title: wfActivityDetails[0].activity_title,
+            title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
             busyStatus: 'FREE',
             start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-            duration: { minutes: timeDifferenceInMinutes }
+            duration: { minutes: timeDifferenceInMinutes },
+            organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+            attendees: [{ name: receiver_name, email: email }]
           }, (error, value) => {
             if (error) {
               console.log(error)
