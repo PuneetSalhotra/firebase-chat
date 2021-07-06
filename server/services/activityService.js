@@ -315,6 +315,10 @@ function ActivityService(objectCollection) {
                             if (activityTypeCategroyId === 38) {
                                 addIngredients(request);
                             }
+                            
+                            if (activityTypeCategroyId === 37){                                
+                                activityCommonService.sendPushOnReservationAdd(request);
+                            }
 
                             if (activityTypeCategroyId === 40) {
                                 //if(request.hasOwnProperty('is_room_posting'))
