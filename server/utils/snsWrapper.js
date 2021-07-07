@@ -124,7 +124,17 @@ var AwsSns = function () {
             TargetArn: targetArn
         };
 
+        function unicodeToChar(text) {
+            return text.replace(/\\u[\dA-F]{4}/gi, 
+                   function (match) {
+                        return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+                   });
+         }
+        message.description = unicodeToChar(message.description);
+        message.subtitle = unicodeToChar(message.subtitle);
+
         console.log('Message.title : ', message.title);
+
         console.log('Message.description : ', message.description);
 
         console.log('Message.subtitle : ', message.subtitle);
