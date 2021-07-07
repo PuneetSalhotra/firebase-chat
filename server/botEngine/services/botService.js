@@ -10465,9 +10465,15 @@ async function getFormInlineData(request, flag) {
             }
 
             // Mandatory check for secondary
-            if (linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "")) {
+            if (linkType === "Secondary" && isLastMileOffNet === "") {
                 mandatoryFieldsMissing = true;
-                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
+                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet is empty in Row ${i + 1}.\n`;
+            }
+
+            // Mandatory check for secondary
+            if (linkType === "Secondary" && String(isLastMileOffNet).toLowerCase() === "yes" && LastMileOffNetVendor === "") {
+                mandatoryFieldsMissing = true;
+                errorMessageForMandatoryFieldsMissing += `LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
             }
 
             // Mandatory check by actiontype
