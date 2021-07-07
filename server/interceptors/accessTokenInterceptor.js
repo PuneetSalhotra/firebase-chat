@@ -17,7 +17,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
 
-        if(!req.body.hasOwnProperty("log_uuid")) {
+        if (!req.body.hasOwnProperty("log_uuid") && !req.url.includes('/' + global.config.version + '/healthcheck')) {
             req.body["log_uuid"] = await getLogUUID();
             addInitialLog(req);
         }
