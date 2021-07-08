@@ -129,10 +129,10 @@ var AwsSns = function () {
                    function (match) {
                         return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
                    });
-         }
+        }
+        
         message.description = unicodeToChar(message.description);
-        message.subtitle = unicodeToChar(message.subtitle);
-
+        message.subtitle = unicodeToChar(message.subtitle);        
         console.log('Message.title : ', message.title);
 
         console.log('Message.description : ', message.description);

@@ -771,13 +771,26 @@ function ActivityPushService(objectCollection) {
                                     }
 
                                     if(pushString.body) {
-                                        pushString.body = pushString.body.replace(/<[^>]*>?/gm, '');
-                                        pushString.body = pushString.body.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '');
+                                        pushString.subtitle = pushString.subtitle.replace(/<[^>]*>?/gm, '');
+                                        pushString.description = pushString.description.replace(/<[^>]*>?/gm, '');
                                     }
                                     
+
                                     console.log("getPushString | request.url: ", request.url);
                                     console.log("getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
                                     console.log("getPushString | pushString: ", pushString);
+
+                                    function unicodeToChar(text) {
+                                        return text.replace(/\\u[\dA-F]{4}/gi, 
+                                               function (match) {
+                                                    return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+                                            });
+                                    }
+                                    pushString.description = unicodeToChar(pushString.description);
+
+                                    pushString.subtitle = unicodeToChar(pushString.subtitle);
+
+
                                     console.log("getPushString | msg: ", msg);
                                     console.log("getPushString | request.asset_id: ", request.asset_id);
                                 } else {
