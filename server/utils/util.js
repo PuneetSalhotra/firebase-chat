@@ -3020,7 +3020,8 @@ function Util(objectCollection) {
         let error = false;
         let type_flag = "";
         let idChannel = 0;
-        if(request.flag == 1){
+
+        if (request.flag == 1) {
 
             if (
                 !request.hasOwnProperty("organization_id") ||
@@ -3094,6 +3095,19 @@ function Util(objectCollection) {
                 type_flag = "asset_push";
                 idChannel = request.target_asset_id;
             }  
+        } else if (request.flag == 6) {
+            if (
+                !request.hasOwnProperty("target_workforce_tag_id") ||
+                Number(request.target_workforce_tag_id) === 0
+            ) {
+                logger.error("Incorrect target_workforce_tag_id specified.");
+                return [true, {
+                    message: "Incorrect target_workforce_tag_id specified."
+                }];
+            } else {
+                type_flag = "workforce_tag_push";
+                idChannel = request.target_workforce_tag_id;
+            }
         }
 
        pubnubWrapper.publish(idChannel, {
@@ -3102,6 +3116,7 @@ function Util(objectCollection) {
           activity_title: request.push_title,
           description: request.push_message,
           target_workforce_id:request.target_workforce_id,
+           target_workforce_tag_id: request.target_workforce_tag_id,
           target_account_id:request.target_account_id,
           target_asset_type_id:request.target_asset_type_id,
           target_asset_id:request.target_workforce_id,
