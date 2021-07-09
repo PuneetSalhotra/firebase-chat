@@ -4155,7 +4155,7 @@ function ActivityService(objectCollection) {
             util.logError(request,`updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
         }
         try {
-            request.page_limit = 100;
+            request.page_limit = 500;
             let queueMap;
 
             if(isGlobalWorkflow) {
