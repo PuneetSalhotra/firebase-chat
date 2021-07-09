@@ -2495,7 +2495,7 @@ function BotService(objectCollection) {
     s3Url = pdfJson.pdfs[comboValue];
     }
     else{
-    console.log('sleeping for 9 secs')
+        util.logInfo(request,"Sleeping for 9 sec",[]);
     await sleep(9000);
     // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
     
@@ -2573,7 +2573,7 @@ function BotService(objectCollection) {
     //       request.debug_info.push("it is a mobility type form");
     //   }
     // }
-    console.log("is mob",isMobility);
+    util.logInfo(request,"is mob" + isMobility,[]);
 
     let pdf_edit_json = {}
 
@@ -2615,7 +2615,7 @@ function BotService(objectCollection) {
 let aovValue = 0;
 let periodValue = 0;
    for(let i=0;i<pdf_edit_json.fields.length;i++){
-       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+    util.logInfo(request,"pdf fields"+ pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i],[]);
       
     let field_value = "";
     if(isMobility){
@@ -2706,7 +2706,8 @@ let periodValue = 0;
     try {
         await addTimelineTransactionAsync(addCommentRequest);
     } catch (error) {
-        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        util.logError(request,"addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ",error)
+        
         throw new Error(error);
     }
     fs.unlink(pdfPath,()=>{});
@@ -2724,7 +2725,7 @@ let periodValue = 0;
   }
   
   function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
-      console.log("in",pageNumber,findText,replaceText)
+    //   console.log("in",pageNumber,findText,replaceText)
       var writer = hummus.createWriterToModify(sourceFile, {
           modifiedFilePath: targetFile
       });

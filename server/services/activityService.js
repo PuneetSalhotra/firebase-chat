@@ -5887,7 +5887,7 @@ function ActivityService(objectCollection) {
             Number(activityInlineData[i].field_data_type_id),
             activityInlineData[i].field_value
         );
-        logger.info("activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id);
+        util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
         var paramsArr1 = new Array(
             request.organization_id,
             activity_id,
