@@ -1376,18 +1376,18 @@ function FormConfigService(objCollection) {
                                     await activityService.updateWorkflowValues({...request,...workflowData[0]},workflowData[0].activity_id)
                                 }
                             });
-                        // activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
-                        //     if(workflowData.length > 0) {
-                        //         if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
-                        //         Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
-                        //         Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
-                        //         Number(workflowData[0].activity_type_id) !== 134575 &&
-                        //         Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
-                        //             util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
-                        //             addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
-                        //             }
-                        //     }
-                        // });
+                        /*activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                            if(workflowData.length > 0) {
+                                if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
+                                Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
+                                Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
+                                Number(workflowData[0].activity_type_id) !== 134575 &&
+                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
+                                    util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
+                                    }
+                            }
+                        });*/
 
     
                             if(Object.keys(orderValueFields).includes(String(row.field_id))){
@@ -1434,22 +1434,22 @@ function FormConfigService(objCollection) {
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                         if(workflowData.length > 0){
     
-                                            // if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
-                                            //     Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
-                                            //     Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                            //     Number(workflowData[0].activity_type_id) === 134575 ||
-                                            //     Number(workflowData[0].activity_type_id) === 152451) { //FLV CRF
+                                            /*if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                                Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                                Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                                Number(workflowData[0].activity_type_id) === 134575 ||
+                                                Number(workflowData[0].activity_type_id) === 152451) { //FLV CRF
                                                 
-                                            //     (Number(arc_1) > Number(arc_2)) ?
-                                            //         finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
-                                            //         finalValue = Number(otc_1);
+                                                (Number(arc_1) > Number(arc_2)) ?
+                                                    finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
+                                                    finalValue = Number(otc_1);
     
-                                            //         await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
-                                            // } else {
-                                            //     setTimeout(()=>{
-                                            //         updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
-                                            //     },3000);
-                                            // }
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
+                                            } else {
+                                                setTimeout(()=>{
+                                                    updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
+                                                },3000);
+                                            }*/
     
                                             idWorkflow = workflowData[0].activity_id;
                                             idWorkflowType = workflowData[0].activity_sub_type_id;
