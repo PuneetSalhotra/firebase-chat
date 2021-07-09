@@ -1474,30 +1474,31 @@ function FormConfigService(objCollection) {
                                         }
                                         });
                                     }
-                                    // }else{                                    
-                                    //     activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
-                                    //         if(workflowData.length > 0){
+                                    /*}
+                                    else{                                    
+                                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
+                                            if(workflowData.length > 0){
                                                 
-                                    //             if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
-                                    //                 Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
-                                    //                 Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                    //                 Number(workflowData[0].activity_type_id) === 134575 ||
-                                    //                 Number(workflowData[0].activity_type_id) === 152451 ) { //FLV CRF
-                                    //                 //Do Nothing
-                                    //             } else {
-                                    //                 if(Number(request.organization_id) !== 868) {
-                                    //                     addValueToWidgetForAnalyticsWF(request, 
-                                    //                         workflowData[0].activity_id, 
-                                    //                         workflowData[0].activity_type_id, 
-                                    //                         1); //1 - Final value Widget
-                                    //                     }
-                                    //                 }
+                                                if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                                    Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                                    Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                                    Number(workflowData[0].activity_type_id) === 134575 ||
+                                                    Number(workflowData[0].activity_type_id) === 152451 ) { //FLV CRF
+                                                    //Do Nothing
+                                                } else {
+                                                    if(Number(request.organization_id) !== 868) {
+                                                        addValueToWidgetForAnalyticsWF(request, 
+                                                            workflowData[0].activity_id, 
+                                                            workflowData[0].activity_type_id, 
+                                                            1); //1 - Final value Widget
+                                                        }
+                                                    }
                                                     
-                                    //         }           
+                                            }           
                                                 
-                                    //     });                                    
-                                    //     util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_value}`);
-                                    // }
+                                        });                                    
+                                        util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_value}`);
+                                    }*/
                                 }catch(err){
                                     util.logError(request,`Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
                                 }                             
