@@ -1380,6 +1380,7 @@ function FormConfigService(objCollection) {
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
                                     util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
+                                    await activityService.updateWorkflowValues({...request,...workflowData[0]},workflowData[0].activity_id)
                                     }
                             }
                         });

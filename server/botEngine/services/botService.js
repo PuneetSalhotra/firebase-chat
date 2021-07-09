@@ -2290,7 +2290,7 @@ function BotService(objectCollection) {
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
-                        await editPDF(request, "");
+                        await editPDF(request, botOperationsJson.bot_operations);
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2431,9 +2431,70 @@ function BotService(objectCollection) {
     });
    }
 
+   async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID) {
+    console.log(' ');
+    console.log('*************************');
+    console.log('request.form_id - ', request.form_id);
+    console.log('formID - ', formID);
+    console.log('fieldID - ', fieldID);
+
+    let fieldValue = "";
+    let formData;
+    
+    //Based on the workflow Activity Id - Fetch the latest entry from 713
+    if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+        formData = await getFormInlineData({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: formID
+        },2);
+    } else {
+        //Take the inline data from the request
+        formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+    }    
+
+    //console.log('formData - ', formData);
+
+    for(const fieldData of formData) {
+        if(Number(fieldData.field_id) === fieldID) {
+           
+            console.log('fieldData.field_data_type_id : ',fieldData);
+            switch(Number(fieldData.field_data_type_id)) {
+                //Need Single selection and Drop Down
+                //circle/ state
+
+                case 57: //Account
+                    fieldValue = fieldData.field_value;
+                    fieldValue = fieldValue.split('|')[1];
+                    break;
+                //case 68: break;
+                default: fieldValue=fieldData.data_type_combo_id;
+            }
+            break;
+        }
+    }
+
+
+    console.log('Field Value B4: ',fieldValue);
+    // fieldValue = fieldValue.split(" ").join("");
+    // console.log('Field Value After: ',fieldValue);
+    // console.log('*************************');
+    return fieldValue;
+}
+
   async function editPDF(request,bot_data){
     //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
+    let s3Url = "";
+    let customerName ="GreneOS";
+    if(bot_data.hasOwnProperty("static_pdf")&& bot_data.static_pdf){
+    let pdfJson = bot_data.pdf_json;
+    let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
+    
+    s3Url = pdfJson.pdfs[comboValue];
+    }
+    else{
     console.log('sleeping for 9 secs')
     await sleep(9000);
     // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
@@ -2549,7 +2610,7 @@ function BotService(objectCollection) {
         organization_id: request.organization_id,
         asset_id: request.asset_id
     });
-    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+     customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
     request.debug_info.push("customer name ",customerName);
 let aovValue = 0;
 let periodValue = 0;
@@ -2602,9 +2663,11 @@ let periodValue = 0;
    let currentDate = (util.getCurrentDate()).toString();
    await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
 // return [false,[]]
-   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath);
+    s3Url = pdfS3urlnew[1][0].location;
+}
     // let addCommentRequest = Object.assign(request, {});
-    let s3Url = pdfS3urlnew[1][0].location;
+    
     // request.form_id = request.form_id;
     // request.activity_form_id = request.form_id
     // request.activity_inline_data = JSON.stringify([
