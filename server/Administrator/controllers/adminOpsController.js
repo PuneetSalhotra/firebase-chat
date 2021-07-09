@@ -1008,6 +1008,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/retrieve/workforce/tags', async function (req, res) {
+        const [err, flagData] = await adminOpsService.getListOfTagsUnderCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/retrieve/workforce/tags | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
