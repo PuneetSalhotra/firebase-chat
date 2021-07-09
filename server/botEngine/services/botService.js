@@ -15242,7 +15242,9 @@ async function getFormInlineData(request, flag) {
         error = false,
         deskAssetData,
         assetData={};
-      for (let i = 0; i < request.emails.length; i++) {
+      
+    for (let i = 0; i < request.emails.length; i++) {
+    try{
         let [err, assetDetails] = await getAssetByEmail({
           organization_id: request.organization_id,
           email: request.emails[i],
@@ -15275,23 +15277,22 @@ async function getFormInlineData(request, flag) {
         request.debug_info = []
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
-         await addDeskAsParticipant(request, assetData);
-         await icsEventCreation(request,request.emails[i],assetData.first_name);
-      }
-
-      return [error, responseData];
+            await addDeskAsParticipant(request, assetData);
+            await icsEventCreation(request,request.emails[i],assetData.first_name);
+        }
+        catch{
+            error = true
+        }
+    }     
+        return [error, responseData];
     };
 
     async function icsEventCreation(request,email,receiver_name){
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-// console.log(wfActivityDetails[0].activity_datetime_created,wfActivityDetails[0].activity_datetime_end_expected);
-
-var timeDifference = moment(wfActivityDetails[0].activity_datetime_end_expected).diff(moment(wfActivityDetails[0].activity_datetime_created));
-var timeDifferenceDuration = moment.duration(timeDifference);
-var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
-// console.log(s)
-let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
-let today = new Date();
+        wfActivityDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77)
+        var timeDifferenceInMinutes = Math.floor(wfActivityDetails[0].field_value.duration);
+        let createDate = new Date(wfActivityDetails[0].field_value.start_date_time);
+        let today = new Date();
         ics.createEvent({
             title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
@@ -15304,8 +15305,7 @@ let today = new Date();
             if (error) {
               console.log(error)
             }
-          let fileName = `${global.config.efsPath}/${request.asset_id}-${today.getTime()}.ics`
-          
+          let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
             fs.writeFileSync(fileName, value);
             request.email_sender_name = 'GreneOS';
             request.email_receiver_name = receiver_name;
