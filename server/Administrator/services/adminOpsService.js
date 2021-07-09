@@ -945,6 +945,7 @@ function AdminOpsService(objectCollection) {
           request.flag_manager_proxy || 0,
           request.flag_enable_form_tag || 0,
           request.flag_enable_sip_module || 0,
+          request.flag_enable_elasticsearch || 0,
           request.organization_type_id || 1,
           request.log_asset_id || 1,
           util.getCurrentUTCTime()
@@ -9706,6 +9707,7 @@ console.log('new ActivityId321',newActivity_id)
     3. Workforce
     4. Role
     5. Asset
+    6. Workforce Tag
     using following parameters:
     flag : 1 or 2 or 3 or 4 or 5
     
@@ -9733,7 +9735,13 @@ console.log('new ActivityId321',newActivity_id)
         flag:5
         organization_id:906
         asset_ids:[51606,51607,5783,5784]
-        
+
+    if 6. WorkforceTag then request parameters contains
+        flag:6
+        organization_id:868
+        tag_type_category_id:2
+        workforce_tag_ids:[184,185,186]
+
     Note : If flag coming as 1 means Org. It must be integer value.
     other wise all flag must be an array.
     */
@@ -9770,6 +9778,9 @@ console.log('new ActivityId321',newActivity_id)
             await this.sendPushNotificationL5(request);
         }
         break;
+            case 6: {
+                await this.sendPushNotificationL6(request);
+            } break;
         default: {
             logger.error("error = " + 'missing parameter : `flag`');
             return [true, 'missing parameter : `flag`'];
@@ -10001,6 +10012,54 @@ console.log('new ActivityId321',newActivity_id)
             logger.info("Missing parameter : asset_ids\n");
         }
     };
+    //------------------------------------------------------
+
+    //L6 : Workforce_Tag : Send Push Notification to all workforces which comes under the workforce tag.
+    this.sendPushNotificationL6 = async function (request) {
+        logger.info("sendPushNotificationL6() : WorkforceTag :=>" +
+            " organization_id = " + request.organization_id
+            + " tag_type_category_id = " + request.tag_type_category_id
+            + " workforce_tag_ids = " + request.workforce_tag_ids);
+
+        let organization_id = request.organization_id;
+
+        let workforce_tag_ids = request.workforce_tag_ids;
+
+        workforce_tag_ids = JSON.parse(workforce_tag_ids);
+
+        if (workforce_tag_ids.length > 0) {
+            request.page_start = 0;
+            request.page_limit = 500;
+
+            //iterate workforce tag list
+            for (let i = 0; i < workforce_tag_ids.length; i++) {
+
+                request.tag_id = workforce_tag_ids[i];
+
+                //find out workforce list for specified tag.
+                let [error, resultData] = await this.getListOfWorkforcesUnderWorkforceTag(request);
+                if (resultData.length > 0) {
+                    let workforce_ids = [];
+                    // iterate workforce list
+                    for (let i = 0; i < resultData.length; i++) {
+                        let workforce_id = resultData[i].workforce_id;
+                        workforce_ids.push(workforce_id);
+                    }
+                    request.workforce_ids = JSON.stringify(workforce_ids);
+                    request.account_id = 0;
+                    //L3 : Workforce : Send Push Notification to all assets which comes under the Workforce.
+                    await this.sendPushNotificationL3(request);
+                } else {
+                    logger.info(
+                        "workforce tag details not available for organization_id = " + organization_id
+                    );
+                };
+            }
+        } else {
+            logger.info("Missing parameter : workforce_tag_ids\n");
+        }
+
+    };
 
     //------------------------------------------------------
     // send push notification to all list of assets.
@@ -10230,6 +10289,11 @@ console.log('new ActivityId321',newActivity_id)
                 broadcast_level_name = 'Asset';
             }
             break;
+            case 6: {
+                broadcast_level = 26;
+                broadcast_level_name = 'WorkforceTag';
+            }
+                break;
         }
     
         try {
@@ -10336,6 +10400,20 @@ console.log('new ActivityId321',newActivity_id)
                 }
             }
             break;
+            case 6: {
+                //WorkforceTag
+                let workforce_tag_ids = request.workforce_tag_ids;
+                workforce_tag_ids = JSON.parse(workforce_tag_ids);
+
+                if (workforce_tag_ids.length > 0) {
+                    // iterate workforce tag list
+                    for (let i = 0; i < workforce_tag_ids.length; i++) {
+                        request.target_workforce_tag_id = workforce_tag_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+                break;
         }
         return [false, []];
     }
@@ -10822,6 +10900,74 @@ console.log('new ActivityId321',newActivity_id)
     
         return [error, responseData];
     }
+
+    // To get the list of tags under category
+    this.getListOfTagsUnderCategory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_tags_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("getListOfTagsUnderCategory : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("getListOfTagsUnderCategory : error response = ");
+                    console.log(err);
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    //To get the list of workforces under a workforce tag.
+    this.getListOfWorkforcesUnderWorkforceTag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        request.start_from = 0;
+        request.limit_value = 500;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.tag_id,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_entities', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("getListOfWorkforcesUnderWorkforceTag : response = ");
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("getListOfWorkforcesUnderWorkforceTag : error response = ");
+                    console.log(err);
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

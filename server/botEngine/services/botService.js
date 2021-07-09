@@ -2290,7 +2290,7 @@ function BotService(objectCollection) {
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
-                        await editPDF(request, "");
+                        await editPDF(request, botOperationsJson.bot_operations);
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2431,10 +2431,71 @@ function BotService(objectCollection) {
     });
    }
 
+   async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID) {
+    console.log(' ');
+    console.log('*************************');
+    console.log('request.form_id - ', request.form_id);
+    console.log('formID - ', formID);
+    console.log('fieldID - ', fieldID);
+
+    let fieldValue = "";
+    let formData;
+    
+    //Based on the workflow Activity Id - Fetch the latest entry from 713
+    if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+        formData = await getFormInlineData({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: formID
+        },2);
+    } else {
+        //Take the inline data from the request
+        formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+    }    
+
+    //console.log('formData - ', formData);
+
+    for(const fieldData of formData) {
+        if(Number(fieldData.field_id) === fieldID) {
+           
+            console.log('fieldData.field_data_type_id : ',fieldData);
+            switch(Number(fieldData.field_data_type_id)) {
+                //Need Single selection and Drop Down
+                //circle/ state
+
+                case 57: //Account
+                    fieldValue = fieldData.field_value;
+                    fieldValue = fieldValue.split('|')[1];
+                    break;
+                //case 68: break;
+                default: fieldValue=fieldData.data_type_combo_id;
+            }
+            break;
+        }
+    }
+
+
+    console.log('Field Value B4: ',fieldValue);
+    // fieldValue = fieldValue.split(" ").join("");
+    // console.log('Field Value After: ',fieldValue);
+    // console.log('*************************');
+    return fieldValue;
+}
+
   async function editPDF(request,bot_data){
     //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
-    console.log('sleeping for 9 secs')
+    let s3Url = "";
+    let customerName ="GreneOS";
+    if(bot_data.hasOwnProperty("static_pdf")&& bot_data.static_pdf){
+    let pdfJson = bot_data.pdf_json;
+    let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
+    
+    s3Url = pdfJson.pdfs[comboValue];
+    }
+    else{
+        util.logInfo(request,"Sleeping for 9 sec",[]);
     await sleep(9000);
     // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
     
@@ -2512,7 +2573,7 @@ function BotService(objectCollection) {
     //       request.debug_info.push("it is a mobility type form");
     //   }
     // }
-    console.log("is mob",isMobility);
+    util.logInfo(request,"is mob" + isMobility,[]);
 
     let pdf_edit_json = {}
 
@@ -2549,12 +2610,12 @@ function BotService(objectCollection) {
         organization_id: request.organization_id,
         asset_id: request.asset_id
     });
-    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+     customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
     request.debug_info.push("customer name ",customerName);
 let aovValue = 0;
 let periodValue = 0;
    for(let i=0;i<pdf_edit_json.fields.length;i++){
-       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+    util.logInfo(request,"pdf fields"+ pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i],[]);
       
     let field_value = "";
     if(isMobility){
@@ -2602,9 +2663,11 @@ let periodValue = 0;
    let currentDate = (util.getCurrentDate()).toString();
    await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
 // return [false,[]]
-   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath);
+    s3Url = pdfS3urlnew[1][0].location;
+}
     // let addCommentRequest = Object.assign(request, {});
-    let s3Url = pdfS3urlnew[1][0].location;
+    
     // request.form_id = request.form_id;
     // request.activity_form_id = request.form_id
     // request.activity_inline_data = JSON.stringify([
@@ -2643,7 +2706,8 @@ let periodValue = 0;
     try {
         await addTimelineTransactionAsync(addCommentRequest);
     } catch (error) {
-        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        util.logError(request,"addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ",error)
+        
         throw new Error(error);
     }
     fs.unlink(pdfPath,()=>{});
@@ -2661,7 +2725,7 @@ let periodValue = 0;
   }
   
   function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
-      console.log("in",pageNumber,findText,replaceText)
+    //   console.log("in",pageNumber,findText,replaceText)
       var writer = hummus.createWriterToModify(sourceFile, {
           modifiedFilePath: targetFile
       });
@@ -5448,6 +5512,29 @@ async function removeAsOwner(request,data,addT = 0)  {
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
                 await addTimelineTransactionAsync(workflowFile705Request);
+                //Adding cuid 3 for child mom points
+                if (createTargetFormRequest.start_workflow_activity_parent_id) {
+                    let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: createTargetFormRequest.organization_id }, reqActivityId);
+                    if (activityData.length > 0) {
+                        let parentCUID3 = activityData[0].activity_cuid_3;
+                        let childCount = 1;
+                        const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
+                            organization_id: createTargetFormRequest.organization_id,
+                            activity_type_category_id: 63,
+                            activity_type_id: 190797,
+                            parent_activity_id: reqActivityId,
+                        });
+                        
+                        if (childWorkflowCount.length > 0) {
+                            childCount = Number(childWorkflowCount[0].count) + 1;
+                        }
+                        let cuid3 = parentCUID3 + "-" + childCount;
+                        createTargetFormRequest.calendar_event_id_update = true;
+                        createTargetFormRequest.workflow_activity_id = targetFormActivityID;
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                    }
+
+                }
             } catch (error) {
                 util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
                 throw new Error(error);
@@ -5823,6 +5910,38 @@ async function removeAsOwner(request,data,addT = 0)  {
                     request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
                 }
             }
+
+        } else if(type[0] === 'workflow_reference') {
+            util.logInfo(request,`addParticipant : Processing Static`);
+            logger.info(request.workflow_activity_id + " : ");
+            request.debug_info.push('Inside workflow_reference');
+            // newReq.flag_asset = inlineData[type[0]].flag_asset;
+            console.log("request.activity_inline_data", request.activity_inline_data);
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let fieldDetails;
+            for(let row of activityInlineData) {
+                if(row.field_id == inlineData[type[0]].field_id) {
+                    fieldDetails = row.field_value;
+                    break;
+                }
+            }
+
+            fieldDetails = fieldDetails.split('|');
+
+            let activityId = fieldDetails[0];
+            let [er,activityDetails] = await activityCommonService
+            .getActivityDetailsPromise(request, activityId);
+
+            if(inlineData[type[0]].participant_type == 'creator') {
+                newReq.desk_asset_id = activityDetails[0].activity_creator_asset_id;
+                newReq.phone_number = 0;
+            };
+
+            isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
+            isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
+            flagCreatorAsOwner = (inlineData[type[0]].hasOwnProperty('flag_creator_as_owner')) ? inlineData[type[0]].flag_creator_as_owner : 0;
+
+            util.logInfo(request,`addParticipant : isLead : ${isLead} : isOwner : ${isOwner}  : flagCreatorAsOwner : ${flagCreatorAsOwner}` );
 
         }
 
@@ -10314,7 +10433,7 @@ async function getFormInlineData(request, flag) {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning", "VendorName"
+            "SalesRemarks", "ReasonForCloning", "VendorName", "IsSecureRemoteVPNConnect"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -10410,9 +10529,15 @@ async function getFormInlineData(request, flag) {
             }
 
             // Mandatory check for secondary
-            if (linkType === "Secondary" && (isLastMileOffNet === "" || LastMileOffNetVendor === "")) {
+            if (linkType === "Secondary" && isLastMileOffNet === "") {
                 mandatoryFieldsMissing = true;
-                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet/LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
+                errorMessageForMandatoryFieldsMissing += `isLastMileOffNet is empty in Row ${i + 1}.\n`;
+            }
+
+            // Mandatory check for secondary
+            if (linkType === "Secondary" && String(isLastMileOffNet).toLowerCase() === "yes" && LastMileOffNetVendor === "") {
+                mandatoryFieldsMissing = true;
+                errorMessageForMandatoryFieldsMissing += `LastMileOffNetVendor is empty in Row ${i + 1}.\n`;
             }
 
             // Mandatory check by actiontype
@@ -15168,11 +15293,13 @@ var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
 let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
 let today = new Date();
         ics.createEvent({
-            title: wfActivityDetails[0].activity_title,
+            title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
             busyStatus: 'FREE',
             start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-            duration: { minutes: timeDifferenceInMinutes }
+            duration: { minutes: timeDifferenceInMinutes },
+            organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+            attendees: [{ name: receiver_name, email: email }]
           }, (error, value) => {
             if (error) {
               console.log(error)
