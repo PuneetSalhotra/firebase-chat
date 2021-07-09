@@ -344,7 +344,13 @@ function ActivityService(objectCollection) {
                             }
 
                             if(activityTypeCategroyId !== 9){
-                               self.updateWorkflowValues(request.request.activity_id);
+                               self.updateWorkflowValues(request,request.activity_id);
+                            }
+                            else{
+                               let [isOriginCheck,originWorkData] = await checkWorkflowOrginForm(request);
+                               if(isOriginCheck){
+                               self.updateWorkflowValues({...request,activity_type_id:originWorkData[0].activity_type_id},originWorkData[0].activity_id);
+                               }
                             }
 
                             if (request.activity_type_category_id == 48) {
@@ -419,11 +425,11 @@ function ActivityService(objectCollection) {
                                                     request['field_value'] = totalvalue;
                                                     widgetActivityFieldTransactionInsert(request);
                                                     
-                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 1, otc_1);
+                                                   /* await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 1, otc_1);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 2, arc_1);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 3, otc_2);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 4, arc_2);
-                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, finalValue);
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, finalValue);*/
                                                 });
                                             }else{
                                                  request['field_value'] = -1;
@@ -5852,6 +5858,27 @@ function ActivityService(objectCollection) {
             return convertedData;
         }   
         
+    async function checkWorkflowOrginForm (request){
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        if (Number(formConfigData.length) > 0) {
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+
+            if(isWorkflowEnabled && originFlagSet) {
+                return [false,[]];
+            }
+            else{
+                return [true,[formConfigData]]
+            }
+        }
+        else{
+            return [false,[]]
+        }
+    }   
     this.updateWorkflowValues = async (request,activity_id) => {
     let responseData=[];
     let error = false; 
@@ -5878,7 +5905,6 @@ function ActivityService(objectCollection) {
         }
         let activityInlineData = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
         let finalInlineData = JSON.parse(responseData[0].activity_type_inline_data);
-
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
         let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
         for(let i=0;i<activityInlineData.length;i++){
