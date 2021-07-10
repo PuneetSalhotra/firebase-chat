@@ -1373,7 +1373,7 @@ function FormConfigService(objCollection) {
                             activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
                                 if(workflowData.length > 0) {
                                     util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
-                                    await activityService.updateWorkflowValues({...request,...workflowData[0]},workflowData[0].activity_id)
+                                    await activityService.updateWorkflowValues({...request,activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
                                 }
                             });
                         /*activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
