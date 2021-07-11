@@ -344,6 +344,7 @@ function ActivityService(objectCollection) {
                             }
                            
                             if(activityTypeCategroyId !== 9){
+                                request.workflow_activity_type_id = request.activity_type_id;
                                self.updateWorkflowValues(request,request.activity_id);
                             }
                          /*    else{
