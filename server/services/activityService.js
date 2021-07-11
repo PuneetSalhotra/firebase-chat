@@ -342,16 +342,24 @@ function ActivityService(objectCollection) {
                             if([48,53,54,55].includes(activityTypeCategroyId)){
                                 await updateChannelActivity(request, 9, request.activity_id, activityTypeCategroyId);
                             }
-
+                           
                             if(activityTypeCategroyId !== 9){
                                self.updateWorkflowValues(request,request.activity_id);
                             }
-                            else{
+                         /*    else{
                                let [isOriginCheck,originWorkData] = await checkWorkflowOrginForm(request);
                                if(isOriginCheck){
-                               self.updateWorkflowValues({...request,activity_type_id:originWorkData[0].activity_type_id},originWorkData[0].activity_id);
+                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                                        if(workflowData.length > 0) {
+                                            util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                            request.workflow_activity_type_id = workflowData[0].activity_type_id;
+                                            self.updateWorkflowValues(request,workflowData[0].activity_id);
+                                        }else{
+                                            util.logInfo(request,`workflow doesn't exist for ${request.activity_id}`);
+                                        }
+                                    });
                                }
-                            }
+                            } */
 
                             if (request.activity_type_category_id == 48) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
@@ -4723,8 +4731,8 @@ function ActivityService(objectCollection) {
                     try{
                         parsedFieldValue = JSON.parse(fieldValue);
                     } catch(err) {
-                        console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
-                        console.log('Switching to backward compatibility');
+                        util.logInfo(request,'Error in parsing workflow reference datatype : ', parsedFieldValue);
+                        util.logInfo(request,'Switching to backward compatibility');
                         
                         //Backward Compatibility "workflowactivityid|workflowactivitytitle"
                         mappingActivityId = fieldData.field_value.split('|');
@@ -5355,7 +5363,7 @@ function ActivityService(objectCollection) {
 
     function activtySearchListInsert(request) {
         return new Promise((resolve, reject) => {
-            global.logger.write('DEBUG', '::: activtySearchListInsert  :::', {}, request);
+            util.logInfo(request, "IN activtySearchListInsert ");
             let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -5807,7 +5815,7 @@ function ActivityService(objectCollection) {
     this.activityFormListInsert = async function (request) {
         let responseData = [],
             error = true;
-            
+            util.logInfo(request, "IN activityFormListInsert ");
             let activityInlineData = {};
             if(request.activity_inline_data){
                 let data = JSON.parse(request.activity_inline_data)
@@ -5880,13 +5888,15 @@ function ActivityService(objectCollection) {
         }
     }   
     this.updateWorkflowValues = async (request,activity_id) => {
-    let responseData=[];
-    let error = false; 
+
+        util.logInfo(request, "updateWorkflowValues :: ActivityTypeId :: "+request.workflow_activity_type_id);
+        let responseData=[];
+        let error = false; 
         var paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.activity_type_id,
+            request.workflow_activity_type_id,
         );
         //console.log(paramsArr);            
         var queryString = util.getQueryString( "ds_p1_workforce_activity_type_mapping_select_id",paramsArr);
@@ -5900,6 +5910,7 @@ function ActivityService(objectCollection) {
                     error = err;
                 });
         }
+        util.logInfo(request, "updateWorkflowValues :: responseData.length :: "+responseData.length);
         if(responseData.length===0){
          return []
         }
@@ -5908,33 +5919,16 @@ function ActivityService(objectCollection) {
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
         let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
         for(let i=0;i<activityInlineData.length;i++){
+            
             if(finalInlineDataKeys.includes(activityInlineData[i].field_id)){
-            const fieldValue = await getFieldValueByDataTypeID(
-            Number(activityInlineData[i].field_data_type_id),
-            activityInlineData[i].field_value
-        );
-        util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
-        var paramsArr1 = new Array(
-            request.organization_id,
-            activity_id,
-            request.activity_type_id,
-            finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,
-            fieldValue
-        );
-        //console.log(paramsArr);            
-        var queryString1 = util.getQueryString( "ds_v1_activity_list_update_workflow_value",paramsArr1);
-        if (queryString1 !== '') {
-            await db.executeQueryPromise(1, queryString1, request)
-                .then(async (data) => {
-                    // responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
+                    const fieldValue = await getFieldValueByDataTypeID(
+                        Number(activityInlineData[i].field_data_type_id),
+                        activityInlineData[i].field_value
+                    );
+                util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
+                request.sequence_id = finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id;
+                activityCommonService.updateWorkflowValue(request, fieldValue);
             }
-
         }
     }
     }

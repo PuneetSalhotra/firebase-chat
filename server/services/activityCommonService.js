@@ -6693,7 +6693,57 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                             activity_title:request.activity_title || "",
                         }]
         util.sendCustomPushNotification(request,activityData);     
-    }    
+    }   
+
+    this.getActivityDetailsAsync = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workflow_activity_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+    
+    
+    this.updateWorkflowValue = async function(request, fieldValue){
+        let responseData = [],
+        error = true;
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            request.activity_type_id,
+            request.sequence_id,
+            fieldValue
+        );
+        //console.log(paramsArr);            
+        var queryString = util.getQueryString( "ds_v1_activity_list_update_workflow_value",paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
 }
 
 
