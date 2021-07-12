@@ -6197,6 +6197,50 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 30) {
+
+                            if (data.length == 0) {
+                                
+                                singleData.query_status = 0;
+                                singleData.campaign_id = 0;
+                                singleData.campaign_title = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].campaign_id == 0) {
+
+                                    getCampaignSearchList(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.campaign_id = 0;
+                                        singleData.campaign_title = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                singleData.query_status = 0;
+                                singleData.campaign_id = 0;
+                                singleData.campaign_title = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -6572,6 +6616,26 @@ this.getQrBarcodeFeeback = async(request) => {
             }
         });
     };
+
+    function getCampaignSearchList(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_id,
+                request.activity_type_id,   
+                request.is_search || 0,
+                request.search_string || '',             
+                request.page_start || 0,
+                request.page_limit || 10
+            );
+            var queryString = util.getQueryString('ds_v1_activity_search_list_select_campaign_search', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };    
 
     this.insertResourceTimesheet = async function (request) {
         let responseData = [],
