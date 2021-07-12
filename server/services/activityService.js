@@ -5888,7 +5888,7 @@ function ActivityService(objectCollection) {
             return [false,[]]
         }
     }   
-    this.updateWorkflowValues = async (request,activity_id) => {
+    this.updateWorkflowValues = async (request,idActivity) => {
 
         util.logInfo(request, "updateWorkflowValues :: ActivityTypeId :: "+request.workflow_activity_type_id);
         let responseData=[];
@@ -5928,6 +5928,7 @@ function ActivityService(objectCollection) {
                     );
                 util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
                 request.sequence_id = finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id;
+                request.workflow_activity_id = idActivity;
                 activityCommonService.updateWorkflowValue(request, fieldValue);
             }
         }

@@ -355,7 +355,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     }); //app.use
      
     let getLogUUID = async function () {
-        return `log-${await cacheWrapper.getLogID()}-uuid`
+        return `l-${await cacheWrapper.getLogID()}-id`
     };
 
     let addInitialLog = async function (request) {
