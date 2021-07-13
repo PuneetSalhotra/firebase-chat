@@ -3165,6 +3165,56 @@ function AnalyticsService(objectCollection)
         return [error, responseData]
     }
 
+    this.addReportV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.report_type_id,
+          request.report_name,
+          request.report_inline_data,
+          request.report_recursive_enabled || 0,
+          request.report_notified_enabled || 1,
+          request.report_recursive_type_id || 1,
+          request.report_access_level_id || 1,
+          request.activity_id || 0,
+          request.report_start_time || '18:30:00',
+          request.report_end_time || '18:29:00',
+          request.report_next_start_datetime,
+          request.report_next_end_datetime,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_1_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                    if (9 != request.report_type_id) {
+
+                        request.report_id = data[0].report_id;
+                        request.report_status_id = 1;
+                        request.report_url = "";
+
+                        let [err, responseData] = await this.insertAnalyticsReportTransaction(request);
+                        if (err) {
+                            error = err;
+                            console.log("error = " + error);
+                        }
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.retrieveReportList = async (request) => {
 
         let responseData = [],

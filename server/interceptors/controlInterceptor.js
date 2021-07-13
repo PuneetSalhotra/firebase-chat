@@ -80,6 +80,9 @@ const ArpController = require('../ARP/controllers/arpController')
 //TASI COntroller
 const TasiController = require('../TASI/controllers/tasiController')
 
+//Other Controller
+const OtherController = require('../others/controller/otherController')
+
 
 function ControlInterceptor(objCollection) {
 
@@ -133,6 +136,9 @@ function ControlInterceptor(objCollection) {
 
     //TASI Service
     new TasiController(objCollection);
+
+    //Other Service
+    new OtherController(objCollection)
 
     // URL Services
     new UrlListingController(objCollection);
