@@ -932,6 +932,103 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+    // this.inputListInsert = async function (request) {
+    //     let responseData = [],
+    //         error = true;
+    //     const paramsArr = new Array(
+    //       request.input_name,
+    //       request.input_type_id,
+    //       request.input_url1,
+    //       request.input_url2,
+    //       request.input_url3,
+    //       request.input_url4,
+    //       request.input_url5,
+    //       request.input_text,
+    //       request.input_data,
+    //       request.input_upload_datetime,
+    //       request.period_type_id,
+    //       request.period_start_datetime,
+    //       request.period_end_datetime,
+    //       request.organization_id,
+    //       request.log_asset_id,
+    //       util.getCurrentUTCTime()
+    //     );
+    //     const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
+
+    //     if (queryString !== '') {
+    //         await db.executeQueryPromise(0, queryString, request)
+    //             .then((data) => {
+    //                 responseData = data;
+    //                 error = false;
+    //             })
+    //             .catch((err) => {
+    //                 error = err;
+    //             })
+    //     }
+    //     return [error, responseData];
+    // }
+    this.reportListInsert = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.report_type_id,
+          request.report_name,
+          request.report_inline_data,
+          request.report_recursive_enabled,
+          request.report_notified_enabled,
+          request.report_recursive_type_id,
+          request.report_access_level_id,
+          request.activity_id,
+          request.report_start_time,
+          request.report_end_time,
+          request.report_next_start_datetime,
+          request.report_next_end_datetime,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_1_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    this.updatePayoutReportAsFinal = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.report_transaction_id,
+          request.report_id,
+          request.report_flag_final,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_report_transaction_update_flag_final', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 
