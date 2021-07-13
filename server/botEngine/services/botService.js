@@ -5531,7 +5531,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                         let cuid3 = parentCUID3 + "-" + childCount;
                         createTargetFormRequest.calendar_event_id_update = true;
                         createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": cuid3 });
                     }
 
                 }
@@ -10288,6 +10288,7 @@ async function getFormInlineData(request, flag) {
         const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
         const formId = request.form_id || request.trigger_form_id || 0;
         const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
+        const postingCircleFormMapping = vilBulkLOVs["posting_circle_mapping"];
         logger.silly("product selected: %j",productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -10298,6 +10299,7 @@ async function getFormInlineData(request, flag) {
             sqsQueueUrl = "",
             solutionDocumentUrl = "";
         let workflowActivityData;
+        let workflowActivityCreatorAssetID = 0;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -10330,6 +10332,7 @@ async function getFormInlineData(request, flag) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
+                workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
             throw new Error("No Workflow Data Found in DB");
@@ -10358,6 +10361,43 @@ async function getFormInlineData(request, flag) {
             );
             return;
         }
+
+        let postingCircleFormID = postingCircleFormMapping[String(request.activity_type_id)].form_id;
+
+        const requestAssetDetails =
+        {
+            asset_id: workflowActivityCreatorAssetID,
+            organization_id: request.organization_id
+        };
+
+        let responseAssetDetails = await getAssetDetails(requestAssetDetails);
+        if(responseAssetDetails.length > 0 ) {
+            if (responseAssetDetails[0].account_name.toLowerCase() === "red edge") {
+                // Fetch the Posting Circle
+                const postingCircleFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, postingCircleFormID);
+
+                if (Number(postingCircleFormData.length) === 0) {
+                    await addTimelineMessage(
+                        {
+                            activity_timeline_text: "Error",
+                            organization_id: request.organization_id
+                        }, workflowActivityID || 0,
+                        {
+                            subject: 'Request cannot be processed',
+                            content: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+                            mail_body: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+                            attachments: []
+                        }
+                    );
+                    return;
+                }
+
+            }
+        }
+
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
             organization_id: request.organization_id,
