@@ -5533,10 +5533,11 @@ async function removeAsOwner(request,data,addT = 0)  {
                         if (childWorkflowCount.length > 0) {
                             childCount = Number(childWorkflowCount[0].count) + 1;
                         }
-                        let cuid3 = parentCUID3 + "-" + childCount;
+                        let childCUID2 = parentCUID3 + "-" + childCount;
                         createTargetFormRequest.calendar_event_id_update = true;
                         createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": cuid3 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": childCUID2 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": parentCUID3 });
                     }
 
                 }
