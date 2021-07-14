@@ -298,6 +298,42 @@ function AssetConfigService() {
        
     }
 
+    this.inputListInsertV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.input_name,
+          request.input_type_id,
+          request.input_url1,
+          request.input_url2,
+          request.input_url3,
+          request.input_url4,
+          request.input_url5,
+          request.input_text,
+          JSON.stringify(request.input_inline_data),
+          request.input_upload_datetime,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.organization_id,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.inputListUpdate = async (request) => {
 
         let responseData = [],
