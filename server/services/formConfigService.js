@@ -636,7 +636,7 @@ function FormConfigService(objCollection) {
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                     util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
-                    if(simpleDataTypes.includes(newData.field_data_type_category_id)){
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                         } else {

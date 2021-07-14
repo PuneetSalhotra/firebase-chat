@@ -2289,8 +2289,9 @@ function BotService(objectCollection) {
                     console.log('pdf_edit');
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
+                    console.log(botOperationsJson)
                     try {
-                        await editPDF(request, botOperationsJson.bot_operations);
+                        await editPDF(request, JSON.parse(i.bot_operation_inline_data));
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2457,7 +2458,7 @@ function BotService(objectCollection) {
     //console.log('formData - ', formData);
 
     for(const fieldData of formData) {
-        if(Number(fieldData.field_id) === fieldID) {
+        if(Number(fieldData.field_id) == fieldID) {
            
             console.log('fieldData.field_data_type_id : ',fieldData);
             switch(Number(fieldData.field_data_type_id)) {
@@ -2487,6 +2488,7 @@ function BotService(objectCollection) {
     //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
     let s3Url = "";
+    let pdfPath = "";
     let customerName ="GreneOS";
     if(bot_data.hasOwnProperty("static_pdf")&& bot_data.static_pdf){
     let pdfJson = bot_data.pdf_json;
@@ -2594,7 +2596,7 @@ function BotService(objectCollection) {
     let pdf_url = pdf_edit_json.pdf_url;
 
     let pdfFileName = await util.downloadS3Object(request, pdf_url);
-    let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
+     pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
     console.log(pdfPath,pdfFileName);
     // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---MPLS-L2.pdf"
     await sleep(2000)
@@ -2677,6 +2679,7 @@ let periodValue = 0;
     //     "field_value":s3Url,
     //     "message_unique_id":1618208278588}])
     // await submitFormV1(request);
+
     let addCommentRequest = request;
     addCommentRequest.asset_id = 100;
     addCommentRequest.device_os_id = 7;
@@ -2710,7 +2713,9 @@ let periodValue = 0;
         
         throw new Error(error);
     }
+    if(pdfPath !=""){
     fs.unlink(pdfPath,()=>{});
+    }
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
    }
@@ -5531,7 +5536,7 @@ async function removeAsOwner(request,data,addT = 0)  {
                         let cuid3 = parentCUID3 + "-" + childCount;
                         createTargetFormRequest.calendar_event_id_update = true;
                         createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": cuid3 });
                     }
 
                 }
@@ -5917,7 +5922,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             request.debug_info.push('Inside workflow_reference');
             // newReq.flag_asset = inlineData[type[0]].flag_asset;
             console.log("request.activity_inline_data", request.activity_inline_data);
-            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let activityInlineData = typeof request.activity_inline_data =="string" ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
             let fieldDetails;
             for(let row of activityInlineData) {
                 if(row.field_id == inlineData[type[0]].field_id) {
@@ -5929,13 +5934,25 @@ async function removeAsOwner(request,data,addT = 0)  {
             fieldDetails = fieldDetails.split('|');
 
             let activityId = fieldDetails[0];
-            let [er,activityDetails] = await activityCommonService
-            .getActivityDetailsPromise(request, activityId);
-
+            let activityDetails = await activityCommonService.getActivityDetailsPromise(request, activityId);
+            
             if(inlineData[type[0]].participant_type == 'creator') {
                 newReq.desk_asset_id = activityDetails[0].activity_creator_asset_id;
                 newReq.phone_number = 0;
             };
+
+            const [error, assetData12] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: newReq.desk_asset_id
+            });
+            util.logInfo(request,`addParticipant : assetData.length %j`, assetData12.length);
+            // request.debug_info.push('assetData.length: ' + assetData.length);
+            if (assetData12.length > 0) {
+                newReq.country_code = Number(assetData12[0].operating_asset_phone_country_code) || Number(assetData12[0].asset_phone_country_code);
+                newReq.phone_number = Number(assetData12[0].operating_asset_phone_number) || Number(assetData12[0].asset_phone_number);
+
+                request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
+            }
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
@@ -8924,7 +8941,6 @@ else{
             newDate;
 
         let fieldData;
-
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
@@ -9007,7 +9023,7 @@ else{
                         } else {
                             console.log('IN ELSE');
                             request.debug_info.push('IN ELSE');
-                            newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
                         }
                     }
                 }
@@ -9074,7 +9090,7 @@ else{
             let parseDetails = fieldDetails.field_value;
            activityCoverData.start_date = {};
 
-           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(parseDetails.start_date_time, "DD-MM-YYYY HH:mm:ss");
+           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(parseDetails.start_date_time, "YYYY-MM-DD HH:mm:ss");
            
            
         //    let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
@@ -10288,6 +10304,7 @@ async function getFormInlineData(request, flag) {
         const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
         const formId = request.form_id || request.trigger_form_id || 0;
         const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
+        const postingCircleFormMapping = vilBulkLOVs["posting_circle_mapping"];
         logger.silly("product selected: %j",productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -10298,6 +10315,7 @@ async function getFormInlineData(request, flag) {
             sqsQueueUrl = "",
             solutionDocumentUrl = "";
         let workflowActivityData;
+        let workflowActivityCreatorAssetID = 0;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -10330,6 +10348,7 @@ async function getFormInlineData(request, flag) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
+                workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
             throw new Error("No Workflow Data Found in DB");
@@ -10358,6 +10377,43 @@ async function getFormInlineData(request, flag) {
             );
             return;
         }
+
+        let postingCircleFormID = postingCircleFormMapping[String(request.activity_type_id)].form_id;
+
+        const requestAssetDetails =
+        {
+            asset_id: workflowActivityCreatorAssetID,
+            organization_id: request.organization_id
+        };
+
+        let responseAssetDetails = await getAssetDetails(requestAssetDetails);
+        if(responseAssetDetails.length > 0 ) {
+            if (responseAssetDetails[0].account_name.toLowerCase() === "red edge") {
+                // Fetch the Posting Circle
+                const postingCircleFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, postingCircleFormID);
+
+                if (Number(postingCircleFormData.length) === 0) {
+                    await addTimelineMessage(
+                        {
+                            activity_timeline_text: "Error",
+                            organization_id: request.organization_id
+                        }, workflowActivityID || 0,
+                        {
+                            subject: 'Request cannot be processed',
+                            content: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+                            mail_body: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+                            attachments: []
+                        }
+                    );
+                    return;
+                }
+
+            }
+        }
+
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
             organization_id: request.organization_id,

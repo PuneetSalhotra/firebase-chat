@@ -241,6 +241,36 @@ const vilBulkLOVs = {
         "2962": "Global IPT",
         "2963": "Global IPT",
         "4627": "Global IPT"
+    },
+    "posting_circle_mapping": {
+        "149058": {
+            "form_id": 50849,
+            "field_id": 312612
+        },
+        "149752": {
+            "form_id": 50850,
+            "field_id": 312613
+        },
+        "150229": {
+            "form_id": 50851,
+            "field_id": 312614
+        },
+        "149818": {
+            "form_id": 50852,
+            "field_id": 312615
+        },
+        "151728": {
+            "form_id": 50854,
+            "field_id": 312617
+        },
+        "151729": {
+            "form_id": 50853,
+            "field_id": 312616
+        },
+        "151730": {
+            "form_id": 50855,
+            "field_id": 312618
+        }
     }
 };
 
