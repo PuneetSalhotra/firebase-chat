@@ -937,23 +937,6 @@ function CacheWrapper(client) {
         });
     };
 
-    this.getLogID = () => {
-        return new Promise((resolve, reject) => {
-            client.incr('log_id', function (err, id) {
-                if (err) {
-                    logger.error(`INCR log_id`, { type: 'redis', cache_response: id, error: err });
-                    // console.log(err);
-                    // global.logger.write('cacheResponse', `INCR opportunity_id`, err, reqBodyObject);
-                    resolve(0);
-                }
-
-                logger.verbose(`INCR log_id`, { type: 'redis', cache_response: id, error: err });
-                // global.logger.write('cacheResponse', `INCR opportunity_id`, id, reqBodyObject);
-                resolve(id);
-            });
-        });
-    };
-
 }
 
 module.exports = CacheWrapper;
