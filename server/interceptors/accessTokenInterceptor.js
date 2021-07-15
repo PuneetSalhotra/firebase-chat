@@ -2,9 +2,9 @@ const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
-const uuidv4 = require('uuid/v4');
 const logger = require("../logger/winstonLogger");
 const moment = require('moment');
+const shortid = require('shortid');
 
 function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
@@ -355,7 +355,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     }); //app.use
      
     let getLogUUID = async function () {
-        return `l-${await cacheWrapper.getLogID()}-id`
+        return `l-${shortid.generate()}-id`
     };
 
     let addInitialLog = async function (request) {
