@@ -10379,41 +10379,41 @@ async function getFormInlineData(request, flag) {
             return;
         }
 
-        let postingCircleFormID = postingCircleFormMapping[String(request.activity_type_id)].form_id;
+        // let postingCircleFormID = postingCircleFormMapping[String(request.activity_type_id)].form_id;
 
-        const requestAssetDetails =
-        {
-            asset_id: workflowActivityCreatorAssetID,
-            organization_id: request.organization_id
-        };
+        // const requestAssetDetails =
+        // {
+        //     asset_id: workflowActivityCreatorAssetID,
+        //     organization_id: request.organization_id
+        // };
 
-        let responseAssetDetails = await getAssetDetails(requestAssetDetails);
-        if(responseAssetDetails.length > 0 ) {
-            if (responseAssetDetails[0].account_name.toLowerCase() === "red edge") {
-                // Fetch the Posting Circle
-                const postingCircleFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                    organization_id: request.organization_id,
-                    account_id: request.account_id
-                }, workflowActivityID, postingCircleFormID);
+        // let responseAssetDetails = await getAssetDetails(requestAssetDetails);
+        // if(responseAssetDetails.length > 0 ) {
+        //     if (responseAssetDetails[0].account_name.toLowerCase() === "red edge") {
+        //         // Fetch the Posting Circle
+        //         const postingCircleFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        //             organization_id: request.organization_id,
+        //             account_id: request.account_id
+        //         }, workflowActivityID, postingCircleFormID);
 
-                if (Number(postingCircleFormData.length) === 0) {
-                    await addTimelineMessage(
-                        {
-                            activity_timeline_text: "Error",
-                            organization_id: request.organization_id
-                        }, workflowActivityID || 0,
-                        {
-                            subject: 'Request cannot be processed',
-                            content: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
-                            mail_body: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
-                            attachments: []
-                        }
-                    );
-                    return;
-                }
+        //         if (Number(postingCircleFormData.length) === 0) {
+        //             await addTimelineMessage(
+        //                 {
+        //                     activity_timeline_text: "Error",
+        //                     organization_id: request.organization_id
+        //                 }, workflowActivityID || 0,
+        //                 {
+        //                     subject: 'Request cannot be processed',
+        //                     content: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+        //                     mail_body: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+        //                     attachments: []
+        //                 }
+        //             );
+        //             return;
+        //         }
 
-            }
-        }
+        //     }
+        // }
 
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -10490,7 +10490,8 @@ async function getFormInlineData(request, flag) {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning", "VendorName", "IsSecureRemoteVPNConnect"
+            "SalesRemarks", "ReasonForCloning", "VendorName",
+            //  "IsSecureRemoteVPNConnect"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
