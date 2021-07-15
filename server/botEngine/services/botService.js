@@ -15014,15 +15014,15 @@ async function getFormInlineData(request, flag) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
-            thirdPartyOpexFormTransactionID = 0,
-            thirdPartyOpexFormActivityID = 0,
+            bulkUploadFormTransactionID = 0,
+            bulkUploadFormActivityID = 0,
             opportunityID = "",
             esmsIntegrationsTopicName = "";
-        let thirdPartyOpexMapping = {};
-        let excelRows = [];
 
         const triggerFormID = request.trigger_form_id,
             // Form and Field for getting the excel file's 
+            bulkUploadFormID = botOperationInlineData.bulk_upload.form_id || 0,
+            bulkUploadFieldID = botOperationInlineData.bulk_upload.field_id || 0,
             primaryRequestFormId = botOperationInlineData.bulk_upload.primary_form_id || 0,
             primaryRequestFieldId = botOperationInlineData.bulk_upload.primary_field_id || 0,
             seconadryRequestFormId = botOperationInlineData.bulk_upload.secondary_form_id || 0,
@@ -15053,7 +15053,6 @@ async function getFormInlineData(request, flag) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
-                thirdPartyOpexMapping = vilBulkLOVs["third_party_opex"][`${workflowActivityTypeID}`];
             }
         } catch (error) {
             throw new Error("No Workflow Data Found in DB");
@@ -15063,35 +15062,37 @@ async function getFormInlineData(request, flag) {
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
+        if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            throw new Error("Form ID and field ID not defined to fetch excel for Create SR");
+        }
+
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
             organization_id: request.organization_id,
             account_id: request.account_id
-        }, workflowActivityID, thirdPartyOpexMapping.form_id);
+        }, workflowActivityID, bulkUploadFormID);
 
 
         if (Number(bulkUploadFormData.length) > 0) {
-            thirdPartyOpexFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
-            thirdPartyOpexFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
+            bulkUploadFormActivityID = Number(bulkUploadFormData[0].data_activity_id);
+            bulkUploadFormTransactionID = Number(bulkUploadFormData[0].data_form_transaction_id);
         }
 
-        if (thirdPartyOpexFormActivityID === 0 || thirdPartyOpexFormTransactionID === 0) {
+        if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
             throw new Error("Form to Third party opex is not submitted");
         }
 
-        // Fetch the Business case Type
-        const businessCaseTypeFieldData = await getFieldValue({
-            form_transaction_id: thirdPartyOpexFormTransactionID,
-            form_id: thirdPartyOpexMapping.form_id,
-            field_id: thirdPartyOpexMapping.business_case_type_field,
+        // Fetch the excel URL
+        const bulkUploadFieldData = await getFieldValue({
+            form_transaction_id: bulkUploadFormTransactionID,
+            form_id: bulkUploadFormID,
+            field_id: bulkUploadFieldID,
             organization_id: request.organization_id
         });
 
-        if (businessCaseTypeFieldData.length === 0) {
-            throw new Error("Field to fetch the Business case Type not submitted");
+        if (bulkUploadFieldData.length === 0) {
+            throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
-
-        let businessCaseType = businessCaseTypeFieldData[0].data_entity_text_1;
 
         // Get the details of child orders.
         const [errorZero, childOpportunitiesData] = await activityListSelectChildOrders({
@@ -15099,213 +15100,86 @@ async function getFormInlineData(request, flag) {
             parent_activity_id: workflowActivityID
         });
 
-        if (businessCaseType.toLowerCase() === "single") { //To handle Single FR Case
+        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
+        const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
+        if (xlsxDataBodyError) {
+            throw new Error(xlsxDataBodyError);
+        }
 
-            // Fetch the 1st case current FR
-            const firstCaseCurrentFRFieldData = await getFieldValue({
-                form_transaction_id: thirdPartyOpexFormTransactionID,
-                form_id: thirdPartyOpexMapping.form_id,
-                field_id: thirdPartyOpexMapping.single_case.first_case.current_fr_field,
-                organization_id: request.organization_id
-            });
+        const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
+        // Select sheet
+        const sheet_names = workbook.SheetNames;
+        logger.silly("sheet_names: %j", sheet_names);
 
-            if (firstCaseCurrentFRFieldData.length === 0) {
-                throw new Error("Field to fetch the first Case Current FR Field Data not submitted");
-            }
-
-            const firstCaseExistingFRFieldData = await getFieldValue({
-                form_transaction_id: thirdPartyOpexFormTransactionID,
-                form_id: thirdPartyOpexMapping.form_id,
-                field_id: thirdPartyOpexMapping.single_case.first_case.existing_fr_field,
-                organization_id: request.organization_id
-            });
-
-            if (firstCaseExistingFRFieldData.length === 0) {
-                throw new Error("Field to fetch the first Case Existing FR Field Data not submitted");
-            }
-
-            // const firstCaseLastmileFieldData = await getFieldValue({
-            //     form_transaction_id: thirdPartyOpexFormTransactionID,
-            //     form_id: thirdPartyOpexMapping.form_id,
-            //     field_id: thirdPartyOpexMapping.single_case.first_case.existing_fr_field,
-            //     organization_id: request.organization_id
-            // });
-
-            // if (firstCaseLastmileFieldData.length === 0) {
-            //     throw new Error("Field to fetch the first Case Lastmile FR Field Data not submitted");
-            // }
-
-            // const firstCaseServiceProviderFieldData = await getFieldValue({
-            //     form_transaction_id: thirdPartyOpexFormTransactionID,
-            //     form_id: thirdPartyOpexMapping.form_id,
-            //     field_id: thirdPartyOpexMapping.single_case.first_case.existing_fr_field,
-            //     organization_id: request.organization_id
-            // });
-
-            let firstCaseCurrentFR = firstCaseCurrentFRFieldData[0].data_entity_text_1 || "";
-            let firstCaseExistingFR = firstCaseExistingFRFieldData[0].data_entity_text_1 || "";
-            // let firstCaseLastmile = firstCaseLastmileFieldData[0].data_entity_text_1 || "";
-            // let firstCaseServiceProvider = "";
-
-            // if (firstCaseServiceProviderFieldData.length > 0) {
-            //     firstCaseServiceProvider = firstCaseServiceProviderFieldData[0].data_entity_text_1 || "";
-            // }
-
-            let fridFound = false;
-
-            if (
-                String(firstCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
-                String(firstCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
-            ) {
-                fridFound = true;
-            }
-
-            let row = {};
-
-            if (fridFound) {
-                row["fridType"] = String(firstCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
-                row["activityId"] = workflowActivityID;
-                row["currentBusinessFR"] = firstCaseCurrentFR;
-                row["thirdPartyFR"] = firstCaseExistingFR;
-
-                if (row["fridType"] === "PRIMARY") {
-                    row["formId"] = primaryRequestFormId;
-                    row["fieldId"] = primaryRequestFieldId;
-                } else {
-                    row["formId"] = seconadryRequestFormId;
-                    row["fieldId"] = seconadryRequestFieldId;
+        const headersArray = ["SerialNo", "currentBusinessFR", "thirdPartyFR"];
+        const mandatoryHeaders = ["SerialNo", "currentBusinessFR"];
+        const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
+        let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
+        let nonAsciiErroFound = false;
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            for (const [key, value] of Object.entries(row)) {
+                let indexOfNonAscii = String(value).search(/[^ -~]+/g);
+                if (indexOfNonAscii !== -1) {
+                    nonAsciiErroFound = true;
+                    errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
                 }
-
-                excelRows.push(row);
-
-            } else {
-                let fridtype = "";
-                let childActivityId = 0;
-                for (const childOpty of childOpportunitiesData) {
-                    if (
-                        String(firstCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
-                        String(firstCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
-                    ) {
-                        fridtype = String(firstCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
-                        fridFound = true;
-                        childActivityId = childOpty.activity_id;
-                        break;
-                    }
-                }
-
-                if (fridFound) {
-                    row["fridType"] = fridtype;
-                    row["activityId"] = childActivityId;
-                    row["currentBusinessFR"] = firstCaseCurrentFR;
-                    row["thirdPartyFR"] = firstCaseExistingFR;
-
-                    if (fridtype === "PRIMARY") {
-                        row["formId"] = primaryRequestFormId;
-                        row["fieldId"] = primaryRequestFieldId;
-                    } else {
-                        row["formId"] = seconadryRequestFormId;
-                        row["fieldId"] = seconadryRequestFieldId;
-                    }
-                    excelRows.push(row);
-                }
-
             }
+        }
 
-            let errorMessage = "";
-            if (!fridFound) {
-                errorMessage += `${firstCaseCurrentFR} doesn't belong to Opportunity\n`;
-            }
-
-            // Fetch the 2nd case FR Required
-            const secondCaseRequiredFieldData = await getFieldValue({
-                form_transaction_id: thirdPartyOpexFormTransactionID,
-                form_id: thirdPartyOpexMapping.form_id,
-                field_id: thirdPartyOpexMapping.single_case.is_second_case_needed,
-                organization_id: request.organization_id
-            });
-
-            if (secondCaseRequiredFieldData.length === 0) {
-                throw new Error("Field to fetch the second Case Required Field Data not submitted");
-            }
-
-            let secondCaseRequired = secondCaseRequiredFieldData[0].data_entity_text_1 || "";
-
-            if (secondCaseRequired.toLowerCase() === "yes") {
-
-                // Fetch the 2nd case current FR
-                const secondCaseCurrentFRFieldData = await getFieldValue({
-                    form_transaction_id: thirdPartyOpexFormTransactionID,
-                    form_id: thirdPartyOpexMapping.form_id,
-                    field_id: thirdPartyOpexMapping.single_case.second_case.current_fr_field,
+        if (nonAsciiErroFound) {
+            let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
+            formattedTimelineMessage += errorMessageForNonAscii;
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "",
                     organization_id: request.organization_id
-                });
-
-                if (secondCaseCurrentFRFieldData.length === 0) {
-                    throw new Error("Field to fetch the second Case Current FR Field Data not submitted");
+                }, workflowActivityID || 0,
+                {
+                    subject: 'Errors found while parsing the bulk excel',
+                    content: formattedTimelineMessage,
+                    mail_body: formattedTimelineMessage,
+                    attachments: []
                 }
+            );
+            throw new Error("NonAsciiCharacterFound");
+        }
 
-                const secondCaseExistingFRFieldData = await getFieldValue({
-                    form_transaction_id: thirdPartyOpexFormTransactionID,
-                    form_id: thirdPartyOpexMapping.form_id,
-                    field_id: thirdPartyOpexMapping.single_case.second_case.existing_fr_field,
-                    organization_id: request.organization_id
-                });
-
-                if (secondCaseExistingFRFieldData.length === 0) {
-                    throw new Error("Field to fetch the second Case Existing FR Field Data not submitted");
+        // PreProcessing Stage 1
+        let errorMessage = "";
+        for (let i = 1; i < excelRows.length; i++) {
+            const row = excelRows[i];
+            console.log(`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
+            let errorFoundForAnyColumn = false;
+            for (const header of mandatoryHeaders) {
+                if (row[header] == undefined || row[header] === "") {
+                    errorFoundForAnyColumn = true;
+                    errorMessage += `${header} is empty in row ${i + 1} \n`;
                 }
+            }
 
-                let secondCaseCurrentFR = secondCaseCurrentFRFieldData[0].data_entity_text_1 || "";
-                let secondCaseExistingFR = secondCaseExistingFRFieldData[0].data_entity_text_1 || "";
-
-
-                let fridFound = false;
-
-                if (
-                    String(secondCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
-                    String(secondCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
-                ) {
-                    fridFound = true;
-                }
-
-                let row = {};
-
-                if (fridFound) {
-                    row["fridType"] = String(secondCaseCurrentFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
-                    row["activityId"] = workflowActivityID;
-                    row["currentBusinessFR"] = secondCaseCurrentFR;
-                    row["thirdPartyFR"] = secondCaseExistingFR;
-
-                    if (row["fridType"] === "PRIMARY") {
-                        row["formId"] = primaryRequestFormId;
-                        row["fieldId"] = primaryRequestFieldId;
-                    } else {
-                        row["formId"] = seconadryRequestFormId;
-                        row["fieldId"] = seconadryRequestFieldId;
-                    }
-                    excelRows.push(row);
-
-                } else {
+            console.log(row);
+            if (!errorFoundForAnyColumn) {
+                if (childOpportunitiesData.length > 0) {
+                    let fridFound = false;
                     let fridtype = "";
                     let childActivityId = 0;
                     for (const childOpty of childOpportunitiesData) {
+                        console.log(childOpty);
                         if (
-                            String(secondCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
-                            String(firstCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
+                            String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
                         ) {
-                            fridtype = String(firstCaseCurrentFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                            fridtype = String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
                             fridFound = true;
                             childActivityId = childOpty.activity_id;
                             break;
                         }
                     }
-
                     if (fridFound) {
                         row["fridType"] = fridtype;
                         row["activityId"] = childActivityId;
-                        row["currentBusinessFR"] = secondCaseCurrentFR;
-                        row["thirdPartyFR"] = secondCaseExistingFR;
-
                         if (fridtype === "PRIMARY") {
                             row["formId"] = primaryRequestFormId;
                             row["fieldId"] = primaryRequestFieldId;
@@ -15313,184 +15187,37 @@ async function getFormInlineData(request, flag) {
                             row["formId"] = seconadryRequestFormId;
                             row["fieldId"] = seconadryRequestFieldId;
                         }
-
-                        excelRows.push(row);
-                    }
-
-                }
-
-                if (!fridFound) {
-                    errorMessage += `${secondCaseCurrentFR} doesn't belong to Opportunity\n`;
-                }
-
-            }
-
-            if (errorMessage.length > 0) {
-                let formattedTimelineMessage = `Error !!`;
-                formattedTimelineMessage += errorMessage;
-                await addTimelineMessage(
-                    {
-                        activity_timeline_text: "",
-                        organization_id: request.organization_id
-                    }, workflowActivityID || 0,
-                    {
-                        subject: 'Errors found',
-                        content: formattedTimelineMessage,
-                        mail_body: formattedTimelineMessage,
-                        attachments: []
-                    }
-                );
-                throw new Error("ErrorsFoundInFR");
-            }
-
-        } else if (businessCaseType.toLowerCase() === "bulk") { // To handle Bulk case from Excel File
-
-            // Fetch the excel URL
-            const bulkUploadFieldData = await getFieldValue({
-                form_transaction_id: thirdPartyOpexFormTransactionID,
-                form_id: thirdPartyOpexMapping.form_id,
-                field_id: thirdPartyOpexMapping.bulk_upload_field,
-                organization_id: request.organization_id
-            });
-
-            if (bulkUploadFieldData.length === 0) {
-                throw new Error("Field to fetch the bulk upload excel file not submitted");
-            }
-
-            console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
-            request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
-            const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
-            if (xlsxDataBodyError) {
-                throw new Error(xlsxDataBodyError);
-            }
-
-            const workbook = XLSX.read(xlsxDataBody, { type: "buffer", cellStyles: false });
-            // Select sheet
-            const sheet_names = workbook.SheetNames;
-            logger.silly("sheet_names: %j", sheet_names);
-
-            const headersArray = ["SerialNo", "currentBusinessFR", "thirdPartyFR"];
-            const mandatoryHeaders = ["SerialNo", "currentBusinessFR"];
-            excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
-            let errorMessageForNonAscii = "Non Ascii Character(s) found in \n";
-            let nonAsciiErroFound = false;
-            for (let i = 1; i < excelRows.length; i++) {
-                const row = excelRows[i];
-                for (const [key, value] of Object.entries(row)) {
-                    let indexOfNonAscii = String(value).search(/[^ -~]+/g);
-                    if (indexOfNonAscii !== -1) {
-                        nonAsciiErroFound = true;
-                        errorMessageForNonAscii += `Row: ${i + 1} Column: ${key}\n`;
-                    }
-                }
-            }
-
-            if (nonAsciiErroFound) {
-                let formattedTimelineMessage = `Errors found while parsing the bulk excel:\n\n`;
-                formattedTimelineMessage += errorMessageForNonAscii;
-                await addTimelineMessage(
-                    {
-                        activity_timeline_text: "",
-                        organization_id: request.organization_id
-                    }, workflowActivityID || 0,
-                    {
-                        subject: 'Errors found while parsing the bulk excel',
-                        content: formattedTimelineMessage,
-                        mail_body: formattedTimelineMessage,
-                        attachments: []
-                    }
-                );
-                throw new Error("NonAsciiCharacterFound");
-            }
-
-            // PreProcessing Stage 1
-            let errorMessage = "";
-            for (let i = 1; i < excelRows.length; i++) {
-                const row = excelRows[i];
-                console.log(`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
-                let errorFoundForAnyColumn = false;
-                for (const header of mandatoryHeaders) {
-                    if (row[header] == undefined || row[header] === "") {
+                    } else {
                         errorFoundForAnyColumn = true;
-                        errorMessage += `${header} is empty in row ${i + 1} \n`;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
                     }
-                }
-
-                if (!errorFoundForAnyColumn) {
-
-                    if (childOpportunitiesData.length > 0) {
-                        let fridFound = false;
-                        let fridtype = "";
-                        let childActivityId = 0;
-                        for (const childOpty of childOpportunitiesData) {
-                            console.log(childOpty);
-                            if (
-                                String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
-                                String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
-                            ) {
-                                fridtype = String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
-                                fridFound = true;
-                                childActivityId = childOpty.activity_id;
-                                break;
-                            }
-                        }
-                        if (fridFound) {
-                            row["fridType"] = fridtype;
-                            row["activityId"] = childActivityId;
-                            if (fridtype === "PRIMARY") {
-                                row["formId"] = primaryRequestFormId;
-                                row["fieldId"] = primaryRequestFieldId;
-                            } else {
-                                row["formId"] = seconadryRequestFormId;
-                                row["fieldId"] = seconadryRequestFieldId;
-                            }
+                } else {
+                    let fridFound = false;
+                    if (
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
+                        String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
+                    ) {
+                        fridFound = true;
+                    }
+                    if (fridFound) {
+                        row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
+                        row["activityId"] = workflowActivityID;
+                        if (row["fridType"] === "PRIMARY") {
+                            row["formId"] = primaryRequestFormId;
+                            row["fieldId"] = primaryRequestFieldId;
                         } else {
-                            errorFoundForAnyColumn = true;
-                            errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
+                            row["formId"] = seconadryRequestFormId;
+                            row["fieldId"] = seconadryRequestFieldId;
                         }
                     } else {
-                        let fridFound = false;
-                        if (
-                            String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ||
-                            String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_3).toUpperCase()
-                        ) {
-                            fridFound = true;
-                        }
-                        if (fridFound) {
-                            row["fridType"] = String(row.currentBusinessFR).toUpperCase() === String(workflowActivityData[0].activity_cuid_2).toUpperCase() ? "PRIMARY" : "SECONDARY";
-                            row["activityId"] = workflowActivityID;
-                            if (row["fridType"] === "PRIMARY") {
-                                row["formId"] = primaryRequestFormId;
-                                row["fieldId"] = primaryRequestFieldId;
-                            } else {
-                                row["formId"] = seconadryRequestFormId;
-                                row["fieldId"] = seconadryRequestFieldId;
-                            }
-                        } else {
-                            errorFoundForAnyColumn = true;
-                            errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
-                        }
+                        errorFoundForAnyColumn = true;
+                        errorMessage += `${row.currentBusinessFR} in row ${i + 1} doesn't belong to Opportunity\n`;
                     }
                 }
             }
+        }
 
-            if (errorMessage !== "") {
-
-                await addTimelineMessage(
-                    {
-                        activity_timeline_text: "",
-                        organization_id: request.organization_id
-                    }, workflowActivityID || 0,
-                    {
-                        subject: 'Errors found while parsing the CreateSR excel',
-                        content: errorMessage,
-                        mail_body: errorMessage,
-                        attachments: []
-                    }
-                );
-
-                throw new Error("ErrorsFoundWhileProcessingBulkThirdPartyOpex");
-            }
+        if (errorMessage !== "") {
 
             await addTimelineMessage(
                 {
@@ -15498,13 +15225,14 @@ async function getFormInlineData(request, flag) {
                     organization_id: request.organization_id
                 }, workflowActivityID || 0,
                 {
-                    subject: 'Bulk Operation Notifictaion',
-                    content: "Excel has been submitted for processing successfully",
-                    mail_body: "Excel has been submitted for processing successfully",
+                    subject: 'Errors found while parsing the CreateSR excel',
+                    content: errorMessage,
+                    mail_body: errorMessage,
                     attachments: []
                 }
             );
 
+            throw new Error("ErrorsFoundWhileProcessingBulkThirdPartyOpex");
         }
 
         for (let i = 1; i < excelRows.length; i++) {
@@ -15519,6 +15247,19 @@ async function getFormInlineData(request, flag) {
                 }
             }, esmsIntegrationsTopicName, Number(workflowActivityID));
         }
+
+        await addTimelineMessage(
+            {
+                activity_timeline_text: "",
+                organization_id: request.organization_id
+            }, workflowActivityID || 0,
+            {
+                subject: 'Bulk Operation Notifictaion',
+                content: "Excel has been submitted for processing successfully",
+                mail_body: "Excel has been submitted for processing successfully",
+                attachments: []
+            }
+        );
 
         return;
     }
