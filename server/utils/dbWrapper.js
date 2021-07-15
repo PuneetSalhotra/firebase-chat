@@ -21,7 +21,7 @@ var readCluster = mysql.createPoolCluster(clusterConfig);
 const writeClusterForHealthCheck = mysql.createPoolCluster();
 var readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
 
-const readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
+var readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
 
 let redisSubscriber;
 let redisClient;
@@ -672,8 +672,11 @@ function getAndSetDbURL() {
             global.config.slave1DBUser = reply[6];
             global.config.slave1DBPassword = reply[7];
 
+            global.config.slave2Ip = reply[8];
+
             readCluster = mysql.createPoolCluster(clusterConfig);
             readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
+
             readCluster.add('SLAVE1', {
                 connectionLimit: global.config.conLimit,
                 host: global.config.slave1Ip,
@@ -691,6 +694,17 @@ function getAndSetDbURL() {
                 database: global.config.slave1Database,
                 debug: false
             });
+
+            readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
+            readClusterForAccountSearch.add('SLAVE2', {
+                connectionLimit: global.config.conLimit,
+                host: global.config.slave2Ip,
+                user: global.config.slave1DBUser,
+                password: global.config.slave1DBPassword,
+                database: global.config.slave1Database,
+                debug: false
+            });
+
             logger.warn(`[DBConnectionReEstablished] ${moment().format('YYYY-MM-DD h:mm:ss')}`, { type: 'mysql', db_response: null, request_body: null, error: null });
         }
     });
