@@ -3282,17 +3282,27 @@ async function addFormEntriesAsync(request) {
     let finalInlineDataKeys = [];
     // Value Contributors
     if(request.hasOwnProperty("workflow_activity_id")){
+
         let [err, data] = await activityCommonService.getActivityDetailsAsync(request);
-        [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
-        //util.logInfo(request, "responseValueContributor "+responseValueContributor.length);
-        if(responseValueContributor.length > 0){
-            finalInlineData = JSON.parse(responseValueContributor[0].activity_type_inline_data);
-            if(finalInlineData.hasOwnProperty('workflow_fields'))
-                finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
-            else
-            util.logInfo(request, "No workflow_fields");
+        if(data.length > 0){
+            [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
+            //util.logInfo(request, "responseValueContributor "+responseValueContributor.length);
+            if(responseValueContributor.length > 0){
+                if(responseValueContributor[0].activity_type_inline_data == null){
+                    util.logInfo(request, data[0].activity_type_id+" activity_type_inline_data is null");               
+                }else{
+                    finalInlineData = JSON.parse(responseValueContributor[0].activity_type_inline_data);
+
+                    if(finalInlineData.hasOwnProperty('workflow_fields'))
+                        finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
+                    else
+                    util.logInfo(request, "No workflow_fields");                
+                }
+            }else{
+                util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
+            }
         }else{
-            util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
+            util.logInfo(request, "No No Workflow");      
         }
     } 
     util.logInfo(request, "value contributors "+finalInlineDataKeys);

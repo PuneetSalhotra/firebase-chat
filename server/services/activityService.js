@@ -5915,8 +5915,13 @@ function ActivityService(objectCollection) {
         if(responseData.length===0){
          return []
         }
+
+        if(responseData[0].activity_type_inline_data == null)
+            return "";
+
         let activityInlineData = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
-        let finalInlineData = responseData[0].activity_type_inline_data?JSON.parse(responseData[0].activity_type_inline_data):{};
+
+        let finalInlineData = JSON.parse(responseData[0].activity_type_inline_data);
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
         let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
         for(let i=0;i<activityInlineData.length;i++){
