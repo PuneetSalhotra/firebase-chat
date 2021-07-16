@@ -1552,7 +1552,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
         await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
         if(request.email_id) {
-            await addUser(request.email_id, global.config.user_pool_id);
+            await addUser(request.email_id, global.config.user_web_pool_id);
         }
 
         // Send SMS to the newly added employee
@@ -10801,9 +10801,9 @@ console.log('new ActivityId321',newActivity_id)
             else if(request.is_web_remove == 1)
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
             else if(request.is_email_add == 1)   
-                await addUser(request.email, global.config.user_pool_id);
+                await addUser(request.email, global.config.user_web_pool_id);
             else if(request.is_email_remove == 1)
-                await removeUser(request.email, global.config.user_pool_id);
+                await removeUser(request.email, global.config.user_web_pool_id);
 
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
