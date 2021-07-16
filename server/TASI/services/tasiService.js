@@ -359,11 +359,14 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.customer_account_type_id, 
-            request.asset_id, 
-            request.organization_id, 
-            request.log_asset_id,
-            util.getCurrentUTCTime()
+          request.customer_account_type_id,
+          request.asset_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.organization_id,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_customer_account_mapping_insert', paramsArr);
 
@@ -463,18 +466,21 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-          request.payout_name,
-          request.payout_description, 
-          request.payout_type_id,
-          request.payout_inline_data,
-          request.timeline_id,
-          request.payout_policy_document_url,
-          request.payout_matrix_document_url,
-          request.payout_accelerator_document_url,
-          request.payout_flag_enable_penetration,
-          request.payout_flag_enable_utilization,
-          request.organization_id,
-          request.log_asset_id,
+            request.payout_name, 
+            request.payout_description, 
+            request.payout_type_id, 
+            request.payout_inline_data, 
+            request.timeline_id,
+            request.payout_policy_document_url, 
+            request.payout_matrix_document_url, 
+            request.payout_accelerator_document_url, 
+            request.payout_flag_enable_penetration, 
+            request.payout_flag_enable_utilization, 
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime, 
+            request.organization_id, 
+            request.log_asset_id, 
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_list_insert', paramsArr);
@@ -600,33 +606,34 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-          request.widget_type_name,
-          request.widget_type_description,
-          request.widget_type_category_id,
-          request.widget_type_chart_id,
-          request.flag_mobile_enabled,
-          request.widget_type_flag_target,
-          request.widget_type_flag_sip_enabled,
-          request.widget_type_flag_role_enabled,
-          request.widget_type_flag_prediction_enabled,
-          request.widget_type_sip_contribution_percentage,
-          request.widget_type_inline_data,
-          request.widget_type_measurement_id,
-          request.widget_type_timeline_id,
-          request.asset_tag_id,
-          request.customer_account_type_id,
-          request.widget_type_start_datetime,
-          request.widget_type_end_datetime,
-          request.asset_type_id,
-          request.asset_type_sequence_id,
-          request.activity_type_id,
-          request.tag_id,
-          request.workforce_type_id,
-          request.organization_id,
-          request.log_asset_id,
+            request.widget_type_name,
+            request.widget_type_description,
+            request.widget_type_category_id,
+            request.widget_type_chart_id,
+            request.flag_mobile_enabled,
+            request.widget_type_flag_target,
+            request.widget_type_flag_sip_enabled,
+            request.widget_type_flag_role_enabled,
+            request.widget_type_flag_prediction_enabled,
+            request.widget_type_sip_contribution_percentage,
+            request.widget_type_inline_data,
+            request.widget_type_measurement_id,
+            request.widget_type_timeline_id,
+            request.asset_tag_id,
+            request.customer_account_type_id,
+            request.period_type_id,
+            request.widget_type_start_datetime,
+            request.widget_type_end_datetime,
+            request.asset_type_id,
+            request.asset_type_sequence_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.workforce_type_id,
+            request.organization_id,
+            request.log_asset_id,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p2_widget_type_master_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p3_widget_type_master_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1019,6 +1026,130 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.adminAccessTypeCategorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_admin_access_type_category_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.adminAccessTypesSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.admin_access_type_category_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_admin_access_type_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutEntityMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.payout_id, 
+            request.widget_type_id, 
+            request.customer_account_type_id, 
+            request.organization_id, 
+            request.log_asset_id,
+            util.getCurrentUTCTime() 
+        );
+        const queryString = util.getQueryString('ds_p1_payout_entity_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutEntityMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.payout_entity_mapping_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime() 
+        );
+        const queryString = util.getQueryString('ds_p1_payout_entity_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutEntityMappingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.payout_id,
+          request.widget_type_id,
+          request.customer_account_type_id,
+          request.flag,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_payout_entity_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

@@ -9485,7 +9485,7 @@ console.log('new ActivityId321',newActivity_id)
         request.manager_asset_id,
         request.flag,
         request.start_from,
-        50  
+        request.limit_value 
     );
     const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
 
