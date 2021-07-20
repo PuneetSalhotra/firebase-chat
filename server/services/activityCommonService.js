@@ -6087,9 +6087,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         //p_flag = 0, Update Activity Details
         //p_flag = 1, Update Access
         //p_flag = 2, Update Owner Flag
-
         let responseData = [],
-            error = true;
+        error = true;
+        util.logInfo(request,"actAssetSearchMappingUpdate :Setting timeout for 10 sec to bots to complete exectuion")
+        setTimeout(async ()=>{
+       
 
         const paramsArr = [
                             request.activity_id,
@@ -6112,7 +6114,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     error = err;
                 });
         }
-
+    },20000)
         return [error, responseData];
     };
 
@@ -6261,11 +6263,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     return [error, responseData];
     }
-
+    
     this.insertManyAssetMappingsinElastic=async function (request){
         let responseData = [],
         error = true;
-
+        util.logInfo(request,"insertManyAssetMappingsinElastic : ---Entered----")
     const paramsArr = [
                         request.activity_id,
                         request.asset_id,
@@ -6288,6 +6290,11 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                 match: {
                                   activity_id:Number(request.activity_id)
                                 }
+                              },
+                              {
+                                match: {
+                                  asset_id:Number(request.asset_id)
+                                }
                               }
                             ],
                     
@@ -6298,13 +6305,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             // console.log(resultData.hits.hits);
             // return;
             for(let i=0;i<resultData.hits.hits.length;i++){
+                util.logInfo(request,"insertManyAssetMappingsinElastic : Updatting existing value to : " + JSON.stringify(dataTobeSent))
                 // console.log("came inside",resultData.hits.hits[i],i);
-             let previousData = resultData.hits.hits[i]._source;
-             previousData.activity_status_id = dataTobeSent.activity_status_id;
-             previousData.activity_status_type_id = dataTobeSent.activity_status_type_id;
-             previousData.activity_title = dataTobeSent.activity_title;
-             previousData.asset_flag_is_owner = dataTobeSent.asset_flag_is_owner;
-             logger.info('came in elastic activity 2 update :'+JSON.stringify(dataTobeSent));
+             
             //  let dd ={ activity_title: 'FR01621483',
             //  activity_cuid_1: null,
             //  activity_cuid_2: null,
@@ -6329,7 +6332,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             //  log_active: 1}
             //  console.log(dataToBeUpdated)
              
-             client.updateByQuery({
+            await client.updateByQuery({
                 index: global.config.elasticActivityAssetTable,
                 "body": {
                     "query": {
@@ -6342,7 +6345,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                               },
                               {
                                 match: {
-                                  asset_id:Number(previousData.asset_id)
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
@@ -6352,7 +6355,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     "script": {
                         "source": "ctx._source = params",
                         "lang": "painless",
-                        "params": {...previousData
+                        "params": {...dataTobeSent
                         }
                     }
                 }
@@ -6373,7 +6376,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let responseData = [],
         error = true;
         let checkEntry = [];
-
+        util.logInfo(request,"insertActivityMappingsinElastic : ---Entered----")
 // const paramsArr2 = [ request.activity_id,
 //     request.asset_id,
 //     request.organization_id ];
@@ -6399,6 +6402,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
+               
                 if(data.length>0 && data[0].activity_creator_asset_id==request.asset_id){
                 // if(data.length>0){
                 let dataTobeSent = responseData[0];
@@ -6421,10 +6425,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }
             });
             
-            logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
             // logger.info(resultData.hits.hits[0]._source);
             if(resultData.hits.hits.length>0){
-                logger.info('came in elastic activity 1 update :'+JSON.stringify(resultData.hits.hits[0]._source))
+            util.logInfo(request,"insertActivityMappingsinElastic : Updatting existing value to : " + JSON.stringify(dataTobeSent))
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
              client.updateByQuery({
@@ -6452,7 +6455,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             });
             }
             else{
-                logger.info('came in elastic activity 1 insert :')
+                util.logInfo(request,"insertActivityMappingsinElastic : inserting new value : " + JSON.stringify(dataTobeSent))
                 // const paramsArr1 = [request.activity_id, request.asset_id,request.organization_id];
                 // const queryString1 = util.getQueryString(
                 //   "ds_v1_activity_asset_search_mapping_update_elasticsearch_insert",
@@ -6471,7 +6474,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         ...dataTobeSent
                     }
                 }).then(res=>{
-                    logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
+                    
                     resolve()
                 }).catch(err=>resolve())})
             }
