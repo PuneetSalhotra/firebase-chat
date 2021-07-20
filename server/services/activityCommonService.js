@@ -6114,7 +6114,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     error = err;
                 });
         }
-    },10000)
+    },20000)
         return [error, responseData];
     };
 
@@ -6332,7 +6332,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             //  log_active: 1}
             //  console.log(dataToBeUpdated)
              
-             client.updateByQuery({
+            await client.updateByQuery({
                 index: global.config.elasticActivityAssetTable,
                 "body": {
                     "query": {
@@ -6345,7 +6345,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                               },
                               {
                                 match: {
-                                  asset_id:Number(previousData.asset_id)
+                                  asset_id:Number(request.asset_id)
                                 }
                               }
                             ],
