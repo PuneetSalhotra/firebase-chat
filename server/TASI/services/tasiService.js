@@ -1165,6 +1165,54 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.periodTypeMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.period_type_category_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_period_type_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutTypeMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.payout_type_category_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_payout_type_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = TasiService;
