@@ -10352,14 +10352,17 @@ async function getFormInlineData(request, flag) {
                 workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
+            util.logError(request,`No Workflow Data Found in DB`);
             throw new Error("No Workflow Data Found in DB");
         }
 
         if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            util.logError(request,`Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
         if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            util.logError(request,`Form ID and field ID not defined to fetch excel for bulk upload`);
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
@@ -10376,6 +10379,7 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request,`Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
             return;
         }
 
@@ -10427,6 +10431,7 @@ async function getFormInlineData(request, flag) {
         }
 
         if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            util.logError(request,`Form to bulk upload feasibility is not submitted`);
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
@@ -10449,6 +10454,7 @@ async function getFormInlineData(request, flag) {
             organization_id: request.organization_id
         });
         if (bulkUploadFieldData.length === 0) {
+            util.logError(request,`Field to fetch the bulk upload excel file not submitted`);
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
@@ -10470,6 +10476,7 @@ async function getFormInlineData(request, flag) {
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
+            util.logError(request,`[BulkFeasibilityError]${xlsxDataBodyError}`);
             throw new Error(xlsxDataBodyError);
         }
 
@@ -10749,6 +10756,7 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request,`[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
             throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
@@ -11058,8 +11066,10 @@ async function getFormInlineData(request, flag) {
                 }
             }, (error, data) => {
                 if (error) {
+                    util.logError(request, `Error sending excel job to SQS queue`, { type: 'bot_engine', error: serializeError(error), request_body: request });
                     logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                 } else {
+                    util.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'bot_engine', request_body: request });
                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                 }
             });
@@ -11094,6 +11104,7 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request, `${formattedTimelineMessage}`, { type: 'bot_engine', request_body: request });
         } catch (error) {
             if (error.message === "NoErrorsFound") {
                 await addTimelineMessage(
@@ -11108,9 +11119,10 @@ async function getFormInlineData(request, flag) {
                         attachments: []
                     }
                 );
+                util.logInfo(request, `Excel has been submitted for processing successfully`);
             }
             else {
-                logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+                util.logError(request, "Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
             }
 
         }
