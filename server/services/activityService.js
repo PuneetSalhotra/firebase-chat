@@ -1956,7 +1956,7 @@ function ActivityService(objectCollection) {
                         request.datetime_log
                     );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (error, queryResponse) {});
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) {
 
                     //Updating the activity asset table for account search
                     console.log('\nAccount Search - Updating the activity asset table');
@@ -1968,6 +1968,7 @@ function ActivityService(objectCollection) {
                         //asset_participant_access_id: Number(request.asset_participant_access_id),
                         //asset_flag_is_owner: 0
                     });
+                });
                 }, this);
                 callback(false, true);
                 return;
