@@ -183,6 +183,14 @@ function PamListingService(objectCollection) {
             rowDataArr.update_sequence_id = util.replaceDefaultNumber(rowData['update_sequence_id']);
             rowDataArr.asset_member_enabled = util.replaceDefaultNumber(rowData['asset_coffee_enabled']);
 
+            rowDataArr.manager_asset_id = util.replaceDefaultNumber(rowData['manager_asset_id']);
+            rowDataArr.manager_asset_first_name = util.replaceDefaultString(rowData['manager_asset_first_name']);
+            rowDataArr.manager_asset_last_name = util.replaceDefaultString(rowData['manager_asset_last_name']);
+
+            rowDataArr.manager_operating_asset_id = util.replaceDefaultNumber(rowData['manager_operating_asset_id']);
+            rowDataArr.manager_operating_asset_first_name = util.replaceDefaultString(rowData['manager_operating_asset_first_name']);
+            rowDataArr.manager_operating_asset_last_name = util.replaceDefaultString(rowData['manager_operating_asset_last_name']);
+ 
             responseData.push(rowDataArr);
             next();
         }).then(function () {

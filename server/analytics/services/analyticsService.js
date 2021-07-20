@@ -2106,7 +2106,7 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if(request.tag_type_id == 130 && request.filter_asset_id == 0)
+            if(request.tag_type_id == 130)
                 request.filter_asset_id = request.asset_id;
 
             //if([131,132,133,134].includes(request.widget_type_id))
@@ -2769,7 +2769,7 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130 && request.filter_asset_id == 0)
+            if(request.tag_type_id == 130)
             request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
