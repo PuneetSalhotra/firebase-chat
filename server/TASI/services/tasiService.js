@@ -24,7 +24,7 @@ function TasiService(objectCollection) {
             request.flag_manager_proxy,
             request.flag_enable_form_tag,
             request.flag_enable_sip_module,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_2_organization_list_update_flags', paramsArr);
@@ -66,7 +66,7 @@ function TasiService(objectCollection) {
           request.flag_enable_form_tag,
           request.flag_enable_sip_module,
           request.organization_type_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_3_organization_list_insert', paramsArr);
@@ -160,7 +160,7 @@ function TasiService(objectCollection) {
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
-            request.log_asset_id
+            request.asset_id
         );
         const queryString = util.getQueryString('ds_p3_workforce_asset_type_mapping_update', paramsArr);
 
@@ -187,7 +187,7 @@ function TasiService(objectCollection) {
           request.timeline_id,
           request.template_url,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_insert', paramsArr);
@@ -212,7 +212,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.organization_id,
           request.customer_account_type_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_delete', paramsArr);
@@ -238,7 +238,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.customer_account_type_id,
           request.customer_account_type_name,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_update_name', paramsArr);
@@ -264,7 +264,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.customer_account_type_id,
           request.account_type_inline_json,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_update_inline', paramsArr);
@@ -290,7 +290,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.customer_account_type_id,
           request.account_type_inline_json,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_update_inline', paramsArr);
@@ -360,12 +360,12 @@ function TasiService(objectCollection) {
             error = true;
         const paramsArr = new Array(
           request.customer_account_type_id,
-          request.asset_id,
+          request.target_asset_id,
           request.period_type_id,
           request.period_start_datetime,
           request.period_end_datetime,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_customer_account_mapping_insert', paramsArr);
@@ -390,9 +390,9 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id, 
             request.customer_account_type_id, 
-            request.asset_id, 
+            request.target_asset_id, 
             
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_customer_account_mapping_delete', paramsArr);
@@ -417,9 +417,9 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id, 
             request.customer_account_type_id, 
-            request.asset_id, 
+            request.target_asset_id, 
             request.flag,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_customer_account_mapping_select', paramsArr);
@@ -480,7 +480,7 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime, 
             request.organization_id, 
-            request.log_asset_id, 
+            request.asset_id, 
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_list_insert', paramsArr);
@@ -506,7 +506,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.organization_id,
           request.payout_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_list_delete', paramsArr);
@@ -532,7 +532,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.payout_id,
           request.payout_inline_data,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_list_update_inline', paramsArr);
@@ -635,7 +635,7 @@ function TasiService(objectCollection) {
           request.workforce_type_id,
           request.account_id,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p3_widget_type_master_insert', paramsArr);
@@ -705,9 +705,9 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.admin_access_type_id,
           request.asset_access_flag,
-          request.asset_id,
+          request.target_asset_id,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_admin_access_mapping_insert', paramsArr);
@@ -732,7 +732,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id, 
             request.admin_access_type_id, 
-            request.asset_id, 
+            request.target_asset_id, 
             request.flag,
             request.start_from, 
             request.limit_value
@@ -759,9 +759,9 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.admin_access_type_id,
           request.asset_access_flag,
-          request.asset_id,
+          request.target_asset_id,
           
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_admin_access_mapping_delete', paramsArr);
@@ -786,7 +786,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.organization_id,
           request.admin_access_type_id,
-          request.asset_id,
+          request.target_asset_id,
           id,
           util.getCurrentUTCTime()
         );
@@ -820,7 +820,7 @@ function TasiService(objectCollection) {
             request.tag_id_5,
             request.target_value_5,
             request.total_target_value,
-            request.asset_id,
+            request.target_asset_id,
             request.customer_account_type_id,
             request.customer_account_code,
             request.customer_account_name,
@@ -828,7 +828,7 @@ function TasiService(objectCollection) {
             request.workforce_id,
             request.account_id,
             request.organization_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_entity_target_mapping_insert', paramsArr);
@@ -853,7 +853,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.entity_target_mapping_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_entity_target_mapping_delete', paramsArr);
@@ -962,7 +962,7 @@ function TasiService(objectCollection) {
     //       request.period_start_datetime,
     //       request.period_end_datetime,
     //       request.organization_id,
-    //       request.log_asset_id,
+    //       request.asset_id,
     //       util.getCurrentUTCTime()
     //     );
     //     const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
@@ -986,7 +986,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.account_id,
           request.workforce_id,
-          request.asset_id,
+          request.target_asset_id,
           request.report_type_id,
           request.report_name,
           request.report_inline_data,
@@ -999,7 +999,7 @@ function TasiService(objectCollection) {
           request.report_end_time,
           request.report_next_start_datetime,
           request.report_next_end_datetime,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('dm_v1_1_report_list_insert', paramsArr);
@@ -1024,7 +1024,7 @@ function TasiService(objectCollection) {
           request.report_transaction_id,
           request.report_id,
           request.report_flag_final,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('dm_v1_report_transaction_update_flag_final', paramsArr);
@@ -1097,7 +1097,7 @@ function TasiService(objectCollection) {
             request.widget_type_id, 
             request.customer_account_type_id, 
             request.organization_id, 
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime() 
         );
         const queryString = util.getQueryString('ds_p1_payout_entity_mapping_insert', paramsArr);
@@ -1121,7 +1121,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id, 
             request.payout_entity_mapping_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime() 
         );
         const queryString = util.getQueryString('ds_p1_payout_entity_mapping_delete', paramsArr);
@@ -1222,7 +1222,7 @@ function TasiService(objectCollection) {
           request.payout_type_description,
           request.payout_type_category_id,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_type_master_insert', paramsArr);
@@ -1246,7 +1246,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.payout_type_id,
-            request.log_asset_id,
+            request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_payout_type_master_delete', paramsArr);
