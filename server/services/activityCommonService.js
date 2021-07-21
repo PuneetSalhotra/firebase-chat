@@ -6512,7 +6512,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     const paramsArr = [
                         request.activity_id,
                         request.asset_id,
-                        0                           
+                        3                           
                       ];
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
     if (queryString !== '') {
@@ -6563,6 +6563,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }).catch(err=>resolve())})
 
                 for(let i=0;i<responseData.length;i++){
+                    util.logInfo(request, i);
                     let insertedResponse = await new Promise((resolve)=>{ client.index({
                         index:global.config.elasticActivityAssetTable,
                         body:{
