@@ -464,7 +464,7 @@ function TasiService(objectCollection) {
 
     this.payoutListInsert = async function (request) {
         let responseData = [],
-            error = true;
+            error = false;
         const paramsArr = new Array(
             request.payout_name, 
             request.payout_description, 
@@ -489,8 +489,9 @@ function TasiService(objectCollection) {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
+                   
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2701)
+                   payoutHistoryInsert({...request,payout_id:data[0].payout_id},2701)
                 })
                 .catch((err) => {
                     error = err;
@@ -515,7 +516,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2702)
+                     payoutHistoryInsert(request,2702)
                 })
                 .catch((err) => {
                     error = err;
@@ -541,7 +542,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2703)
+                     payoutHistoryInsert(request,2703)
                 })
                 .catch((err) => {
                     error = err;
@@ -1212,6 +1213,79 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.payoutTypeMasterInsert = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.payout_type_name,
+          request.payout_type_description,
+          request.payout_type_category_id,
+          request.organization_id,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_payout_type_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutTypeMasterDelete = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.payout_type_id,
+            request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_payout_type_master_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutCategoryMasterList = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_payout_type_category_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
