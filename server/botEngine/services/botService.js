@@ -1942,9 +1942,6 @@ function BotService(objectCollection) {
                             condition: botOperationsJson.bot_operations.condition
                         });
 
-                        //global.config.CHILD_ORDER_TOPIC_NAME
-                        
-
                         await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
                             request,
                             requestType: "mom_child_orders",
