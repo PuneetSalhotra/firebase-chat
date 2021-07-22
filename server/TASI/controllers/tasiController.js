@@ -356,6 +356,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/widget/timeline/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.widetTimelineMasterSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget/timeline/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 
