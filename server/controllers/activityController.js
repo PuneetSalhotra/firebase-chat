@@ -604,7 +604,7 @@ function ActivityController(objCollection) {
     var addActivity = function (req, callback) {
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
-                util.logError(req.body,`getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
+                util.logError(req,`getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
 
                 callback(true, 0);
                 return;
@@ -618,7 +618,7 @@ function ActivityController(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                     if (err) {
-                        util.logError(req.body,`eventError`, { type: 'add_activity', error: serializeError(err) });
+                        util.logError(req,`eventError`, { type: 'add_activity', error: serializeError(err) });
 
                         callback(true, 1);
 
@@ -628,15 +628,15 @@ function ActivityController(objCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        util.logError(req.body,`setParityError`, { type: 'add_activity', error: serializeError(err) });
+                                        util.logError(req,`setParityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     } else
-                                    util.logInfo(req.body,`asset parity is set successfully`);
+                                    util.logInfo(req,`asset parity is set successfully`);
 
                                 });
                             }
                         }
-                        util.logInfo(req.body,`New activityId is : ${activityId}`);
+                        util.logInfo(req,`New activityId is : ${activityId}`);
                         callback(false, activityId);
                     }
                 });
