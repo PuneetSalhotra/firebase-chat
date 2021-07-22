@@ -366,6 +366,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/tag/entity/mapping/workforce/list', async function (req, res) {
+        const [err, resData] = await tasiService.tagEntityMappingSelectWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/tag/entity/mapping/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 
