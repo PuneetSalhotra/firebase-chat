@@ -115,7 +115,7 @@ function ActivityTimelineController(objCollection) {
                                 });
                             } else { // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
-                                util.logInfo(request,`this is a duplicate hit`);
+                                util.logInfo(req.body,`this is a duplicate hit`);
                                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
                             }
                         }
