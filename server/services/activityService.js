@@ -342,6 +342,25 @@ function ActivityService(objectCollection) {
                             if([48,53,54,55].includes(activityTypeCategroyId)){
                                 await updateChannelActivity(request, 9, request.activity_id, activityTypeCategroyId);
                             }
+                           
+                            if(activityTypeCategroyId !== 9){
+                                request.workflow_activity_type_id = request.activity_type_id;
+                               self.updateWorkflowValues(request,request.activity_id);
+                            }
+                         /*    else{
+                               let [isOriginCheck,originWorkData] = await checkWorkflowOrginForm(request);
+                               if(isOriginCheck){
+                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                                        if(workflowData.length > 0) {
+                                            util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                            request.workflow_activity_type_id = workflowData[0].activity_type_id;
+                                            self.updateWorkflowValues(request,workflowData[0].activity_id);
+                                        }else{
+                                            util.logInfo(request,`workflow doesn't exist for ${request.activity_id}`);
+                                        }
+                                    });
+                               }
+                            } */
 
                             if (request.activity_type_category_id == 48) {
                                 logger.info("activity_type_id : "+request.activity_type_id+" activity_form_id : "+request.activity_form_id);
@@ -415,11 +434,11 @@ function ActivityService(objectCollection) {
                                                     request['field_value'] = totalvalue;
                                                     widgetActivityFieldTransactionInsert(request);
                                                     
-                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 1, otc_1);
+                                                   /* await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 1, otc_1);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 2, arc_1);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 3, otc_2);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 4, arc_2);
-                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, finalValue);
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, finalValue);*/
                                                 });
                                             }else{
                                                  request['field_value'] = -1;
@@ -520,14 +539,14 @@ function ActivityService(objectCollection) {
                                 // Do nothing
                             }*/
   
-                            if(activityTypeCategroyId === 48) { 
+                            /*if(activityTypeCategroyId === 48) { 
                                 //let crfIds = [134564, 134566, 134573, 134575];
                                 let crfIds = [134562, 134565, 134569, 134574, 134583, 145268, 134564, 134566, 134573, 133892, 133893, 133894, 133895, 133896, 133897, 133898, 133899, 134576, 142431, 142432, 134575, 152451];
                                 if(!crfIds.includes(request.activity_type_id))
                                     addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1);
                             }else if(activityTypeCategroyId === 9){
                                 addValueToWidgetForAnalytics(request);
-                            }                             
+                            }*/                             
 
                             if(activityTypeCategroyId === 48 || 
                                activityTypeCategroyId === 9  || 
@@ -1937,7 +1956,7 @@ function ActivityService(objectCollection) {
                         request.datetime_log
                     );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (error, queryResponse) {});
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) {
 
                     //Updating the activity asset table for account search
                     console.log('\nAccount Search - Updating the activity asset table');
@@ -1949,6 +1968,7 @@ function ActivityService(objectCollection) {
                         //asset_participant_access_id: Number(request.asset_participant_access_id),
                         //asset_flag_is_owner: 0
                     });
+                });
                 }, this);
                 callback(false, true);
                 return;
@@ -4145,7 +4165,7 @@ function ActivityService(objectCollection) {
             util.logError(request,`updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
         }
         try {
-            request.page_limit = 100;
+            request.page_limit = 500;
             let queueMap;
 
             if(isGlobalWorkflow) {
@@ -4713,8 +4733,8 @@ function ActivityService(objectCollection) {
                     try{
                         parsedFieldValue = JSON.parse(fieldValue);
                     } catch(err) {
-                        console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
-                        console.log('Switching to backward compatibility');
+                        util.logInfo(request,'Error in parsing workflow reference datatype : ', parsedFieldValue);
+                        util.logInfo(request,'Switching to backward compatibility');
                         
                         //Backward Compatibility "workflowactivityid|workflowactivitytitle"
                         mappingActivityId = fieldData.field_value.split('|');
@@ -5345,7 +5365,7 @@ function ActivityService(objectCollection) {
 
     function activtySearchListInsert(request) {
         return new Promise((resolve, reject) => {
-            global.logger.write('DEBUG', '::: activtySearchListInsert  :::', {}, request);
+            util.logInfo(request, "IN activtySearchListInsert ");
             let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -5797,7 +5817,7 @@ function ActivityService(objectCollection) {
     this.activityFormListInsert = async function (request) {
         let responseData = [],
             error = true;
-            
+            util.logInfo(request, "IN activityFormListInsert ");
             let activityInlineData = {};
             if(request.activity_inline_data){
                 let data = JSON.parse(request.activity_inline_data)
@@ -5846,7 +5866,80 @@ function ActivityService(objectCollection) {
                 convertedData["_" + item.field_id] = item;
             });
             return convertedData;
-        }      
+        }   
+        
+    async function checkWorkflowOrginForm (request){
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        if (Number(formConfigData.length) > 0) {
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+
+            if(isWorkflowEnabled && originFlagSet) {
+                return [false,[]];
+            }
+            else{
+                return [true,[formConfigData]]
+            }
+        }
+        else{
+            return [false,[]]
+        }
+    }   
+    this.updateWorkflowValues = async (request,idActivity) => {
+
+        util.logInfo(request, "updateWorkflowValues :: ActivityTypeId :: "+request.workflow_activity_type_id);
+        let responseData=[];
+        let error = false; 
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workflow_activity_type_id,
+        );
+        //console.log(paramsArr);            
+        var queryString = util.getQueryString( "ds_p1_workforce_activity_type_mapping_select_id",paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        util.logInfo(request, "updateWorkflowValues :: responseData.length :: "+responseData.length);
+        if(responseData.length===0){
+         return []
+        }
+
+        if(responseData[0].activity_type_inline_data == null)
+            return "";
+
+        let activityInlineData = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
+
+        let finalInlineData = JSON.parse(responseData[0].activity_type_inline_data);
+        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+        let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
+        for(let i=0;i<activityInlineData.length;i++){
+            
+            if(finalInlineDataKeys.includes(activityInlineData[i].field_id)){
+                    const fieldValue = await getFieldValueByDataTypeID(
+                        Number(activityInlineData[i].field_data_type_id),
+                        activityInlineData[i].field_value
+                    );
+                    util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
+                    request.sequence_id = finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id;
+                    request.workflow_activity_id = idActivity;
+                    activityCommonService.updateWorkflowValue(request, fieldValue);
+                }
+            }
+        }
+    }
 
 }
 

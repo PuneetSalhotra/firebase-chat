@@ -3235,7 +3235,7 @@ function ActivityTimelineService(objectCollection) {
 
 
 async function addFormEntriesAsync(request) {
-    util.logInfo(request,`In AddFormEntries`);
+    util.logInfo(request,`In addFormEntriesAsync`);
 
     let responseData = [],
             error = true;
@@ -3277,6 +3277,35 @@ async function addFormEntriesAsync(request) {
         util.logInfo(request,`[Incremental Form Data Submission] formDataJson %j`, formDataJson);
     }
 
+    let errorValueContributor = true, responseValueContributor = [], data = [];
+    let finalInlineData = {};
+    let finalInlineDataKeys = [];
+    // Value Contributors
+    if(request.hasOwnProperty("workflow_activity_id")){
+
+        let [err, data] = await activityCommonService.getActivityDetailsAsync(request);
+        if(data.length > 0){
+            [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
+            //util.logInfo(request, "responseValueContributor "+responseValueContributor.length);
+            if(responseValueContributor.length > 0){
+                if(responseValueContributor[0].activity_type_inline_data == null){
+                    util.logInfo(request, data[0].activity_type_id+" activity_type_inline_data is null");               
+                }else{
+                    finalInlineData = JSON.parse(responseValueContributor[0].activity_type_inline_data);
+
+                    if(finalInlineData.hasOwnProperty('workflow_fields'))
+                        finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
+                    else
+                    util.logInfo(request, "No workflow_fields");                
+                }
+            }else{
+                util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
+            }
+        }else{
+            util.logInfo(request, "No No Workflow");      
+        }
+    } 
+    util.logInfo(request, "value contributors "+finalInlineDataKeys);
     //console.log('formDataJson : ', formDataJson);
 
     let workflowReference,documentReference,assetReference;
@@ -3695,8 +3724,17 @@ async function addFormEntriesAsync(request) {
                                 s3UrlOfExcel: annexureExcelFilePath
                             }).catch(global.logger.error)
                         }
-
                     }
+                    util.logInfo(request, "finalInlineDataKeys :: "+finalInlineDataKeys.includes(row.field_id));
+                    if(finalInlineDataKeys.includes(row.field_id))
+                    { 
+                        util.logInfo(request, "activityTimelineService:updateWorkflowValue Configured :: "+row.field_id+" : "+finalInlineData.workflow_fields[row.field_id].sequence_id);
+                        request.sequence_id = finalInlineData.workflow_fields[row.field_id].sequence_id
+                        activityCommonService.updateWorkflowValue(request, row.field_value);
+                    }else{
+                        util.logInfo(request, "activityTimelineService:updateWorkflowValue Not Configured");
+                    }
+
                 })
                 .catch((err) => {
                     error = err;

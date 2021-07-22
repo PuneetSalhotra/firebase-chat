@@ -2289,8 +2289,9 @@ function BotService(objectCollection) {
                     console.log('pdf_edit');
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
+                    console.log(botOperationsJson)
                     try {
-                        await editPDF(request, "");
+                        await editPDF(request, JSON.parse(i.bot_operation_inline_data));
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2431,10 +2432,72 @@ function BotService(objectCollection) {
     });
    }
 
+   async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID) {
+    console.log(' ');
+    console.log('*************************');
+    console.log('request.form_id - ', request.form_id);
+    console.log('formID - ', formID);
+    console.log('fieldID - ', fieldID);
+
+    let fieldValue = "";
+    let formData;
+    
+    //Based on the workflow Activity Id - Fetch the latest entry from 713
+    if(request.hasOwnProperty('workflow_activity_id') && Number(request.workflow_activity_id) > 0 && request.form_id != formID){
+        formData = await getFormInlineData({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workflow_activity_id: request.workflow_activity_id,
+            form_id: formID
+        },2);
+    } else {
+        //Take the inline data from the request
+        formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data): request.activity_inline_data;
+    }    
+
+    //console.log('formData - ', formData);
+
+    for(const fieldData of formData) {
+        if(Number(fieldData.field_id) == fieldID) {
+           
+            console.log('fieldData.field_data_type_id : ',fieldData);
+            switch(Number(fieldData.field_data_type_id)) {
+                //Need Single selection and Drop Down
+                //circle/ state
+
+                case 57: //Account
+                    fieldValue = fieldData.field_value;
+                    fieldValue = fieldValue.split('|')[1];
+                    break;
+                //case 68: break;
+                default: fieldValue=fieldData.data_type_combo_id;
+            }
+            break;
+        }
+    }
+
+
+    console.log('Field Value B4: ',fieldValue);
+    // fieldValue = fieldValue.split(" ").join("");
+    // console.log('Field Value After: ',fieldValue);
+    // console.log('*************************');
+    return fieldValue;
+}
+
   async function editPDF(request,bot_data){
     //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
-    console.log('sleeping for 9 secs')
+    let s3Url = "";
+    let pdfPath = "";
+    let customerName ="GreneOS";
+    if(bot_data.hasOwnProperty("static_pdf")&& bot_data.static_pdf){
+    let pdfJson = bot_data.pdf_json;
+    let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
+    
+    s3Url = pdfJson.pdfs[comboValue];
+    }
+    else{
+        util.logInfo(request,"Sleeping for 9 sec",[]);
     await sleep(9000);
     // let activityInlineData = typeof request.activity_inline_data == 'string' ?JSON.stringify(request.activity_inline_data):request.activity_inline_data;
     
@@ -2512,7 +2575,7 @@ function BotService(objectCollection) {
     //       request.debug_info.push("it is a mobility type form");
     //   }
     // }
-    console.log("is mob",isMobility);
+    util.logInfo(request,"is mob" + isMobility,[]);
 
     let pdf_edit_json = {}
 
@@ -2533,7 +2596,7 @@ function BotService(objectCollection) {
     let pdf_url = pdf_edit_json.pdf_url;
 
     let pdfFileName = await util.downloadS3Object(request, pdf_url);
-    let pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
+     pdfPath =  path.resolve(global.config.efsPath, pdfFileName);
     console.log(pdfPath,pdfFileName);
     // let pdfPath = "C:/Users/shankar/Downloads/Proposal---SocGen---MPLS-L2.pdf"
     await sleep(2000)
@@ -2549,12 +2612,12 @@ function BotService(objectCollection) {
         organization_id: request.organization_id,
         asset_id: request.asset_id
     });
-    let customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
+     customerName = assetData[0].operating_asset_first_name?assetData[0].operating_asset_first_name:assetData[0].asset_first_name;
     request.debug_info.push("customer name ",customerName);
 let aovValue = 0;
 let periodValue = 0;
    for(let i=0;i<pdf_edit_json.fields.length;i++){
-       console.log("pdf fields",pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i])
+    util.logInfo(request,"pdf fields"+ pdf_edit_json.fields[i].field_id,pdf_edit_json.fields[i],[]);
       
     let field_value = "";
     if(isMobility){
@@ -2602,9 +2665,11 @@ let periodValue = 0;
    let currentDate = (util.getCurrentDate()).toString();
    await pdfreplaceText(pdfPath, pdfPath,2 , "vidate", currentDate);
 // return [false,[]]
-   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath)
+   let pdfS3urlnew = await util.uploadPdfFileToS3(request,pdfPath);
+    s3Url = pdfS3urlnew[1][0].location;
+}
     // let addCommentRequest = Object.assign(request, {});
-    let s3Url = pdfS3urlnew[1][0].location;
+    
     // request.form_id = request.form_id;
     // request.activity_form_id = request.form_id
     // request.activity_inline_data = JSON.stringify([
@@ -2614,6 +2679,7 @@ let periodValue = 0;
     //     "field_value":s3Url,
     //     "message_unique_id":1618208278588}])
     // await submitFormV1(request);
+
     let addCommentRequest = request;
     addCommentRequest.asset_id = 100;
     addCommentRequest.device_os_id = 7;
@@ -2643,10 +2709,13 @@ let periodValue = 0;
     try {
         await addTimelineTransactionAsync(addCommentRequest);
     } catch (error) {
-        console.log("addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+        util.logError(request,"addPdfFromHtmlTemplate | addCommentRequest | addTimelineTransactionAsync | Error: ",error)
+        
         throw new Error(error);
     }
+    if(pdfPath !=""){
     fs.unlink(pdfPath,()=>{});
+    }
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
    }
@@ -2661,7 +2730,7 @@ let periodValue = 0;
   }
   
   function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
-      console.log("in",pageNumber,findText,replaceText)
+    //   console.log("in",pageNumber,findText,replaceText)
       var writer = hummus.createWriterToModify(sourceFile, {
           modifiedFilePath: targetFile
       });
@@ -5464,10 +5533,11 @@ async function removeAsOwner(request,data,addT = 0)  {
                         if (childWorkflowCount.length > 0) {
                             childCount = Number(childWorkflowCount[0].count) + 1;
                         }
-                        let cuid3 = parentCUID3 + "-" + childCount;
+                        let childCUID2 = parentCUID3 + "-" + childCount;
                         createTargetFormRequest.calendar_event_id_update = true;
                         createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": cuid3 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": childCUID2 });
+                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": parentCUID3 });
                     }
 
                 }
@@ -5853,7 +5923,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             request.debug_info.push('Inside workflow_reference');
             // newReq.flag_asset = inlineData[type[0]].flag_asset;
             console.log("request.activity_inline_data", request.activity_inline_data);
-            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let activityInlineData = typeof request.activity_inline_data =="string" ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
             let fieldDetails;
             for(let row of activityInlineData) {
                 if(row.field_id == inlineData[type[0]].field_id) {
@@ -5865,13 +5935,25 @@ async function removeAsOwner(request,data,addT = 0)  {
             fieldDetails = fieldDetails.split('|');
 
             let activityId = fieldDetails[0];
-            let [er,activityDetails] = await activityCommonService
-            .getActivityDetailsPromise(request, activityId);
-
+            let activityDetails = await activityCommonService.getActivityDetailsPromise(request, activityId);
+            
             if(inlineData[type[0]].participant_type == 'creator') {
                 newReq.desk_asset_id = activityDetails[0].activity_creator_asset_id;
                 newReq.phone_number = 0;
             };
+
+            const [error, assetData12] = await activityCommonService.getAssetDetailsAsync({
+                organization_id: request.organization_id,
+                asset_id: newReq.desk_asset_id
+            });
+            util.logInfo(request,`addParticipant : assetData.length %j`, assetData12.length);
+            // request.debug_info.push('assetData.length: ' + assetData.length);
+            if (assetData12.length > 0) {
+                newReq.country_code = Number(assetData12[0].operating_asset_phone_country_code) || Number(assetData12[0].asset_phone_country_code);
+                newReq.phone_number = Number(assetData12[0].operating_asset_phone_number) || Number(assetData12[0].asset_phone_number);
+
+                request.debug_info.push('newReq.phone_number : ' + newReq.phone_number);
+            }
 
             isLead = (inlineData[type[0]].hasOwnProperty('is_lead')) ? inlineData[type[0]].is_lead : 0;
             isOwner = (inlineData[type[0]].hasOwnProperty('is_owner')) ? inlineData[type[0]].is_owner : 0;
@@ -8860,7 +8942,6 @@ else{
             newDate;
 
         let fieldData;
-
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
@@ -8943,7 +9024,7 @@ else{
                         } else {
                             console.log('IN ELSE');
                             request.debug_info.push('IN ELSE');
-                            newDate = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
+                            newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
                         }
                     }
                 }
@@ -9010,7 +9091,7 @@ else{
             let parseDetails = fieldDetails.field_value;
            activityCoverData.start_date = {};
 
-           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(parseDetails.start_date_time, "DD-MM-YYYY HH:mm:ss");
+           activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(parseDetails.start_date_time, "YYYY-MM-DD HH:mm:ss");
            
            
         //    let newDate = moment(request.activity_datetime_start). add(inlineData.meeting_duration, 'minutes');
@@ -10224,6 +10305,7 @@ async function getFormInlineData(request, flag) {
         const checksForBulkUpload = vilBulkLOVs["checksForBulkUpload"];
         const formId = request.form_id || request.trigger_form_id || 0;
         const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
+        const postingCircleFormMapping = vilBulkLOVs["posting_circle_mapping"];
         logger.silly("product selected: %j",productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
@@ -10234,6 +10316,7 @@ async function getFormInlineData(request, flag) {
             sqsQueueUrl = "",
             solutionDocumentUrl = "";
         let workflowActivityData;
+        let workflowActivityCreatorAssetID = 0;
 
         const triggerFormID = request.trigger_form_id,
             triggerFormName = request.trigger_form_name,
@@ -10266,16 +10349,20 @@ async function getFormInlineData(request, flag) {
                 workflowActivityCategoryTypeID = Number(workflowActivityData[0].activity_type_category_id);
                 workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
                 opportunityID = workflowActivityData[0].activity_cuid_1;
+                workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
+            util.logError(request,`No Workflow Data Found in DB`);
             throw new Error("No Workflow Data Found in DB");
         }
 
         if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
+            util.logError(request,`Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
         if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
+            util.logError(request,`Form ID and field ID not defined to fetch excel for bulk upload`);
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
@@ -10292,8 +10379,46 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request,`Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
             return;
         }
+
+        // let postingCircleFormID = postingCircleFormMapping[String(request.activity_type_id)].form_id;
+
+        // const requestAssetDetails =
+        // {
+        //     asset_id: workflowActivityCreatorAssetID,
+        //     organization_id: request.organization_id
+        // };
+
+        // let responseAssetDetails = await getAssetDetails(requestAssetDetails);
+        // if(responseAssetDetails.length > 0 ) {
+        //     if (responseAssetDetails[0].account_name.toLowerCase() === "red edge") {
+        //         // Fetch the Posting Circle
+        //         const postingCircleFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+        //             organization_id: request.organization_id,
+        //             account_id: request.account_id
+        //         }, workflowActivityID, postingCircleFormID);
+
+        //         if (Number(postingCircleFormData.length) === 0) {
+        //             await addTimelineMessage(
+        //                 {
+        //                     activity_timeline_text: "Error",
+        //                     organization_id: request.organization_id
+        //                 }, workflowActivityID || 0,
+        //                 {
+        //                     subject: 'Request cannot be processed',
+        //                     content: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+        //                     mail_body: `Please Submit the Form "Posting Circle (To Be Filled By Red Edge Users)" before Raising the Feasibility`,
+        //                     attachments: []
+        //                 }
+        //             );
+        //             return;
+        //         }
+
+        //     }
+        // }
+
         // Fetch the bulk upload excel's S3 URL
         const bulkUploadFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
             organization_id: request.organization_id,
@@ -10306,6 +10431,7 @@ async function getFormInlineData(request, flag) {
         }
 
         if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
+            util.logError(request,`Form to bulk upload feasibility is not submitted`);
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
@@ -10328,6 +10454,7 @@ async function getFormInlineData(request, flag) {
             organization_id: request.organization_id
         });
         if (bulkUploadFieldData.length === 0) {
+            util.logError(request,`Field to fetch the bulk upload excel file not submitted`);
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
@@ -10349,6 +10476,7 @@ async function getFormInlineData(request, flag) {
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
+            util.logError(request,`[BulkFeasibilityError]${xlsxDataBodyError}`);
             throw new Error(xlsxDataBodyError);
         }
 
@@ -10369,7 +10497,8 @@ async function getFormInlineData(request, flag) {
             "SuperWiFiFlavour", "SuperWiFiVendor", "SuperWiFiExistingService", "SuperWiFiExistingWANCircuitId", "SuperWiFiExistingInterface", "SuperWiFiExistingLastMile",
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
-            "SalesRemarks", "ReasonForCloning", "VendorName", "IsSecureRemoteVPNConnect"
+            "SalesRemarks", "ReasonForCloning", "VendorName",
+            //  "IsSecureRemoteVPNConnect"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -10627,6 +10756,7 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request,`[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
             throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
@@ -10936,8 +11066,10 @@ async function getFormInlineData(request, flag) {
                 }
             }, (error, data) => {
                 if (error) {
+                    util.logError(request, `Error sending excel job to SQS queue`, { type: 'bot_engine', error: serializeError(error), request_body: request });
                     logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                 } else {
+                    util.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'bot_engine', request_body: request });
                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                 }
             });
@@ -10972,6 +11104,7 @@ async function getFormInlineData(request, flag) {
                     attachments: []
                 }
             );
+            util.logError(request, `${formattedTimelineMessage}`, { type: 'bot_engine', request_body: request });
         } catch (error) {
             if (error.message === "NoErrorsFound") {
                 await addTimelineMessage(
@@ -10986,9 +11119,10 @@ async function getFormInlineData(request, flag) {
                         attachments: []
                     }
                 );
+                util.logInfo(request, `Excel has been submitted for processing successfully`);
             }
             else {
-                logger.error("Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
+                util.logError(request, "Error logging the error message to the timeline", { type: "bulk_feasibility", error: serializeError(error) });
             }
 
         }
@@ -15178,7 +15312,9 @@ async function getFormInlineData(request, flag) {
         error = false,
         deskAssetData,
         assetData={};
-      for (let i = 0; i < request.emails.length; i++) {
+      
+    for (let i = 0; i < request.emails.length; i++) {
+    try{
         let [err, assetDetails] = await getAssetByEmail({
           organization_id: request.organization_id,
           email: request.emails[i],
@@ -15211,23 +15347,22 @@ async function getFormInlineData(request, flag) {
         request.debug_info = []
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
-         await addDeskAsParticipant(request, assetData);
-         await icsEventCreation(request,request.emails[i],assetData.first_name);
-      }
-
-      return [error, responseData];
+            await addDeskAsParticipant(request, assetData);
+            await icsEventCreation(request,request.emails[i],assetData.first_name);
+        }
+        catch{
+            error = true
+        }
+    }     
+        return [error, responseData];
     };
 
     async function icsEventCreation(request,email,receiver_name){
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-// console.log(wfActivityDetails[0].activity_datetime_created,wfActivityDetails[0].activity_datetime_end_expected);
-
-var timeDifference = moment(wfActivityDetails[0].activity_datetime_end_expected).diff(moment(wfActivityDetails[0].activity_datetime_created));
-var timeDifferenceDuration = moment.duration(timeDifference);
-var timeDifferenceInMinutes = Math.floor(timeDifferenceDuration.asMinutes());
-// console.log(s)
-let createDate = new Date(wfActivityDetails[0].activity_datetime_created);
-let today = new Date();
+        wfActivityDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77)
+        var timeDifferenceInMinutes = Math.floor(wfActivityDetails[0].field_value.duration);
+        let createDate = new Date(wfActivityDetails[0].field_value.start_date_time);
+        let today = new Date();
         ics.createEvent({
             title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
@@ -15240,8 +15375,7 @@ let today = new Date();
             if (error) {
               console.log(error)
             }
-          let fileName = `${global.config.efsPath}/${request.asset_id}-${today.getTime()}.ics`
-          
+          let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
             fs.writeFileSync(fileName, value);
             request.email_sender_name = 'GreneOS';
             request.email_receiver_name = receiver_name;

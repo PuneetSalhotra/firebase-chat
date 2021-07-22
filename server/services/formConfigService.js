@@ -636,7 +636,7 @@ function FormConfigService(objCollection) {
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                     util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
-                    if(simpleDataTypes.includes(newData.field_data_type_category_id)){
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                         } else {
@@ -1370,19 +1370,31 @@ function FormConfigService(objCollection) {
 
                             let idWorkflow = 0;
                             let idWorkflowType = 0;
-
-                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                            activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                                if(workflowData.length > 0) {
+                                    util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+                                }
+                            });
+/*
+                            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, 0, formTransactionId, 0);
+                            if(workflowData.length > 0) {
+                                util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+                            }
+*/
+                        /*activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
                             if(workflowData.length > 0) {
                                 if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
                                 Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
                                 Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
-                                    util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${request.activity_id}  WorkflowActivityId ${workflowData[0].activity_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
-                        });
+                        });*/
 
     
                             if(Object.keys(orderValueFields).includes(String(row.field_id))){
@@ -1429,7 +1441,7 @@ function FormConfigService(objCollection) {
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                         if(workflowData.length > 0){
     
-                                            if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                            /*if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                                 Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                                 Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
                                                 Number(workflowData[0].activity_type_id) === 134575 ||
@@ -1444,7 +1456,7 @@ function FormConfigService(objCollection) {
                                                 setTimeout(()=>{
                                                     updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
                                                 },3000);
-                                            }
+                                            }*/
     
                                             idWorkflow = workflowData[0].activity_id;
                                             idWorkflowType = workflowData[0].activity_sub_type_id;
@@ -1468,8 +1480,9 @@ function FormConfigService(objCollection) {
                                             }
                                         }
                                         });
-    
-                                    }else{                                    
+                                    }
+                                    /*}
+                                    else{                                    
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
                                             if(workflowData.length > 0){
                                                 
@@ -1492,7 +1505,7 @@ function FormConfigService(objCollection) {
                                                 
                                         });                                    
                                         util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_value}`);
-                                    }
+                                    }*/
                                 }catch(err){
                                     util.logError(request,`Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
                                 }                             
@@ -3899,7 +3912,7 @@ function FormConfigService(objCollection) {
             let fieldSequenceId = Number(formField.sequence_id);
             let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
             let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
-            let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 1 : Number(formField.field_preview_enabled);
+            let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 0 : Number(formField.field_preview_enabled);
 
             //console.log('typeof inlineData : ', typeof inlineData);
 

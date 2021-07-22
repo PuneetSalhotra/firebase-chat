@@ -258,6 +258,104 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/admin/access/type/category/list', async function (req, res) {
+        const [err, resData] = await tasiService.adminAccessTypeCategorySelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/admin/access/type/category/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/admin/access/type/list', async function (req, res) {
+        const [err, resData] = await tasiService.adminAccessTypesSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/admin/access/type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/payout/entity/mapping/insert', async function (req, res) {
+        const [err, resData] = await tasiService.payoutEntityMappingInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/entity/mapping/insert | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/payout/entity/mapping/delete', async function (req, res) {
+        const [err, resData] = await tasiService.payoutEntityMappingDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/entity/mapping/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/payout/entity/mapping/list', async function (req, res) {
+        const [err, resData] = await tasiService.payoutEntityMappingSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/entity/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/period/type/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.periodTypeMasterSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/period/type/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/payout/type/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.payoutTypeMasterSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/type/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/payout/type/master/insert', async function (req, res) {
+        const [err, resData] = await tasiService.payoutTypeMasterInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/type/master/insert | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/tasi/payout/type/master/delete', async function (req, res) {
+        const [err, resData] = await tasiService.payoutTypeMasterDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/type/master/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/tasi/payout/category/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.payoutCategoryMasterList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/category/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 

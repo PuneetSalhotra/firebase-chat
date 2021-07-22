@@ -125,14 +125,17 @@ var AwsSns = function () {
         };
 
         function unicodeToChar(text) {
+            if(!text) {
+                return text;
+            }
             return text.replace(/\\u[\dA-F]{4}/gi, 
                    function (match) {
                         return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
                    });
-         }
+        }
+        
         message.description = unicodeToChar(message.description);
-        message.subtitle = unicodeToChar(message.subtitle);
-
+        message.subtitle = unicodeToChar(message.subtitle);        
         console.log('Message.title : ', message.title);
 
         console.log('Message.description : ', message.description);

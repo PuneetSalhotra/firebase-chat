@@ -6210,7 +6210,7 @@ function VodafoneService(objectCollection) {
             pageLimit = 50,
             pageStart = 0,
             query = "";
-        if(request.search_string && request.search_string.length<2){
+        if(request.hasOwnProperty('search_string') && request.search_string.length<2){
             return [false,[]]
         }
         if (request.page_limit && request.page_limit > 0)
@@ -6397,7 +6397,7 @@ function VodafoneService(objectCollection) {
                 if (resultData.length > 0)
                     idRoleAsset = resultData[0].asset_type_id
                 query = "SELECT * FROM " + global.config.elasticActivityAssetTable + " WHERE "
-                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                if ([142898, 144143, 144142, 144144, 145183, 145184, 142986].includes(Number(idRoleAsset))) {
                     query += ' asset_participant_access_id = ' + Number(152)
                     appendedAnd = true;
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
@@ -6457,7 +6457,7 @@ function VodafoneService(objectCollection) {
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 if (resultData.length > 0)
                     idRoleAsset = resultData[0].asset_type_id
-                if ([142898, 144143, 144142, 144144].includes(Number(idRoleAsset))) {
+                if ([142898, 144143, 144142, 144144, 145183, 145184, 142986].includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + global.config.elasticActivityAssetTable + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     if (request.asset_id && request.asset_id > 0) {
@@ -6536,19 +6536,18 @@ function VodafoneService(objectCollection) {
                     request.account_id,
                     request.workforce_id,
                     request.asset_id,
-                    request.entity_id,
                     request.activity_type_id,
-                    request.activity_type_category_id,
+                    request.activity_type_category_id,             
                     request.activity_status_type_id,
                     request.tag_id,
                     request.tag_type_id,
                     request.search_string,
                     request.flag_status,
-                    request.flag_participating || 6,
+                    request.flag_participating,
                     request.page_start || 0,
-                    request.page_limit || 50
+                    request.page_limit
                 ]
-                dbCall = 'ds_p1_4_activity_list_search_workflow_reference';
+                dbCall = 'ds_p1_3_activity_list_search_workflow_reference';
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 break;
         }
