@@ -328,6 +328,54 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/payout/type/master/insert', async function (req, res) {
+        const [err, resData] = await tasiService.payoutTypeMasterInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/type/master/insert | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/tasi/payout/type/master/delete', async function (req, res) {
+        const [err, resData] = await tasiService.payoutTypeMasterDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/type/master/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/tasi/payout/category/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.payoutCategoryMasterList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/category/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/widget/timeline/master/list', async function (req, res) {
+        const [err, resData] = await tasiService.widetTimelineMasterSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget/timeline/master/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/tag/entity/mapping/workforce/list', async function (req, res) {
+        const [err, resData] = await tasiService.tagEntityMappingSelectWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/tag/entity/mapping/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 
