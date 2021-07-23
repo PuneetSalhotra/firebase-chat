@@ -197,7 +197,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    let [historyInsertErr,historyInsertData] = customerAccountTypeHistoryInsert({...request,customer_account_type_id:data[0].customer_account_type_id},2501)
+                     customerAccountTypeHistoryInsert({...request,customer_account_type_id:data[0].customer_account_type_id},2501)
                 })
                 .catch((err) => {
                     error = err;
@@ -222,7 +222,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    let [historyInsertErr,historyInsertData] = customerAccountTypeHistoryInsert(request,2504)
+                   customerAccountTypeHistoryInsert(request,2504)
                 })
                 .catch((err) => {
                     error = err;
@@ -248,7 +248,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    let [historyInsertErr,historyInsertData] = customerAccountTypeHistoryInsert(request,2502)
+                     customerAccountTypeHistoryInsert(request,2502)
                 })
                 .catch((err) => {
                     error = err;
@@ -274,7 +274,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    let [historyInsertErr,historyInsertData] = customerAccountTypeHistoryInsert(request,2503)
+                     customerAccountTypeHistoryInsert(request,2503)
                 })
                 .catch((err) => {
                     error = err;
@@ -375,7 +375,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = assetCustomerAccountMappingHistoryInsert(request,2601)
+                    assetCustomerAccountMappingHistoryInsert(request,2601)
                 })
                 .catch((err) => {
                     error = err;
@@ -402,7 +402,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = assetCustomerAccountMappingHistoryInsert(request,2602)
+                     assetCustomerAccountMappingHistoryInsert(request,2602)
                 })
                 .catch((err) => {
                     error = err;
@@ -594,7 +594,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2703)
+                    
                 })
                 .catch((err) => {
                     error = err;
@@ -645,7 +645,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = payoutHistoryInsert(request,2703)
+                   
                 })
                 .catch((err) => {
                     error = err;
@@ -717,7 +717,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = assetAdminAccessHistoryInsert(request,2901)
+                    assetAdminAccessHistoryInsert(request,2901)
                 })
                 .catch((err) => {
                     error = err;
@@ -758,7 +758,6 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.organization_id,
           request.admin_access_type_id,
-          request.asset_access_flag,
           request.target_asset_id,
           
           request.asset_id,
@@ -771,7 +770,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = assetAdminAccessHistoryInsert(request,2902)
+                     assetAdminAccessHistoryInsert(request,2902)
                 })
                 .catch((err) => {
                     error = err;
@@ -838,7 +837,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = entityTargetMappingHistoryInsert({...request,entity_target_mapping_id:data[0].entity_target_mapping_id},3001)
+                     entityTargetMappingHistoryInsert({...request,entity_target_mapping_id:data[0].entity_target_mapping_id},3001)
                 })
                 .catch((err) => {
                     error = err;
@@ -863,7 +862,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    const [err1,resData] = entityTargetMappingHistoryInsert(request,3002)
+                     entityTargetMappingHistoryInsert(request,3002)
                 })
                 .catch((err) => {
                     error = err;
@@ -1272,6 +1271,56 @@ function TasiService(objectCollection) {
             request.limit_value
         );
         const queryString = util.getQueryString('ds_p1_payout_type_category_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widetTimelineMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_widget_timeline_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.tagEntityMappingSelectWorkforce = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.tag_type_category_id,
+          request.flag,
+          request.account_id,
+          request.workforce_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_workforce', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
