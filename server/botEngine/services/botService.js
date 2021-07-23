@@ -1,7 +1,7 @@
 /*
  * author: Nani Kalyan V
  */
-
+const { Kafka } = require('kafkajs');
 const logger = require("../../logger/winstonLogger");
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
@@ -1375,7 +1375,7 @@ function BotService(objectCollection) {
                     util.logInfo(request,`****************************************************************`);
                     util.logInfo(request,`STATUS ALTER BOT %j`, request);
                     try {
-                        let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
@@ -1934,7 +1934,21 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('workflow start | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
-                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                        // await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        });
+
+                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        }).catch(global.logger.error);
+
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -4632,6 +4646,66 @@ async function removeAsOwner(request,data,addT = 0)  {
         await changeStatus(request, inlineData);
         return [false, {}]
     }
+
+    async function changeStatusV1(request, inlineData = {}) {
+        console.log('change status v1',inlineData)
+        if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
+            
+            let field_value1 = await getFieldValueUsingFieldIdV1(request,request.form_id,inlineData.field_id1);
+            util.logInfo(request,"field_value 1"+field_value1);
+            let field_value2 = await getFieldValueUsingFieldIdV1(request,request.form_id,inlineData.field_id2);
+            util.logInfo(request,"field_value 1"+field_value2);
+            var time1 = moment(field_value1).format('YYYY-MM-DD');
+            var time2 = moment(field_value2).format('YYYY-MM-DD');
+            if(time1 == time2){
+                util.logInfo(request,"both dates are equal proceeding in");
+                if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
+                    util.logInfo(request,"checking parent closure");
+                    let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
+
+                    const paramsArr = new Array(
+                        request.organization_id,
+                        childActivityDetails[0].activity_type_category_id,
+                        childActivityDetails[0].activity_type_id,
+                        request.activity_id,
+                        0
+                    );
+                    const queryString = util.getQueryString('ds_v1_1_activity_list_select_child_order_status_count', paramsArr);
+            
+                    if (queryString !== '') {
+                        await db.executeQueryPromise(1, queryString, request)
+                            .then(async (data) => {
+                                util.logInfo(request,"parent child count"+data[0].count);
+                                if(data.length>0 && data[0].count==0){
+                                    util.logInfo(request,"proceeding to close parent too");
+
+                                    let parentActivityDetails = await activityCommonService.getActivityDetailsPromise(request,childActivityDetails[0].parent_activity_id);
+                                    // inlineData.
+                                    let parentInlineData = {...inlineData};
+                                    parentInlineData.activity_status_id = inlineData.parent_activity_status_id;
+                                    // return [false,{}];
+                                    console.log('parent change status',parentInlineData)
+                                    return changeStatus({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id},parentInlineData); 
+                                }
+                            })
+                            .catch((err) => {
+                                error = err;
+                            });
+                    }
+                }
+               return changeStatus(request,inlineData); 
+            // return [false,{}]
+
+            }
+            else{
+                return [false, {}];
+            }
+            
+        }else{
+            // return [false,{}]
+        return changeStatus(request,inlineData);
+        }
+    }
     
     // Bot Step to change the status
     async function changeStatus(request, inlineData = {}) {
@@ -4766,7 +4840,7 @@ async function removeAsOwner(request,data,addT = 0)  {
             newReq.activity_type_flag_round_robin = 0;
         }        
 
-        const statusName = await getStatusName(newReq, inlineData.activity_status_id);
+        let statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
                 "activity_reference": [{
@@ -9979,6 +10053,9 @@ async function getFormInlineData(request, flag) {
                                 "organization_id": i_iterator.organization_id,
                                 "asset_id": assetID
                             });
+                            if(assetDetails.length==0){
+                                continue
+                            }
 
                             emailID = assetDetails[0].operating_asset_email_id;
                             emailReceiverName = assetDetails[0].operating_asset_first_name;
@@ -9999,7 +10076,9 @@ async function getFormInlineData(request, flag) {
                                 "organization_id": i_iterator.organization_id,
                                 "asset_id": assetID
                             });
-
+if(assetDetails.length==0){
+    continue
+}
                             emailID = assetDetails[0].operating_asset_email_id;
                             emailReceiverName = assetDetails[0].operating_asset_first_name;
                             textPhCtyCode = assetDetails[0].operating_asset_phone_country_code;
@@ -10033,6 +10112,9 @@ async function getFormInlineData(request, flag) {
                                     "organization_id": i_iterator.organization_id,
                                     "asset_id": Number(activityData[0].activity_creator_asset_id)
                                 });
+                                if(assetDetails.length==0){
+                                    continue
+                                }
 
                                 managerAssetID = Number(assetDetails[0].manager_asset_id);
                                 console.log('Manager Asset ID : ', managerAssetID);
@@ -15405,6 +15487,28 @@ async function getFormInlineData(request, flag) {
           });
       }
       return [error, responseData];
+    }
+
+    async function kafkaProdcucerForChildOrderCreation(topicName, message) {
+        const kafka = new Kafka({
+            clientId: 'child-order-creation',
+            brokers: global.config.BROKER_HOST.split(",")
+        })
+
+        const producer = kafka.producer()
+
+        await producer.connect()
+        await producer.send({
+            topic: topicName,
+
+            messages: [
+                {
+                    value: JSON.stringify(message)
+                },
+            ],
+        })
+        producer.disconnect();
+        return;
     }
 
 }
