@@ -1,7 +1,7 @@
 /*
  * author: Nani Kalyan V
  */
-
+const { Kafka } = require('kafkajs');
 const logger = require("../../logger/winstonLogger");
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
@@ -1934,7 +1934,21 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('workflow start | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
-                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                        // await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        });
+
+                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        }).catch(global.logger.error);
+
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -15473,6 +15487,28 @@ if(assetDetails.length==0){
           });
       }
       return [error, responseData];
+    }
+
+    async function kafkaProdcucerForChildOrderCreation(topicName, message) {
+        const kafka = new Kafka({
+            clientId: 'child-order-creation',
+            brokers: global.config.BROKER_HOST.split(",")
+        })
+
+        const producer = kafka.producer()
+
+        await producer.connect()
+        await producer.send({
+            topic: topicName,
+
+            messages: [
+                {
+                    value: JSON.stringify(message)
+                },
+            ],
+        })
+        producer.disconnect();
+        return;
     }
 
 }
