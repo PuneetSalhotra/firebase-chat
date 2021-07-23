@@ -181,14 +181,18 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-          request.account_type_name,
-          request.account_type_description,
-          request.account_type_inline_json,
-          request.timeline_id,
-          request.template_url,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
+            request.account_type_name,
+            request.account_type_description,
+            request.account_type_inline_json,
+            request.level_id,
+            request.timeline_id,
+            request.template_url,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_insert', paramsArr);
 
