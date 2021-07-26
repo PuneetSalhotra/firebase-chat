@@ -623,6 +623,7 @@ function TasiService(objectCollection) {
           request.widget_type_sip_contribution_percentage,
           request.widget_type_inline_data,
           request.widget_type_measurement_id,
+          request.widget_type_measurement_unit,
           request.widget_type_timeline_id,
           request.asset_tag_id,
           request.customer_account_type_id,

@@ -2618,6 +2618,8 @@ function ActivityService(objectCollection) {
 
                     case 26: //completed // flag value is 2
                     case 24:
+                    case 80:
+                    case 186:
                     case 155:
                         updateActivityClosedDatetime(request);
                         /*activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
