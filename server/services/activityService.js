@@ -5371,9 +5371,10 @@ function ActivityService(objectCollection) {
                 request.activity_id,
                 request.activity_type_id,
                 request.activity_type_category_id,
-                util.getCurrentUTCTime()
+                util.getCurrentUTCTime(),
+                request.is_parent_data_copy || 0
             );
-            let queryString = util.getQueryString('ds_v1_activity_search_list_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_activity_search_list_insert', paramsArr);
             if (queryString != '') {
                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
