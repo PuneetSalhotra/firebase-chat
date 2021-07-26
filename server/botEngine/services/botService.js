@@ -4651,23 +4651,25 @@ async function removeAsOwner(request,data,addT = 0)  {
         console.log('change status v1',inlineData)
         if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
             
-            let field_value1 = await getFieldValueUsingFieldIdV1(request,request.form_id,inlineData.field_id1);
+            let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
             util.logInfo(request,"field_value 1"+field_value1);
-            let field_value2 = await getFieldValueUsingFieldIdV1(request,request.form_id,inlineData.field_id2);
-            util.logInfo(request,"field_value 1"+field_value2);
-            var time1 = moment(field_value1).format('YYYY-MM-DD');
-            var time2 = moment(field_value2).format('YYYY-MM-DD');
+            let field_value2 = await getFormFieldValue(request,inlineData.field_id2);
+            util.logInfo(request,"field_value 2"+field_value2);
+            var time1 = field_value1 //.format('YYYY-MM-DD');
+            var time2 = field_value2 //.format('YYYY-MM-DD');
             if(time1 == time2){
                 util.logInfo(request,"both dates are equal proceeding in");
+                await changeStatus(request,inlineData);
+                // await this.alterWFCompletionPercentageMethod({...request,activity_status_workflow_percentage:inlineData.})
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
                     util.logInfo(request,"checking parent closure");
                     let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
-
+                    
                     const paramsArr = new Array(
                         request.organization_id,
                         childActivityDetails[0].activity_type_category_id,
                         childActivityDetails[0].activity_type_id,
-                        request.activity_id,
+                        childActivityDetails[0].parent_activity_id,
                         0
                     );
                     const queryString = util.getQueryString('ds_v1_1_activity_list_select_child_order_status_count', paramsArr);
@@ -4685,7 +4687,11 @@ async function removeAsOwner(request,data,addT = 0)  {
                                     parentInlineData.activity_status_id = inlineData.parent_activity_status_id;
                                     // return [false,{}];
                                     console.log('parent change status',parentInlineData)
-                                    return changeStatus({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id},parentInlineData); 
+                                    await changeStatus({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id},parentInlineData); 
+                                    if(inlineData.is_workflow_percentage_change==1){
+                                       await alterWFCompletionPercentage({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id,activity_status_workflow_percentage:inlineData.workflow_percentage},{workflow_percentage_contribution: inlineData.workflow_percentage})
+                                    };
+                                    return [false,{}]
                                 }
                             })
                             .catch((err) => {
@@ -4693,8 +4699,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                             });
                     }
                 }
-               return changeStatus(request,inlineData); 
-            // return [false,{}]
+            //    return changeStatus(request,inlineData); 
+            return [false,{}]
 
             }
             else{
