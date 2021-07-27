@@ -1879,7 +1879,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         var assetTypeCtgId;
         (request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
         
-        if(assetTypeCtgId == 29) {
+        if(assetTypeCtgId == 29 || assetTypeCtgId == 2 || assetTypeCtgId == 3) {
             activityCommonService.generateUniqueCode(request, function(err, code){
                 if(err === false){
                     request.code = code;
@@ -1945,7 +1945,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         });
                     }
                     
-                    if(assetData[0].asset_type_category_id == 29) {
+                    if(assetData[0].asset_type_category_id == 29 || assetData[0].asset_type_category_id == 2 || assetData[0].asset_type_category_id == 3) {
                         var authTokenCollection = {
                             "asset_id": assetData[0]['asset_id'],
                             "workforce_id": request.workforce_id,
