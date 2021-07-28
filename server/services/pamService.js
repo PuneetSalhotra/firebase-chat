@@ -4491,6 +4491,59 @@ this.sendWhatsAppTemplateMessage = async(request)=>{
 		return [true,-9999];
 	}
 }
+
+this.getCoupanDetails = async (request) => {
+
+    let responseData = [],
+        error = true;
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+    var paramsArr = new Array(
+        request.organization_id,
+        request.coupan_code,
+        util.getCurrentUTCTime(),
+        request.page_start,
+        request.page_limit
+    )
+    const queryString = util.getQueryString('pm_v1_pam_coupan_list_select_code', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    return [error, responseData];
+}
+
+this.updateActivityInlineData = async (request) => {
+
+    let responseData = [],
+        error = true;
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+    var paramsArr = new Array(
+        request.organization_id,
+        request.activity_id,
+        request.activity_inline_data
+    )
+    const queryString = util.getQueryString('ds_v1_activity_list_update_inline_data_both', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    return [error, responseData];
+}
+
 };
 
 module.exports = PamService;
