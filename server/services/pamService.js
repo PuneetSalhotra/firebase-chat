@@ -4236,7 +4236,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.activity_datetime_start=util.getCurrentISTTime(); 
         request.owner_asset_id=request.asset_id;
 		request.activity_form_id=0;
-		request.activity_inline_data=JSON.stringify({phone_number:request.phone_number,country_code:request.country_code,item_count:request.item_count});
+		request.activity_inline_data=JSON.stringify({table_asset_id:request.table_asset_id, member_asset_id:request.member_asset_id, phone_number:request.phone_number,country_code:request.country_code,item_count:request.item_count});
 		request.activity_sub_type_id=0
 		request.activity_sub_type_name=''
 		request.app_version=1
@@ -4262,6 +4262,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         const [error, activityData] = await addActivity(request);
             console.log("activityData "+activityData.response.activity_id)
             request.activity_id = activityData.response.activity_id;
+            activityData.response.member_asset_id = request.member_asset_id;
             const [error1, response] = await self.addParticipantMakeRequest(request);             
             return [false,activityData.response];
     }
