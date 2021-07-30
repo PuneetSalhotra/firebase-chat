@@ -909,8 +909,19 @@ function ActivityController(objCollection) {
         } else {
             res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
         }
-    });      
-     
+    });
+
+    // Get Activity Category Tag List
+    app.post("/" + global.config.version + "/get/category/tags", async function (req, res) {
+        req.body.activity_inline_data = req.body.activity_inline_data;
+        const [err, result] = await activityService.getActivityCategoryTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
 }
 
 
