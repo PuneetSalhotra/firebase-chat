@@ -147,7 +147,7 @@ function ActivityController(objCollection) {
                                     callback(true, 0);
                                     return;
                                 } else {
-                                    util.logInfo(req.body, "MAIN_REQUEST_START | /activity/add/v1 | "+activityId+" category 37 ");
+                                    util.logInfo(req.body, "MAIN_REQUEST_START | activity-add-v1 | "+activityId+" category 37 ");
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
@@ -461,7 +461,7 @@ function ActivityController(objCollection) {
                                     return;
                                 } else {
                                     // console.log('Request Parameters : ' + req.body)
-                                    util.logInfo(req.body, "MAIN_REQUEST_START | /activity/add/v1 | "+activityId+" category 37 ");
+                                    util.logInfo(req.body, "MAIN_REQUEST_START | -r1-activity-add-v1 | "+activityId+" category 37 ");
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
@@ -611,7 +611,7 @@ function ActivityController(objCollection) {
                 callback(true, 0);
                 return;
             } else {
-                util.logInfo(req, "MAIN_REQUEST_START | /activity/add/v1 | "+activityId+" addActivity() ");
+                util.logInfo(req, "MAIN_REQUEST_START | -r1-activity-add-v1 | "+activityId+" addActivity() ");
                 req['activity_id'] = activityId;
                 var event = {
                     name: "addActivity",
