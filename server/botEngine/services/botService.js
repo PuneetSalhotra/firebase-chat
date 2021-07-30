@@ -2363,6 +2363,23 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                 break;
 
+                case 53: // Calender Auto form submittion
+                    console.log('****************************************************************');
+                    
+                    request.debug_info.push('calender_auto_form_submittion');
+                    try {
+                        console.log('came in auto submit')
+                        autoFormSubmission(request,botOperationsJson.bot_operations);
+                    } catch (err) {
+                        logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                break;
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -4649,17 +4666,17 @@ async function removeAsOwner(request,data,addT = 0)  {
 
     async function changeStatusV1(request, inlineData = {}) {
         console.log('change status v1',inlineData)
-        if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
+        // if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
             
-            let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
-            util.logInfo(request,"field_value 1"+field_value1);
-            let field_value2 = await getFormFieldValue(request,inlineData.field_id2);
-            util.logInfo(request,"field_value 2"+field_value2);
-            var time1 = field_value1 //.format('YYYY-MM-DD');
-            var time2 = field_value2 //.format('YYYY-MM-DD');
-            if(time1 == time2){
-                util.logInfo(request,"both dates are equal proceeding in");
-                await changeStatus(request,inlineData);
+        //     let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
+        //     util.logInfo(request,"field_value 1"+field_value1);
+        //     let field_value2 = await getFormFieldValue(request,inlineData.field_id2);
+        //     util.logInfo(request,"field_value 2"+field_value2);
+        //     var time1 = field_value1 //.format('YYYY-MM-DD');
+        //     var time2 = field_value2 //.format('YYYY-MM-DD');
+        //     if(time1 == time2){
+        //         util.logInfo(request,"both dates are equal proceeding in");
+        //         await changeStatus(request,inlineData);
                 // await this.alterWFCompletionPercentageMethod({...request,activity_status_workflow_percentage:inlineData.})
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
                     util.logInfo(request,"checking parent closure");
@@ -4697,8 +4714,8 @@ async function removeAsOwner(request,data,addT = 0)  {
                             .catch((err) => {
                                 error = err;
                             });
-                    }
-                }
+                //     }
+                // }
             //    return changeStatus(request,inlineData); 
             return [false,{}]
 
@@ -10106,6 +10123,9 @@ if(assetDetails.length==0){
                                     "organization_id": i_iterator.organization_id,
                                     "asset_id": managerAssetID
                                 });
+                                if(assetDetails.length==0){
+                                    continue
+                                }
                                 
                                 //Manager asset Details
                                 emailID = assetDetails[0].operating_asset_email_id;
@@ -10234,9 +10254,12 @@ if(assetDetails.length==0){
                 if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
                     let message_template = reminder_inline_data.date_reminder.message_template;
                     console.log("message template",message_template);
+                    console.log('req',request)
                     // let message_template_textArr = message_template.split(" ");
                     const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
-
+if(workflowActivityData.length==0){
+    return "success"
+}
                     message_template = message_template.replace('<<title>>',request.activity_title?request.activity_title:"'NA'");
                     message_template = message_template.replace("<<cuid_1>>",workflowActivityData[0].activity_cuid_1?workflowActivityData[0].activity_cuid_1:"'NA'");
                     message_template = message_template.replace("<<cuid_2>>",workflowActivityData[0].activity_cuid_2?workflowActivityData[0].activity_cuid_2:"'NA'");
@@ -15413,9 +15436,9 @@ if(assetDetails.length==0){
         }
         else{
             let result = await createAssetContactDesk(request, {
-                "contact_designation": "contact",
-                "contact_email_id": request.emails[i],
-                "first_name": request.emails[i],
+                "contact_designation": request.emails[i].designation,
+                "contact_email_id": request.emails[i].email,
+                "first_name": request.emails[i].name,
                 "contact_phone_number": "",
                 "contact_phone_country_code": 91,
                 "asset_email_id":request.emails[i],
@@ -15516,6 +15539,142 @@ if(assetDetails.length==0){
         producer.disconnect();
         return;
     }
+
+    async function autoFormSubmission(request,inlineData){
+
+
+        if(inlineData.submit_form.hasOwnProperty('check_dates')&&Number(inlineData.submit_form.check_dates)===1){
+            
+            let field_value1 = await getFormFieldValue(request,inlineData.submit_form.field_id1);
+            util.logInfo(request,"field_value 1"+field_value1);
+            let field_value2 = await getFormFieldValue(request,inlineData.submit_form.field_id2);
+            util.logInfo(request,"field_value 2"+field_value2);
+            var time1 = field_value1 //.format('YYYY-MM-DD');
+            var time2 = field_value2 //.format('YYYY-MM-DD');
+            if(time1 == time2){
+             submitFormInternal(request,inlineData,time1)
+            }
+        }
+        submitFormInternal(request,inlineData)
+        }
+
+        async function submitFormInternal(request,inlineData,dateValue){
+            let formData = inlineData.form_data;
+            let activityInlineData = [
+                {
+                  "form_id": 50825,
+                  "field_id": 312338,
+                  "field_name": "Status",
+                  "field_value": "Closed",
+                  "message_unique_id": "404641627463602240",
+                  "data_type_combo_id": 1,
+                  "field_data_type_id": 33,
+                  "field_reference_id": 0,
+                  "data_type_combo_value": 0,
+                  "field_data_type_category_id": 14
+                },
+          {
+                  "form_id": 50825,
+                  "field_id": 312341,
+                  "field_name": "Closed Date",
+                  "field_value": dateValue,
+                  "message_unique_id": "404641627463602240",
+                  "data_type_combo_id": 0,
+                  "field_data_type_id": 2,
+                  "field_reference_id": 0,
+                  "data_type_combo_value": '',
+                  "field_data_type_category_id": 1
+                },  
+                {
+                  "form_id": 50825,
+                  "field_id": 312416,
+                  "field_name": "comments",
+                  "field_value": "",
+                  "message_unique_id": "404641627464374845",
+                  "data_type_combo_id": 0,
+                  "field_data_type_id": 20,
+                  "field_reference_id": 0,
+                  "data_type_combo_value": "0",
+                  "field_data_type_category_id": 7
+                }
+              ];
+// console.log(formData)
+            // for(let data of formData) {
+            //     activityInlineData.push({
+            //         "form_id": data.form_id,
+            //         "field_id": data.field_id,
+            //         "field_name": data.field_name,
+            //         "message_unique_id": data.message_unique_id,
+            //         "data_type_combo_id": data.data_type_combo_id,
+            //         "field_data_type_id": data.data_type_id,
+            //         "data_type_combo_value": data.data_type_combo_value,
+            //         "field_data_type_category_id": data.data_type_category_id
+            //     });
+            // }
+
+            console.log("activityInlineData", JSON.stringify(activityInlineData));
+
+
+            let formId = formData[0].form_id;
+
+            let createWorkflowRequest = Object.assign({}, request);
+            let targetFormctivityTypeID = inlineData.submit_form.form_activity_type_id;
+           
+            createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
+            createWorkflowRequest.activity_inline_data      = JSON.stringify(activityInlineData);
+            createWorkflowRequest.workflow_activity_id      = Number(request.workflow_activity_id);
+            createWorkflowRequest.activity_type_category_id = 9;
+            createWorkflowRequest.activity_parent_id        = 0;
+            createWorkflowRequest.activity_form_id          = formId;
+            createWorkflowRequest.form_id                   = formId;
+            createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            createWorkflowRequest.device_os_id              = 7;
+
+            const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
+            const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
+            createWorkflowRequest.activity_id         = targetFormActivityID;
+            createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+            createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
+            createWorkflowRequest.message_unique_id = util.getMessageUniqueId(100);
+            createWorkflowRequest.log_message_unique_id = util.getMessageUniqueId(100);
+
+            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            // request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
+            const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+            let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            // request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
+
+
+            let activityTimelineCollection =  JSON.stringify({
+                "content"            : `Form Submitted`,
+                "subject"            : `Form Submitted`,
+                "mail_body"          : `Form Submitted`,
+                "activity_reference" : [],
+                "form_id"            : formId,
+                "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
+                "asset_reference"    : [],
+                "attachments"        : [],
+                "form_approval_field_reference": []
+            });
+
+
+            let timelineReq = Object.assign({}, createWorkflowRequest);
+
+            timelineReq.activity_id                  = request.workflow_activity_id;
+            timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+            timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+            timelineReq.activity_stream_type_id      = 705;
+            timelineReq.timeline_stream_type_id      = 705;
+            timelineReq.activity_type_category_id    = 48;
+            timelineReq.asset_id                     = 100;
+            timelineReq.activity_timeline_collection = activityTimelineCollection;
+            timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+
+            await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        }
 
 }
 
