@@ -4262,6 +4262,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         const [error, activityData] = await addActivity(request);
             console.log("activityData "+activityData.response.activity_id)
             request.activity_id = activityData.response.activity_id;
+            activityData.response.member_asset_id = request.member_asset_id;
             const [error1, response] = await self.addParticipantMakeRequest(request);             
             return [false,activityData.response];
     }

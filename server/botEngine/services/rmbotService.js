@@ -3419,6 +3419,7 @@ function businessDayCheckFun(curr_date,businessDays){
                             timelineCollection.activity_reference = [];
                             timelineCollection.rm_bot_scores ={};
                             request.activity_lead_timeline_collection = JSON.stringify(timelineCollection);
+                            if(request.organization_id == 868)
                             activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, Number(request.stream_type_id)); 
                         }
                         
