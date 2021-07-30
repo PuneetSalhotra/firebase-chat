@@ -4891,7 +4891,7 @@ function VodafoneService(objectCollection) {
 
         let TARGET_FORM_ID;
         try {
-            TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
+            TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId]?global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID:0;
         } catch(err) {
             util.logError(request,`ERROR in global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID - `, { type: 'vodafone', error: serializeError(err) });
             return [err, []];
@@ -4907,9 +4907,11 @@ function VodafoneService(objectCollection) {
             targetFormData = [],
             targetFormDataMap = new Map();
         try {
-            targetForm = await activityCommonService
-                .getActivityTimelineTransactionByFormId713(request, workflowActivityId, TARGET_FORM_ID);
-
+            if(TARGET_FORM_ID > 0){
+                targetForm = await activityCommonService.getActivityTimelineTransactionByFormId713(request, workflowActivityId, TARGET_FORM_ID);
+            }else{
+                util.logInfo(request, "TARGET_FORM_ID is ZERO, hence not moving forward");
+            }
             if (
                 targetForm.length > 0 &&
                 Number(targetForm[0].data_activity_id) !== 0 &&
