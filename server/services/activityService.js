@@ -2618,6 +2618,8 @@ function ActivityService(objectCollection) {
 
                     case 26: //completed // flag value is 2
                     case 24:
+                    case 80:
+                    case 186:
                     case 155:
                         updateActivityClosedDatetime(request);
                         /*activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
@@ -5921,24 +5923,29 @@ function ActivityService(objectCollection) {
         if(responseData[0].activity_type_inline_data == null)
             return "";
 
+        util.logInfo(request, "updateWorkflowValues :: activity_type_inline_data is not null ");
         let activityInlineData = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
 
         let finalInlineData = JSON.parse(responseData[0].activity_type_inline_data);
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
-        let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
-        for(let i=0;i<activityInlineData.length;i++){
-            
-            if(finalInlineDataKeys.includes(activityInlineData[i].field_id)){
-                    const fieldValue = await getFieldValueByDataTypeID(
-                        Number(activityInlineData[i].field_data_type_id),
-                        activityInlineData[i].field_value
-                    );
-                    util.logInfo(request,"activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
-                    request.sequence_id = finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id;
-                    request.workflow_activity_id = idActivity;
-                    activityCommonService.updateWorkflowValue(request, fieldValue);
+            util.logInfo(request, "updateWorkflowValues :: activity_type_inline_data has workflow_fields ");
+            let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
+            for(let i=0;i<activityInlineData.length;i++){
+                
+                if(finalInlineDataKeys.includes(activityInlineData[i].field_id)){
+                        util.logInfo(request, "updateWorkflowValues :: field_id match:: activity_type_inline_data.workflow_fields contains the field_id");
+                        const fieldValue = await getFieldValueByDataTypeID(
+                            Number(activityInlineData[i].field_data_type_id),
+                            activityInlineData[i].field_value
+                        );
+                        util.logInfo(request,"updateWorkflowValues :: activity_id: "+request.activity_id+" workflow value : "+fieldValue+"  sequence_id : "+finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id,[]);
+                        request.sequence_id = finalInlineData.workflow_fields[activityInlineData[i].field_id].sequence_id;
+                        request.workflow_activity_id = idActivity;
+                        activityCommonService.updateWorkflowValue(request, fieldValue);
+                    
                 }
             }
+
         }
     }
 
