@@ -355,7 +355,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     }); //app.use
      
     let getLogUUID = async function () {
-        return `l-${shortid.generate()}-id`
+        return `${shortid.generate()}`
     };
 
     let addInitialLog = async function (request) {

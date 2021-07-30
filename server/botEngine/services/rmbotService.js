@@ -3030,6 +3030,8 @@ function businessDayCheckFun(curr_date,businessDays){
     this.assetListUpdatePoolEntry = async function (request) {
         let responseData = [],
         error = true;
+        if(!request.hasOwnProperty("global_array"))
+            request.global_array=[];        
         try{
             let paramsArr = new Array(
                 request.organization_id,
