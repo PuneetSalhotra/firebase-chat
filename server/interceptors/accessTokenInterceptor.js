@@ -355,7 +355,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     }); //app.use
      
     let getLogUUID = async function () {
-        return `l-${shortid.generate()}-id`
+        return `${shortid.generate()}`
     };
 
     let addInitialLog = async function (request) {
@@ -380,7 +380,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                 assetPhoneNumber = request.headers['x-grene-p-code'];
             }
 
-            logger.info(`MAIN_REQUEST_START | ${request.url} | ${activityID} | ${logUUID} | ${assetID} | ${assetPhoneNumber} | ${emailID} | ${dateTime} `);
+            logger.info(`MAIN_REQUEST_START | ${request.url.split("/").join("-")} | ${activityID} | ${logUUID} | ${assetID} | ${assetPhoneNumber} | ${emailID} | ${dateTime} `);
         } catch (e) {
 
         }
