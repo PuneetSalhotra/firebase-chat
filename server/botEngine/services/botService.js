@@ -14609,7 +14609,14 @@ if(workflowActivityData.length==0){
                         fieldValue = JSON.parse(formInlineData[counter].field_value);
                         fieldValue = typeof fieldValue.cart_items == 'string' ? JSON.parse(fieldValue.cart_items)[0][request.final_key] : fieldValue.cart_items[0][request.final_key];
                     }
-                }else{
+                }
+                else if(Number(formInlineData[counter].field_data_type_id) === 57){
+                    fieldValue = formInlineData[counter].field_value.split('|')[1];
+                }
+                else if(Number(formInlineData[counter].field_data_type_id) === 59){
+                    fieldValue = formInlineData[counter].data_entity_text_1
+                }
+                else{
                     fieldValue = formInlineData[counter].field_value;
                 }                
                 break;
@@ -15428,20 +15435,21 @@ if(workflowActivityData.length==0){
     try{
         let [err, assetDetails] = await getAssetByEmail({
           organization_id: request.organization_id,
-          email: request.emails[i],
+          email: request.emails[i].email,
         });
         console.log("assetData",assetDetails)
         if(assetDetails.length>0){
             deskAssetData = assetDetails[0];
         }
         else{
+            
             let result = await createAssetContactDesk(request, {
                 "contact_designation": request.emails[i].designation,
                 "contact_email_id": request.emails[i].email,
                 "first_name": request.emails[i].name,
                 "contact_phone_number": "",
                 "contact_phone_country_code": 91,
-                "asset_email_id":request.emails[i],
+                "asset_email_id":request.emails[i].email,
                 "workforce_id": request._workforce_id,
                 "account_id": request.account_id
             });
