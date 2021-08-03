@@ -7,6 +7,7 @@ var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
 
+
 function PamService(objectCollection) {
 
     var db = objectCollection.db;
@@ -3223,7 +3224,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             `
 
                          }
-                         console.log('SMS text : \n', text);
+                         console.log('SMS text............. : \n', text);
                          
                             self.sendSms(countryCode,phoneNumber,text);
                             self.sendSms(91,supportContactNumber,text);
@@ -3987,6 +3988,8 @@ this.getActivityStatusV1 = async (request) => {
     return [error, responseData];
 }
 
+
+
 const getPamActivityStatusId = () => {
     return new Promise((resolve, reject) => {
         // N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
@@ -4185,18 +4188,19 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.asset_first_name = assetData[0].asset_first_name 
 	}
     else{
-        	// create the asset
+        const [assetTypeError, assetType] = await self.workforceAssetTypeMappingSelectCategoryAsync(request, 30);
+            // create the asset
 			request.asset_first_name = request.phone_number;
 			request.asset_last_name = "";
 			request.asset_description = "";
 			request.customer_unique_id = 0;
 			request.asset_profile_picture = "";
-			request.asset_inline_data = [{}];
+			request.asset_inline_data = '{}';
 			request.phone_country_code = request.country_code;
 			request.asset_phone_number = request.phone_number;
 			request.asset_email_id = "";
 			request.asset_timezone_id = 0;
-			request.asset_type_id = 36868;
+			request.asset_type_id = assetType[0].asset_type_id;
 			request.asset_type_category_id = 30;
 			request.asset_type_name = "Member";
 			request.operating_asset_id = 0;
@@ -4211,12 +4215,15 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 			if(newAssetData.length>0){
 				request.member_asset_id = newAssetData[0].asset_id
 			}
-    } 
+        } 
     const [eventErr, eventData] = await self.getEvent(request);
    
     if(!eventErr && eventData.length === 0){
             // No Event Exists
             console.log("No Event exists, hence no reservation created");
+          //  activityData.response.message = "No Event exists, hence no reservation created";
+                     
+            return [false,"No Event exists, hence no reservation created"];
     }else{
 
         request.activity_parent_id = eventData[0].activity_id;
@@ -4257,7 +4264,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.track_gps_status=1
 		request.track_latitude=0
 		request.track_longitude=0
-		request.member_code = '0'         
+		//request.member_code = '0'         
         
         const [error, activityData] = await addActivity(request);
             console.log("activityData "+activityData.response.activity_id)
@@ -4534,6 +4541,85 @@ this.updateActivityInlineData = async (request) => {
     const queryString = util.getQueryString('ds_v1_activity_list_update_inline_data_both', paramsArr);
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+    return [error, responseData];
+}
+
+// Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+this.workforceAssetTypeMappingSelectCategoryAsync  = async (request, idAssetTypeCategory) => {
+
+    let responseData = [],
+    error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            idAssetTypeCategory,
+            0,
+            1
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];      
+};
+
+this.checkingReservationCodeV1 = async (request) => {
+    let responseData = [],
+        error = true;
+    request.datetime_log = util.getCurrentUTCTime();
+    const [eventErr, eventData] = await self.getEvent(request);  
+    if(!eventErr){
+        if(eventData.length > 0){
+            request.parent_activity_id = eventData[0].activity_id;
+            request.activity_type_category_id = 37;
+            request.page_start = 0;
+            request.page_limit = 1;
+            [error, responseData] = await self.getChildOfAParent(request);
+            
+        } else {
+            return([true, ['No events available']]);
+        }
+    }else {
+            return([true, ['Error getting Event']]);
+    }
+    return [error, responseData];
+};
+
+
+this.getChildOfAParent = async (request) => {
+
+    let responseData = [],
+        error = true;
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+    var paramsArr = new Array(
+        request.organization_id,
+        request.parent_activity_id,
+        request.activity_type_category_id,
+        request.reservation_code,
+        request.page_start,
+        request.page_limit
+    )
+    const queryString = util.getQueryString('ds_v1_activity_search_list_select_parent', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
           .then((data) => {
               responseData = data;
               error = false;
