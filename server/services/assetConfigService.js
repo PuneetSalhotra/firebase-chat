@@ -320,7 +320,7 @@ function AssetConfigService() {
           request.period_start_datetime,
           request.period_end_datetime,
           request.organization_id,
-          request.log_asset_id,
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);

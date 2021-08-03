@@ -1957,7 +1957,8 @@ function AssetService(objectCollection) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         if(activityInlineData.contact_phone_number==""){
-            callback(false, []); 
+            callback(false, []);
+            return 
           }
         if (contactAssetTypeId === 0) {
             contactAssetTypeId = activityInlineData.contact_asset_type_id;
