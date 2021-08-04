@@ -4582,7 +4582,8 @@ this.workforceAssetTypeMappingSelectCategoryAsync  = async (request, idAssetType
 
 this.checkingReservationCodeV1 = async (request) => {
     let responseData = [],
-        error = true;
+        error = true,
+        responseObject = {};
     request.datetime_log = util.getCurrentUTCTime();
     const [eventErr, eventData] = await self.getEvent(request);  
     if(!eventErr){
@@ -4592,14 +4593,14 @@ this.checkingReservationCodeV1 = async (request) => {
             request.page_start = 0;
             request.page_limit = 1;
             [error, responseData] = await self.getChildOfAParent(request);
-            
+            responseObject = responseData.length>0 ?responseData[0]:{};
         } else {
             return([true, ['No events available']]);
         }
     }else {
             return([true, ['Error getting Event']]);
     }
-    return [error, responseData];
+    return [error, responseObject];
 };
 
 
