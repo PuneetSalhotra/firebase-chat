@@ -6240,17 +6240,17 @@ function VodafoneService(objectCollection) {
                 console.log('Query ', query);
                 if(searchType==1){
                     let altQueryArr = query.split('where');
-                    console.log(altQueryArr[1]);
+                    
                     let tryDum = String(altQueryArr[1]).replace(/=/gi, ':')
-                    console.log(tryDum)
+                   
                     let altQuery = `/${global.config.elasticActivitySearchTable}/_search?q=${tryDum}`;
-                    console.log(altQuery)
+                    util.logInfo(request,"QUERY V1"+altQuery)
                     let queryToPass = encodeURI(altQuery);
                     const result = await client.transport.request({
                         method: "GET",
                         path: queryToPass,
                     })
-                    console.log(result)
+                    // console.log(result)
                     // console.log(global.config.elastiSearchNode)
                     responseData = setQueryResponseV1(result)
                 }
