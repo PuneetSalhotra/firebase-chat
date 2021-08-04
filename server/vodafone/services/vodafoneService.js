@@ -6239,11 +6239,11 @@ function VodafoneService(objectCollection) {
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query);
                 if(searchType==1){
-                    let altQueryArr = query.split('where');
-                    
+                    let altQueryArr = query.split('WHERE');
+                    // console.log(altQueryArr[1])
                     let tryDum = String(altQueryArr[1]).replace(/=/gi, ':')
-                   
-                    let altQuery = `/${global.config.elasticActivitySearchTable}/_search?q=${tryDum}`;
+                //    console.log(tryDum)
+                    let altQuery = `/${request.flag_participating==2?global.config.elasticActivitySearchTable:global.config.elasticActivityAssetTable}/_search?q=${tryDum}`;
                     util.logInfo(request,"QUERY V1"+altQuery)
                     let queryToPass = encodeURI(altQuery);
                     const result = await client.transport.request({
@@ -6289,8 +6289,10 @@ function VodafoneService(objectCollection) {
     }
 
     function setQueryResponseV1(result) {
-        let responseData = result.hits.hits;
-        
+        let responseData = [];
+        for(let i=0;i<result.hits.hits.length;i++){
+            responseData.push(result.hits.hits[i]._source)
+        }
        
         return responseData
     }
@@ -6336,7 +6338,7 @@ function VodafoneService(objectCollection) {
                 break;
             case 2: //
                 tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
-                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " where "
+                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE "
                 if (request.activity_type_id > 0) {
                     if (request.activity_type_id && request.activity_type_id > 0) {
                         if (appendedAnd)
