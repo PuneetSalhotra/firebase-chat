@@ -196,11 +196,11 @@ function AdminOpsService(objectCollection) {
             }
 
             let activityInlineData = JSON.parse(request.activity_inline_data);
-            if (Number(request.activity_type_category_id) === 5) {
+            if (Number(request.activity_type_category_id) === 5 || Number(request.activity_type_category_id) === 45) {
                 // Co-Worker Contact Card
                 activityInlineData.contact_asset_id = assetID;
 
-            } else if (Number(request.activity_type_category_id) === 4) {
+            } else if (Number(request.activity_type_category_id) === 4 || Number(request.activity_type_category_id) === 13) {
                 // ID Card
                 // QR Code
                 const qrCode = organizationID + "|" + accountID + "|0|" + assetID + "|" + request.desk_asset_first_name + "|" + request.asset_first_name;
@@ -1131,7 +1131,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11018;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 5; // Co-Worker Contact Card
+        request.activity_type_category_id = request.activity_type_category_id || 5; // Co-Worker Contact Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 10;
@@ -1311,7 +1311,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11006;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 4; // ID Card
+        request.activity_type_category_id = request.activity_type_category_id || 4; // ID Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 8;
@@ -1321,7 +1321,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errZero_1, checkPhoneNumberData] = await assetListSelectCategoryPhoneNumber({
             phone_number: Number(request.phone_number) || 0,
             country_code: Number(request.country_code) || 0,
-            asset_type_category_id: 2,
+            asset_type_category_id: request.asset_type_category_id || 2,
         }, organizationID);
         if (errZero_1 || Number(checkPhoneNumberData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryPhoneNumber | Error: ", errZero_1);
