@@ -196,11 +196,11 @@ function AdminOpsService(objectCollection) {
             }
 
             let activityInlineData = JSON.parse(request.activity_inline_data);
-            if (Number(request.activity_type_category_id) === 5) {
+            if (Number(request.activity_type_category_id) === 5 || Number(request.activity_type_category_id) === 6) {
                 // Co-Worker Contact Card
                 activityInlineData.contact_asset_id = assetID;
 
-            } else if (Number(request.activity_type_category_id) === 4) {
+            } else if (Number(request.activity_type_category_id) === 4 || Number(request.activity_type_category_id) === 6) {
                 // ID Card
                 // QR Code
                 const qrCode = organizationID + "|" + accountID + "|0|" + assetID + "|" + request.desk_asset_first_name + "|" + request.asset_first_name;
@@ -209,19 +209,26 @@ function AdminOpsService(objectCollection) {
             }
             request.activity_inline_data = JSON.stringify(activityInlineData);
 
-            const [errFour, activityData] = await createActivity(request, workforceID, organizationID, accountID);
-            if (errFour) {
-                console.log("createAssetBundle | createActivity | Error: ", errFour);
-                return [true, {
-                    message: "Error creating activity"
+            if(Number(request.asset_type_category_id) != 13){
+                const [errFour, activityData] = await createActivity(request, workforceID, organizationID, accountID);
+                if (errFour) {
+                    console.log("createAssetBundle | createActivity | Error: ", errFour);
+                    return [true, {
+                        message: "Error creating activity"
+                    }]
+                }
+                console.log("createAssetBundle | createActivity | activityData: ", activityData);
+
+                return [false, {
+                    asset_id: assetID,
+                    activity_id: activityData.response.activity_id
+                }]
+            }else{
+                return [false, {
+                    asset_id: assetID,
+                    activity_id: 0
                 }]
             }
-            console.log("createAssetBundle | createActivity | activityData: ", activityData);
-
-            return [false, {
-                asset_id: assetID,
-                activity_id: activityData.response.activity_id
-            }]
         }
     }
 
@@ -367,7 +374,7 @@ function AdminOpsService(objectCollection) {
                     error = false;
                     console.log("assetListInsertV2 : "+JSON.stringify(data,2,null));
                     request.created_asset_id = data[0].asset_id;
-                    roleAssetMappingInsert(request);
+                   // roleAssetMappingInsert(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -1103,6 +1110,13 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewDeskToWorkforce = async function (request) {
+
+
+        if(request.asset_type_category_id == 3)
+            request.activity_type_category_id = 5;
+        else if(request.asset_type_category_id == 45)
+            request.activity_type_category_id = 6;
+
         // request.asset_identification_number = "";
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
@@ -1131,7 +1145,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11018;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 5; // Co-Worker Contact Card
+        request.activity_type_category_id = request.activity_type_category_id || 5; // Co-Worker Contact Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 10;
@@ -1289,6 +1303,12 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     }
 
     this.addNewEmployeeToExistingDesk = async function (request) {
+
+        if(request.asset_type_category_id == 2)
+            request.activity_type_category_id = 4;
+        else if(request.asset_type_category_id == 13)
+            request.activity_type_category_id = 6;
+
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
@@ -1311,7 +1331,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11006;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 4; // ID Card
+        request.activity_type_category_id = request.activity_type_category_id || 4; // ID Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 8;
@@ -1321,7 +1341,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errZero_1, checkPhoneNumberData] = await assetListSelectCategoryPhoneNumber({
             phone_number: Number(request.phone_number) || 0,
             country_code: Number(request.country_code) || 0,
-            asset_type_category_id: 2,
+            asset_type_category_id: request.asset_type_category_id || 2,
         }, organizationID);
         if (errZero_1 || Number(checkPhoneNumberData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryPhoneNumber | Error: ", errZero_1);
@@ -1484,7 +1504,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
             asset_id: deskAssetID,
             organization_id: organizationID,
-            activity_type_category_id: 5
+            activity_type_category_id: request.activity_type_category_id || 5
         });
         if (!errFour && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
@@ -1549,10 +1569,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
 
         //Add the number to Cognito
-        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
-        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
-        if(request.email_id) {
-            await addUser(request.email_id, global.config.user_web_pool_id);
+        console.log("request.activity_type_category_id :: "+request.activity_type_category_id+' :: ' + request.country_code +':: '+request.phone_number)
+        if(request.activity_type_category_id == 6){
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+        }else{
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            if(request.email_id) {
+                await addUser(request.email_id, global.config.user_web_pool_id);
+            }
         }
 
         // Send SMS to the newly added employee
