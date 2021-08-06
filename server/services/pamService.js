@@ -4632,6 +4632,79 @@ this.getChildOfAParent = async (request) => {
     return [error, responseData];
 }
 
+    //Checking Reservation For Orders
+    this.checkingReservationCodeV2 = async (request) => {
+        let responseData = [],
+            error = true,
+            responseObject = {};
+        request.datetime_log = util.getCurrentUTCTime();
+        const [eventErr, eventData] = await self.getEvent(request);
+        if (!eventErr) {
+            if (eventData.length > 0) {
+                request.parent_activity_id = eventData[0].activity_id;
+                request.activity_type_category_id = 37;
+                request.page_start = 0;
+                request.page_limit = 100;
+                [error, responseData] = await self.getChildOfAParent(request);
+                responseObject = responseData.length > 0 ? responseData[0] : {};
+            } else {
+                return ([true, ['No events available']]);
+            }
+        } else {
+            return ([true, ['Error getting Event']]);
+        }
+        return [error, responseObject];
+    };
+
+    //Get Orders Using Reservation Code
+    this.getOrdersUsingReservationCode = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        const [eventErr, reservationData] = await self.checkingReservationCodeV2(request);
+        if (!eventErr) {
+            if (reservationData !== {}) {
+                request.parent_activity_id = reservationData.activity_id;
+                request.activity_type_category_id = 38;
+                [error, responseData] = await self.getOrders(request);
+            } else {
+                return ([true, ['No events available']]);
+            }
+        } else {
+            return ([true, ['Error getting Orders']]);
+        }
+        return [error, responseData];
+    }
+
+    //Get Orders
+    this.getOrders = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.parent_activity_id,
+            request.activity_type_category_id,
+            request.page_start,
+            request.page_limit
+        )
+        const queryString = util.getQueryString('pm_v1_activity_list_select_reservation_orders', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 };
 
 module.exports = PamService;
