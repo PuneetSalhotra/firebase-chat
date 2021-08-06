@@ -565,6 +565,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/lov/type/list', async function (req, res) {
+        const [err, resData] = await adminListingService.lovTypeList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/admin/lov/type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 
