@@ -6489,12 +6489,30 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     return [error, responseData];
     }
 
-this.delteAndInsertInElasticBulk = async function (request){
-    for(let i=0;i<request.list.length;i++){
-    await this.delteAndInsertInElastic({activity_id:request.list[i],asset_id:0})
+    this.delteAndInsertInElasticBulk = async function (request){
+        for(let i=0;i<request.list.length;i++){
+        await this.delteAndInsertInElastic({activity_id:request.list[i],asset_id:0})
+        }
+        return [false,[]]
     }
-    return [false,[]]
-}
+    
+    this.delteAndInsertInElasticMulti = async function (request){
+        let responseDataMulti = {};
+        let responseData = [], error = false;
+        try{
+            let array = JSON.parse(request.activities);
+            logger.info(array);
+            for(let i =0; i < array.length; i++){
+                request.activity_id = array[i];
+                [error, responseData] = await self.delteAndInsertInElastic(request);
+                responseDataMulti[request.activity_id] = responseData;            
+            }
+        }catch(error){
+            util.logError(request, e)
+            return [error, responseDataMulti]
+        }
+        return [false, responseDataMulti];
+    } 
 
     this.delteAndInsertInElastic = async function (request){
         let responseData = [],
