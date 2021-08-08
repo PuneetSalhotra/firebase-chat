@@ -563,7 +563,16 @@ function PamController(objCollection) {
             } else {
                 res.send(responseWrapper.getResponse(err, result, -9999, req.body));
             }
-    });    
+    });
+
+    app.post('/' + global.config.version + '/pam/get/orders/reservation_code', async (req, res) => {
+        let [err, result] = await pamService.getOrdersUsingReservationCode(req.body)
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;
