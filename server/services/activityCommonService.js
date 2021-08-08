@@ -6489,6 +6489,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     return [error, responseData];
     }
 
+this.delteAndInsertInElasticBulk = async function (request){
+    for(let i=0;i<request.list.length;i++){
+    await this.delteAndInsertInElastic({activity_id:request.list[i],asset_id:0})
+    }
+    return [false,[]]
+}
+
     this.delteAndInsertInElastic = async function (request){
         let responseData = [],
         error = true;

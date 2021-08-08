@@ -4681,7 +4681,6 @@ async function removeAsOwner(request,data,addT = 0)  {
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
                     util.logInfo(request,"checking parent closure");
                     let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
-                    
                     const paramsArr = new Array(
                         request.organization_id,
                         childActivityDetails[0].activity_type_category_id,
@@ -4700,6 +4699,7 @@ async function removeAsOwner(request,data,addT = 0)  {
 
                                     let parentActivityDetails = await activityCommonService.getActivityDetailsPromise(request,childActivityDetails[0].parent_activity_id);
                                     // inlineData.
+
                                     let parentInlineData = {...inlineData};
                                     parentInlineData.activity_status_id = inlineData.parent_activity_status_id;
                                     // return [false,{}];
@@ -15563,7 +15563,7 @@ if(workflowActivityData.length==0){
              submitFormInternal(request,inlineData,time1)
             }
         }
-        submitFormInternal(request,inlineData)
+        // submitFormInternal(request,inlineData)
         }
 
         async function submitFormInternal(request,inlineData,dateValue){
