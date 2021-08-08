@@ -6489,6 +6489,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     return [error, responseData];
     }
 
+    this.delteAndInsertInElasticBulk = async function (request){
+        for(let i=0;i<request.list.length;i++){
+        await this.delteAndInsertInElastic({activity_id:request.list[i],asset_id:0})
+        }
+        return [false,[]]
+    }
+    
     this.delteAndInsertInElasticMulti = async function (request){
         let responseDataMulti = {};
         let responseData = [], error = false;
@@ -6505,7 +6512,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             return [error, responseDataMulti]
         }
         return [false, responseDataMulti];
-    }    
+    } 
 
     this.delteAndInsertInElastic = async function (request){
         let responseData = [],
