@@ -1135,7 +1135,6 @@ function ActivityConfigService(db,util,objCollection) {
         else{
             checkPan =""
         }
-
         //Check the uniqueness of the account title
         if (isNameDedupeRequired) {
             let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
@@ -1145,7 +1144,6 @@ function ActivityConfigService(db,util,objCollection) {
                 return [true, responseData];
             }
         }
-
 
         if (isPanDedupeRequired) {
             //Check the uniqueness of the pan number
@@ -1403,31 +1401,38 @@ function ActivityConfigService(db,util,objCollection) {
 
         let isAccountPresent = false;
         console.log('Searching elastisearch for Accounyt title : ',title);
-        let resultData = await client.search({
-            index: global.config.elasticCrawlingAccountTable,
-            body: {
-                query: {
-                    bool: {
-                        must: [
-                            {
-                                match_phrase: {
-                                    activity_title_expression: title
-                                }
-                            },
-                            {
-                              "range" : {"log_state" : {"lt" : 3}}
-                            }
-                        ],
+        let altQuery = `/${global.config.elasticCrawlingAccountTable}/_search?q=activity_title_expression:${title}`;
+                    // util.logInfo(request,"QUERY V1"+altQuery)
+                    let queryToPass = encodeURI(altQuery);
+        let resultData = await client.transport.request({
+            method: "GET",
+            path: queryToPass,
+        })
+        // let resultData = await client.search({
+        //     index: global.config.elasticCrawlingAccountTable,
+        //     body: {
+        //         query: {
+        //             bool: {
+        //                 must: [
+        //                     {
+        //                         match_phrase: {
+        //                             activity_title_expression: title
+        //                         }
+        //                     },
+        //                     {
+        //                       "range" : {"log_state" : {"lt" : 3}}
+        //                     }
+        //                 ],
 
-                    }
-                }
-            }
-        });
+        //             }
+        //         }
+        //     }
+        // });
 
         console.log('response from ElastiSearch: ',JSON.stringify(resultData));
 
         for(const i_iterator of resultData.hits.hits) {
-            if(i_iterator._source.log_state < 3 && i_iterator._source.activity_title_expression === title) {
+            if(i_iterator._source.log_state != 3 && i_iterator._source.activity_title_expression === title) {
                 isAccountPresent = true;
                 break;
             }
