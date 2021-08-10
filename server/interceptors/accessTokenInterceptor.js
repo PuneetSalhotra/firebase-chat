@@ -378,6 +378,8 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
 
             if (request.headers.hasOwnProperty('x-grene-p-code')) {
                 assetPhoneNumber = request.headers['x-grene-p-code'];
+            }else if (request.body.hasOwnProperty('asset_phone_number')) {
+                assetPhoneNumber = request.body.asset_phone_number;
             }
 
             logger.info(`MAIN_REQUEST_START | ${request.url.split("/").join("-")} | ${activityID} | ${logUUID} | ${assetID} | ${assetPhoneNumber} | ${emailID} | ${dateTime} `);
