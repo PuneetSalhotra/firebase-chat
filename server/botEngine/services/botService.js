@@ -2525,7 +2525,7 @@ function BotService(objectCollection) {
     let pdfJson = bot_data.pdf_json;
     let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
     
-    s3Url = pdfJson.pdfs[comboValue];
+    s3Url = pdfJson.pdfs[Number(comboValue)-1];
     }
     else{
         util.logInfo(request,"Sleeping for 9 sec",[]);
