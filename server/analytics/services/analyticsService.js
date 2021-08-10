@@ -2140,8 +2140,8 @@ function AnalyticsService(objectCollection)
                         global.analyticsConfig.activity_id_all, //Activity ID,
                         parseInt(request.filter_activity_status_type_id),
                         parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
-                        //parseInt(filter_activity_status_id),
+                        // parseInt(request.filter_activity_status_id),
+                        parseInt(arrayStatuses[0].activity_status_id),
                         request.datetime_start,
                         request.datetime_end,
                         parseInt(request.filter_segment_id),
@@ -2194,7 +2194,7 @@ function AnalyticsService(objectCollection)
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
-                        if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
+                        if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
                          || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
                          || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42
@@ -2798,8 +2798,8 @@ function AnalyticsService(objectCollection)
                     global.analyticsConfig.activity_id_all, //Activity ID,
                     parseInt(request.filter_activity_status_type_id),
                     parseInt(request.filter_activity_status_tag_id),
+                    //parseInt(arrayStatuses[0].activity_status_id),
                     parseInt(request.filter_activity_status_id),
-                    //parseInt(filter_activity_status_id),
                     request.datetime_start,
                     request.datetime_end,
                     parseInt(request.filter_segment_id),
