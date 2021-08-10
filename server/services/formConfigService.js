@@ -3516,7 +3516,6 @@ function FormConfigService(objCollection) {
                 }
 
                 if(fieldOptions.length === 0){
-                    console.log('came in ')
                     let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
 
                     const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
@@ -4032,7 +4031,7 @@ function FormConfigService(objCollection) {
                             // console.log(Object.keys(error));
                         });
                 }
-                if(comboEntries.length===0){
+                if(comboEntries.length===0 && Number(formField.dataTypeId) !==33&&Number(formField.dataTypeId)!==34){
                 await workforceFormFieldMappingInsert(request, {
                     field_id: fieldId,
                     field_name: fieldName,
