@@ -3514,6 +3514,43 @@ function FormConfigService(objCollection) {
                         data_type_combo_id: option.dataTypeComboId
                     });
                 }
+
+                if(fieldOptions.length === 0){
+                    let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
+
+                    const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId,
+                        field_name: fieldName,
+                        field_description: field.placeholder || '',
+                        data_type_combo_value: dataTypeComboValue,
+                        field_sequence_id: field.sequence_id,
+                        field_mandatory_enabled: fieldMandatoryEnabled,
+                        field_preview_enabled: field.field_preview_enabled,
+                        field_value_edit_enabled: field.field_value_edit_enabled,
+                        inline_data: JSON.stringify(field.inline_data)
+                    });
+                    if (updateError !== false) {
+    
+                    }
+                    // Update next field ID, if needed
+                    if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) >= 0 || Number(field.next_field_id) === -1)) {
+                        try {
+                            await workforceFormFieldMappingUpdateNextField(request, {
+                                field_id: field.field_id,
+                                data_type_combo_id: field.dataTypeComboId,
+                                next_field_id: Number(field.next_field_id)
+                            });
+                        } catch (error) {
+                            console.log("qwe Error: ", error);
+                        }
+                    }
+    
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId
+                    });
+                }
             } else {
 
                 let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
@@ -3933,6 +3970,7 @@ function FormConfigService(objCollection) {
                 // }
                 console.log("comboEntries: ", comboEntries);
                 console.log("fieldId: ", fieldId);
+                
 
                 for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
 
@@ -3993,6 +4031,38 @@ function FormConfigService(objCollection) {
                             // console.log(Object.keys(error));
                         });
                 }
+                if(comboEntries.length===0 && Number(formField.dataTypeId) !==33&&Number(formField.dataTypeId)!==34){
+                await workforceFormFieldMappingInsert(request, {
+                    field_id: fieldId,
+                    field_name: fieldName,
+                    field_description: fieldDescription,
+                    inline_data: inlineData,
+                    field_sequence_id: fieldSequenceId,
+                    field_mandatory_enabled: fieldMandatoryEnabled,
+                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
+                    field_value_edit_enabled: fieldValueEditEnabled,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: '',
+                    data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
+                    next_field_id: nextFieldId
+                })
+                .then(async (fieldData) => {
+                    formName = fieldData[0].form_name;
+                    fieldIDForBotCreation = Number(fieldData[0].p_field_id);
+                    // console.log("someData: ", someData)
+                    // History insert in the workforce_form_field_mapping_history_insert table
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: Number(fieldData[0].p_field_id),
+                            data_type_combo_id: 0
+                        })
+                        .catch((error) => {
+                            // Do nothing
+                        });
+                })
+                .catch((error) => {
+                    // Do nothing
+                });
+            }
 
                 // Reset fieldId to 0, so it can be re-used by other fields
                 // in the subsequent iterations
@@ -4036,6 +4106,7 @@ function FormConfigService(objCollection) {
             // To create a bot for every workflow reference with type constraint datatype added in forms
             // To create a bot for every single selection datatype added in forms
             request.form_name = formName;
+            console.log('data type id',dataTypeId)
             switch (dataTypeId) {
                 case 57: if (inlineData !== '{}') {
                     let newInlineData = JSON.parse(inlineData);

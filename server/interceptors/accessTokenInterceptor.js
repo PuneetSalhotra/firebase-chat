@@ -203,7 +203,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 let phoneNumber = '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code'];
 
                                 if(req.headers['x-grene-e-flag'] == 1) {
-                                    phoneNumber = req.headers['x-grene-e'];
+                                    phoneNumber = req.headers['x-grene-e'].toLowerCase();
                                 }
                                 //console.log('decodedToken : ', decodedToken);
                                 console.log('UserName and phoneNumber/Email from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
@@ -235,6 +235,10 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
 
                                 let tempVar = await cacheWrapper.getUserNameFromAccessToken(userNameFromAccessToken);
                                 console.log('UserNameFromAccessToken - ', tempVar);
+
+                                if(req.headers['x-grene-e-flag'] == 1) {
+                                    tempVar = tempVar.toLowerCase();
+                                }
 
                                 if(tempVar !== 'undefined') {
                                     if(tempVar === phoneNumber) {
