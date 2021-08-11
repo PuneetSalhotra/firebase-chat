@@ -2736,12 +2736,15 @@ function AnalyticsService(objectCollection)
             arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
 
             console.log("request.activity_status_id :: "+request.activity_status_id);
-
+            let activityStatusId = 0;
             let arrayStatuses = new Array();
             if(request.hasOwnProperty("activity_status_id")){
                 //console.log(JSON.parse(request.activity_status_id).length);
-                if(request.activity_status_id != 0){
+                if(request.activity_status_id > 0){
+                    activityStatusId = request.activity_status_id;
+                }else if(request.activity_status_id != 0){
                     arrayStatuses = JSON.parse(request.activity_status_id);
+                    activityStatusId = arrayStatuses[0].activity_status_id;
                 }else{
                     let json = {"activity_status_id": 0};
                     arrayStatuses.push(json); 
@@ -2799,7 +2802,7 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_activity_status_type_id),
                     parseInt(request.filter_activity_status_tag_id),
                     //parseInt(arrayStatuses[0].activity_status_id),
-                    parseInt(request.filter_activity_status_id),
+                    parseInt(activityStatusId),
                     request.datetime_start,
                     request.datetime_end,
                     parseInt(request.filter_segment_id),
