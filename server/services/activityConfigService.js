@@ -1385,7 +1385,7 @@ function ActivityConfigService(db,util,objCollection) {
     
             for(const i_iterator of response.hits.hits) {
                 console.log(i_iterator._source.activity_cuid_1);
-                if(i_iterator._source.activity_cuid_1 === panNumber) {
+                if(i_iterator._source.activity_cuid_1 === panNumber && i_iterator._source.activity_id!=request.workflow_activity_id) {
                     
                     responseData.push({'message': 'Found a Match!'});
                     console.log('found a Match!');

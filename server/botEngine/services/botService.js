@@ -2525,9 +2525,10 @@ function BotService(objectCollection) {
     let bot_json = bot_data.bot_operations;
     if(bot_json.hasOwnProperty("static_pdf")&& bot_json.static_pdf=="true"){
     let pdfJson = bot_json.pdf_json;
-    let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
+    // let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
     
-    s3Url = pdfJson.pdfs[Number(comboValue)-1];
+    // s3Url = pdfJson.pdfs[Number(comboValue)-1];
+    s3Url = pdfJson.pdfs;
     }
     else{
         util.logInfo(request,"Sleeping for 9 sec",[]);
