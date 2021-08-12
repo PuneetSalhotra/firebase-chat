@@ -327,9 +327,12 @@ function AssetConfigService() {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
+                    request.input_id = data[0].input_id 
+                  request.update_type_id = 2801;
+                await this.inputListHistoryInsert(request)
                 })
                 .catch((err) => {
                     error = err;
@@ -396,7 +399,7 @@ function AssetConfigService() {
               .then(async(data) => {
                   responseData = data;
                   error = false;
-                  request.update_type_id = 2803;
+                  request.update_type_id = 2802;
                   await this.inputListHistoryInsert(request)
                  
               })
@@ -468,3 +471,4 @@ function AssetConfigService() {
 }
 
 module.exports = AssetConfigService;
+
