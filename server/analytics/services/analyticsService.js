@@ -2331,6 +2331,7 @@ function AnalyticsService(objectCollection)
 
                     } else {
                         console.log("4");
+                        request.widget_type_id = Number(request.widget_type_id) | 0;
                         switch (request.widget_type_id) {
                             
                             case 128: {
@@ -2375,9 +2376,10 @@ function AnalyticsService(objectCollection)
             let verticalResponseMap = new Map();
             let isError = false;
             results.push(request.verticalData[request.widget_type_id]);
+            let verticalResponseAdditonalMap = new Map();
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
-
+                let responseJson = {};
                 if (isError) {
                     break;
                 }
@@ -2390,9 +2392,16 @@ function AnalyticsService(objectCollection)
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
                 }
-
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
+
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.filter_asset_id = paramsArray[10];
+                verticalResponseAdditonalMap.set(iteratorM, responseJson);
+
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
@@ -2418,6 +2427,7 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
+            let verticalValueFlgArray = new Array({}, {}, {}, {});
 
             for (var entry of verticalMap.entries()) {
 
@@ -2429,6 +2439,9 @@ function AnalyticsService(objectCollection)
                 let verticalValueArray = new Array(0, 0, 0, 0);
 
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
 
                     if (verticalResponseMap.has(iteratorM)) {
 
@@ -2439,7 +2452,7 @@ function AnalyticsService(objectCollection)
 
                     }
                     total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
-
+                    verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
                 results.push({
@@ -2447,17 +2460,31 @@ function AnalyticsService(objectCollection)
                     "flag_1": verticalValueArray[0],
                     "flag_2": verticalValueArray[1],
                     "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3]
+                    "flag_4": verticalValueArray[3],
+                    "flag_11": verticalValueFlgArray[0],
+                    "flag_12": verticalValueFlgArray[1],
+                    "flag_13": verticalValueFlgArray[2],
+                    "flag_14": verticalValueFlgArray[3]
                 });
 
             }
 
+            for (var i = 0; i < 4; i++) {
+                verticalValueFlgArray[i].vertical_tag_id = 0;
+                delete verticalValueFlgArray[i]['vertical_name'];
+            }
+
+            verticalResponseAdditonalMap.clear();
             results.push({
                 "vertical_name": "Total",
                 "flag_1": total[0],
                 "flag_2": total[1],
                 "flag_3": total[2],
-                "flag_4": total[3]
+                "flag_4": total[3],
+                "flag_11": verticalValueFlgArray[0],
+                "flag_12": verticalValueFlgArray[1],
+                "flag_13": verticalValueFlgArray[2],
+                "flag_14": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results); 
@@ -2476,11 +2503,13 @@ function AnalyticsService(objectCollection)
             let total = new Array(0, 0, 0, 0);
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
+            let verticalResponseAdditonalMap = new Map();
             let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
 
                 if (isError) {
                     break;
@@ -2491,9 +2520,13 @@ function AnalyticsService(objectCollection)
                 let key = "flag_" + widgetFlags[iteratorM];
                 let value = widgetJsonObject[key];
                 paramsArray[16] = status_tags[value];
-                
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
+
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
+                responseJson.filter_asset_id = paramsArray[10];
+                verticalResponseAdditonalMap.set(iteratorM, responseJson);
+
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
@@ -2520,6 +2553,7 @@ function AnalyticsService(objectCollection)
                 return Promise.resolve(request.verticalData.error_response);
             }
 
+            let verticalValueFlgArray = new Array({}, {}, {}, {});
             for (var entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
@@ -2530,6 +2564,9 @@ function AnalyticsService(objectCollection)
                 let verticalValueArray = new Array(0, 0, 0, 0);
 
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
 
                     if (verticalResponseMap.has(iteratorM)) {
 
@@ -2540,7 +2577,7 @@ function AnalyticsService(objectCollection)
 
                     }
                     total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
-
+                    verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
                 results.push({
@@ -2548,17 +2585,31 @@ function AnalyticsService(objectCollection)
                     "flag_1": verticalValueArray[0],
                     "flag_2": verticalValueArray[1],
                     "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3]
+                    "flag_4": verticalValueArray[3],
+                    "flag_11": verticalValueFlgArray[0],
+                    "flag_12": verticalValueFlgArray[1],
+                    "flag_13": verticalValueFlgArray[2],
+                    "flag_14": verticalValueFlgArray[3]
                 });
 
             }
 
+            for (var i = 0; i < 4; i++) {
+                verticalValueFlgArray[i].vertical_tag_id = 0;
+                delete verticalValueFlgArray[i]['vertical_name'];
+            }
+
+            verticalResponseAdditonalMap.clear();
             results.push({
                 "vertical_name": "Total",
                 "flag_1": total[0],
                 "flag_2": total[1],
                 "flag_3": total[2],
-                "flag_4": total[3]
+                "flag_4": total[3],
+                "flag_11": verticalValueFlgArray[0],
+                "flag_12": verticalValueFlgArray[1],
+                "flag_13": verticalValueFlgArray[2],
+                "flag_14": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results);
@@ -2578,12 +2629,13 @@ function AnalyticsService(objectCollection)
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalFlags = new Array();
             let verticalResponseMap = new Map();
+            let verticalResponseAdditonalMap = new Map();
             let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
-
+                let responseJson = {};
                 if (isError) {
                     break;
                 }
@@ -2612,9 +2664,16 @@ function AnalyticsService(objectCollection)
                     paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
                 }
-
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
+
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.filter_asset_id = paramsArray[10];
+                verticalResponseAdditonalMap.set(iteratorM, responseJson);
+
                 const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
@@ -2640,7 +2699,7 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-
+            let verticalValueFlgArray = new Array({}, {}, {}, {});
             for (var entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
@@ -2650,7 +2709,11 @@ function AnalyticsService(objectCollection)
                 vertical_name = entry[1];
                 let verticalValueArray = new Array(0, 0, 0, 0);
 
+
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
 
                     if (verticalResponseMap.has(iteratorM)) {
 
@@ -2661,7 +2724,7 @@ function AnalyticsService(objectCollection)
 
                     }
                     total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
-
+                    verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
                 results.push({
@@ -2669,17 +2732,31 @@ function AnalyticsService(objectCollection)
                     "flag_1": verticalValueArray[0],
                     "flag_2": verticalValueArray[1],
                     "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3]
+                    "flag_4": verticalValueArray[3],
+                    "flag_11": verticalValueFlgArray[0],
+                    "flag_12": verticalValueFlgArray[1],
+                    "flag_13": verticalValueFlgArray[2],
+                    "flag_14": verticalValueFlgArray[3]
                 });
 
             }
 
+            for (var i = 0; i < 4; i++) {
+                verticalValueFlgArray[i].vertical_tag_id = 0;
+                delete verticalValueFlgArray[i]['vertical_name'];
+            }
+
+            verticalResponseAdditonalMap.clear();
             results.push({
                 "vertical_name": "Total",
                 "flag_1": total[0],
                 "flag_2": total[1],
                 "flag_3": total[2],
-                "flag_4": total[3]
+                "flag_4": total[3],
+                "flag_11": verticalValueFlgArray[0],
+                "flag_12": verticalValueFlgArray[1],
+                "flag_13": verticalValueFlgArray[2],
+                "flag_14": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results);
