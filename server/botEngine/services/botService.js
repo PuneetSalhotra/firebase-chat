@@ -2521,8 +2521,10 @@ function BotService(objectCollection) {
     let s3Url = "";
     let pdfPath = "";
     let customerName ="GreneOS";
-    if(bot_data.hasOwnProperty("static_pdf")&& bot_data.static_pdf){
-    let pdfJson = bot_data.pdf_json;
+    
+    let bot_json = bot_data.bot_operations;
+    if(bot_json.hasOwnProperty("static_pdf")&& bot_json.static_pdf=="true"){
+    let pdfJson = bot_json.pdf_json;
     let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
     
     s3Url = pdfJson.pdfs[Number(comboValue)-1];
