@@ -5931,8 +5931,9 @@ function ActivityService(objectCollection) {
             util.logInfo(request, "updateWorkflowValues :: activity_type_inline_data has workflow_fields ");
             let finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
             for(let i=0;i<activityInlineData.length;i++){
-                
-                if(finalInlineDataKeys.includes(activityInlineData[i].field_id)){
+
+                util.logInfo(request, "Keys : "+ finalInlineDataKeys + " " +activityInlineData[i].field_id + " "+i +" condition "+finalInlineDataKeys.includes(String(activityInlineData[i].field_id)));
+                if(finalInlineDataKeys.includes(String(activityInlineData[i].field_id)) || finalInlineDataKeys.includes(activityInlineData[i].field_id)){
                         util.logInfo(request, "updateWorkflowValues :: field_id match:: activity_type_inline_data.workflow_fields contains the field_id");
                         const fieldValue = await getFieldValueByDataTypeID(
                             Number(activityInlineData[i].field_data_type_id),
@@ -5946,6 +5947,8 @@ function ActivityService(objectCollection) {
                 }
             }
 
+        }else{
+            util.logInfo(request, "updateWorkflowValues :: No workflow_fields :: "+finalInlineData);
         }
     }
 

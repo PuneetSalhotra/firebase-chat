@@ -4239,8 +4239,12 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 		request.activity_access_role_id=121;
 		request.activity_channel_category_id= 0;
 		request.activity_channel_id=0;
+        
+        if(!request.hasOwnProperty("activity_datetime_end"))
 		request.activity_datetime_end=util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours");
+        if(!request.hasOwnProperty("activity_datetime_start"))
 		request.activity_datetime_start=util.getCurrentISTTime(); 
+
         request.owner_asset_id=request.asset_id;
 		request.activity_form_id=0;
 		request.activity_inline_data=JSON.stringify({table_asset_id:request.table_asset_id, member_asset_id:request.member_asset_id, phone_number:request.phone_number,country_code:request.country_code,item_count:request.item_count});

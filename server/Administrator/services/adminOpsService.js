@@ -4952,6 +4952,19 @@ console.log('new ActivityId321',newActivity_id)
             }
         }
 
+        //checking phone number or email changes to update in aws
+        let [errassetData, assetDataOld] = await activityCommonService.getAssetDetailsAsync({...request,asset_id:request.employee_asset_id});
+        if(request.email_id != assetDataOld[0].asset_email_id){
+           await this.addUsersToCognitoManual({is_email_remove:1,email:assetDataOld[0].asset_email_id})// remove old email from web pool
+           await this.addUsersToCognitoManual({is_email_add:1,email:request.email_id})// add new email from web pool
+        }
+        if(request.phone_number != assetDataOld[0].asset_phone_number){
+            await this.addUsersToCognitoManual({is_mobile_remove:1,country_code:assetDataOld[0].asset_phone_country_code,phone_number:assetDataOld[0].asset_phone_number})// remove old phone from user pool
+            await this.addUsersToCognitoManual({is_web_remove:1,country_code:assetDataOld[0].asset_phone_country_code,phone_number:assetDataOld[0].asset_phone_number})// remove old phone from web pool
+            await this.addUsersToCognitoManual({...request,is_mobile_add:1})// add new email from user pool
+            await this.addUsersToCognitoManual({...request,is_web_add:1})// add new email from web pool
+        }
+
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
             const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
@@ -10817,18 +10830,26 @@ console.log('new ActivityId321',newActivity_id)
             responseData = [];
         try{
             //Add the number to Cognito
-            if(request.is_mobile_add == 1)   
+            if(request.is_mobile_add == 1) {
                 await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+                await addUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+            }
             else if(request.is_web_add == 1)
                 await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
-            else if(request.is_mobile_remove == 1)
+            else if(request.is_mobile_remove == 1) {
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+                await removeUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+            }
             else if(request.is_web_remove == 1)
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
-            else if(request.is_email_add == 1)   
+            else if(request.is_email_add == 1){   
                 await addUser(request.email, global.config.user_web_pool_id);
-            else if(request.is_email_remove == 1)
+                await addUser(request.email, global.config.customer_pool_id);
+            }
+            else if(request.is_email_remove == 1){
                 await removeUser(request.email, global.config.user_web_pool_id);
+                await removeUser(request.email, global.config.customer_pool_id);
+            }
 
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
