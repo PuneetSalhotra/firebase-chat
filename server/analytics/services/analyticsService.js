@@ -2400,9 +2400,10 @@ function AnalyticsService(objectCollection)
                 responseJson.filter_activity_status_type_id = paramsArray[15];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2462,9 +2463,9 @@ function AnalyticsService(objectCollection)
                     "flag_3": verticalValueArray[2],
                     "flag_4": verticalValueArray[3],
                     "flag_11": verticalValueFlgArray[0],
-                    "flag_12": verticalValueFlgArray[1],
-                    "flag_13": verticalValueFlgArray[2],
-                    "flag_14": verticalValueFlgArray[3]
+                    "flag_21": verticalValueFlgArray[1],
+                    "flag_31": verticalValueFlgArray[2],
+                    "flag_41": verticalValueFlgArray[3]
                 });
 
             }
@@ -2482,9 +2483,9 @@ function AnalyticsService(objectCollection)
                 "flag_3": total[2],
                 "flag_4": total[3],
                 "flag_11": verticalValueFlgArray[0],
-                "flag_12": verticalValueFlgArray[1],
-                "flag_13": verticalValueFlgArray[2],
-                "flag_14": verticalValueFlgArray[3]
+                "flag_21": verticalValueFlgArray[1],
+                "flag_31": verticalValueFlgArray[2],
+                "flag_41": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results); 
@@ -2525,9 +2526,10 @@ function AnalyticsService(objectCollection)
 
                 responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2587,9 +2589,9 @@ function AnalyticsService(objectCollection)
                     "flag_3": verticalValueArray[2],
                     "flag_4": verticalValueArray[3],
                     "flag_11": verticalValueFlgArray[0],
-                    "flag_12": verticalValueFlgArray[1],
-                    "flag_13": verticalValueFlgArray[2],
-                    "flag_14": verticalValueFlgArray[3]
+                    "flag_21": verticalValueFlgArray[1],
+                    "flag_31": verticalValueFlgArray[2],
+                    "flag_41": verticalValueFlgArray[3]
                 });
 
             }
@@ -2607,9 +2609,9 @@ function AnalyticsService(objectCollection)
                 "flag_3": total[2],
                 "flag_4": total[3],
                 "flag_11": verticalValueFlgArray[0],
-                "flag_12": verticalValueFlgArray[1],
-                "flag_13": verticalValueFlgArray[2],
-                "flag_14": verticalValueFlgArray[3]
+                "flag_21": verticalValueFlgArray[1],
+                "flag_31": verticalValueFlgArray[2],
+                "flag_41": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results);
@@ -2672,9 +2674,11 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2734,9 +2738,9 @@ function AnalyticsService(objectCollection)
                     "flag_3": verticalValueArray[2],
                     "flag_4": verticalValueArray[3],
                     "flag_11": verticalValueFlgArray[0],
-                    "flag_12": verticalValueFlgArray[1],
-                    "flag_13": verticalValueFlgArray[2],
-                    "flag_14": verticalValueFlgArray[3]
+                    "flag_21": verticalValueFlgArray[1],
+                    "flag_31": verticalValueFlgArray[2],
+                    "flag_41": verticalValueFlgArray[3]
                 });
 
             }
@@ -2754,9 +2758,9 @@ function AnalyticsService(objectCollection)
                 "flag_3": total[2],
                 "flag_4": total[3],
                 "flag_11": verticalValueFlgArray[0],
-                "flag_12": verticalValueFlgArray[1],
-                "flag_13": verticalValueFlgArray[2],
-                "flag_14": verticalValueFlgArray[3]
+                "flag_21": verticalValueFlgArray[1],
+                "flag_31": verticalValueFlgArray[2],
+                "flag_41": verticalValueFlgArray[3]
             });
 
             return Promise.resolve(results);
@@ -2909,6 +2913,173 @@ function AnalyticsService(objectCollection)
                     );
             
                 var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_search', paramsArray);
+                if (queryString !== '') {
+                    tempResult = await (db.executeQueryPromise(1, queryString, request));
+                }
+               // tempResult = await db.callDBProcedureR2(request, 'ds_v1_1_activity_search_list_select_widget_drilldown', paramsArray, 1);
+                console.log(tempResult.length);
+
+                results[iterator] =
+                (
+                    {
+                        "tag_type_id": request.tag_type_id,
+                        "status_type_id": request.filter_activity_status_type_id,
+                        "result": tempResult,
+                    }
+                );
+
+                iterator++; 
+
+          //  }
+
+            return results;
+        }
+        catch(error)
+        {
+            console.log("error :; ",error);
+            return Promise.reject(error);
+        }
+    };
+
+    this.getManagementWidgetDrilldownSA = async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+       
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for workflow category
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+           // arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: "+request.activity_status_id);
+            let activityStatusId = 0;
+            let arrayStatuses = new Array();
+            if(request.hasOwnProperty("activity_status_id")){
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if(request.activity_status_id > 0){
+                    activityStatusId = request.activity_status_id;
+                }else if(request.activity_status_id != 0){
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                    activityStatusId = arrayStatuses[0].activity_status_id;
+                }else{
+                    let json = {"activity_status_id": 0};
+                    arrayStatuses.push(json); 
+                    console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+                }
+                 //console.log("arrayStatuses1 :: "+JSON.stringify(arrayStatuses))
+            }else{
+               
+                let json = {"activity_status_id": 0};
+                arrayStatuses.push(json); 
+                console.log("arrayStatuses2 :: "+JSON.stringify(arrayStatuses));
+            }
+
+            // YTD widget's start date should be the Unix epoch
+            // if (parseInt(request.filter_timeline_id) === 8) {
+            //     request.datetime_start = '1970-01-01 00:00:00';
+            // }
+            if(!request.hasOwnProperty("filter_hierarchy")){
+                request.filter_hierarchy = 0;
+            }
+            if(!request.hasOwnProperty("filter_reporting_manager_id")){
+                request.filter_reporting_manager_id = 0;
+            }            
+            console.log('request.filter_is_datetime_considered :: '+ request.filter_is_datetime_considered);
+            console.log('request.filter_search_string :: '+ request.filter_search_string);
+            console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
+
+            if(request.tag_type_id == 130)
+            request.filter_asset_id = request.asset_id;
+            
+            //if([131,132,133,134].includes(request.widget_type_id))
+            //    request.filter_asset_id = request.asset_id;
+            
+          //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+          //  {
+                console.log('request.tag_type_id '+request.tag_type_id);
+
+                 paramsArray = 
+                 new Array(
+                    parseInt(request.widget_type_id),
+                    parseInt(request.filter_date_type_id),
+                    parseInt(request.filter_timeline_id),
+                    timezoneID,
+                    timezoneOffset,
+                    global.analyticsConfig.parameter_flag_sort, //Sort flag
+                    parseInt(request.organization_id),
+                    parseInt(request.filter_circle_id),
+                    parseInt(request.filter_workforce_type_id),
+                    parseInt(request.filter_workforce_id),
+                    parseInt(request.filter_asset_id),
+                    parseInt(request.tag_type_id),
+                    parseInt(request.filter_tag_id),
+                    parseInt(request.filter_activity_type_id),
+                    global.analyticsConfig.activity_id_all, //Activity ID,
+                    parseInt(request.filter_activity_status_type_id),
+                    parseInt(request.filter_activity_status_tag_id),
+                    //parseInt(arrayStatuses[0].activity_status_id),
+                    parseInt(activityStatusId),
+                    request.datetime_start,
+                    request.datetime_end,
+                    parseInt(request.filter_segment_id),
+                    parseInt(request.filter_reporting_manager_id),
+                    parseInt(request.filter_product_category_id),
+                    parseInt(request.filter_product_family_id),
+                    parseInt(request.filter_product_activity_id),
+                    parseInt(request.filter_account_activity_id),
+                    parseInt(request.filter_is_value_considered),
+                    parseInt(request.filter_cluster_tag_id) || 0,
+                    parseInt(request.filter_is_direct_report),
+                    parseInt(request.filter_is_datetime_considered), 
+                    parseInt(request.filter_asset_type_id),     
+                    parseInt(request.filter_is_count) || 0,
+                    parseInt(request.filter_is_search) || 0,
+                    request.filter_search_string || '',  
+                    parseInt(request.workforce_tag_id) || 0, 
+                    parseInt(request.filter_form_id) || 0,
+                    parseInt(request.filter_field_id) || 0,
+                    parseInt(request.filter_mapping_activity_id) || 0,                    
+                    request.filter_mapping_combo_value || '',
+                    request.filter_timescale || '',
+                    request.filter_is_lead || 0,
+                    request.filter_campaign_activity_id || 0,
+                    parseInt(request.vertical_tag_id) || 0,
+                    parseInt(request.page_start) || 0,
+                    parseInt(request.page_limit) || 100,
+                    parseInt(request.sequence_id)
+                    );
+            
+                var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }

@@ -590,7 +590,17 @@ function AnalyticsController(objCollection)
         }
 
     });
-    
+
+    app.post('/' + global.config.version + '/analytics/management/widget/drilldown/sa', async (req, res) =>{             
+        try{
+            let result = await analyticsService.getManagementWidgetDrilldownSA(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        }catch(err){
+            console.log('error :: ',err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });   
+
     }
 
 module.exports = AnalyticsController;
