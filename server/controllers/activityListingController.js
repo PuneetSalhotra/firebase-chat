@@ -6,6 +6,7 @@
 var ActivityListingService = require("../services/activityListingService");
 const moment = require('moment');
 const logger = require("../logger/winstonLogger");
+const { Kafka } = require('kafkajs');
 function ActivityListingController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
@@ -1078,39 +1079,64 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(false, [{ message: "Too many requests received. Please wait sometime to resubmit again." }], 200, req.body));
             return;
         }
+        let activityTypeID = req.body.activity_type_id || 0;
+        if (activityTypeID === 190797) {
+            const kafka = new Kafka({
+                clientId: 'child-order-creation',
+                brokers: global.config.BROKER_HOST.split(",")
+            })
 
-        let bulkSummaryExtractTopicName = "";
-        switch (global.mode) {
-            case "local":
-                bulkSummaryExtractTopicName = "local-vil-bulk-summary-v1";
-                break;
-            case "staging":
-                // Disabled for PreProd testing, because both staging and preprod
-                // share the same topic for integrations communication
-                // bulkSummaryExtractTopicName = "staging-vil-esms-ibmmq-v2";
-                break;
-            case "preprod":
-                bulkSummaryExtractTopicName = "staging-vil-bulk-summary-v1";
-                break;
-            case "prod":
-                bulkSummaryExtractTopicName = "production-vil-bulk-summary-v1";
-                break;
-        }
+            const producer = kafka.producer()
 
-        try {
-            await queueWrapper.raiseActivityEventToTopicPromise({
-                type: "BULK_SUMMARY_DATA",
-                service_name: "EXTRACT_BULK_SUMMARY_DATA",
-                payload: req.body
-            }, bulkSummaryExtractTopicName, req.body.parent_activity_id);
+            await producer.connect()
+            await producer.send({
+                topic: global.config.CHILD_ORDER_TOPIC_NAME,
+                messages: [
+                    {
+                        value: JSON.stringify({
+                            ...req.body,
+                            requestType: "summary_mom_child_orders"
+                        })
+                    },
+                ],
+            })
+            producer.disconnect();
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
-        } catch (error) {
-            res.send(responseWrapper.getResponse(error, [{
-                message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
-            }], -9998, req.body));
-        }
 
+        } else {
+            let bulkSummaryExtractTopicName = "";
+            switch (global.mode) {
+                case "local":
+                    bulkSummaryExtractTopicName = "local-vil-bulk-summary-v1";
+                    break;
+                case "staging":
+                    // Disabled for PreProd testing, because both staging and preprod
+                    // share the same topic for integrations communication
+                    // bulkSummaryExtractTopicName = "staging-vil-esms-ibmmq-v2";
+                    break;
+                case "preprod":
+                    bulkSummaryExtractTopicName = "staging-vil-bulk-summary-v1";
+                    break;
+                case "prod":
+                    bulkSummaryExtractTopicName = "production-vil-bulk-summary-v1";
+                    break;
+            }
+            try {
+                await queueWrapper.raiseActivityEventToTopicPromise({
+                    type: "BULK_SUMMARY_DATA",
+                    service_name: "EXTRACT_BULK_SUMMARY_DATA",
+                    payload: req.body
+                }, bulkSummaryExtractTopicName, req.body.parent_activity_id);
+                const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
+                res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
+            } catch (error) {
+                res.send(responseWrapper.getResponse(error, [{
+                    message: "There was an error submitting the bulk feasibility summary generation request. Please try again."
+                }], -9998, req.body));
+            }
+
+        }
     });
 
     app.post('/' + global.config.version + '/retrieve/asset/access/role', async (req, res) => {
@@ -1133,6 +1159,43 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/form/data', async (req, res) => {
+        try{
+            const response = await activityListingService.getActivityFormList(req.body,req.activity_id);
+            res.send(responseWrapper.getResponse(false, response, 200, req.body));
+        }catch(err) {
+            console.log("/activity/form/data | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/activity/asset/participating/status/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getActivityUserParticipatingStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/asset/participating/status | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/activity/status/workforce/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getWorkflowBaseOnStatus(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/status/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/activity/fetch/counts/list', async (req, res) => {
+        const [err, responseData] = await activityListingService.getCountForFilters(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/fetch/counts/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    
 }
 
 module.exports = ActivityListingController;

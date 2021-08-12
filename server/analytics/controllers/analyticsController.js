@@ -271,6 +271,26 @@ function AnalyticsController(objCollection)
                 } 
         });
 
+        app.post('/' + global.config.version + '/analytics/widget-type/add/v1', async (req, res) => {        
+            
+            let [err,result] = await analyticsService.insertWidgetTypeV1(req.body);
+            if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+
+    app.post('/' + global.config.version + '/analytics/widget-type/update', async (req, res) => {        
+            
+        let [err,result] = await analyticsService.widgetTypeMasterUpdate(req.body);
+        if(!err){
+        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    } else {
+        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+        });
+
     app.post('/' + global.config.version + '/analytics/widget-type/list', async (req, res) => {        
             
                 let [err,result] = await analyticsService.selectWidgetType(req.body);
@@ -300,6 +320,16 @@ function AnalyticsController(objCollection)
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });  
+
+    app.post('/' + global.config.version + '/report/add/V1', async (req, res) => {        
+            
+        let [err,result] = await analyticsService.addReportV1(req.body);
+      if(!err){
+        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    } else {
+        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+}); 
 
     app.post('/' + global.config.version + '/analytics/report/list', async (req, res) => {        
 
@@ -550,6 +580,16 @@ function AnalyticsController(objCollection)
         } 
     });    
 
+    app.post('/' + global.config.version + '/analytics/report/transaction/set', async (req, res) => {
+
+        let [err, result] = await analyticsService.insertAnalyticsReportTransaction(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+
+    });
     
     }
 

@@ -17,6 +17,7 @@ const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
 const path = require('path');
 const ip = require("ip");
+const uuidv4 = require('uuid/v4');
 const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
@@ -961,6 +962,13 @@ function Util(objectCollection) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
     };
+    this.differenceDatetimeInMin = function (timeString1, timeString2) {
+        console.log('came in')
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"),'minutes');
+        // let sss = moment.utc(value).format('mm');
+        return value;
+    };
+   
 
     /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
@@ -1467,6 +1475,51 @@ function Util(objectCollection) {
                         reject(error);
                     }
                     resolve(body);
+                });
+        });
+    }
+
+    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html") => {
+        console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
+        // if (htmlTemplateEncoding === "base64") {
+        //     let buff = new Buffer(htmlTemplate, 'base64');
+        //     htmlTemplate = buff.toString('ascii');
+        // }
+
+        const mailOptions = {
+            from: `${request.email_sender_name} <${request.email_sender}>`,
+            to: `${request.email_receiver_name} <${email}>`,
+            // cc: 'baz@example.com',
+            // bcc: 'bar@example.com',
+            subject: subject,
+            text: 'Grene os has created event',
+            // html: htmlTemplate,
+            attachment: filepath
+        };
+
+      
+            // let attachments = [];
+            // // attachments = request.bot_operation_email_attachment;
+            // mailOptions.attachment = attachments.map(attachment => {
+            //     return mailgun.Attachment({
+            //         data: Buffer.from(attachment.content, 'base64'),
+            //         filename: attachment.name
+            //     });
+            // });
+        
+
+        return new Promise((resolve, reject) => {
+            mailgun
+                .messages()
+                .send(mailOptions, function (error, body) {
+                    if (error) {
+                        reject(error);
+                    }
+                    resolve(body);
+                    fs.unlink(filepath,function(err){
+                        if(err) return console.log(err);
+                        console.log('file deleted successfully');
+                   });  
                 });
         });
     }
@@ -2160,24 +2213,28 @@ function Util(objectCollection) {
 
         const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
         const assetPushARN = assetMapData.asset_push_arn;
+        const [error1, defaultAssetName] = await this.fetchCompanyDefaultAssetName(request);
 
         sns.publish({
             description: request.message,
             title: activityTitle,
             subtitle: request.message,
-            body: `TONY`,
+            body: defaultAssetName,
             activity_id: activityID,
             activity_type_category_id: activityTypeCategoryID
         }, 1, assetPushARN);
 
-        pubnubWrapper.publish(request.target_asset_id, {
-            type: "activity_unread",
-            organization_id: Number(request.organization_id),
-            activity_type_category_id: activityTypeCategoryID,
-            activity_id: activityID,
-            activity_title: activityTitle,
-            description: request.message
-        });
+
+        if(!request.is_pam){
+            pubnubWrapper.publish(request.target_asset_id, {
+                type: "activity_unread",
+                organization_id: Number(request.organization_id),
+                activity_type_category_id: activityTypeCategoryID,
+                activity_id: activityID,
+                activity_title: activityTitle,
+                description: request.message
+            });
+        }
 
         return [error, {
             message: `Push sent to ${request.target_asset_id}`
@@ -2493,16 +2550,96 @@ function Util(objectCollection) {
         //console.log('Before ews.run : Template - ', htmlTemplate);
         console.log('Before ews.run : receiverEmailID - ', email);
         
-        ews.run(ewsFunction, ewsArgs)
-        .then(result => {
-            console.log('EWS Email - Result : ', JSON.stringify(result));
+
+        //get flag from redis cache
+        let ews_mail = JSON.stringify({"email" : email});
+        let ews_function = ewsFunction;
+        let ews_request = JSON.stringify(request);
+        let ews_mail_error = null;
+        let log_asset_id = request.asset_id;
+        let isSendEmail = true;
+        cacheWrapper.getKeyValueFromCache('ews_mail_send_enabled')
+        .then(ewsMailSendEnabledFlag => {
+            console.log("ewsMailSendEnabledFlag = " + ewsMailSendEnabledFlag);            
+            if(ewsMailSendEnabledFlag == 1|| ewsMailSendEnabledFlag == null) {
+                console.log("ewsMailSendEnabledFlag = 1 :  send email and also insert into ews_mail_transaction table");
+                if(ewsMailSendEnabledFlag === null) {
+                    ews_mail_error = JSON.stringify({"error" : "flag not available in cache"});
+                }
+            } else if(ewsMailSendEnabledFlag == 2) {
+                console.log("ewsMailSendEnabledFlag = 2 :  only insert into ews_mail_transaction table");
+                isSendEmail = false;
+                this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
+            } else if(ewsMailSendEnabledFlag == 0) {
+                console.log("ewsMailSendEnabledFlag = 0 : only send email");
+            }
+            console.log("isSendEmail " + isSendEmail);
+            if(isSendEmail) {
+                ews.run(ewsFunction, ewsArgs)
+                .then(result => {
+                    console.log('EWS Email - Result : ', JSON.stringify(result));
+                    if(ewsMailSendEnabledFlag == 1 || ewsMailSendEnabledFlag == null) {
+                        this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
+                    }
+                })
+                .catch(err => {
+                    console.log('EWS Email - error : ', err.stack);
+                    ews_mail_error = JSON.stringify({"error" : err.stack});
+                    this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);                    
+                });
+            }
         })
         .catch(err => {
-            console.log('EWS Email - error : ', err.stack);
+            console.log('cachewrapper : getKeyValueFromCache  - error : ', err);
         });
 
         return [error, responseData];        
     };
+
+    this.insertEwsEmailTransactions = async function(ews_mail, ews_function, ews_email_sent_enabled, ews_request, ews_mail_error, log_asset_id) {
+        console.log("insertEwsEmailTransactions: ");
+        // console.log("ews_mail = " + ews_mail);
+        // console.log("ews_function = " + ews_function);
+        // console.log("ews_request = " + ews_request);
+        // console.log("ews_mail_error = " + ews_mail_error);
+        // console.log("log_asset_id = " + log_asset_id);
+
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+                ews_mail,
+                ews_function,
+                ews_email_sent_enabled || 0,
+                ews_request,
+                ews_mail_error,
+                log_asset_id,
+                this.getCurrentUTCTime()
+            );
+            let queryString = this.getQueryString(
+                "ds_v1_ews_mail_transaction_insert",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        console.log("insertEwsEmailTransactions : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            console.log("insertEwsEmailTransactions : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
 
     //Uploading XLSB file 
     //Added by Akshay Singh
@@ -2813,6 +2950,41 @@ function Util(objectCollection) {
         return moment(date, format).isValid();
     }
 
+    this.getFirstDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').startOf('month').startOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfNextMonthToIST = () => {
+        return moment().tz('Asia/Kolkata').endOf('month').endOf('day').add(1, 'month').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getFirstDayOfCurrentQuarterToIST = () => {
+        let value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        return moment(moment(currentYear + '-01-01').toDate()).quarter(currentQuarter).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    this.getLastDayOfCurrentQuarterToIST = () => {
+        var value = moment().tz('Asia/Kolkata');
+        let currentQuarter = value.quarter();
+        let currentYear = value.year();
+        let endMonth = 3 * parseInt(currentQuarter);
+        if (endMonth < 10)
+            endMonth = '0' + endMonth;
+        else
+            endMonth += '';
+        return moment(currentYear + '-' + endMonth).endOf('month').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    }
+
     this.sendPushNotification = async function (request, data, message) {
         let error = false;
         // [CHECK] target_asset_id
@@ -2826,14 +2998,21 @@ function Util(objectCollection) {
         }
         
         let [err, assetData] = await this.getAssetDetails(data);
-        const assetPushARN = assetData[0].asset_push_arn;
+        let assetPushARN = "";
+        if(assetData.length > 0){
+            assetPushARN = assetData[0].asset_push_arn;
 
-        sns.logOutPublish(message, assetPushARN, 1);
-        pubnubWrapper.publish(request.target_asset_id, message);
+            sns.logOutPublish(message, assetPushARN, 1);
+            pubnubWrapper.publish(request.target_asset_id, message);
 
-        return [error, {
-            message: `Push sent to ${request.target_asset_id}`
-        }];
+            return [error, {
+                message: `Push sent to ${request.target_asset_id}`
+            }];
+        }else{
+            return [error, {
+                message: `No resource exists hence push not sent to ${request.target_asset_id}`
+            }];
+        }
     }
 
     this.sendPushToEntity = async function(request) {
@@ -2841,7 +3020,8 @@ function Util(objectCollection) {
         let error = false;
         let type_flag = "";
         let idChannel = 0;
-        if(request.flag == 1){
+
+        if (request.flag == 1) {
 
             if (
                 !request.hasOwnProperty("organization_id") ||
@@ -2915,6 +3095,19 @@ function Util(objectCollection) {
                 type_flag = "asset_push";
                 idChannel = request.target_asset_id;
             }  
+        } else if (request.flag == 6) {
+            if (
+                !request.hasOwnProperty("target_workforce_tag_id") ||
+                Number(request.target_workforce_tag_id) === 0
+            ) {
+                logger.error("Incorrect target_workforce_tag_id specified.");
+                return [true, {
+                    message: "Incorrect target_workforce_tag_id specified."
+                }];
+            } else {
+                type_flag = "workforce_tag_push";
+                idChannel = request.target_workforce_tag_id;
+            }
         }
 
        pubnubWrapper.publish(idChannel, {
@@ -2923,6 +3116,7 @@ function Util(objectCollection) {
           activity_title: request.push_title,
           description: request.push_message,
           target_workforce_id:request.target_workforce_id,
+           target_workforce_tag_id: request.target_workforce_tag_id,
           target_account_id:request.target_account_id,
           target_asset_type_id:request.target_asset_type_id,
           target_asset_id:request.target_workforce_id,
@@ -2934,7 +3128,103 @@ function Util(objectCollection) {
            message: `Push sent to ${idChannel}`
        }];
    };
-   
+
+    this.logInfo = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.info(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+
+    this.logDebug = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.debug(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+    };
+
+    this.logVerbose = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.verbose(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logWarning = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.warn(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logError = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.error(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    this.logSilly = function (request = {}, message = '', data = '') {
+
+        let logUUID = request.log_uuid || "";
+        let botOperationId = request.bot_operation_id || "";
+
+        logger.silly(`${attachlogUUID(logUUID, botOperationId)} ${message}`, data);
+
+    };
+
+    let attachlogUUID = (logUUID, botOperationId) => {
+
+        let text = "";
+
+        if (logUUID) {
+            text += `[${logUUID}]`;
+        }
+
+        if (botOperationId) {
+            text += `[${botOperationId}]`;
+        }
+        return text;
+    }
+
+    this.fetchCompanyDefaultAssetName = async function (request) {
+        let assetName = 'greneOS',
+            error = true,
+            idOrganization = 1;
+        let assetId = 100;
+        if(request.is_pam){
+            assetId = 9841;
+            idOrganization = 351;
+        }
+
+        let paramsArr = new Array(
+            idOrganization,
+            assetId
+        );
+        const queryString = this.getQueryString('ds_p1_asset_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetName = data[0].asset_first_name;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetName];
+    };
 }
 
 module.exports = Util;

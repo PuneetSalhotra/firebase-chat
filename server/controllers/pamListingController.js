@@ -435,6 +435,33 @@ function PamListingController(objCollection) {
         });    		
     });
 
-}
-;
+    //Get PAM Role Module Mapping Details for the given asset_type_id
+    app.post('/' + global.config.version + '/pam/role/module/mapping', function (req, res) {
+    	pamListingService.getPamRoleModuleMappingDetails(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    app.post('/' + global.config.version + '/pam/activity/category/children', async function (req, res) {
+        const [err, data] = await pamListingService.listSelectParentActivity(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/reservation/status/track', async function (req, res) {
+        const [err, data] = await pamListingService.getReservationStatusTrack(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	    
+};
 module.exports = PamListingController;

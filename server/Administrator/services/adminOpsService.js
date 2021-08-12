@@ -76,7 +76,7 @@ function AdminOpsService(objectCollection) {
         if(!request.enterprise_feature_data) {
             [errTwo, orgData] = await organizationListInsert(request);
         } else {
-            [errTwo, orgData] = await organizationListInsertV1(request);
+            [errTwo, orgData] = await organizationListInsertV2(request);
         }
         
         if (errTwo || orgData.length === 0) {
@@ -120,10 +120,12 @@ function AdminOpsService(objectCollection) {
             request.flag_ai_bot,
             request.flag_manager_proxy,
             request.flag_form_tag,
+            request.flag_enable_sip_module,
+            request.flag_enable_elasticsearch,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_1_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -194,11 +196,11 @@ function AdminOpsService(objectCollection) {
             }
 
             let activityInlineData = JSON.parse(request.activity_inline_data);
-            if (Number(request.activity_type_category_id) === 5) {
+            if (Number(request.activity_type_category_id) === 5 || Number(request.activity_type_category_id) === 6) {
                 // Co-Worker Contact Card
                 activityInlineData.contact_asset_id = assetID;
 
-            } else if (Number(request.activity_type_category_id) === 4) {
+            } else if (Number(request.activity_type_category_id) === 4 || Number(request.activity_type_category_id) === 6) {
                 // ID Card
                 // QR Code
                 const qrCode = organizationID + "|" + accountID + "|0|" + assetID + "|" + request.desk_asset_first_name + "|" + request.asset_first_name;
@@ -207,19 +209,26 @@ function AdminOpsService(objectCollection) {
             }
             request.activity_inline_data = JSON.stringify(activityInlineData);
 
-            const [errFour, activityData] = await createActivity(request, workforceID, organizationID, accountID);
-            if (errFour) {
-                console.log("createAssetBundle | createActivity | Error: ", errFour);
-                return [true, {
-                    message: "Error creating activity"
+            if(Number(request.asset_type_category_id) != 13){
+                const [errFour, activityData] = await createActivity(request, workforceID, organizationID, accountID);
+                if (errFour) {
+                    console.log("createAssetBundle | createActivity | Error: ", errFour);
+                    return [true, {
+                        message: "Error creating activity"
+                    }]
+                }
+                console.log("createAssetBundle | createActivity | activityData: ", activityData);
+
+                return [false, {
+                    asset_id: assetID,
+                    activity_id: activityData.response.activity_id
+                }]
+            }else{
+                return [false, {
+                    asset_id: assetID,
+                    activity_id: 0
                 }]
             }
-            console.log("createAssetBundle | createActivity | activityData: ", activityData);
-
-            return [false, {
-                asset_id: assetID,
-                activity_id: activityData.response.activity_id
-            }]
         }
     }
 
@@ -365,7 +374,7 @@ function AdminOpsService(objectCollection) {
                     error = false;
                     console.log("assetListInsertV2 : "+JSON.stringify(data,2,null));
                     request.created_asset_id = data[0].asset_id;
-                    roleAssetMappingInsert(request);
+                   // roleAssetMappingInsert(request);
                 })
                 .catch((err) => {
                     error = err;
@@ -530,7 +539,7 @@ function AdminOpsService(objectCollection) {
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_inline_data: JSON.stringify(inline),
+            activity_inline_data: inline,
             // activity_timeline_collection: "",
             // is_child_order: true,
             // child_order_activity_parent_id: Number(options.parent_activity_id),
@@ -919,6 +928,50 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    async function organizationListInsertV2(request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+          request.organization_name,
+          request.organization_domain_name,
+          request.organization_image_path || "",
+          request.organization_address || "",
+          request.organization_phone_country_code || 0,
+          request.organization_phone_number || 0,
+          request.organization_email || "",
+          request.contact_person || "Admin",
+          request.contact_phone_country_code || 0,
+          request.contact_phone_number || 0,
+          request.contact_email || "",
+          request.org_enterprise_feature_data || '{}',
+          request.flag_email || 0,
+          request.flag_doc_repo || 0,
+          request.flag_ent_features || 0,
+          request.flag_ai_bot || 0,
+          request.flag_manager_proxy || 0,
+          request.flag_enable_form_tag || 0,
+          request.flag_enable_sip_module || 0,
+          request.flag_enable_elasticsearch || 0,
+          request.organization_type_id || 1,
+          request.log_asset_id || 1,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_3_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Organization List History Insert
     async function organizationListHistoryInsert(request) {
         let responseData = [],
@@ -1057,6 +1110,13 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewDeskToWorkforce = async function (request) {
+
+
+        if(request.asset_type_category_id == 3)
+            request.activity_type_category_id = 5;
+        else if(request.asset_type_category_id == 45)
+            request.activity_type_category_id = 6;
+
         // request.asset_identification_number = "";
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
@@ -1085,7 +1145,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11018;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 5; // Co-Worker Contact Card
+        request.activity_type_category_id = request.activity_type_category_id || 5; // Co-Worker Contact Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 10;
@@ -1243,6 +1303,12 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     }
 
     this.addNewEmployeeToExistingDesk = async function (request) {
+
+        if(request.asset_type_category_id == 2)
+            request.activity_type_category_id = 4;
+        else if(request.asset_type_category_id == 13)
+            request.activity_type_category_id = 6;
+
         //Get the asset_type_name i.e. Role Name        
         let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
         if (!err && roleData.length > 0) {
@@ -1265,7 +1331,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11006;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 4; // ID Card
+        request.activity_type_category_id = request.activity_type_category_id || 4; // ID Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 8;
@@ -1275,12 +1341,23 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errZero_1, checkPhoneNumberData] = await assetListSelectCategoryPhoneNumber({
             phone_number: Number(request.phone_number) || 0,
             country_code: Number(request.country_code) || 0,
-            asset_type_category_id: 2,
+            asset_type_category_id: request.asset_type_category_id || 2,
         }, organizationID);
         if (errZero_1 || Number(checkPhoneNumberData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryPhoneNumber | Error: ", errZero_1);
             return [true, {
                 message: `An employee with the country code ${Number(request.country_code)} and phone number ${Number(request.phone_number)} already exists.`
+            }]
+        }
+
+        // Check if an Employee with the given email exists
+        const [errZero_13, checkEmailData] = await assetListSelectCategoryEmail({
+            operating_asset_email: request.email_id
+        }, organizationID);
+        if (errZero_13 || Number(checkEmailData.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryEmail | Error: ", errZero_13);
+            return [true, {
+                message: `An employee with this ${request.email_id} email already exists.`
             }]
         }
 
@@ -1341,6 +1418,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             asset_id: deskAssetID
         });
+        request.operating_asset_id = assetData.asset_id;
         request.desk_asset_first_name = deskAssetDataFromDB[0].asset_first_name;
         const [errApproval,approvalWorkflowData]=await addApprovalWorkflow(request,workforceID,organizationID,accountID,roleDataDesk,request.desk_asset_id)
 
@@ -1426,7 +1504,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
             asset_id: deskAssetID,
             organization_id: organizationID,
-            activity_type_category_id: 5
+            activity_type_category_id: request.activity_type_category_id || 5
         });
         if (!errFour && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
@@ -1491,8 +1569,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         }
 
         //Add the number to Cognito
-        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
-        await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+        console.log("request.activity_type_category_id :: "+request.activity_type_category_id+' :: ' + request.country_code +':: '+request.phone_number)
+        if(request.activity_type_category_id == 6){
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+        }else{
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+            await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            if(request.email_id) {
+                await addUser(request.email_id, global.config.user_web_pool_id);
+            }
+        }
 
         // Send SMS to the newly added employee
         try {
@@ -1578,6 +1664,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        request.asset_id = request.log_asset_id;
         //Check role has flag to add approval workflow
         if(roleData.length>0&&roleData[0].hasOwnProperty("asset_type_flag_enable_approval")&&roleData[0].asset_type_flag_enable_approval==1){
+            console.log('role data321',JSON.stringify(roleData))
             request.activity_type_id = roleData[0].asset_type_approval_activity_type_id;
             request.activity_type_name = roleData[0].asset_type_approval_activity_type_name;
             request.form_id = roleData[0].asset_type_approval_origin_form_id;
@@ -1591,7 +1678,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                         "field_data_type_category_id": 4,
                         "data_type_combo_id": 0,
                         "data_type_combo_value": 0,
-                        "field_value": assetID,
+                        "field_value": `${assetID} | ${request.asset_first_name} | ${request.operating_asset_id} | ${request.asset_type_name}`,
                         "message_unique_id": 1608213215926
                       
                 }
@@ -1603,7 +1690,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
-
+console.log('new ActivityId321',newActivity_id)
             //make manager as lead
             await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
             
@@ -1663,8 +1750,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 organization_id: request.organization_id,
                 asset_id: mangerAssetID
             });
-        
-        let message = `Tony added ${assetData[0].operating_asset_first_name} to this Conversation`
+            
+            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+        let message = `${defaultAssetName} added ${assetData[0].operating_asset_first_name} to this Conversation`
             //adding participant
               let newParticipantParams = {
                 "organization_id":request.organization_id,
@@ -1858,6 +1946,31 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_category_id
         );
         const queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    async function assetListSelectCategoryEmail(request, organizationID) {
+        // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), 
+        // IN p_country_code SMALLINT(6), IN p_asset_type_category_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.operating_asset_email,
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -4839,6 +4952,19 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             }
         }
 
+        //checking phone number or email changes to update in aws
+        let [errassetData, assetDataOld] = await activityCommonService.getAssetDetailsAsync({...request,asset_id:request.employee_asset_id});
+        if(request.email_id != assetDataOld[0].asset_email_id){
+           await this.addUsersToCognitoManual({is_email_remove:1,email:assetDataOld[0].asset_email_id})// remove old email from web pool
+           await this.addUsersToCognitoManual({is_email_add:1,email:request.email_id})// add new email from web pool
+        }
+        if(request.phone_number != assetDataOld[0].asset_phone_number){
+            await this.addUsersToCognitoManual({is_mobile_remove:1,country_code:assetDataOld[0].asset_phone_country_code,phone_number:assetDataOld[0].asset_phone_number})// remove old phone from user pool
+            await this.addUsersToCognitoManual({is_web_remove:1,country_code:assetDataOld[0].asset_phone_country_code,phone_number:assetDataOld[0].asset_phone_number})// remove old phone from web pool
+            await this.addUsersToCognitoManual({...request,is_mobile_add:1})// add new email from user pool
+            await this.addUsersToCognitoManual({...request,is_web_add:1})// add new email from web pool
+        }
+
         if (employeeAssetID != 0) {
             // Update the Employee's details in the asset_list table
             const [errOne, employeeAssetData] = await assetListUpdateDetailsV1(request, employeeAssetID, Number(request.asset_id));
@@ -4868,6 +4994,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             idCardJSON.employee_phone_number = request.phone_number;
             idCardJSON.employee_asset_type_id = request.asset_type_id;
             idCardJSON.employee_asset_type_name = request.asset_type_name;
+            idCardJSON.employee_manual_work_location_address = request.work_location_address;
+            idCardJSON.employee_location = request.work_location_address;
 
             // Update the ID Card's Activity List table
             try {
@@ -4942,7 +5070,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             contactCardJSON.contact_operating_asset_name = request.asset_first_name;
             contactCardJSON.contact_phone_country_code = request.country_code;
             contactCardJSON.contact_phone_number = request.phone_number;
-
+            contactCardJSON.contact_manual_work_location_address = request.work_location_address;
+            contactCardJSON.contact_location = request.work_location_address;
             // Update the Contact Card's Activity List table
             try {
                 await activityListUpdateInlineData({
@@ -5715,6 +5844,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_flag_hide_organization_details||"",
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_sip_admin_access || 0,
             organizationID,
             request.flag || 0,
             util.getCurrentUTCTime(),
@@ -8833,19 +8963,35 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        // console.log('Adding ', pool_id);
         console.log('*******************');
         console.log('Adding : ', username);
+
+        let userAttr = [];
+      
+        if(username.toString().indexOf('@') > -1) {
+            userAttr.push({
+                Name: 'email', /* required */
+                Value: username
+            },{
+                Name : "email_verified",
+                Value : "true"
+            });
+            
+        } else {
+            userAttr.push({
+                Name: 'phone_number', /* required */
+                Value: username
+              });
+        }
+
+
         let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username,
             
             //TemporaryPassword: 'STRING_VALUE',
-            UserAttributes: [
-              {
-                Name: 'phone_number', /* required */
-                Value: username
-              },            
-            ],            
+            UserAttributes: userAttr,
+            MessageAction : "SUPPRESS"          
           };
-      
+
         await new Promise((resolve, reject)=>{
             cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
                 if (err) {
@@ -8985,7 +9131,8 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 let userAttributes = data.UserAttributes;
                 
                 for(const i_iterator of userAttributes) {
-                    if(i_iterator.Name === 'phone_number') {
+                    console.log("i_iterator.Name", i_iterator.Name)
+                    if(i_iterator.Name === 'phone_number' || i_iterator.Name === 'email') {
                         console.log('Phone Number: ', i_iterator.Value);
 
                         cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
@@ -8997,6 +9144,95 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return "success";
     }
 
+    this.getStatusBasedPreRequisiteMetFormsListV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        //Get the forms list based on status
+        let [err, statusBasedFormsList] = await getStatusBasedFormsV1(request);        
+
+        if(err) {
+            return [error, responseData];
+        } else {
+            error = false;
+        }
+        
+        let form_id_list = [];
+        console.log('statusBasedFormsList.length : ', statusBasedFormsList.length);
+
+        if(statusBasedFormsList.length > 0) {            
+            for(const i_iterator of statusBasedFormsList){
+                form_id_list.push(i_iterator.form_id);
+
+                let newReq = Object.assign({}, request);
+                    //newReq.organization_id = 0;
+                    newReq.form_id = i_iterator.form_id;
+                    newReq.field_id = 0;
+                    newReq.start_from = 0;
+                    newReq.limit_value = 1;
+                let [err1, data] = await activityCommonService.workforceFormFieldMappingSelect(newReq);
+                //console.log('DATA : ', data);
+                (data.length> 0 && data[0].next_field_id > 0) ? i_iterator.is_smart = 1 : i_iterator.is_smart = 0;
+            }
+            
+            let newReq = Object.assign({}, request);
+                newReq.form_id_list = JSON.stringify(form_id_list);
+            let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
+            
+            console.log('dependencyFormsList.length : ', dependencyFormsList.length);
+            
+            if(err1) {
+                error = true;
+                return [error, responseData];
+            } else {
+                error = false;
+            }
+
+            
+            //Appending which form is delegated to whom?
+            let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+            console.log('activityData.length : ', activityData.length);
+
+            if(activityData.length > 0) {
+                console.log('activityData[0].activity_master_data : ', activityData[0].activity_master_data);
+                let activityMasterData;
+                let delegationData;
+
+                if(activityData[0].activity_master_data !== null) {
+                    activityMasterData = JSON.parse(activityData[0].activity_master_data);
+                    delegationData = activityMasterData.form_fill_request;
+
+                    console.log('delegationData : ', delegationData);
+                    //console.log('Array.isArray(delegationData) : ', Array.isArray(delegationData));
+
+                    if(Array.isArray(delegationData)) {
+                        for(const i_iterator of delegationData) {
+                            for(const j_iterator of statusBasedFormsList) {
+                                //console.log(i_iterator.form_id , ' === ', j_iterator.form_id);
+                                if(Number(i_iterator.form_id) === Number(j_iterator.form_id)) {
+                                    (j_iterator.delegated_to_assests).push(i_iterator);
+                                }
+                            }                     
+                        }
+                    }
+                }
+            }// End of Appending
+
+            let finalFormsList = [];
+            for(const i_iterator of dependencyFormsList) {
+                for(const j_iterator of statusBasedFormsList) {
+                    if(Number(i_iterator.form_id) === Number(j_iterator.form_id) && (i_iterator.isActive)) {
+                        finalFormsList.push(j_iterator);
+                        break;
+                    }
+                }       
+            }
+
+            responseData = finalFormsList;
+        }
+
+        return [error, responseData];
+    }
     this.getStatusBasedPreRequisiteMetFormsList = async (request) => {
         let responseData = [],
             error = true;
@@ -9084,6 +9320,39 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             responseData = finalFormsList;
         }
 
+        return [error, responseData];
+    }
+
+    async function getStatusBasedFormsV1(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_id,
+            request.start_from || 0,
+            request.limit_value || 10,
+            request.activity_type_id
+        );
+        //const queryString = util.getQueryString('ds_v1_workflow_form_status_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_workforce_form_mapping_select_status', paramsArr); 
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    for(const i_iterator of data) {
+                        i_iterator.delegated_to_assests = [];
+                    }
+
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
         return [error, responseData];
     }
 
@@ -9254,7 +9523,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         request.manager_asset_id,
         request.flag,
         request.start_from,
-        50  
+        request.limit_value 
     );
     const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
 
@@ -9476,6 +9745,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     3. Workforce
     4. Role
     5. Asset
+    6. Workforce Tag
     using following parameters:
     flag : 1 or 2 or 3 or 4 or 5
     
@@ -9503,7 +9773,13 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         flag:5
         organization_id:906
         asset_ids:[51606,51607,5783,5784]
-        
+
+    if 6. WorkforceTag then request parameters contains
+        flag:6
+        organization_id:868
+        tag_type_category_id:2
+        workforce_tag_ids:[184,185,186]
+
     Note : If flag coming as 1 means Org. It must be integer value.
     other wise all flag must be an array.
     */
@@ -9540,6 +9816,9 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             await this.sendPushNotificationL5(request);
         }
         break;
+            case 6: {
+                await this.sendPushNotificationL6(request);
+            } break;
         default: {
             logger.error("error = " + 'missing parameter : `flag`');
             return [true, 'missing parameter : `flag`'];
@@ -9771,6 +10050,54 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             logger.info("Missing parameter : asset_ids\n");
         }
     };
+    //------------------------------------------------------
+
+    //L6 : Workforce_Tag : Send Push Notification to all workforces which comes under the workforce tag.
+    this.sendPushNotificationL6 = async function (request) {
+        logger.info("sendPushNotificationL6() : WorkforceTag :=>" +
+            " organization_id = " + request.organization_id
+            + " tag_type_category_id = " + request.tag_type_category_id
+            + " workforce_tag_ids = " + request.workforce_tag_ids);
+
+        let organization_id = request.organization_id;
+
+        let workforce_tag_ids = request.workforce_tag_ids;
+
+        workforce_tag_ids = JSON.parse(workforce_tag_ids);
+
+        if (workforce_tag_ids.length > 0) {
+            request.page_start = 0;
+            request.page_limit = 500;
+
+            //iterate workforce tag list
+            for (let i = 0; i < workforce_tag_ids.length; i++) {
+
+                request.tag_id = workforce_tag_ids[i];
+
+                //find out workforce list for specified tag.
+                let [error, resultData] = await this.getListOfWorkforcesUnderWorkforceTag(request);
+                if (resultData.length > 0) {
+                    let workforce_ids = [];
+                    // iterate workforce list
+                    for (let i = 0; i < resultData.length; i++) {
+                        let workforce_id = resultData[i].workforce_id;
+                        workforce_ids.push(workforce_id);
+                    }
+                    request.workforce_ids = JSON.stringify(workforce_ids);
+                    request.account_id = 0;
+                    //L3 : Workforce : Send Push Notification to all assets which comes under the Workforce.
+                    await this.sendPushNotificationL3(request);
+                } else {
+                    logger.info(
+                        "workforce tag details not available for organization_id = " + organization_id
+                    );
+                };
+            }
+        } else {
+            logger.info("Missing parameter : workforce_tag_ids\n");
+        }
+
+    };
 
     //------------------------------------------------------
     // send push notification to all list of assets.
@@ -10000,6 +10327,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 broadcast_level_name = 'Asset';
             }
             break;
+            case 6: {
+                broadcast_level = 26;
+                broadcast_level_name = 'WorkforceTag';
+            }
+                break;
         }
     
         try {
@@ -10106,6 +10438,20 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 }
             }
             break;
+            case 6: {
+                //WorkforceTag
+                let workforce_tag_ids = request.workforce_tag_ids;
+                workforce_tag_ids = JSON.parse(workforce_tag_ids);
+
+                if (workforce_tag_ids.length > 0) {
+                    // iterate workforce tag list
+                    for (let i = 0; i < workforce_tag_ids.length; i++) {
+                        request.target_workforce_tag_id = workforce_tag_ids[i];
+                        await util.sendPushToEntity(request);
+                    }
+                }
+            }
+                break;
         }
         return [false, []];
     }
@@ -10434,19 +10780,76 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         return [error, responseData];
     }
 
+    this.updateOrganizationFormTagFlagV1 = async function(request) {
+        logger.info("updateOrganizationFormTagFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+    
+        try {
+            let paramsArr = new Array(
+              request.organization_id,
+              request.org_enterprise_feature_data,
+              request.flag_email,
+              request.flag_doc_repo,
+              request.flag_ent_features,
+              request.flag_ai_bot,
+              request.flag_manager_proxy,
+              request.flag_enable_form_tag,
+              request.flag_enable_sip_module,
+              request.flag_enable_elasticsearch,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString(
+                "ds_p1_1_organization_list_update_flags",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_activity_asset_search_mapping_select_asset : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updateOrganizationFormTagFlag : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
     this.addUsersToCognitoManual = async function(request) {
         let error = false,
             responseData = [];
         try{
             //Add the number to Cognito
-            if(request.is_mobile_add == 1)   
+            if(request.is_mobile_add == 1) {
                 await addUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+                await addUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+            }
             else if(request.is_web_add == 1)
                 await addUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
-            else if(request.is_mobile_remove == 1)
+            else if(request.is_mobile_remove == 1) {
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_pool_id);
+                await removeUser('+' + request.country_code +''+request.phone_number, global.config.customer_pool_id);
+            }
             else if(request.is_web_remove == 1)
                 await removeUser('+' + request.country_code +''+request.phone_number, global.config.user_web_pool_id);
+            else if(request.is_email_add == 1){   
+                await addUser(request.email, global.config.user_web_pool_id);
+                await addUser(request.email, global.config.customer_pool_id);
+            }
+            else if(request.is_email_remove == 1){
+                await removeUser(request.email, global.config.user_web_pool_id);
+                await removeUser(request.email, global.config.customer_pool_id);
+            }
 
         } catch (err) {
             logger.error("addUsersToCognitoManual : Error " + err);
@@ -10454,7 +10857,163 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
         return[error, responseData];
     }
+
+    this.typeMappingUpdateFlagDraft = async function(request){
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+
+        logger.info("typeMappingUpdateFlagDraft: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+
+        try {
+            let paramsArr = new Array(      
+                request.organization_id,      
+                request.account_id,                 
+                request.workforce_id,
+                request.activity_type_id,
+                request.flag_enable_draft,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            let queryString = util.getQueryString(
+                "ds_p1_workforce_activity_type_mapping_update_flag_draft",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_workforce_activity_type_mapping_update_flag_draft : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("typeMappingUpdateFlagDraft : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    this.updatePreviewEnabledFlag = async function(request){
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_flag_enable_draft TINYINT(4), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+
+        logger.info("updatePreviewEnabledFlag: request : " + JSON.stringify(request));
+    
+        let error = false,
+            responseData = [];
+
+        try {
+            let paramsArr = new Array(      
+                request.field_id,      
+                request.form_id,                 
+                request.organization_id,
+                request.field_preview_enabled,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            let queryString = util.getQueryString(
+                "ds_p1_workforce_form_field_mapping_update_preview_enabled",
+                paramsArr
+            );
+    
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                        logger.error("ds_p1_workforce_form_field_mapping_update_preview_enabled : query : Error " + error);
+                    });
+            }
+        } catch (err) {
+            logger.error("updatePreviewEnabledFlag : Error " + err);
+        }
+    
+        return [error, responseData];
+    }
+
+    // To get the list of tags under category
+    this.getListOfTagsUnderCategory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_tags_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("getListOfTagsUnderCategory : response = ");
+                    console.log(data);
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("getListOfTagsUnderCategory : error response = ");
+                    console.log(err);
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
+    //To get the list of workforces under a workforce tag.
+    this.getListOfWorkforcesUnderWorkforceTag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        request.start_from = 0;
+        request.limit_value = 500;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.tag_id,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_entities', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log("getListOfWorkforcesUnderWorkforceTag : response = ");
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    console.log("getListOfWorkforcesUnderWorkforceTag : error response = ");
+                    console.log(err);
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;
-

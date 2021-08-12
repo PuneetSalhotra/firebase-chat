@@ -749,6 +749,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/access/status/list/v2', async (req, res) => {        
+        const [err, responseData] = await adminOpsService.getStatusBasedPreRequisiteMetFormsListV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/admin/form/access/share | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/form/submission-type/alter', async (req, res) => {
         const [err, responseData] = await adminOpsService.formConverter(req.body);
         if (!err) {
@@ -960,6 +970,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/organization/form-tag/flag/update/v1', async function (req, res) {
+        const [err, accData] = await adminOpsService.updateOrganizationFormTagFlagV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accData, 200, req.body));
+        } else {
+            console.log("/organization/form-tag/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, accData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/admin/cognito/user/add', async function (req, res) {
         const [err, orgData] = await adminOpsService.addUsersToCognitoManual(req.body);
         if (!err) {
@@ -969,6 +989,36 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+    app.post('/' + global.config.version + '/admin/workflow/activity-type/draft/update', async function (req, res) {
+        const [err, flagData] = await adminOpsService.typeMappingUpdateFlagDraft(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/activity-type/draft/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/workflow/preview_enabled/flag/update', async function (req, res) {
+        const [err, flagData] = await adminOpsService.updatePreviewEnabledFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/preview_enabled/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/retrieve/workforce/tags', async function (req, res) {
+        const [err, flagData] = await adminOpsService.getListOfTagsUnderCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/retrieve/workforce/tags | Error: ", err);
+            res.send(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;

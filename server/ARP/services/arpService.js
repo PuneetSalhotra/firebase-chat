@@ -66,10 +66,11 @@ function ArpService(objectCollection) {
     this.updateFloorLevelFlag = async function (request) {
         let responseData = [],
             error = true;
+        for(let i=0;i<request.workforce_list.length;i++){
         const paramsArr = new Array(
             request.organization_id,
             request.account_id,
-            request.workforce_id,
+            request.workforce_list[i],
             request.flag_arp_settings_enabled,
             util.getCurrentUTCTime(),
             request.log_asset_id,
@@ -86,10 +87,11 @@ function ArpService(objectCollection) {
                     error = err;
                 })
         }
+    }
         return [error, responseData];
     }
 
-    this.updateFloorLevelBusinessHours = async function (request) {
+    this.updateFloorLevelArpConfig = async function (request) {
         let responseData = [],
             error = true;
             const paramsArr = new Array(
@@ -115,7 +117,7 @@ function ArpService(objectCollection) {
         return [error, responseData];
     }
 
-    this.updateBuildingLevelBusinessHours = async function (request) {
+    this.updateBuildingLevelArpConfig = async function (request) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(

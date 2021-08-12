@@ -3,6 +3,7 @@ var CommnElasticService = require("../services/elasticSearchService.js");
 function elasticSearchController(objCollection) {
     let responseWrapper = objCollection.responseWrapper;
     const app = objCollection.app;
+    const activityCommonService = objCollection.activityCommonService;
     const commnElasticService = new CommnElasticService(objCollection);
 
     app.post('/' + global.config.version + '/document/add', async (req, res) => {
@@ -47,6 +48,32 @@ function elasticSearchController(objCollection) {
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         });
+
+    app.post('/' + global.config.version + '/elastic/activity/delete/add', async (req, res) => {
+            try {
+                let result = await activityCommonService.delteAndInsertInElastic(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        });
+        app.post('/' + global.config.version + '/elastic/activity/delete/add/bulk', async (req, res) => {
+            try {
+                let result = await activityCommonService.delteAndInsertInElasticBulk(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        });
+
+    app.post('/' + global.config.version + '/elastic/activity/delete/add/multi', async (req, res) => {
+        try {
+            let result = await activityCommonService.delteAndInsertInElasticMulti(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });        
 
 }
 

@@ -205,6 +205,15 @@ function DrsController(objCollection)
         }
     });
 
+    app.post('/' + global.config.version + '/drs/doc-repo/asset/mapping/search', async (req, res) => {
+        const [err, data] = await drsService.docAssetMappingSearch(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = DrsController;

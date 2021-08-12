@@ -114,7 +114,8 @@ const vilBulkLOVs = {
         "mandatory": {
             "cloning": ["LastMileName", "ReasonForCloning", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
             "refeasibility_rejected_by_am": ["LastMileName", "RejectionRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
-            "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }]
+            "refeasibility_rejected_by_fes": ["LastMileName", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB", "SalesRemarks", { "VendorName": { "LastMileName": "Stage2Offnet" } }],
+            "Existing_Feasibility": ["UpgradeOrDowngrade", "OrderID", "CircuitID"]
         },
         "char_limit": {
             "SearchCityEndA": 50,
@@ -130,8 +131,16 @@ const vilBulkLOVs = {
             "StreetFloorNameEndB": 100,
             "AddressEndB": 500,
             "CustomerNameEndB": 125,
-            "SpecialInstructionsBySalesEndB": 1000
-        }
+            "SpecialInstructionsBySalesEndB": 1000,
+            "RackNoEndA" : 50,
+            "CageNoEndA" : 50,
+            "RackNoEndB" : 50,
+            "CageNoEndB" : 50
+        },
+        "email_validation" : [
+            "ContactPersonEmailIdEndA",
+            "ContactPersonEmailIdEndB"
+        ]
     },
     "product_fb_form_mapping": {
         "50326": "SuperWiFi",
@@ -232,6 +241,36 @@ const vilBulkLOVs = {
         "2962": "Global IPT",
         "2963": "Global IPT",
         "4627": "Global IPT"
+    },
+    "posting_circle_mapping": {
+        "149058": {
+            "form_id": 50849,
+            "field_id": 312612
+        },
+        "149752": {
+            "form_id": 50850,
+            "field_id": 312613
+        },
+        "150229": {
+            "form_id": 50851,
+            "field_id": 312614
+        },
+        "149818": {
+            "form_id": 50852,
+            "field_id": 312615
+        },
+        "151728": {
+            "form_id": 50854,
+            "field_id": 312617
+        },
+        "151729": {
+            "form_id": 50853,
+            "field_id": 312616
+        },
+        "151730": {
+            "form_id": 50855,
+            "field_id": 312618
+        }
     }
 };
 

@@ -1,6 +1,3 @@
-/* 
- * author: A Sri Sai Venkatesh
- */
 
 var UtilityController = require('../controllers/utilityController');
 var ActivityConfigController = require('../controllers/activityConfigController');
@@ -77,6 +74,15 @@ const PortalController = require('../Portal/controllers/portalController');
 //Payment Gateway
 const MerchantPaymentController = require('../payments/controllers/merchantPaymentController');
 
+//ARP Controller
+const ArpController = require('../ARP/controllers/arpController')
+
+//TASI COntroller
+const TasiController = require('../TASI/controllers/tasiController')
+
+//Other Controller
+const OtherController = require('../others/controller/otherController')
+
 
 function ControlInterceptor(objCollection) {
 
@@ -125,6 +131,15 @@ function ControlInterceptor(objCollection) {
     new AdminListingController(objCollection);
     new AdminOpsController(objCollection);
 
+    //Arp Service
+    new ArpController(objCollection);
+
+    //TASI Service
+    new TasiController(objCollection);
+
+    //Other Service
+    new OtherController(objCollection)
+
     // URL Services
     new UrlListingController(objCollection);
     new UrlOpsController(objCollection);
@@ -155,6 +170,7 @@ function ControlInterceptor(objCollection) {
      
     //Payment Gateway
     new MerchantPaymentController(objCollection);
+
 }
 
 module.exports = ControlInterceptor;

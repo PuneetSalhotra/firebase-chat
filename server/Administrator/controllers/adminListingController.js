@@ -533,6 +533,49 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, tagTypeData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/common/currency/select', async (req, res) => {        
+        const [err, commonCurrency] = await adminListingService.selectCommonCurrency(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, commonCurrency, 200, req.body));
+        } else {
+            console.log("/admin/tag-entity/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, commonCurrency, -9999, req.body));
+        }
+    });
+
+
+    app.post('/' + global.config.version + '/admin/workforce/activity-type/mapping/flag/update', async (req, res) => {        
+        const [err, commonCurrency] = await adminListingService.setCalenderProcessAsDefault(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, commonCurrency, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity-type/mapping/flag/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, commonCurrency, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/workforce/activity-type/mapping/flag/select', async (req, res) => {        
+        const [err, commonCurrency] = await adminListingService.selectDefaultCalenderFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, commonCurrency, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity-type/mapping/flag/select | Error: ", err);
+            res.send(responseWrapper.getResponse(err, commonCurrency, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/lov/type/list', async function (req, res) {
+        const [err, resData] = await adminListingService.lovTypeList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/admin/lov/type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+
 }
 
 module.exports = AdminListingController;

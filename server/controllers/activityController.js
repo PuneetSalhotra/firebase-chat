@@ -7,6 +7,8 @@ var ActivityService = require("../services/activityService");
 //var ActivityCommonService = require("../services/activityCommonService");
 var AssetService = require("../services/assetService");
 var fs = require('fs');
+const logger = require("../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 
 function ActivityController(objCollection) {
 
@@ -20,13 +22,14 @@ function ActivityController(objCollection) {
     var assetService = new AssetService(objCollection);
     var activityService = new ActivityService(objCollection); //PAM
 
-    app.post('/' + global.config.version + '/activity/add', function (req, res) {
+    app.post('/' + global.config.version + '/activity/add',async function (req, res) {
+        util.logInfo(req.body,`::START:: ${req.body.activity_id || ""}`);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            global.logger.write('conLog', 'Came into proceedAddActivity() ', {}, req.body);
+            util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -91,7 +94,7 @@ function ActivityController(objCollection) {
                             cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                                 if (err) {
                                     // console.log(err);
-                                    global.logger.write('serverError', err, err, {});
+                                    util.logError(request,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
                                     res.send(responseWrapper.getResponse(false, {
                                         activity_id: 0
                                     }, -7998, req.body));
@@ -138,16 +141,13 @@ function ActivityController(objCollection) {
                             });
                             break;
                         case 37: //Reservation PAM                   
-                            cacheWrapper.getActivityId(function (err, activityId) {
+                            cacheWrapper.getActivityId(function (err, activityId) {                                
                                 if (err) {
-                                    // console.log(err);
-                                    global.logger.write('debug', err, err, req.body);
+                                    util.logError(req.body,`getActivityIderror`, { type: 'add_activity', error: serializeError(err) });
                                     callback(true, 0);
                                     return;
                                 } else {
-                                    // console.log('Request Parameters : ' + req.body);
-                                    global.logger.write('conLog', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
-
+                                    util.logInfo(req.body, "MAIN_REQUEST_START | activity-add-v1 | "+activityId+" category 37 ");
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
@@ -167,8 +167,7 @@ function ActivityController(objCollection) {
                             //fs.readFile('/var/node/Bharat/server/utils/pamConfig.txt', function(err, data){
                             fs.readFile(`${__dirname}/../utils/pamConfig.txt`, function (err, data) {
                                 if (err) {
-                                    // console.log(err)
-                                    global.logger.write('debug', err, err, req);
+                                    util.logError(request,`readfileerror`, { type: 'add_activity', error: serializeError(err) });
 
                                 } else {
                                     threshold = Number(data.toString());
@@ -194,7 +193,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            global.logger.write('conLog', 'Generating activity_id via default condition', {}, req.body);
+                            util.logInfo(req.body,`generating activity id via default condition`);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -248,8 +247,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling proceedAddActivity");
-                        global.logger.write('conLog', 'Calling proceedAddActivity', {}, req.body);
-
+                        util.logInfo(req.body,`proceedAddActivity %j`, req.body);
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
@@ -273,18 +271,19 @@ function ActivityController(objCollection) {
                 activity_id: 0
             }, -3304, req.body));
         }
-
+        util.logInfo(req.body,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
 
     //Add Activity New Version
-    app.post('/' + global.config.version + '/activity/add/v1', function (req, res) {
+    app.post('/' + global.config.version + '/activity/add/v1',async function (req, res) {
+        util.logInfo(req.body,`::START:: `);
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            global.logger.write('conLog', 'Came into proceedAddActivity() ', {}, req.body);
+            util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -319,7 +318,7 @@ function ActivityController(objCollection) {
                                                 };
                                                 res.send(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
                                             } else {
-                                                global.logger.write('debug', err, err, req);
+                                                util.logError(req.body,`addActivityerror`, { type: 'add_activity', error: serializeError(err) });
                                                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             }
                                         });
@@ -330,7 +329,7 @@ function ActivityController(objCollection) {
 
                                 } else {
                                     //console.log('did not get proper rseponse');
-                                    global.logger.write('debug', err, err, req.body);
+                                    util.logError(req.body,`addAsseterror`, { type: 'add_activity', error: serializeError(err) });
 
                                     res.send(responseWrapper.getResponse(err, {}, statusCode, req.body));
                                     return;
@@ -361,7 +360,7 @@ function ActivityController(objCollection) {
                             //generate a form transaction id first and give it back to the client along with new activity id
                             cacheWrapper.getFormTransactionId((err, formTransactionId) => {
                                 if (err) {                                    
-                                    global.logger.write('serverError', err, err, req);
+                                    util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                     return;
                                 } else {
@@ -436,7 +435,7 @@ function ActivityController(objCollection) {
                                         message_unique_id: req.body.message_unique_id
                                     }, 200, req.body));
                                 } else {
-                                    global.logger.write('debug', err, err, req);
+                                    util.logError(req.body,`addActivityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     (activityId === 0) ?
                                     res.send(responseWrapper.getResponse(false, {
@@ -453,16 +452,16 @@ function ActivityController(objCollection) {
 
                         case 37: //Reservation PAM                   
                             cacheWrapper.getActivityId(function (err, activityId) {
+
                                 if (err) {
                                     // console.log(err);
-                                    global.logger.write('debug', err, err, req);
+                                    util.logError(req.body,`getActivityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     callback(true, 0);
                                     return;
                                 } else {
-                                    // console.log('Request Parameters : ' + req.body);
-                                    global.logger.write('conLog', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
-
+                                    // console.log('Request Parameters : ' + req.body)
+                                    util.logInfo(req.body, "MAIN_REQUEST_START | -r1-activity-add-v1 | "+activityId+" category 37 ");
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
@@ -483,7 +482,7 @@ function ActivityController(objCollection) {
                             fs.readFile(`${__dirname}/../utils/pamConfig.txt`, function (err, data) {
                                 if (err) {
                                     //  console.log(err)   
-                                    global.logger.write('debug', err, err, req.body);
+                                    util.logError(req.body,`fileReadError`, { type: 'add_activity', error: serializeError(err) });
 
                                 } else {
                                     threshold = Number(data.toString());
@@ -509,7 +508,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            global.logger.write('conLog', 'Generating activity_id via default condition', {}, req.body);
+                            util.logInfo(req.body,`generating activity id via default condition`);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -557,7 +556,7 @@ function ActivityController(objCollection) {
         if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5 && deviceOsId !== 6) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
-                    global.logger.write('debug', err, err, req);
+                    util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
 
                     res.send(responseWrapper.getResponse(false, {
                         activity_id: 0
@@ -565,10 +564,6 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         //console.log("calling proceedAddActivity");
-                        global.logger.write('conLog', 'calling proceedAddActivity', {
-                            status
-                        }, req.body);
-
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, async function (err, activityId) {
@@ -605,18 +600,18 @@ function ActivityController(objCollection) {
                 activity_id: 0
             }, -3304, req.body));
         }
-
+        util.logInfo(req.body,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
     var addActivity = function (req, callback) {
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
-                console.log(err);
-                global.logger.write('conLog', err, err, req);
+                util.logError(req,`getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
 
                 callback(true, 0);
                 return;
             } else {
+                util.logInfo(req, "MAIN_REQUEST_START | -r1-activity-add-v1 | "+activityId+" addActivity() ");
                 req['activity_id'] = activityId;
                 var event = {
                     name: "addActivity",
@@ -626,8 +621,7 @@ function ActivityController(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                     if (err) {
-                        // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                        global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, {});
+                        util.logError(req,`eventError`, { type: 'add_activity', error: serializeError(err) });
 
                         callback(true, 1);
 
@@ -637,19 +631,15 @@ function ActivityController(objCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        //console.log("error in setting in asset parity");
-                                        global.logger.write('serverError', 'error in setting asset parity', err, req);
+                                        util.logError(req,`setParityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     } else
-                                        //console.log("asset parity is set successfully")
-                                        global.logger.write('debug', "asset parity is set successfully", {}, req);
+                                    util.logInfo(req,`asset parity is set successfully`);
 
                                 });
                             }
                         }
-                        // console.log("new activityId is : " + activityId);
-                        global.logger.write('debug', "New activityId is :" + activityId, {}, req);
-
+                        util.logInfo(req,`New activityId is : ${activityId}`);
                         callback(false, activityId);
                     }
                 });
@@ -910,6 +900,28 @@ function ActivityController(objCollection) {
         res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
         }        
         });
+
+    app.post("/" + global.config.version + "/activity/form/insert",async function (req, res) {
+        req.body.activity_inline_data = req.body.activity_inline_data;
+        const [err, result] = await activityService.activityFormListInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
+    // Get Activity Category Tag List
+    app.post("/" + global.config.version + "/get/category/tags", async function (req, res) {
+        req.body.activity_inline_data = req.body.activity_inline_data;
+        const [err, result] = await activityService.getActivityCategoryTags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
 }
 
 

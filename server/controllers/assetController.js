@@ -292,18 +292,15 @@ function AssetController(objCollection) {
         });
     });
     //PAM
-    app.post('/' + global.config.version + '/asset/status/alter', function (req, res) {
-        assetService.removeAsset(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    })
+    app.post('/' + global.config.version + '/asset/status/alter', async (req, res) => {        
+
+        let [err,result] = await assetService.removeAsset(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }    
+    });     
 
     //PAM
     app.post('/' + global.config.version + '/asset/inline/alter', function (req, res) {
@@ -1000,5 +997,66 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });      
+
+    app.post('/' + global.config.version + '/asset/email/select', async (req, res) => {        
+
+        let [err,result] = await assetService.assetListByEmail(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    }); 
+
+    app.post('/' + global.config.version + '/asset/cerificates/set', async (req, res) => {        
+
+        let [err,result] = await assetService.assetCertificateSet(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
+    app.post('/' + global.config.version + '/asset/tag/update', async (req, res) => {        
+
+        let [err,result] = await assetService.assetListUpdateTags(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }    
+    }); 
+
+    app.post('/' + global.config.version + '/asset/reportee/role/list', async (req, res) => {        
+
+        let [err,result] = await assetService.reporteeListByRoleOfAManager(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }    
+    }); 
+
+    app.post('/' + global.config.version + '/asset/desk/archive/list', async (req, res) => {        
+
+        let [err,result] = await assetService.getDeskAssetArchiveList(req.body);
+        if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }    
+    });
+
+    app.post('/' + global.config.version + '/organization/email/resource/list', async (req, res) => {
+
+        let [err, result] = await assetService.getEmailResourceList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+
 }
 module.exports = AssetController;

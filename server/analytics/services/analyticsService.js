@@ -8,6 +8,9 @@ function AnalyticsService(objectCollection)
     const makeRequest = require('request');    
     const nodeUtil = require('util');
     
+    const AssetService = require('../../services/assetService');
+    const assetService = new AssetService(objectCollection);
+
     //const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
@@ -1064,11 +1067,11 @@ function AnalyticsService(objectCollection)
         {
             let results = new Array();
             let paramsArray;
-
+            /*
             let idAsset = request.target_asset_id;
             if(idAsset == 0){
                 idAsset = request.asset_id;
-            }
+            } */
 
             paramsArray = 
             new Array
@@ -1078,12 +1081,13 @@ function AnalyticsService(objectCollection)
                 request.workforce_id,
                 request.tag_type_id,
                 global.analyticsConfig.parameter_flag_sort,
-                idAsset,
+                request.target_asset_id,
+                request.asset_id,
                 request.page_start || 0,
                 request.page_limit || 50
             );
 
-            results[0] = await db.callDBProcedureR2(request, 'ds_p1_1_activity_list_select_management_widgets', paramsArray, 1);
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_2_activity_list_select_management_widgets', paramsArray, 1);
             if(request.is_kpi_value_required == 1){
                 console.log('results[0].length '+results[0].length);
                 
@@ -2072,8 +2076,8 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+            //arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
@@ -2102,13 +2106,19 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
+            if(request.tag_type_id == 130)
+                request.filter_asset_id = request.asset_id;
+
+            //if([131,132,133,134].includes(request.widget_type_id))
+             //   request.filter_asset_id = request.asset_id;
+
             console.log('request.filter_is_datetime_considered :: '+ request.filter_is_datetime_considered);
 
             try{
             
-                for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-                {
-                    console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+            //    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            //    {
+                    console.log('request.tag_type_id '+request.tag_type_id);
 
                     paramsArray = 
                     new Array
@@ -2124,14 +2134,14 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_workforce_type_id),
                         parseInt(request.filter_workforce_id),
                         parseInt(request.filter_asset_id),
-                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.tag_type_id),
                         parseInt(request.filter_tag_id),
                         parseInt(request.filter_activity_type_id),
                         global.analyticsConfig.activity_id_all, //Activity ID,
                         parseInt(request.filter_activity_status_type_id),
                         parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
-                        //parseInt(filter_activity_status_id),
+                        // parseInt(request.filter_activity_status_id),
+                        parseInt(arrayStatuses[0].activity_status_id),
                         request.datetime_start,
                         request.datetime_end,
                         parseInt(request.filter_segment_id),
@@ -2150,6 +2160,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_field_id) || 0,
                         request.filter_timescale || '',
                         request.filter_is_lead || 0,
+                        request.filter_campaign_activity_id || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2161,26 +2172,29 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_7_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_8_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
                         results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": responseArray,
                                 }
                             );
                         iterator++
-                    }else{
+                    } else if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
+                        request.verticalData = global.analyticsConfig.vertical;
+                        results = await this.prepareWidgetData(request, paramsArray);
+                    } else {
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_7_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_8_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
-                        if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 37 || request.widget_type_id == 38
+                        if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
                          || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
                          || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42
@@ -2188,7 +2202,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "result": tempResult,
                                 }
                             );
@@ -2202,7 +2216,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult,
                                 }
@@ -2215,7 +2229,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": tempResult[0].value,
                                     "target": tempResult[0].target,
@@ -2238,7 +2252,7 @@ function AnalyticsService(objectCollection)
                             results[iterator] =
                             (
                                 {
-                                    "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                    "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": totalValue,
                                 }
@@ -2246,7 +2260,7 @@ function AnalyticsService(objectCollection)
                         }
                     }
                     iterator++;
-                }
+            //    }
 
             }catch(e){
                 console.log('error ::', e);
@@ -2259,7 +2273,424 @@ function AnalyticsService(objectCollection)
         {
             return Promise.reject(error);
         }
-    };    
+    };
+
+    this.prepareWidgetData = async (request, paramsArray) => {
+
+        return new Promise((resolve) => {
+
+            let requestObj = {
+                "organization_id": request.organization_id,
+                "account_id": request.account_id,
+                "workforce_id": request.workforce_id,
+                "segment_id": request.segment_id || 0,
+                "target_asset_id": request.asset_id,
+                "tag_type_id": request.tag_type_id || 0,
+                "tag_id": request.tag_id || 0,
+                "cluster_tag_id": request.cluster_tag_id || 0,
+                "vertical_tag_id": request.vertical_tag_id || 0,
+                "flag": 28,
+                "page_start": request.page_start || 0,
+                "page_limit": request.page_limit || 50
+            };
+
+            assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
+                .then(async (data) => {
+                    console.log("1");
+                    let verticalMap = new Map();
+
+                    if (data !== undefined && data.length >= 2) {
+
+                        let verticalsArray = data[1];
+                        for (index = 0; index < verticalsArray.length; index++) {
+
+                            let vertical = verticalsArray[index];
+                            if (vertical !== undefined && vertical.hasOwnProperty('tag_id')) {
+
+                                let tag_id = vertical.tag_id;
+                                if (tag_id !== null && tag_id > 0) {
+
+                                    let tag_name = verticalsArray[index].tag_name;
+                                    if ("All" !== tag_name) {
+                                        verticalMap.set(tag_id, tag_name);
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
+                    console.log("2");
+                    if (verticalMap.size == 0) {
+                        console.log("3");
+                        console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
+                        let results = new Array();
+                        results.push(request.verticalData[request.widget_type_id]);
+                        resolve(results);
+
+                    } else {
+                        console.log("4");
+                        switch (request.widget_type_id) {
+                            
+                            case 128: {
+                                console.log("128request.widget_type_id "+request.widget_type_id);
+                                let results = new Array();
+                                resolve(await this.prepareDataForWidgetType128(request, paramsArray, verticalMap));
+                                break;
+                            }
+                            case 129: {
+                                console.log("129request.widget_type_id "+request.widget_type_id);
+                                resolve(await this.prepareDataForWidgetType129(request, paramsArray, verticalMap));
+                                break;
+                            }
+                            case 130: {
+                                console.log("130request.widget_type_id "+request.widget_type_id);
+                                resolve(await this.prepareDataForWidgetType130(request, paramsArray, verticalMap));
+                                break;
+                            }
+                            default:{
+                                console.log("defaultrequest.widget_type_id "+request.widget_type_id);
+                            }
+                        }
+
+                    }
+                })
+                .catch((error) => {
+                    console.log("prepareWidgetData : Exception : ");
+                    console.log(error);
+                    resolve(request.verticalData.error_response);
+                });
+        });
+
+    }
+
+    this.prepareDataForWidgetType128 = async (request, paramsArray, verticalMap) => {
+
+        try {
+            console.log("prepareDataForWidgetType128 :: ");
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalResponseMap = new Map();
+            let isError = false;
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
+
+                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                paramsArray[15] = 0;
+                paramsArray[1] = 1;
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                }
+
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+                            
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            isError = true;
+                        })
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results); 
+            
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType129 = async (request, paramsArray, verticalMap) => {
+        console.log("prepareDataForWidgetType129 :: ");
+        try {
+
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalResponseMap = new Map();
+            let isError = false;
+
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
+
+                let widgetJsonObject = request.verticalData[request.widget_type_id];
+                let status_tags = request.verticalData["status_tags"];
+                let key = "flag_" + widgetFlags[iteratorM];
+                let value = widgetJsonObject[key];
+                paramsArray[16] = status_tags[value];
+                
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            isError = true;
+                        })
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType130 = async (request, paramsArray, verticalMap) => {
+
+        try {
+            console.log("prepareDataForWidgetType130 :: ");
+            let results = new Array();
+            let total = new Array(0, 0, 0, 0);
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let verticalFlags = new Array();
+            let verticalResponseMap = new Map();
+            let isError = false;
+
+            results.push(request.verticalData[request.widget_type_id]);
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                if (isError) {
+                    break;
+                }
+
+                if (widgetFlags[iteratorM] == 1) {
+                    paramsArray[1] = 1;
+                    paramsArray[15] = 2;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 2) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 3) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfNextMonthToIST();
+                    paramsArray[19] = util.getLastDayOfNextMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
+                }
+
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+                const queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_values_oppty', paramsArray);
+                if (queryString !== '') {
+
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+
+                            paramsArray.pop();
+                            let responseMap = new Map();
+                            for (index = 0; index < data.length; index++) {
+                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                            }
+                            verticalResponseMap.set(iteratorM, responseMap);
+
+                        })
+                        .catch((err) => {
+                            console.log("Error : ");
+                            console.log(err);
+                            isError = true;
+                        })
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            for (var entry of verticalMap.entries()) {
+
+                let vertical_tag_id = 0,
+                    vertical_name = null,
+                    value = 0;
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                let verticalValueArray = new Array(0, 0, 0, 0);
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+
+                    if (verticalResponseMap.has(iteratorM)) {
+
+                        let map = verticalResponseMap.get(iteratorM);
+                        if (map.has(vertical_tag_id)) {
+                            verticalValueArray[iteratorM] = map.get(vertical_tag_id);
+                        }
+
+                    }
+                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                }
+
+                results.push({
+                    "vertical_name": vertical_name,
+                    "flag_1": verticalValueArray[0],
+                    "flag_2": verticalValueArray[1],
+                    "flag_3": verticalValueArray[2],
+                    "flag_4": verticalValueArray[3]
+                });
+
+            }
+
+            results.push({
+                "vertical_name": "Total",
+                "flag_1": total[0],
+                "flag_2": total[1],
+                "flag_3": total[2],
+                "flag_4": total[3]
+            });
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+
 
     //Get the drill down with limit for a specific widget
     //Sravankumar
@@ -2297,20 +2728,23 @@ function AnalyticsService(objectCollection)
             timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
-            console.log(JSON.parse(request.filter_tag_type_id).length);
-            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+            //console.log(JSON.parse(request.filter_tag_type_id).length);
+           // arrayTagTypes = JSON.parse(request.filter_tag_type_id);
 
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
             arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
 
             console.log("request.activity_status_id :: "+request.activity_status_id);
-
+            let activityStatusId = 0;
             let arrayStatuses = new Array();
             if(request.hasOwnProperty("activity_status_id")){
                 //console.log(JSON.parse(request.activity_status_id).length);
-                if(request.activity_status_id != 0){
+                if(request.activity_status_id > 0){
+                    activityStatusId = request.activity_status_id;
+                }else if(request.activity_status_id != 0){
                     arrayStatuses = JSON.parse(request.activity_status_id);
+                    activityStatusId = arrayStatuses[0].activity_status_id;
                 }else{
                     let json = {"activity_status_id": 0};
                     arrayStatuses.push(json); 
@@ -2338,10 +2772,15 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
+            if(request.tag_type_id == 130)
+            request.filter_asset_id = request.asset_id;
             
-            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
-            {
-                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+            //if([131,132,133,134].includes(request.widget_type_id))
+            //    request.filter_asset_id = request.asset_id;
+            
+          //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+          //  {
+                console.log('request.tag_type_id '+request.tag_type_id);
 
                  paramsArray = 
                  new Array(
@@ -2356,14 +2795,14 @@ function AnalyticsService(objectCollection)
                     parseInt(request.filter_workforce_type_id),
                     parseInt(request.filter_workforce_id),
                     parseInt(request.filter_asset_id),
-                    parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                    parseInt(request.tag_type_id),
                     parseInt(request.filter_tag_id),
                     parseInt(request.filter_activity_type_id),
                     global.analyticsConfig.activity_id_all, //Activity ID,
                     parseInt(request.filter_activity_status_type_id),
                     parseInt(request.filter_activity_status_tag_id),
-                    parseInt(request.filter_activity_status_id),
-                    //parseInt(filter_activity_status_id),
+                    //parseInt(arrayStatuses[0].activity_status_id),
+                    parseInt(activityStatusId),
                     request.datetime_start,
                     request.datetime_end,
                     parseInt(request.filter_segment_id),
@@ -2387,11 +2826,12 @@ function AnalyticsService(objectCollection)
                     request.filter_mapping_combo_value || '',
                     request.filter_timescale || '',
                     request.filter_is_lead || 0,
+                    request.filter_campaign_activity_id || 0,
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100
                     );
             
-                var queryString = util.getQueryString('ds_v1_7_activity_search_list_select_widget_drilldown_search', paramsArray);
+                var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -2401,7 +2841,7 @@ function AnalyticsService(objectCollection)
                 results[iterator] =
                 (
                     {
-                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                        "tag_type_id": request.tag_type_id,
                         "status_type_id": request.filter_activity_status_type_id,
                         "result": tempResult,
                     }
@@ -2409,7 +2849,7 @@ function AnalyticsService(objectCollection)
 
                 iterator++; 
 
-            }
+          //  }
 
             return results;
         }
@@ -2511,6 +2951,92 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    this.insertWidgetTypeV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.widget_type_name,
+            request.widget_type_description,
+            request.widget_type_category_id,
+            request.widget_type_chart_id,
+            request.flag_mobile_enabled,
+            request.widget_type_flag_target,
+            request.widget_type_flag_sip_enabled,
+            request.widget_type_flag_role_enabled,
+            request.widget_type_flag_prediction_enabled,
+            request.widget_type_sip_contribution_percentage,
+            request.widget_type_inline_data,
+            request.widget_type_measurement_id,
+            request.widget_type_measurement_unit,
+            request.widget_type_timeline_id,
+            request.asset_tag_id,
+            request.customer_account_type_id,
+            request.period_type_id,
+            request.widget_type_start_datetime,
+            request.widget_type_end_datetime,
+            request.asset_type_id,
+            request.asset_type_sequence_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.level_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.workforce_type_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p3_widget_type_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log(data)
+                    responseData = data;
+                    error = false;
+                    const [err1,resData] = widgetTypeHistoryInsert({...request,...data[0]},3101)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [false, responseData];
+    }
+
+    this.widgetTypeMasterUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.widget_type_id,
+            request.widget_type_name,
+            request.flag_mobile_enabled,
+            request.widget_type_flag_target,
+            request.widget_type_flag_sip_enabled,
+            request.widget_type_flag_role_enabled,
+            request.widget_type_flag_prediction_enabled,
+            request.widget_type_sip_contribution_percentage,
+            request.widget_type_inline_data,
+            request.organization_id,
+            request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_widget_type_master_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    const [err1,resData] = widgetTypeHistoryInsert(request,3102)
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
     this.selectWidgetType = async (request) => {
 
         let responseData = [],
@@ -2563,6 +3089,7 @@ function AnalyticsService(objectCollection)
             await db.executeQueryPromise(0, queryString, request)
               .then((data) => {
                   responseData = responseData = {'message': 'widget type deleted successfully!'};;
+                  const [err1,resData] = widgetTypeHistoryInsert(request,3103)
                   error = false;
               })
               .catch((err) => {
@@ -2572,6 +3099,32 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData]
     }
+
+    async function widgetTypeHistoryInsert(request,id){
+        let responseData = [],
+        error = true;
+    
+    const paramsArr = [  
+          request.organization_id,  
+          request.widget_type_id,
+          id,
+          util.getCurrentUTCTime()
+    ];
+
+    const queryString = util.getQueryString('ds_p1_widget_type_master_history_insert', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+          .then((data) => {
+              responseData = data;
+              error = false;
+          })
+          .catch((err) => {
+              error = err;
+          })
+    }
+
+    return [error, responseData]
+    } 
 
     this.addReport = async (request) => {
 
@@ -2601,16 +3154,81 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('dm_v1_report_list_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-              .then((data) => {
-                  responseData = data;
-                  error = false;
-              })
-              .catch((err) => {
-                  error = err;
-              })
+                .then(async (data) => {
+
+                    responseData = data;
+                    error = false;
+
+                    if (9 != request.report_type_id) {
+
+                        request.report_id = data[0].report_id;
+                        request.report_status_id = 1;
+                        request.report_url = "";
+
+                        let [err, responseData] = await this.insertAnalyticsReportTransaction(request);
+                        if (err) {
+                            error = err;
+                            console.log("error = " + error);
+                        }
+                    }
+
+                })
+                .catch((err) => {
+                    error = err;
+                })
         }
 
         return [error, responseData]
+    }
+
+    this.addReportV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.report_type_id,
+          request.report_name,
+          request.report_inline_data,
+          request.report_recursive_enabled || 0,
+          request.report_notified_enabled || 1,
+          request.report_recursive_type_id || 1,
+          request.report_access_level_id || 1,
+          request.activity_id || 0,
+          request.report_start_time || '18:30:00',
+          request.report_end_time || '18:29:00',
+          request.report_next_start_datetime,
+          request.report_next_end_datetime,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_1_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                    if (9 != request.report_type_id) {
+
+                        request.report_id = data[0].report_id;
+                        request.report_status_id = 1;
+                        request.report_url = "";
+
+                        let [err, responseData] = await this.insertAnalyticsReportTransaction(request);
+                        if (err) {
+                            error = err;
+                            console.log("error = " + error);
+                        }
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     this.retrieveReportList = async (request) => {
@@ -2976,11 +3594,12 @@ function AnalyticsService(objectCollection)
               request.organization_id,
               request.tag_type_id,
               request.is_export || 0,
+              request.report_type_id || 9,
               request.page_start || 0,
               request.page_limit || 100
         ];
 
-        const queryString = util.getQueryString('ds_v1_1_organization_filter_tag_type_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_organization_filter_tag_type_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
@@ -3497,7 +4116,7 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }    
 
-    
+/*    
     this.assetReportMapping = async (request) => {
         let responseData = [],
             error = true;
@@ -3537,14 +4156,14 @@ function AnalyticsService(objectCollection)
             
             if(!parseInt(request.access_level_id)){
                 let loopData = [
-                    // {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
-                    // {key:"target_accounts",value:"account_id",access_level_id:2},
-                    // {key:"target_assets",value:"target_asset_id",access_level_id:6},
-                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
-                    // {key:"segments",value:"segment_id",access_level_id:21},
-                    // {key:"product_tags",value:"product_tag_id",access_level_id:22},
-                    // {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
-                    // {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                     {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                     {key:"target_accounts",value:"account_id",access_level_id:2},
+                     {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                     {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                     {key:"segments",value:"segment_id",access_level_id:21},
+                     {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                     {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                     {key:"activity_types",value:"activity_type_id",access_level_id:8}
                 ];
                 for(let i = 0 ; i < loopData.length; i++){
                     loopBase = JSON.parse(request[loopData[i].key]);
@@ -3585,7 +4204,130 @@ function AnalyticsService(objectCollection)
         return [error,responseData];
     }
 
+*/    
+    this.assetReportMapping = async (request) => {
+        let responseData = [],
+            error = true;
+        try{
+            let loopBase = [];
+            let loopKey = "";
+            switch(parseInt(request.access_level_id)){
+                case 2 : loopBase = JSON.parse(request.target_accounts);
+                         loopKey = "account_id";   
+                        break;
+                case 6 : loopBase = JSON.parse(request.target_assets);
+                         loopKey = "target_asset_id";
+                        break;
+                case 8 : loopBase = JSON.parse(request.activity_types);
+                         loopKey = "activity_type_id";
+                        break;
+                case 20 : loopBase = JSON.parse(request.tag_types);
+                         loopKey = "tag_type_id";   
+                        break;
+                case 21 : loopBase = JSON.parse(request.segments);
+                         loopKey = "segment_id";   
+                        break;
+                case 22 : loopBase = JSON.parse(request.product_tags);
+                         loopKey = "product_tag_id";   
+                        break;
+                case 25 : loopBase = JSON.parse(request.cluster_tags);
+                         loopKey = "cluster_tag_id";   
+                        break;
+                case 26 : loopBase = JSON.parse(request.workforce_tags);
+                         loopKey = "workforce_tag_id";   
+                        break;
+                case 27 : loopBase = JSON.parse(request.applications);
+                         loopKey = "application_id";   
+                        break;
+            }           
+            
+            if(!parseInt(request.access_level_id)){
+                let loopData = [
+                    {key:"cluster_tags",value:"cluster_tag_id",access_level_id:25},
+                    {key:"target_accounts",value:"account_id",access_level_id:2},
+                    {key:"target_assets",value:"target_asset_id",access_level_id:6},
+                    {key:"tag_types",value:"tag_type_id",access_level_id:20},
+                    {key:"segments",value:"segment_id",access_level_id:21},
+                    {key:"product_tags",value:"product_tag_id",access_level_id:22},
+                    {key:"workforce_tags",value:"workforce_tag_id",access_level_id:26},
+                    {key:"activity_types",value:"activity_type_id",access_level_id:8}
+                ];
+                let err1 = true, data = [];
+                //console.log("loopData :: ",loopData.length);
+                for(let i = 0 ; i < loopData.length; i++){
+                    loopBase = JSON.parse(request[loopData[i].key]);
+                    loopKey = loopData[i].value;
+                    request.access_level_id = loopData[i].access_level_id;
+                   // console.log("request.access_level_id :: "+request.access_level_id);
+                    if(request.access_level_id == 2){
+                        if(loopBase.length == 1 && loopBase[0] == 0){
+                            let clusterArray = JSON.parse(request.cluster_tags);
+                            //console.log(clusterArray.length);
+                            //console.log(JSON.stringify(clusterArray, null, 2));
+                            for(let k = 0; k < clusterArray.length; k++){
+                                //console.log(clusterArray[k]);
+                                request.cluster_tag_id = clusterArray[k];
+                                [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                            }
+                        }else{
+                            [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                        }
+                    }else if(request.access_level_id == 8){
+                        // activity_types:{"110":[149277,149278], "111":[152184]}
+                        // console.log("request.access_level_id :: "+request.access_level_id);
+                        loopBase = JSON.parse(request[loopData[i].key]);
+                        loopKey = loopData[i].value;  
+                        // console.log("    loopKey "+loopKey+ " :: loopBase :: " +loopBase);     
+                        let activityTypes = JSON.parse(request.activity_types);
+                        let tagTypeArray = Object.keys(activityTypes);
+                        // console.log("activityTypes "+request.activity_types);
+                        // console.log("tagTypeArray "+tagTypeArray);
+                        // console.log("tagTypeArray.length "+tagTypeArray.length);
+                        for(let k = 0; k < tagTypeArray.length; k++)
+                         {
+                         //   console.log("activityTypes.tagTypeArray "+activityTypes[tagTypeArray[k]]);
+                            let activityTypeList = activityTypes[tagTypeArray[k]];
+                         //   console.log("activityTypeList :: "+activityTypeList);
+                            request.tag_type_id = tagTypeArray[k];
+                            await self.assetReportLoop(activityTypeList,loopKey,request);
+
+                            /*
+                            for(let m = 0; m < activityTypeList.length ; m ++){
+                                
+                                request.tag_type_id = tagTypeArray[k];
+                                request.activity_type_id = activityTypeList[m];
+                                console.log("TagType : "+tagTypeArray[k]+" :: ActivityType : "+activityTypeList[m]);
+                                //await self.assetReportLoop(loopBase,loopKey,request);
+                                console.log(JSON.stringify(request,null,2));
+                                self.assetReportLoop(loopBase,loopKey,request);
+                            } */
+                         }
+ 
+
+                    }else{
+                       // console.log("before else ");
+                        [err1,data] = await self.assetReportLoop(loopBase,loopKey,request);
+                    }
+                    
+                    if(err1){
+                        error = err1;
+                    } else {
+                        error = false;
+                        responseData = [...responseData,...data];
+                    }
+                }
+            } else {
+                [error,responseData] = await self.assetReportLoop(loopBase,loopKey,request);
+            }
+        }
+        catch(err1){
+            return [err1, responseData];
+        }
+        
+        return [error,responseData];
+    }
     this.assetReportLoop = async (loopBase,loopKey,request) => {
+        console.log("assetReportLoop :: loopBase :: "+loopBase+ " :: loopKey  "+loopKey );
         let responseData = [],
             error = true;
         for(let i = 0 ; i < loopBase.length ; i++){
@@ -3777,7 +4519,35 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+    // Insert new transaction for Analytics Report.
+    this.insertAnalyticsReportTransaction = async (request) => {
 
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.report_id,
+            request.report_status_id,
+            request.report_url,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_report_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 
 }
 

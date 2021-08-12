@@ -2,10 +2,13 @@ const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 const https = require('https');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
+const logger = require("../logger/winstonLogger");
+const moment = require('moment');
+const shortid = require('shortid');
 
 function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
     let token, url, jwk, decoded, pem, keys;
-    app.use((req, res, next) => {
+    app.use(async (req, res, next) => {
         // console.log('REQ : ', req.headers);
         // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'); 
                 
@@ -13,7 +16,12 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         req.body.service_id = "";
         req.body.bundle_transaction_id = bundleTransactionId;
         req.body.url = req.url;
-                
+
+        if (!req.body.hasOwnProperty("log_uuid") && !req.url.includes('/' + global.config.version + '/healthcheck')) {
+            req.body["log_uuid"] = await getLogUUID();
+            addInitialLog(req);
+        }
+
         //Check for flag - Cognito or Redis Auth
         //x-grene-auth-flag = 1 - Redis
         //x-grene-auth-flag = 2 - Cognito
@@ -194,8 +202,11 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                     };
                                 let phoneNumber = '+' + '' + req.headers['x-grene-c-code'] + '' + req.headers['x-grene-p-code'];
 
+                                if(req.headers['x-grene-e-flag'] == 1) {
+                                    phoneNumber = req.headers['x-grene-e'].toLowerCase();
+                                }
                                 //console.log('decodedToken : ', decodedToken);
-                                console.log('UserName and phoneNumber from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
+                                console.log('UserName and phoneNumber/Email from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
                                 //console.log('PARAMS : ', params);
 
                                 //if(map.has(userNameFromAccessToken)) {
@@ -225,6 +236,10 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 let tempVar = await cacheWrapper.getUserNameFromAccessToken(userNameFromAccessToken);
                                 console.log('UserNameFromAccessToken - ', tempVar);
 
+                                if(req.headers['x-grene-e-flag'] == 1) {
+                                    tempVar = tempVar.toLowerCase();
+                                }
+
                                 if(tempVar !== 'undefined') {
                                     if(tempVar === phoneNumber) {
                                         console.log('token verified successfully!');
@@ -232,8 +247,8 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                         next();
                                     } else { 
                                         console.log('#########################################');
-                                        console.log('Phone Number from the Mapped Username in Redis: ', tempVar);
-                                        console.log('Phone Number from Request Headers: ', phoneNumber);
+                                        console.log('Phone Number/Email from the Mapped Username in Redis: ', tempVar);
+                                        console.log('Phone Number/Email from Request Headers: ', phoneNumber);
                                         console.log('');
                                         console.log('User Name from Access Token : ', userNameFromAccessToken);                                        
                                         console.log('');
@@ -343,6 +358,40 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         //}); //getServiceId
     }); //app.use
      
+    let getLogUUID = async function () {
+        return `${shortid.generate()}`
+    };
+
+    let addInitialLog = async function (request) {
+        try {
+            
+            let activityID = "-";
+            let assetID = "-";
+            let assetPhoneNumber = "-";
+            let logUUID = request.body["log_uuid"];
+            let emailID = "-";
+            let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+
+            if (request.body.hasOwnProperty("activity_id")) {
+                activityID = request.body.activity_id;
+            }
+
+            if (request.body.hasOwnProperty("asset_id")) {
+                assetID = request.body.asset_id;
+            }
+
+            if (request.headers.hasOwnProperty('x-grene-p-code')) {
+                assetPhoneNumber = request.headers['x-grene-p-code'];
+            }else if (request.body.hasOwnProperty('asset_phone_number')) {
+                assetPhoneNumber = request.body.asset_phone_number;
+            }
+
+            logger.info(`MAIN_REQUEST_START | ${request.url.split("/").join("-")} | ${activityID} | ${logUUID} | ${assetID} | ${assetPhoneNumber} | ${emailID} | ${dateTime} `);
+        } catch (e) {
+
+        }
+
+    }
 }
 
 module.exports = AccessTokenInterceptor;

@@ -4,6 +4,7 @@
 
 //mode = process.env.mode;
 mode = process.env.NODE_ENV;
+//mode = "local";
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
@@ -102,19 +103,45 @@ config.documentTypes = {
     }
 }
 
+config.masterIp = "";
+config.masterDBUser = "";
+config.masterDBPassword = "";
+config.masterDatabase = "";
+
+config.slave1Ip = "";
+config.slave1Database = "";
+config.slave1DBUser = "";
+config.slave1DBPassword = "";
+config.transactionsLogsDatabase = "";
+
+config.slave2Ip = "";
+
+// codes to switch the slave to master in case of errors
+config.mysqlConnectionErrors = {
+    ENOTFOUND: 1,
+    EHOSTUNREACH: 1,
+    PROTOCOL_SEQUENCE_TIMEOUT: 1,
+    ECONNREFUSED: 1,
+    ER_ACCESS_DENIED_ERROR: 1,
+    ER_DBACCESS_DENIED_ERROR: 1,
+    ER_SP_DOES_NOT_EXIST: 1,
+    POOL_NONEONLINE: 1
+}
+
+config.elasticActivityAssetTable = 'activity_asset_search_mapping';
+config.elasticActivitySearchTable = 'activity_search_mapping';
+config.elasticCrawlingAccountTable = 'crawling_accounts';
+config.elasticVidmTable = 'vidm';
+config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+
+config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD", "SLAVE2_IP"];
+
 if(mode === 'testingprodissueenv') {
 
     //Ports Config
     config.version = 'r0';
     config.servicePort = 4000;
 
-    //Mysql Config    
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -206,13 +233,6 @@ if(mode === 'masimukku') {
 
     config.sqsConsumer = 4300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
     //Redis Config    
@@ -299,8 +319,8 @@ if(mode === 'local') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
-    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
-    
+    config.user_web_pool_id = 'ap-south-1_9vPl6RcPo';
+    config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
 
     //Ports Config
     config.version = 'r1';
@@ -316,20 +336,6 @@ if(mode === 'local') {
 
     config.sqsConsumer = 7300;
 
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    //This is for Account Search
-    //config.slave2Ip = 'worlddesk-r1-slave2.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    // config.database = 'desker_staging';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
     config.conLimit = 5;
 
     //Log Mysql Config
@@ -449,6 +455,12 @@ if(mode === 'local') {
         'http://localhost:3000',
         'https://d1g3r3ihuqqg05.cloudfront.net'
     ];
+
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'dev') {
@@ -467,13 +479,6 @@ if(mode === 'dev') {
 
     config.sqsConsumer = 3300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
-    config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
     config.logMasterIp = '10.0.0.169';
@@ -562,13 +567,6 @@ if(mode === 'demo') {
     config.servicePort = 8000;
     config.standAlonePamServicePort = 6100;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-   
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_demo';
-    config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -685,21 +683,6 @@ if(mode === 'sprint') {
 
     config.sqsConsumer = 6300;
 
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.masterIp = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'worlddesk-staging-1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.masterIp = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'db-test.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';    
-    //config.database = 'desker';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
-
     config.conLimit = 2;
 
     //Log Mysql Config
@@ -797,11 +780,12 @@ if(mode === 'sprint') {
 }
 
 if(mode === 'staging') {
-
+    
     //Cognito
     config.cognito_region = 'ap-south-1';
-    config.user_pool_id = 'ap-south-1_b7x0MLSHi';
-    config.user_web_pool_id = 'ap-south-1_DQ3ZEJi00';
+    config.user_pool_id = 'ap-south-1_b7x0MLSHi'; // phone number
+    config.user_web_pool_id = 'ap-south-1_9vPl6RcPo'; // email and phone number
+    config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
 
     //Ports Config
     config.version = 'r0';
@@ -817,16 +801,6 @@ if(mode === 'staging') {
 
     config.sqsConsumer = 4300;
 
-    //Mysql Config
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    // config.database = 'desker_staging';
-    config.database = 'worlddesk_staging';
-    config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -950,6 +924,11 @@ if(mode === 'staging') {
         "https://vibusinesshub.myvi.in",
         "http://vibusinesshub.myvi.in" 
     ];
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping_s';
+    config.elasticActivitySearchTable = 'activity_search_mapping_s';
+    config.elasticCrawlingAccountTable = 'crawling_accounts_s';
+    config.elasticVidmTable = 'vidm_s';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
 }
 
 if(mode === 'preprod') {
@@ -957,7 +936,10 @@ if(mode === 'preprod') {
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
-    config.user_web_pool_id = 'ap-south-1_xCOITnm28';
+    config.user_web_pool_id = 'ap-south-1_jeS0OISHP';
+    config.customer_pool_id = 'ap-south-1_nk2Ek2BmZ';
+
+
     //Ports Config
     config.version = 'r1';
     config.servicePort = 6000;
@@ -972,16 +954,6 @@ if(mode === 'preprod') {
 
     config.sqsConsumer = 6300;
 
-    // Mysql Config
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'worlddesk_preprod';
-    // config.database = 'desker';
-    config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
@@ -1081,6 +1053,11 @@ if(mode === 'preprod') {
         "https://vibusinesshub.myvi.in",
         "http://vibusinesshub.myvi.in" 
     ];
+    config.elasticActivityAssetTable = 'activity_asset_search_mapping';
+    config.elasticActivitySearchTable = 'activity_search_mapping';
+    config.elasticCrawlingAccountTable = 'crawling_accounts';
+    config.elasticVidmTable = 'vidm';
+    config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
 }
 
 

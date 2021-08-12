@@ -1,7 +1,8 @@
 /* 
  * author: Sri Sai Venkatesh
  */
-
+const logger = require("../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 function ActivityParticipantService(objectCollection) {
 
     var db = objectCollection.db;
@@ -95,7 +96,7 @@ function ActivityParticipantService(objectCollection) {
     };
 
     this.assignCoworker = async function (request, callback) { //Addparticipant Request
-
+        
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
 
@@ -112,10 +113,10 @@ function ActivityParticipantService(objectCollection) {
                     }
                 })
                 .catch((error) => {
-                    console.log("BotEngine: changeStatus | getActivityDetailsPromise | error: ", error);
+                    util.logError(request,`BotEngine: changeStatus | getActivityDetailsPromise | error: `, { type: 'assignCoworker', error: serializeError(error) });
                 });
         } catch (error) {
-            console.log("BotEngine: changeStatus | Activity Details Fetch Error | error: ", error);
+            util.logError(request,`BotEngine: changeStatus | Activity Details Fetch Error | error: `, { type: 'assignCoworker', error: serializeError(error) });
         }
 
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
@@ -125,8 +126,8 @@ function ActivityParticipantService(objectCollection) {
                         updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     }
                 } else {
+                    util.logError(request,`something is not right in adding a participant `, { type: 'assignCoworker', error: serializeError(err) });
                     //console.log("something is not wright in adding a participant");
-                    global.logger.write('serverError', 'something is not right in adding a participant', err, {})
                 }
             });
         };
@@ -139,8 +140,8 @@ function ActivityParticipantService(objectCollection) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, async function (err, data) {
                         if (err === false) {
+                            util.logInfo(request,` ******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate`);
                             //console.log("participant successfully added");
-                            global.logger.write('conLog', '******** actvityParticipantService : iterateAddParticipant : addParticipant : activityLeadUpdate', {}, {})
 
                             if(request.activity_type_category_id == 16){
                                 request.lead_asset_id = participantData.asset_id;
@@ -360,7 +361,7 @@ function ActivityParticipantService(objectCollection) {
                             newReq.workforce_id = request.workforce_id;      
                             newReq.activity_id = Number(request.activity_id);
                             newReq.lead_asset_id = activityParticipantCollection[0].asset_id;
-                            //newReq.asset_id = 100;
+                            newReq.asset_id = request.asset_id;
                             //newReq.timeline_stream_type_id = 718;
                             newReq.datetime_log = util.getCurrentUTCTime();
 
@@ -956,7 +957,7 @@ function ActivityParticipantService(objectCollection) {
                     }*/
 
                     //Inserting into activity asset table for account search
-                    console.log('\n Account Search :- Updating Activity Asset Table');
+                    util.logInfo(request,` Account Search :- Updating Activity Asset Table`);
                     activityCommonService.actAssetSearchMappingInsert({
                         activity_id: request.activity_id,
                         //asset_id: request.asset_id,
@@ -1066,7 +1067,8 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('conLog', 'participant count retrieved from query is: ' + participantCount, request)
+                    util.logInfo(request,`participant count retrieved from query is: %j`, participantCount);
+
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -1114,7 +1116,7 @@ function ActivityParticipantService(objectCollection) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', err, {}, request)
+                                util.logError(request,`serverError`, { type: 'update_participant_count', error: serializeError(err) });
                                 return;
                             }
                         });
@@ -1122,7 +1124,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, {})
+                    util.logError(request,`serverError`, { type: 'update_participant_count', error: serializeError(err) });
                     return;
                 }
             });

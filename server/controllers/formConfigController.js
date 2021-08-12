@@ -5,6 +5,8 @@
 
 var FormConfigService = require("../services/formConfigService");
 const moment = require('moment');
+const logger = require("../logger/winstonLogger");
+const { serializeError } = require('serialize-error');
 
 function FormConfigController(objCollection) {
 
@@ -167,6 +169,7 @@ function FormConfigController(objCollection) {
 
 
     app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
+
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -191,11 +194,10 @@ function FormConfigController(objCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
+                                    util.logError(req.body,`error in setting in asset parity`, { type: 'form_activity_alter', error: serializeError(err) });
                                     //console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                 } else
-                                    //console.log("asset parity is set successfully")
-                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                util.logInfo(req.body,`asset parity is set successfully`);
 
                             });
                         }
@@ -209,9 +211,9 @@ function FormConfigController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
+            util.logError(req.body,`JSON error `, { type: 'form_activity_alter', error: serializeError(exeption) });
             res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
@@ -898,6 +900,36 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
+     app.post('/' + global.config.version + '/draft/form/delete', async (req, res) => {
+        const [err, formData] = await formConfigService.draftFormDeleteV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("/draft/form/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+    });
+
+    app.post("/" + global.config.version + "/activity/form/field/set",async function (req, res) {
+        
+        const [err, result] = await formConfigService.activityFormListUpdateFieldValue(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });    
+    
+    app.post("/" + global.config.version + "/activity/update/form/field/preview",async function (req, res) {
+        
+        const [err, result] = await formConfigService.activityFormFieldUpdatePreview(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });  
+
 }
 
 module.exports = FormConfigController;

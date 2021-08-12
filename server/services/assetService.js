@@ -16,6 +16,7 @@ const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
+
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -128,11 +129,32 @@ function AssetService(objectCollection) {
         console.log("request:: asset/passcode/alter/v2 :: "+JSON.stringify(request));
 
         let phoneNumber = request.asset_phone_number;
+        let email = request.email;
         let countryCode = undefined;
         let emailId = request.asset_email_id;
         let verificationMethod = Number(request.verification_method);
         let organizationId = request.organization_id;
         //let appID = Number(request.app_id) || 0;
+
+        // email wrapper
+
+        if(email) {
+            let [error, response] = await this.getAssetPhoneNumberDetals(request, email);
+
+            if(response.length > 1) {
+                return callback(true, {
+                    message: `Multiple resources are linked with your email`
+                }, 400);
+            }
+            if(response.length) {
+                phoneNumber = "+" + response[0].operating_asset_phone_country_code + response[0].operating_asset_phone_number;
+            }
+
+            request.asset_phone_number = phoneNumber;
+            console.log("Got Email in the request--", email, phoneNumber, response);
+        }
+
+        console.log("Phone Number", phoneNumber);
 
         let phoneNumverValidationFlag = await cacheWrapper.getKeyValueFromCache('phone_number_validation');
         if('1' === phoneNumverValidationFlag) {
@@ -215,6 +237,8 @@ function AssetService(objectCollection) {
         
         try {
             let responseCode = 200;
+            phoneNumber = isNaN(Number(phoneNumber)) ? "0" : phoneNumber;
+            countryCode = isNaN(Number(countryCode)) ? 0 : countryCode;
             const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
             if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 10) {
                 // if (request.url.includes('v2')) { responseCode = 429; }
@@ -228,14 +252,16 @@ function AssetService(objectCollection) {
                 //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
                 // });
 
-                smsEngine.emit('send-sinfini-sms', {
-                    type: 'NOTFCTN',
-                    countryCode,
-                    phoneNumber,
-                    msgString: smsMessage,
-                    failOver: true,
-                    appName: ''
-                });
+                if(!email) {
+                    smsEngine.emit('send-sinfini-sms', {
+                        type: 'NOTFCTN',
+                        countryCode,
+                        phoneNumber,
+                        msgString: smsMessage,
+                        failOver: true,
+                        appName: ''
+                    });
+                }
 
                 return;
             }
@@ -250,7 +276,7 @@ function AssetService(objectCollection) {
         }
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
-        if (verificationMethod === 1 || verificationMethod === 2) {
+        if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod == 3) {
             var paramsArr = new Array(
                 0, //organizationId,
                 phoneNumber,
@@ -301,6 +327,33 @@ function AssetService(objectCollection) {
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
                                 callback(false, { response }, 200);
                                 return;
+                            } else if (verificationMethod === 3) {
+                                request.passcode = selectData[0].asset_phone_passcode;
+                                forEachAsync(selectData, function (next, rowData) {
+                                    paramsArr = new Array(
+                                        rowData.asset_id,
+                                        rowData.organization_id,
+                                        verificationCode,
+                                        pwdValidDatetime
+                                    );
+                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                        assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                        });
+                                        next();
+                                    });
+
+                                });
+                                try {
+                                    await newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                } catch (error) {
+                                    console.log("getPhoneNumberAssetsV1 | Asset found | newUserPassCodeSet: ", error);
+                                }
+
+                                sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                callback(false, response , 200);
+                                return;
                             }
                         } else {
                             if (verificationMethod === 1) {
@@ -324,6 +377,18 @@ function AssetService(objectCollection) {
                                         // Operation error
                                         callback(false, {}, -9998);
                                     })
+                            } else if (verificationMethod === 3) {
+                                newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                    .then(function (data) {
+                                        request.passcode = data[0].phone_passcode;
+                                        // Passcode set in the DB
+                                        sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                        callback(false, { response }, 200);
+                                    }, function (err) {
+                                        // There was an error setting the passcode in the DB
+                                        callback(true, err, -9998);
+
+                                    });
                             }
                         }
                     } else {
@@ -337,6 +402,28 @@ function AssetService(objectCollection) {
             callback(false, {}, -3101);
         }
     };
+
+    this.getAssetPhoneNumberDetals = async function(request, email) {
+        let responseData = [];
+        let paramsArr = new Array(
+            email
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_operating_asset_email', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+            }
+
+        return [error, responseData];
+    
+    }
 
     async function checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request) {
         // IN p_phone_number VARCHAR(50), IN p_phone_country_code SMALLINT(6), 
@@ -899,10 +986,31 @@ function AssetService(objectCollection) {
             "asset_admin_access_data" :util.replaceDefaultString(rowArray[0]['asset_admin_access_data']),
             "organization_flag_enable_form_tag" :util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_form_tag']),
             "asset_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['asset_flag_arp_settings_enabled']),
-            "asset_arp_data":util.replaceDefaultNumber(rowArray[0]['asset_arp_data']),
+            "asset_arp_data":util.replaceDefaultString(rowArray[0]['asset_arp_data']),
             "workforce_flag_arp_settings_enabled":util.replaceDefaultNumber(rowArray[0]['workforce_flag_arp_settings_enabled']),
             "workforce_arp_data":util.replaceDefaultString(rowArray[0]['workforce_arp_data']),
             "account_arp_data":util.replaceDefaultString(rowArray[0]['account_arp_data']),
+
+            //tags
+            "asset_tag_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_1']),
+            "asset_tag_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_name_1']),
+            "asset_tag_type_id_1" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_1']),
+            "asset_tag_type_name_1" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_1']),
+            "asset_tag_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_2']),
+            "asset_tag_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_name_2']),
+            "asset_tag_type_id_2" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_2']),
+            "asset_tag_type_name_2" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_2']),
+            "asset_tag_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_id_3']),
+            "asset_tag_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_name_3']),
+            "asset_tag_type_id_3" : util.replaceDefaultNumber(rowArray[0]['asset_tag_type_id_3']),
+            "asset_tag_type_name_3" : util.replaceDefaultString(rowArray[0]['asset_tag_type_name_3']),
+
+            //TASI 
+            "organization_flag_enable_sip_module" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_sip_module']),
+            "asset_flag_sip_admin_access" : util.replaceDefaultNumber(rowArray[0]['asset_flag_sip_admin_access']),
+            "asset_flag_frontline" : util.replaceDefaultNumber(rowArray[0]['asset_flag_frontline']),
+            "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
+            "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export'])
         };
 
         callback(false, rowData);
@@ -1064,7 +1172,7 @@ function AssetService(objectCollection) {
         let[err, appData] = await activityCommonService.getAppName(request, appID);
         if(err) {
             //appName = 'TONY';
-            appName = 'Grene Go app.';
+            appName = 'greneOS app.';
         } else {
             appName = appData[0].app_name;
         }
@@ -1240,6 +1348,14 @@ function AssetService(objectCollection) {
 
                 break;
             case 3: //email
+                request.email_receiver_name="";
+                request.email_sender_name="greneOS";
+                //request.email_id = request.email_id;
+                request.email_sender="support@greneos.com";
+                request.subject = "greneOS App One Time Password";
+                request.body = `Hi, <br/> ${verificationCode} is your verification code for the ${appName}.`;
+                request.email_id = request.email;
+                this.sendEmail(request);
                 break;
 
         }
@@ -1837,7 +1953,13 @@ function AssetService(objectCollection) {
 
     var checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
 
+       
+
         var activityInlineData = JSON.parse(request.activity_inline_data);
+        if(activityInlineData.contact_phone_number==""){
+            callback(false, []);
+            return 
+          }
         if (contactAssetTypeId === 0) {
             contactAssetTypeId = activityInlineData.contact_asset_type_id;
         }
@@ -1862,7 +1984,11 @@ function AssetService(objectCollection) {
         }
     };
 
-    var archiveAsset = function (request){
+    var archiveAsset = async function (request){
+
+        let error= true,
+         responseData = [];
+
         var paramsArr = new Array(
             request.asset_id,
             request.organization_id,
@@ -1873,24 +1999,28 @@ function AssetService(objectCollection) {
         );
         var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
         if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, assetData) {
-                if (err === false) {
-                    return[false, assetData];
-                } else {
-                    return[true, err];
-                }
-            });
+             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    //logger.info("DD :: "+JSON.stringify(data));
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+        console.log(error ,":: ",responseData);
+        return [error, responseData];
     }
 
     var deleteAsset = function (request, callback) {
         var paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
-            request.asset_id,
+            request.target_asset_id,
             request.datetime_log
         );
-
+        console.log(paramsArr);
         var queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -2369,30 +2499,56 @@ function AssetService(objectCollection) {
      });
      
      };*/
-
+/*
     //PAM
-    this.removeAsset = async function (request, callback) {
+    this.removeAsset = async (request) => {
         console.log('util : ' + util);
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
         //archive asset data
-        let [archiveErr,_]=await archiveAsset(request)
-        if(archiveErr){
-            callback(err, {}, -9998);
-        }
         deleteAsset(request, function (err, AssetId) {
-            if (err === false) {
-                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
-                var responseDataCollection = {};
-                responseDataCollection.asset_id = AssetId;
-                callback(false, responseDataCollection, 200);
-            } else {
-                callback(err, {}, -9998);
-            }
-        });
+                if (err === false) {
+                    archiveAsset(request);
+                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+                    var responseDataCollection = {};
+                    responseDataCollection.asset_id = AssetId;
+                    return[false, responseDataCollection];
+                } else {
+                    return[err, {}]
+                }
+            });
     };
+*/
+    this.removeAsset = async (request) => {
 
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.target_asset_id,
+            request.organization_id,
+            request.target_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+                  archiveAsset(request);
+                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
     //PAM
     /*this.assetClockIn = function (request, callback) {
      var dateTimeLog = util.getCurrentUTCTime();
@@ -4838,9 +4994,9 @@ this.getQrBarcodeFeeback = async(request) => {
 
                 //send email
                 request.email_receiver_name="";
-                request.email_sender_name="DESKER";
+                request.email_sender_name="greneOS";
                 //request.email_id = request.email_id;
-                request.email_sender="admin@desker.co";
+                request.email_sender="support@greneos.com";
                 request.subject = "DESKER OTP";
                 request.body = "Hi, <br/> Desker signup verification code is "+verificationCode+".";
                 let self = this;
@@ -5497,11 +5653,12 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.tag_type_id || 0,
                 request.tag_id || 0,
                 request.cluster_tag_id || 0,
+                request.vertical_tag_id || 0,
                 request.flag || 1,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            const queryString = util.getQueryString('ds_p1_1_asset_access_level_mapping_select_flag', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_asset_access_level_mapping_select_flag', paramsArr);
             if (queryString !== '') {
                 db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
@@ -5998,6 +6155,93 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 28) {
+                            if (data.length == 0) {
+                        
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].vertical_tag_id == 0) {
+
+                                    request.tag_type_category_id = 3;
+                                    request.tag_type_id = data[0].vertical_tag_type_id;
+                                    
+                                    tagListOfTagTypeSelect(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+                                        singleData.tag_type_id = data[0].vertical_tag_type_id;
+                                        singleData.tag_type_name = data[0].vertical_tag_type_name;
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                        } else if (request.flag == 30) {
+
+                            if (data.length == 0) {
+                                
+                                singleData.query_status = 0;
+                                singleData.campaign_id = 0;
+                                singleData.campaign_title = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].campaign_id == 0) {
+
+                                    getCampaignSearchList(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.campaign_id = 0;
+                                        singleData.campaign_title = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {
+                                singleData.query_status = 0;
+                                singleData.campaign_id = 0;
+                                singleData.campaign_title = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -6373,6 +6617,26 @@ this.getQrBarcodeFeeback = async(request) => {
             }
         });
     };
+
+    function getCampaignSearchList(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_id,
+                request.activity_type_id,   
+                request.is_search || 0,
+                request.search_string || '',             
+                request.page_start || 0,
+                request.page_limit || 10
+            );
+            var queryString = util.getQueryString('ds_v1_activity_search_list_select_campaign_search', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };    
 
     this.insertResourceTimesheet = async function (request) {
         let responseData = [],
@@ -7163,6 +7427,209 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
-}
 
+    this.assetListByEmail = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.asset_email_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_operating_asset_email', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.assetCertificateSet = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [     
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.professional_details,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_professional_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+
+    this.assetListUpdateTags = async (request) => {
+
+        /*
+            IF p_flag = 0 THEN update all tags
+            IF p_flag = 1 THEN update tag_1
+            IF p_flag = 2 THEN update tag_2
+            IF p_flag = 3 THEN update tag_3
+        */
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+            request.asset_id,
+            request.tag_id_1,
+            request.tag_id_2,
+            request.tag_id_3,
+            request.organization_id,
+            request.workforce_id,
+            request.account_id,
+            request.flag || 0,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        
+        const queryString = util.getQueryString('ds_p1_asset_list_update_tag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }
+
+    this.reporteeListByRoleOfAManager = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.target_asset_id,
+              request.manager_asset_id,
+              request.asset_type_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_role_reportees', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }    
+    this.fetchCompanyDefaultAssetName = async function (request) {
+        let assetName = 'greneOS',
+            error = true,
+            idOrganization = 1;
+        let assetId = 100;
+        if(request.is_pam){
+            assetId = 9841;
+            idOrganization = 351;
+        }
+
+        let paramsArr = new Array(
+            idOrganization,
+            assetId
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    assetName = data[0].asset_first_name;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetName];
+    };
+
+    this.getDeskAssetArchiveList = async (request) => {
+
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = [     
+              request.organization_id,
+              request.asset_id,
+              request.page_start,
+              request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_archive_list_select_asset_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    }  
+
+    this.getEmailResourceList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.operating_asset_email
+        ];
+
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
+}
 module.exports = AssetService;

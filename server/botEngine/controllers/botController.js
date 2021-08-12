@@ -288,7 +288,19 @@ function BotController(objCollection) {
             global.logger.write('/activity/set/status/due_date', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });      
+    });   
+    app.post('/' + global.config.version + '/activity/set/status/due_date/v1', async (req, res) => {
+        
+            let [err,result] = await rmbotService.getWorkflowStatusDueDateBasedOnAssetBusinessHoursV1(req.body);
+           if(!err){
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+           }
+           else{      
+            global.logger.write('/activity/set/status/due_date', err, {}, {});
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+           }
+        
+    });     
     
     app.post('/' + global.config.version + '/asset/lead/summary', async (req, res) => {
         try {
@@ -326,6 +338,16 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/opportunity/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/calendar/set', async (req, res) =>{
+        const [err, responseData] = await botService.generateCalendarEventID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/calendar/set | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
     });
@@ -427,6 +449,15 @@ function BotController(objCollection) {
         } else {
             console.log("/reminder-bot/consume | Error: ", err);
             res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/bot/participant/add/email', async (req, res) => {
+        const [err, data] = await botService.addParticipantByEmail(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /bot/participant/add/email : ', err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 }

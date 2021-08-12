@@ -561,7 +561,9 @@ function ActivityPushService(objectCollection) {
                                         Number(request.asset_id) === 31993 ||
                                         Number(request.asset_id) === 100
                                     ) {
-                                        senderName = "TONY";
+                                        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+
+                                        senderName = defaultAssetName;
                                     }
                                     switch (request.url) {
                                         case '/' + global.config.version + '/activity/timeline/entry/add':
@@ -767,9 +769,31 @@ function ActivityPushService(objectCollection) {
                                             pushString = {};
                                             break;
                                     }
+
+                                    if(pushString.body) {
+                                        pushString.subtitle = pushString.subtitle.replace(/<[^>]*>?/gm, '');
+                                        pushString.description = pushString.description.replace(/<[^>]*>?/gm, '');
+                                    }
+                                    
+
                                     console.log("getPushString | request.url: ", request.url);
                                     console.log("getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
                                     console.log("getPushString | pushString: ", pushString);
+
+                                    function unicodeToChar(text) {
+                                        if(!text) {
+                                            return text;
+                                        }
+                                        return text.replace(/\\u[\dA-F]{4}/gi, 
+                                               function (match) {
+                                                    return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+                                            });
+                                    }
+                                    pushString.description = unicodeToChar(pushString.description);
+
+                                    pushString.subtitle = unicodeToChar(pushString.subtitle);
+
+
                                     console.log("getPushString | msg: ", msg);
                                     console.log("getPushString | request.asset_id: ", request.asset_id);
                                 } else {
@@ -791,7 +815,9 @@ function ActivityPushService(objectCollection) {
                             Number(request.asset_id) === 31993 ||
                             Number(request.asset_id) === 100
                         ) {
-                            senderName = "TONY";
+                            const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
+
+                            senderName = defaultAssetName;
                         }
                         switch (request.url) {
 

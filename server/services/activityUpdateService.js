@@ -49,6 +49,7 @@ function ActivityUpdateService(objectCollection) {
             callback(true, false);
         }
         
+        console.log("Update JSon,", coverJson);
         var paramsArr = new Array();
         var queryString = '';
         /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
@@ -78,6 +79,7 @@ function ActivityUpdateService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
             );
+           
             queryString = util.getQueryString('ds_v1_activity_list_update_calender_cover', paramsArr);
         } else if (coverJson.hasOwnProperty('activity_completion_percentage')) {
             paramsArr = new Array(
@@ -670,7 +672,7 @@ function ActivityUpdateService(objectCollection) {
 
 
     this.alterActivityInline = function (request, callback) {
-
+        
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -769,7 +771,7 @@ function ActivityUpdateService(objectCollection) {
                     newRequest.message_unique_id = request.message_unique_id;
 
                     // console.log('newRequest: ', newRequest);
-                    global.logger.write('debug', 'newRequest: ' + JSON.stringify(newRequest, null, 2), {}, request);
+                    util.logInfo(request,`newRequest  %j`, JSON.stringify(newRequest, null, 2));
 
                     var options = {
                         form: newRequest
@@ -777,12 +779,15 @@ function ActivityUpdateService(objectCollection) {
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         // console.log('body:', body);
-                        global.logger.write('debug', 'body: ' + JSON.stringify(body), {}, request);
+
+                        if(error) {
+                            util.logError(request,`error`, { type: 'alter_activity_inline', error: serializeError(error) });
+                        }
+                        util.logInfo(request,`body  %j`, JSON.stringify(body));
 
                         body = JSON.parse(body);
 
                         // console.log('error : ', error);
-                        global.logger.write('debug', error, error, request);
 
                         var resp = {
                             status: body.status,
@@ -1295,7 +1300,7 @@ function ActivityUpdateService(objectCollection) {
 
                     newRequest.operation_type_id = 17;
                     const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1.length);
                     if(respData1.length > 0) {
                         //for(let i = 0; i<respData.length; i++) {
                         //    

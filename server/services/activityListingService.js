@@ -591,7 +591,7 @@ function ActivityListingService(objCollection) {
 			request.workforce_id,
 			request.datetime_differential,
 			request.page_start,
-			util.replaceQueryLimit(request.page_limit)
+			request.page_limit
 		);
 		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_coworker', paramsArr);
 		if (queryString != '') {
@@ -1763,10 +1763,11 @@ function ActivityListingService(objCollection) {
 
 	};
 
-	this.getOrganizationsOfANumber = function (requestHeaders, request, callback) {
+	this.getOrganizationsOfANumber = async function (requestHeaders, request, callback) {
 		var queryString = '';
 		let phoneNumber;
 		let countryCode;
+		let email;
 
 		if ((Number(requestHeaders['x-grene-auth-flag']) === 1) || !(requestHeaders['x-grene-auth-flag'])) { //Redis			
 			phoneNumber = request.phone_number;
@@ -1775,6 +1776,8 @@ function ActivityListingService(objCollection) {
 			if (requestHeaders.hasOwnProperty('x-grene-p-code-flag') && (Number(requestHeaders['x-grene-p-code-flag']) === 1)) {
 				phoneNumber = request.phone_number;
 				countryCode = request.country_code;
+			} else if(requestHeaders.hasOwnProperty('x-grene-e-flag') && (Number(requestHeaders['x-grene-e-flag']) === 1)) { // email OTP
+				email = requestHeaders['x-grene-e'];
 			} else {
 				phoneNumber = requestHeaders['x-grene-p-code'];
 				countryCode = requestHeaders['x-grene-c-code'];
@@ -1787,7 +1790,13 @@ function ActivityListingService(objCollection) {
 			countryCode  //request.country_code
 		);
 
-		if (request.hasOwnProperty("allow_temp_organization")) {
+		if(email) {
+			const paramsArr = new Array(
+				request.organization_id || 0,
+				email
+			);
+			queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+		} else if (request.hasOwnProperty("allow_temp_organization")) {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
 		} else {
 			queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all_filter', paramsArr);
@@ -1796,16 +1805,26 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
+					let organizationMap = {}, duplicateOrganization = false;
 					if (Array.isArray(data)) {
 						data = data.map((assetData) => {
+
+							if(organizationMap[assetData.organization_id]) {
+								duplicateOrganization = true;
+							}
 							delete assetData.asset_phone_passcode;
 							delete assetData.asset_passcode_expiry_datetime;
 							delete assetData.asset_passcode_expiry_datetime;
 							delete assetData.asset_push_notification_id;
+							organizationMap[assetData.organization_id] = 1;
 							return assetData;
 						});
 					}
-					callback(false, data, 200);
+
+					if(requestHeaders.hasOwnProperty('x-grene-e-flag') && duplicateOrganization) 
+						return callback({ message : "Your email is linked with more than one resource"}, {}, -3299);
+					else 
+						callback(false, data, 200);
 				} else {
 					callback(err, false, -9999);
 				}
@@ -2629,7 +2648,21 @@ function ActivityListingService(objCollection) {
 				request.page_start,
 				request.page_limit
 			);
-			const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+			// const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+
+			let queryString = '';
+			if(request.flag != 10)
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v1', paramsArr);
+		    else if(request.flag == 10){
+			    paramsArr.pop();
+				paramsArr.pop();
+				paramsArr.push(request.activity_status_id);
+				paramsArr.push(request.activity_type_id);
+				paramsArr.push(request.page_start);
+				paramsArr.push(request.page_limit);
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v2', paramsArr);
+		    }
+
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
@@ -3447,7 +3480,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_queue_asset_flag', paramsArr);
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
+				.then(async (data) => {
 					//console.log('DATA : ', data);
 					for (const i of data) {
 						let queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
@@ -3455,6 +3488,15 @@ function ActivityListingService(objCollection) {
 						i.activity_status_id = queueActMapInlineData.queue_sort.current_status_id;
 						i.activity_status_name = queueActMapInlineData.queue_sort.current_status_name;
 					}
+
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						data = dataWithParticipant;
+					} catch (error) {
+						console.log("getQueueActivitiesAllFilters | Error", error);
+						// resolve(data);
+					}
+
 					responseData = data;
 					error = false;
 				})
@@ -3797,6 +3839,7 @@ function ActivityListingService(objCollection) {
 		let attachmentsList = [];
         attachmentsList.push(s3Url);
 		let addCommentRequest = Object.assign(request, {});
+        const [error1, defaultAssetName] = await activityCommonService.fetchCompanyDefaultAssetName(request);
 
         addCommentRequest.asset_id = 100;
         addCommentRequest.device_os_id = 7;
@@ -3804,16 +3847,16 @@ function ActivityListingService(objCollection) {
         addCommentRequest.activity_type_id = request.parent_activity_id;
         addCommentRequest.activity_id = request.parent_activity_id;
         addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added Bulk Summary Data attachment(s).`,
-            "subject": `Tony has added Bulk Summary Data attachment(s).`,
-            "mail_body": `Tony has added Bulk Summary Data attachment(s).`,
+            "content": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
+            "subject": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
+            "mail_body": `${defaultAssetName} has added Bulk Summary Data attachment(s).`,
             "attachments": attachmentsList
         });
         addCommentRequest.activity_stream_type_id = 325;
         addCommentRequest.timeline_stream_type_id = 325;
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.operating_asset_first_name = defaultAssetName;
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
@@ -3834,6 +3877,136 @@ function ActivityListingService(objCollection) {
 
 	};
 
+	this.getActivityFormList = async (request) => {
+
+		let responseData = [],
+			error = true;
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_id, 
+			request.form_transaction_id,
+			request.workflow_activity_id
+		);
+		const queryString = util.getQueryString('ds_v1_activity_form_list_select', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		
+		return [error, responseData];
+	};
+	
+	this.getActivityUserParticipatingStatus = async (request) => {
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
+      request.organization_id,
+      request.account_id,
+      request.workforce_id,
+      request.asset_id,
+      request.flag,
+      request.is_active,
+      request.is_due,
+      util.getCurrentUTCTime(),
+      request.is_unread,
+      request.start_from,
+      request.limit_value
+    );
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_myqueue_status",
+      paramsArr
+    );
+
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
+
+    return [error, responseData];
+  };
+
+  this.getWorkflowBaseOnStatus = async (request) => {
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
+      request.organization_id,
+      request.account_id,
+      request.workforce_id,
+      request.asset_id,
+
+      request.activity_status_id,
+      request.activity_type_id,
+      request.flag,
+      request.start_from,
+      request.limit_value
+    );
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_status",
+      paramsArr
+    );
+
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
+
+    return [error, responseData];
+  };
+
+  this.getCountForFilters = async (request) => {
+    let responseData = [],
+      error = true;
+    const paramsArr = new Array(
+      request.organization_id,
+      request.account_id,
+      request.workforce_id,
+      request.asset_id,
+      request.flag,
+      request.start_from,
+      request.limit_value
+    );
+    const queryString = util.getQueryString(
+      "ds_v1_activity_asset_mapping_select_filter_count",
+      paramsArr
+    );
+
+    if (queryString !== "") {
+      await db
+        .executeQueryPromise(1, queryString, request)
+        .then(async (data) => {
+          responseData = data;
+          error = false;
+        })
+        .catch((err) => {
+          error = err;
+        });
+    }
+
+    return [error, responseData];
+  };	
+
 }
 
 module.exports = ActivityListingService;
+

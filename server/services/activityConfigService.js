@@ -1135,17 +1135,15 @@ function ActivityConfigService(db,util,objCollection) {
         else{
             checkPan =""
         }
-
         //Check the uniqueness of the account title
         if (isNameDedupeRequired) {
-            let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
-            if (accountTitleResponse.hits.hits.length > 0) {
+            let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+            if (isAccountPresent) {
                 console.log("Account name already exists!")
                 responseData.push({ 'message': 'Account Name already exists!' });
                 return [true, responseData];
             }
         }
-
 
         if (isPanDedupeRequired) {
             //Check the uniqueness of the pan number
@@ -1210,6 +1208,7 @@ function ActivityConfigService(db,util,objCollection) {
 
             console.log('Final Account Code : ', accountCode);
         }
+        let activity_title = ""
         //let activityTitleExpression = request.activity_title.replace(/\s/g, '').toLowerCase();
         //responseData.push({'generated_account_code' : accountCode, 'activity_title_expression': activityTitleExpression});
         responseData.push({'generated_account_code' : accountCode,'pan_number':panNumber.toUpperCase(),'gst_number':gstNumber.toUpperCase()});
@@ -1217,6 +1216,9 @@ function ActivityConfigService(db,util,objCollection) {
             let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
             if(activityData.length>0){
             accountCode = activityData[0].activity_cuid_3;
+            activity_title = activityData[0].activity_title;
+            activity_title = activity_title.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        activity_title = activity_title.split(' ').join('');
             }
          }
         if(Number(is_from_integrations) === 1) {
@@ -1235,8 +1237,19 @@ function ActivityConfigService(db,util,objCollection) {
             //Update the same in ElastiSearch
             console.log('hasAccountCode - ', hasAccountCode);
             if(!hasAccountCode) {
+                console.log("elastic data",{
+                    "activity_cuid_1":panNumber,
+                    "activity_cuid_2":gstNumber,
+                    "activity_cuid_3": accountCode,
+                    "activity_type_id": Number(request.activity_type_id),
+                    "workforce_id": Number(request.workforce_id),
+                    "account_id": Number(request.account_id),
+                    "activity_id": Number(request.workflow_activity_id),
+                    "asset_id": Number(request.asset_id),
+                    "activity_title_expression":activity_title
+                })
                 client.updateByQuery({
-                    index: 'crawling_accounts',
+                    index: global.config.elasticCrawlingAccountTable,
                     "body": {
                         "query": {
                             "match": {
@@ -1254,14 +1267,15 @@ function ActivityConfigService(db,util,objCollection) {
                                 "workforce_id": Number(request.workforce_id),
                                 "account_id": Number(request.account_id),
                                 "activity_id": Number(request.workflow_activity_id),
-                                "asset_id": Number(request.asset_id)
+                                "asset_id": Number(request.asset_id),
+                                "activity_title_expression":activity_title
                             }
                         }
                     }
                 });
             } else {
                 client.index({
-                    index: 'crawling_accounts',
+                    index: global.config.elasticCrawlingAccountTable,
                     body: {
                         activity_cuid_3: accountCode,
                         activity_type_id: Number(request.activity_type_id),
@@ -1291,8 +1305,8 @@ function ActivityConfigService(db,util,objCollection) {
         accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
         accountTitle = accountTitle.split(' ').join('')
 
-        let accountTitleResponse = await duplicateAccountNameElasticSearch(accountTitle);
-        if (accountTitleResponse.hits.hits.length > 0) {
+        let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+        if (isAccountPresent) {
             console.log("Account name already exists!")
             responseData.push({ 'message': 'Account Name already exists!' });
             return [true, responseData];
@@ -1307,7 +1321,7 @@ function ActivityConfigService(db,util,objCollection) {
         let activities = [];
         console.log('Searching elastisearch for pan number : ',request.pan_number);
         const response = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 query: {
                     match: {activity_cuid_1: request.pan_number}
@@ -1350,7 +1364,7 @@ function ActivityConfigService(db,util,objCollection) {
 
             console.log('Searching elastisearch for pan number : ',panNumber);
             const response = await client.search({
-                index: 'crawling_accounts',
+                index: global.config.elasticCrawlingAccountTable,
                 body: {
                     query: {
                         match: {activity_cuid_1: panNumber}
@@ -1385,26 +1399,45 @@ function ActivityConfigService(db,util,objCollection) {
 
     let duplicateAccountNameElasticSearch = async function (title) {
 
+        let isAccountPresent = false;
         console.log('Searching elastisearch for Accounyt title : ',title);
-        let resultData = await client.search({
-            index: 'crawling_accounts',
-            body: {
-                query: {
-                    bool: {
-                        must: [
-                            {
-                                match_phrase: {
-                                    activity_title_expression: title
-                                }
-                            }
-                        ],
+        let altQuery = `/${global.config.elasticCrawlingAccountTable}/_search?q=activity_title_expression:${title}`;
+                    // util.logInfo(request,"QUERY V1"+altQuery)
+                    let queryToPass = encodeURI(altQuery);
+        let resultData = await client.transport.request({
+            method: "GET",
+            path: queryToPass,
+        })
+        // let resultData = await client.search({
+        //     index: global.config.elasticCrawlingAccountTable,
+        //     body: {
+        //         query: {
+        //             bool: {
+        //                 must: [
+        //                     {
+        //                         match_phrase: {
+        //                             activity_title_expression: title
+        //                         }
+        //                     },
+        //                     {
+        //                       "range" : {"log_state" : {"lt" : 3}}
+        //                     }
+        //                 ],
 
-                    }
-                }
+        //             }
+        //         }
+        //     }
+        // });
+
+        console.log('response from ElastiSearch: ',JSON.stringify(resultData));
+
+        for(const i_iterator of resultData.hits.hits) {
+            if(i_iterator._source.log_state != 3 && i_iterator._source.activity_title_expression === title) {
+                isAccountPresent = true;
+                break;
             }
-        });
-        console.log('response from ElastiSearch: ',resultData);
-        return resultData;
+        }
+        return isAccountPresent;
     }
 
     async function generateAccountCode(request,botInlineData) {
@@ -2048,7 +2081,7 @@ function ActivityConfigService(db,util,objCollection) {
         //accountCode = 'S-CCMOTO17317-2HARDW';
         console.log('Searching elastisearch for account-code : ',accountCode);
         const response = await client.search({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 query: {
                     match: {activity_cuid_3: accountCode}
@@ -2092,10 +2125,13 @@ function ActivityConfigService(db,util,objCollection) {
         );
 
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
+                await activityCommonService.insertAssetMappingsinElastic({...request,asset_id:request.target_asset_id})
                 await botService.callAddTimelineEntry(request);
+                
                 responseData = data;
                 error = false;
             } catch(e) {
@@ -2219,7 +2255,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.panElasticEntry = async (request) => {
        await client.index({
-            index: 'crawling_accounts',
+            index: global.config.elasticCrawlingAccountTable,
             body: {
                 activity_cuid_3: '',
                 activity_type_id: Number(request.activity_type_id),
@@ -2238,6 +2274,31 @@ function ActivityConfigService(db,util,objCollection) {
 
         return [true,[]]
     }
+
+    this.getActivityPreviousStatusList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.current_activity_status_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v2_activity_status_change_txn_select_previous_status', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
     
 
 }

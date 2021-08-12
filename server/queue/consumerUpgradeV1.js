@@ -237,6 +237,17 @@ async function GetCacheWrapper() {
     } else {
         redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
     }
+    redisClient.config('set','notify-keyspace-events','KEA');
+
+    redisClient.on('connect',async function (response) {
+        logger.info('Redis Client Connected',{type: 'redis',response});
+    });
+    
+    redisClient.on('error',function (error) {
+        logger.error('Redis Error',{type: 'redis',error: serializeError(error)});
+        // console.log(error);
+    });
+
     const cacheWrapper = new CacheWrapper(redisClient);
     return cacheWrapper;
 }

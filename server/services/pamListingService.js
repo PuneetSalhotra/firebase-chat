@@ -183,6 +183,14 @@ function PamListingService(objectCollection) {
             rowDataArr.update_sequence_id = util.replaceDefaultNumber(rowData['update_sequence_id']);
             rowDataArr.asset_member_enabled = util.replaceDefaultNumber(rowData['asset_coffee_enabled']);
 
+            rowDataArr.manager_asset_id = util.replaceDefaultNumber(rowData['manager_asset_id']);
+            rowDataArr.manager_asset_first_name = util.replaceDefaultString(rowData['manager_asset_first_name']);
+            rowDataArr.manager_asset_last_name = util.replaceDefaultString(rowData['manager_asset_last_name']);
+
+            rowDataArr.manager_operating_asset_id = util.replaceDefaultNumber(rowData['manager_operating_asset_id']);
+            rowDataArr.manager_operating_asset_first_name = util.replaceDefaultString(rowData['manager_operating_asset_first_name']);
+            rowDataArr.manager_operating_asset_last_name = util.replaceDefaultString(rowData['manager_operating_asset_last_name']);
+ 
             responseData.push(rowDataArr);
             next();
         }).then(function () {
@@ -1428,12 +1436,12 @@ function PamListingService(objectCollection) {
         let paramsArr = new Array(
             request.organization_id,
             request.account_id || 452,
-            request.target_asset_id,
+            request.activity_id,
             request.asset_type_category_id,
             request.page_start,
             request.page_limit
         );
-        const queryString = util.getQueryString('pm_v1_asset_list_select_category', paramsArr);
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_activity_asset_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1495,6 +1503,109 @@ function PamListingService(objectCollection) {
             }
         });
         };
+
+    //Get PAM Role Module Mapping Details for the given asset_type_id
+    this.getPamRoleModuleMappingDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.asset_type_id,
+                request.start_limit,
+                request.end_limit
+            );
+            var queryString = util.getQueryString('ds_p1_pam_module_role_mapping_select_asset_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                        if(err === false) {
+                            resolve(data);	        			      			  
+                        } else {
+                            reject(err);
+                        }
+                });
+            }
+        });
+    }
+    
+    this.listSelectParentActivity = async(request) => {
+      let responseData = [],
+            error = true;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.parent_activity_id,
+                request.page_start,
+                request.page_limit ,
+            );
+        const queryString = util.getQueryString('pm_v1_activity_list_select_parent_activity', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;              	
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    };
+
+    this.getReservationStatusTrack = async(request) => {
+        let responseData = {},
+              error = true;
+  
+          var paramsArr = new Array(
+                  request.organization_id,
+                  request.activity_type_category_id,
+                  request.parent_activity_id,
+                  request.page_start,
+                  request.page_limit ,
+              );
+          const queryString = util.getQueryString('pm_v1_activity_list_select_parent_activity', paramsArr);
+          if (queryString !== '') {
+              await db.executeQueryPromise(1, queryString, request)
+                  .then(async (data) => {
+                      responseData.orders = data;
+                      if(request.is_track == 1){
+                          responseData.status =  await this.listSelectActivityHistory(request);
+                      }                      
+                      error = false;
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+          }
+  
+          return [error, responseData];
+      };
+
+    this.listSelectActivityHistory = async(request) => {
+        let responseData = [],
+              error = true;
+  
+          var paramsArr = new Array(
+                  request.organization_id,
+                  request.activity_type_category_id,
+                  request.parent_activity_id,
+                  request.page_start,
+                  request.page_limit ,
+              );
+          const queryString = util.getQueryString('pm_v1_activity_list_history_select_activity', paramsArr);
+          if (queryString !== '') {
+              await db.executeQueryPromise(1, queryString, request)
+                  .then((data) => {
+                      responseData = data;
+                      error = false;
+                  })
+                  .catch((err) => {
+                      error = err;
+                  })
+          }
+  
+          return responseData;
+      };    
 };
 
 module.exports = PamListingService;

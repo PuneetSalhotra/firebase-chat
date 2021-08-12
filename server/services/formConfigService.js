@@ -24,6 +24,8 @@ function FormConfigService(objCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const self = this;
+    const logger = require("../logger/winstonLogger");
+    const { serializeError } = require("serialize-error");
 
     function isArray(obj) {
         return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
@@ -508,32 +510,32 @@ function FormConfigService(objCollection) {
 
         //If the parameter activity_id is form_activity_id then proceed else check and the get the form_activity_id and append
         let [err, responseData] = await checkWhetherFormWorkflowActID({
+            log_uuid : request.log_uuid,
             form_transaction_id: request.form_transaction_id,
             organization_id: request.organization_id
         });
 
         let activityTypeID = 0;
         let workflowActID = 0;
-        if(responseData.length > 0) {            
-            console.log('Form Activity ID - ', responseData[0].form_activity_id);
-            console.log('Workflow Activity ID - ', responseData[0].workflow_activity_id);
-            console.log('request.activity_id - ', request.activity_id);
-            console.log('responseData[0].activity_type_id - ', responseData[0].activity_type_id);
+        if(responseData.length > 0) {
+            util.logInfo(request,`Form Activity ID %j`,responseData[0].form_activity_id);
+            util.logInfo(request,`Workflow Activity ID -  %j`,responseData[0].workflow_activity_id);
+            util.logInfo(request,`request.activity_id -  %j`,request.activity_id);
+            util.logInfo(request,`responseData[0].activity_type_id - %j`,responseData[0].activity_type_id);
             
             workflowActID = responseData[0].workflow_activity_id;
             activityTypeID = Number(responseData[0].activity_type_id);
 
             if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
-                console.log('Received workflow_Activity_Id instead of form_activity_id from request');
+                util.logInfo(request,`Received workflow_Activity_Id instead of form_activity_id from request`);
                 request.activity_id = responseData[0].form_activity_id;
             } else {
-                console.log('Received form_activity_id from request. Hence proceeeding!');
+                util.logInfo(request,`Received form_activity_id from request. Hence proceeeding!`);
             }
         }        
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var newData = activityInlineData[0];        
-        console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         var dataTypeId = Number(newData.field_data_type_id);
         //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
@@ -557,7 +559,7 @@ function FormConfigService(objCollection) {
 
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             if (err === false) {
-                console.log('Data from activity_list: ', data);
+                util.logInfo(request,`Data from activity_list: %j`, data.length);
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
@@ -586,10 +588,10 @@ function FormConfigService(objCollection) {
                                 newFieldValue = jsonData.transaction_data.transaction_amount;
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
 
-                                console.log('Old Transaction Amount: ', oldFieldValue);
-                                console.log('New Transaction Amount: ', newFieldValue);
+                                util.logInfo(request,`Old Transaction Amount: %j`, oldFieldValue);
+                                util.logInfo(request,`New Transaction Amount: %j`, newFieldValue);
                             } catch (err) {
-                                console.log(err);
+                                util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         
@@ -623,7 +625,7 @@ function FormConfigService(objCollection) {
                                 
                                 oldFieldValue = oldFieldData.transaction_data.transaction_amount;
                             } catch (err) {
-                                console.log(err);
+                                util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
                             }
                         }
                         // newData.field_name = row.field_name;
@@ -633,8 +635,8 @@ function FormConfigService(objCollection) {
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
-                    console.log("/activity/form/alter data_type_category_id "+newData.field_data_type_category_id+" exists in simple categories : "+simpleDataTypes.includes(newData.field_data_type_category_id));
-                    if(simpleDataTypes.includes(newData.field_data_type_category_id)){
+                    util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                         } else {
@@ -661,15 +663,15 @@ function FormConfigService(objCollection) {
 
                         if (data.length > 0) {
                             let x = data[0];
-                            console.log('update_sequence_id : ', x.update_sequence_id);
                             request.update_sequence_id = ++x.update_sequence_id;
+                            util.logInfo(request,`update_sequence_id : ${request.update_sequence_id}`);
                         } else {
                             request.update_sequence_id = 1;
                         }
 
                         activityInlineData[0].old_field_value = oldFieldValue;
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
-                        console.log('After putLatestUpdateSeqId');                            
+                            util.logInfo(request,`After putLatestUpdateSeqId`);                       
 
                             var event = {
                                 name: "alterActivityInline",
@@ -680,11 +682,10 @@ function FormConfigService(objCollection) {
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                 } else {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                    util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
                                 }
                             });
 
@@ -702,18 +703,17 @@ function FormConfigService(objCollection) {
 
                                 queueWrapper.raiseActivityEvent(event, workflowActID, (err, resp) => {
                                     if (err) {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
+                                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, newReq);
-                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, newReq);
+                                        util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`, resp);
                                     }
                                 }); 
                             }
 
                         }).catch((err) => {
                             // global.logger.write(err);
-                            console.log(err);
+                            util.logError(request,`Error in putLatestUpdateSeqId`, { type: 'alter_form', error: serializeError(err) });
                         });
 
                         //Analytics for Widget
@@ -723,8 +723,7 @@ function FormConfigService(objCollection) {
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
                         if (formConfigError !== false) {
                             // return [formConfigError, formConfigData];
-                            console.log("Error: ", formConfigError);
-
+                            util.logError(request,`formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
                                 workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
@@ -732,7 +731,7 @@ function FormConfigService(objCollection) {
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
-                                console.log("[alterFormActivity] Workflow trigger on form edit: ", error);
+                                util.logError(request,`[alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
                             }
                         }
 
@@ -758,7 +757,7 @@ function FormConfigService(objCollection) {
                             let rebuildCafRequest = Object.assign({}, request);
                             rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
 
-                            console.log("[regenerateAndSubmitCAF] activityInlineData: ", activityInlineData);
+                            util.logInfo(request,`[regenerateAndSubmitCAF] activityInlineData: %j`, activityInlineData);
 
                             let rebuildCafEvent = {
                                 name: "vodafoneService",
@@ -817,8 +816,7 @@ function FormConfigService(objCollection) {
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
                             global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
-                                global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
-                                global.logger.write('debug', data, {}, request);
+                                util.logInfo(request,`workflow_activity_id %j`,data[0].activity_id);
 
                                 if (data.length > 0) {
                                     let newOrderFormActivityId = Number(data[0].activity_id);
@@ -847,24 +845,23 @@ function FormConfigService(objCollection) {
                                         payload: fire713OnNewOrderFileRequest
                                     };
 
-                                    global.logger.write('conLog', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m", {}, request);
+                                    util.logInfo(request,`Raising 713 entry onto New Order Form %j`,fire713OnNewOrderFileRequest);
                                     queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                                         if (err) {
-                                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                                         } else {
-                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
                                         }
                                     });
                                 } else {
-                                    global.logger.write('conLog', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m", {}, request);
+                                    util.logInfo(request,`Data from this call fetchReferredFormActivityId is empty`);
                                 }
 
                             });
                         }
 
                     }).catch((err) => {
-                        global.logger.write(err);
+                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     });
                 });
 
@@ -895,14 +892,12 @@ function FormConfigService(objCollection) {
     }
 
     function putLatestUpdateSeqId(request, activityInlineData, completeInlineData = []) {
-        console.log('Activity Inline Data : ', activityInlineData);
+        util.logInfo(request,`Activity Inline Data :  %j`, activityInlineData);
         return new Promise(async (resolve, reject) => {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
             let annexureFields = widgetFieldsStatusesData.ANNEXURE_FIELDS;
             let annexureExcelFilePath = "";
-            console.log("field ids");
-            console.log(annexureFields);
             let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
             let OTC_1_ValueFields = widgetFieldsStatusesData.OTC_1;
             let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
@@ -937,9 +932,9 @@ function FormConfigService(objCollection) {
                     default: break;
                 }
             }
-            console.log("[putLatestUpdateSeqId | widgets] otc_1: ", otc_1);
-            console.log("[putLatestUpdateSeqId | widgets] arc_1: ", arc_1);
-            console.log("[putLatestUpdateSeqId | widgets] arc_2: ", arc_2);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] otc_1: ${otc_1}`);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
+            util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
 
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
@@ -981,7 +976,6 @@ function FormConfigService(objCollection) {
 
                 var dataTypeId = Number(row.field_data_type_id);
                 request['field_value'] = row.field_value;
-                console.log('dataTypeId : ', dataTypeId);
                 switch (dataTypeId) {
                     case 1: // Date
                     case 2: // future Date
@@ -1020,8 +1014,6 @@ function FormConfigService(objCollection) {
                         break;
                     case 52: // Excel Document
                         annexureExcelFilePath = row.field_value;
-                        console.log("annexureExcelFilePath");
-                        console.log(annexureExcelFilePath);
                         params[18] = row.field_value;
                         break;
                     case 53: // IP Address Form
@@ -1113,9 +1105,10 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 18: //Money with currency name
-                        var money = row.field_value.split('|');
-                        params[15] = money[0];
-                        params[18] = money[1];
+                        var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                        params[14] = money.value;
+                        params[18] = money.code;
+                        params[27] = JSON.stringify(money)
                         break;
                     case 19: //Short Text
                         params[18] = request.new_field_value || row.field_value;
@@ -1201,7 +1194,7 @@ function FormConfigService(objCollection) {
                                 params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                console.log('ERROR in field edit - 57 : ', err);
+                                util.logError(request,`ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1239,7 +1232,7 @@ function FormConfigService(objCollection) {
 
                                 params[27] = JSON.stringify(tempObj);
                             } catch (err) {
-                                console.log('ERROR in field edit - 57 : ', err);
+                                util.logError(request,`ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
                         }
                         break;
@@ -1274,7 +1267,7 @@ function FormConfigService(objCollection) {
                                 params[16] = amount; // Debit
                             params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                         } catch (err) {
-                            console.log(err);
+                            util.logError(request,`ERROR in field edit - 62 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                         }
                         break;
                     case 64: // Address DataType
@@ -1360,34 +1353,48 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                util.logInfo(request,`In formConfigService - addFormEntries params %j`, JSON.stringify(params));
 
                 // let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                  let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_insert_field_update', params);
                 if(Number(request.asset_id) === 0 || request.asset_id === null) {
-                    global.logger.write('conLog', '\x1b[ds_p1_1_activity_form_transaction_insert_field_update as asset_id is - \x1b[0m' + request.asset_id);
+                    util.logInfo(request,`ds_p1_1_activity_form_transaction_insert_field_update as asset_id is %j`, request.asset_id);
                 }
                 else {
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, async function (err, data) {
     
-                            global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
+                            util.logInfo(request,`update field_value in widget row.field_id ${row.field_id}  row.field_value ${row.field_value} request.asset_id ${request.asset_id}`);
     
+                            self.activityFormListUpdateFieldValue(request);
+
                             let idWorkflow = 0;
                             let idWorkflowType = 0;
-
-                        activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                            activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
+                                if(workflowData.length > 0) {
+                                    util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+                                }
+                            });
+/*
+                            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, 0, formTransactionId, 0);
+                            if(workflowData.length > 0) {
+                                util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+                            }
+*/
+                        /*activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{  
                             if(workflowData.length > 0) {
                                 if(Number(workflowData[0].activity_type_id) !== 134564 && //MPLS CRF
                                 Number(workflowData[0].activity_type_id) !== 134566 && //ILL CRF
                                 Number(workflowData[0].activity_type_id) !== 134573 && //NPLC CRF
                                 Number(workflowData[0].activity_type_id) !== 134575 &&
-                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF                                                                           
-                                        console.log("addValueToWidgetForAnalyticsWF "+request.activity_id+" : WorkflowActivityId - "+workflowData[0].activity_id+" : WorkflowActivityTypeId - "+workflowData[0].activity_type_id);
-                                        addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
+                                Number(workflowData[0].activity_type_id) !== 152451) { //FLV CRF    
+                                    util.logInfo(request,`addValueToWidgetForAnalyticsWF request.activity_id ${request.activity_id}  WorkflowActivityId ${workflowData[0].activity_id} workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
+                                    addValueToWidgetForAnalyticsWF(request, workflowData[0].activity_id, workflowData[0].activity_type_id, 1);
                                     }
                             }
-                        });
+                        });*/
 
     
                             if(Object.keys(orderValueFields).includes(String(row.field_id))){
@@ -1402,10 +1409,10 @@ function FormConfigService(objCollection) {
                                                 widgetAggrFieldValueUpdateWorkflow(request);
                                                 //await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
                                             } else {
-                                                console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                                util.logInfo(request,`Field Value is not a number || Total Order Value Field ${row.field_value}`);
                                             }                                            
                                         }else{
-                                                console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                            util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_id}`);
                                         }                                        
                                     }                                
                                 });
@@ -1426,16 +1433,15 @@ function FormConfigService(objCollection) {
                                              //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                     }
     
-                                    console.log('valueflag :: '+valueflag);
+                                    util.logInfo(request,`valueflag ::  ${valueflag}`);
                                     request['flag'] = valueflag;
-    
-                                    console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+                                    util.logInfo(request,`row.field_value :: ${row.field_value}`);
                                     let finalValue = 0;
                                     if(valueflag > 0){
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                         if(workflowData.length > 0){
     
-                                            if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                            /*if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                                 Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                                 Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
                                                 Number(workflowData[0].activity_type_id) === 134575 ||
@@ -1450,7 +1456,7 @@ function FormConfigService(objCollection) {
                                                 setTimeout(()=>{
                                                     updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
                                                 },3000);
-                                            }
+                                            }*/
     
                                             idWorkflow = workflowData[0].activity_id;
                                             idWorkflowType = workflowData[0].activity_sub_type_id;
@@ -1461,7 +1467,7 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                    util.logInfo(request,`Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }else{
     
@@ -1469,13 +1475,14 @@ function FormConfigService(objCollection) {
                                                     widgetAggrFieldValueUpdate(request);
                                                 }
                                                 else{
-                                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                                    util.logInfo(request,`Field Value is not a number || (not OTC || not ARC) Field ${row.field_value}`);
                                                 }
                                             }
                                         }
                                         });
-    
-                                    }else{                                    
+                                    }
+                                    /*}
+                                    else{                                    
                                         activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{                                        
                                             if(workflowData.length > 0){
                                                 
@@ -1497,20 +1504,19 @@ function FormConfigService(objCollection) {
                                             }           
                                                 
                                         });                                    
-    
-                                        console.log("This field is not configured to update in intermediate table "+row.field_id);
-                                    }
+                                        util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_value}`);
+                                    }*/
                                 }catch(err){
-                                    console.log('Error in updating Intermediate Table : ', err);
+                                    util.logError(request,`Error in updating Intermediate Table :`, { type: 'form_alter', error: serializeError(err) });
                                 }                             
     
                             }
     
-                             global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
+                            util.logInfo(request,`*****Update: update po_date in widget1 ******* ${row.field_id}`);
                              if(Object.keys(poFields).includes(String(row.field_id))){
-                                    global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
+                                util.logInfo(request,`*****Update: update po_date in widget1 ******* ${row.field_id}`);
                                     activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
-                                        global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
+                                        util.logInfo(request,`*****Update: update po_date in widget3 ******* ${activityData[0].channel_activity_id}`);                                     
                                         request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
                                         request['order_po_date'] = row.field_value;
                                         request['flag'] = 1;
@@ -1532,11 +1538,7 @@ function FormConfigService(objCollection) {
                                 let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
                                 let isFirstTimeExcelUploaded = true;
                                 let oldFormsData = await activityCommonService.getActivityTimelineTransactionByFormId(request, workflowData[0].activity_id, request.form_id);
-                                console.log(oldFormsData);
-                                console.log("oldFormsDataAkshay");
                                 for (const row of oldFormsData) {
-                                    console.log("row.data_entity_inline");
-                                    console.log(row.data_entity_inline);
                                     let dataEntityInline = [];
                                     try {
                                         if (typeof row.data_entity_inline === 'string') {
@@ -1546,13 +1548,13 @@ function FormConfigService(objCollection) {
                                         }
 
                                     } catch (e) {
-                                        console.log("error in checking old forms data");
+                                        lutil.logError(request,`error in checking old forms data`, { type: 'add_activity', error: serializeError(e) });
                                     }
                                     for (const formFields of dataEntityInline) {
                                         if (Object.keys(annexureFields).includes(String(formFields.field_id))) {
                                             if (formFields.field_value !== "") {
                                                 isFirstTimeExcelUploaded = false;
-                                                console.log("Excel file found in previous submission so do not create child order");
+                                                util.logInfo(request,`Excel file found in previous submission so do not create child order`);
                                             }
                                         }
                                     }
@@ -1560,12 +1562,8 @@ function FormConfigService(objCollection) {
                                 }
 
                                 if (isFirstTimeExcelUploaded && annexureExcelFilePath.length > 0) {
-                                    console.log("Excel is uploaded for 1st time so proceed");
-                                    console.log("childOrdersCreationTopicName");
-                                    console.log(childOrdersCreationTopicName);
-                                    console.log({
+                                    util.logInfo(request,` ${childOrdersCreationTopicName} %j`, {
                                         ...request,
-                                        workflow_activity_id: workflowData[0].activity_id,
                                         s3UrlOfExcel: annexureExcelFilePath
                                     });
 
@@ -1593,18 +1591,18 @@ function FormConfigService(objCollection) {
         let finalValueOfCAF;
             try{
                 let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, workflowActID);
-                console.log('activityDataResp:', activityDataResp);
+                util.logInfo(request,`activityDataResp: %j`, activityDataResp);
                 if (activityDataResp.length > 0) {
                     finalValueOfCAF = Number(activityDataResp[0].activity_workflow_value_1) +
                                       Number(activityDataResp[0].activity_workflow_value_2) +
                                       Number(activityDataResp[0].activity_workflow_value_3) +
                                       Number(activityDataResp[0].activity_workflow_value_4) +
                                       Number(activityDataResp[0].activity_workflow_value_5);
-                }                
-                console.log('FINAL VALUE OF CAF : ', finalValueOfCAF);
+                }
+                util.logInfo(request,`FINAL VALUE OF CAF :  %j`, finalValueOfCAF);                
                 await activityCommonService.analyticsUpdateWidgetValue(request, workflowActID, 0, finalValueOfCAF);
             }catch(err){
-                console.log('ERROR : ', err);
+                util.logError(request,`ERROR`, { type: 'add_activity', error: serializeError(err) });
             }
     }
 
@@ -1833,6 +1831,7 @@ function FormConfigService(objCollection) {
                         let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
                         let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
                         let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
+                        let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 0 : Number(formField.field_preview_enabled);
 
                         let dataTypeId = Number(formField.datatypeid);                                           
 
@@ -1862,7 +1861,7 @@ function FormConfigService(objCollection) {
                                         inline_data: inlineData,
                                         field_sequence_id: fieldSequenceId,
                                         field_mandatory_enabled: fieldMandatoryEnabled,
-                                        field_preview_enabled: 0, // THIS NEEDS WORK
+                                        field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                                         field_value_edit_enabled: fieldValueEditEnabled,
                                         data_type_combo_id: index + 1,
                                         data_type_combo_value: comboEntry.label,
@@ -1899,7 +1898,7 @@ function FormConfigService(objCollection) {
                                     inline_data: inlineData,
                                     field_sequence_id: fieldSequenceId,
                                     field_mandatory_enabled: fieldMandatoryEnabled,
-                                    field_preview_enabled: 0, // THIS NEEDS WORK
+                                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                                     field_value_edit_enabled: fieldValueEditEnabled,
                                     data_type_combo_id: 0,
                                     data_type_combo_value: '',
@@ -2953,14 +2952,7 @@ function FormConfigService(objCollection) {
         //If origin Form and workflow Enabled?
         //Create a Workflow Activity
         //Make a 705 timeline entry with activity category 48
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
-        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
-        console.log('# # # # # # # # # # # # ENTRY # # # # # # # # # #  # # # # # # # # # # # # ');
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
+        util.logInfo(request,`# # Entry Add Workflow - File: formConfigService Func: workflowEngineAsync # # `);
 
         let workflowActivityId = request.workflow_activity_id || 0;
 
@@ -2968,13 +2960,10 @@ function FormConfigService(objCollection) {
 
         // Fetch form's config data
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
-        console.log('formConfigError : ', formConfigError);
-
+        util.logError(request,`formConfigError`, { type: 'workflow_engine', error: serializeError(formConfigError) });
         if (formConfigError !== false) {
             return [formConfigError, formConfigData];
         }
-
-        console.log('formConfigData.length : ', formConfigData.length);
 
         if (Number(formConfigData.length) > 0) {
             // Check if the form has an origin flag set
@@ -2992,8 +2981,6 @@ function FormConfigService(objCollection) {
                     workflowActivityTypeDefaultDurationDays = 5;
                 }
 
-            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            console.log('originFlagSet : ', originFlagSet);
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
                 await cacheWrapper
@@ -3009,8 +2996,7 @@ function FormConfigService(objCollection) {
                         return [err, formConfigData];
                     });
 
-                global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
-
+                    util.logInfo(request,`New activityId is %j`,{activityId});
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);
                     createWorkflowRequest.activity_id = Number(activityId);
@@ -3105,14 +3091,7 @@ function FormConfigService(objCollection) {
             }
         }
 
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
-        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
-        console.log('# # # # # # # # # # # # EXIT # # # # # # # # # #  # # # # # # # # # ');
-        console.log(' ');
-        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
-        console.log(' ');
+        logger.info('# # Exit Add Workflow - File: formConfigService, Func: workflowEngineAsync # # ');
 
         return [formConfigError, {formConfigData}];
     };
@@ -3173,8 +3152,9 @@ function FormConfigService(objCollection) {
         }
         workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
-        console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+        util.logInfo(request,`workflowActivityId %j`, workflowActivityId);
+        util.logInfo(request,`workflowActivityTypeID %j`, workflowActivityTypeID);
+
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
@@ -3191,7 +3171,7 @@ function FormConfigService(objCollection) {
         if (Number(formConfigData.length) > 0) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
-            console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+            util.logInfo(request,`formWorkflowActivityTypeId %{formWorkflowActivityTypeId}`);
 
             formWorkflowActivityTypeCategoryID = Number(formConfigData[0].form_workflow_activity_type_category_id) || 48;
             workflowFile713Request.activity_type_category_id = formWorkflowActivityTypeCategoryID || 48;
@@ -3203,10 +3183,10 @@ function FormConfigService(objCollection) {
                     await activityTimelineService.addTimelineTransactionAsync(workflowFile713Request);
                     //await addTimelineTransactionAsync(workflowFile713Request);
                 } catch (error) {
-                    console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
+                    util.logError(request,`addTimelineTransactionAsync`, { type: 'alter_form', error: serializeError(error) });
                 }
+                util.logInfo(request,`Calling [regenerateAndSubmitTargetForm]: %j`, request.activity_inline_data);
                 // Regenerate target form (if required/mapping exists), and then submit a 713 entry
-                console.log("Calling [regenerateAndSubmitTargetForm]: ", request.activity_inline_data);
 
                 const rebuildTargetFormEvent = {
                     name: "vodafoneService",
@@ -3216,10 +3196,9 @@ function FormConfigService(objCollection) {
                 };
                 queueWrapper.raiseActivityEvent(rebuildTargetFormEvent, request.activity_id, (err, resp) => {
                     if (err) {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
                     } else {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`, resp);
                     }
                 });
             }
@@ -3277,7 +3256,7 @@ function FormConfigService(objCollection) {
             let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
-            console.log("formFieldMapping: ", formFieldMapping);
+            util.logInfo(request,`formFieldMapping: %j`, formFieldMapping);
             //if (formFieldMapping.length > 0) {
 
             let fieldCopyOperations = [];
@@ -3289,7 +3268,7 @@ function FormConfigService(objCollection) {
                     Number(mapping.source_form_id) === Number(request.form_id) &&
                     Number(mapping.source_field_id) === Number(request.field_id)
                 ) {
-                    console.log("Match Found: ", mapping);
+                    util.logInfo(request,`Match Found: %j`,mapping);
                     fieldCopyOperations.push(mapping);
                     await activityCommonService
                         .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
@@ -3323,8 +3302,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 2500);
                 } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
-                    console.log("botService.initBotEngine Error!", error);
+                    util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
 
@@ -3343,8 +3321,7 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(newRequest);
                     }, 3000);
                 } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
-                    console.log("botService.initBotEngine Error!", error);
+                    util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
                 }
             }
         }
@@ -3387,7 +3364,7 @@ function FormConfigService(objCollection) {
         } catch (error) {
             // [LOGGING] Error fetching bots for this form 
             activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
-            console.log("workflowOnFormEdit | botListData | Error: ", error);
+            util.logError(request,`botListData `, { type: 'alter_form'});
         }
         
         // Fire the Bot Engine
@@ -3417,13 +3394,10 @@ function FormConfigService(objCollection) {
         }
         // ############################## BOT ENGINE REQUEST START ##############################
         
-        console.log();
-        console.log();
-        console.log("targetFormActivityId: ", targetFormActivityId);
-        console.log("targetFormTransactionId: ", targetFormTransactionId);
-        // console.log("targetFormInlineData: ", targetFormInlineData)
-        console.log("targetFormSubmittedData: ", targetFormSubmittedData);
-        console.log("targetFormName: ", targetFormName);
+        util.logInfo(request,`targetFormActivityId %j`, targetFormActivityId);
+        util.logInfo(request,` targetFormTransactionId %j`, targetFormTransactionId);
+        util.logInfo(request,`targetFormSubmittedData %j`, targetFormSubmittedData);
+        util.logInfo(request,`targetFormName %j`, targetFormName);
 
         return [formConfigError, {
             formConfigData
@@ -3516,7 +3490,7 @@ function FormConfigService(objCollection) {
                         data_type_combo_value: dataTypeComboValue,
                         field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
-                        field_preview_enabled: '0',
+                        field_preview_enabled: field.field_preview_enabled,
                         field_value_edit_enabled: field.field_value_edit_enabled,
                         inline_data: JSON.stringify(field.inline_data)
                     });
@@ -3540,6 +3514,43 @@ function FormConfigService(objCollection) {
                         data_type_combo_id: option.dataTypeComboId
                     });
                 }
+
+                if(fieldOptions.length === 0){
+                    let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
+
+                    const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId,
+                        field_name: fieldName,
+                        field_description: field.placeholder || '',
+                        data_type_combo_value: dataTypeComboValue,
+                        field_sequence_id: field.sequence_id,
+                        field_mandatory_enabled: fieldMandatoryEnabled,
+                        field_preview_enabled: field.field_preview_enabled,
+                        field_value_edit_enabled: field.field_value_edit_enabled,
+                        inline_data: JSON.stringify(field.inline_data)
+                    });
+                    if (updateError !== false) {
+    
+                    }
+                    // Update next field ID, if needed
+                    if (field.hasOwnProperty("next_field_id") && (Number(field.next_field_id) >= 0 || Number(field.next_field_id) === -1)) {
+                        try {
+                            await workforceFormFieldMappingUpdateNextField(request, {
+                                field_id: field.field_id,
+                                data_type_combo_id: field.dataTypeComboId,
+                                next_field_id: Number(field.next_field_id)
+                            });
+                        } catch (error) {
+                            console.log("qwe Error: ", error);
+                        }
+                    }
+    
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId
+                    });
+                }
             } else {
 
                 let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
@@ -3552,7 +3563,7 @@ function FormConfigService(objCollection) {
                     data_type_combo_value: dataTypeComboValue,
                     field_sequence_id: field.sequence_id,
                     field_mandatory_enabled: fieldMandatoryEnabled,
-                    field_preview_enabled: '0',
+                    field_preview_enabled: field.field_preview_enabled,
                     field_value_edit_enabled: field.field_value_edit_enabled,
                     inline_data: JSON.stringify(field.inline_data)
                 });
@@ -3938,6 +3949,7 @@ function FormConfigService(objCollection) {
             let fieldSequenceId = Number(formField.sequence_id);
             let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
             let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
+            let fieldPreviewEnabled = (typeof formField.field_preview_enabled == 'undefined') ? 0 : Number(formField.field_preview_enabled);
 
             //console.log('typeof inlineData : ', typeof inlineData);
 
@@ -3958,6 +3970,7 @@ function FormConfigService(objCollection) {
                 // }
                 console.log("comboEntries: ", comboEntries);
                 console.log("fieldId: ", fieldId);
+                
 
                 for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
 
@@ -3969,7 +3982,7 @@ function FormConfigService(objCollection) {
                             inline_data: inlineData,
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
-                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                             field_value_edit_enabled: fieldValueEditEnabled,
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
@@ -4000,7 +4013,7 @@ function FormConfigService(objCollection) {
                             field_description: fieldDescription,
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
-                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
                             data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
@@ -4018,6 +4031,38 @@ function FormConfigService(objCollection) {
                             // console.log(Object.keys(error));
                         });
                 }
+                if(comboEntries.length===0 && Number(formField.dataTypeId) !==33&&Number(formField.dataTypeId)!==34){
+                await workforceFormFieldMappingInsert(request, {
+                    field_id: fieldId,
+                    field_name: fieldName,
+                    field_description: fieldDescription,
+                    inline_data: inlineData,
+                    field_sequence_id: fieldSequenceId,
+                    field_mandatory_enabled: fieldMandatoryEnabled,
+                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
+                    field_value_edit_enabled: fieldValueEditEnabled,
+                    data_type_combo_id: 0,
+                    data_type_combo_value: '',
+                    data_type_id: Number(formField.dataTypeId) || Number(formField.datatypeid),
+                    next_field_id: nextFieldId
+                })
+                .then(async (fieldData) => {
+                    formName = fieldData[0].form_name;
+                    fieldIDForBotCreation = Number(fieldData[0].p_field_id);
+                    // console.log("someData: ", someData)
+                    // History insert in the workforce_form_field_mapping_history_insert table
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: Number(fieldData[0].p_field_id),
+                            data_type_combo_id: 0
+                        })
+                        .catch((error) => {
+                            // Do nothing
+                        });
+                })
+                .catch((error) => {
+                    // Do nothing
+                });
+            }
 
                 // Reset fieldId to 0, so it can be re-used by other fields
                 // in the subsequent iterations
@@ -4032,7 +4077,7 @@ function FormConfigService(objCollection) {
                         inline_data: inlineData,
                         field_sequence_id: fieldSequenceId,
                         field_mandatory_enabled: fieldMandatoryEnabled,
-                        field_preview_enabled: 0, // THIS NEEDS WORK
+                        field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
                         field_value_edit_enabled: fieldValueEditEnabled,
                         data_type_combo_id: 0,
                         data_type_combo_value: '',
@@ -4061,6 +4106,7 @@ function FormConfigService(objCollection) {
             // To create a bot for every workflow reference with type constraint datatype added in forms
             // To create a bot for every single selection datatype added in forms
             request.form_name = formName;
+            console.log('data type id',dataTypeId)
             switch (dataTypeId) {
                 case 57: if (inlineData !== '{}') {
                     let newInlineData = JSON.parse(inlineData);
@@ -4379,6 +4425,15 @@ function FormConfigService(objCollection) {
         // Content to be displayed on the UI
         let content = '',
             formName = '';
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect({
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            form_id: request.form_id
+        });
+        if (!formConfigError && formConfigData.length > 0) {
+            formName = formConfigData[0].form_name;
+        }
         for (const fieldID of fieldsNewValuesMap.keys()) {
             // Fetch the latest upate sequence ID
             fetchUpdateSeqIdPromises.push(
@@ -4406,9 +4461,10 @@ function FormConfigService(objCollection) {
                     // Update the field entry
                     await putLatestUpdateSeqId(newRequest, newFieldData);
 
-                    formName = fieldsNewValuesMap.get(fieldID).form_name;
+                    // formName = fieldsNewValuesMap.get(fieldID).form_name;
                     let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                     // Update the activity inline data as well
+                    let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
                     if (activityInlineDataMap.has(fieldID)) {
                         let oldFieldEntry = activityInlineDataMap.get(fieldID);
                         let newFieldEntry = Object.assign({}, oldFieldEntry);
@@ -4417,7 +4473,11 @@ function FormConfigService(objCollection) {
                         activityInlineDataMap.set(fieldID, newFieldEntry);
 
                         // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                        if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))                         
+                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;
+                        else
+                        content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                        // content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
                     } else {
                         // If it doesn't already exist, make a fresh entry!
                         let newFieldEntry = fieldsNewValuesMap.get(fieldID);
@@ -4434,7 +4494,11 @@ function FormConfigService(objCollection) {
                         });
 
                         // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                        if(simpleDataTypes.includes(newFieldEntry.field_data_type_id))   
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;
+                            else
+                            content += `In the ${formName}, the field ${fieldName} was updated <br />`;
+                        // content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
                     }
 
                     return {
@@ -4893,6 +4957,9 @@ function FormConfigService(objCollection) {
                 } else if (transactionTypeID === 2) {
                     return -Number(transactionAmount);
                 }
+            case 18: // money data type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                return(fieldValue.value)
             default:
                 return Number(fieldValue);
         }
@@ -5129,6 +5196,7 @@ function FormConfigService(objCollection) {
     async function fireBotUpdateIntTables(request, fieldData) {
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
+            util.logError(request,`[fireBotUpdateIntTables] couldn't find workflow`);
             return [workflowError, workflowData];
         }
         let workflowActivityId = Number(workflowData[0].activity_id);
@@ -5149,7 +5217,7 @@ function FormConfigService(objCollection) {
                 botIsDefined = 1;
             }
         } catch (botInitError) {
-            global.logger.write('error', botInitError, botInitError, request);
+            util.logError(request,`formtransactioniderror`, { type: 'formtransactioniderror', error: serializeError(botInitError) });
         }
 
         let newRequest = Object.assign({}, request);
@@ -5162,7 +5230,7 @@ function FormConfigService(objCollection) {
         newRequest.log_asset_id = request.asset_id;
         newRequest.log_datetime = util.getCurrentUTCTime();
 
-        console.log('botIsDefined : ', botIsDefined);
+        util.logInfo(request,`botIsDefined %j`, botIsDefined);
 
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
@@ -5179,8 +5247,8 @@ function FormConfigService(objCollection) {
                         try{
                             parsedFieldValue = JSON.parse(fieldValue);
                         } catch(err) {
-                            console.log('Error in parsing workflow reference datatype : ', parsedFieldValue);
-                            console.log('Switching to backward compatibility');
+                            util.logError(request,`Error in parsing workflow reference datatype : `, { type: 'fireBotUpdateIntTables', error: serializeError(err) });
+                            util.logInfo(request,`Switching to backward compatibility parsedFieldValue: %j`,parsedFieldValue);
                             
                             //Backward Compatibility "workflowactivityid|workflowactivitytitle"
                             mappingActivityId = fieldData.field_value.split('|');
@@ -5209,7 +5277,6 @@ function FormConfigService(objCollection) {
     
     async function addAssetToWorkflow(request){
         let flag = 1;
-
         const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
             return [workflowError, workflowData];
@@ -5227,8 +5294,9 @@ function FormConfigService(objCollection) {
             newReq.page_start = 0;
 
         participantService.getParticipantsList(newReq, async (err, resp)=>{
+
             let participantData = resp.data;
-            console.log('********* participantData : ', participantData);
+            util.logInfo(request,`********* participantData :  %j`,participantData);
 
             for(let i = 0; i<participantData.length; i++) {
                 if(Number(participantData[i].asset_id) === Number(request.asset_id)) {
@@ -5236,16 +5304,14 @@ function FormConfigService(objCollection) {
                 }
             }
 
-            console.log('FLAG : ', flag);
+            util.logInfo(request,`FLAG :  %j`,flag);
             if(flag === 1) {
-                console.log('request.asset_id', request.asset_id);
                 
                 //Add the asset as participant
                 const [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); 
                 if(err) {
                     return "failure";
-                }               
-                console.log('ASSETDATA : ', assetData[0]);
+                }
 
                 if(assetData.length > 0) {
                     let participantCollection = [];
@@ -5542,7 +5608,7 @@ function FormConfigService(objCollection) {
             error = true;
 
         let formTransactionID = await cacheWrapper.getFormTransactionIdPromise();        
-
+        
         const paramsArr = new Array(
             request.organization_id, 
             request.account_id, 
@@ -5586,7 +5652,10 @@ function FormConfigService(objCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {                    
+                .then((data) => {  
+                    for(let row of data) {
+                        row.form_draft_inline_data = JSON.parse(row.form_draft_inline_data);
+                    }                  
                     responseData = data;
                     error = false;
                 })
@@ -5915,34 +5984,36 @@ function FormConfigService(objCollection) {
 
     //Handling Arrya of Objects wala input
     async function activityActivityMappingUpdateV1(request, fieldData, oldFieldValue, flag) {
-        console.log('In formConfigService activityActivityMappingInsertV1');
+        util.logInfo(request,`In formConfigService activityActivityMappingInsertV1`);
         let currentWorkflowActivityId = request.activity_id; //workflow activity id
         
-        if(Number(request.activity_type_category_id) === 9) {            
-            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-            if (workflowError !== false || workflowData.length === 0) {
-                console.log('workflowError : ', workflowError);
-                console.log('workflowData : ', workflowData);
-                
-                //if(cnt <= 2) {
-                //    await sleep(2000);
-                //    cnt++;
-                //    await activityActivityMappingInsertV1(request, fieldData, cnt);
-                //} else {
-                //    return [workflowError, workflowData];
-                //}
-
-                return [workflowError, workflowData];
+        if(Number(request.activity_type_category_id) === 9) {
+            if(request.hasOwnProperty("workflow_activity_id")) {
+                currentWorkflowActivityId = Number(request.workflow_activity_id);
+            } else {
+                await sleep(10000);
+                const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, request.activity_id, request.form_transaction_id, request.form_id);
+                if (workflowError !== false || workflowData.length === 0) {
+                    util.logError(request,`workflowError | No data`, { type: 'activity_activty_mapping_update', error: serializeError(workflowError) });
+                    
+                    //if(cnt <= 2) {
+                    //    await sleep(2000);
+                    //    cnt++;
+                    //    await activityActivityMappingInsertV1(request, fieldData, cnt);
+                    //} else {
+                    //    return [workflowError, workflowData];
+                    //}
+    
+                    return [workflowError, workflowData];
+                }
+                currentWorkflowActivityId = Number(workflowData[0].activity_id);
             }
-            currentWorkflowActivityId = Number(workflowData[0].activity_id);
+
         }
 
-        console.log('fieldData V1: ', fieldData);
-        console.log('typeof fieldData.field_value', typeof fieldData.field_value);
-        console.log('fieldData.field_value', fieldData.field_value);
-        console.log('currentWorkflowActivityId V1: ', currentWorkflowActivityId);
-        console.log('oldFieldValue: ', oldFieldValue);
-        console.log('flag : ', flag);
+        util.logInfo(request,`fieldData V1: %j`, fieldData);
+        util.logInfo(request,`flag :  %j`, flag);
+
         
         //Unmap the existing one
         let processedOldFieldValue;
@@ -5951,7 +6022,6 @@ function FormConfigService(objCollection) {
         try{
             if(flag === 'multi') {
                 processedOldFieldValue = (typeof oldFieldValue === 'string')? JSON.parse(oldFieldValue): oldFieldValue;
-                console.log(request.device_os_id);
                 //let cartItems = (typeof processedOldFieldValue.cart_items === 'string') ? JSON.parse(processedOldFieldValue.cart_items): processedOldFieldValue.cart_items;
                 //let productActId;
                 /*for(const i_iterator of cartItems) {
@@ -5977,8 +6047,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype old V1 field edit: ', processedOldFieldValue);
-            console.log(err);
+            util.logError(request,`Error in parsing workflow reference datatype old V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             //return "Failure";
         }
 
@@ -6026,8 +6095,7 @@ function FormConfigService(objCollection) {
             }
             
         } catch(err) {
-            console.log('Error in parsing workflow reference datatype new  V1 field edit: ', fieldValue);
-            console.log(err);
+            util.logError(request,`Error in parsing workflow reference datatype new  V1 field edit:`, { type: 'activity_activty_mapping_update', error: serializeError(err) });
             return "Failure";
         }
 
@@ -6460,11 +6528,7 @@ function FormConfigService(objCollection) {
     async function kafkaProdcucerForChildOrderCreation(topicName,message) {
         const kafka = new Kafka({
             clientId: 'child-order-creation',
-            brokers: [
-                'b-1.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-2.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092',
-                'b-3.msk-apachekafka-clust.mpbfxt.c2.kafka.ap-south-1.amazonaws.com:9092'
-            ]
+            brokers: global.config.BROKER_HOST.split(",")
         })
         
         const producer = kafka.producer()
@@ -6633,6 +6697,83 @@ function FormConfigService(objCollection) {
 
         return [error, responseData]; 
     }
+
+    this.activityFormListUpdateFieldValue = async function (request) {
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.activity_id, 
+            request.form_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.field_value,
+            request.datetime_log
+        );
+        
+        var queryString = util.getQueryString("ds_v1_activity_form_list_update_field_value",paramsArr);    
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {                   
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+    };
+     
+    this.draftFormDeleteV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.form_id,
+            request.form_transaction_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_form_draft_transaction_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
+    this.activityFormFieldUpdatePreview = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.field_id,            
+            request.form_id,
+            request.organization_id,
+            request.field_preview_enabled,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_preview_enabled', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
 }
 
 module.exports = FormConfigService;

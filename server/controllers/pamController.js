@@ -483,6 +483,96 @@ function PamController(objCollection) {
     		res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/phone_number/activity/list', async (req, res) => {
+        let [err,result] = await pamService.pamOrdersWithPhoneNumber(req.body)
+        console.log(err);
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/reservation/phone/number', async (req, res) => {
+        let [err,result] = await pamService.addPamReservationViaPhoneNumber(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/activity/category/status', async (req, res) => {
+        let [err,result] = await pamService.getActivityStatusV1(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/activity/category/type', async (req, res) => {
+        let [err,result] = await pamService.getActivityType(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/whatsapp/access/token', async (req, res) => {
+        let [err,result] = await pamService.whatsappAccessToken(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/send/whatsapp/message', async (req, res) => {
+        let [err,result] = await pamService.sendWhatsAppTemplateMessage(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/coupancode', async (req, res) => {
+        let [err,result] = await pamService.getCoupanDetails(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });    
+
+    app.post('/' + global.config.version + '/pam/update/inlinedata', async (req, res) => {
+        let [err,result] = await pamService.updateActivityInlineData(req.body)
+        if(!err){
+    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });     
+
+    app.post('/' + global.config.version + '/pam/reservation_code/check/v1', async (req, res) => {
+        let [err,result] = await pamService.checkingReservationCodeV1(req.body)
+            if(!err){
+                res.send(responseWrapper.getResponse({}, result, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, result, -9999, req.body));
+            }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/orders/reservation_code', async (req, res) => {
+        let [err, result] = await pamService.getOrdersUsingReservationCode(req.body)
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;

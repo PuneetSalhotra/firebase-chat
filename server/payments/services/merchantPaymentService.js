@@ -4,12 +4,18 @@ const RazorPaymentGatewayService = require('./razorpayGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
+var makingRequest = require('request');
+const nodeUtil = require('util');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
     const util = objectCollection.util;
+    const activityCommonService = objectCollection.activityCommonService;
     const razorPaymentGatewayService = new RazorPaymentGatewayService(objectCollection);
     const paymentUtil = new PaymentUtil(objectCollection);
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     //API 1 : getSignature 
     this.getSignature = async function (request) {
@@ -181,6 +187,7 @@ function MerchantPaymentService(objectCollection) {
         let razorpay_order_id = null;
         let razorpay_signature = null;
         let isSuccess = false;
+        request.isSuccess = false;
         
         if(!paymentUtil.isNotEmpty(razorpayApiKey)) {
             logger.error('Please configure `razorpayApiKey` in globalConfig.js file');
@@ -196,8 +203,18 @@ function MerchantPaymentService(objectCollection) {
             razorpay_order_id = success_response.razorpay_order_id;
             razorpay_signature = success_response.razorpay_signature;
             isSuccess = true;
+            request.isSuccess = true;
+            request.activity_status_type_id = 99;
+            request.activity_type_category_id = 40;
+            await this.alterStatusMakeRequest(request)                          
+            // calling the status/alter/ api for and changing status to paid status_type_id = 99
+            // 
         } else if(request.hasOwnProperty("failure_response")) {
             let failure_response = JSON.parse(request.failure_response);
+
+            request.activity_status_type_id = 115;
+            request.activity_type_category_id = 40;
+            await this.alterStatusMakeRequest(request)
             if(failure_response.hasOwnProperty("error")) {
                 let errorObj = failure_response.error;
                 if(errorObj !== null) {
@@ -483,6 +500,7 @@ function MerchantPaymentService(objectCollection) {
                 let payment = payload.payment;
                 if(payment.hasOwnProperty("entity")) {
                     request_entity = payment.entity;
+
                     if(request_entity === {}) {
                         logger.error('Invalid payment response | Invalid parameter `entity`');
                         return [true, { 
@@ -530,6 +548,10 @@ function MerchantPaymentService(objectCollection) {
         }
 
         if("refund.processed" === request_payload.event) {
+                        
+            //request.activity_status_type_id = 99;
+            //request.activity_type_category_id = 37;
+            //await this.alterStatusMakeRequest(request)
             return await this.handleWebhookRefundResponse(request);
         } else {
             return await this.handleWebhookPaymentResponse(request);
@@ -671,11 +693,28 @@ function MerchantPaymentService(objectCollection) {
                             if(request.hasOwnProperty("failure_response")) {
                                 response_description = request_entity.error_reason;
                             }
-                            
+                            request.activity_id = paymentTransactionData.reservation_activity_id;
+                            request.organization_id = paymentTransactionData.organization_id;
+                            request.account_id = paymentTransactionData.account_id;
+                            request.workforce_id = paymentTransactionData.workforce_id;
+                            request.activity_type_category_id = 37;
+                            request.asset_id=11031;
                             if("captured" === payment.status) {
                                 payment_status = 'SUC';
                                 response_code = "00";
                                 response_description = "SUCCESS";
+                                request.is_pam = true;
+                                request.activity_status_type_id = 99;  // paid                             
+                            } else {
+                                request.activity_status_type_id = 191; // payment failed
+                                request.is_pam = false
+                            }
+                            this.alterStatusMakeRequest(request);
+                            if(request.is_pam){
+                                await sleep(1000);
+                                request.access_role_id = 2;
+                                request.message = "Order Received";
+                                activityCommonService.sendPushOnReservationAdd(request);
                             }
 
                             payment.response_code = response_code;
@@ -729,10 +768,12 @@ function MerchantPaymentService(objectCollection) {
                                     let order_status = 'FAI';
                                     let response_code = "39"; 
                                     let response_description = 'FAILED';
+                                    request.isSuccess = false
                                     if("captured" === payment.status) {
                                         order_status = 'SUC';
                                         response_code = "00";
                                         response_description = "SUCCESS";
+                                        request.isSuccess = true
                                     } 
 
                                     let payment_datetime = moment(payment.payment_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
@@ -747,7 +788,7 @@ function MerchantPaymentService(objectCollection) {
                                         transaction_id: transaction_id,
                                         payment_response_code: response_code,
                                         payment_response_desc: response_description
-                                    };
+                                    };                       
                                     logger.info("finalResponse = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
@@ -954,6 +995,22 @@ function MerchantPaymentService(objectCollection) {
                                     refund_resp_desc = "Refund Processed";
                                 }
 
+                                request.activity_id = paymentTransactionData.reservation_activity_id;
+                                request.organization_id = paymentTransactionData.organization_id;
+                                request.account_id = paymentTransactionData.account_id;
+                                request.workforce_id = paymentTransactionData.workforce_id;
+                                request.activity_type_category_id = 37;
+                                request.asset_id = 11031;
+                                if ("processed" === refund.status) {
+                                    refund_status = 'SUC';
+                                    refund_resp_code = "00";
+                                    refund_resp_desc = "Refund Processed";
+                                    request.activity_status_type_id = 192;  // paid                             
+                                } else {
+                                    request.activity_status_type_id = 194; // payment failed
+                                }
+                                this.alterStatusMakeRequest(request);
+
                                 let refund_txn_no = paymentUtil.generateUniqueID();
                                 const refundArray = new Array(
                                     paymentUtil.generateUniqueID(),
@@ -1130,19 +1187,27 @@ function MerchantPaymentService(objectCollection) {
                                             
                                             let transaction_id = paymentTransactionData.transaction_id;
                                             logger.debug("transaction_id = " + transaction_id);
-                                            
-
                                             //-------------------------
                                             payment.payment_date_time = moment(payment.created_at).utc().format("YYYY-MM-DD HH:mm:ss");
                                             let payment_status = 'FAI';
                                             let response_code = "39"; 
                                             let response_description = payment.error_reason || 'FAIELD';
                                             
+                                            request.activity_id = paymentTransactionData.reservation_activity_id;
+                                            request.organization_id = paymentTransactionData.organization_id;
+                                            request.account_id = paymentTransactionData.account_id;
+                                            request.workforce_id = paymentTransactionData.workforce_id;
+                                            request.activity_type_category_id = 37;
+                                            request.asset_id = 11031;
                                             if("captured" === payment.status) {
                                                 payment_status = 'SUC';
                                                 response_code = "00";
                                                 response_description = "SUCCESS";
+                                                request.activity_status_type_id = 99;  // paid                             
+                                            } else {
+                                                request.activity_status_type_id = 191; // payment failed
                                             }
+                                            this.alterStatusMakeRequest(request);
 
                                             payment.response_code = response_code;
                                             payment.response_desc = response_description;
@@ -1623,7 +1688,11 @@ function MerchantPaymentService(objectCollection) {
             null,
             global.config.razorpayMerchantId,
             Number("0.00").toFixed(2),
-            Number("0.00").toFixed(2)
+            Number("0.00").toFixed(2),
+            request.reservation_id,
+            request.workforce_id || 2085,
+            request.account_id || 452,
+            request.organization_id || 351
             //"REQ"
         );
 
@@ -1850,6 +1919,208 @@ function MerchantPaymentService(objectCollection) {
         logger.info("all parameters are valid");
         return 'Ok';
     }
+
+    this.alterStatusMakeRequest = async function (request) {
+
+        request.activity_status_name;
+
+        let x = JSON.stringify({
+                "activity_reference": [{
+                    "activity_id": request.activity_id,
+                    "activity_title": ""
+                }],
+                "asset_reference": [{}],
+                "attachments": [],
+                "content": "Status updated to "+request.activity_status_name,
+                "mail_body": "Status updated to "+request.activity_status_name,
+                "subject": "Status updated to "+request.activity_status_name
+            });
+
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;              
+        const alterStatusRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: request.asset_id,
+            auth_asset_id:100,
+            asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
+            asset_message_counter: 0,
+            activity_id: request.activity_id,
+            activity_type_id: 0,  
+            activity_type_category_id: request.activity_type_category_id, 
+            activity_access_role_id: request.activity_access_role_id || 0,   
+            activity_status_id: request.activity_status_id,
+            activity_status_type_id: request.activity_status_type_id, // paid
+            activity_status_type_category_id: request.activity_status_type_category_id || 0,        
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0.0,
+            track_gps_status: 1,
+            track_gps_location: '',
+            service_version: request.service_version,
+            app_version: request.app_version,
+            device_os_id: 5,
+            datetime_log: util.getCurrentUTCTime(),
+            activity_stream_type_id:704,
+            timeline_stream_type_id:704,
+            //global_array:request.global_array,
+            activity_timeline_collection:x
+        };
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const alterStatusActAsync = nodeUtil.promisify(makingRequest.post);
+        //logger.info("assignRequest :: ",JSON.stringify(assignRequest, null,2));
+        const makeRequestOptions1 = {
+            form: alterStatusRequest
+        };
+        try {
+             //logger.info("makeRequestOptions1 :: ",JSON.stringify(makeRequestOptions1, null,2));
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await alterStatusActAsync(global.config.mobileBaseUrl + global.config.version + '/activity/status/alter', makeRequestOptions1);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                logger.info("Activity Status Alter | Body: ", body);
+                //await addActivity(request)                                              
+                return [false, {}];
+            }else{
+                logger.info("Error ", body);
+                return [true, {}];
+            }
+        } catch (error) {
+            logger.info("Activity Status Alter | Error: ", error);
+            return [true, {}];
+        } 
+    }
+
+    ///get/activity/category/type
+    this.getActivityType = async (request) => {
+
+        let responseData = [],
+            error = true;
+    
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+        )
+        const queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+                
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+    
+
+    }
+
+    //get First Status of an activityTypeCategory // /get/activity/category/status
+    this.getActivityStatusV1 = async (request) => {
+
+        let responseData = [],
+            error = true;
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.activity_status_type_id
+        )
+        const queryString = util.getQueryString('pm_v1_workforce_activity_status_mapping_select_first_status', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+        }
+        return [error, responseData];
+    }
+
+    const addActivity = async (request) => {
+
+       // const [eventErr, eventData] = await self.getEvent(request);
+        request.activity_parent_id = request.reservation_id                                  
+       // // eventData[0].activity_id;
+       // request.activity_type_category_id = 40;                                             
+        const [err1, activityType] = await this.getActivityType(request);
+        request.activity_type_id = activityType[0].activity_type_id;
+        // request.activity_status_type_id = 115;                                              
+        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        request.activity_status_id = activityStatus[0].activity_status_id;
+        request.activity_title = request.asset_first_name + (request.table_name||'');
+        request.activity_description = request.activity_title;
+		request.activity_access_role_id=121;
+		request.activity_channel_category_id= 0;
+		request.activity_channel_id=0;
+		request.activity_datetime_end=util.addUnitsToDateTime(util.getCurrentISTTime(),2,"hours");
+		request.activity_datetime_start=util.getCurrentISTTime(); 
+        request.owner_asset_id=request.asset_id;
+		request.activity_form_id=0;
+		request.activity_inline_data=JSON.stringify([{"total_amount": request.amount, "refunded_amount": request.refund_amount, "remaining_amount":request.remaining_amount}]);              // added activity_inline_data for payment
+		request.activity_sub_type_id=0
+		request.activity_sub_type_name=''
+		request.app_version=1
+		request.asset_message_counter=0
+		request.channel_activity_categeory_id=0
+		request.device_os_id=5;
+		request.flag_offline=0;
+		request.flag_pin=0;
+		request.flag_priority=0
+		request.flag_retry=0
+		request.message_unique_id=util.getMessageUniqueId(request.asset_id)	
+		request.product_id=2
+		request.service_version=1
+		request.track_altitude=0
+		request.track_gps_accuracy=0
+		request.track_gps_datetime=util.getCurrentUTCTime()
+		request.track_gps_location=''
+		request.track_gps_status=1
+		request.track_latitude=0
+		request.track_longitude=0
+		request.member_code = '0' 
+        request.url = '/activity/add';
+
+        const assignActAsync = nodeUtil.promisify(makingRequest.post);
+        const makeRequestOptions1 = {
+            form: request,
+        };
+        try {
+            const response = await assignActAsync(
+                global.config.mobileBaseUrl + global.config.version + "/activity/add",
+                makeRequestOptions1,
+            );
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("Activity Add | Body: ", body);
+                return [false, body];
+            } else {
+                console.log("Error ", body);
+                return [true, {}];
+            }
+        } catch (error) {
+            console.log("Activity Add | Error: ", error);
+            return [true, {}];
+        }
+    };
+
 }
 
 module.exports = MerchantPaymentService;
