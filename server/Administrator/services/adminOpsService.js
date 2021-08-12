@@ -9118,7 +9118,6 @@ console.log('new ActivityId321',newActivity_id)
         return [error, fieldData];
     };
 
-
     async function getUser(username, pool_id) {
         var params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
@@ -10341,7 +10340,14 @@ console.log('new ActivityId321',newActivity_id)
                 request.broadcast_content,
                 JSON.stringify({
                     "level": broadcast_level,
-                    "level_name": broadcast_level_name
+                    "level_name": broadcast_level_name,
+                    "entity_level_mapping":request.entity_level_mapping || "{}",
+                    "level_mappings": {asset_ids:request.asset_ids?request.asset_ids:[],
+                        workforce_ids:request.workforce_ids?request.workforce_ids:[],
+                        account_ids:request.account_ids?request.account_ids:[],
+                        workforce_tag_ids:request.workforce_tag_ids?request.workforce_tag_ids:[],
+                        asset_type_ids:request.asset_type_ids?request.asset_type_ids:[]
+                        }
                 }),
                 request.organization_id,
                 request.asset_id,
