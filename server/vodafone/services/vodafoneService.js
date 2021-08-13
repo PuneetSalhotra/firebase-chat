@@ -6239,11 +6239,31 @@ function VodafoneService(objectCollection) {
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query);
                 if(searchType==1){
+                    let tableChoose = 0;
+                if(request.flag_participating==4){
+                   
+                let paramsArr = [request.asset_id]
+                let dbCall = 'ds_p1_asset_list_select_asset';
+                let [error12, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
+                if (resultData.length > 0){
+                    
+                   let idRoleAsset = resultData[0].asset_type_id;
+                if (global.config.roleMappingElastic.includes(Number(idRoleAsset))) {
+                    tableChoose=0
+                }
+                else{
+                    tableChoose=1
+                }
+            }
+            }
+            if(request.flag_participating==2){
+                tableChoose=1
+            }
                     let altQueryArr = query.split('WHERE');
                     // console.log(altQueryArr[1])
                     let tryDum = String(altQueryArr[1]).replace(/=/gi, ':')
                 //    console.log(tryDum)
-                    let altQuery = `/${request.flag_participating==2?global.config.elasticActivitySearchTable:global.config.elasticActivityAssetTable}/_search?q=${tryDum}`;
+                    let altQuery = `/${tableChoose==1?global.config.elasticActivitySearchTable:global.config.elasticActivityAssetTable}/_search?q=${tryDum}`;
                     util.logInfo(request,"QUERY V1"+altQuery)
                     let queryToPass = encodeURI(altQuery);
                     const result = await client.transport.request({
@@ -6463,7 +6483,7 @@ function VodafoneService(objectCollection) {
                 if (resultData.length > 0)
                     idRoleAsset = resultData[0].asset_type_id
                 query = "SELECT * FROM " + global.config.elasticActivityAssetTable + " WHERE "
-                if ([142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661].includes(Number(idRoleAsset))) {
+                if (global.config.roleMappingElastic.includes(Number(idRoleAsset))) {
                     query += ' asset_participant_access_id = ' + Number(152)
                     appendedAnd = true;
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
@@ -6521,7 +6541,7 @@ function VodafoneService(objectCollection) {
                 [error, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
                 if (resultData.length > 0)
                     idRoleAsset = resultData[0].asset_type_id
-                if ([142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661].includes(Number(idRoleAsset))) {
+                if (global.config.roleMappingElastic.includes(Number(idRoleAsset))) {
                     query = "SELECT * FROM " + global.config.elasticActivityAssetTable + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     if (request.asset_id && request.asset_id > 0) {
