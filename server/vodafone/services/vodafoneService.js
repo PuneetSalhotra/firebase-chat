@@ -6412,18 +6412,18 @@ function VodafoneService(objectCollection) {
                             appendedAnd = true;
                         }
                         if (request.activity_status_type_id && request.activity_status_type_id > 0) {
-                            if(request.tag_type_id && request.tag_type_id > 0 && request.tag_type_id==177){
-                                if (appendedAnd)
-                                query += " AND ";
-                            query += ' activity_status_type_id IN (120,124)'
-                            appendedAnd = true;
-                            }
-                            else{
+                            // if(request.tag_id && request.tag_id > 0 && request.tag_id==177){
+                            //     if (appendedAnd)
+                            //     query += " AND ";
+                            // query += ' activity_type_tag_id IN (120,124)'
+                            // appendedAnd = true;
+                            // }
+                            // else{
                             if (appendedAnd)
                                 query += " AND ";
                             query += ' activity_status_type_id = ' + Number(request.activity_status_type_id)
                             appendedAnd = true;
-                            }
+                            // }
                         }
                         if (request.search_string && request.search_string != '') {
                             if(appendedAnd){
@@ -6440,17 +6440,17 @@ function VodafoneService(objectCollection) {
                         
                         }
                     } else {
-
+                        
                         if (request.activity_type_id && request.activity_type_id > 0) {
                             if (appendedAnd)
                                 query += " AND ";
                             query += ' activity_type_id = ' + Number(request.activity_type_id)
                             appendedAnd = true;
                         }
-                        if (request.tag_type_id && request.tag_type_id > 0) {
+                        if (request.tag_id && request.tag_id > 0 && request.tag_id==177) {
                             if (appendedAnd)
                                 query += " AND ";
-                            query += ' tag_type_id =  ' + Number(request.tag_type_id)
+                                query += ' activity_type_tag_id IN (120,124) '
                             appendedAnd = true;
                         }
                         if (request.activity_status_type_id && request.activity_status_type_id > 0) {
