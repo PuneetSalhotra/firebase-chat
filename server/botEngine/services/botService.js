@@ -3173,7 +3173,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     };
-                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,1);
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,0);
 
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
@@ -3338,7 +3338,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 }
 
-async function removeAsOwner(request,data,addT = 0)  {
+async function removeAsOwner(request,data,addT=0)  {
         let responseData = [],
             error = true;
 
