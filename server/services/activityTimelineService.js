@@ -3726,7 +3726,7 @@ async function addFormEntriesAsync(request) {
                         }
                     }
                     util.logInfo(request, "finalInlineDataKeys :: "+finalInlineDataKeys.includes(row.field_id));
-                    if(finalInlineDataKeys.includes(row.field_id))
+                    if(finalInlineDataKeys.includes(row.field_id) || finalInlineDataKeys.includes(String(row.field_id)))
                     { 
                         util.logInfo(request, "activityTimelineService:updateWorkflowValue Configured :: "+row.field_id+" : "+finalInlineData.workflow_fields[row.field_id].sequence_id);
                         request.sequence_id = finalInlineData.workflow_fields[row.field_id].sequence_id

@@ -133,6 +133,7 @@ config.elasticActivitySearchTable = 'activity_search_mapping';
 config.elasticCrawlingAccountTable = 'crawling_accounts';
 config.elasticVidmTable = 'vidm';
 config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661];
 
 config.dbURLKeys = ["MASTER_IP","MASTER_DB_NAME", "MASTER_DB_USER","MASTER_DB_PASSWORD", "SLAVE1_IP","SLAVE1_DB_NAME","SLAVE1_DB_USER","SLAVE1_DB_PASSWORD", "SLAVE2_IP"];
 
@@ -461,6 +462,7 @@ if(mode === 'local') {
     config.elasticCrawlingAccountTable = 'crawling_accounts_s';
     config.elasticVidmTable = 'vidm_s';
     config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
+    config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661]
 }
 
 if(mode === 'dev') {
@@ -929,6 +931,7 @@ if(mode === 'staging') {
     config.elasticCrawlingAccountTable = 'crawling_accounts_s';
     config.elasticVidmTable = 'vidm_s';
     config.elasticCrawlingGroupAccounts = 'crawling_group_accounts_s';
+    config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661]
 }
 
 if(mode === 'preprod') {
@@ -1058,6 +1061,7 @@ if(mode === 'preprod') {
     config.elasticCrawlingAccountTable = 'crawling_accounts';
     config.elasticVidmTable = 'vidm';
     config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
+    config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661]
 }
 
 
