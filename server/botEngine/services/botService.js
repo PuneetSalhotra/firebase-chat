@@ -1934,21 +1934,7 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('workflow start | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
-                        // await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
-                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        });
-
-                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        }).catch(global.logger.error);
-
+                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2379,6 +2365,41 @@ function BotService(objectCollection) {
                     }
                     console.log('****************************************************************');
                 break;
+
+                case 54: // Child Order creation BOT
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    request.debug_info.push('WorkFlow Bot');
+                    try {
+                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        console.log('Child Order creation BOT | Request Params received by BOT ENGINE', request);
+                        request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
+                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        });
+
+                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        }).catch(global.logger.error);
+
+                    } catch (err) {
+                        global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                        //return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
+
 
             }
 
