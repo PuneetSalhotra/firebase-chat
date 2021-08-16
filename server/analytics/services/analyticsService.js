@@ -2470,9 +2470,11 @@ function AnalyticsService(objectCollection)
 
             }
 
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
             for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2482,10 +2484,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results); 
@@ -2596,9 +2598,11 @@ function AnalyticsService(objectCollection)
 
             }
 
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
             for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2608,10 +2612,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results);
@@ -2745,9 +2749,11 @@ function AnalyticsService(objectCollection)
 
             }
 
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
             for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2757,10 +2763,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results);
