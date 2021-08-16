@@ -56,6 +56,36 @@ function AnalyticsOpsController (objCollection) {
             }
         }
     );
+
+    app.post
+    (
+        '/' + global.config.version + '/analytics/organization/tag_type/filter/insert',
+        async (req, res) => {
+            try {
+                let result = await analyticsOpsService.insertTagTypeFilterMapping(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }
+            catch (err) {
+                console.log("Error  in /analytics/widget/filter/master/select", err, err.stack);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
+
+    app.post
+    (
+        '/' + global.config.version + '/analytics/report/filter/insert',
+        async (req, res) => {
+            try {
+                let result = await analyticsOpsService.insertReportFilter(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            }
+            catch (err) {
+                console.log("Error  in /analytics/widget/filter/master/select", err, err.stack);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
 }
 
 module.exports = AnalyticsOpsController;
