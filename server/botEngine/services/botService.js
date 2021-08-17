@@ -10501,7 +10501,7 @@ if(workflowActivityData.length==0){
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
-        if(workflowActivityData[0].parent_activity_id !== 0) {
+        if(workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
             await addTimelineMessage(
                 {
                     activity_timeline_text: "Error",

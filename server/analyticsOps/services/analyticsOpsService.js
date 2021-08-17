@@ -101,6 +101,140 @@ function AnalyticsOpsService(objectCollection)
             return Promise.reject(error);
         }
     };
+
+    this.insertTagTypeFilterMapping =
+    async (request) => {
+        try {
+            let paramsArray;
+            
+            paramsArray =
+                new Array
+                    (
+                        request.tag_type_filter_label,
+                        request.tag_type_id,
+                        request.filter_id,
+                        request.filter_sequence_id,
+                        request.filter_inline_data,
+                        request.filter_access_flag,
+                        request.target_activity_type_id,
+                        request.target_tag_type_id,
+                        request.organization_id,
+                        request.log_asset_id,
+                        util.getCurrentUTCTime()
+                    );
+
+            await db.callDBProcedureR2(request, 'ds_p1_organization_filter_tag_type_mapping_insert', paramsArray, 0);
+
+            return {};
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    };
+
+    this.insertReportFilter =
+    async (request) => {
+        try {
+            let paramsArray;
+            
+            paramsArray =
+                new Array
+                    (
+                        request.report_type_id,
+                        request.tag_type_filter_label,
+                        request.tag_type_id,
+                        request.filter_id,
+                        request.filter_sequence_id,
+                        request.filter_inline_data,
+                        request.filter_access_flag,
+                        request.organization_id,
+                        request.log_asset_id,
+                        util.getCurrentUTCTime()
+                    );
+
+            await db.callDBProcedureR2(request, 'ds_p1_report_filter_tag_type_mapping_insert', paramsArray, 0);
+
+            return {};
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    };
+
+
+    this.insertWidgetDrilldownHeaderMapping =
+    async (request) => {
+        try {
+            let paramsArray;
+            
+            paramsArray =
+                new Array
+                    (
+                        request.tag_type_id,
+                        request.header_id,
+                        request.sequence_id,
+                        request.conversion_format,
+                        request.organization_id,
+                        request.log_asset_id,
+                        util.getCurrentUTCTime()
+                    );
+
+            await db.callDBProcedureR2(request, 'ds_p1_widget_drilldown_header_mapping_insert', paramsArray, 0);
+
+            return {};
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    };
+
+    this.updateWorkforceActivityTypeMapping =
+    async (request) => {
+        try {
+            let paramsArray;
+            
+            paramsArray =
+                new Array
+                    (
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_type_id,
+                        request.workflow_fields,
+                        request.log_asset_id,
+                        util.getCurrentUTCTime()
+                    );
+
+            await db.callDBProcedureR2(request, 'ds_p1_workforce_activity_type_mapping_update_workflow_fields', paramsArray, 0);
+
+            return {};
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    };
+
+    this.selectWidgetDrilldownHeaderMapping =
+    async (request) => {
+        try {
+            let paramsArray;
+            
+            paramsArray =
+                new Array
+                    (
+                        request.organization_id,
+                        request.start_from,
+                        request.limit_value
+                    );
+
+            let result = await db.callDBProcedureR2(request, 'ds_p1_widget_drilldown_header_master_select', paramsArray, 1);
+
+            return result;
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    };
 }
 
 module.exports = AnalyticsOpsService;
