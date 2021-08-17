@@ -2430,7 +2430,7 @@ function AnalyticsService(objectCollection)
             }
             let verticalValueFlgArray = new Array({}, {}, {}, {});
 
-            for (var entry of verticalMap.entries()) {
+            for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
                     vertical_name = null,
@@ -2470,9 +2470,11 @@ function AnalyticsService(objectCollection)
 
             }
 
-            for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
+            for (let i = 0; i < 4; i++) {
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2482,10 +2484,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results); 
@@ -2556,7 +2558,7 @@ function AnalyticsService(objectCollection)
             }
 
             let verticalValueFlgArray = new Array({}, {}, {}, {});
-            for (var entry of verticalMap.entries()) {
+            for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
                     vertical_name = null,
@@ -2596,9 +2598,11 @@ function AnalyticsService(objectCollection)
 
             }
 
-            for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
+            for (let i = 0; i < 4; i++) {
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2608,10 +2612,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results);
@@ -2704,7 +2708,7 @@ function AnalyticsService(objectCollection)
                 return Promise.resolve(request.verticalData.error_response);
             }
             let verticalValueFlgArray = new Array({}, {}, {}, {});
-            for (var entry of verticalMap.entries()) {
+            for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
                     vertical_name = null,
@@ -2745,9 +2749,11 @@ function AnalyticsService(objectCollection)
 
             }
 
-            for (var i = 0; i < 4; i++) {
-                verticalValueFlgArray[i].vertical_tag_id = 0;
-                delete verticalValueFlgArray[i]['vertical_name'];
+            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
+            for (let i = 0; i < 4; i++) {
+                verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
@@ -2757,10 +2763,10 @@ function AnalyticsService(objectCollection)
                 "flag_2": total[1],
                 "flag_3": total[2],
                 "flag_4": total[3],
-                "flag_11": verticalValueFlgArray[0],
-                "flag_21": verticalValueFlgArray[1],
-                "flag_31": verticalValueFlgArray[2],
-                "flag_41": verticalValueFlgArray[3]
+                "flag_11": verticalValueFlgArrayTotal[0],
+                "flag_21": verticalValueFlgArrayTotal[1],
+                "flag_31": verticalValueFlgArrayTotal[2],
+                "flag_41": verticalValueFlgArrayTotal[3]
             });
 
             return Promise.resolve(results);
@@ -2770,7 +2776,6 @@ function AnalyticsService(objectCollection)
             return Promise.resolve(request.verticalData.error_response);
         }
     }
-
 
 
     //Get the drill down with limit for a specific widget
@@ -3076,7 +3081,8 @@ function AnalyticsService(objectCollection)
                     parseInt(request.vertical_tag_id) || 0,
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100,
-                    parseInt(request.sequence_id)
+                     parseInt(request.sequence_id),
+                     parseInt(request.target_asset_id) || 0
                     );
             
                 var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_oppty', paramsArray);
@@ -4797,6 +4803,644 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
 
+
+    //----------------------------------------------------------------------
+    //Mangesh S
+    //Get resource details for specified vertical_tag_id
+    this.getManagementWidgetValueResource = async (request) => {
+
+        try {
+            let results = new Array();
+            let paramsArray;
+            let tempResult;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+
+            //Get the timezone of the account
+            paramsArray =
+                new Array
+                    (
+                        request.account_id
+                    );
+
+            console.log(request, null, 2);
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: " + request.activity_status_id);
+            let arrayStatuses = new Array();
+            if (request.hasOwnProperty("activity_status_id")) {
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if (request.activity_status_id != 0) {
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                } else {
+                    let json = { "activity_status_id": 0 };
+                    arrayStatuses.push(json);
+                    console.log("arrayStatuses2 :: " + JSON.stringify(arrayStatuses));
+                }
+            } else {
+
+                let json = { "activity_status_id": 0 };
+                arrayStatuses.push(json);
+                console.log("arrayStatuses2 :: " + JSON.stringify(arrayStatuses));
+            }
+
+            console.log("filter_hierarchy " + request.filter_hierarchy);
+
+            if (!request.hasOwnProperty("filter_hierarchy")) {
+                request.filter_hierarchy = 0;
+            }
+
+            if (request.tag_type_id == 130)
+                request.filter_asset_id = request.asset_id;
+
+            console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
+
+            try {
+
+                console.log('request.tag_type_id ' + request.tag_type_id);
+
+                paramsArray =
+                    new Array
+                        (
+                            parseInt(request.widget_type_id),
+                            parseInt(request.filter_date_type_id),
+                            parseInt(request.filter_timeline_id),
+                            timezoneID,
+                            timezoneOffset,
+                            global.analyticsConfig.parameter_flag_sort, //Sort flag
+                            parseInt(request.organization_id),
+                            parseInt(request.filter_circle_id),
+                            parseInt(request.filter_workforce_type_id),
+                            parseInt(request.filter_workforce_id),
+                            parseInt(request.filter_asset_id),
+                            parseInt(request.tag_type_id),
+                            parseInt(request.filter_tag_id),
+                            parseInt(request.filter_activity_type_id),
+                            global.analyticsConfig.activity_id_all, //Activity ID,
+                            parseInt(request.filter_activity_status_type_id),
+                            parseInt(request.filter_activity_status_tag_id),
+                            // parseInt(request.filter_activity_status_id),
+                            parseInt(arrayStatuses[0].activity_status_id),
+                            request.datetime_start,
+                            request.datetime_end,
+                            parseInt(request.filter_segment_id),
+                            parseInt(request.filter_reporting_manager_id),
+                            parseInt(request.filter_product_category_id),
+                            parseInt(request.filter_product_family_id),
+                            parseInt(request.filter_product_activity_id),
+                            parseInt(request.filter_account_activity_id),
+                            parseInt(request.filter_is_value_considered),
+                            parseInt(request.filter_cluster_tag_id) || 0,
+                            parseInt(request.filter_is_direct_report),
+                            parseInt(request.filter_is_datetime_considered),
+                            parseInt(request.filter_asset_type_id),
+                            parseInt(request.workforce_tag_id) || 0,
+                            parseInt(request.filter_form_id) || 0,
+                            parseInt(request.filter_field_id) || 0,
+                            request.filter_timescale || '',
+                            request.filter_is_lead || 0,
+                            request.filter_campaign_activity_id || 0,
+                            parseInt(request.page_start) || 0,
+                            parseInt(request.page_limit) || 50
+                        );
+
+                if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
+                    request.verticalData = global.analyticsConfig.vertical;
+                    results = await this.prepareWidgetDataForResource(request, paramsArray);
+                }
+
+            } catch (e) {
+                console.log('error ::', e);
+            }
+            return results;
+        }
+        catch (error) {
+            console.log("Error========");
+            console.log(error);
+            return Promise.reject(error);
+        }
+    };
+
+    this.prepareWidgetDataForResource = async (request, paramsArray) => {
+
+        return new Promise((resolve) => {
+
+            let requestObj = {
+                "organization_id": request.organization_id,
+                "account_id": request.account_id,
+                "workforce_id": request.workforce_id,
+                "segment_id": request.segment_id || 0,
+                "target_asset_id": request.asset_id,
+                "tag_type_id": request.tag_type_id || 0,
+                "tag_id": request.tag_id || 0,
+                "cluster_tag_id": request.cluster_tag_id || 0,
+                "vertical_tag_id": request.vertical_tag_id || 0,
+                "flag": 28,
+                "page_start": request.page_start || 0,
+                "page_limit": request.page_limit || 50
+            };
+
+            assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
+                .then(async (data) => {
+                    console.log("1");
+                    let resourceMap = new Map();
+
+                    if (data !== undefined && data.length >= 2) {
+
+                        let verticalsArray = data[1];
+                        for (index = 0; index < verticalsArray.length; index++) {
+
+                            let vertical = verticalsArray[index];
+                            if (vertical !== undefined && vertical.hasOwnProperty('tag_id')) {
+
+                                let tag_id = vertical.tag_id;
+                                if (tag_id !== null && tag_id > 0) {
+
+                                    let tag_name = verticalsArray[index].tag_name;
+                                    if ("All" !== tag_name) {
+                                        resourceMap.set(tag_id, tag_name);
+                                    }
+                                    if (Number(request.filter_tag_id) == tag_id) {
+                                        break;
+                                    }
+                                }
+
+                            }
+
+                        }
+                    }
+                    console.log("2");
+                    if (resourceMap.size == 0) {
+                        console.log("3");
+                        console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
+                        let results = new Array();
+                        results.push(request.verticalData[request.widget_type_id]);
+                        resolve(results);
+
+                    } else {
+                        console.log("4");
+                        let [err, assetsData] = await this.getResourcesListForSelectedVertical(request, new Array(request.organization_id, request.filter_tag_id, 0, 50));
+                        if (err) {
+                            console.log("getResourcesListForSelectedVertical : Exception : ");
+                            console.log(err);
+                            resolve(err);
+                        } else {
+                            request.widget_type_id = Number(request.widget_type_id) | 0;
+                            switch (request.widget_type_id) {
+
+                                case 128: {
+                                    console.log("128request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType128ForResource(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                case 129: {
+                                    console.log("129request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType129ForResource(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                case 130: {
+                                    console.log("130request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType130ForResource(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                default: {
+                                    console.log("defaultrequest.widget_type_id " + request.widget_type_id);
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log("prepareWidgetData : Exception : ");
+                    console.log(error);
+                    resolve(request.verticalData.error_response);
+                });
+        });
+
+    }
+
+    this.prepareDataForWidgetType128ForResource = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType128ForResource :: ");
+            let results = new Array();
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            let header = request.verticalData[request.widget_type_id];
+            delete header["vertical_name"];
+            header.resource_name = "Resource";
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                map.set("flag_1", 0);
+                map.set("flag_2", 0);
+                map.set("flag_3", 0);
+                map.set("flag_4", 0);
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                paramsArray[15] = 0;
+                paramsArray[1] = 1;
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                }
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.target_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVertical(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+            let resourceValueFlgArray = new Array({}, {}, {}, {});
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                }
+
+                let assetRspData = {
+                    "resource_name": assetsData[idx].operating_asset_first_name,
+                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
+                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
+                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
+                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
+                    "flag_11": resourceValueFlgArray[0],
+                    "flag_21": resourceValueFlgArray[1],
+                    "flag_31": resourceValueFlgArray[2],
+                    "flag_41": resourceValueFlgArray[3]
+                };
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType129ForResource = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType129ForResource :: ");
+            let results = new Array();
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            let header = request.verticalData[request.widget_type_id];
+            delete header["vertical_name"];
+            header.resource_name = "Resource";
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                map.set("flag_1", 0);
+                map.set("flag_2", 0);
+                map.set("flag_3", 0);
+                map.set("flag_4", 0);
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+
+                let widgetJsonObject = request.verticalData[request.widget_type_id];
+                let status_tags = request.verticalData["status_tags"];
+                let key = "flag_" + widgetFlags[iteratorM];
+                let value = widgetJsonObject[key];
+                paramsArray[16] = status_tags[value];
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
+                responseJson.target_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVertical(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+            let resourceValueFlgArray = new Array({}, {}, {}, {});
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                }
+
+                let assetRspData = {
+                    "resource_name": assetsData[idx].operating_asset_first_name,
+                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
+                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
+                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
+                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
+                    "flag_11": resourceValueFlgArray[0],
+                    "flag_21": resourceValueFlgArray[1],
+                    "flag_31": resourceValueFlgArray[2],
+                    "flag_41": resourceValueFlgArray[3]
+                };
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType130ForResource = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType130 :: ");
+            let results = new Array();
+            let widgetFlags = new Array(1, 2, 3, 4);
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            let header = request.verticalData[request.widget_type_id];
+            delete header["vertical_name"];
+            header.resource_name = "Resource";
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                map.set("flag_1", 0);
+                map.set("flag_2", 0);
+                map.set("flag_3", 0);
+                map.set("flag_4", 0);
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+                if (widgetFlags[iteratorM] == 1) {
+                    paramsArray[1] = 1;
+                    paramsArray[15] = 2;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 2) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 3) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfNextMonthToIST();
+                    paramsArray[19] = util.getLastDayOfNextMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 4) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
+                }
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.asset_id;
+
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.target_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVertical(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+            let resourceValueFlgArray = new Array({}, {}, {}, {});
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                }
+
+                let assetRspData = {
+                    "resource_name": assetsData[idx].operating_asset_first_name,
+                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
+                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
+                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
+                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
+                    "flag_11": resourceValueFlgArray[0],
+                    "flag_21": resourceValueFlgArray[1],
+                    "flag_31": resourceValueFlgArray[2],
+                    "flag_41": resourceValueFlgArray[3]
+                };
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.widgetValuesOpptyVertical = async (request, paramsArr) => {
+
+        let responseData = [],
+            error = true;
+
+        const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty_vertical', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    paramsArr.pop();
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
+
+    this.getResourcesListForSelectedVertical = async (request, paramsArr) => {
+
+        let responseData = [],
+            error = true;
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_vertical', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
+    //----------------------------------------------------------------------
+
 }
 
 module.exports = AnalyticsService;
+
+
