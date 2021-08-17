@@ -59,3 +59,40 @@ analyticsConfig.vertical = {
 		"flag_4": ""
 	}
 };
+
+analyticsConfig.resource = {
+	"128": {
+		"resource_name": "Resource",
+		"flag_1": "Open Oppty CM",
+		"flag_2": "Commit for CM",
+		"flag_3": "Best Case for CM",
+		"flag_4": "Closed for CM"
+	},
+	"129": {
+		"resource_name": "Resource",
+		"flag_1": "Identify",
+		"flag_2": "Qualify",
+		"flag_3": "Propose",
+		"flag_4": "Negotiate"
+	},
+	"130": {
+		"resource_name": "Resource",
+		"flag_1": "Created in CM",
+		"flag_2": "Closed in CM",
+		"flag_3": "EDC for Next Month",
+		"flag_4": "EDC for Cur Quarter"
+	},
+	"status_tags": {
+		"Identify": 143,
+		"Qualify": 144,
+		"Propose": 145,
+		"Negotiate": 147
+	},
+	"error_response": {
+		"resource_name": "",
+		"flag_1": "",
+		"flag_2": "",
+		"flag_3": "",
+		"flag_4": ""
+	}
+};
