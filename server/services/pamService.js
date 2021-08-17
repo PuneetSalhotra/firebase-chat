@@ -1008,7 +1008,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     this.pamAssignParticipant = function(request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
+        console.log("pamAssignParticipant : " +JSON.stringify(request.activity_participant_collection, null, 2))
         pamAssignCoworker(request, function(err, resp){
                if(err === false) {
                    request.activity_status_type_id = 103;
@@ -1577,8 +1577,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                     var phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
                                     var countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
 
-                                    var text = `Dear ${util.replaceDefaultString(resp[0].operating_asset_first_name)},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused please call us on ${supportContactNumber}.
-                                    `                           
+                                    var text = `Dear ${util.replaceDefaultString(resp[0].operating_asset_first_name)},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
+                                                              
                                     self.sendSms(countryCode,phoneNumber,text);    
                                 });
                               }
@@ -1678,13 +1678,16 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
 
 this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
-    
+    console.log("sendSms :: "+countryCode+" : "+phoneNumber)
     let domesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
-        switch (domesticSmsMode) {
+        switch (parseInt(domesticSmsMode)) {
             case 1: // SinFini
+                    console.log("sendSms :: "+domesticSmsMode)
                     util.pamSendSmsSinfini(smsMessage, countryCode, phoneNumber, function(err,res){
                         if(err === false) {
                             console.log('SinFini Message sent!',res);
+                        }else{
+                            console.log('SinFini Message Not sent!',res);
                         }
                     });
                     break;
@@ -1695,6 +1698,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         }
                     });
                     break;
+            default:
+                console.log('sendSms :: In default');
         }
 };
    
@@ -3220,14 +3225,15 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                              text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";*/
                          } else {
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
-                            text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.
-                            `
-
+                            //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
+                            text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
+                            //text = `Dear ${memberName}, You have just placed an order for {#var#} items, if this is not valid, please speak to our staff -GreneOS`;
+                            //text = `Dear ${memberName},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
                          }
-                         console.log('SMS text............. : \n', text);
+                         console.log('SMS text............. : \n'+ text);
                          
                             self.sendSms(countryCode,phoneNumber,text);
-                            self.sendSms(91,supportContactNumber,text);
+                            //self.sendSms(91,supportContactNumber,text);
 
                          return callback(false, 200);
                          });                             
@@ -3823,8 +3829,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let countryCode = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_country_code);
                 let memberName = util.replaceDefaultString(pamAssetDetails[0].asset_first_name);
                     
-                let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now.
-                `
+                let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now -GreneOS`
+                
                 console.log(text);
                 self.sendSms(countryCode,phoneNumber,text);
                 err = false;
@@ -4022,7 +4028,7 @@ this.addParticipantMakeRequest = async function (request) {
         account_id: request.account_id,
         workforce_id: request.workforce_id,
         asset_type_id: 0,
-        asset_category_id:request.member_asset_type_category_id,
+        asset_category_id:30,
         asset_id:request.member_asset_id,
         access_role_id:0,
         message_unique_id:util.getMessageUniqueId(request.asset_id)
@@ -4042,7 +4048,7 @@ this.addParticipantMakeRequest = async function (request) {
     participantArray.push(tableCollection);
 
     request.activity_participant_collection=JSON.stringify(participantArray);
-    request.url = '/activity/participant/access/set'
+    request.url = '/pam/activity/participant/access/set'
     //console.log("addParticipantMakeRequest2 "+JSON.stringify(request,null,2));
 	const assignActAsync = nodeUtil.promisify(makingRequest.post);
 	const makeRequestOptions1 = {
@@ -4052,7 +4058,7 @@ this.addParticipantMakeRequest = async function (request) {
 		const response = await assignActAsync(
 			global.config.mobileBaseUrl +
 				global.config.version +
-				"/activity/participant/access/set",
+				"/pam/activity/participant/access/set",
 			makeRequestOptions1,
 		);
 		const body = JSON.parse(response.body);

@@ -1934,21 +1934,7 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('workflow start | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
-                        // await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
-                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        });
-
-                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        }).catch(global.logger.error);
-
+                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2380,6 +2366,41 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                 break;
 
+                case 54: // Child Order creation BOT
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    request.debug_info.push('WorkFlow Bot');
+                    try {
+                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        console.log('Child Order creation BOT | Request Params received by BOT ENGINE', request);
+                        request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
+                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        });
+
+                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        }).catch(global.logger.error);
+
+                    } catch (err) {
+                        global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                        //return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
+
+
             }
 
             //botOperationTxnInsert(request, i);
@@ -2525,9 +2546,10 @@ function BotService(objectCollection) {
     let bot_json = bot_data.bot_operations;
     if(bot_json.hasOwnProperty("static_pdf")&& bot_json.static_pdf=="true"){
     let pdfJson = bot_json.pdf_json;
-    let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
+    // let comboValue = await getFieldDataComboIdUsingFieldIdV1(request,pdfJson.form_id,pdfJson.field_id);
     
-    s3Url = pdfJson.pdfs[Number(comboValue)-1];
+    // s3Url = pdfJson.pdfs[Number(comboValue)-1];
+    s3Url = pdfJson.pdfs;
     }
     else{
         util.logInfo(request,"Sleeping for 9 sec",[]);
@@ -3172,7 +3194,7 @@ return [error, responseData];
                         organization_id : request.organization_id,
                         owner_flag : 0,
                     };
-                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,1);
+                 await removeAsOwner(request,reqDataForRemovingCreaterAsOwner,0);
 
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
@@ -3337,7 +3359,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
     await activityTimelineService.addTimelineTransactionAsync(timelineReq);
 }
 
-async function removeAsOwner(request,data,addT = 0)  {
+async function removeAsOwner(request,data,addT=0)  {
         let responseData = [],
             error = true;
 
@@ -10479,7 +10501,7 @@ if(workflowActivityData.length==0){
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
-        if(workflowActivityData[0].parent_activity_id !== 0) {
+        if(workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
             await addTimelineMessage(
                 {
                     activity_timeline_text: "Error",

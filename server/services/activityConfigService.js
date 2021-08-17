@@ -1382,10 +1382,13 @@ function ActivityConfigService(db,util,objCollection) {
             console.log('response from ElastiSearch: ',response);
             let totalRetrieved = (response.hits.hits).length;
             console.log('Number of Matched Results : ',totalRetrieved);
-    
+            // console.log(request)
             for(const i_iterator of response.hits.hits) {
-                console.log(i_iterator._source.activity_cuid_1);
-                if(i_iterator._source.activity_cuid_1 === panNumber) {
+                console.log(i_iterator._source.activity_cuid_1.toUpperCase() +" " + panNumber.toUpperCase()+" "+ i_iterator._source.activity_id +' '+ request.workflow_activity_id);
+                // console.log(i_iterator._source.activity_cuid_1.toUpperCase() == panNumber.toUpperCase());
+                // console.log(panNumber)
+                // console.log(Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))
+                if((i_iterator._source.activity_cuid_1.toUpperCase() === panNumber.toUpperCase()) && (Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))) {
                     
                     responseData.push({'message': 'Found a Match!'});
                     console.log('found a Match!');
