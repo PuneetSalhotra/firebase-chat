@@ -599,7 +599,17 @@ function AnalyticsController(objCollection)
             console.log('error :: ',err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
-    });   
+    });
+
+    //Get resouces details for specified vertical
+    app.post('/' + global.config.version + '/analytics/management/widget/value/resource', async (req, res) => {
+        try {
+            let result = await analyticsService.getManagementWidgetValueResource(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 
     }
 
