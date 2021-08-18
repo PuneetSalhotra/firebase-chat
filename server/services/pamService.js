@@ -3227,7 +3227,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
                             //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
                             text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
-                            //text = `Dear ${memberName}, You have just placed an order for {#var#} items, if this is not valid, please speak to our staff -GreneOS`;
+                            //text = `Dear Sravan, You have just placed an order for 2 items, if this is not valid please speak to our staff now. -GreneOS`;
                             //text = `Dear ${memberName},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
                          }
                          console.log('SMS text............. : \n'+ text);
@@ -3829,8 +3829,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let countryCode = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_country_code);
                 let memberName = util.replaceDefaultString(pamAssetDetails[0].asset_first_name);
                     
-                let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now -GreneOS`
-                
+                //let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now -GreneOS`
+                let text = `Dear ${memberName}, You have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now. -GreneOS`;
                 console.log(text);
                 self.sendSms(countryCode,phoneNumber,text);
                 err = false;
@@ -3840,7 +3840,6 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         }
         return [err,res];
     };
-
 
     this.assetListSelectPhoneNumber = async(request) => {
         return new Promise((resolve, reject) => {
