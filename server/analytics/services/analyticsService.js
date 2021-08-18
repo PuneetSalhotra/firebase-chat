@@ -2186,6 +2186,8 @@ function AnalyticsService(objectCollection)
                         iterator++
                     } else if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
                         request.verticalData = global.analyticsConfig.vertical;
+                        //console.log("128 129 130 request.verticalData ",request.verticalData)
+                        results = [];
                         results = await this.prepareWidgetData(request, paramsArray);
                     } else {
                         console.log(paramsArray);
@@ -2266,7 +2268,7 @@ function AnalyticsService(objectCollection)
                 console.log('error ::', e);
             }
 
-
+           // console.log("results :: ",results)
             return results;
         }
         catch(error)
@@ -2375,6 +2377,9 @@ function AnalyticsService(objectCollection)
             let widgetFlags = new Array(1, 2, 3, 4);
             let verticalResponseMap = new Map();
             let isError = false;
+            request.verticalData = global.analyticsConfig.vertical;
+            //console.log("prepareDataForWidgetType128 request.verticalData ",request.verticalData)
+            //console.log("prepareDataForWidgetType128 est.verticalData[request.widget_type_id] ",request.verticalData[request.widget_type_id])
             results.push(request.verticalData[request.widget_type_id]);
             let verticalResponseAdditonalMap = new Map();
 
@@ -2489,7 +2494,7 @@ function AnalyticsService(objectCollection)
                 "flag_31": verticalValueFlgArrayTotal[2],
                 "flag_41": verticalValueFlgArrayTotal[3]
             });
-
+           // console.log("results :: ",results)
             return Promise.resolve(results); 
             
         } catch (error) {
@@ -4920,11 +4925,13 @@ function AnalyticsService(objectCollection)
                 if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
                     request.verticalData = global.analyticsConfig.vertical;
                     results = await this.prepareWidgetDataForResource(request, paramsArray);
+
                 }
 
             } catch (e) {
                 console.log('error ::', e);
             }
+            //console.log("results "+results)
             return results;
         }
         catch (error) {
@@ -5042,9 +5049,8 @@ function AnalyticsService(objectCollection)
             let isError = false;
 
             let opptyVerticalMap = new Map();
-            let header = request.verticalData[request.widget_type_id];
-            delete header["vertical_name"];
-            header.resource_name = "Resource";
+            request.resourceData = global.analyticsConfig.resource;            
+            let header = request.resourceData[request.widget_type_id];
             results.push(header);
 
             let vertical_tag_id = paramsArray[12];
@@ -5160,9 +5166,8 @@ function AnalyticsService(objectCollection)
             let isError = false;
 
             let opptyVerticalMap = new Map();
-            let header = request.verticalData[request.widget_type_id];
-            delete header["vertical_name"];
-            header.resource_name = "Resource";
+            request.resourceData = global.analyticsConfig.resource;            
+            let header = request.resourceData[request.widget_type_id];
             results.push(header);
 
             let vertical_tag_id = paramsArray[12];
@@ -5273,9 +5278,8 @@ function AnalyticsService(objectCollection)
             let isError = false;
 
             let opptyVerticalMap = new Map();
-            let header = request.verticalData[request.widget_type_id];
-            delete header["vertical_name"];
-            header.resource_name = "Resource";
+            request.resourceData = global.analyticsConfig.resource;            
+            let header = request.resourceData[request.widget_type_id];
             results.push(header);
 
             let vertical_tag_id = paramsArray[12];
