@@ -928,7 +928,17 @@ function FormConfigController(objCollection) {
         } else {
             res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
         }
-    });  
+    });
+
+    app.post("/" + global.config.version + "/workforce/form/mapping/list", async function (req, res) {
+
+        const [err, result] = await formConfigService.workforceFormMappingSelectMeetingFormOrigin(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
 
 }
 
