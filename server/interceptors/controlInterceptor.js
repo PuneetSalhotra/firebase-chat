@@ -24,7 +24,7 @@ var PamUpdateController = require('../controllers/pamUpdateController');
 //var FormExceptionController = require('../controllers/formExceptionController');
 let AnalyticsController = require('../analytics/controllers/analyticsController.js');
 
-let AnalyticsOpsController = require('../analyticsOps/controllers/analyticsOpsController.js');
+let AnalyticsOpsController = require('../analytics/controllers/analyticsOpsController.js');
 
 //Vodafone
 var VodafoneController = require('../vodafone/controllers/vodafoneController');
