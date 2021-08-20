@@ -6764,6 +6764,32 @@ function FormConfigService(objCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.workforceFormMappingSelectMeetingFormOrigin = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.flag_origin,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_meeting_form_origin', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {                    
                     responseData = data;
                     error = false;

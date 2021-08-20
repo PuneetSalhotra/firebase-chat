@@ -24,6 +24,13 @@ ipAddress = ipAddress.replace(/\./g, '_');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
+AWS.config.update({
+    "accessKeyId": global.config.aws_sqs_email_accessKeyId,
+    "secretAccessKey": global.config.aws_sqs_email_secretAccessKey,
+    "region": global.config.aws_sqs_email_region
+});
+const sqs = new AWS.SQS();
+
 //AWS.config.update(
 //    {
 //        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
@@ -2459,6 +2466,7 @@ function Util(objectCollection) {
         
     };
 
+    /*
     //This is to support ews
     this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag=0, organisationFlag=0, senderEmail) {
         let responseData = [],
@@ -2476,7 +2484,7 @@ function Util(objectCollection) {
             htmlTemplate = buff.toString('ascii');
         } else if(flag === 1) {
             htmlTemplate = text;
-        }       
+        }
 
         if(organisationFlag) {
             request.is_version_v1 = 1;
@@ -2549,7 +2557,7 @@ function Util(objectCollection) {
         console.log('Before ews.run : emailSubject -  ', subject);
         //console.log('Before ews.run : Template - ', htmlTemplate);
         console.log('Before ews.run : receiverEmailID - ', email);
-        
+
 
         //get flag from redis cache
         let ews_mail = JSON.stringify({"email" : email});
@@ -2560,7 +2568,7 @@ function Util(objectCollection) {
         let isSendEmail = true;
         cacheWrapper.getKeyValueFromCache('ews_mail_send_enabled')
         .then(ewsMailSendEnabledFlag => {
-            console.log("ewsMailSendEnabledFlag = " + ewsMailSendEnabledFlag);            
+            console.log("ewsMailSendEnabledFlag = " + ewsMailSendEnabledFlag);
             if(ewsMailSendEnabledFlag == 1|| ewsMailSendEnabledFlag == null) {
                 console.log("ewsMailSendEnabledFlag = 1 :  send email and also insert into ews_mail_transaction table");
                 if(ewsMailSendEnabledFlag === null) {
@@ -2585,7 +2593,7 @@ function Util(objectCollection) {
                 .catch(err => {
                     console.log('EWS Email - error : ', err.stack);
                     ews_mail_error = JSON.stringify({"error" : err.stack});
-                    this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);                    
+                    this.insertEwsEmailTransactions (ews_mail, ews_function, ewsMailSendEnabledFlag, ews_request, ews_mail_error, log_asset_id);
                 });
             }
         })
@@ -2593,7 +2601,87 @@ function Util(objectCollection) {
             console.log('cachewrapper : getKeyValueFromCache  - error : ', err);
         });
 
-        return [error, responseData];        
+        return [error, responseData];
+    };
+    */
+
+    //This is to support ews
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag = 0, organisationFlag = 0, senderEmail) {
+        logger.info("sendEmailV4ews=>");
+        let responseData = [],
+            error = false;
+
+        try {
+            //console.log('email : ', email);
+            //console.log('subject : ', subject);
+            //console.log('text : ', text);
+
+            console.log('FLAG : ', flag, "organisationFlag", organisationFlag);
+            let buff;
+            let htmlTemplate;
+            if (flag === 0) {
+                buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+                htmlTemplate = buff.toString('ascii');
+            } else if (flag === 1) {
+                htmlTemplate = text;
+            }
+
+            if (organisationFlag) {
+                request.is_version_v1 = 1;
+                let [error, assetDetails] = await this.getAssetDetails(request);
+
+                console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
+                request.email_sender_password_text = assetDetails[0].asset_email_password;
+                const err = await this.sendEmailEWS(request, email, subject, htmlTemplate);
+                if (err) {
+                    return [true, 'Invalid Password'];
+                } else {
+                    return [false, 'Success'];
+                }
+            }
+
+            let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
+            let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
+            let emailMessageBody = {
+                "ewsEmail": "CentralOmt.In@vodafoneidea.com",
+                "ewsUsername": 'COR458207',
+                "ewsPassword": ewsPassword,
+                "ewsDomain": "inroot",
+                "ewsEndpoint": "https://webmail.vodafoneidea.com/ews/exchange.asmx",
+                "ewsMailReceiver": email,
+                "ewsMailSubject": subject,
+                "ewsMailBody": htmlTemplate
+            };
+            logger.info(JSON.stringify(emailMessageBody));
+            let sqsMessage = {
+                MessageBody: JSON.stringify(emailMessageBody),
+                QueueUrl: emailSQSQueueUrl,
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: 'staging'
+                    },
+                }
+            };
+            logger.info(JSON.stringify(sqsMessage));
+            sqs.sendMessage(sqsMessage, (err, data) => {
+                if (err) {
+                    logger.error("Error sending email job to SQS queue => ");
+                    logger.error(err);
+                    responseData = { errormsg: err };
+                    error = true;
+                    //logger.error("Error sending email job to SQS queue", { type: 'ews-engine-mail', error: serializeError(err), request_body: emailMessageBody });
+                } else {
+                    error = false;
+                    responseData = { errormsg: "Successfully sent email to " + email };
+                    logger.info("Successfully sent email job to SQS queue: %j", data, { type: 'ews-engine-mail', request_body: emailMessageBody });
+                }
+            });
+        } catch (err) {
+            logger.error("sendEmailV4ews : Error " + err);
+            error = true;
+        }
+        return [error, responseData];
     };
 
     this.insertEwsEmailTransactions = async function(ews_mail, ews_function, ews_email_sent_enabled, ews_request, ews_mail_error, log_asset_id) {
