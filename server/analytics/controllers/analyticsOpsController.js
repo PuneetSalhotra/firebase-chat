@@ -126,11 +126,22 @@ function AnalyticsOpsController (objCollection) {
                 res.send(responseWrapper.getResponse(false, result, 200, req.body));
             }
             catch (err) {
-                console.log("Error  in /analytics/widget/filter/master/select", err, err.stack);
+                console.log("Error  in /analytics/report/filter/insert", err, err.stack);
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
+
+    app.post('/' + global.config.version + '/analytics/application/tag_type/list', async function (req, res) {
+        const [err, resData] = await analyticsOpsService.getTagTypesBasedOnApplication(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/analytics/application/tag_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });   
+
 }
 
 module.exports = AnalyticsOpsController;
