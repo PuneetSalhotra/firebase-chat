@@ -16,7 +16,7 @@ function UtilityController(objCollection) {
     var sss = new AwsSss();
     const db = objCollection.db;
     const activityCommonService = objCollection.activityCommonService;
-    const privateKey = '>qu6#y&(7Qj}>edm!';
+    const privateKey = global.config.privateKey;
 
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
