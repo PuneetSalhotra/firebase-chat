@@ -4,6 +4,7 @@
 
 const { serializeError } = require("serialize-error");
 const logger = require("../logger/winstonLogger");
+const { Kafka } = require('kafkajs');
 
 function ActivityListingService(objCollection) {
 
@@ -4006,6 +4007,325 @@ function ActivityListingService(objCollection) {
     return [error, responseData];
   };	
 
+	this.emailSummary = async function (request) {
+
+		try {
+			console.log("request ", request);
+
+			let requestForBotInline = Object.assign({}, request);
+			requestForBotInline.bot_operation_type_id = 7;
+			requestForBotInline.form_id = 0;
+			requestForBotInline.field_id = 0;
+
+			let [err, botInlineResult] = await getBotInlineJson(requestForBotInline);
+			if (botInlineResult.length > 0) {
+				const botInlineData =
+					(typeof botInlineResult[0].bot_operation_inline_data === 'string') ? JSON.parse(botInlineResult[0].bot_operation_inline_data) : botInlineResult[0].bot_operation_inline_data;
+				let isAllFlag = botInlineData.bot_operations.fire_email.participants.is_all || 0;
+				if (isAllFlag == 0) {
+					this.generateSummary(request);
+					return;
+				} else {
+					let participantReq = Object.assign({}, request);
+					participantReq.is_all_flag = isAllFlag;
+					let htmlString = await generateMOMOrdersHtmlCode(request);
+					console.log("htmlString ", htmlString);
+					let [err, participantsList] = await getParticipantsAsync(participantReq);
+
+					for (const asset of participantsList) {
+						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
+						console.log("request ", request);
+						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
+						console.log("MOM Points");
+						await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, "MOM Points", htmlString, "", 1);
+					}
+				}
+
+			}
+
+		} catch (e) {
+			logger.info(e)
+			logger.info(e.stack);
+			logger.error("Error Generating Summary ", { error: e });
+		}
+
+		return true;
+	}
+
+	let generateMOMOrdersHtmlCode = async (request) => {
+
+		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
+			organization_id: request.organization_id,
+			parent_activity_id: request.activity_id,
+			flag: 3
+		});
+
+		if (errorZero || childMOM.length === 0) {
+			return "";
+		}
+		let finalSummaryData = [];
+		let momFieldMappingsForSummary = {
+			"190797": {
+				"form_id": 50821,
+				"fields": {
+					"Discussion_Point": 312417,
+					"Description": [
+						312418,
+						312419,
+						312420,
+						312421,
+						312422,
+						312423,
+						312424,
+						312425,
+						312426,
+						312427,
+						312246
+					],
+					"Responsible_Person_Email_ID": 312428,
+					"Responsibility_Holder": 312429,
+					"Category_ID": 312430,
+					"Assigned_To": 312431,
+					"Assigned_Date": 312432,
+					"Due_Date": 312767,
+					"Comments": 312433
+				}
+			},
+			"191879": {
+				"form_id": 50997,
+				"fields": {
+					"Discussion_Point": 313556,
+					"Description": 313557,
+					"Responsible_Person_Email_ID": 313561,
+					"Responsibility_Holder": 313560,
+					"Category_ID": 0,
+					"Assigned_To": 313559,
+					"Assigned_Date": 313563,
+					"Due_Date": 313562,
+					"Comments": 313566
+				}
+			},
+			"field_order": [
+				"SL_NO",
+				"Status",
+				"Meeting_ID",
+				"MOM_Point_ID",
+				"Discussion_Point",
+				"Description",
+				"Responsible_Person_Email_ID",
+				"Responsibility_Holder",
+				"Category_ID",
+				"Assigned_To",
+				"Assigned_Date",
+				"Due_Date",
+				"Comments"
+			],
+			"date_fields": [
+				312767,
+				312432,
+				313563,
+				313562
+			]
+		};
+
+		let MOMFIELDMAPPINGSFORSUMMARY = momFieldMappingsForSummary[String(request.activity_type_id)];
+		let formID = MOMFIELDMAPPINGSFORSUMMARY["form_id"];
+		let fields = Object.keys(MOMFIELDMAPPINGSFORSUMMARY["fields"]);
+		let dateFields = momFieldMappingsForSummary["date_fields"];
+
+		for (let i = 0; i < childMOM.length; i++) {
+			let child = childMOM[i];
+			let fieldIDValue = {};
+			let inlineJSON = [];
+			let activityID = child["activity_id"];
+			const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+				organization_id: request.organization_id,
+				account_id: request.account_id
+			}, activityID, formID);
+
+			if (formTimelineData.length > 0) {
+				const dataActivityInline = JSON.parse(formTimelineData[0].data_entity_inline);
+				inlineJSON = (typeof dataActivityInline.form_submitted === 'string') ? JSON.parse(dataActivityInline.form_submitted) : dataActivityInline.form_submitted;
+			}
+
+			for (let fieldData of inlineJSON) {
+				fieldIDValue[String(fieldData.field_id)] = fieldData.field_value;
+			}
+
+
+			let data = {};
+			data["SL_NO"] = i + 1;
+			data["Meeting_ID"] = child["activity_cuid_3"];
+			data["MOM_Point_ID"] = child["activity_cuid_2"];
+			data["Status"] = child["activity_status_tag_name"];
+
+			for (let field of fields) {
+				let value = "";
+				let fieldID = MOMFIELDMAPPINGSFORSUMMARY["fields"][field];
+				logger.info('fieldID : %j', fieldID);
+				if (isArray(fieldID)) {
+					for (let subFieldID of fieldID) {
+						if (fieldIDValue.hasOwnProperty(String(subFieldID))) {
+							value = fieldIDValue[String(subFieldID)];
+							break;
+						}
+					}
+				} else {
+					if (fieldIDValue.hasOwnProperty(String(fieldID))) {
+						value = fieldIDValue[String(fieldID)];
+					}
+				}
+
+				if (dateFields.includes(fieldID)) {
+					try {
+						let date = moment(value)
+						if (date.isValid()) {
+							value = date.format("DD-MM-YYYY");
+						}
+					} catch (e) {
+					}
+				}
+				data[field] = value;
+			}
+			finalSummaryData.push(data);
+		}
+		console.log("finalSummaryData");
+		console.log(finalSummaryData);
+		let htmlString = '<table width="100%" border="1" cellspacing="0"><thead><tr>';
+
+		for (const key of momFieldMappingsForSummary["field_order"]) {
+			htmlString += '<th>' + key + '</th>';
+		}
+		htmlString += '</tr></thead><tbody>';
+
+		for (let child of finalSummaryData) {
+			htmlString += '<tr>';
+			for (const key of momFieldMappingsForSummary["field_order"]) {
+				htmlString += '<td>' + child[key] + '</td>';
+			}
+			htmlString += '</tr>';
+		}
+		htmlString += '</tbody></table>';
+		return htmlString;
+	}
+
+	async function getParticipantDetails(request) {
+		let responseData = [];
+		let error = true;
+
+		const paramsArr = [request.assetID];
+
+		const queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then
+				(
+					(data) => {
+						responseData = data;
+						error = false;
+					}
+				)
+				.catch
+				(
+					(err) => {
+						error = err;
+					}
+				)
+		}
+
+		return [error, responseData];
+	}
+
+	let getParticipantsAsync = async (request) => {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.activity_id,
+			request.organization_id,
+			request.is_all_flag,
+			0,
+			50
+		);
+
+		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_participants_org', paramsArr);
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					//error = true;
+					console.log("Error in function 'getParticipantsAsync' : ", err);
+				});
+		}
+		return [error, responseData];
+	};
+
+
+	async function getBotInlineJson(request) {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.activity_type_id,
+			request.bot_operation_type_id,
+			0,
+			request.form_id,
+			request.field_id,
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+
+		const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_form_field', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(0, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+
+		return [error, responseData];
+	}
+
+	function isArray(obj) {
+		return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
+	}
+
+	this.generateSummary = (request) => {
+		try {
+			const kafka = new Kafka({
+				clientId: 'child-order-creation',
+				brokers: global.config.BROKER_HOST.split(",")
+			})
+
+			const producer = kafka.producer()
+
+			await producer.connect()
+			await producer.send({
+				topic: global.config.CHILD_ORDER_TOPIC_NAME,
+				messages: [
+					{
+						value: JSON.stringify({
+							...request,
+							requestType: "summary_mom_child_orders"
+						})
+					},
+				],
+			})
+			producer.disconnect();
+		} catch (e) {
+			console.log(e)
+		}
+	}
 }
 
 module.exports = ActivityListingService;
