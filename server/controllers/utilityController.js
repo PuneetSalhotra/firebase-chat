@@ -21,7 +21,7 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
         var statusCode = 200;
-        res.send(responseWrapper.getResponse(false, {}, statusCode, req.body));
+        res.json(responseWrapper.getResponse(false, {}, statusCode, req.body));
 
     });
 
@@ -31,9 +31,9 @@ function UtilityController(objCollection) {
         otp = otp.toString();
         util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.body), '', function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.code, 200, req.body));
             }
         });
     });
@@ -44,9 +44,9 @@ function UtilityController(objCollection) {
         otp = otp.toString();
         util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.query), '', function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.code, 200, req.body));
             }
         });
     });
@@ -60,9 +60,9 @@ function UtilityController(objCollection) {
 
         util.sendEmailV1(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+                res.json(responseWrapper.getResponse(err, data, -100, req.body));
             }
         });
     });
@@ -76,9 +76,9 @@ function UtilityController(objCollection) {
 
         util.sendEmailV2(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+                res.json(responseWrapper.getResponse(err, data, -100, req.body));
             }
         });
     });
@@ -92,9 +92,9 @@ function UtilityController(objCollection) {
 
         util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+                res.json(responseWrapper.getResponse(err, data, -100, req.body));
             }
         });
     });
@@ -110,17 +110,17 @@ function UtilityController(objCollection) {
         if(emailSender === 'no_reply@grenerobotics.com') {
             util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
                 if (err === false) {
-                    res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                    res.json(responseWrapper.getResponse(err, data, 200, req.body));
                 } else {
-                    res.send(responseWrapper.getResponse(err, err, -100, req.body));
+                    res.json(responseWrapper.getResponse(err, err, -100, req.body));
                 }
             });
         } else {
             let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
             if (err) {
-                return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+                return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
             } else {
-                return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+                return res.json(responseWrapper.getResponse({}, data, 200, req.body));
             }
         }
         
@@ -136,10 +136,10 @@ function UtilityController(objCollection) {
 
         util.twilioMakeCall(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -154,10 +154,10 @@ function UtilityController(objCollection) {
 
         util.twilioMakeCall(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -165,9 +165,9 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/asset/bucket/add', function (req, res) {
         sss.createAssetBucket(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -256,7 +256,7 @@ function UtilityController(objCollection) {
             });
         }*/
 
-        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+        res.json(responseWrapper.getResponse(false, {}, 200, req.body));
     });
     
     app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
@@ -266,9 +266,9 @@ function UtilityController(objCollection) {
         util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
             if (err === false) {
             	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
-                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data.code, 200, req.body));
             }
         });
     });
@@ -280,9 +280,9 @@ function UtilityController(objCollection) {
          util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
              if (err === false) {
              	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
-                 res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+                 res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
              } else {
-                 res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+                 res.json(responseWrapper.getResponse(err, data.code, 200, req.body));
              }
          });
      });
@@ -290,9 +290,9 @@ function UtilityController(objCollection) {
      app.post('/' + global.config.version + '/s3/excel_json/list', async (req, res) => {       
         try {
             let result = await util.getJSONfromXcel(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }         
      });
 
@@ -306,22 +306,22 @@ function UtilityController(objCollection) {
                     let result = await db.checkDBInstanceAvailablity(0);
                     console.log('SLAVE : ', result);
                     if(result[0] === 0) {                        
-                        res.send(result[1]);
+                        res.json(result[1]);
                     } else if(result[0] === 1) {
                         res.status(500).send(result[1]);
                     }
                 } catch(err) {
                     console.log('ERROR : ', err);
-                    res.send(err);
+                    res.json(err);
                 }
                 ///////////////////////////////////
-                //res.send(result[1]);
+                //res.json(result[1]);
             } else if(result[0] === 1) {
                 res.status(500).send(result[1]);
             }
         } catch(err) {
             console.log('ERROR : ', err);
-            res.send(err);
+            res.json(err);
         }
 
      });
@@ -338,17 +338,17 @@ function UtilityController(objCollection) {
         }
         const activityData = await activityCommonService.getActivityDetailsPromise(req.body, req.body.activity_id);
         if (Number(activityData.length) <= 0) {
-            return res.send(responseWrapper.getResponse(true, {
+            return res.json(responseWrapper.getResponse(true, {
                 message: `No workflow/activity data found in db`
             }, -9999, req.body));
         }
 
         const [err, responseData] = await util.sendCustomPushNotification(req.body, activityData);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/send/asset/push_notification | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
 
@@ -361,9 +361,9 @@ function UtilityController(objCollection) {
 
         util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                res.json(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+                res.json(responseWrapper.getResponse(err, data, -100, req.body));
             }
         });
     });
@@ -381,17 +381,17 @@ function UtilityController(objCollection) {
         if(emailSender === 'no_reply@grenerobotics.com') {
             util.sendEmailV4(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
                 if (err === false) {
-                    res.send(responseWrapper.getResponse(err, data, 200, req.body));
+                    res.json(responseWrapper.getResponse(err, data, 200, req.body));
                 } else {
-                    res.send(responseWrapper.getResponse(err, err, -100, req.body));
+                    res.json(responseWrapper.getResponse(err, err, -100, req.body));
                 }
             });
         } else {
             let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, 0, outlookEmailIntegrationFLag, emailSender);
             if (err) {
-                return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+                return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
             } else {
-                return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+                return res.json(responseWrapper.getResponse({}, data, 200, req.body));
             }
         }
     });
@@ -406,9 +406,9 @@ function UtilityController(objCollection) {
 
         let [err, data] = await util.sendEmailV4ews(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
@@ -422,9 +422,9 @@ function UtilityController(objCollection) {
         console.log(err);
         console.log(data);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
@@ -439,9 +439,9 @@ function UtilityController(objCollection) {
         let [err,data] = await util.downloadExcelFileFromS3V1(req.body,fileKey,pathToDownload,fileNameToCreate);
         console.log(err,data);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
@@ -498,15 +498,15 @@ function UtilityController(objCollection) {
                     //res.end();
 
                     //res.contentType(filePath);
-                    //res.sendFile(filePath);
+                    //res.jsonFile(filePath);
                     
-                    //res.sendFile('/apistaging-data/one.png');
-                    //res.sendFile('/apistaging-data/MOJO0925005A16233330.pdf');
+                    //res.jsonFile('/apistaging-data/one.png');
+                    //res.jsonFile('/apistaging-data/MOJO0925005A16233330.pdf');
 
                     //const buffer = new Buffer.from(filePath,'base64');
                     //console.log(buffer);
                     //console.log(buffer.toString('base64'));
-                    //res.send(buffer);                    
+                    //res.json(buffer);                    
 
                     const stat = fs.statSync(filePath);                   
 
@@ -528,7 +528,7 @@ function UtilityController(objCollection) {
                     const readStream = fs.createReadStream(filePath);                    
                     //readStream.pipe(res);
 
-                    res.sendFile(filePath);
+                    res.jsonFile(filePath);
 
                     readStream.on('end', ()=>{                        
                         //fs.unlink(filePath, ()=>{});
@@ -547,7 +547,7 @@ function UtilityController(objCollection) {
 
     app.post('/'+global.config.version+'/veryify-token',async(req,res)=>{
         console.log("In verifying Access token for socket io");
-        return res.send(responseWrapper.getResponse({}, {}, 200, {}));
+        return res.json(responseWrapper.getResponse({}, {}, 200, {}));
     });
 }
 module.exports = UtilityController;

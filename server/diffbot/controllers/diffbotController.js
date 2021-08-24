@@ -18,11 +18,11 @@ function DiffbotController(objCollection)
         diffbotService.getTendersFromTenderTigerWebsite({});
         //const [err, data] = await diffbotService.workforceListUpdateInlineData(req.body);
         //if (!err) {
-        //    res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        //    res.json(responseWrapper.getResponse({}, data, 200, req.body));
         //} else {
-        //    res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        //    res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         //}
-        res.send(responseWrapper.getResponse({}, [], 200, req.body));
+        res.json(responseWrapper.getResponse({}, [], 200, req.body));
     });
 
 }

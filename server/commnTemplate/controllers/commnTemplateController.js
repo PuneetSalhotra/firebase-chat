@@ -27,11 +27,11 @@ function CommnTemplateController(objCollection)
             try 
             {
                 let result = await commnTemplateService.getCommnChannels(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -47,11 +47,11 @@ function CommnTemplateController(objCollection)
             try 
             {
                 let result = await commnTemplateService.addCommnTemplate(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -67,11 +67,11 @@ function CommnTemplateController(objCollection)
             try 
             {
                 let result = await commnTemplateService.alterCommnTemplate(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -87,11 +87,11 @@ function CommnTemplateController(objCollection)
             try 
             {
                 let result = await commnTemplateService.archiveCommnTemplate(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
