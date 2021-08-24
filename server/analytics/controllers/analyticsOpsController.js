@@ -140,7 +140,29 @@ function AnalyticsOpsController (objCollection) {
             console.log("/analytics/application/tag_type/list | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
-    });   
+    });
+
+    //Get the dashboard fields filter list
+    app.post('/' + global.config.version + '/analytics/dashboard/field/filter/list', async function (req, res) {
+        const [err, resData] = await analyticsOpsService.getDashboardFiledsFilterList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/analytics/dashboard/field/filter/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //UpdateWorforceFormFieldMappingFilters
+    app.post('/' + global.config.version + '/analytics/dashboard/field/filter/set', async function (req, res) {
+        const [err, resData] = await analyticsOpsService.UpdateWorforceFormFieldMappingFilters(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/analytics/dashboard/field/filter/set | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 
 }
 
