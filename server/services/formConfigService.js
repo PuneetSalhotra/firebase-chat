@@ -1129,7 +1129,7 @@ function FormConfigService(objCollection) {
                         util.logError(request,`formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
                     } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                         let workflowRequest = Object.assign({}, request);
-                            workflowRequest.activity_inline_data = JSON.stringify(retrievedInlineData);
+                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
                             workflowRequest.is_from_field_alter = 1;
                         try {
                             self.workflowOnFormEdit(workflowRequest);
