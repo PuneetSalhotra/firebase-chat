@@ -11,7 +11,7 @@ module.exports = function DataManagementController(params) {
         try {
             await dmService.exportFormsDataToPdf(req,res);
         } catch(err) {
-            res.send(responseWrapper.getResponse(err,{},-9998,req.body));
+            res.json(responseWrapper.getResponse(err,{},-9998,req.body));
         }
     });
 

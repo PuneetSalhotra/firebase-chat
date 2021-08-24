@@ -136,7 +136,7 @@ app.use(function (req,res,next) {
             req.body.message_unique_id === null ||
             req.body.message_unique_id === '') {
             // Let the client know that they have goofed up.
-            res.send({
+            res.json({
                 status: -3206,
                 service_id: 0,
                 gmt_time: (new Util()).getCurrentUTCTime(),
@@ -210,7 +210,7 @@ app.use((err,req,res,next) => {
         });
         
     var responseWrapper = new ResponseWrapper(util);
-    res.send(responseWrapper.getResponse(err,{
+    res.json(responseWrapper.getResponse(err,{
         message: 'CORS - origin access not allowed!'
     },401,req.body))
 });

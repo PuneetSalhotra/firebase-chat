@@ -153,7 +153,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                     //console.log('decoded : ', decoded);
                     if(decoded === null) {
                         console.log('Invalid token');
-                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                        res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                         return;
                     }
 
@@ -224,12 +224,12 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 //        console.log('');
                                 //        console.log('Invalid token - UserName does not match');
                                 //        console.log('#########################################');
-                                //        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                //        res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                 //        return;
                                 //    }
                                 //} else {
                                 //    console.log('UserName from the accessToken is not present in the Map');
-                                //    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                //    res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                 //    return;
                                 //}
 
@@ -254,12 +254,12 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                         console.log('');
                                         console.log('Invalid token - UserName does not match');
                                         console.log('#########################################');
-                                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                        res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                         return;
                                     }
                                 } else {
                                     console.log('UserName from the accessToken is not present in the Redis');
-                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                     return;
                                 }
                                 
@@ -283,7 +283,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 let user = userNameFromCognito.Users;
                                 if(user.length === 0) {
                                     console.log('No User Found');
-                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                     return;
                                 }
 			                    console.log(user[0]);
@@ -302,7 +302,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
 
                                     console.log('Invalid token - UserName does not match');
                                     console.log('#########################################');
-                                    res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                    res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                     return;
                                 }
 
@@ -310,7 +310,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                     if (err) {
                                         console.log(err, err.stack);
                                         console.log('Invalid token');
-                                        res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                        res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                         return;
                                     } else {
                                         console.log('User Data : ', data);
@@ -328,7 +328,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                             console.log('typeof From Access token : ', typeof decoded.payload.username);
 
                                             console.log('Invalid token - UserName does not match');
-                                            res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                            res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                             return;
                                         }
                                     }
@@ -340,7 +340,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 console.log('Some error in the token Verification');
                                 global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
                                 global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});                                
-                                res.send(responseWrapper.getResponse(null, {'message':err}, -3205, req.body));
+                                res.json(responseWrapper.getResponse(null, {'message':err}, -3205, req.body));
                             }
                             });
                             
@@ -349,7 +349,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                     }).on("error", (err) => {
                         console.log("Error: " + err.message);
                         global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});
-                                res.send(responseWrapper.getResponse(null, {}, -3205, req.body));
+                                res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                         });
                     break;
                     } //switch

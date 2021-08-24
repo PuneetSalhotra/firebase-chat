@@ -32,7 +32,7 @@ module.exports = function DataManagementService(params) {
                 await putTimelineEntry(req,res,pdfUrl); // add timeline entry
             }
             console.log("add timeline entyr");
-            return res.send(responseWrapper.getResponse(
+            return res.json(responseWrapper.getResponse(
                 false,
                 {pdfUrl},
                 200,
@@ -40,7 +40,7 @@ module.exports = function DataManagementService(params) {
             ))
         } catch(err) {
             console.log(err)
-            return res.send(responseWrapper.getResponse(err,{},-9998,req));
+            return res.json(responseWrapper.getResponse(err,{},-9998,req));
         }
 
     }
@@ -86,7 +86,7 @@ module.exports = function DataManagementService(params) {
         }
         catch(err) {
             console.log(err)
-            return res.send(responseWrapper.getResponse(err,{},-9998,req));
+            return res.json(responseWrapper.getResponse(err,{},-9998,req));
         }
     }
 
@@ -106,7 +106,7 @@ module.exports = function DataManagementService(params) {
             return s3UploadUrlObj.Location
         } catch(err) {
             console.log(err)
-            return res.send(responseWrapper.getResponse(err,{},-9998,request));
+            return res.json(responseWrapper.getResponse(err,{},-9998,request));
         }
     }
 

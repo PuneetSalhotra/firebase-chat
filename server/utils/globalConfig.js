@@ -16,6 +16,9 @@ config.razorpayMerchantId = "GpdQxFFvBJpwGH";
 config.razorpayApiId = "rzp_test_EKiobaL8CXxuzm";
 config.razorpayApiKey = "U8iSqeNexlYFCMEqNnl9Ik82";
 
+config.accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
+config.authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+config.privateKey = '>qu6#y&(7Qj}>edm!'
 config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinfini
 config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio

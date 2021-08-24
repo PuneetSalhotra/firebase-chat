@@ -15,10 +15,10 @@ function doaController(objCollection) {
     //    console.log('In hello');
     //    const [err, orgData] = await doaService.hello(req.body);
     //    if (!err) {
-    //        res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+    //        res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
     //    } else {
     //        console.log("/admin/workforce/desk/add | Error: ", err);
-    //        res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+    //        res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
     //    }
     //});
 

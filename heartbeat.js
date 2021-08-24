@@ -23,7 +23,7 @@ function callPasscodeAlter() {
                 gmt_time: body.gmt_time,
                 response: body.response
             };
-            //res.send(resp);
+            //res.json(resp);
             console.log(resp);
     });    
 }

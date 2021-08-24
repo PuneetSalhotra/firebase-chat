@@ -21,9 +21,9 @@ function PortalController(objCollection) {
 
         let [err, result] = await portalService.workforceActivityStatusMappingSelect(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
 
     });
@@ -37,9 +37,9 @@ function PortalController(objCollection) {
 
         let [err, result] = await portalService.workforceListSelectAccount1(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
 
     });
@@ -84,11 +84,11 @@ function PortalController(objCollection) {
                 if (k < data.length) {
                     recursiveGetDeskInfo(k);
                 } else {
-                    res.send(responseWrapper.getResponse(err, [], -9998, req.body));
+                    res.json(responseWrapper.getResponse(err, [], -9998, req.body));
                 }
             }
         } else {
-            res.send(responseWrapper.getResponse(false, { data: [] }, 200, req.body));
+            res.json(responseWrapper.getResponse(false, { data: [] }, 200, req.body));
         }
     });
 
@@ -101,9 +101,9 @@ function PortalController(objCollection) {
 
         let [err, result] = await portalService.assetListSelectAllDesks(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
 
     });
