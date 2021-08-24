@@ -3,23 +3,9 @@
 */
 
 function AnalyticsOpsService(objectCollection) 
-{
-    
-    const makeRequest = require('request');    
-    const nodeUtil = require('util');
-    
-    const AssetService = require('../../services/assetService');
-    const assetService = new AssetService(objectCollection);
-
-    //const cacheWrapper = objectCollection.cacheWrapper;
-    const queueWrapper = objectCollection.queueWrapper;
-    //const activityPushService = objectCollection.activityPushService;
-    
+{    
     const util = objectCollection.util;
-    const db = objectCollection.db;    
-
-    const activityCommonService = objectCollection.activityCommonService;   
-    
+    const db = objectCollection.db;        
     const self = this;
 
     // Add filter label for the organization
@@ -66,7 +52,7 @@ function AnalyticsOpsService(objectCollection)
                         request.export_enabled,
                         request.dashboard_enabled,
                         request.organization_id,
-                        request.log_asset_id,
+                        request.asset_id,
                         util.getCurrentUTCTime()
                     );
 
@@ -89,8 +75,8 @@ function AnalyticsOpsService(objectCollection)
                     (
                         request.organization_id,
                         request.flag || 0,
-                        request.start_from || 0,
-                        request.limit_value || 20
+                        request.page_start || 0,
+                        request.page_limit || 50
                     );
 
             let results = await db.callDBProcedureR2(request, 'ds_p1_widget_filter_master_select', paramsArray, 1);
@@ -119,7 +105,7 @@ function AnalyticsOpsService(objectCollection)
                         request.target_activity_type_id,
                         request.target_tag_type_id,
                         request.organization_id,
-                        request.log_asset_id,
+                        request.asset_id,
                         util.getCurrentUTCTime()
                     );
 
@@ -148,7 +134,7 @@ function AnalyticsOpsService(objectCollection)
                         request.filter_inline_data,
                         request.filter_access_flag,
                         request.organization_id,
-                        request.log_asset_id,
+                        request.asset_id,
                         util.getCurrentUTCTime()
                     );
 
@@ -175,7 +161,7 @@ function AnalyticsOpsService(objectCollection)
                         request.sequence_id,
                         request.conversion_format,
                         request.organization_id,
-                        request.log_asset_id,
+                        request.asset_id,
                         util.getCurrentUTCTime()
                     );
 
@@ -201,7 +187,7 @@ function AnalyticsOpsService(objectCollection)
                         request.workforce_id,
                         request.activity_type_id,
                         request.workflow_fields,
-                        request.log_asset_id,
+                        request.asset_id,
                         util.getCurrentUTCTime()
                     );
 
@@ -223,8 +209,8 @@ function AnalyticsOpsService(objectCollection)
                 new Array
                     (
                         request.organization_id,
-                        request.start_from,
-                        request.limit_value
+                        request.page_start,
+                        request.page_limit
                     );
 
             let result = await db.callDBProcedureR2(request, 'ds_p1_widget_drilldown_header_master_select', paramsArray, 1);
@@ -235,6 +221,32 @@ function AnalyticsOpsService(objectCollection)
             return Promise.reject(error);
         }
     };
+
+    this.getTagTypesBasedOnApplication = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_category_id,
+            request.application_id,
+            request.page_start || 0,
+            request.page_limit            
+        );
+        const queryString = util.getQueryString('ds_p1_tag_type_list_select_application', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }        
 }
 
 module.exports = AnalyticsOpsService;

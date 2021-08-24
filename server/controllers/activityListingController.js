@@ -6,7 +6,6 @@
 var ActivityListingService = require("../services/activityListingService");
 const moment = require('moment');
 const logger = require("../logger/winstonLogger");
-const { Kafka } = require('kafkajs');
 function ActivityListingController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
@@ -1081,26 +1080,7 @@ function ActivityListingController(objCollection) {
         }
         let activityTypeID = req.body.activity_type_id || 0;
         if (activityTypeID === 190797) {
-            const kafka = new Kafka({
-                clientId: 'child-order-creation',
-                brokers: global.config.BROKER_HOST.split(",")
-            })
-
-            const producer = kafka.producer()
-
-            await producer.connect()
-            await producer.send({
-                topic: global.config.CHILD_ORDER_TOPIC_NAME,
-                messages: [
-                    {
-                        value: JSON.stringify({
-                            ...req.body,
-                            requestType: "summary_mom_child_orders"
-                        })
-                    },
-                ],
-            })
-            producer.disconnect();
+            activityListingService.generateSummary(req.body);
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
 
@@ -1136,6 +1116,15 @@ function ActivityListingController(objCollection) {
                 }], -9998, req.body));
             }
 
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/email-summary/', async (req, res) => {
+        try {
+            activityListingService.emailSummary(req.body);
+            res.send(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be sent via email shortly!" }], 200, req.body));
+        } catch (e) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
 

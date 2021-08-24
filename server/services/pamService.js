@@ -198,13 +198,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
          });         
         
      }
-     
+    
+     /*
      this.sendSms = function(request, callback) {
          util.pamSendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);
                 callback(false, {}, 200);
          });
-     }
+     } */
     
     this.getWorkforceDifferential = function (request, callback) {
         var paramsArr = new Array(
@@ -2705,37 +2706,36 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         console.log('Request params : ', request);
-        
-        if(request.hasOwnProperty('member_passcode')) {          
-             var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+request.member_passcode+".";
+        let supportNumber = "916309386175";
+        let entry = "parking garage @ Radisson Blu";
+        let operationalHours = "Tuesday-Sunday, 7 p.m. to 4 a.m";
+        let companyName = "Pudding n Mink";
+        if(request.hasOwnProperty('member_passcode')) {  
+            /*        
+             var text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+".";
                         text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
-                        text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
-                        text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
-                        text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
-                    
+                        text += " Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation.";
+                        text += " Remember the entry is only from the "+entry+".";
+                        text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. "+companyName+" -GreneOS";
+                        */
+             let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
              console.log('sms Text : ' + text);
-             util.pamSendSmsMvaayoo(text, request.asset_phone_country_code, request.asset_phone_number, function(err,res){
-                if(err === false) {
-                    console.log('Message sent!', res, err);
-                    }
-                });
+             self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text);  
              callback(false, {}, 200);
         } else {
             generateUniqueCode(request, function(err, data){
                 if (err === false) {
                     updatePC(request, data).then(()=>{
+                        /*
                          var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+data+".";
                              text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
                              text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
                              text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
                              text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
-
+                             */
+                         let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+data+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
                          console.log('sms Text : ' + text);
-                         util.pamSendSmsMvaayoo(text, request.asset_phone_country_code, request.asset_phone_number, function(err,res){
-                              if(err === false) {
-                                 console.log('Message sent!', res, err);
-                                }
-                             });
+                         self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text); 
                          callback(false, {}, 200);
                     });
                 } else {

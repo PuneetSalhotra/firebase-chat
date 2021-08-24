@@ -15707,7 +15707,6 @@ if(workflowActivityData.length==0){
 
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
-
 }
 
 
