@@ -1074,7 +1074,7 @@ if(mode === 'preprod') {
     config.elasticCrawlingAccountTable = 'crawling_accounts';
     config.elasticVidmTable = 'vidm';
     config.elasticCrawlingGroupAccounts = 'crawling_group_accounts';
-    config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,153656,153657,153658,153659,153660,153661]
+    config.roleMappingElastic = [142898, 144143, 144142, 144144, 145183, 145184, 142986,146764, 146765, 146766, 146767, 146768, 146769,147251]
 }
 
 

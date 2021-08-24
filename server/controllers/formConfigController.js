@@ -243,6 +243,81 @@ function FormConfigController(objCollection) {
 
     });
 
+    app.post('/' + global.config.version + '/form/activity/alter/bulk', function (req, res) {
+
+        var deviceOsId = 0;
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+
+        var proceedInlineUpdate = function () {
+            var event = {
+                name: "alterFormActivity",
+                service: "formConfigService",
+                method: "alterFormActivityBulk",
+                payload: req.body
+            };
+
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+                if (err) {
+                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                    res.send(responseWrapper.getResponse(false, {}, -5999, req.body));
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                } else {
+                    if (req.hasOwnProperty('device_os_id')) {
+                        if (Number(req.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    util.logError(req.body,`error in setting in asset parity`, { type: 'form_activity_alter', error: serializeError(err) });
+                                    //console.log("error in setting in asset parity");
+                                } else
+                                util.logInfo(req.body,`asset parity is set successfully`);
+
+                            });
+                        }
+                    }
+                    res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                }
+            });
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
+        };
+        try {
+            JSON.parse(req.body.activity_inline_data);
+            // console.log('json is fine');
+
+        } catch (exeption) {
+            util.logError(req.body,`JSON error `, { type: 'form_activity_alter', error: serializeError(exeption) });
+            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            return;
+        }
+        if (util.hasValidActivityId(req.body)) {
+            if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+                cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
+                    if (err) {
+                        res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                    } else {
+                        if (status) { // proceed
+                            proceedInlineUpdate();
+                        } else { // this is a duplicate hit,
+                            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                        }
+                    }
+                });
+
+            } else if (deviceOsId === 5) {
+                proceedInlineUpdate();
+
+            } else {
+                res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+            }
+        } else {
+            res.send(responseWrapper.getResponse(false, {}, -3301, req.body));
+        }
+
+    });
+
     app.post('/' + global.config.version + '/form/field/combo/list', function (req, res) {
         formConfigService.getFormFieldComboValues(req.body).then((data) => {
             //console.log(data);

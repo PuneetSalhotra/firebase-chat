@@ -873,6 +873,279 @@ function FormConfigService(objCollection) {
         callback(false, {}, 200);
     };
 
+    this.alterFormActivityBulk = async function (request,callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        //added new flag 
+        request.isFieldEdit = 1;
+
+        //From the request you are suppossed to get the form_activity_id in the parameter activity_id
+        //for some migration data in production Instread of getting form_activity_id we are getting workflow_activity_id in the parameter activity_id
+        //Hence added the following check
+
+        //If the parameter activity_id is form_activity_id then proceed else check and the get the form_activity_id and append
+        let [err, responseData] = await checkWhetherFormWorkflowActID({
+            log_uuid : request.log_uuid,
+            form_transaction_id: request.form_transaction_id,
+            organization_id: request.organization_id
+        });
+
+        let activityTypeID = 0;
+        let workflowActID = 0;
+        let finalInlineData = [];
+        if(responseData.length > 0) {
+            util.logInfo(request,`Form Activity ID %j`,responseData[0].form_activity_id);
+            util.logInfo(request,`Workflow Activity ID -  %j`,responseData[0].workflow_activity_id);
+            util.logInfo(request,`request.activity_id -  %j`,request.activity_id);
+            util.logInfo(request,`responseData[0].activity_type_id - %j`,responseData[0].activity_type_id);
+            
+            workflowActID = responseData[0].workflow_activity_id;
+            activityTypeID = Number(responseData[0].activity_type_id);
+
+            if(Number(responseData[0].form_activity_id) !== Number(request.activity_id)) {
+                util.logInfo(request,`Received workflow_Activity_Id instead of form_activity_id from request`);
+                request.activity_id = responseData[0].form_activity_id;
+            } else {
+                util.logInfo(request,`Received form_activity_id from request. Hence proceeeding!`);
+            }
+        }        
+        addAssetToWorkflow(request);
+
+        var activityInlineData = JSON.parse(request.activity_inline_data);
+
+        //If the asset in not a participant on the workflow then add him
+        
+
+        //Perform actions for each field edited
+
+        activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
+            
+            if (err === false) {
+                util.logInfo(request,`Data from activity_list: %j`, data.length);
+                var retrievedInlineData = [];
+                if (data.length > 0) {
+                    request['activity_id'] = data[0].activity_id;
+                    request.activity_type_id = data[0].activity_type_id  || 0;
+                    retrievedInlineData = JSON.parse(data[0].activity_inline_data);
+
+                    // newData.form_name = data[0].form_name || newData.form_name || "";
+                }
+                forEachAsync(retrievedInlineData, (next, row) => {
+                     
+                    var newData = activityInlineData.find(o => Number(o.field_id) === Number(row.field_id));
+                    if(newData){       
+                    request.new_field_value = newData.field_value;
+                    var dataTypeId = Number(newData.field_data_type_id);
+                    let newFieldValue = newData.field_value;
+                        oldFieldValue = row.field_value;
+                        row.field_value = newData.field_value;
+                        newData.field_name = row.field_name;
+                        newData.form_name = data[0].form_name || newData.form_name;
+                        if(dataTypeId === 62) {
+                            try{
+                                let oldFieldData;
+                                let jsonData;
+                                (typeof newData.field_value === 'object')?
+                                    jsonData = newData.field_value:
+                                    jsonData = JSON.parse(newData.field_value);
+
+                                (typeof oldFieldValue === 'object')?
+                                    oldFieldData = oldFieldValue:
+                                    oldFieldData = JSON.parse(oldFieldValue);
+                                
+                                newFieldValue = jsonData.transaction_data.transaction_amount;
+                                oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+
+                                util.logInfo(request,`Old Transaction Amount: %j`, oldFieldValue);
+                                util.logInfo(request,`New Transaction Amount: %j`, newFieldValue);
+                            } catch (err) {
+                                util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
+                            }
+                        }
+                        
+                        if(dataTypeId === 68) { 
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
+                        }
+
+                        if(dataTypeId === 57) { 
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'single');
+                        }
+
+                        if(dataTypeId === 71) {
+                            activityActivityMappingUpdateV1(request, newData, oldFieldValue, 'multi');
+                        }
+
+                        // cnt++;
+                    }
+                    next();
+                }).then(async () => {
+                    // console.log('inline data',retrievedInlineData);
+
+                    for(let i=0;i<activityInlineData.length;i++){
+                        var newData = activityInlineData[i];        
+                        request.new_field_value = newData.field_value;
+                        var dataTypeId = Number(newData.field_data_type_id);
+                        //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
+                        
+                        switch(Number(newData.field_data_type_id)) {
+                            case 57: fireBotUpdateIntTables(request, newData);
+                                     break;
+                            case 33: fireBotUpdateIntTables(request, newData);
+                                     break;
+                            //case 68: activityActivityMappingInsertV1(request, newData, 0);
+                            //         break;
+                            default: break;
+                        }
+                        let oldFieldValue;
+                                    // if (cnt == 0) {
+                                    //     newData.update_sequence_id = 1;
+                                    //     retrievedInlineData.push(newData);
+                                    //     oldFieldValue = newData.field_value;
+                                    //     if(dataTypeId === 62) {
+                                    //         try{
+                                    //             let oldFieldData;
+                                    //             (typeof oldFieldValue === 'object')?
+                                    //                 oldFieldData = oldFieldValue:
+                                    //                 oldFieldData = JSON.parse(oldFieldValue);                               
+                                                
+                                    //             oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+                                    //         } catch (err) {
+                                    //             util.logError(request,`alterFormActivity`, { type: 'alter_form', error: serializeError(err) });
+                                    //         }
+                                    //     }
+                                    //     // newData.field_name = row.field_name;
+                                    // }
+                
+                                    request.activity_inline_data = JSON.stringify(retrievedInlineData);
+                                    //console.log('oldFieldValue: ', oldFieldValue);
+                                    // let content = '';
+                                    // let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                                    // util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
+                                    // if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
+                                    //     if (String(oldFieldValue).trim().length === 0) {
+                                    //         content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
+                                    //     } else {
+                                    //         content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
+                                    //     }
+                                    // }else{
+                                    //     content = `In the ${newData.form_name}, the field ${newData.field_name} was updated`;
+                                    // }
+                
+                                    // let activityTimelineCollection = {
+                                    //     form_submitted: retrievedInlineData,
+                                    //     subject: `Field Updated for ${newData.form_name}`,
+                                    //     content: content,
+                                    //     mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    //     attachments: [],
+                                    //     asset_reference: [],
+                                    //     activity_reference: [],
+                                    //     form_approval_field_reference: []
+                
+                                    // };
+                                    // request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                                    request.form_id=newData.form_id;
+                                    request.field_id=newData.field_id;
+                                    getLatestUpdateSeqId(request).then(async (data) => {
+                
+                                        if (data.length > 0) {
+                                            let x = data[0];
+                                            request.update_sequence_id = ++x.update_sequence_id;
+                                            util.logInfo(request,`update_sequence_id : ${request.update_sequence_id}`);
+                                        } else {
+                                            request.update_sequence_id = 1;
+                                        }
+                                       
+                                        activityInlineData[i].old_field_value = oldFieldValue;
+                                        await putLatestUpdateSeqId(request, [activityInlineData[i]], retrievedInlineData).then(() => {
+                                            util.logInfo(request,`After putLatestUpdateSeqId`);                       
+                                        }).catch((err) => {
+                                            // global.logger.write(err);
+                                            util.logError(request,`Error in putLatestUpdateSeqId`, { type: 'alter_form', error: serializeError(err) });
+                                        });
+                
+                                    // }).catch((err) => {
+                                    //     util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                                    // });
+                
+                        });
+                    }
+                    let content = `${newData.form_name}, has been updated`;
+                    let activityTimelineCollection = {
+                        form_submitted: retrievedInlineData,
+                        subject: `Field Updated for ${newData.form_name}`,
+                        content: content,
+                        mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        attachments: [],
+                        asset_reference: [],
+                        activity_reference: [],
+                        form_approval_field_reference: []
+
+                    };
+                    request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                    request.activity_inline_data = JSON.stringify(retrievedInlineData);
+                    //raise activity inline alter event
+                    var event = {
+                       name: "alterActivityInline",
+                       service: "activityUpdateService",
+                       method: "alterActivityInline",
+                       payload: request
+                   };
+                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                       if (err) {
+                           util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                           throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                       } else {
+                           util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`,resp);
+                       }
+                   });
+           
+                   if(activityTypeID === 151717) {
+                       let newReq = Object.assign({}, request);
+                       newReq.activity_id = workflowActID;
+                       console.log('workflowActID - ', workflowActID);
+           
+                       var event = {
+                           name: "alterActivityInline",
+                           service: "activityUpdateService",
+                           method: "alterActivityInline",
+                           payload: newReq
+                       };
+                       queueWrapper.raiseActivityEvent(event, workflowActID, (err, resp) => {
+                           if (err) {
+                               util.logError(request,`Error in queueWrapper raiseActivityEvent:`, { type: 'alter_form', error: serializeError(err) });
+                               throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                           } else {
+                               util.logInfo(request,`Response from queueWrapper raiseActivityEvent: %j`, resp);
+                           }
+                       }); 
+                   }
+           
+           
+                    // Workflow trigger on form edit
+                    const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+                    if (formConfigError !== false) {
+                        // return [formConfigError, formConfigData];
+                        util.logError(request,`formConfigError `, { type: 'alter_form', error: serializeError(formConfigError) });
+                    } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
+                        let workflowRequest = Object.assign({}, request);
+                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
+                            workflowRequest.is_from_field_alter = 1;
+                        try {
+                            self.workflowOnFormEdit(workflowRequest);
+                        } catch (error) {
+                            util.logError(request,`[alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
+                        }
+                    }
+                }).catch((err1)=>{
+                 callback(true, err1, -9999);
+                })
+            }
+        })
+      
+        callback(false, {}, 200);
+    }
+
     function getLatestUpdateSeqId(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(

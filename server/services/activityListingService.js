@@ -4300,7 +4300,7 @@ function ActivityListingService(objCollection) {
 		return obj !== undefined && obj !== null && Array.isArray(obj) && obj.constructor == Array;
 	}
 
-	this.generateSummary = (request) => {
+	this.generateSummary = async (request) => {
 		try {
 			const kafka = new Kafka({
 				clientId: 'child-order-creation',
