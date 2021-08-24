@@ -18,13 +18,13 @@ function AssetConfigController(objCollection) {
 
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
 
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = new Array();
-                res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
         });
 
@@ -33,9 +33,9 @@ function AssetConfigController(objCollection) {
     app.post('/' + global.config.version + '/asset/suspension/workforce-asset-type/set', async (req, res) => {
         const [err, data] = await assetConfigService.updateWorkforceAssetType(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -44,9 +44,9 @@ function AssetConfigController(objCollection) {
     app.post('/' + global.config.version + '/asset/list/suspension/alter', async (req, res) => {
         const [err, data] = await assetConfigService.updateAssetListSuspension(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -55,9 +55,9 @@ function AssetConfigController(objCollection) {
     app.post('/' + global.config.version + '/asset/manager/list', async (req, res) => {
         const [err, data] = await assetConfigService.selectAssetManager(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -66,70 +66,70 @@ function AssetConfigController(objCollection) {
     app.post('/' + global.config.version + '/excel/upload_type/add', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputTypeMasterInsert(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload_type/add | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload_type/delete', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputTypeMasterDelete(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload_type/delete | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload_type/list', async (req, res) => {
         const [err, responseData] = await assetConfigService.getInPutTypeMaster(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("excel/upload_type/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload/add', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputListInsert(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload/add | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload/add/V1', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputListInsertV1(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload/add | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload/update', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputListUpdate(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload/update | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/upload/delete', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputListDelete(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload/delete | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
@@ -137,10 +137,10 @@ function AssetConfigController(objCollection) {
         console.log("vijay")
         const [err, responseData] = await assetConfigService.getInputList(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/upload/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 

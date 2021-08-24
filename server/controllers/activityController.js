@@ -51,20 +51,20 @@ function ActivityController(objCollection) {
                                                     asset_id: newAssetId,
                                                     activity_id: activityId
                                                 };
-                                                res.send(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
+                                                res.json(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
                                             } else {
-                                                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             }
                                         });
                                     } else {
-                                        res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                        res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                         return;
                                     }
 
                                 } else {
                                     //console.log('did not get proper rseponse');
 
-                                    res.send(responseWrapper.getResponse(err, {}, statusCode, req.body));
+                                    res.json(responseWrapper.getResponse(err, {}, statusCode, req.body));
                                     return;
                                 }
                             }.bind(this));
@@ -72,16 +72,16 @@ function ActivityController(objCollection) {
                         case 8: // mail
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId
                                     }, 200, req.body));
                                     return;
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -5998, req.body));
                                     return;
@@ -95,7 +95,7 @@ function ActivityController(objCollection) {
                                 if (err) {
                                     // console.log(err);
                                     util.logError(request,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: 0
                                     }, -7998, req.body));
                                     return;
@@ -103,16 +103,16 @@ function ActivityController(objCollection) {
                                     req.body['form_transaction_id'] = formTransactionId;
                                     addActivity(req.body, function (err, activityId) {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                 activity_id: activityId,
                                                 form_transaction_id: formTransactionId
                                             }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {
+                                                res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -5998, req.body));
                                         }
@@ -123,17 +123,17 @@ function ActivityController(objCollection) {
                         case 10: //FILE and TASK LIST BETA
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId,
                                         message_unique_id: req.body.message_unique_id
                                     }, 200, req.body));
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -5998, req.body));
@@ -151,11 +151,11 @@ function ActivityController(objCollection) {
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                            res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             return;
                                         } else {
                                             data = {};
-                                            res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                            res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             return;
                                         }
                                     });
@@ -174,15 +174,15 @@ function ActivityController(objCollection) {
                                     req.body.activity_sub_type_id = threshold;
                                     addActivity(req.body, function (err, activityId) {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                 activity_id: activityId
                                             }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {
+                                                res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -5998, req.body));
                                         }
@@ -197,15 +197,15 @@ function ActivityController(objCollection) {
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId
                                     }, 200, req.body));
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -5998, req.body));
                                 }
@@ -214,14 +214,14 @@ function ActivityController(objCollection) {
                     };
                     return;
                 } else {
-                    res.send(responseWrapper.getResponse(false, {
+                    res.json(responseWrapper.getResponse(false, {
                         activity_id: 0
                     }, -3302, req.body));
                     return;
                 }
                 return;
             } else {
-                res.send(responseWrapper.getResponse(false, {
+                res.json(responseWrapper.getResponse(false, {
                     activity_id: 0
                 }, -3303, req.body));
                 return;
@@ -232,7 +232,7 @@ function ActivityController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {
+            res.json(responseWrapper.getResponse(false, {
                 activity_id: 0
             }, -3308, req.body));
             return;
@@ -241,7 +241,7 @@ function ActivityController(objCollection) {
         if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5 && deviceOsId !== 6) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
-                    res.send(responseWrapper.getResponse(false, {
+                    res.json(responseWrapper.getResponse(false, {
                         activity_id: 0
                     }, -7998, req.body));
                 } else {
@@ -252,11 +252,11 @@ function ActivityController(objCollection) {
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: 0
                                 }, -7998, req.body));
                             } else {
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: Number(activityId)
                                 }, 200, req.body));
                             }
@@ -267,7 +267,7 @@ function ActivityController(objCollection) {
         } else if (deviceOsId === 5 || deviceOsId === 6) {
             proceedAddActivity();
         } else {
-            res.send(responseWrapper.getResponse(false, {
+            res.json(responseWrapper.getResponse(false, {
                 activity_id: 0
             }, -3304, req.body));
         }
@@ -301,7 +301,7 @@ function ActivityController(objCollection) {
                                         if (data.hasOwnProperty('activity_id')) {
                                             // Do not create the activity and return the existing details
                                             console.log('\x1b[36m Activity ID Exists \x1b[0m', );
-                                            res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                                            res.json(responseWrapper.getResponse(false, data, 200, req.body));
                                             return;
                                         }                                      
                                         
@@ -316,14 +316,14 @@ function ActivityController(objCollection) {
                                                     desk_asset_id: newDeskAssetId,
                                                     activity_id: activityId
                                                 };
-                                                res.send(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
+                                                res.json(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
                                             } else {
                                                 util.logError(req.body,`addActivityerror`, { type: 'add_activity', error: serializeError(err) });
-                                                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             }
                                         });
                                     } else {
-                                        res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                        res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                         return;
                                     }
 
@@ -331,7 +331,7 @@ function ActivityController(objCollection) {
                                     //console.log('did not get proper rseponse');
                                     util.logError(req.body,`addAsseterror`, { type: 'add_activity', error: serializeError(err) });
 
-                                    res.send(responseWrapper.getResponse(err, {}, statusCode, req.body));
+                                    res.json(responseWrapper.getResponse(err, {}, statusCode, req.body));
                                     return;
                                 }
                             }.bind(this));
@@ -339,16 +339,16 @@ function ActivityController(objCollection) {
                         case 8: // mail
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId
                                     }, 200, req.body));
                                     return;
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -5998, req.body));
                                     return;
@@ -361,20 +361,20 @@ function ActivityController(objCollection) {
                             cacheWrapper.getFormTransactionId((err, formTransactionId) => {
                                 if (err) {                                    
                                     util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
+                                    res.json(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                     return;
                                 } else {
                                     req.body['form_transaction_id'] = formTransactionId;
                                     
                                     addActivity(req.body, (err, activityId) => {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {activity_id: activityId,
+                                            res.json(responseWrapper.getResponse(false, {activity_id: activityId,
                                                                                          form_transaction_id: formTransactionId
                                                                                         }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
+                                                res.json(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
+                                                res.json(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
                                         }
                                     });
                                 }
@@ -383,17 +383,17 @@ function ActivityController(objCollection) {
                         case 10: //FILE and TASK LIST BETA
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId,
                                         message_unique_id: req.body.message_unique_id
                                     }, 200, req.body));
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -5998, req.body));
@@ -411,26 +411,26 @@ function ActivityController(objCollection) {
                             // 
                             /*if (!req.body.hasOwnProperty('auth_asset_id')) {
                                 let data = 'Please use the request parameter auth_asset_id for token authentication.';
-                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                res.json(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
                             }
                             // 1. The owner_asset_id must exist and must be non-zero
                             // 
                             if (!req.body.hasOwnProperty('owner_asset_id') || Number(req.body.owner_asset_id) === 0) {
                                 let data = 'The request parameter owner_asset_id must exist and must be non-zero.';
-                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                res.json(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
                             }
                             // 2. Check if asset_id (Creator) is less than the owner_asset_id (Owner).
                             // 
                             if (Number(req.body.asset_id) > Number(req.body.owner_asset_id)) {
                                 let data = 'The asset_id (Creator) must be less than the owner_asset_id (Owner).';
-                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                res.json(responseWrapper.getResponse(true, data, -3206, req.body));
                                 return;
                             } */
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId,
                                         message_unique_id: req.body.message_unique_id
                                     }, 200, req.body));
@@ -438,11 +438,11 @@ function ActivityController(objCollection) {
                                     util.logError(req.body,`addActivityError`, { type: 'add_activity', error: serializeError(err) });
 
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0,
                                             message_unique_id: req.body.message_unique_id
                                         }, -5998, req.body));
@@ -465,11 +465,11 @@ function ActivityController(objCollection) {
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                            res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             return;
                                         } else {
                                             data = {};
-                                            res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                            res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                                             return;
                                         }
                                     });
@@ -489,15 +489,15 @@ function ActivityController(objCollection) {
                                     req.body.activity_sub_type_id = threshold;
                                     addActivity(req.body, function (err, activityId) {
                                         if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                 activity_id: activityId
                                             }, 200, req.body));
                                         } else {
                                             (activityId === 0) ?
-                                            res.send(responseWrapper.getResponse(false, {
+                                            res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -7998, req.body)):
-                                                res.send(responseWrapper.getResponse(false, {
+                                                res.json(responseWrapper.getResponse(false, {
                                                     activity_id: 0
                                                 }, -5998, req.body));
                                         }
@@ -512,15 +512,15 @@ function ActivityController(objCollection) {
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                         activity_id: activityId
                                     }, 200, req.body));
                                 } else {
                                     (activityId === 0) ?
-                                    res.send(responseWrapper.getResponse(false, {
+                                    res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -7998, req.body)):
-                                        res.send(responseWrapper.getResponse(false, {
+                                        res.json(responseWrapper.getResponse(false, {
                                             activity_id: 0
                                         }, -5998, req.body));
                                 }
@@ -529,14 +529,14 @@ function ActivityController(objCollection) {
                     };
                     return;
                 } else {
-                    res.send(responseWrapper.getResponse(false, {
+                    res.json(responseWrapper.getResponse(false, {
                         activity_id: 0
                     }, -3302, req.body));
                     return;
                 }
                 return;
             } else {
-                res.send(responseWrapper.getResponse(false, {
+                res.json(responseWrapper.getResponse(false, {
                     activity_id: 0
                 }, -3303, req.body));
                 return;
@@ -547,7 +547,7 @@ function ActivityController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {
+            res.json(responseWrapper.getResponse(false, {
                 activity_id: 0
             }, -3308, req.body));
             return;
@@ -558,7 +558,7 @@ function ActivityController(objCollection) {
                 if (err) {
                     util.logError(req.body,`formtransactioniderror`, { type: 'add_activity', error: serializeError(err) });
 
-                    res.send(responseWrapper.getResponse(false, {
+                    res.json(responseWrapper.getResponse(false, {
                         activity_id: 0
                     }, -7998, req.body));
                 } else {
@@ -568,7 +568,7 @@ function ActivityController(objCollection) {
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, async function (err, activityId) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: 0
                                 }, -7998, req.body));
                             } else {
@@ -584,7 +584,7 @@ function ActivityController(objCollection) {
                                     // Nothing
                                 }
 
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: Number(activityId),
                                     form_transaction_id: formTransactionID === 0 ? undefined : formTransactionID
                                 }, 200, req.body));
@@ -596,7 +596,7 @@ function ActivityController(objCollection) {
         } else if (deviceOsId === 5 || deviceOsId === 6) {
             proceedAddActivity();
         } else {
-            res.send(responseWrapper.getResponse(false, {
+            res.json(responseWrapper.getResponse(false, {
                 activity_id: 0
             }, -3304, req.body));
         }
@@ -680,7 +680,7 @@ function ActivityController(objCollection) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req.body);
 
-                    res.send(responseWrapper.getResponse(true, activityData, -5999, req.body));
+                    res.json(responseWrapper.getResponse(true, activityData, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -698,10 +698,10 @@ function ActivityController(objCollection) {
                             });
                         }
                     }
-                    res.send(responseWrapper.getResponse(false, activityData, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, activityData, 200, req.body));
                 }
             });
-            //res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, activityData, 200,req.body));
             //return;
         };
         if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
@@ -710,29 +710,29 @@ function ActivityController(objCollection) {
                     if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5) {
                         cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, activityData, -7998, req.body));
+                                res.json(responseWrapper.getResponse(false, activityData, -7998, req.body));
                             } else {
                                 if (status) { // proceed
                                     proceedActivityStatusAlter();
                                 } else { // this is a duplicate hit,
-                                    res.send(responseWrapper.getResponse(false, activityData, 200, req.body));
+                                    res.json(responseWrapper.getResponse(false, activityData, 200, req.body));
                                 }
                             }
                         });
                     } else if (deviceOsId === 5) {
                         proceedActivityStatusAlter();
                     } else {
-                        res.send(responseWrapper.getResponse(false, activityData, -3304, req.body));
+                        res.json(responseWrapper.getResponse(false, activityData, -3304, req.body));
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, activityData, -3306, req.body));
+                    res.json(responseWrapper.getResponse(false, activityData, -3306, req.body));
                 }
 
             } else {
-                res.send(responseWrapper.getResponse(false, activityData, -3301, req.body));
+                res.json(responseWrapper.getResponse(false, activityData, -3301, req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, activityData, -3303, req.body));
+            res.json(responseWrapper.getResponse(false, activityData, -3303, req.body));
             return;
         }
 
@@ -741,9 +741,9 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/inmail/resp_req/set', function (req, res) {
         activityService.inmailResReqSet(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -751,9 +751,9 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
         activityService.updateOwnerRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -761,9 +761,9 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
         activityService.updateLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });    
@@ -772,51 +772,51 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
    	 activityService.updateActivityFormFieldValidation(req.body).then((data)=>{   
    		global.logger.write('conLog', "VALIDATION SET : RESPONSE : " + data, {}, req);
-   		//res.send(responseWrapper.getResponse({}, data, 200, req.body));
+   		//res.json(responseWrapper.getResponse({}, data, 200, req.body));
    	}).catch((err) => { 
    		data = {};
-   		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+   		res.json(responseWrapper.getResponse(err, data, -999, req.body));
        	});
    	 
-   	 	res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+   	 	res.json(responseWrapper.getResponse({}, {}, 200, req.body));
    });
     
     // app.post('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
     //     activityService.updateWorkflowQueueMapping(req.body)
     //         .then((data) => {
     //             // console.log("Data: ", data)
-    //             res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    //             res.json(responseWrapper.getResponse({}, data, 200, req.body));
     //         })
     //         .catch((err) => {
     //             let data = {};
-    //             res.send(responseWrapper.getResponse(err, data, -999, req.body));
+    //             res.json(responseWrapper.getResponse(err, data, -999, req.body));
     //         });
 
-    //     // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+    //     // res.json(responseWrapper.getResponse({}, {}, 200, req.body));
     // });
 
     app.post('/' + global.config.version + '/activity/workflow/get_percentage', function (req, res) {
         activityService.getWorkflowPercentage(req.body)
             .then((data) => {
                 // console.log("Data: ", data)
-                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+                res.json(responseWrapper.getResponse({}, data, 200, req.body));
             })
             .catch((err) => {
                 let data = {};
-                res.send(responseWrapper.getResponse(err, data, -999, req.body));
+                res.json(responseWrapper.getResponse(err, data, -999, req.body));
             });
 
-        // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+        // res.json(responseWrapper.getResponse({}, {}, 200, req.body));
     });
 
     //Rollback Global Form
     app.post('/' + global.config.version + '/activity/status/roll_back', async function (req, res) {
         const [err, responseData] = await activityService.handleRollBackFormSubmissionV1(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/activity/status/roll_back | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.json(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
 
@@ -824,10 +824,10 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/asset/mention/count/update', async (req, res) =>{
         const [err, responseData] = await activityService.updateMentionsCntArr(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/activity/asset/mention/count/update | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.json(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
     
@@ -835,30 +835,30 @@ function ActivityController(objCollection) {
     app.post('/' + global.config.version + '/activity/calendar/event/update', async (req, res) =>{
         const [err, responseData] = await activityService.updateCalendarEventDates(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/activity/calendar/event/update | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+            res.json(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
         }
     });
 
     app.post('/' + global.config.version + '/activity/expression/update', async (req, res) =>{
         const [err, responseData] = await activityService.activityUpdateExpression(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/expression/update | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
     });
     
     app.post('/' + global.config.version + '/activity/bulk-summary/add', async (req, res) =>{
         const [err, responseData] = await activityService.addBulkSummary(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/bulk-summary/add | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err.sqlMessage }, err.errno, req.body));
         }
     });
 
@@ -866,9 +866,9 @@ function ActivityController(objCollection) {
         
         const [err,result] = await activityService.activityTypeMappingInsert(req.body);
         if(!err){
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        res.json(responseWrapper.getResponse(false, result, 200, req.body));
     }else{            
-        res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
     }        
    });
 
@@ -876,18 +876,18 @@ function ActivityController(objCollection) {
         
     const [err,result] = await activityService.activityTypeMappingDelete(req.body);
     if(!err){
-    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    res.json(responseWrapper.getResponse(false, result, 200, req.body));
      }else{            
-    res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+    res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
     }        
     });
    app.post('/' + global.config.version + '/activity/search/mapping/select', async function (req, res) {
         
     const [err,result] = await activityService.activityTypeMappingSearch(req.body);
     if(!err){
-    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    res.json(responseWrapper.getResponse(false, result, 200, req.body));
     }else{            
-    res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+    res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
     }        
     });
 
@@ -895,9 +895,9 @@ function ActivityController(objCollection) {
         
         const [err,result] = await activityService.activityTypeMappingSearchV1(req.body);
         if(!err){
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        res.json(responseWrapper.getResponse(false, result, 200, req.body));
         }else{            
-        res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
         }        
         });
 
@@ -905,9 +905,9 @@ function ActivityController(objCollection) {
         req.body.activity_inline_data = req.body.activity_inline_data;
         const [err, result] = await activityService.activityFormListInsert(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
         }
     });
 
@@ -916,9 +916,9 @@ function ActivityController(objCollection) {
         req.body.activity_inline_data = req.body.activity_inline_data;
         const [err, result] = await activityService.getActivityCategoryTags(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
         }
     });
 

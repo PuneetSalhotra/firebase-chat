@@ -28,17 +28,17 @@ function PamUpdateController(objCollection) {
             };
 
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{});
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
         if (util.hasValidActivityId(req.body)) {
             if (deviceOsId === 5) {
                 proceedCoverUpdate();
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
     
@@ -62,7 +62,7 @@ function PamUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(false, {}, -5998,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -5998,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -79,30 +79,30 @@ function PamUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             return;
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         try {
             JSON.parse(req.body.activity_participant_collection);
             console.log('no exception so far');
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3308,req.body));
             return;
         }
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
                             proceedParticipantAccessReset();
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -111,10 +111,10 @@ function PamUpdateController(objCollection) {
                 proceedParticipantAccessReset();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
 
     });
@@ -145,7 +145,7 @@ function PamUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req.body);
-                            res.send(responseWrapper.getResponse(true, activityData, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, activityData, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -162,10 +162,10 @@ function PamUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, activityData, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, activityData, 200,req.body));
             //return;
         };
         if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
@@ -174,29 +174,29 @@ function PamUpdateController(objCollection) {
                     if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5) {
                         cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, activityData, -7998,req.body));
+                                res.json(responseWrapper.getResponse(false, activityData, -7998,req.body));
                             } else {
                                 if (status) {     // proceed
                                     proceedActivityStatusAlter();
                                 } else {  // this is a duplicate hit,
-                                    res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+                                    res.json(responseWrapper.getResponse(false, activityData, 200,req.body));
                                 }
                             }
                         });
                     } else if (deviceOsId === 5) {
                         proceedActivityStatusAlter();
                     } else {
-                        res.send(responseWrapper.getResponse(false, activityData, -3304,req.body));
+                        res.json(responseWrapper.getResponse(false, activityData, -3304,req.body));
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, activityData, -3306,req.body));
+                    res.json(responseWrapper.getResponse(false, activityData, -3306,req.body));
                 }
 
             } else {
-                res.send(responseWrapper.getResponse(false, activityData, -3301,req.body));
+                res.json(responseWrapper.getResponse(false, activityData, -3301,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, activityData, -3303,req.body));
+            res.json(responseWrapper.getResponse(false, activityData, -3303,req.body));
             return;
         }
 
@@ -205,12 +205,12 @@ function PamUpdateController(objCollection) {
     app.post('/' + global.config.version + '/pam/activity/event/covers/alter', function (req, res) {
     	pamUpdateService.activityListUpdateEventCovers(req.body).then(()=>{    	
     		pamUpdateService.activityAssetMappingUpdateEventCovers(req.body).then(()=>{   	
-    			res.send(responseWrapper.getResponse({}, {}, 200, req.body));    	
+    			res.json(responseWrapper.getResponse({}, {}, 200, req.body));    	
     		}).catch((err) => {        	
-    			res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+    			res.json(responseWrapper.getResponse(err, {}, -999, req.body));
     		});
     	}).catch((err) => {        	
-        	res.send(responseWrapper.getResponse(err, {}, -998, req.body));
+        	res.json(responseWrapper.getResponse(err, {}, -998, req.body));
     	});
     });
     
@@ -224,7 +224,7 @@ function PamUpdateController(objCollection) {
      		//global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
         });
      	
-     	res.send(responseWrapper.getResponse({}, {}, 200,req.body));
+     	res.json(responseWrapper.getResponse({}, {}, 200,req.body));
     });
 }
 

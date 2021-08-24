@@ -109,7 +109,7 @@ function CommnElasticService(objectCollection) {
             }
         });
         resultObj['document_id'] = results[0][0]['activity_document_id'];
-        return res.send(responseWrapper.getResponse(false,resultObj,200,request));
+        return res.json(responseWrapper.getResponse(false,resultObj,200,request));
     }
 
     async function updateDocumetInformation(request,documentcontent,url,client,res) {
@@ -201,10 +201,10 @@ function CommnElasticService(objectCollection) {
 
             }
             resultObj['document_id'] = request.document_id || request.id
-            res.send(responseWrapper.getResponse(false,resultObj,200,request));
+            res.json(responseWrapper.getResponse(false,resultObj,200,request));
         } else {
             var err = 'data not found'
-            res.send(responseWrapper.getResponse(err,{},-9998,request));
+            res.json(responseWrapper.getResponse(err,{},-9998,request));
         }
     }
 
@@ -278,7 +278,7 @@ function CommnElasticService(objectCollection) {
                 } else {
                     var err = {};
                     err = 'data not found';
-                    res.send(responseWrapper.getResponse(err,{},-9998,request));
+                    res.json(responseWrapper.getResponse(err,{},-9998,request));
                 }
             } catch(error) {
                 return Promise.reject(error);
@@ -367,7 +367,7 @@ function CommnElasticService(objectCollection) {
                         responseData.push({"error_msg": error_msg});
 
                         return [error,responseData];
-                        //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+                        //return res.json(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
 
                     } else if(searchText === 'true' || searchText.includes('=')) {
                         flag = false;
@@ -375,7 +375,7 @@ function CommnElasticService(objectCollection) {
                         responseData.push({"error_msg": error_msg});
 
                         return [error,responseData];
-                        //return res.send(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
+                        //return res.json(responseWrapper.getResponse(false, { "error_msg": error_msg }, -9998, request));
 
                     } else {
                         const search_text = (request.search_text).toString();

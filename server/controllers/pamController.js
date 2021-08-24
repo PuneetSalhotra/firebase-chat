@@ -22,10 +22,10 @@ function PamController(objCollection) {
                     util.sendSmsMvaayoo(text, req.country_code, req.phone_number, function (err, res) {});
                 }
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -34,10 +34,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/send/sms', function (req, res) {
         pamService.sendSms(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -45,10 +45,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/reservations/count', function (req, res) {
         pamService.getReservationsCount(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -57,12 +57,12 @@ function PamController(objCollection) {
         pamService.assetAccessAdd(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
 
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -71,12 +71,12 @@ function PamController(objCollection) {
         pamService.getWorkforceDifferential(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
 
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -84,11 +84,11 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/user/access/list', function (req, res) {
         pamService.getUserAccessDetails(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
 
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -96,10 +96,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/asset_mapping/access/account/list', function (req, res) {
         pamService.getAssetAccessAccountLevelDifferential(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -107,10 +107,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/indegredient/menu/inventory_check', function (req, res) {
         pamService.getMenuItemIngredients(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -118,10 +118,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/update/operating_asset/details', function (req, res) {
         pamService.updateOperatingAssetDetails(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -129,9 +129,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/activity/mintime_station/access/set', function (req, res) {
         pamService.stationAssignAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -139,10 +139,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/bulk/status/alter', function (req, res) {
         pamService.bulkStatusAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -150,9 +150,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/reservation_code/check', function (req, res) {
         pamService.checkingReservationCode(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -160,9 +160,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/item_order/workstation/check', function (req, res) {
         pamService.itemOrderWsCheck(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -170,9 +170,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/reservation/set', function (req, res) {
         pamService.reservationSet(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -180,9 +180,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/passcode/reset', function (req, res) {
         pamService.updatePhonePasscode(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -190,9 +190,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/asset/details/alter', function (req, res) {
         pamService.assetListUpdate(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -201,9 +201,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/asset/add', function (req, res) {
         pamService.assetAddForPAM(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -211,9 +211,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/inventory/quantity/alter', function (req, res) {
         pamService.updateInvtQty(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -221,9 +221,9 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/activity/title/alter', function (req, res) {
         pamService.updateTitleDesc(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -231,10 +231,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
         pamService.assetClockIn(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -242,10 +242,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
         pamService.assetClockOut(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -253,10 +253,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/activity/status_cancel/alter', function (req, res) {
         pamService.cancelItem(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -264,10 +264,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/activity/status_preparing/alter', function (req, res) {
         pamService.preparingItem(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });  
@@ -275,10 +275,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/cover/inline/alter', function (req, res) {
         pamService.coverInlineAlter(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -286,10 +286,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/get/event/details', function (req, res) {
         pamService.getEventDetails(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -297,10 +297,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/member/passcode/send', function (req, res) {
         pamService.sendMemberPassCode(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -308,10 +308,10 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/activity/status_pay/alter', function (req, res) {
         pamService.paymentStatusAlter(req.body, function (err, data, statusCode) {
             if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -337,7 +337,7 @@ function PamController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5998,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -354,11 +354,11 @@ function PamController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             return;
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (util.hasValidActivityId(req.body)) {
@@ -366,13 +366,13 @@ function PamController(objCollection) {
 
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
                             proceedParticipantAccessSet();
 
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -380,10 +380,10 @@ function PamController(objCollection) {
             } else if (deviceOsId === 5 || deviceOsId === 6) {
                 proceedParticipantAccessSet();
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
         
@@ -391,10 +391,10 @@ function PamController(objCollection) {
      		console.log(req.body);
     		pamService.insertAssetTimeline(req.body, function (err, data, statusCode) {
                 if (err === false) {    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 } else {                
                     data = {};
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 }
             });
         
@@ -403,18 +403,18 @@ function PamController(objCollection) {
     app.post('/' + global.config.version + '/pam/asset/desc/alter', function (req, res) {
         pamService.assetListUpdateDesc(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
     
     app.post('/' + global.config.version + '/asset/activate/alter', function (req, res) {
     	pamService.deactivateAsset(req.body).then((data)=>{    		
-    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    		res.json(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	
-        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        	res.json(responseWrapper.getResponse(err, {}, -999, req.body));
         	});
     		
         });
@@ -423,10 +423,10 @@ function PamController(objCollection) {
      		console.log(req.body);
     		pamService.insertActivityTimeline(req.body, function (err, data, statusCode) {
                 if (err === false) {    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 } else {                
                     data = {};
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 }
             });
         
@@ -442,45 +442,45 @@ function PamController(objCollection) {
     		//   	global.logger.write('debug', 'NON QUEUE: PARTICIPANT ASSIGN COMPLETED', {}, req);
     		  // 	global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
     	});
-        res.send(responseWrapper.getResponse({},{}, 200, req.body)); 
+        res.json(responseWrapper.getResponse({},{}, 200, req.body)); 
     });
     
     app.post('/' + global.config.version + '/pam/event/report', function (req, res) {
     	pamService.eventReport(req.body).then((data)=>{   
     		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, data, 200, req.body));
     	}).catch((err) => { 
     		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+    		res.json(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
     
     app.post('/' + global.config.version + '/pam/reservation/bill', function (req, res) {
     	pamService.processReservationBilling(req.body, req.body.activity_id).then((data)=>{   
     		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, data, 200, req.body));
     	}).catch((err) => { 
     		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+    		res.json(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
     
     app.post('/' + global.config.version + '/pam/event/reservation/list', function (req, res) {
     	pamService.getEventReservations(req.body,0).then((data)=>{   
     		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, data, 200, req.body));
     	}).catch((err) => { 
     		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+    		res.json(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
         
     app.post('/' + global.config.version + '/pam/send/order/sms', async (req, res) => {
     	let [err,result] = await pamService.pamSendOrderSms(req.body);
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, -999, req.body));
         }
     });
 
@@ -488,89 +488,89 @@ function PamController(objCollection) {
         let [err,result] = await pamService.pamOrdersWithPhoneNumber(req.body)
         console.log(err);
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/pam/reservation/phone/number', async (req, res) => {
         let [err,result] = await pamService.addPamReservationViaPhoneNumber(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/pam/get/activity/category/status', async (req, res) => {
         let [err,result] = await pamService.getActivityStatusV1(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/pam/get/activity/category/type', async (req, res) => {
         let [err,result] = await pamService.getActivityType(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/pam/get/whatsapp/access/token', async (req, res) => {
         let [err,result] = await pamService.whatsappAccessToken(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
     app.post('/' + global.config.version + '/pam/send/whatsapp/message', async (req, res) => {
         let [err,result] = await pamService.sendWhatsAppTemplateMessage(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/pam/get/coupancode', async (req, res) => {
         let [err,result] = await pamService.getCoupanDetails(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });    
 
     app.post('/' + global.config.version + '/pam/update/inlinedata', async (req, res) => {
         let [err,result] = await pamService.updateActivityInlineData(req.body)
         if(!err){
-    		res.send(responseWrapper.getResponse({}, result, 200, req.body));
+    		res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-    		res.send(responseWrapper.getResponse(err, {}, result, req.body));
+    		res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
     });     
 
     app.post('/' + global.config.version + '/pam/reservation_code/check/v1', async (req, res) => {
         let [err,result] = await pamService.checkingReservationCodeV1(req.body)
             if(!err){
-                res.send(responseWrapper.getResponse({}, result, 200, req.body));
+                res.json(responseWrapper.getResponse({}, result, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, result, -9999, req.body));
+                res.json(responseWrapper.getResponse(err, result, -9999, req.body));
             }
     });
 
     app.post('/' + global.config.version + '/pam/get/orders/reservation_code', async (req, res) => {
         let [err, result] = await pamService.getOrdersUsingReservationCode(req.body)
         if (!err) {
-            res.send(responseWrapper.getResponse({}, result, 200, req.body));
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, result, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
         }
     });
 }

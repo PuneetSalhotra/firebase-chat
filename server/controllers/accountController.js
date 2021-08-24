@@ -19,11 +19,11 @@ function AccountController(objCollection) {
         accountService.getAdminAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -32,11 +32,11 @@ function AccountController(objCollection) {
         accountService.getDeskMappingAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -45,11 +45,11 @@ function AccountController(objCollection) {
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -60,15 +60,15 @@ function AccountController(objCollection) {
             accountService.updateAccountMailingAddress(req.body, function (err, data, statusCode) {
                 if (err === false) {
                     // got positive response   
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 } else {
                     //console.log('did not get proper rseponse');
                     data = {};
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 }
             });
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
 
@@ -80,15 +80,15 @@ function AccountController(objCollection) {
             accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
                 if (err === false) {
                     // got positive response   
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 } else {
                     //console.log('did not get proper rseponse');
                     data = {};
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 }
             });
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
 
@@ -100,15 +100,15 @@ function AccountController(objCollection) {
             accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
                 if (err === false) {
                     // got positive response   
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 } else {
                     //console.log('did not get proper rseponse');
                     data = {};
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                    res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 }
             });
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
 
@@ -118,11 +118,11 @@ function AccountController(objCollection) {
         accountService.retrieveAccountList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -131,10 +131,10 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/twilio/getPhoneNumbers', function (req, res) {
         util.getPhoneNumbers(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -143,10 +143,10 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/twilio/purchaseNumber', function (req, res) {
         util.purchaseNumber(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -155,10 +155,10 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/twilio/makeCall', function (req, res) {
         util.twilioMakeCall(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -167,8 +167,8 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/log/communication/request', function (req, res) {
         accountService.loggingCommunicationReq(req.body, function (err, data, statusCode) {
             (err === false) ?
-            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            res.json(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
         });
     });
 
@@ -177,8 +177,8 @@ function AccountController(objCollection) {
     app.get('/' + global.config.version + '/account/log/communication/request', function (req, res) {
         accountService.loggingCommunicationReq(req.query, function (err, data, statusCode) {
             (err === false) ?
-            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            res.json(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
         });
     });
 
@@ -186,8 +186,8 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/log/communication/request/list', function (req, res) {
         accountService.getLoggingCommunicationReq(req.body, function (err, data, statusCode) {
             (err === false) ?
-            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            res.json(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
         });
     });
 
@@ -206,7 +206,7 @@ function AccountController(objCollection) {
 
         fs.readFile(file, function (err, data) {
             if (err) {
-                res.send(responseWrapper.getResponse(err, x[3] + ".xml is not there.", -3401, req.body));
+                res.json(responseWrapper.getResponse(err, x[3] + ".xml is not there.", -3401, req.body));
             } else {
                 res.writeHead(200, {
                     'Content-Type': 'text/xml'
@@ -229,7 +229,7 @@ function AccountController(objCollection) {
 
         fs.readFile(file, function (err, data) {
             if (err) {
-                res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
+                res.json(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
             } else {
                 res.writeHead(200, {
                     'Content-Type': 'application/json; charset=utf-8'
@@ -246,7 +246,7 @@ function AccountController(objCollection) {
         try {
             const [err, rawJsonData] = await util.getJsonFromS3Bucket(req.body, "worlddesk-passcode-voice", "nexmo", req.query.file);
             if (err) {
-                res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
+                res.json(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
                 return;
             } else {
                 res.writeHead(200, {
@@ -257,7 +257,7 @@ function AccountController(objCollection) {
             }
         } catch (error) {
             console.log("/account/nexmo/v1/voice* | Error: ", error);
-            res.send(responseWrapper.getResponse(error, file + " is not there.", -3501, req.body));
+            res.json(responseWrapper.getResponse(error, file + " is not there.", -3501, req.body));
             return;
         }
     });
@@ -266,7 +266,7 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
         // console.log('Nexmo webhook req.body : ', req.body)
         //global.logger.write('debug', 'Nexmo webhook req.body: ' + JSON.stringify(req.body, null, 2), {}, req);
-        res.send(responseWrapper.getResponse(false, req.body, 200, req.body));
+        res.json(responseWrapper.getResponse(false, req.body, 200, req.body));
     });
 
     //Send SMS
@@ -289,7 +289,7 @@ function AccountController(objCollection) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
             global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
-            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+            res.json(responseWrapper.getResponse(false, {}, 200, req.body));
         });       
 
     });
@@ -313,7 +313,7 @@ function AccountController(objCollection) {
             };
             smsEngine.emit('send-mvayoo-sms', smsOptions);
         }
-        res.sendStatus(200);
+        res.jsonStatus(200);
     });*/
 
     /* GET TWILIO SMS delivery receipt */
@@ -324,7 +324,7 @@ function AccountController(objCollection) {
 
         if (req.body.SmsStatus === 'queued' || req.body.SmsStatus === 'sent') {
            //  Irrelevant statuses
-            res.sendStatus(200);
+            res.jsonStatus(200);
             return;
         }
 
@@ -343,7 +343,7 @@ function AccountController(objCollection) {
 
            smsEngine.emit('send-nexmo-sms', smsOptions);
         }
-        res.sendStatus(200);
+        res.jsonStatus(200);
     });*/
 
     /* GET NEXMO SMS delivery receipt. */
@@ -365,7 +365,7 @@ function AccountController(objCollection) {
 
            // smsEngine.emit('send-XXXXXXX-sms', smsOptions);
         }
-        res.sendStatus(200);
+        res.jsonStatus(200);
     });*/
 
 
@@ -373,8 +373,8 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/config/set', function (req, res) {
         accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
             (err === false) ?
-            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            res.json(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
         });
     });
 
@@ -384,11 +384,11 @@ function AccountController(objCollection) {
         accountService.fetchCustomerServiceAgentsOnCrmFloor(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 // Error fetching available errors
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });*/
@@ -397,10 +397,10 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/workforce/module/default/set', function (req, res) {
         accountService.setDefaultModuleForWorkforce(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -409,10 +409,10 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/module/default/set', function (req, res) {
         accountService.setDefaultModuleForAccount(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -421,9 +421,9 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/workforce/inline_data/update', async function (req, res) {
         const [err, data] = await accountService.workforceListUpdateInlineData(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -431,9 +431,9 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/workforce/list', async function (req, res) {
         const [err, data] = await accountService.workforceListSelect(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -441,9 +441,9 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/workforce/activity_type/search', async function (req, res) {
         const [err, data] = await accountService.workforceActivityTypeMappingSelectSearch(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -451,9 +451,9 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/s3/user-credentials/fetch', async function (req, res) {
         const [err, data] = await accountService.fetchS3UserCredentials(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -461,18 +461,18 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/aws_resources/credentials/fetch', async function (req, res) {
         try{
             const data = await accountService.fetchCredentials(req.body);
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }catch(err){            
-            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
         }        
     });
 
     app.post('/' + global.config.version + '/organization/labels/fetch', async function (req, res) {
         const [err, data] = await accountService.fetchOrganizationLabels(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -480,9 +480,9 @@ function AccountController(objCollection) {
         
             const [err,result] = await accountService.fetchS3BucketByMonthYear(req.body);
             if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         }else{            
-            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
         }        
     });
 

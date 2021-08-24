@@ -367,8 +367,9 @@ function Util(objectCollection) {
     };
 
     this.getPhoneNumbers = function (request, callback) {
-        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
-        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+        var accountSid = global.config.accountSid;
+        var authToken = global.config.authToken;
+
         var client = new twilio.RestClient(accountSid, authToken);
 
         var country = request.country;
@@ -383,8 +384,9 @@ function Util(objectCollection) {
     }
 
     this.purchaseNumber = function (request, callback) {
-        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
-        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+        var accountSid = global.config.accountSid;
+        var authToken = global.config.authToken;
+        
         var client = new twilio.RestClient(accountSid, authToken);
 
         var phoneNumber = request.phone_number;
